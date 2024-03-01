@@ -1,0 +1,50 @@
+\documentclass[11pt,a4paper,UTF8]{ctexart}
+
+\usepackage{blindtext}
+\usepackage{wallpaper}
+\usepackage{graphicx}
+
+\begin{document}
+\blindtext
+
+\newpage
+
+\blindtext
+
+%\ThisCenterWallPaper{1.1}{section-background.png} %居中的背景图片，出现在文档的每一页上
+\ThisCenterWallPaper{1.15}{section-background.png}
+
+\blindtext
+
+
+\blindtext
+\newpage
+\ThisULCornerWallPaper{1.0}{section-header.png}
+
+\blindtext
+
+\noindent
+\begin{minipage}[c]{0.07\textwidth}
+\includegraphics[width=\textwidth]{C++23-sign.png}
+\end{minipage}%
+\begin{minipage}[c]{0.93\textwidth}
+Your text goes
+\end{minipage}
+
+\hspace*{\fill} \\
+\hspace*{\fill} \\
+
+
+{\noindent
+\begin{picture}(0,0)
+\put(-25,-9){\includegraphics[width=0.07\textwidth]{C++23-sign.png}}
+\end{picture}
+\texttt{Printing Text}
+}
+
+
+\newpage
+test
+
+
+\end{document}
