@@ -1,0 +1,65 @@
+
+
+\mySubsubsection{2.2.1.}{Format Strings}
+
+
+
+\mySubsubsection{2.2.2.}{Argument Indices}
+
+
+
+\mySubsubsection{2.2.3.}{Printing to Different Destinations}
+
+
+\CXXTwentythreeLogo{-35}{-59}
+\mySubsubsection{2.2.4.}{Compile-Time Verification of Format Strings}
+
+
+\mySamllsection{Non-Compile-Time Constant Format Strings}
+
+\mySamllsection{Handling Errors in Non-Compile-Time Constant Format Strings}
+
+
+
+\mySubsubsection{2.2.5.}{Format Specifiers}
+
+
+\CXXTwentythreeLogo{-35}{-59}
+\mySubsubsection{2.2.6.}{Formatting Escaped Characters and Strings}
+
+\mySamllsection{width}
+
+\mySamllsection{[fill]align}
+
+\mySamllsection{sign}
+
+\mySamllsection{\#}
+
+\mySamllsection{type}
+
+\mySamllsection{precision}
+
+\mySamllsection{0}
+
+\mySamllsection{L}
+
+The optional L specifier enables locale-specific formatting. This option is valid only for arithmetic types, such as integers, floating-point types, and Booleans. When used with integers, the L option specifies that the locale-specific digit group separator character must be used. For floating-point types, it means to use the locale-specific digit group and decimal separator characters. For Boolean types output in textual form, it means to use the locale-specific representation of true and false.
+
+When using the L specifier, you have to pass an std::locale instance as the first parameter to std::format(). This works only with format(), not with print() and println(). Here is an example that formats a floating-point number using the nl locale:
+
+\begin{cpp}
+float f { 1.2f };
+cout << format(std::locale{ "nl" }, "|{:Lg}|\n", f); // |1,2|
+\end{cpp}
+
+Locales are discussed in Chapter 21.
+
+\CXXTwentythreeLogo{-35}{-49}
+\mySubsubsection{2.2.7.}{Formatting Ranges}
+
+
+
+
+\mySubsubsection{2.2.8.}{Support for Custom Types}
+
+

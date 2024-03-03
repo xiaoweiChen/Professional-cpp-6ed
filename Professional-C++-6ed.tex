@@ -130,7 +130,7 @@
 
 % Def \mySamllsection
 \NewDocumentCommand { \mySamllsection } { m }
-{ \noindent \hspace*{\fill} \\ \textbf { #1 } \vspace*{ -1ex } \nopagebreak[4] \\ }
+{ \noindent \textbf { #1 } \vspace*{ -1ex } \nopagebreak[4] \\ }
 
 \NewDocumentCommand { \myGraphic } { mmm }
 {
@@ -199,6 +199,14 @@
 \subfile{{#3}}
 }
 
+\NewDocumentCommand { \CXXTwentythreeLogo } { mm }
+{
+\noindent
+\begin{picture}(0,0)
+\put({#1},{#2}){\includegraphics[width=0.07\textwidth]{images/C++23-sign.png}}
+\end{picture}
+}
+
 \NewDocumentCommand { \mySection } { mmm }
 {
 \ThisULCornerWallPaper{1.0}{images/section-header.png}
@@ -255,6 +263,12 @@
 \setsecnumdepth{section}
 
 \mySectionNoHeadImage{}{关于作者}{content/about-the-author.tex}
+\newpage
+
+\mySectionNoHeadImage{}{关于技术编辑}{content/about-the-technical-editor.tex}
+\newpage
+
+\mySectionNoHeadImage{}{致谢}{content/acknowledgment.tex}
 \newpage
 
 \mySectionNoHeadImage{}{前言}{content/preface.tex}
