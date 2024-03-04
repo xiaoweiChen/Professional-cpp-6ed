@@ -183,6 +183,12 @@
 \addcontentsline{toc}{subsubsection}{{#1}\hspace{0.2cm}{#2}}
 }
 
+\NewDocumentCommand { \mySubsectionNoFile } { mm }
+{
+\subsection*{\zihao{3}{#1}\hspace{0.2cm}{#2}}
+\addcontentsline{toc}{subsection}{{#1}\hspace{0.2cm}{#2}}
+}
+
 \NewDocumentCommand { \mySubsection } { mmm }
 {
 \subsection*{\zihao{3}{#1}\hspace{0.2cm}{#2}}

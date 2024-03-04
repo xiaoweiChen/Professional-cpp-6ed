@@ -1,0 +1,182 @@
+
+The development of C++ started in 1982 by Bjarne Stroustrup, a Danish computer scientist, as the successor of C with Classes. In 1985, the first edition of The C++ Programming Language book was released. The first standardized version of C++ was released in 1998, called C++98. In 2003, C++03 came out and contained a few small updates. After that, it was silent for a while, but traction slowly started building up, resulting in a major update of the language in 2011, called C++11. From then on, the C++ Standard Committee has been on a three-year cycle to release updated versions, giving us C++14, C++17, C++20, and now C++23. All in all, with the release of C++23 in 2023, C++ is almost 40 years old and still going strong. In most rankings of programming languages in 2023, C++ is in the top four. It is being used on an extremely wide range of hardware, going from small devices with embedded microprocessors all the way up to multi-rack supercomputers. Besides wide hardware support, C++ can be used to tackle almost any programming job, be it games on mobile platforms, performance-critical artificial intelligence (AI) and machine learning (ML) software, components for self-driving cars, real-time 3-D graphics engines, low-level hardware drivers, entire operating systems, software stacks for networking equipment, web browsers, and so on. The performance of C++ programs is hard to match with any other programming language, and as such, it is the de facto language for writing fast, powerful, and enterprise-class programs. Big tech companies, such as Microsoft, Facebook, Amazon, Google, and many more, use services written in C++ to run their infrastructure. As popular as C++ has become, the language can be difficult to grasp in full. There are simple, but powerful, techniques that professional C++ programmers use that don’t show up in traditional texts, and there are useful parts of C++ that remain a mystery even to experienced C++ programmers.
+
+Too often, programming books focus on the syntax of the language instead of its real-world use. The typical C++ text introduces a major part of the language in each chapter, explaining the syntax and providing an example. Professional C++ does not follow this pattern. Instead of giving you just the nuts and bolts of the language with little practical context, this book will teach you how to use C++ in the real world. It will show you the little-known features that will make your life easier, as well as the programming techniques that separate novices from professional programmers.
+
+\mySubsectionNoFile{}{Who this book is for}
+
+Even if you have used the language for years, you might still be unfamiliar with the more advanced features of C++, or you might not be using the full capabilities of the language. Maybe you don’t yet know all the new features introduced with the latest release, C++23. Perhaps you write competent C++ code but would like to learn more about design and good programming style in C++. Or maybe you’re relatively new to C++ but want to learn the “right” way to program from the start. This book will meet those needs and bring your C++ skills to the professional level.
+
+Because this book focuses on advancing from basic or intermediate knowledge of C++ to becoming a professional C++ programmer, it assumes that you have some knowledge about programming.
+
+Chapter 1, “A Crash Course in C++ and the Standard Library,” covers the basics of C++ as a refresher, but it is not a substitute for actual training in programming. If you are just starting with C++ but you have experience in another programming language such as C, Java, or C\#, you should be able to pick up most of what you need from Chapter 1.
+
+In any case, you should have a solid foundation in programming fundamentals. You should know about loops, functions, and variables. You should know how to structure a program, and you should be familiar with fundamental techniques such as recursion. You should have some knowledge of common data structures such as queues, and useful algorithms such as sorting and searching. You don’t need to know about object-oriented programming just yet—that is covered in Chapter 5, “Designing with Classes.”
+
+You will also need to be familiar with the compiler you will be using to compile your code. Two compilers, Microsoft Visual C++ and GCC, are introduced later in this introduction. For other compilers, refer to the documentation that came with your compiler.
+
+\mySubsectionNoFile{}{What This Book Covers}
+
+Professional C++ uses an approach to C++ programming that will both increase the quality of your code and improve your programming efficiency. You will find discussions on new C++23 features throughout this sixth edition. These features are not just isolated to a few chapters or sections; instead, examples have been updated to use new features when appropriate.
+
+Professional C++ teaches you more than just the syntax and language features of C++. It also emphasizes programming methodologies, reusable design patterns, and good programming style. The Professional C++ methodology incorporates the entire software development process, from designing and writing code to debugging and working in groups. This approach will enable you to master the C++ language and its idiosyncrasies, as well as take advantage of its powerful capabilities for large-scale software development.
+
+Imagine users who have learned all of the syntax of C++ without seeing a single example of its use. They know just enough to be dangerous! Without examples, they might assume that all code should go in the main() function of the program or that all variables should be global—practices that are generally not considered hallmarks of good programming.
+
+Professional C++ programmers understand the correct way to use the language, in addition to the syntax. They recognize the importance of good design, the theories of object-oriented programming, and the best ways to use existing libraries. They have also developed an arsenal of useful code and reusable ideas.
+
+By reading and understanding this book, you will become a professional C++ programmer. You will expand your knowledge of C++ to cover lesser known and often misunderstood language features. You will gain an appreciation for object-oriented design and acquire top-notch debugging skills. Perhaps most important, you will finish this book armed with a wealth of reusable ideas that you can actually apply to your daily work.
+
+There are many good reasons to make the effort to be a professional C++ programmer as opposed to a programmer who knows C++. Understanding the true workings of the language will improve the quality of your code. Learning about different programming methodologies and processes will help you to work better with your team. Discovering reusable libraries and common design patterns will improve your daily efficiency and help you stop reinventing the wheel. All of these lessons will make you a better programmer and a more valuable employee. While this book can’t guarantee you a promotion, it certainly won’t hurt.
+
+\mySubsectionNoFile{}{How This Book is Structured}
+
+This book is made up of five parts.
+
+Part I, “Introduction to Professional C++,” begins with a crash course in C++ basics to ensure a foundation of C++ knowledge. Following the crash course, Part I goes deeper into working with strings, because strings are used extensively in most examples throughout the book. The last chapter of Part I explores how to write readable C++ code.
+
+Part II, “Professional C++ Software Design,” discusses C++ design methodologies. You will read about the importance of design, the object-oriented methodology, and the importance of code reuse.
+
+Part III, “C++ Coding the Professional Way,” provides a technical tour of C++ from the professional point of view. You will read about the best ways to manage memory in C++, how to create reusable classes, and how to leverage important language features such as inheritance. You will also learn techniques for input and output, error handling, string localization, how to work with regular expressions, and how to structure your code in reusable components called modules. You will read about how to implement operator overloading, how to write templates, how to put restrictions on template parameters using concepts, and how to unlock the power of lambda expressions and function objects. This part also explains the C++ Standard Library, including containers, iterators, ranges, and algorithms. You will also read about some additional libraries that are available in the standard, such as the libraries to work with time, dates, time zones, random numbers, and the filesystem.
+
+Part IV, “Mastering Advanced Features of C++,” demonstrates how you can get the most out of C++. This part of the book exposes the mysteries of C++ and describes how to use some of its more advanced features. You will read about how to customize and extend the C++ Standard Library to your needs, advanced details on template programming, including template metaprogramming, and how to use multithreading to take advantage of multiprocessor and multicore systems.
+
+Part V, “C++ Software Engineering,” focuses on writing enterprise-quality software. You’ll read about the engineering practices being used by programming organizations today; how to write efficient C++ code; software testing concepts, such as unit testing and regression testing; techniques used to debug C++ programs; how to incorporate design techniques, frameworks, and conceptual object-oriented design patterns into your own code; and solutions for cross-language and cross-platform code.
+
+The book concludes with a useful chapter-by-chapter guide to succeeding in a C++ technical interview, an annotated bibliography, a summary of the C++ header files available in the standard, and a brief introduction to the Unified Modeling Language (UML).
+
+This book is not a reference of every single class, member function, and function available in C++. The book C++17 Standard Library Quick Reference by Peter Van Weert and Marc Gregoire (Apress, 2019. ISBN: 978-1-4842-4923-9) is a condensed reference to all essential data structures, algorithms, and functions provided by the C++ Standard Library up until the C++17 standard(At the time of this writing, an updated edition called C++23 Standard Library Quick Reference is being worked on, which is a similar condensed reference but includes all C++20 and C++23 features.). Appendix B, “Annotated Bibliography,” lists a couple more references. Two excellent online references are:
+
+\begin{itemize}
+\item
+\url{cppreference.com}: You can use this reference online or download an offline version for use when you are not connected to the Internet.
+
+\item
+\url{cplusplus.com/reference}
+\end{itemize}
+
+When I refer to a “Standard Library Reference” in this book, I am referring to one of these detailed C++ references.
+
+The following are additional excellent online resources:
+
+\begin{itemize}
+\item
+\url{github.com/isocpp/CppCoreGuidelines}: The C++ Core Guidelines are a collaborative effort led by Bjarne Stroustrup, inventor of the C++ language itself. They are the result of many person-years of discussion and design across a number of organizations. The aim of the guidelines is to help people to use modern C++ effectively. The guidelines are focused on relatively higher-level issues, such as interfaces, resource management, memory management, and concurrency.
+
+\item
+\url{github.com/Microsoft/GSL}: This is an implementation by Microsoft of the Guidelines Support Library (GSL) containing functions and types that are suggested for use by the C++ Core Guidelines. It’s a header-only library.
+
+\item
+\url{isocpp.org/faq}: This is a large collection of frequently asked C++ questions.
+
+\item
+\url{stackoverflow.com}: Search for answers to common programming questions—or ask your own questions.
+\end{itemize}
+
+\mySubsectionNoFile{}{Conventions}
+
+\CXXTwentythreeLogo{-40}{-40}
+
+Paragraphs or sections that are specific to the C++23 standard have a little C++23 icon on the left, just as this paragraph does. C++11, C++14, C++17, and C++20 features are not marked with any icon.
+
+\mySubsectionNoFile{}{What You Need to Use This Book}
+
+All you need to use this book is a computer with a C++ compiler. This book focuses only on parts of C++ that have been standardized, and not on vendor-specific compiler extensions.
+
+\mySubsubsection{}{Any C++ Compiler}
+
+You can use whichever C++ compiler you like. If you don’t have a C++ compiler yet, you can download one for free. There are a lot of choices. For example, for Windows, you can download Microsoft Visual Studio Community Edition, which is free and includes Visual C++. For Linux, you can use GCC or Clang, which are also free.
+
+The following two sections briefly explain how to use Visual C++ and GCC. Refer to the documentation that came with your compiler for more details.
+
+\begin{myTip}{Compilers and C++23 feature support}
+This book discusses new features introduced with the C++23 standard. At the time of this writing, no compilers were fully C++23-compliant yet. Some new features were only supported by some compilers and not others, while other features were not yet supported by any compiler. Compiler vendors are hard at work to catch up with all new features, and I’m sure it won’t take long before there will be full C++23-compliant compilers available. You can keep track of which compiler supports which features at \url{en.cppreference.com/w/cpp/compiler_support}.
+\end{myTip}
+
+\begin{myTip}{Compilers and C++ module support}
+At the time of this writing, not all compilers fully support modules yet; though all major compilers do, at least partially. This book uses modules everywhere. If your compiler does not yet support modules, you can convert modularized code to non-modularized code, as explained briefly in Chapter 11, “Modules, Header Files, and Miscellaneous Topics.”
+\end{myTip}
+
+\mySubsubsection{}{Example: Microsoft Visual C++ 2022}
+
+First, you need to create a project. Start Visual C++ 2022, and on the welcome screen, click the Create A New Project button. If the welcome screen is not shown, select File ➪ New ➪ Project. In the Create A New Project dialog, search for the Console App project template with tags C++, Windows, and Console, and click Next. Specify a name for the project and a location where to save it and click Create.
+
+Once your new project is loaded, you can see a list of project files in the Solution Explorer. If this docking window is not visible, select View ➪ Solution Explorer. A newly created project will contain a file called <projectname>.cpp under the Source Files section in the Solution Explorer. You can start writing your C++ code in that .cpp file, or if you want to compile source code files from the downloadable source archive for this book, select the <projectname>.cpp file in the Solution Explorer and delete it. You can add new files or existing files to a project by right-clicking the project name in the Solution Explorer and then selecting Add ➪ New Item or Add ➪ Existing Item.
+
+At the time of this writing, Visual C++ 2022 does not yet automatically enable C++23 features. To enable C++23 features, in the Solution Explorer window, right-click your project and click Properties. In the Properties window, go to Configuration Properties ➪ General, set the C++ Language Standard option to ISO C++23 Standard or Preview - Features from the Latest C++ Working Draft, whichever is available in your version of Visual C++, and click OK.
+
+Finally, select Build -> Build Solution to compile your code. When it compiles without errors, you can run it with Debug -> Start Debugging.
+
+\begin{myNotic}{Note}
+Microsoft Visual C++ has full support for modules, including the C++23 standard named module std.
+\end{myNotic}
+
+\mySubsubsection{}{Example: GCC}
+
+You can create your source code files with any text editor you prefer and save them to a directory. To compile your code, open a terminal and run the following command, specifying all your .cpp files that you want to compile:
+
+\begin{shell}
+g++ -std=c++2b -o <executable_name> <source1.cpp> [source2.cpp ...]
+\end{shell}
+
+The -std=c++2b option is required to tell GCC to enable C++23 features. This option will change to -std=C++23 once GCC is fully C++23-compliant.
+
+\hspace*{\fill} \\
+\textbf{Module Support}
+
+Support for modules in GCC is enabled with the -fmodules-ts option.
+
+At the time of this writing, GCC does not yet support the C++23 standard named module std, introduced in Chapter 1. To make such code compile, you have to replace import std; declarations with import declarations of individual Standard Library headers. Once that is done, import declarations of Standard Library headers, such as the following, require you to precompile them:
+
+\begin{cpp}
+import <iostream>;
+\end{cpp}
+
+Here is an example of precompiling <iostream>:
+
+\begin{shell}
+g++ -std=c++2b -fmodules-ts -xc++-system-header iostream
+\end{shell}
+
+As an example, the AirlineTicket code from Chapter 1 uses modules. To compile it with GCC, first replace the use of std::println() with std::cout as GCC does not yet support <print> functionality at the time of this writing. After that, replace the import std; declarations with the appropriate import declarations, <string> and <iostream> for this example. You can find the adapted code in the Examples\verb|\|Ch00\verb|\|AirlineTicket directory in the downloadable source code archive.
+
+Then, compile the two standard headers <iostream> and <string>:
+
+\begin{shell}
+g++ -std=c++2b -fmodules-ts -xc++-system-header iostream
+g++ -std=c++2b -fmodules-ts -xc++-system-header string
+\end{shell}
+
+Compile the module interface file:
+
+\begin{shell}
+g++ -std=c++2b -fmodules-ts -c -x c++ AirlineTicket.cppm
+\end{shell}
+
+Finally, compile the application itself:
+
+\begin{shell}
+g++ -std=c++2b -fmodules-ts -o AirlineTicket AirlineTicket.cpp AirlineTicketTest.cpp AirlineTicket.o
+\end{shell}
+
+When it compiles without errors, you can run it as follows:
+
+\begin{shell}
+./AirlineTicket
+\end{shell}
+
+\begin{myNotic}{Note}
+The process of compiling C++ code using C++ modules with GCC might change in the future. Also, support for the C++23 standard named module std will be added. In that case, please consult the GCC documentation for an updated procedure on how to compile such code.
+\end{myNotic}
+
+\mySamllsection{C++23's Support for Printing Ranges}
+
+
+
+\mySubsectionNoFile{}{Reader Support for This Book}
+
+\mySubsubsection{}{Companion Download Files}
+
+\mySubsubsection{}{How to Contact the Publisher}
+
+\mySubsubsection{}{How to Contact the Author}
