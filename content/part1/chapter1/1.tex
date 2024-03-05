@@ -104,44 +104,589 @@ To enable UTF-8 support with Microsoft Visual C++, add the /utf-8 option to the 
 
 \mySamllsection{Preprocessor Directives}
 
+If your compiler does not yet support modules, then instead of importing modules or header files, you need to \#include header files. That is, explicit import declarations such as import <print>;, need to be replaced with \#include preprocessor directives as follows:
+
+\begin{cpp}
+#include <print>
+\end{cpp}
+
+Directives aimed at the preprocessor start with the \# character, as in \#include <print>. In this case, the \#include directive tells the preprocessor to take everything from the <print> header file and copy it into the current file. The <print> header provides the functionality to print text to the screen.
+
+Chapter 11, “Modules, Header Files, and Miscellaneous Topics,” discusses preprocessor directives in a bit more detail. But, as mentioned, this book uses modules instead of old-style header files.
+
 \mySamllsection{The main() Function}
 
-\CXXTwentythreeLogo{-35}{-9}
+main() is, of course, where the program starts. The return type of main() is an int, indicating the result status of the program. The main() function either takes no parameters or takes two parameters as follows:
+
+\begin{cpp}
+int main(int argc, char** argv)
+\end{cpp}
+
+argc gives the number of arguments passed to the program, and argv contains those arguments. Note that argv[0] can be the program name, but it might as well be an empty string, so do not rely on it; instead, use platform-specific functionality to retrieve the program name. The important thing to remember is that the actual arguments contained in argv start at index 1.
+
+\hspace*{\fill} \\ % will remove
+\hspace*{\fill} \\ % will remove
+\hspace*{\fill} \\ % will remove
+
+\CXXTwentythreeLogo{-40}{-50}
+
 \mySamllsection{Printing Text}
 
+Before C++23, you would use I/O streams to output text to the screen. Streams are briefly covered in the next section and in detail in Chapter 13, “Demystifying C++ I/O.” However, C++23 introduces a new, easier-to-use mechanism to print text to the screen, which is used in almost every code snippet in this book: std::print() and println(), both defined in <print>.
 
+Chapter 2, “Working with Strings and String Views,” discusses the std::print() and println() string formatting and printing functions in detail. However, their basic use is straightforward and introduced here so that they can already be used in upcoming code snippets. In its most basic form, println() can be used to print a line of text that automatically ends with a new line:
+
+\begin{cpp}
+std::println("Hello, World!");
+\end{cpp}
+
+The first argument to println() is a format string, which can contain replacement fields to be replaced with values passed in as second and subsequent arguments. You indicate where a replacement field goes by including curly brackets, \{\}, for each field to be included. For example:
+
+\begin{cpp}
+std::println("There are {} ways I love you.", 219);
+\end{cpp}
+
+In this example, the number 219 is inserted into the string, so the output is:
+
+\begin{shell}
+There are 219 ways I love you
+\end{shell}
+
+You can have as many replacement fields as needed, for example:
+
+\begin{cpp}
+std::println("{} + {} = {}", 2, 4, 6);
+\end{cpp}
+
+In this example, each field is applied in order, so the resulting output is:
+
+\begin{shell}
+2 + 4 = 6
+\end{shell}
+
+There is much more to be said about the format of replacement fields, but that’s for Chapter 2.
+
+If you use print() instead of println(), the printed text will not end with a new line character.
 
 \mySamllsection{I/O Streams}
 
+If your compiler does not yet support the C++23 std::print() and println() functions, you have to rewrite them using I/O streams.
+
+I/O streams are covered in depth in Chapter 13, but the basics of output and input are simple. Think of an output stream as a laundry chute for data. Anything you toss into it will be output appropriately. std::cout is the chute corresponding to the user console, or standard out. There are other chutes, including std::cerr, which outputs to the error console. The <{}< operator tosses data down the chute. Output streams allow multiple types of data to be sent down the stream sequentially on a single line of code. The following code outputs text, followed by a number, followed by more text:
+
+\begin{cpp}
+std::cout << "There are " << 219 << " ways I love you." << std::endl;
+\end{cpp}
+
+Starting with C++20, though, it is recommended to use std::format(), defined in <format>, to perform string formatting. The format() function uses the same concept of replacement fields as print() and println()and is discussed in detail in Chapter 2. However, using it to rewrite the previous statement is easy enough:
+
+\begin{cpp}
+std::cout << std::format("There are {} ways I love you.", 219) << std::endl;
+\end{cpp}
+
+Thus, if your compiler doesn’t support print() and println() yet, you can easily rewrite such statements to use cout, format(), and endl. For example, suppose you have the following statement:
+
+\begin{cpp}
+std::println("{} + {} = {}", 2, 4, 6);
+\end{cpp}
+
+In this statement, replace println() with format(), stream the result to cout, and add an output of endl:
+
+\begin{cpp}
+std::cout << std::format("{} + {} = {}", 2, 4, 6) << std::endl;
+\end{cpp}
+
+std::endl represents an end-of-line sequence. When the output stream encounters std::endl, it will output everything that has been sent down the chute so far and move to the next line. An alternate way of representing the end of a line is by using the \verb|\|n character. The \verb|\|n character is an escape sequence, which refers to a new-line character. Escape sequences can be used within any quoted string of text. The following table shows the most common ones:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{Escape sequence}         & \textbf{Meaning}                                             \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\textbackslash{}n                & New line: moves the cursor to the beginning of the next line \\ \hline
+\textbackslash{}r &
+\begin{tabular}[c]{@{}l@{}}Carriage return: moves the cursor to the beginning of the current line, but\\ does not advance to the next line\end{tabular} \\ \hline
+\textbackslash{}t                & Tab                                                          \\ \hline
+\textbackslash{}\textbackslash{} & Backslash character                                          \\ \hline
+\textbackslash{}"                & Quotation mark                                               \\ \hline
+\end{longtable}
+
+\begin{myWarning}{WARNING}
+Keep in mind that endl inserts a new line into the stream and flushes everything currently in its buffers down the chute. Overusing endl, for example in a loop, is not recommended because it will have a performance impact. On the other hand, inserting \textbackslash{}n into the stream also inserts a new line but does not automatically flush the buffers.
+\end{myWarning}
+
+By default, print() and println() print text to the standard output console, std::cout. You can print to the error console, std::cerr, as follows:
+
+\begin{cpp}
+std::println(std::cerr, "Error: {}", 6);
+\end{cpp}
+
+Streams can also be used to accept input from the user. The simplest way to do so is to use the >{}> operator with an input stream. The std::cin input stream accepts keyboard input from the user. Here is an example:
+
+\begin{cpp}
+import std;
+int main()
+{
+    int value;
+    std::cin >> value;
+    std::println("You entered {}", value);
+}
+\end{cpp}
+
+The >{}> operator stops input when it encounters a space character after reading a value. That also means you cannot use the operator to read text containing spaces. Additionally, user input can be tricky because you never know what kind of data the user will enter. Chapter 13 discusses input streams in detail, including how to read text with embedded spaces.
+
+If you’re new to C++ and coming from a C background, you’re probably wondering what has been done with the trusty old printf() and scanf() functions. While these functions can still be used in C++, I strongly recommend using the modern print(), println(), and format() functions and the streams library instead, mainly because the printf() and scanf() family of functions do not provide any type safety.
+
 \mySamllsection{Returning from a Function}
 
+The last line in the “Hello, World” program is as follows:
 
+\begin{cpp}
+return 0;
+\end{cpp}
+
+Since this is the main() function, returning from it returns control to the operating system. When doing so, it passes the value 0, which usually signals to the operating system that there were no errors while executing the program. For error cases, you can return non-zero values.
+
+A return statement in main() is optional. If you don’t write one, the compiler will implicitly add a return 0; for you.
 
 \mySubsubsection{1.1.2.}{Namespaces}
 
+Namespaces address the problem of naming conflicts between different pieces of code. For example, you might be writing some code that has a function called foo(). One day, you decide to start using a third-party library, which also has a foo() function. The compiler has no way of knowing which version of foo() you are referring to within your code. You can’t change the library’s function name, and it would be a big pain to change your own.
+
+Namespaces come to the rescue in such scenarios because you can define the context in which names are defined. To place code in a namespace, enclose it within a namespace block. Here’s an example:
+
+\begin{cpp}
+namespace mycode {
+    void foo()
+    {
+        std::println("foo() called in the mycode namespace");
+    }
+}
+\end{cpp}
+
+By placing your version of foo() in the namespace mycode, you are isolating it from the foo() function provided by the third-party library. To call the namespace-enabled version of foo(), prepend the namespace onto the function name by using ::, also called the scope resolution operator, as follows:
+
+\begin{cpp}
+mycode::foo(); // Calls the "foo" function in the "mycode" namespace
+\end{cpp}
+
+Any code that falls within a mycode namespace block can call other code within the same namespace without explicitly prepending the namespace. This implicit namespace is useful in making the code more readable. You can also avoid prepending of namespaces with a using directive. This directive tells the compiler that the subsequent code is making use of names in the specified namespace. The namespace is thus implied for the code that follows:
+
+\begin{cpp}
+using namespace mycode;
+
+int main()
+{
+    foo(); // Implies mycode::foo();
+}
+\end{cpp}
+
+\begin{myNotic}{Note}
+The main() function must never be put in a namespace. It must be in the global namespace.
+\end{myNotic}
+
+A single source file can contain multiple using directives, but beware of overusing this shortcut. In the extreme case, if you declare that you’re using every namespace known to humanity, you’re effectively eliminating namespaces entirely! Name conflicts will again result if you are using two namespaces that contain the same names. It is also important to know in which namespace your code is operating so that you don’t end up accidentally calling the wrong version of a function.
+
+You’ve seen the namespace syntax before—you used it in the “Hello, World” program, where println is a name defined in the std namespace. You can write “Hello, World” with a using directive as shown here:
+
+\begin{cpp}
+import std;
+
+using namespace std;
+
+int main()
+{
+    println("Hello, World!");
+}
+\end{cpp}
+
+\begin{myNotic}{Note}
+Most code snippets in this book assume a using directive for the std namespace so that everything from the C++ Standard Library can be used without the need to qualify it with std::.
+\end{myNotic}
+
+A using declaration can be used to refer to a particular item within a namespace. For example, if the only part of the std namespace that you want to use unqualified is print, you can use the following using declaration:
+
+\begin{cpp}
+using std::print;
+\end{cpp}
+
+Subsequent code can refer to print without prepending the namespace, but other items in the std namespace, such as println, still need to be explicit:
+
+\begin{cpp}
+using std::print;
+print("Hello, ");
+std::println("World!");
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+Never put a using directive or using declaration in a header file at global scope; otherwise, you force it on everyone who includes your header file. Putting it in a smaller scope, for instance at namespace or class scope, is OK, even in a header file. It’s also perfectly fine to put a using directive or declaration in a module interface file, as long as you don’t export it. However, this book always fully qualifies all types in module interface files, as I think it makes it easier to understand an interface. Module interface files and exporting entities from modules are explained later in this chapter.
+\end{myWarning}
+
 \mySamllsection{Nested Namespace}
+
+A nested namespace is a namespace inside another one. Each namespace is separated by a double colon. Here’s an example:
+
+\begin{cpp}
+namespace MyLibraries::Networking::FTP {
+    /* ... */
+}
+\end{cpp}
+
+This compact syntax was not available before C++17 in which case you had to resort to the following:
+
+\begin{cpp}
+namespace MyLibraries {
+    namespace Networking {
+        namespace FTP {
+            /* ... */
+        }
+    }
+}
+\end{cpp}
 
 \mySamllsection{Namespace Alias}
 
+A namespace alias can be used to give a new and possibly shorter name to another namespace. Here’s an example:
 
+\begin{cpp}
+namespace MyFTP = MyLibraries::Networking::FTP;
+\end{cpp}
 
 \mySubsubsection{1.1.3.}{Literals}
 
-\mySamllsection{Numerical Limits}
+Literals are used to write numbers or strings in your code. C++ supports a couple of standard literals. Integral numbers can be written using the following literals (the examples represent the same number, 123):
 
-\mySamllsection{Zero Initialization}
+\begin{itemize}
+\item
+Decimal literal, 123
 
-\mySamllsection{Casting}
+\item
+Octal literal, 0173 (starts with a zero)
 
-\mySamllsection{Preprocessor Directives}
+\item
+Hexadecimal literal, 0x7B (starts with 0x)
 
-\mySamllsection{Floating-Point Numbers}
+\item
+Binary literal, 0b1111011 (starts with 0b)
+\end{itemize}
 
+\begin{myWarning}{WARNING}
+Never put a zero, 0, in front of a numerical literal, unless it’s an octal literal!
+\end{myWarning}
 
+Other examples of literals in C++ include the following:
+
+\begin{itemize}
+\item
+A floating-point value (such as 3.14f)
+
+\item
+A double floating-point value (such as 3.14)
+
+\item
+A hexadecimal floating-point literal (such as 0x3.ABCp-10 and 0Xb.cp12l)
+
+\item
+A single character (such as 'a')
+
+\item
+A zero-terminated array of characters (such as "character array")
+\end{itemize}
+
+A literal can have a suffix, such as the f in 3.14f, to force a certain type. In this case, 3.14f results in a float, while 3.14 results in a double.
+
+Single quote characters can be used as digit separators in numeric literals. For example:
+
+\begin{itemize}
+\item
+23'456'789
+
+\item
+2'34'56'789
+
+\item
+0.123'456f
+\end{itemize}
+
+Multiple string literals separated only by whitespace are automatically concatenated into a single string. For example:
+
+\begin{cpp}
+std::println("Hello, "
+             "World!");
+\end{cpp}
+
+is equivalent to:
+
+\begin{cpp}
+std::println("Hello, World!");
+\end{cpp}
+
+It is also possible to define your own type of literals, which is an advanced feature explained in Chapter 15, “Overloading C++ Operators.”
 
 \mySubsubsection{1.1.4.}{Variables}
 
+In C++, variables can be declared just about anywhere in your code and can be used anywhere in the current block below the line where they are declared. Variables can be declared without being given a value. These uninitialized variables generally end up with a semi-random value based on whatever is in memory at that time, and they are therefore the source of countless bugs. Variables in C++ can alternatively be assigned an initial value when they are declared. The code that follows shows both flavors of variable declaration, both using ints, which represent integer values:
 
+\begin{cpp}
+int uninitializedInt;
+int initializedInt { 7 };
+println("{} is a random value", uninitializedInt);
+println("{} was assigned as an initial value", initializedInt);
+\end{cpp}
+
+\begin{myNotic}{Note}
+Most compilers will issue a warning or an error when code is using uninitialized variables. Some compilers will generate code that will report an error at run time.
+\end{myNotic}
+
+The initializedInt variable is initialized using the uniform initialization syntax. You can also use the following assignment syntax for initializing variables:
+
+\begin{cpp}
+int initializedInt = 7;
+\end{cpp}
+
+Uniform initialization was introduced with the C++11 standard in 2011. It is recommended to use uniform initialization instead of the old assignment syntax, so that’s the syntax used in this book. The section “Uniform Initialization” later in this chapter goes deeper in on the benefits and why it is recommended.
+
+Variables in C++ are strongly typed; that is, they always have a specific type. C++ comes with a whole set of built-in types that you can use out of the box. The following table shows the most common types:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{Type} &
+\textbf{Description} &
+\textbf{Usage} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\begin{tabular}[c]{@{}l@{}}(signed) int\\ signed\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Positive and negative integers;\\ the range depends on the\\ compiler (usually 4 bytes)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}int i \{-7\};\\ signed int i \{-6\};\\ signed i \{-5\};\end{tabular} \\ \hline
+(signed) short (int) &
+Short integer (usually 2 bytes) &
+\begin{tabular}[c]{@{}l@{}}short s \{13\};\\ short int s \{14\};\\ signed short s \{15\};\\ signed short int s \{16\};\end{tabular} \\ \hline
+(signed) long (int) &
+Long integer (usually 4 bytes) &
+long l \{-7L\}; \\ \hline
+(signed) long long (int) &
+\begin{tabular}[c]{@{}l@{}}Long long integer; the range\\ depends on the compiler but\\ is at least the same as for long\\ (usually 8 bytes)\end{tabular} &
+long long ll \{14LL\}; \\ \hline
+\begin{tabular}[c]{@{}l@{}}unsigned (int)\\ unsigned short (int)\\ unsigned long (int)\\ unsigned long long (int)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Limits the preceding types to\\ values \textgreater{}= 0\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}unsigned int i \{2U\};\\ unsigned j \{5U\};\\ unsigned short s \{23U\};\\ unsigned long l \{54UL\};\\ unsigned long long ll \{140ULL\};\end{tabular} \\ \hline
+float &
+\begin{tabular}[c]{@{}l@{}}Single precision floating-point\\ numbers\end{tabular} &
+float f \{7.2f\}; \\ \hline
+double &
+\begin{tabular}[c]{@{}l@{}}Double precision floating-point\\ numbers; precision is at least the\\ same as for float\end{tabular} &
+double d \{7.2\}; \\ \hline
+long double &
+\begin{tabular}[c]{@{}l@{}}Long double precision floating\\ point numbers; precision is at\\ least the same as for double\end{tabular} &
+long double d \{16.98L\}; \\ \hline
+\begin{tabular}[c]{@{}l@{}}char\\ unsigned char\\ signed char\end{tabular} &
+A single character &
+char ch \{'m'\}; \\ \hline
+\begin{tabular}[c]{@{}l@{}}char8\_t\\ char16\_t\\ char32\_t\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}A single n-bit UTF-n-encoded\\ Unicode character where n can\\ be 8, 16, or 32\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}char8\_t c8 \{u8'm'\};\\ char16\_t c16 \{u'm'\};\\ char32\_t c32 \{U'm'\};\end{tabular} \\ \hline
+wchar\_t &
+\begin{tabular}[c]{@{}l@{}}A single wide character; the size\\ depends on the compiler\end{tabular} &
+wchar\_t w \{L'm'\}; \\ \hline
+bool &
+\begin{tabular}[c]{@{}l@{}}A Boolean type that can have\\ one of two values: true or false\end{tabular} &
+bool b \{true\}; \\ \hline
+\end{longtable}
+
+The range of signed and unsigned integer and char types is as follows:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{Type}                                             & \textbf{Signed}                 & \textbf{Unsigned}  \\ \hline
+\endfirsthead
+%
+\endhead
+%
+char                                                      & -128 to 127                     & 0 to 255           \\ \hline
+\begin{tabular}[c]{@{}l@{}}2-byte\\ integers\end{tabular} & -32,768 to 32,767               & 0 to 65,535        \\ \hline
+\begin{tabular}[c]{@{}l@{}}4-byte\\ integers\end{tabular} & -2,147,483,648 to 2,147,483,647 & 0 to 4,294,967,295 \\ \hline
+\begin{tabular}[c]{@{}l@{}}8-byte\\ integers\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}-9,223,372,036,854,775,808 to\\ 9,223,372,036,854,775,807\end{tabular} &
+0 to 18,446,744,073,709,551,615 \\ \hline
+\end{longtable}
+
+Type char is a different type compared to both the signed char and unsigned char types. It should be used only to represent characters. Depending on your compiler, it can be either signed or unsigned, so you should not rely on it being signed or unsigned.
+
+The range and precision of floating-point types is discussed in the section “Floating-Point Numbers” later in this chapter.
+
+Related to char, <cstddef> provides the std::byte type representing a single byte. Before C++17, a char or unsigned char was used to represent a byte, but those types make it look like you are working with characters. std::byte on the other hand clearly states your intention, that is, a single byte of memory. A byte can be initialized as follows:
+
+\begin{cpp}
+std::byte b { 42 };
+\end{cpp}
+
+\begin{myNotic}{Note}
+C++ does not provide a basic string type. However, a standard implementation of a string is provided as part of the Standard Library, as briefly discussed later in this chapter and in detail in Chapter 2.
+\end{myNotic}
+
+\mySamllsection{Numerical Limits}
+
+C++ provides a standard way to obtain information about numeric limits, such as the maximum possible value for an integer on the current platform. In C, you could access constants, such as INT\_MAX. While those are still available in C++, it’s recommended to use the std::numeric\_limits class template defined in <limits>. Class templates are discussed later in this book, but those details are not important to understand how to use numeric\_limits. For now, you just need to know that, since it is a class template, you have to specify the type you are interested in between a set of angle brackets. For example, to get numeric limits for integers, you write std::numeric\_limits<int>. Consult a Standard Library reference (see Appendix B) to learn exactly what kind of information you can query using numeric\_limits.
+
+Here are a few examples:
+
+\begin{cpp}
+println("int:");
+println("Max int value: {}", numeric_limits<int>::max());
+println("Min int value: {}", numeric_limits<int>::min());
+println("Lowest int value: {}", numeric_limits<int>::lowest());
+
+println("\ndouble:");
+println("Max double value: {}", numeric_limits<double>::max());
+println("Min double value: {}", numeric_limits<double>::min());
+println("Lowest double value: {}", numeric_limits<double>::lowest());
+\end{cpp}
+
+The output of this code snippet on my system is as follows:
+
+\begin{shell}
+int:
+Max int value: 2147483647
+Min int value: -2147483648
+Lowest int value: -2147483648
+double:
+Max double value: 1.7976931348623157e+308
+Min double value: 2.2250738585072014e-308
+Lowest double value: -1.7976931348623157e+308
+\end{shell}
+
+Note the differences between min() and lowest(). For an integer, the minimum value equals the lowest value. However, for floating-point types, the minimum value is the smallest positive value that can be represented, while the lowest value is the most negative value representable, which equals -max().
+
+\mySamllsection{Zero Initialization}
+
+Variables can be initialized to zero with \{0\}, or with a zero initializer, \{\}. Zero initialization initializes primitive integer types (such as char, int, and so on) to zero, primitive floating-point types to 0.0, pointer types to nullptr, and constructs objects with the default constructor (discussed later).
+
+Here is an example of zero initializing a float and an int:
+
+\begin{cpp}
+float myFloat {};
+int myInt {};
+\end{cpp}
+
+\mySamllsection{Casting}
+
+Variables can be converted to other types by casting them. For example, a float can be cast to an int. C++ provides three ways to explicitly change the type of a variable. The first method is a holdover from C; it is not recommended but, unfortunately, still commonly used. The second method is rarely used. The third method is the most verbose but is also the cleanest one and is therefore recommended.
+
+\begin{cpp}
+float myFloat { 3.14f };
+int i1 { (int)myFloat }; // method 1
+int i2 { int(myFloat) }; // method 2
+int i3 { static_cast<int>(myFloat) }; // method 3
+\end{cpp}
+
+The resulting integer will be the value of the floating-point number with the fractional part truncated. Chapter 10, “Discovering Inheritance Techniques,” describes the different casting methods in more detail. In some contexts, variables can be automatically cast, or coerced. For example, a short can be automatically converted into a long because a long represents the same type of data with at least the same precision:
+
+\begin{cpp}
+long someLong { someShort }; // no explicit cast needed
+\end{cpp}
+
+When automatically casting variables, you need to be aware of the potential loss of data. For example, casting a float to an int throws away the fractional part of the number, and the resulting integer can even be completely wrong if the floating-point value represents a number bigger than the maximum representable integer value. Most compilers will issue a warning or even an error if you assign a float to an int without an explicit cast. If you are certain that the left-hand side type is fully compatible with the right-hand side type, it’s OK to cast implicitly.
+
+\mySamllsection{Floating-Point Numbers}
+
+Working with floating-point numbers can be more complicated than working with integral types. You need to keep a few things in mind. Calculations with floating-point values that are orders of magnitude different can cause errors. Furthermore, calculating the difference between two floating-point numbers that are almost identical will cause the loss of precision. Also keep in mind that a lot of decimal values cannot be represented exactly as floating-point numbers. However, going deeper in on the numerical problems with using floating-point numbers and how to write numerical stable floatingpoint algorithms is outside the scope of this book, as these topics warrant a whole book on their own.
+
+There are several special floating-point numbers:
+
+\begin{itemize}
+\item
++/-infinity: Represents positive and negative infinity, for example the result of dividing a nonzero number by zero
+
+\item
+NaN: Abbreviation for not-a-number, for example the result of dividing zero by zero, a mathematically undefined result
+\end{itemize}
+
+To check whether a given floating-point number is not-a-number, use std::isnan(). To check for infinity, use std::isinf(). Both functions are defined in <cmath>.
+
+To obtain one of these special floating-point values, use numeric\_limits, for example std::numeric\_limits<double>::infinity().
+
+\CXXTwentythreeLogo{-40}{-50}
+
+\mySamllsection{Extended Floating-Point Types}
+
+As mentioned in the section on variables earlier, C++ provides the following standard floating-point types: float, double, and long double.
+
+C++23 introduces the following extended floating-point types that have become popular in certain domains. Support for these is optional, and not all compilers provide these types.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{Type}    & \textbf{Description}                               & \textbf{Literal suffix} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+std::float16\_t  & 16-bit format from the IEEE 754 standard.          & F16 or f16              \\ \hline
+std::float32\_t  & 32-bit format from the IEEE 754 standard.          & F32 or f32              \\ \hline
+std::float64\_t  & 64-bit format from the IEEE 754 standard.          & F64 or f64              \\ \hline
+std::float128\_t & 128-bit format from the IEEE 754 standard.         & F128 or f128            \\ \hline
+std::bfloat16\_t & Brain floating point.
+(Developed by Google Brain, an artificial intelligence group at Google. It is used in AI processors and supported in hardware on the latest NVIDIA GPUs.) Used in certain AI domains. & BF16 or bf16            \\ \hline
+\end{longtable}
+
+Most of the time, the standard types, float, double, and long double, are enough. From these, double should be your default type. Using float can trigger loss of precision, and, depending on your use case, this might or might not be acceptable.
+
+\mySamllsection{Range and Accuracy of Floating-Point Types}
+
+Floating-point types have a limited range and a limited precision. The following table gives detailed specifications of all standard and extended floating-point types supported by C++. However, the specifications of the standard types, float, double, and long double, are not specified exactly by the C++ standard. The standard says only that long double should have at least the same precision as double, and double should have at least the same precision as float. For these three types, the table shows values commonly used by compilers.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|l|l|l|l|}
+\hline
+\textbf{Type} &
+\textbf{Name} &
+\textbf{Mantissa bits} &
+\textbf{Decimal digits} &
+\textbf{Exponent bit} &
+\textbf{Min} &
+\textbf{Max} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+float           & \begin{tabular}[c]{@{}l@{}}Single\\ precision\end{tabular}   & 24 & 7.22  & 8  & $1.18$x$10^{-38}$   & $3.40$x$10^{38}$   \\ \hline
+double          & \begin{tabular}[c]{@{}l@{}}Double\\ precision\end{tabular}   & 53 & 15.95 & 11 & $2.23$x$10^{-308}$  & $1.80$x$10^{308}$  \\ \hline
+long double     & \begin{tabular}[c]{@{}l@{}}Extended\\ precision\end{tabular} & 64 & 19.27 & 15 & $3.36$x$10^{-4932}$ & $1.19$x$10^{4932}$ \\ \hline
+std::float16\_t & \begin{tabular}[c]{@{}l@{}}Half\\ precision\end{tabular}     & 11 & 3.31  & 5  & $6.10$x$10^{-5}$    & $65504$       \\ \hline
+std::float32\_t & \begin{tabular}[c]{@{}l@{}}Single\\ precision\end{tabular}   & 24 & 7.22  & 8  & $1.18$x$10^{-38}$   & $3.40$x$10^{38}$   \\ \hline
+std::float64\_t & \begin{tabular}[c]{@{}l@{}}Double\\ precision\end{tabular}   & 53 & 15.95 & 11 & $2.23$x$10^{-308}$  & $1.80$x$10^{308}$  \\ \hline
+std::float128\_t &
+\begin{tabular}[c]{@{}l@{}}Quadruple\\ precision\end{tabular} &
+113 &
+34.02 &
+15 &
+$3.36$x$10^{-4932}$ &
+$1.19$x$10^{4932}$ \\ \hline
+std::bfloat16\_t &
+\begin{tabular}[c]{@{}l@{}}Brain\\ floating\\ point\end{tabular} &
+8 &
+2.41 &
+8 &
+$1.18$x$10^{-38}$ &
+$3.40$x$10^{38}$ \\ \hline
+\end{longtable}
 
 \mySubsubsection{1.1.5.}{Operators}
 

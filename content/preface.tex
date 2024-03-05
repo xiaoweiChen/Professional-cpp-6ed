@@ -101,7 +101,7 @@ At the time of this writing, not all compilers fully support modules yet; though
 
 First, you need to create a project. Start Visual C++ 2022, and on the welcome screen, click the Create A New Project button. If the welcome screen is not shown, select File -> New -> Project. In the Create A New Project dialog, search for the Console App project template with tags C++, Windows, and Console, and click Next. Specify a name for the project and a location where to save it and click Create.
 
-Once your new project is loaded, you can see a list of project files in the Solution Explorer. If this docking window is not visible, select View ➪ Solution Explorer. A newly created project will contain a file called <projectname>.cpp under the Source Files section in the Solution Explorer. You can start writing your C++ code in that .cpp file, or if you want to compile source code files from the downloadable source archive for this book, select the <projectname>.cpp file in the Solution Explorer and delete it. You can add new files or existing files to a project by right-clicking the project name in the Solution Explorer and then selecting Add ➪ New Item or Add ➪ Existing Item.
+Once your new project is loaded, you can see a list of project files in the Solution Explorer. If this docking window is not visible, select View -> Solution Explorer. A newly created project will contain a file called <projectname>.cpp under the Source Files section in the Solution Explorer. You can start writing your C++ code in that .cpp file, or if you want to compile source code files from the downloadable source archive for this book, select the <projectname>.cpp file in the Solution Explorer and delete it. You can add new files or existing files to a project by right-clicking the project name in the Solution Explorer and then selecting Add -> New Item or Add -> Existing Item.
 
 At the time of this writing, Visual C++ 2022 does not yet automatically enable C++23 features. To enable C++23 features, in the Solution Explorer window, right-click your project and click Properties. In the Properties window, go to Configuration Properties ➪ General, set the C++ Language Standard option to ISO C++23 Standard or Preview - Features from the Latest C++ Working Draft, whichever is available in your version of Visual C++, and click OK.
 
@@ -121,8 +121,7 @@ g++ -std=c++2b -o <executable_name> <source1.cpp> [source2.cpp ...]
 
 The -std=c++2b option is required to tell GCC to enable C++23 features. This option will change to -std=C++23 once GCC is fully C++23-compliant.
 
-\hspace*{\fill} \\
-\textbf{Module Support}
+\mySamllsection{Module Support}
 
 Support for modules in GCC is enabled with the -fmodules-ts option.
 
