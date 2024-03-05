@@ -99,7 +99,7 @@ At the time of this writing, not all compilers fully support modules yet; though
 
 \mySubsubsection{}{Example: Microsoft Visual C++ 2022}
 
-First, you need to create a project. Start Visual C++ 2022, and on the welcome screen, click the Create A New Project button. If the welcome screen is not shown, select File ➪ New ➪ Project. In the Create A New Project dialog, search for the Console App project template with tags C++, Windows, and Console, and click Next. Specify a name for the project and a location where to save it and click Create.
+First, you need to create a project. Start Visual C++ 2022, and on the welcome screen, click the Create A New Project button. If the welcome screen is not shown, select File -> New -> Project. In the Create A New Project dialog, search for the Console App project template with tags C++, Windows, and Console, and click Next. Specify a name for the project and a location where to save it and click Create.
 
 Once your new project is loaded, you can see a list of project files in the Solution Explorer. If this docking window is not visible, select View ➪ Solution Explorer. A newly created project will contain a file called <projectname>.cpp under the Source Files section in the Solution Explorer. You can start writing your C++ code in that .cpp file, or if you want to compile source code files from the downloadable source archive for this book, select the <projectname>.cpp file in the Solution Explorer and delete it. You can add new files or existing files to a project by right-clicking the project name in the Solution Explorer and then selecting Add ➪ New Item or Add ➪ Existing Item.
 
@@ -171,12 +171,56 @@ The process of compiling C++ code using C++ modules with GCC might change in the
 
 \mySamllsection{C++23's Support for Printing Ranges}
 
+Chapter 2, “Working with Strings and String Views,” explains that you can easily print the entire contents of Standard Library containers, such as std::vector, to the screen. This is a new feature since C++23 and not all compilers support this yet at the time of this writing.
 
+As an example, Chapter 2 explains that you can write the contents of an std::vector as follows.
+Don’t worry if you don’t understand all the syntax yet, you will at the end of Chapter 2.
+
+\begin{cpp}
+std::vector values { 11, 22, 33 };
+std::print("{:n}", values);
+\end{cpp}
+
+This outputs:
+
+\begin{shell}
+11, 22, 33
+\end{shell}
+
+If your compiler does not yet support this C++23 feature to print the contents of a container using std::print(), then you can convert the second line of code to the following:
+
+\begin{cpp}
+for (const auto& value : values) { std::cout << value << ", "; }
+\end{cpp}
+
+This outputs:
+
+\begin{shell}
+11, 22, 33
+\end{shell}
+
+Again, don’t worry if you don’t understand the syntax yet. All will be clear at the end of Chapter 2.
 
 \mySubsectionNoFile{}{Reader Support for This Book}
 
+The following sections describe different options to get support for this book.
+
 \mySubsubsection{}{Companion Download Files}
+
+As you work through the examples in this book, you may choose either to type in all the code manually or to use the source code files that accompany the book. However, I suggest you type in all the code manually because it greatly benefits the learning process and your memory. All of the source code used in this book is available for download at \url{www.wiley.com/go/proc++6e} or from GitHub at \url{github.com/Professional-CPP/edition-6}.
+
+\begin{myNotic}{Note}
+Because many books have similar titles, you may find it easiest to search by ISBN; for this book, the ISBN is 978-1-394-19317-2.
+\end{myNotic}
+
+Once you’ve downloaded the code, just decompress it with your favorite decompression tool.
 
 \mySubsubsection{}{How to Contact the Publisher}
 
+If you believe you’ve found a mistake in this book, please bring it to our attention. At John Wiley \& Sons, we understand how important it is to provide our customers with accurate content, but even with our best efforts an error may occur.
+
+To submit your possible errata, please e-mail it to our Customer Service Team at wileysupport@wiley.com with “Possible Book Errata Submission” as a subject line.
+
 \mySubsubsection{}{How to Contact the Author}
+
+If you have any questions while reading this book, the author can easily be reached at \url{marc.gregoire@nuonsoft.com} and will try to get back to you in a timely manner.

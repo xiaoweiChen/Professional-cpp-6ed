@@ -1,12 +1,106 @@
 
+The C++ language is often viewed as a “better C” or a “superset of C.” It was mainly designed to be an object-oriented C, commonly called as “C with classes.” Later on, many of the annoyances and rough edges of the C language were addressed as well. Because C++ is based on C, some of the syntax you’ll see in this section will look familiar to you if you are an experienced C programmer. The two languages certainly have their differences, though. As evidence, the C23 standard specification document is a little fewer than 800 pages in size, while the C++23 standard specification document is more than 2,000 pages. So, if you’re a C programmer but also if you are coming from other languages such as Java, C\#, Python, and so on, be on the lookout for new or unfamiliar syntax!
 
 \mySubsubsection{1.1.1.}{The Obligatory “Hello, World” Program}
 
+In all its glory, the following code is the simplest C++ program you’re likely to encounter. If you are using an older version of C++, then import std; and std::println() might not work. In that case, you’ll need to use alternatives discussed shortly.
+
+\begin{cpp}
+// 01_helloworld.cpp
+import std;
+
+int main()
+{
+    std::println("Hello, World!");
+    return 0;
+}
+\end{cpp}
+
+This code, as you might expect, prints the message “Hello, World!” on the screen. It is a simple program and unlikely to win any awards, but it does exhibit the following important concepts about the format of a C++ program:
+
+\begin{itemize}
+\item
+Comments
+
+\item
+Importing modules
+
+\item
+The main() function
+
+\item
+Printing text
+
+\item
+Returning from a function
+\end{itemize}
+
+These concepts are briefly explained in upcoming sections.
+
 \mySamllsection{Comments}
+
+The first line of the program is a comment, a message that exists for the programmer only and is ignored by the compiler. In C++, there are two ways to delineate a comment. You can use two forward slashes to indicate that whatever follows on that line is a comment:
+
+\begin{cpp}
+// 01_helloworld.cpp
+\end{cpp}
+
+The same behavior (this is to say, none) can be achieved by using a multiline comment. Multiline comments start with /* and end with */. The following code shows a multiline comment in action (or, more appropriately, inaction):
+
+\begin{cpp}
+/* This is a multiline comment.
+   The compiler will ignore it.
+*/
+\end{cpp}
+
+Comments are covered in detail in Chapter 3, “Coding with Style.”
 
 \mySamllsection{Importing Modules}
 
+Support for modules was one of the big four new features of C++20, replacing the old mechanism of header files. If you want to use functionality from a module, you simply import that module. This is done with an import declaration. Starting with C++23, you can get access to the entire C++ Standard Library by importing a single standard named module called std. The first line of the “Hello, World” application imports this standard module:
+
+\begin{cpp}
+import std;
+\end{cpp}
+
+If the program did not import that module, it would be unable to perform its only task of printing text.
+
+Without C++23’s standard named module support, you have to explicitly import all individual header files that your code requires. As there are more than 100 header files in the Standard Library, it’s not always obvious to know which specific header you need to import to use a certain feature. As a reference, Appendix C, “Standard Library Header Files,” lists all header files of the C++ Standard Library including a short description of their contents. For example, instead of importing the standard named module std in the “Hello, World” application, you can import only those header files that the code really needs. In this example, the code only needs to import <print> to get access to the text printing functionality. Notice that when importing the named module std, you don’t use angle brackets, but when importing individual header files, you need to use angle brackets as follows:
+
+\begin{cpp}
+import <print>;
+\end{cpp}
+
+Since this is a book about C++23, this book uses modules everywhere. All functionality provided by the C++ Standard Library is provided in well-defined header files. Most examples in this book simply import the std named module, instead of individual header files, but the text always mentions in which header file certain functionality is provided.
+
+Modules are not limited to Standard Library functionality. You can write your own modules to provide custom types and functionality, as you will learn throughout this book.
+
+\begin{myNotic}{Note}
+If your compiler does not yet have full support for modules, you can replace explicit header file import declarations with \#include preprocessor directives, discussed in an upcoming section.
+\end{myNotic}
+
 \mySamllsection{How the Compiler Processes Your Source Code}
+
+In short, building a C++ program is a three-step process. Technically, there are a few more phases in the compilation process, but this simplified view is sufficient for now.
+
+\begin{enumerate}
+\item
+First, the code is run through a preprocessor, which recognizes meta-information about the code and handles preprocessor directives, such as \#include directives. A source file in which all preprocessor directives are handled is called a translation unit.
+
+\item
+Next, all translation units are independently compiled, or translated, into machine-readable object files in which references to functions and so on are not yet defined.
+
+\item
+Resolving those references is done in the final phase by the linker, which links all object files together into the final executable.
+\end{enumerate}
+
+\CXXTwentythreeLogo{-40}{-50}
+
+\begin{myNotic}{Note}
+Starting with C++23, the standard mandates that C++ compilers accept source code files saved with UTF-8 encoding. Chapter 21, “String Localization and Regular Expressions,” discusses different encodings, including UTF-8. I recommend configuring your toolchain to use UTF-8. This will improve portability of your files between different platforms and will allow you to use non-English characters in your source files.
+
+To enable UTF-8 support with Microsoft Visual C++, add the /utf-8 option to the Additional Options setting under Project Properties -> Configuration Properties -> C/C++ -> Command Line. For GCC, use the command-line option -finput-charset=UTF-8. Clang assumes all files are UTF-8 by default.
+\end{myNotic}
 
 \mySamllsection{Preprocessor Directives}
 
