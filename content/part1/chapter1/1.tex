@@ -75,7 +75,7 @@ Since this is a book about C++23, this book uses modules everywhere. All functio
 
 Modules are not limited to Standard Library functionality. You can write your own modules to provide custom types and functionality, as you will learn throughout this book.
 
-\begin{myNotic}{Note}
+\begin{myNotic}{NOTE}
 If your compiler does not yet have full support for modules, you can replace explicit header file import declarations with \#include preprocessor directives, discussed in an upcoming section.
 \end{myNotic}
 
@@ -96,7 +96,7 @@ Resolving those references is done in the final phase by the linker, which links
 
 \CXXTwentythreeLogo{-40}{-50}
 
-\begin{myNotic}{Note}
+\begin{myNotic}{NOTE}
 Starting with C++23, the standard mandates that C++ compilers accept source code files saved with UTF-8 encoding. Chapter 21, “String Localization and Regular Expressions,” discusses different encodings, including UTF-8. I recommend configuring your toolchain to use UTF-8. This will improve portability of your files between different platforms and will allow you to use non-English characters in your source files.
 
 To enable UTF-8 support with Microsoft Visual C++, add the /utf-8 option to the Additional Options setting under Project Properties -> Configuration Properties -> C/C++ -> Command Line. For GCC, use the command-line option -finput-charset=UTF-8. Clang assumes all files are UTF-8 by default.
@@ -286,7 +286,7 @@ int main()
 }
 \end{cpp}
 
-\begin{myNotic}{Note}
+\begin{myNotic}{NOTE}
 The main() function must never be put in a namespace. It must be in the global namespace.
 \end{myNotic}
 
@@ -305,7 +305,7 @@ int main()
 }
 \end{cpp}
 
-\begin{myNotic}{Note}
+\begin{myNotic}{NOTE}
 Most code snippets in this book assume a using directive for the std namespace so that everything from the C++ Standard Library can be used without the need to qualify it with std::.
 \end{myNotic}
 
@@ -439,7 +439,7 @@ println("{} is a random value", uninitializedInt);
 println("{} was assigned as an initial value", initializedInt);
 \end{cpp}
 
-\begin{myNotic}{Note}
+\begin{myNotic}{NOTE}
 Most compilers will issue a warning or an error when code is using uninitialized variables. Some compilers will generate code that will report an error at run time.
 \end{myNotic}
 
@@ -533,7 +533,7 @@ Related to char, <cstddef> provides the std::byte type representing a single byt
 std::byte b { 42 };
 \end{cpp}
 
-\begin{myNotic}{Note}
+\begin{myNotic}{NOTE}
 C++ does not provide a basic string type. However, a standard implementation of a string is provided as part of the Standard Library, as briefly discussed later in this chapter and in detail in Chapter 2.
 \end{myNotic}
 
@@ -690,108 +690,1679 @@ $3.40$x$10^{38}$ \\ \hline
 
 \mySubsubsection{1.1.5.}{Operators}
 
+What good is a variable if you don’t have a way to change it? The following table shows common operators used in C++ and sample code that makes use of them. Operators in C++ can be binary (operate on two expressions), unary (operate on a single expression), or even ternary (operate on three expressions). There is only one ternary operator in C++, and it is explained in the section “The Conditional Operator” later in this chapter. Furthermore, Chapter 15, “Overloading C++ Operators,” is reserved for operators and explains how you can add support for these operators to your own custom types.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{Operator} &
+\textbf{Description} &
+\textbf{Usage} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+= &
+\begin{tabular}[c]{@{}l@{}}Binary operator to assign the value on the right to the\\ expression on the left.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}int i;\\ i = 3;\\ int j;\\ j = i;\end{tabular} \\ \hline
+! &
+\begin{tabular}[c]{@{}l@{}}Unary operator to complement the true/false (non-0/0)\\ status of an expression.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}bool b \{!true\};\\ bool b2 \{!b\};\end{tabular} \\ \hline
++ &
+Binary operator for addition. &
+\begin{tabular}[c]{@{}l@{}}int i \{3 + 2\};\\ int j \{i + 5\};\\ int k \{i + j\};\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}-\\ *\\ /\end{tabular} &
+Binary operators for subtraction, multiplication, and division. &
+\begin{tabular}[c]{@{}l@{}}int i \{5 – 1\};\\ int j \{5 * 2\};\\ int k \{j / i\};\end{tabular} \\ \hline
+\% &
+\begin{tabular}[c]{@{}l@{}}Binary operator for the remainder of a division operation.\\ This is also referred to as the mod or modulo operator. For\\ example: 5\%2=1.\end{tabular} &
+int rem \{5 \% 2\}; \\ \hline
+++ &
+\begin{tabular}[c]{@{}l@{}}Unary operator to increment an expression by 1. If the\\ operator occurs after the expression, or post-increment, the\\ result of the expression is the unincremented value. If the\\ operator occurs before the expression, or pre-increment, the\\ result of the expression is the new value.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}i++;\\ ++i;\end{tabular} \\ \hline
+-- &
+Unary operator to decrement an expression by 1. &
+\begin{tabular}[c]{@{}l@{}}i--;\\ --i;\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}+=\\ -=\\ *=\\ /+\\ \%=\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Shorthand syntax for:\\ i = i + (j);\\ i = i - (j);\\ i = i * (j);\\ i = i / (j);\\ i = i \% (j);\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}i += j;\\ i -= j;\\ i *= j;\\ i /= j;\\ i \%= j;\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}\&\\ \&=\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Takes the raw bits of one expression and performs a bitwise\\ AND with the other expression.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}i = j \& k;\\ j \&= k;\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}|\\ |=\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Takes the raw bits of one expression and performs a bitwise\\ OR with the other expression.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}i = j | k;\\ j |= k;\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}\textless{}\textless\\ \textgreater{}\textgreater\\ \textless{}\textless{}=\\ \textgreater{}\textgreater{}=\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Takes the raw bits of an expression and “shifts” each bit left\\ (\textless{}\textless{}) or right (\textgreater{}\textgreater{}) the specified number of places.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}i = i \textless{}\textless 1;\\ i = i \textgreater{}\textgreater 4;\\ i \textless{}\textless{}= 1;\\ i \textgreater{}\textgreater{}= 4;\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}\textasciicircum\\ \textasciicircum{}=\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Performs a bitwise exclusive or, also called XOR operation,\\ on two expressions.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}i = i \textasciicircum j;\\ i \textasciicircum{}= j;\end{tabular} \\ \hline
+\end{longtable}
+
+Operators of the form op=, e.g., +=, are called compound assignment operators.
+
+When a binary operator is applied to two operands of different types, the compiler inserts an implicit conversion to convert one of them to the other before applying the operator. You can also use explicit conversions to convert one type to another using static\_cast().
+
+For implicit conversions, the compiler has certain rules to decide which type it converts to which other type. For example, for a binary operation with a small integer type and a larger integer type, the smaller type will be converted to the larger one. However, the results might not always be as you would expect. Thus, I recommend being careful with implicit conversions and using explicit conversions to make sure the compiler does what you intend.
+
+The following code snippet shows the most common variable types and operators in action. It also shows explicit conversions and explains why they are necessary. If you are unsure about how variables and operators work, try to figure out what the output of this program will be, and then run it to confirm your answer.
+
+\begin{cpp}
+int someInteger { 256 };
+short someShort;
+long someLong;
+float someFloat;
+double someDouble;
+
+someInteger++;
+someInteger *= 2;
+// Conversion from larger integer type to smaller integer type
+// can cause a warning or error, hence static_cast() is required.
+someShort = static_cast<short>(someInteger);
+someLong = someShort * 10000;
+someFloat = someLong + 0.785f;
+// To make sure the division is performed with double precision,
+// someFloat is explicitly converted to double first.
+someDouble = static_cast<double>(someFloat) / 100000;
+println("{}", someDouble);
+\end{cpp}
+
+The C++ compiler has a recipe for the order in which expressions are evaluated. If you have a complicated expression with many operators, the order of execution may not be obvious. For that reason, it’s probably better to break up a complicated expression into several smaller expressions, or explicitly group subexpressions by using parentheses. For example, the following line of code might be confusing unless you happen to know the exact evaluation order of the operators:
+
+\begin{cpp}
+int i { 34 + 8 * 2 + 21 / 7 % 2 };
+\end{cpp}
+
+Adding parentheses makes it clear which operations are happening first:
+
+\begin{cpp}
+int i { 34 + (8 * 2) + ( (21 / 7) % 2 ) };
+\end{cpp}
+
+For those of you playing along at home, both approaches are equivalent and end up with i equal to 51. If you assumed that C++ evaluated expressions from left to right, your answer would have been 1. C++ evaluates /, *, and \% first (in left-to-right order), followed by addition and subtraction, then bitwise operators. Parentheses let you explicitly tell the compiler that a certain operation should be evaluated first.
+
+Formally, the evaluation order of operators is expressed by their precedence. Operators with a higher precedence are executed before operators with a lower precedence. The following list shows the precedence of the operators from the previous table. Operators higher in the list have higher precedence and hence are executed before operators lower in the list.
+
+\begin{itemize}
+\item
+++ \enspace −− (postfix)
+
+\item
+! \enspace ++ \enspace −− (prefix)
+
+\item
+* \enspace / \enspace \%
+
+\item
++ \enspace −
+
+\item
+<{}< \enspace >{}>
+
+\item
+\&
+
+\item
+\textasciicircum
+
+\item
+|
+
+\item
+= \enspace += \enspace -= \enspace *= \enspace /= \enspace \%= \enspace \&= \enspace |= \enspace \textasciicircum= \enspace <{}<= \enspace >{}>=
+
+\end{itemize}
+
+This is only a selection of the available C++ operators. Chapter 15 gives a complete overview of all available operators, including their precedence.
 
 
 \mySubsubsection{1.1.6.}{Enumerations}
 
+An integer really represents a single value from a larger set of values—the entire sequence of integral numbers. Enumerations are types that let you define your own sequences so that you can declare variables with values in that sequence. For example, in a chess program, you could represent each piece as an int, with constants for the piece types, as shown in the following code. The integers representing the types are marked const to indicate that they can never change.
+
+\begin{cpp}
+const int PieceTypeKing { 0 };
+const int PieceTypeQueen { 1 };
+const int PieceTypeRook { 2 };
+const int PieceTypePawn { 3 };
+//etc.
+int myPiece { PieceTypeKing };
+\end{cpp}
+
+This representation can become dangerous. Since a piece is just an int, what would happen if another programmer added code to increment the value of a piece? By adding 1, a king becomes a queen, which really makes no sense. Worse still, someone could come in and give a piece a value of -1, which has no corresponding constant.
+
+Strongly typed enumerations solve these problems by tightly defining the range of values for a variable. The following code declares a new type, PieceType, which has four possible values, called enumerators, representing four of the chess pieces:
+
+\begin{cpp}
+enum class PieceType { King, Queen, Rook, Pawn };
+\end{cpp}
+
+This new type can be used as follows:
+
+\begin{cpp}
+PieceType piece { PieceType::King };
+\end{cpp}
+
+Behind the scenes, an enumeration is just an integer value. The underlying values for King, Queen, Rook, and Pawn are 0, 1, 2, and 3, respectively. It’s possible to specify the integer values for enumerators yourself. The syntax is as follows:
+
+\begin{cpp}
+enum class PieceType
+{
+    King = 1,
+    Queen,
+    Rook = 10,
+    Pawn
+};
+\end{cpp}
+
+If you do not assign a value to an enumerator, the compiler automatically assigns it a value that is the previous enumerator incremented by 1. If you do not assign a value to the first enumerator, the compiler assigns it the value 0. So, in this example, King has the integer value 1, Queen has the value 2 assigned by the compiler, Rook has the value 10, and Pawn has the value 11 assigned automatically by the compiler.
+
+Even though enumerators are internally represented by integer values, they are not automatically converted to integers, which means the following is illegal:
+
+\begin{cpp}
+int underlyingValue { piece };
+\end{cpp}
+
+\CXXTwentythreeLogo{-40}{-35}
+
+Starting with C++23, you can use std::to\_underlying(). For example:
+
+\begin{cpp}
+int underlyingValue { to_underlying(piece) };
+\end{cpp}
+
+By default, the underlying type of an enumerator is an integer, but this can be changed as follows:
+
+\begin{cpp}
+enum class PieceType : unsigned long
+{
+    King = 1,
+    Queen,
+    Rook = 10,
+    Pawn
+};
+\end{cpp}
+
+For an enum class, the enumerator names are not automatically exported to the enclosing scope. This means they cannot clash with other names already defined in the parent scope. As a result, different strongly typed enumerations can have enumerators with the same name. For example, the following two enumerations are perfectly legal:
+
+\begin{cpp}
+enum class State { Unknown, Started, Finished };
+enum class Error { None, BadInput, DiskFull, Unknown };
+\end{cpp}
+
+A big benefit of this is that you can give short names to the enumerators, for example, Unknown instead of UnknownState and UnknownError. However, it also means that you either have to fully qualify enumerators, or use a using enum or using declaration. Here’s an example of a using enum declaration:
+
+\begin{cpp}
+using enum PieceType;
+PieceType piece { King };
+\end{cpp}
+
+A using declaration can be used if you want to avoid having to fully qualify specific enumerators. For example, in the following code snippet, King can be used without full qualification, but other enumerators still need to be fully qualified:
+
+\begin{cpp}
+using PieceType::King;
+PieceType piece { King };
+piece = PieceType::Queen;
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+Even though C++ allows you to avoid fully qualifying enumerators, I recommend using this feature judiciously. At least try to minimize the scope of the using enum or using declaration because if this scope is too big, you risk reintroducing name clashes. The section on the switch statement later in this chapter shows a properly scoped use of a using enum declaration.
+\end{myWarning}
+
 \mySamllsection{Old-Style Enumerations}
 
+New code should always use the strongly typed enumerations explained in the previous section. However, in legacy code bases, you might find old-style enumerations, also known as unscoped enumerations: enum instead of enum class. Here is the previous PieceType defined as an old-style enumeration:
 
+\begin{cpp}
+enum PieceType { PieceTypeKing, PieceTypeQueen, PieceTypeRook, PieceTypePawn };
+\end{cpp}
+
+The enumerators of such old-style enumerations are exported to the enclosing scope. This means that in the parent scope you can use the names of the enumerators without fully qualifying them, for example:
+
+\begin{cpp}
+PieceType myPiece { PieceTypeQueen };
+\end{cpp}
+
+This of course also means that they can clash with other names already defined in the parent scope resulting in a compilation error. Here’s an example:
+
+\begin{cpp}
+bool ok { false };
+enum Status { error, ok };
+\end{cpp}
+
+This code snippet does not compile because the name ok is first defined to be a Boolean variable, and later the same name is used as the name of an enumerator. Visual C++ 2022 emits the following error:
+
+\begin{shell}
+error C2365: 'ok': redefinition; previous definition was 'data variable'
+\end{shell}
+
+Hence, you should make sure such old-style enumerations have enumerators with unique names, such as PieceTypeQueen, instead of simply Queen.
+
+These old-style enumerations are not strongly typed, meaning they are not type safe. They are always interpreted as integers, and thus you can inadvertently compare enumerators from completely different enumerations, or pass an enumerator of the wrong enumeration to a function.
+
+\begin{myWarning}{WARNING}
+Always use strongly typed enum class enumerations instead of oldstyle, unscoped, type-unsafe enum enumerations.
+\end{myWarning}
 
 \mySubsubsection{1.1.7.}{Structs}
 
+Structs let you encapsulate one or more existing types into a new type. The classic example of a struct is a database record. If you are building a personnel system to keep track of employee information, you might want to store the first initial, last initial, employee number, and salary for each employee. A struct that contains all of this information is shown in the employee.cppm module interface file that follows. This is your first self-written module in this book. Module interface files usually have .cppm as extension. The first line in the module interface file is a module declaration and states that this file is defining a module called employee. Furthermore, a module needs to explicitly state what it exports, i.e., what will be visible when this module is imported somewhere else. Exporting a type from a module is done with the export keyword in front of, for example, a struct.
+
+\begin{cpp}
+export module employee;
+
+export struct Employee {
+    char firstInitial;
+    char lastInitial;
+    int employeeNumber;
+    int salary;
+};
+\end{cpp}
+
+A variable declared with type Employee has all of these fields built in. The individual fields of a struct can be accessed by using the . operator. The example that follows creates and then outputs the record for an employee. Just as with the standard named module std, you don’t use angle brackets when importing custom modules.
+
+\begin{cpp}
+import std;
+import employee; // Import our employee module
+
+using namespace std;
+
+int main()
+{
+    // Create and populate an employee.
+    Employee anEmployee;
+    anEmployee.firstInitial = 'J';
+    anEmployee.lastInitial = 'D';
+    anEmployee.employeeNumber = 42;
+    anEmployee.salary = 80000;
+    // Output the values of an employee.
+    println("Employee: {}{}", anEmployee.firstInitial,
+        anEmployee.lastInitial);
+    println("Number: {}", anEmployee.employeeNumber);
+    println("Salary: ${}", anEmployee.salary);
+}
+\end{cpp}
 
 \mySubsubsection{1.1.8.}{Conditional Statements}
 
+Conditional statements let you execute code based on whether something is true. As shown in the following sections, there are two main types of conditional statements in C++: if/else statements and switch statements.
+
 \mySamllsection{if/else Statements}
+
+The most common conditional statement is the if statement, which can be accompanied by an else. If the condition given inside the if statement is true, the line or block of code is executed. If not, execution continues with the else case if present or with the code following the conditional statement. The following code shows a cascading if statement, a fancy way of saying that the if statement has an else statement that in turn has another if statement, and so on:
+
+\begin{cpp}
+if (i > 4) {
+    // Do something.
+} else if (i > 2) {
+    // Do something else.
+} else {
+    // Do something else.
+}
+\end{cpp}
+
+The expression between the parentheses of an if statement must be a Boolean value or evaluate to a Boolean value. A value of 0 evaluates to false, while any non-zero value evaluates to true. For example, if(0) is equivalent to if(false). Logical evaluation operators, described later, provide ways of evaluating expressions to result in a true or false Boolean value.
+
+\mySamllsection{Initializers for if Statements}
+
+C++ allows you to include an initializer inside an if statement using the following syntax:
+
+\begin{cpp}
+if (<initializer>; <conditional_expression>) {
+    <if_body>
+} else if (<else_if_expression>) {
+    <else_if_body>
+} else {
+    <else_body>
+}
+\end{cpp}
+
+Any variable introduced in the <initializer> is available only in the <conditional\_expression>, in the <if\_body>, in all <else\_if\_expression>s and <else\_if\_body>s, and in the <else\_body>. Such variables are not available outside the if statement.
+
+It is too early in this book to give a useful example of this feature, but here is an example of how it could be employed:
+
+\begin{cpp}
+if (Employee employee { getEmployee() }; employee.salary > 1000) { ... }
+\end{cpp}
+
+In this example, the initializer gets an employee by calling the getEmployee() function. Functions are discussed later in this chapter. The condition checks whether the salary of the retrieved employee exceeds 1000. Only in that case is the body of the if statement executed. More concrete examples will be given throughout this book.
 
 \mySamllsection{switch Statements}
 
+The switch statement is an alternate syntax for performing actions based on the value of an expression. In C++, the expression of a switch statement must be of an integral type, a type convertible to an integral type, an enumeration, or a strongly typed enumeration, and must be compared to constants. Each constant value represents a “case.” If the expression matches the case, the subsequent lines of code are executed until a break statement is reached. You can also provide a default case, which is matched if none of the other cases matches. The following pseudocode shows a common use of the switch statement:
+
+\begin{cpp}
+switch (menuItem) {
+    case OpenMenuItem:
+        // Code to open a file
+        break;
+    case SaveMenuItem:
+        // Code to save a file
+        break;
+    default:
+        // Code to give an error message
+        break;
+}
+\end{cpp}
+
+A switch statement can always be converted into if/else statements. The previous switch statement can be converted as follows:
+
+\begin{cpp}
+if (menuItem == OpenMenuItem) {
+    // Code to open a file
+} else if (menuItem == SaveMenuItem) {
+    // Code to save a file
+} else {
+    // Code to give an error message
+}
+\end{cpp}
+
+switch statements are generally used when you want to do something based on more than one specific value of an expression, as opposed to some test on the expression. In such a case, the switch statement avoids cascading if/else statements. If you need to inspect only one value, an if or if/else statement is fine.
+
+Once a case expression matching the switch condition is found, all statements that follow it are executed until a break statement is reached. This execution continues even if another case expression is encountered, which is called fallthrough. In the following example, a single set of statements is executed for both Mode::Standard and Default. If mode is Custom, then value is first changed from 42 to 84, after which the Standard and Default statements are executed. In other words, the Custom case falls through until it eventually reaches a break statement or the end of the switch statement. This code snippet also shows a nice example of using a properly scoped using enum declaration to avoid having to write Mode::Custom, Mode::Standard, and Mode::Default for the different case labels.
+
+\begin{cpp}
+enum class Mode { Default, Custom, Standard };
+
+int value { 42 };
+Mode mode { /* ... */ };
+switch (mode) {
+    using enum Mode;
+
+    case Custom:
+        value = 84;
+    case Standard:
+    case Default:
+        // Do something with value ...
+        break;
+}
+\end{cpp}
+
+Fallthrough can be a source of bugs, for example if you accidentally forget a break statement. Because of this, some compilers give a warning if a fallthrough is detected in a switch statement, unless the case is empty. In the previous example, no compiler will give a warning that the Standard case falls through to the Default case, but a compiler might give a warning for the Custom case fallthrough. To prevent this warning and to make it clear to a reader and the compiler that the fallthrough is intentional, you can use a [[fallthrough]] attribute as follows:
+
+\begin{cpp}
+switch (mode) {
+    using enum Mode;
+
+    case Custom:
+        value = 84;
+        [[fallthrough]];
+    case Standard:
+    case Default:
+        // Do something with value ...
+        break;
+}
+\end{cpp}
+
+Surrounding the statements following a case expression with braces is often optional, but sometimes necessary, for example, when defining variables. Here is an example:
+
+\begin{cpp}
+switch (mode) {
+    using enum Mode;
+    case Custom:
+        {
+            int someVariable { 42 };
+            value = someVariable * 2;
+            [[fallthrough]];
+        }
+    case Standard:
+    case Default:
+        // Do something with value ...
+        break;
+}
+\end{cpp}
+
+When using a switch statement for enumerations, most compilers issue a warning when you don’t handle all different enumerators, either by explicitly writing cases for each enumerator or by writing cases for only a selection of the enumerators in combination with a default case. However, it’s recommended not to include a default case in a switch statement switching on enumerations. Instead, you should explicitly list all enumerators. The reason is that this makes the code less error prone for when you later add more enumerators to the enumeration. In that case, if you forget to add any new enumerator to specific switch statements, the compiler will issue a warning instead of silently handling the new enumerator using the default case.
+
+\mySamllsection{Initializers for switch Statements}
+
+Just as for if statements, you can use initializers with switch statements. The syntax is as follows:
+
+\begin{cpp}
+switch (<initializer>; <expression>) { <body> }
+\end{cpp}
+
+Any variables introduced in the <initializer> are available only in the <expression> and in the <body>. They are not available outside the switch statement.
 
 \mySubsubsection{1.1.9.}{The Conditional Operator}
 
+C++ has one operator that takes three arguments, known as a ternary operator. It is used as a shorthand conditional expression of the form “if [something] then [perform action], otherwise [perform some other action].” The conditional operator is represented by a ? and a :. The following code outputs “yes” if the variable i is greater than 2, and “no” otherwise:
+
+\begin{cpp}
+println("{}", (i > 2) ? "yes" : "no");
+\end{cpp}
+
+The parentheses around i > 2 are optional, so the following is equivalent:
+
+\begin{cpp}
+println("{}", i > 2 ? "yes" : "no");
+\end{cpp}
+
+The advantage of the conditional operator is that it is an expression, not a statement like the if and switch statements. Hence, a conditional operator can occur within almost any context. In the preceding example, the conditional operator is used within code that performs output. A convenient way to remember how the syntax is used is to treat the question mark as though the statement that comes before it really is a question. For example, “Is i greater than 2? If so, the result is ‘yes’; if not, the result is ‘no.’”
 
 \mySubsubsection{1.1.10.}{Logical Evaluation Operators}
 
+You have already seen a logical evaluation operator without a formal definition. The > operator compares two values. The result is true if the value on the left is greater than the value on the right. All logical evaluation operators follow this pattern—they all result in a true or false.
+
+The following table shows common logical evaluation operators:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{op} &
+\textbf{Description} &
+\textbf{Usage} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\begin{tabular}[c]{@{}l@{}}\textless\\ \textless{}=\\ \textgreater\\ \textgreater{}=\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Determines if the left-hand side is less than, less\\ than or equal to, greater than, or greater than or\\ equal to the right-hand side.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}if (i \textless 0) \{\\   print("i is negative");\\ \}\end{tabular} \\ \hline
+== &
+\begin{tabular}[c]{@{}l@{}}Determines if the left-hand side equals the\\ right-hand side. Don’t confuse this with the =\\ (assignment) operator!\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}if (i == 3) \{\\   print("i is 3");\\ \}\end{tabular} \\ \hline
+!= &
+\begin{tabular}[c]{@{}l@{}}Not equals. The result of the statement is true if\\ the left-hand side does not equal the right-hand\\ side.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}if (i != 3) \{\\   print("i is not 3");\\ \}\end{tabular} \\ \hline
+\textless{}=\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Three-way comparison operator, also called the\\ spaceship operator. Explained in more detail in\\ the next section.\end{tabular} &
+result = i \textless{}=\textgreater 0; \\ \hline
+! &
+\begin{tabular}[c]{@{}l@{}}Logical NOT. This complements the true/false\\ status of a Boolean expression. This is a unary\\ operator.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}if (!bool1) \{\\   print("bool1 is false");\\ \}\end{tabular} \\ \hline
+\&\& &
+\begin{tabular}[c]{@{}l@{}}Logical AND. The result is true if both parts of\\ the expression are true.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}if (bool1 \&\& bool2) \{\\   print("both are true");\\ \}\end{tabular} \\ \hline
+|| &
+\begin{tabular}[c]{@{}l@{}}Logical OR. The result is true if either part of\\ the expression is true.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}if (bool1 || bool2) \{\\   print("at least one is true");\\ \}\end{tabular} \\ \hline
+\end{longtable}
+
+C++ uses short-circuit logic when evaluating logical expressions. That means that once the final result is certain, the rest of the expression won’t be evaluated. For example, if you are performing logical OR operations of several Boolean expressions, as shown in the following code, the result is known to be true as soon as one of them is found to be true. The rest won’t even be checked.
+
+\begin{cpp}
+bool result { bool1 || bool2 || (i > 7) || (27 / 13 % i + 1) < 2 };
+\end{cpp}
+
+In this example, if bool1 is found to be true, the entire expression must be true, so the other parts aren’t evaluated. In this way, the language saves your code from doing unnecessary work. It can, however, be a source of hard-to-find bugs if the later subexpressions in some way influence the state of the program (for example, by calling a separate function).
+
+The following code shows a statement using \&\& that short-circuits after the second term because 0 always evaluates to false:
+
+\begin{cpp}
+bool result { bool1 && 0 && (i > 7) && !done };
+\end{cpp}
+
+Short-circuiting can be beneficial for performance. You can put less resource intensive tests first so that more expensive tests are not even executed when the logic short-circuits. It is also useful in the context of pointers to avoid parts of the expression to be executed when a pointer is not valid. Pointers and short-circuiting with pointers are discussed later in this chapter.
 
 \mySubsubsection{1.1.11.}{Three-Way Comparisons}
 
+The three-way comparison operator can be used to determine the order of two values. It is also called the spaceship operator because its sign, <=>, resembles a spaceship. With a single expression, it tells you whether a value is equal, less than, or greater than another value. Because it has to return more than just true or false, it cannot return a Boolean type. Instead, it returns an enumeration-like type, defined in <compare> in the std namespace. If the operands are integral types, the result is a strong ordering and can be one of the following:
+
+\begin{itemize}
+\item
+strong\_ordering::less: First operand less than second
+
+\item
+strong\_ordering::greater: First operand greater than second
+
+\item
+strong\_ordering::equal: First operand equal to second
+\end{itemize}
+
+Here is an example of its use:
+
+\begin{cpp}
+int i { 11 };
+strong_ordering result { i <=> 0 };
+if (result == strong_ordering::less) { println("less"); }
+if (result == strong_ordering::greater) { println("greater"); }
+if (result == strong_ordering::equal) { println("equal"); }
+\end{cpp}
+
+Certain types don’t have a total ordering. For example, not-a-number floating-point values are never equal, less than, or greater than any other floating-point value. Thus, such comparisons result in a partial ordering:
+
+\begin{itemize}
+\item
+partial\_ordering::less: First operand less than second
+
+\item
+partial\_ordering::greater: First operand greater than second
+
+\item
+partial\_ordering::equivalent: First operand equivalent to second, meaning !(a<b) \&\& !(b<a); for example, -0.0 is equivalent to +0.0, but they are not equal
+
+\item
+partial\_ordering::unordered: If one or both of the operands is not-a-number
+\end{itemize}
+
+If you really need a strong ordering of your floating-point values, e.g., if you know they are never not-a-number, you can use std::strong\_order(), which always produces an std::strong\_ordering result.
+
+There is also a weak ordering, which is an additional ordering type that you can choose from to implement three-way comparisons for your own types. With a weak ordering, all values are ordered, i.e., there is no unordered result, but the ordering is not strong, meaning there can be non-equal values that are equivalent. An example is ordering strings with case-insensitive comparisons. In that case, the strings “Hello World” and “hello world” are certainly not equal, but they are equivalent. Here are the different results of a weak ordering:
+
+\begin{itemize}
+\item
+weak\_ordering::less: First operand less than second
+
+\item
+weak\_ordering::greater: First operand greater than second
+
+\item
+weak\_ordering::equivalent: First operand equivalent to second
+\end{itemize}
+
+The three different types of ordering support certain implicit conversions. A strong\_ordering can be converted implicitly to a partial\_ordering or a weak\_ordering. A weak\_ordering can be converted implicitly to a partial\_ordering.
+
+For primitive types, using the three-way comparison operator doesn’t gain you much compared to just performing individual comparisons using the ==, <, and > operators. However, it becomes useful with objects that are more expensive to compare. With the three-way comparison operator, such objects can be ordered with a single operator, instead of potentially having to call two individual comparison operators, triggering two expensive comparisons. Chapter 9, “Mastering Classes and Objects,” explains how to add support for three-way comparisons to your own types.
+
+Finally, <compare> provides named comparison functions to interpret the result of an ordering. These functions are std::is\_eq(), is\_neq(), is\_lt(), is\_lteq(), is\_gt(), and is\_gteq() returning true if an ordering represents ==, !=, <, <=, >, or >= respectively, false otherwise. Here is an example:
+
+\begin{cpp}
+int i { 11 };
+strong_ordering result { i <=> 0 };
+if (is_lt(result)) { println("less"); }
+if (is_gt(result)) { println("greater"); }
+if (is_eq(result)) { println("equal"); }
+\end{cpp}
 
 \mySubsubsection{1.1.12.}{Functions}
 
+For programs of any significant size, placing all the code inside of main() is unmanageable. To make programs easier to understand, you need to break up, or decompose, code into concise functions.
+
+In C++, you first declare a function to make it available for other code to use. If the function is used only inside a particular file, you generally declare and define the function in that source file. If the function is for use by other modules or files, you export a declaration for the function from a module interface file, while the function’s definition can be either in the same module interface file or in a module implementation file (discussed later).
+
+\begin{myNotic}{NOTE}
+Function declarations are often called function prototypes or function headers to emphasize that they represent how the function can be accessed, but not the code behind it. The term function signature is used to denote the combination of the function name and its parameter list, but without the return type.
+\end{myNotic}
+
+A function declaration is shown in the following code. This example has a return type of void, indicating that the function does not provide a result to the caller. The caller must provide two arguments for the function to work with—an integer and a character.
+
+\begin{cpp}
+void myFunction(int i, char c);
+\end{cpp}
+
+Without an actual definition to match this function declaration, the link stage of the compilation process will fail because code that makes use of the function will be calling nonexistent code. The following definition prints the values of the two parameters:
+
+\begin{cpp}
+void myFunction(int i, char c)
+{
+    println("The value of i is {}.", i);
+    println("The value of c is {}.", c);
+}
+\end{cpp}
+
+Elsewhere in the program, you can make calls to myFunction() and pass in arguments for the two parameters. Some sample function calls are shown here:
+
+\begin{cpp}
+int someInt { 6 };
+char someChar { 'c' };
+myFunction(8, 'a');
+myFunction(someInt, 'b');
+myFunction(5, someChar);
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+In C++, unlike C, a function that takes no parameters just has an empty parameter list. It is not necessary to use void to indicate that no parameters are taken. However, you must still use void to indicate when no value is returned.
+\end{myNotic}
+
+C++ functions can also return a value to the caller. The following function adds two numbers and returns the result:
+
+\begin{cpp}
+int addNumbers(int number1, int number2)
+{
+    return number1 + number2;
+}
+\end{cpp}
+
+This function can be called as follows:
+
+\begin{cpp}
+int sum { addNumbers(5, 3) };
+\end{cpp}
+
 \mySamllsection{Function Return Type Deduction}
+
+You can ask the compiler to figure out the return type of a function automatically. To make use of this functionality, just specify auto as the return type.
+
+\begin{cpp}
+auto addNumbers(int number1, int number2)
+{
+    return number1 + number2;
+}
+\end{cpp}
+
+The compiler deduces the return type based on the expressions used for the return statements in the body of the function. There can be multiple return statements, but they must all resolve to exactly the same type as the compiler will never insert any implicit conversions to deduce the return type of a function. Such a function can even include recursive calls (calls to itself), but the first return statement in the function must be a non-recursive call.
 
 \mySamllsection{Current Function’s Name}
 
+Every function has a local predefined variable \_\_func\_\_ containing the name of the current function. One use of this variable could be for logging purposes.
+
+\begin{cpp}
+int addNumbers(int number1, int number2)
+{
+    println("Entering function {}", __func__);
+    return number1 + number2;
+}
+\end{cpp}
+
 \mySamllsection{Function Overloading}
 
+Overloading a function means providing several functions with the same name but with a different set of parameters. Only specifying different return types is not enough, as the returned value can be ignored when calling the function; instead, the number and/or types of the parameters must be different.
+
+Suppose you want to provide versions of addNumbers() that work with integers and with doubles. Without overloading, you would have to come up with unique names, for example:
+
+\begin{cpp}
+int addNumbersInts(int a, int b) { return a + b; }
+double addNumbersDoubles(double a, double b) { return a + b; }
+\end{cpp}
+
+With function overloading, you don’t need to come up with different names for the different versions of a function. The following code snippet defines two functions called addNumbers(), one defined for integers, the other defined for doubles:
+
+\begin{cpp}
+int addNumbers(int a, int b) { return a + b; }
+double addNumbers(double a, double b) { return a + b; }
+\end{cpp}
+
+When calling addNumbers(), the compiler automatically selects the correct function overload based on the provided arguments. This process is called overload resolution.
+
+\begin{cpp}
+println("{}", addNumbers(1, 2)); // Calls the integer version
+println("{}", addNumbers(1.11, 2.22)); // Calls the double version
+\end{cpp}
 
 \mySubsubsection{1.1.13.}{Attributes}
 
+Attributes are a mechanism to add optional and/or vendor-specific information into source code. Before attributes were standardized in C++, vendors decided how to specify such information. Examples are \_\_attribute\_\_, \_\_declspec, and so on. Since C++11, there is standardized support for attributes by using the double square brackets syntax [[attribute]].
+
+Earlier in this chapter, the [[fallthrough]] attribute is introduced to prevent a compiler warning when fallthrough in a switch case statement is intentional. The C++ standard defines a couple more standard attributes.
+
 \mySamllsection{[[nodiscard]]}
+
+The [[nodiscard]] attribute can be used on a function that returns a value. The compiler will then issue a warning if the return value from that function is not used by the calling function. Here is an example:
+
+\begin{cpp}
+[[nodiscard]] int func() { return 42; }
+
+int main()
+{
+    func();
+}
+\end{cpp}
+
+The compiler issues a warning similar to the following:
+
+\begin{shell}
+warning C4834: discarding return value of function with 'nodiscard' attribute
+\end{shell}
+
+This feature can, for example, be used for functions that return error codes. By adding the [[nodiscard]] attribute to such functions, the error codes returned from them cannot be ignored.
+
+More general, the [[nodiscard]] attribute can be used on classes, structs, functions, and enumerations. An example of applying the attribute to an entire class is when you have a class representing error conditions. By applying [[nodiscard]] to such a class, the compiler will issue a warning for every function call that returns such an error condition and where the caller doesn’t do anything with it.
+
+A reason can be provided for the [[nodiscard]] attribute in the form of a string. This reason is then displayed in the warning messages generated by the compiler if the returned value is ignored by the caller of the function. Here is an example:
+
+\begin{cpp}
+[[nodiscard("Some explanation")]] int func();
+\end{cpp}
 
 \mySamllsection{[[maybe\_unused]]}
 
+The [[maybe\_unused]] attribute can be used to suppress the compiler from issuing a warning when something is unused, as in this example:
+
+\begin{cpp}
+int func(int param1, int param2)
+{
+    return 42;
+}
+\end{cpp}
+
+If the compiler warning level is set high enough, this function definition results in two compiler warnings. For example, Microsoft Visual C++ gives these warnings:
+
+\begin{shell}
+warning C4100: 'param2': unreferenced formal parameter
+warning C4100: 'param1': unreferenced formal parameter
+\end{shell}
+
+By using the [[maybe\_unused]] attribute, you can suppress such warnings:
+
+\begin{cpp}
+int func(int param1, [[maybe_unused]] int param2)
+{
+    return 42;
+}
+\end{cpp}
+
+In this case, the second parameter is marked with the attribute suppressing its warning. The compiler now only issues a warning for param1:
+
+\begin{shell}
+warning C4100: 'param1': unreferenced formal parameter
+\end{shell}
+
+The [[maybe\_unused]] attribute can be used on classes, structs, non-static data members, unions, typedefs, type aliases, variables, functions, enumerations, and enumerators. Some of these terms you might not know yet but are discussed later in this book.
+
 \mySamllsection{[[noreturn]]}
+
+Adding a [[noreturn]] attribute to a function means that it never returns control to the caller. Typically, the function either causes some kind of termination (process termination or thread termination) or throws an exception. Exceptions are discussed later in this chapter. With this attribute, the compiler can avoid giving certain warnings or errors because it now knows more about the intent of the function. Here is an example:
+
+\begin{cpp}
+import std;
+using namespace std;
+
+[[noreturn]] void forceProgramTermination()
+{
+    exit(1); // Defined in <cstdlib>
+}
+
+bool isDongleAvailable()
+{
+    bool isAvailable { false };
+    // Check whether a licensing dongle is available...
+    return isAvailable;
+}
+
+bool isFeatureLicensed(int featureId)
+{
+    if (!isDongleAvailable()) {
+        // No licensing dongle found, abort program execution!
+        forceProgramTermination();
+    } else {
+        // Dongle available, perform license check of the given feature...
+        bool isLicensed { featureId == 42 };
+        return isLicensed;
+    }
+}
+
+int main()
+{
+    bool isLicensed { isFeatureLicensed(42) };
+    println("{}", isLicensed);
+}
+\end{cpp}
+
+This code snippet compiles fine without any warnings or errors. However, if you remove the [[noreturn]] attribute, the compiler generates the following warning (output from Visual C++):
+
+\begin{shell}
+warning C4715: 'isFeatureLicensed': not all control paths return a value
+\end{shell}
 
 \mySamllsection{[[deprecated]]}
 
+[[deprecated]] can be used to mark something as deprecated, which means you can still use it, but its use is discouraged. This attribute accepts an optional argument that can be used to explain the reason for the deprecation, as in this example:
+
+\begin{cpp}
+[[deprecated("Unsafe function, please use xyz")]] void func();
+\end{cpp}
+
+If you use this deprecated function, you’ll get a compilation error or warning. For example, GCC gives the following warning:
+
+\begin{shell}
+warning: 'void func()' is deprecated: Unsafe function, please use xyz
+\end{shell}
+
 \mySamllsection{[[likely]] and [[unlikely]]}
 
+The likelihood attributes [[likely]] and [[unlikely]] can be used to help the compiler in optimizing code. These attributes can, for example, be used to mark branches of if and switch statements according to how likely it is that a branch will be taken. However, these attributes are rarely required. Compilers and hardware these days have powerful branch prediction to figure it out themselves, but in certain cases, such as performance critical code, you might have to help the compiler. The syntax is as follows:
 
-\CXXTwentythreeLogo{-35}{-9}
+\begin{cpp}
+int value { /* ... */ };
+if (value > 11) [[unlikely]] { /* Do something ... */ }
+else { /* Do something else ... */ }
+
+switch (value)
+{
+    [[likely]] case 1:
+        // Do something ...
+        break;
+    case 2:
+        // Do something ...
+        break;
+    [[unlikely]] case 12:
+        // Do something ...
+        break;
+}
+\end{cpp}
+
+\CXXTwentythreeLogo{-40}{-50}
+
 \mySamllsection{[[assume]]}
 
+The [[assume]] attribute allows the compiler to assume that certain expressions are true without evaluating them at run time. The compiler can use such assumptions to better optimize the code. As an example, let’s look at the following function:
 
+\begin{cpp}
+int divideBy32(int x)
+{
+    return x / 32;
+}
+\end{cpp}
 
+The function accepts a signed integer, so the compiler has to produce code to make sure the division works for both positive and negative numbers. If you are sure that x will never be negative, and for some reason you cannot make x of type unsigned, you can add an assumption as follows:
 
+\begin{cpp}
+int divideBy32(int x)
+{
+    [[assume(x >= 0)]];
+    return x / 32;
+}
+\end{cpp}
+
+With this assumption in place, the compiler can omit any code to handle negative numbers and optimize the division into a single instruction, a simple right shift of five bits.
 
 \mySubsubsection{1.1.14.}{C-Style Arrays}
 
+\begin{myWarning}{WARNING}
+This section briefly explains C-style arrays, as you will encounter them in legacy code. However, in C++, it is best to avoid C-style arrays and instead use Standard Library functionality, such as std::array and vector, discussed in the following two sections.
+\end{myWarning}
+
+Arrays hold a series of values, all of the same type, each of which can be accessed by its position in the array. In C++, you must provide the size of the array when the array is declared. You cannot give a variable as the size—it must be a constant, or a constant expression (constexpr). Constant expressions are discussed in Chapter 9. The code that follows shows the declaration of an array of three integers followed by three lines to initialize the elements to 0:
+
+\begin{cpp}
+int myArray[3];
+myArray[0] = 0;
+myArray[1] = 0;
+myArray[2] = 0;
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+In C++, the first element of an array is always at position 0, not position 1! The last position of the array is always the size of the array minus 1!
+\end{myWarning}
+
+The “Loops” section later in this chapter discusses how you could use loops to initialize each element of an array. However, instead of using loops or the previous initialization mechanism, you can also accomplish zero initialization with the following one-liner:
+
+\begin{cpp}
+int myArray[3] = { 0 };
+\end{cpp}
+
+You can even drop the 0.
+
+\begin{cpp}
+int myArray[3] = {};
+\end{cpp}
+
+Finally, the equal sign is optional as well, so you can write this:
+
+\begin{cpp}
+int myArray[3] {};
+\end{cpp}
+
+An array can be initialized with an initializer list, in which case the compiler deduces the size of the array automatically. Here’s an example:
+
+\begin{cpp}
+int myArray[] { 1, 2, 3, 4 }; // The compiler creates an array of 4 elements
+\end{cpp}
+
+If you do specify the size of the array and the initializer list has fewer elements than the given size, the remaining elements are set to 0. For example, the following code sets only the first element in the array to the value 2 and sets all others to 0:
+
+\begin{cpp}
+int myArray[3] { 2 };
+\end{cpp}
+
+To get the size of a stack-based C-style array, you can use the std::size() function, defined in <array>. It returns an std::size\_t, which is an unsigned integer type defined in <cstddef>. Here is an example:
+
+\begin{cpp}
+std::size_t arraySize { std::size(myArray) };
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+In legacy code, you might see size\_t being used without the std namespace qualification, without a using namespace std directive, and without a using std::size\_t declaration. This does not work any longer when you use import std, as that imports everything into the std namespace. Hence, you need either to use std::size\_t or to use a proper using directive or declaration. Alternatively, Chapter 11 explains that you can import the named module std.compat instead of std, but this is not recommended for new code.
+\end{myNotic}
+
+\CXXTwentythreeLogo{-40}{-50}
+
+\begin{myNotic}{NOTE}
+C++23 introduces a literal suffix uz for type std::size\_t, for example, 42uz.
+\end{myNotic}
+
+An older trick to get the size of a stack-based C-style array was to use the sizeof operator. The sizeof operator returns the size of its argument in bytes. To get the number of elements in a stackbased array, you divide the size in bytes of the array by the size in bytes of the first element. Here’s an example:
+
+\begin{cpp}
+std::size_t arraySize { sizeof(myArray) / sizeof(myArray[0]) };
+\end{cpp}
+
+The preceding examples show a one-dimensional array of integers, which you can think of as a line of integers, each with its own numbered compartment. C++ allows multidimensional arrays. You might think of a two-dimensional array as a checkerboard, where each location has a position along the x-axis and a position along the y-axis. Three-dimensional arrays can be pictured as a cube, while higher-dimensional arrays are harder to visualize. The following code shows the syntax for creating a two-dimensional array of characters for a tic-tac-toe board and then putting an “o” in the center square:
+
+\begin{cpp}
+char ticTacToeBoard[3][3];
+ticTacToeBoard[1][1] = 'o';
+\end{cpp}
+
+Figure 1.1 shows a visual representation of this board with the position of each square.
+
 \mySubsubsection{1.1.15.}{std::array}
+
+The arrays discussed in the previous section come from C and still work in C++. However, C++ has a special type for fixed-size containers called std::array, defined in <array>. It’s basically a thin wrapper around C-style arrays.
+
+\myGraphic{0.6}{content/part1/chapter1/images/1.png}{FIGURE 1.1}
+
+There are a number of advantages to using std::arrays instead of C-style arrays. They always know their own size, are not automatically cast to a pointer to avoid certain types of bugs, and have iterators to easily loop over the elements. Iterators are discussed in detail in Chapter 17, “Understanding Iterators and the Ranges Library.” The following example demonstrates how to use the array container. The array type is a class template accepting a number of class template parameters that allow you to specify how many elements you want to store in the container and their type. You provide class template arguments for class template parameters by specifying them between the angle brackets after array, as in array<int,3>.
+
+Chapter 12, “Writing Generic Code with Templates,” discusses templates in detail. However, for now, just remember that you have to specify two arguments between the angle brackets; the first represents the type of the elements in the array, and the second represents the size of the array.
+
+\begin{cpp}
+array<int, 3> arr { 9, 8, 7 };
+println("Array size = {}", arr.size());
+println("2nd element = {}", arr[1]);
+\end{cpp}
+
+C++ supports class template argument deduction (CTAD), as discussed in detail in Chapter 12. For now, it’s enough to remember that this allows you to avoid having to specify the template arguments between angle brackets for certain class templates. CTAD works only when using an initializer because the compiler uses this initializer to automatically deduce the template arguments. This works for std::array, allowing you to define the previous array as follows:
+
+\begin{cpp}
+array arr { 9, 8, 7 };
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+C-style arrays and std::arrays have a fixed size, which must be known at compile time. They cannot grow or shrink at run time.
+\end{myNotic}
+
+If you want an array with a dynamic size, it is recommended to use std::vector, as explained in the next section. A vector automatically increases in size when you add new elements to it.
 
 \mySubsubsection{1.1.16.}{std::vector}
 
+The C++ Standard Library provides a number of different non-fixed-size containers that can be used to store information. std::vector, declared in <vector>, is an example of such a container. The vector class replaces the concept of C-style arrays with a much more flexible and safer mechanism.
+
+As a user, you need not worry about memory management, as a vector automatically allocates enough memory to hold its elements. A vector is dynamic, meaning that elements can be added and removed at run time. Chapter 18, “Standard Library Containers,” goes into more detail regarding containers, but the basic use of a vector is straightforward, which is why it’s introduced in the beginning of this book so that it can be used in examples. The following code demonstrates the basic functionality of vector:
+
+\begin{cpp}
+// Create a vector of integers.
+vector<int> myVector { 11, 22 };
+
+// Add some more integers to the vector using push_back().
+myVector.push_back(33);
+myVector.push_back(44);
+
+// Access elements.
+println("1st element: {}", myVector[0]);
+\end{cpp}
+
+myVector is declared as vector<int>. The angle brackets are required to specify the template arguments, just as with std::array. A vector is a generic container. It can contain almost any type of object, but all elements in a vector must be of the same type. This type is specified between the angle brackets. Templates are discussed in detail in Chapter 12 and Chapter 26, “Advanced Templates.”
+
+Just as std::array, the vector class template supports CTAD, allowing you to define myVector as follows:
+
+\begin{cpp}
+vector myVector { 11, 22 };
+\end{cpp}
+
+Again, an initializer is required for CTAD to work. The following is illegal:
+
+\begin{cpp}
+vector myVector;
+\end{cpp}
+
+To add elements to a vector, you can use the push\_back() member function. Individual elements can be accessed using a similar syntax as for arrays, i.e., operator[].
+
 \mySubsubsection{1.1.17.}{std::pair}
+
+The std::pair class template is defined in <utility>. It groups together two values of possibly different types. The values are accessible through the first and second public data members. Here is an example:
+
+\begin{cpp}
+pair<double, int> myPair { 1.23, 5 };
+println("{} {}", myPair.first, myPair.second);
+\end{cpp}
+
+pair also supports CTAD, so you can define myPair as follows:
+
+\begin{cpp}
+pair myPair { 1.23, 5 };
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+While you could write a function returning an std::pair, it is recommended to write a small struct or class containing the two values and return that from the function. The downside of returning a pair is that client code must use first and second to access the two values. By returning a proper struct or class, you can give more meaningful names to the two values.
+\end{myNotic}
 
 \mySubsubsection{1.1.18.}{std::optional}
 
+std::optional, defined in <optional>, holds a value of a specific type, or nothing. It is introduced already in this first chapter as it is a useful type to use in some of the examples throughout the book.
+
+Basically, optional can be used for parameters of a function if you want to allow for values to be optional. It is also often used as a return type from a function if the function can either return something or not. This removes the need to return “special” values from functions such as nullptr, -1, EOF, and so on. It also removes the need to write the function as returning a Boolean, representing success or failure, while storing the actual result of the function in an argument passed to the function as an output parameter (a parameter of type reference-to-non-const, discussed later in this chapter).
+
+The optional type is a class template, so you have to specify the actual type that you need between angle brackets, as in optional<int>. This syntax is similar to how you specify the type stored in a vector, for example vector<int>.
+
+Here is an example of a function returning an optional:
+
+\begin{cpp}
+optional<int> getData(bool giveIt)
+{
+    if (giveIt) {
+        return 42;
+    }
+    return nullopt; // or simply return {};
+}
+\end{cpp}
+
+You can call this function as follows:
+
+\begin{cpp}
+optional<int> data1 { getData(true) };
+optional<int> data2 { getData(false) };
+\end{cpp}
+
+To determine whether an optional has a value, use the has\_value() member function, or simply use the optional in an if statement:
+
+\begin{cpp}
+println("data1.has_value = {}", data1.has_value());
+if (!data2) {
+    println("data2 has no value.");
+}
+\end{cpp}
+
+If an optional has a value, you can retrieve it with value() or with the dereferencing operator *. This operator is discussed in detail later in this chapter in the context of pointers.
+
+\begin{cpp}
+println("data1.value = {}", data1.value());
+println("data1.value = {}", *data1);
+\end{cpp}
+
+If you call value() on an empty optional, an std::bad\_optional\_access exception is thrown. Exceptions are introduced later in this chapter.
+
+value\_or() can be used to return either the value of an optional or another value when the optional is empty:
+
+\begin{cpp}
+println("data2.value = {}", data2.value_or(0));
+\end{cpp}
+
+You cannot store a reference (discussed later in this chapter) in an optional, so optional<T\&> does not work. Instead, you can store a pointer in an optional.
+
 \mySubsubsection{1.1.19.}{Structured Bindings}
+
+A structured binding allows you to declare multiple variables that are initialized with elements from a data structure such as an array, struct, or pair.
+
+Assume you have the following std::array:
+
+\begin{cpp}
+array values { 11, 22, 33 };
+\end{cpp}
+
+You can declare three variables, x, y, and z, initialized with the three values from the array as follows. You have to use the auto keyword for structured bindings, i.e., you cannot, for example, specify int instead of auto.
+
+\begin{cpp}
+auto [x, y, z] { values };
+\end{cpp}
+
+The number of variables declared with the structured binding has to match the number of values in the expression on the right.
+
+Structured bindings also work with structs if all non-static members are public. Here’s an example:
+
+\begin{cpp}
+struct Point { double m_x, m_y, m_z; };
+Point point;
+point.m_x = 1.0; point.m_y = 2.0; point.m_z = 3.0;
+auto [x, y, z] { point };
+\end{cpp}
+
+As a final example, the following code snippet decomposes the elements of a pair into separate variables:
+
+\begin{cpp}
+pair myPair { "hello", 5 };
+auto [theString, theInt] { myPair }; // Decompose using structured bindings.
+println("theString: {}", theString);
+println("theInt: {}", theInt);
+\end{cpp}
+
+It is also possible to create a set of references-to-non-const or references-to-const using the structured bindings syntax, by using auto\& or const auto\& instead of auto. Both references-to-nonconst and references-to-const are discussed later in this chapter.
 
 \mySubsubsection{1.1.20.}{Loops}
 
+Computers are great for doing the same thing over and over. C++ provides four looping mechanisms: the while loop, do/while loop, for loop, and range-based for loop.
+
 \mySamllsection{The while Loop}
+
+The while loop lets you perform a block of code repeatedly as long as an expression evaluates to true. For example, the following completely silly code prints “This is silly.” five times:
+
+\begin{cpp}
+int i { 0 };
+while (i < 5) {
+    println("This is silly.");
+    ++i;
+}
+\end{cpp}
+
+The keyword break can be used within a loop to immediately get out of the loop and resume execution of the program starting at the line of code following the loop. The keyword continue can be used to return to the top of the loop and reevaluate the while expression. However, using continue in loops is often considered poor style because it causes the execution of a program to jump around somewhat haphazardly, so use it sparingly.
 
 \mySamllsection{The do/while Loop}
 
+C++ has a variation on the while loop called do/while. It works similarly to the while loop, except that the code to be executed comes first, and the conditional check for whether to continue happens at the end. In this way, you can use a loop when you want a block of code to always be executed at least once and possibly additional times based on some condition. The example that follows prints the statement, “This is silly.” once, even though the condition ends up being false:
+
+\begin{cpp}
+int i { 100 };
+do {
+    println("This is silly.");
+    ++i;
+} while (i < 5);
+\end{cpp}
+
 \mySamllsection{The for Loop}
+
+The for loop provides another syntax for looping. Any for loop can be converted to a while loop, and vice versa. However, the for loop syntax is often more convenient because it looks at a loop in terms of a starting expression, an ending condition, and a statement to execute at the end of every iteration. In the following code, i is initialized to 0; the loop continues as long as i is less than 5; and at the end of every iteration, i is incremented by 1. This code does the same thing as the while loop example earlier but is more readable because the starting value, ending condition, and per-iteration statements are all visible on one line.
+
+\begin{cpp}
+for (int i { 0 }; i < 5; ++i) {
+    println("This is silly.");
+}
+\end{cpp}
 
 \mySamllsection{The Range-Based for Loop}
 
+The range-based for loop is the fourth looping mechanism. It allows for easy iteration over elements of a container. This type of loop works for C-style arrays, initializer lists (discussed later in this chapter), and any type that supports begin() and end() functions returning iterators (see Chapter 17), such as std::array, vector, and all other Standard Library containers discussed in Chapter 18, “Standard Library Containers.”
+
+The following example first defines an array of four integers. The range-based for loop then iterates over a copy of every element in this array and prints out each value. To iterate over the elements themselves without making copies, use a reference variable, as discussed later in this chapter.
+
+\begin{cpp}
+array arr { 1, 2, 3, 4 };
+for (int i : arr) { println("{}", i); }
+\end{cpp}
+
+\mySamllsection{Initializers for Range-Based for Loops}
+
+You can use initializers with range-based for loops, similar to initializers for if and switch statements. The syntax is as follows:
+
+\begin{cpp}
+for (<initializer>; <range-declaration> : <range-expression>) { <body> }
+\end{cpp}
+
+Any variables introduced in the <initializer> are available only in the <range-declaration>, the <range-expression> and in the <body>. They are not available outside the range-based for loop.
+Here is an example:
+
+\begin{cpp}
+for (array arr { 1, 2, 3, 4 }; int i : arr) { println("{}", i); }
+\end{cpp}
 
 \mySubsubsection{1.1.21.}{Initializer Lists}
 
+Initializer lists are defined in <initializer\_list> and make it easy to write functions that can accept a variable number of arguments. The std::initializer\_list type is a class template, and so it requires you to specify the type of elements in the list between angle brackets, similar to how you specify the type of elements stored in a vector. The following example shows how to use an initializer list:
+
+\begin{cpp}
+import std;
+using namespace std;
+
+int sum(initializer_list<int> values)
+{
+    int total { 0 };
+    for (int value : values) {
+        total += value;
+    }
+    return total;
+}
+\end{cpp}
+
+By accepting an initializer list of integers as a parameter, the function sum() can be called with a braced initializer of integers as argument. The body of the function uses a range-based for loop to accumulate the total sum. This function can be used as follows:
+
+\begin{cpp}
+int a { sum({ 1, 2, 3 }) };
+int b { sum({ 10, 20, 30, 40, 50, 60 }) };
+\end{cpp}
+
+Initializer lists are type safe. All elements in such a list must be of the same type. For the sum() function shown here, all elements of the initializer list must be integers. Trying to call it with a double, as shown next, results in a compilation error or warning stating that converting from double to int requires narrowing.
+
+\begin{cpp}
+int c { sum({ 1, 2, 3.0 }) };
+\end{cpp}
+
 \mySubsubsection{1.1.22.}{Strings in C++}
+
+There are two ways to work with strings in C++:
+
+\begin{itemize}
+\item
+The C style: Representing strings as arrays of characters
+
+\item
+The C++ style: Wrapping a C-style representation in an easier-to-use and safer string type
+\end{itemize}
+
+Chapter 2 provides a detailed discussion. For now, the only thing you need to know is that the C++ std::string type is defined in <string> and that you can use a C++ string almost like a basic type. The following example shows that strings can be used just like character arrays:
+
+\begin{cpp}
+string myString { "Hello, World" };
+println("The value of myString is {}", myString);
+println("The second letter is {}", myString[1]);
+\end{cpp}
 
 \mySubsubsection{1.1.23.}{C++ as an Object-Oriented Language}
 
-\mySamllsection{The for Loop}
+If you are a C programmer, you may have viewed the features covered so far in this chapter as convenient additions to the C language. As the name C++ implies, in many ways the language is just a “better C.” There is one major point that this view overlooks: unlike C, C++ is an objectoriented language.
+
+Object-oriented programming (OOP) is a different, arguably more natural, way to write code. If you are used to procedural languages such as C or Pascal, don’t worry. Chapter 5, “Designing with Classes,” covers all the background information you need to know to shift your mindset to the objectoriented paradigm. If you already know the theory of OOP, the rest of this section will get you up to speed (or refresh your memory) on basic C++ object syntax.
 
 \mySamllsection{Defining Classes}
 
+A class defines the characteristics of an object. In C++, classes are usually defined and exported from a module interface file (.cppm), while their definitions can either be directly in the same module interface file or in a corresponding module implementation file (.cpp). Chapter 11 discusses modules in depth.
+
+A basic class definition for an airline ticket class is shown in the following example. The class can calculate the price of the ticket based on the number of miles in the flight and whether the customer is a member of the Elite Super Rewards Program.
+
+The definition begins by declaring the class name. Inside a set of curly braces, the data members (properties) of the class and its member functions (behaviors) are declared. Each data member and member function is associated with a particular access level: public, protected, or private. These labels can occur in any order and can be repeated. Members that are public can be accessed from outside the class, while members that are private cannot be accessed from anywhere outside the class. Members that are protected can be accessed by derived classes, explained in detail in Chapter 10 in the context of inheritance. It’s recommended to make all your data members private, and if needed, to give access to them with public or protected getters to retrieve data from an object and public or protected setters to set data for an object. This way, you can easily change the representation of your data while keeping the public/protected interface the same.
+
+Remember, when writing a module interface file, don’t forget to use an export module declaration to specify which module you are writing, and don’t forget to explicitly export the types you want to make available to users of your module.
+
+\begin{cpp}
+export module airline_ticket;
+
+import std;
+
+export class AirlineTicket
+{
+    public:
+        AirlineTicket();
+        ˜AirlineTicket();
+        double calculatePriceInDollars();
+        std::string getPassengerName();
+        void setPassengerName(std::string name);
+        int getNumberOfMiles();
+        void setNumberOfMiles(int miles);
+        bool hasEliteSuperRewardsStatus();
+        void setHasEliteSuperRewardsStatus(bool status);
+    private:
+        std::string m_passengerName;
+        int m_numberOfMiles;
+        bool m_hasEliteSuperRewardsStatus;
+};
+\end{cpp}
+
+This book follows the convention to prefix each data member of a class with a lowercase m followed by an underscore, such as m\_passengerName.
+
+The member function that has the same name as the class with no return type is a constructor. It is automatically called when an object of the class is created. The member function with a tilde (~) character followed by the class name is a destructor. It is automatically called when an object is destroyed.
+
+The .cppm module interface file defines the class, while the implementations of the member functions in this example are in a .cpp module implementation file. This source file starts with the following module declaration to tell the compiler that this is a source file for the airline\_ticket module:
+
+\begin{cpp}
+module airline_ticket;
+\end{cpp}
+
+There are several ways to initialize data members of a class. One way is to use a constructor initializer, which follows a colon after the constructor header. Here is the AirlineTicket constructor with a constructor initializer:
+
+\begin{cpp}
+AirlineTicket::AirlineTicket()
+    : m_passengerName { "Unknown Passenger" }
+    , m_numberOfMiles { 0 }
+    , m_hasEliteSuperRewardsStatus { false }
+{}
+\end{cpp}
+
+A second option is to put the initializations in the body of the constructor, as shown here:
+
+\begin{cpp}
+AirlineTicket::AirlineTicket()
+{
+    // Initialize data members.
+    m_passengerName = "Unknown Passenger";
+    m_numberOfMiles = 0;
+    m_hasEliteSuperRewardsStatus = false;
+}
+\end{cpp}
+
+However, if the constructor is only initializing data members without doing anything else, then there is actually no real need for a constructor because data members can be initialized directly inside a class definition, also known as in-class initializers. For example, instead of writing an AirlineTicket constructor, you can modify the data members in the class definition to initialize them as follows:
+
+\begin{cpp}
+private:
+    std::string m_passengerName { "Unknown Passenger" };
+    int m_numberOfMiles { 0 };
+    bool m_hasEliteSuperRewardsStatus { false };
+\end{cpp}
+
+If your class additionally needs to perform some other types of initializations, such as opening a file, allocating memory, and so on, then you still need to write a constructor to handle those initializations.
+
+Here is the destructor for the AirlineTicket class:
+
+\begin{cpp}
+AirlineTicket::~AirlineTicket()
+{
+    // Nothing to do in terms of cleanup
+}
+\end{cpp}
+
+This destructor doesn’t do anything and can simply be removed from this class. It is just shown here so you know the syntax of destructors. Destructors are required if you need to perform some cleanup, such as closing files, freeing memory, and so on. Chapters 8, “Gaining Proficiency with Classes and Objects,” and 9 discuss destructors in more detail.
+
+The definitions of the other AirlineTicket class member functions are shown here:
+
+\begin{cpp}
+double AirlineTicket::calculatePriceInDollars()
+{
+    if (hasEliteSuperRewardsStatus()) {
+        // Elite Super Rewards customers fly for free!
+        return 0;
+    }
+    // The cost of the ticket is the number of miles times 0.1.
+    // Real airlines probably have a more complicated formula!
+    return getNumberOfMiles() * 0.1;
+}
+
+string AirlineTicket::getPassengerName() { return m_passengerName; }
+void AirlineTicket::setPassengerName(string name) { m_passengerName = name; }
+
+int AirlineTicket::getNumberOfMiles() { return m_numberOfMiles; }
+void AirlineTicket::setNumberOfMiles(int miles) { m_numberOfMiles = miles; }
+
+bool AirlineTicket::hasEliteSuperRewardsStatus()
+{
+    return m_hasEliteSuperRewardsStatus;
+}
+
+void AirlineTicket::setHasEliteSuperRewardsStatus(bool status)
+{
+    m_hasEliteSuperRewardsStatus = status;
+}
+\end{cpp}
+
+As mentioned in the beginning of this section, it’s also possible to put the member function implementations directly in the module interface file. The syntax is as follows:
+
+\begin{cpp}
+export class AirlineTicket
+{
+    public:
+        double calculatePriceInDollars()
+        {
+            if (hasEliteSuperRewardsStatus()) { return 0; }
+            return getNumberOfMiles() * 0.1;
+        }
+
+        std::string getPassengerName() { return m_passengerName; }
+        void setPassengerName(std::string name) { m_passengerName = name; }
+
+        int getNumberOfMiles() { return m_numberOfMiles; }
+        void setNumberOfMiles(int miles) { m_numberOfMiles = miles; }
+
+        bool hasEliteSuperRewardsStatus() { return m_hasEliteSuperRewardsStatus; }
+        void setHasEliteSuperRewardsStatus(bool status)
+        {
+            m_hasEliteSuperRewardsStatus = status;
+        }
+    private:
+        std::string m_passengerName { "Unknown Passenger" };
+        int m_numberOfMiles { 0 };
+        bool m_hasEliteSuperRewardsStatus { false };
+};
+\end{cpp}
+
 \mySamllsection{Using Classes}
 
+To use the AirlineTicket class, you first need to import its module:
+
+\begin{cpp}
+import airline_ticket;
+\end{cpp}
+
+The following sample program makes use of the class. This example shows the creation of a stackbased AirlineTicket object:
+
+\begin{cpp}
+AirlineTicket myTicket;
+myTicket.setPassengerName("Sherman T. Socketwrench");
+myTicket.setNumberOfMiles(700);
+double cost { myTicket.calculatePriceInDollars() };
+println("This ticket will cost ${}", cost);
+\end{cpp}
+
+The AirlineTicket example exposes you to the general syntax for creating and using classes. Of course, there is much more to learn, and that’s the topic of Chapters 8, 9, and 10.
 
 \mySubsubsection{1.1.24.}{Scope Resolution}
 
+As a C++ programmer, you need to familiarize yourself with the concept of a scope, which defines where an item is visible. Every name in your program, including variable, function, and class names, is in a certain scope. You create scopes with namespaces, function definitions, blocks delimited by curly braces, and class definitions. Variables that are initialized in the initialization statement of for loops and range-based for loops are scoped to that for loop and are not visible outside the for loop. Similarly, variables initialized in an initializer for if or switch statements are scoped to that if or switch statement and are not visible outside that statement. When you try to access a variable, function, or class, the name is first looked up in the nearest enclosing scope, then the parent scope, and so forth, up to the global scope. Any name not in a namespace, function, block delimited by curly braces, or class is assumed to be in the global scope. If it is not found in the global scope, at that point the compiler generates an undefined symbol error.
+
+Sometimes names in scopes hide identical names in other scopes. Other times, the scope you want is not part of the default scope resolution from that particular line in the program. If you don’t want the default scope resolution for a name, you can qualify the name with a specific scope using the scope resolution operator ::. The following example demonstrates this. The example defines a class Demo with a get() member function, a get() function that is globally scoped, and a get() function that is in the NS namespace.
+
+\begin{cpp}
+class Demo
+{
+    public:
+    int get() { return 5; }
+};
+
+int get() { return 10; }
+
+namespace NS
+{
+    int get() { return 20; }
+}
+\end{cpp}
+
+The global scope is unnamed, but you can access it specifically by using the scope resolution operator by itself (with no name prefix). The different get() functions can be called as follows. In this example, the code itself is in the main() function, which is always in the global scope:
+
+\begin{cpp}
+int main()
+{
+    Demo d;
+    println("{}", d.get()); // prints 5
+    println("{}", NS::get()); // prints 20
+    println("{}", ::get()); // prints 10
+    println("{}", get()); // prints 10
+}
+\end{cpp}
+
+If the earlier namespace called NS is defined as an unnamed / anonymous namespace, that is, a namespace without a name as follows:
+
+\begin{cpp}
+namespace
+{
+    int get() { return 20; }
+}
+\end{cpp}
+
+then the following line will cause a compilation error about ambiguous name resolution because you would have a get() defined in the global scope, and another get() defined in the unnamed namespace.
+
+\begin{cpp}
+println("{}", get());
+\end{cpp}
+
+The same error occurs if you add the following using directive right before the main() function:
+
+\begin{cpp}
+using namespace NS;
+\end{cpp}
+
 \mySubsubsection{1.1.25.}{Uniform Initialization}
+
+Before C++11, initialization of types was not always uniform. For example, take the following definitions of a circle, once as a structure, and once as a class:
+
+\begin{cpp}
+struct CircleStruct
+{
+    int x, y;
+    double radius;
+};
+
+class CircleClass
+{
+    public:
+        CircleClass(int x, int y, double radius)
+            : m_x { x }, m_y { y }, m_radius { radius } {}
+    private:
+        int m_x, m_y;
+        double m_radius;
+};
+\end{cpp}
+
+In pre-C++11, initialization of a variable of type CircleStruct and a variable of type CircleClass looked different:
+
+\begin{cpp}
+CircleStruct myCircle1 = { 10, 10, 2.5 };
+CircleClass myCircle2(10, 10, 2.5);
+\end{cpp}
+
+For the structure version, you can use the \{...\} syntax. However, for the class version, you needed to call the constructor using function notation: (...).
+
+Since C++11, you can more uniformly use the \{...\} syntax to initialize types, as follows:
+
+\begin{cpp}
+CircleStruct myCircle3 = { 10, 10, 2.5 };
+CircleClass myCircle4 = { 10, 10, 2.5 };
+\end{cpp}
+
+The definition of myCircle4 automatically calls the constructor of CircleClass. Even the use of the equal sign is optional, so the following are identical:
+
+\begin{cpp}
+CircleStruct myCircle5 { 10, 10, 2.5 };
+CircleClass myCircle6 { 10, 10, 2.5 };
+\end{cpp}
+
+As another example, in the section “Structs” earlier in this chapter, an Employee structure is initialized as follows:
+
+\begin{cpp}
+Employee anEmployee;
+anEmployee.firstInitial = 'J';
+anEmployee.lastInitial = 'D';
+anEmployee.employeeNumber = 42;
+anEmployee.salary = 80'000;
+\end{cpp}
+
+With uniform initialization, this can be rewritten as follows:
+
+\begin{cpp}
+Employee anEmployee { 'J', 'D', 42, 80'000 };
+\end{cpp}
+
+Uniform initialization is not limited to structures and classes. You can use it to initialize almost anything in C++. For example, the following code initializes all four variables with the value 3:
+
+\begin{cpp}
+int a = 3;
+int b(3);
+int c = { 3 }; // Uniform initialization
+int d { 3 }; // Uniform initialization
+\end{cpp}
+
+Uniform initialization can be used to perform zero-initialization of variables; you just specify an empty set of curly braces, as shown here:
+
+\begin{cpp}
+int e { }; // Uniform initialization, e will be 0
+\end{cpp}
+
+This syntax can also be used with structures. If you create an instance of the Employee struct as follows, then its data members are default initialized, which, for primitive types such as char and int, means they’ll contain whatever random data is left in memory:
+
+\begin{cpp}
+Employee anEmployee;
+\end{cpp}
+
+However, if you create the instance as follows, then all data members are zero initialized:
+
+\begin{cpp}
+Employee anEmployee { };
+\end{cpp}
+
+A benefit of using uniform initialization is that it prevents narrowing. When using the old-style assignment syntax to initialize variables, C++ implicitly performs narrowing, as shown here:
+
+\begin{cpp}
+int main()
+{
+    int x = 3.14;
+}
+\end{cpp}
+
+For the statement in main(), C++ automatically truncates 3.14 to 3 before assigning it to x. Some compilers might issue a warning about this narrowing, while others won’t. In any case, narrowing conversions should not go unnoticed, as they might cause subtle or not so subtle bugs. With uniform initialization, the assignment to x must generate a compilation error if your compiler fully conforms to the C++11 standard:
+
+\begin{cpp}
+int x { 3.14 }; // Error because narrowing
+\end{cpp}
+
+If a narrowing cast is what you need, I recommend using the gsl::narrow\_cast() function available in the Guidelines Support Library (GSL).
+
+Uniform initialization can also be used in the constructor initializer to initialize arrays that are members of a class.
+
+\begin{cpp}
+class MyClass
+{
+    public:
+        MyClass()
+            : m_array { 0, 1, 2, 3 }
+        {
+        }
+    private:
+        int m_array[4];
+};
+\end{cpp}
+
+Uniform initialization can be used with the Standard Library containers as well—such as std::vector, already demonstrated earlier in this chapter.
+
+\begin{myNotic}{NOTE}
+Considering all these benefits, it is recommended to use uniform initialization over using the assignment syntax to initialize variables. Hence, this book uses uniform initialization wherever possible.
+\end{myNotic}
 
 \mySamllsection{Designated Initializers}
 
+Designated initializers initialize data members of aggregates using their name. An aggregate type is an object of an array type, or an object of a structure or class that satisfies the following restrictions: only public data members, no user-declared or inherited constructors, no virtual functions (see Chapter 10), and no virtual, private, or protected base classes (see Chapter 10). A designated initializer starts with a dot followed by the name of a data member. Designated initializers must be in the same order as the declaration order of the data members. Mixing designated initializers and nondesignated initializers is not allowed. Any data members that are not initialized using a designated initializer are initialized with their default values, which means the following:
+
+\begin{itemize}
+\item
+Data members that have an in-class initializer will get that value.
+
+\item
+Data members that do not have an in-class initializer are zero initialized.
+\end{itemize}
+
+Let’s take a look at a slightly modified Employee structure. This time the salary data member has a default value of 75,000.
+
+\begin{cpp}
+struct Employee {
+    char firstInitial;
+    char lastInitial;
+    int employeeNumber;
+    int salary { 75'000 };
+};
+\end{cpp}
+
+Earlier in this chapter, such an Employee structure is initialized using a uniform initialization syntax as follows:
+
+\begin{cpp}
+Employee anEmployee { 'J', 'D', 42, 80'000 }
+\end{cpp}
+
+Using designated initializers, this can be written as follows:
+
+\begin{cpp}
+Employee anEmployee {
+    .firstInitial = 'J',
+    .lastInitial = 'D',
+    .employeeNumber = 42,
+    .salary = 80'000
+};
+\end{cpp}
+
+A benefit of using such designated initializers is that it’s much easier to understand what a designated initializer is initializing compared to using the uniform initialization syntax.
+
+With designated initializers, you can skip initialization of certain members if you are satisfied with their default values. For example, when creating an employee, you could skip initializing employeeNumber, in which case employeeNumber is zero initialized as it doesn’t have an in-class initializer:
+
+\begin{cpp}
+Employee anEmployee {
+    .firstInitial = 'J',
+    .lastInitial = 'D',
+    .salary = 80'000
+};
+\end{cpp}
+
+With the uniform initialization syntax, this is not possible, and you have to specify 0 for the employee number as follows:
+
+\begin{cpp}
+Employee anEmployee { 'J', 'D', 0, 80'000 };
+\end{cpp}
+
+If you skip initializing the salary data member as follows, then salary gets its default value, which is its in-class initialization value, 75,000:
+
+\begin{cpp}
+Employee anEmployee {
+    .firstInitial = 'J',
+    .lastInitial = 'D'
+};
+\end{cpp}
+
+A final benefit of using designated initializers is that when members are added to the data structure, existing code using designated initializers keeps working. The new data members will just be initialized with their default values.
 
 \mySubsubsection{1.1.26.}{Pointers and Dynamic Memory}
 
+Dynamic memory allows you to build programs with data that is not of fixed size at compile time. Most nontrivial programs make use of dynamic memory in some form.
+
 \mySamllsection{The Stack and the Free Store}
+
+\myGraphic{0.4}{content/part1/chapter1/images/2.png}{FIGURE 1.2}
+
+Memory in your C++ application is divided into two parts—the stack and the free store. One way to visualize the stack is as a deck of cards. The current top card represents the current scope of the program, usually the function that is currently being executed. All variables declared inside the current function will take up memory in the top stack frame, the top card of the deck. If the current function, which I’ll call foo(), calls another function bar(), a new card is put on the deck so that bar() has its own stack frame to work with. Any parameters passed from foo() to bar() are copied from the foo() stack frame into the bar() stack frame. Figure 1.2 shows what the stack might look like during the execution of a hypothetical function foo() that has declared two integer values.
+
+Stack frames are nice because they provide an isolated memory workspace for each function. If a variable is declared inside the foo() stack frame, calling the bar() function won’t change it unless you specifically tell it to. Also, when the foo() function is done running, the stack frame goes away, and all of the variables declared within the function no longer take up memory. Variables that are stackallocated do not need to be deallocated (deleted) by the programmer; it happens automatically.
+
+The free store is an area of memory that is completely independent of the current function or stack frame. You can put variables on the free store if you want them to exist even when the function in which they were created has completed. The free store is less structured than the stack. You can think of it as just a pile of bits. Your program can add new bits to the pile at any time or modify bits that are already on the pile. You have to make sure that you deallocate (delete) any memory that you allocated on the free store. This does not happen automatically, unless you use smart pointers, which are discussed in detail in Chapter 7, “Memory Management.”
+
+\begin{myWarning}{WARNING}
+Pointers are introduced here because you will encounter them, especially in legacy code bases. In new code, however, such raw/naked pointers are allowed only if there is no ownership involved. Otherwise, you should use one of the smart pointers explained in Chapter 7.
+\end{myWarning}
 
 \mySamllsection{Working with Pointers}
 
