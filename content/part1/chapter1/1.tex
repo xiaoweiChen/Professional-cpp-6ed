@@ -2366,51 +2366,1078 @@ Pointers are introduced here because you will encounter them, especially in lega
 
 \mySamllsection{Working with Pointers}
 
+You can put anything on the free store by explicitly allocating memory for it. For example, to put an integer on the free store, you need to allocate memory for it, but first you need to declare a pointer:
+
+\begin{cpp}
+int* myIntegerPointer;
+\end{cpp}
+
+The * after the int type indicates that the variable you are declaring refers or points to some integer memory. Think of the pointer as an arrow that points at the dynamically allocated free store memory. It does not yet point to anything specific because you haven’t assigned it to anything; it is an uninitialized variable. Uninitialized variables should be avoided at all times, and especially uninitialized pointers because they point to some random place in memory. Working with such pointers will most likely make your program crash. That’s why you should always declare and initialize your pointers at the same time! You can initialize them to a null pointer (nullptr—for more information, see the “Null Pointer Constant” section) if you don’t want to allocate memory right away:
+
+\begin{cpp}
+int* myIntegerPointer { nullptr };
+\end{cpp}
+
+A null pointer is a special default value that no valid pointer will ever have and converts to false when used in a Boolean expression. Here’s an example:
+
+\begin{cpp}
+if (!myIntegerPointer) { /* myIntegerPointer is a null pointer. */ }
+\end{cpp}
+
+You use the new operator to allocate the memory:
+
+\begin{cpp}
+myIntegerPointer = new int;
+\end{cpp}
+
+In this case, the pointer points to the address of just a single integer value. To access this value, you need to dereference the pointer. Think of dereferencing as following the pointer’s arrow to the actual value on the free store. To set the value of the newly allocated free store integer, you would use code like the following:
+
+\begin{cpp}
+*myIntegerPointer = 8;
+\end{cpp}
+
+Notice that this is not the same as setting myIntegerPointer to the value 8. You are not changing the pointer; you are changing the memory that it points to. If you were to reassign the pointer value, it would point to the memory address 8, which is probably random garbage that will eventually make your program crash.
+
+After you are finished with your dynamically allocated memory, you need to deallocate the memory using the delete operator. To prevent the pointer from being used after having deallocated the memory it points to, it’s recommended to set it to nullptr:
+
+\begin{cpp}
+delete myIntegerPointer;
+myIntegerPointer = nullptr;
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+A pointer must be valid before it is dereferenced. Dereferencing a null pointer or an uninitialized pointer causes undefined behavior. Your program might crash, but it might just as well keep running and start giving strange results.
+\end{myWarning}
+
+Pointers don’t always point to free store memory. You can declare a pointer that points to a variable on the stack, even another pointer. To get a pointer to a variable, you use the \& (“address of”) operator:
+
+\begin{cpp}
+int i { 8 };
+int* myIntegerPointer { &i }; // Points to the variable with the value 8
+\end{cpp}
+
+C++ has a special syntax for dealing with pointers to structures or classes. Technically, if you have a pointer to a structure or a class, you can access its fields by first dereferencing it with *, and then using the normal . syntax, as in the code that follows. This code snippet also demonstrates how to dynamically allocate and deallocate an Employee instance.
+
+\begin{cpp}
+Employee* anEmployee { new Employee { 'J', 'D', 42, 80'000 } };
+println("{}", (*anEmployee).salary);
+delete anEmployee; anEmployee = nullptr;
+\end{cpp}
+
+This syntax is a little messy. The -> (arrow) operator lets you perform both the dereference and the field access in one step. The following statement is equivalent to the previous println() call but is easier to read:
+
+\begin{cpp}
+println("{}", anEmployee->salary);
+\end{cpp}
+
+Remember the concept of short-circuiting logic, discussed earlier in this chapter? This can be useful in combination with pointers to avoid using an invalid pointer, as in the following example:
+
+\begin{cpp}
+bool isValidSalary { anEmployee && anEmployee->salary > 0 };
+\end{cpp}
+
+Or, here it is a little bit more verbose:
+
+\begin{cpp}
+bool isValidSalary { anEmployee != nullptr && anEmployee->salary > 0 };
+\end{cpp}
+
+anEmployee is dereferenced to get the salary only if it is a valid pointer. If it is a null pointer, the logical operation short-circuits, and the anEmployee pointer is not dereferenced.
+
 \mySamllsection{Dynamically Allocated Arrays}
+
+The free store can also be used to dynamically allocate arrays. You use the new[] operator to allocate memory for an array.
+
+\begin{cpp}
+int arraySize { 8 };
+int* myVariableSizedArray { new int[arraySize] };
+\end{cpp}
+
+This allocates enough memory to hold arraySize integers. Figure 1.3 shows what the stack and the free store both look like after this code is executed. As you can see, the pointer variable still resides on the stack, but the array that was dynamically created lives on the free store.
+
+Now that the memory has been allocated, you can work with myVariableSizedArray as though it were a regular stack-based array:
+
+\begin{cpp}
+myVariableSizedArray[3] = 2;
+\end{cpp}
+
+When your code is done with the array, it should remove the array from the free store so that other variables can use the memory. In C++, you use the delete[] operator to do this:
+
+\begin{cpp}
+delete[] myVariableSizedArray;
+myVariableSizedArray = nullptr;
+\end{cpp}
+
+The brackets after delete indicate that you are deleting an array!
+
+\myGraphic{1.0}{content/part1/chapter1/images/3.png}{FIGURE 1.3}
+
+\begin{myNotic}{NOTE}
+If you do need dynamically allocated memory, avoid using malloc() and free() from C. Instead, use new and delete, or new[] and delete[] from C++. However, in modern C++, the goal is to avoid new, delete, new[], and delete[] altogether, and use more modern constructs such as Standard Library containers, e.g., std::vector, and smart pointers, discussed in Chapter 7.
+\end{myNotic}
+
+\begin{myWarning}{WARNING}
+To prevent memory leaks, every call to new should be paired with a call to delete, and every call to new[] should be paired with a call to delete[]. Not calling delete or delete[], or mismatching calls, results in memory leaks or worse. All these intricacies are discussed in Chapter 7.
+\end{myWarning}
 
 \mySamllsection{Null Pointer Constant}
 
+Before C++11, the constant NULL, defined in <cstddef>, was used for null pointers. You cannot get access to this constant using any import declaration; instead, you must use \#include <cstddef>. NULL is simply defined as the constant 0, which can cause problems. Take the following example:
+
+\begin{cpp}
+#include <cstddef>
+
+void func(int i) { /* ... */ }
+
+int main()
+{
+    func(NULL);
+}
+\end{cpp}
+
+The code defines a function func() with a single integer parameter. The main() function calls func() with argument NULL, which is supposed to be a null pointer constant. However, since NULL is not a real pointer, but identical to the integer 0, it triggers a call to func(int). This might be unexpected behavior. Hence, some compilers even give a warning about this.
+
+This problem is avoided by using a real null pointer constant, nullptr. The following code uses this real null pointer constant and causes a compilation error because there is no overload of func() accepting a pointer:
+
+\begin{cpp}
+func(nullptr);
+\end{cpp}
 
 \mySubsubsection{1.1.27.}{The Use of const}
 
+The keyword const can be used in a few different ways in C++. Its uses are related, but there are subtle differences. The subtleties of const make for excellent interview questions! Basically, the keyword const is short for “constant” and specifies that something remains unchanged.
+
+The compiler enforces this requirement by marking any attempt to change it as an error. Furthermore, when optimizations are enabled, the compiler can take advantage of this knowledge to produce better code.
+
 \mySamllsection{const as a Qualifier for a Type}
+
+If you assumed that the keyword const has something to do with constants, you have correctly uncovered one of its uses. In C, programmers often use the preprocessor \#define mechanism, see Chapter 11, to declare symbolic names for values that won’t change during the execution of the program, such as the version number. In C++, programmers are encouraged to avoid \#define in favor of using const to define constants. Defining a constant with const is just like defining a variable, except that the compiler guarantees that code cannot change the value. Here are some examples:
+
+\begin{cpp}
+const int versionNumberMajor { 2 };
+const int versionNumberMinor { 1 };
+const std::string productName { "Super Hyper Net Modulator" };
+const double PI { 3.141592653589793238462 };
+\end{cpp}
+
+You can mark any variable const, including global variables and class data members.
 
 \mySamllsection{const Member Functions}
 
+When a variable contains one or more levels of indirection via a pointer, applying const becomes trickier. Consider the following lines of code:
 
+\begin{cpp}
+int* ip;
+ip = new int[10];
+ip[4] = 5;
+\end{cpp}
+
+Suppose that you decide to apply const to ip. Set aside your doubts about the usefulness of doing so for a moment, and consider what it means. Do you want to prevent the ip variable itself from being changed, or do you want to prevent the values to which it points from being changed? That is, do you want to prevent the second statement or the third statement?
+
+To prevent the pointed-to values from being modified (as in the third statement), you can add the keyword const to the declaration of ip like this:
+
+\begin{cpp}
+const int* ip;
+ip = new int[10];
+ip[4] = 5; // DOES NOT COMPILE!
+\end{cpp}
+
+Now you cannot change the values to which ip points. An alternative but semantically equivalent way to write this is as follows:
+
+\begin{cpp}
+int const* ip;
+ip = new int[10];
+ip[4] = 5; // DOES NOT COMPILE!
+\end{cpp}
+
+Putting the const before or after the int makes no difference in its functionality.
+
+If you instead want to mark ip itself const (not the values to which it points), you need to write this:
+
+\begin{cpp}
+int* const ip { nullptr };
+ip = new int[10]; // DOES NOT COMPILE!
+ip[4] = 5; // Error: dereferencing a null pointer
+\end{cpp}
+
+Now that ip itself cannot be changed, the compiler requires you to initialize it when you declare it, either with nullptr as in the preceding code or with newly allocated memory as follows:
+
+\begin{cpp}
+int* const ip { new int[10] };
+ip[4] = 5;
+\end{cpp}
+
+You can also mark both the pointer and the value to which it points const like this:
+
+\begin{cpp}
+int const* const ip { nullptr };
+\end{cpp}
+
+Here is an alternative but equivalent syntax:
+
+\begin{cpp}
+const int* const ip { nullptr };
+\end{cpp}
+
+Although this syntax might seem confusing, there is actually a simple rule: the const keyword applies to whatever is directly to its left. Consider this line again:
+
+\begin{cpp}
+int const* const ip { nullptr };
+\end{cpp}
+
+From left to right, the first const is directly to the right of the word int. Thus, it applies to the int to which ip points. Therefore, it specifies that you cannot change the values to which ip points. The second const is directly to the right of the *. Thus, it applies to the pointer to the int, which is the ip variable. Therefore, it specifies that you cannot change ip (the pointer) itself.
+
+The reason this rule becomes confusing is an exception. That is, the first const can go before the variable like this:
+
+\begin{cpp}
+const int* const ip { nullptr };
+\end{cpp}
+
+This “exceptional” syntax is used much more commonly than the other syntax.
+
+You can extend this rule to any number of levels of indirection, as in this example:
+
+\begin{cpp}
+const int * const * const * const ip { nullptr };
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Here is another easy-to-remember rule to figure out complicated variable declarations: read from right to left. For example, int* const ip reads from right to left as “ip is a const pointer to an int.” Further, int const* ip reads as “ip is a pointer to a const int,” and const int* ip reads as “ip is a pointer to an int constant.”
+\end{myNotic}
+
+\mySamllsection{const to Protect Parameters}
+
+In C++, you can cast a non-const variable to a const variable. Why would you want to do this? It offers some degree of protection from other code changing the variable. If you are calling a function that a co-worker of yours is writing and you want to ensure that the function doesn’t change the value of an argument you pass in, you can tell your co-worker to have the function take a const parameter. If the function attempts to change the value of the parameter, it will not compile.
+
+In the following code, a string* is automatically cast to a const string* in the call to mysteryFunction(). If the author of mysteryFunction() attempts to change the value of the passed string, the code will not compile. There are ways around this restriction, but using them requires conscious effort. C++ only protects against accidentally changing const variables.
+
+\begin{cpp}
+void mysteryFunction(const string* someString)
+{
+    *someString = "Test"; // Will not compile
+}
+
+int main()
+{
+    string myString { "The string" };
+    mysteryFunction(&myString); // &myString is a string*
+}
+\end{cpp}
+
+You can also use const on primitive-type parameters to prevent accidentally changing them in the body of the function. For example, the following function has a const integer parameter. In the body of the function, you cannot modify the param integer. If you do try to modify it, the compiler will generate an error.
+
+\begin{cpp}
+void func(const int param) { /* Not allowed to change param... */ }
+\end{cpp}
+
+\mySamllsection{const Member Functions}
+
+A second use of the const keyword is to mark class member functions as const, preventing them from modifying data members of the class. The AirlineTicket class introduced earlier can be modified to mark all read-only member functions as const. The const must be added to both the member function declaration and its definition. If any const member function tries to modify one of the AirlineTicket data members, the compiler will emit an error.
+
+\begin{cpp}
+export class AirlineTicket
+{
+    public:
+        double calculatePriceInDollars() const;
+
+        std::string getPassengerName() const;
+        void setPassengerName(std::string name);
+
+        int getNumberOfMiles() const;
+        void setNumberOfMiles(int miles);
+
+        bool hasEliteSuperRewardsStatus() const;
+        void setHasEliteSuperRewardsStatus(bool status);
+    private:
+        std::string m_passengerName { "Unknown Passenger" };
+        int m_numberOfMiles { 0 };
+        bool m_hasEliteSuperRewardsStatus { false };
+};
+
+std::string AirlineTicket::getPassengerName() const
+{
+    return m_passengerName;
+}
+// Other member functions omitted...
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+To follow the const-correctness principle, it’s recommended to declare member functions that do not change any data members of the object as being const. These member functions are also called inspectors, compared to mutators for non-const member functions.
+\end{myNotic}
 
 \mySubsubsection{1.1.28.}{References}
 
+Professional C++ code, including much of the code in this book, uses references extensively. A reference in C++ is an alias for another variable. All modifications to the reference change the value of the variable to which it refers. You can think of references as implicit pointers that save you the trouble of taking the address of variables and dereferencing the pointer. Alternatively, you can think of references as just another name for the original variable. You can create stand-alone reference variables, use reference data members in classes, accept references as parameters to functions, and return references from functions.
+
 \mySamllsection{Reference Variables}
+
+Reference variables must be initialized as soon as they are created, like this:
+
+\begin{cpp}
+int x { 3 };
+int& xRef { x };
+\end{cpp}
+
+Attaching \& to a type indicates that the variable is a reference. It is still used as though it was a normal variable, but behind the scenes, it is really a pointer to the original variable. Both the variable x and the reference variable xRef point to exactly the same value; i.e., xRef is just another name for x. If you change the value through either one of them, the change is visible through the other one as well. For example, the following code sets x to 10 through xRef:
+
+\begin{cpp}
+xRef = 10;
+\end{cpp}
+
+You cannot declare a reference variable outside of a class definition without initializing it.
+
+\begin{cpp}
+int& emptyRef; // DOES NOT COMPILE!
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+A reference variable must always be initialized when it’s created.
+\end{myWarning}
+
+\mySamllsection{Modifying References}
+
+A reference always refers to the same variable to which it is initialized; references cannot be changed once they are created. The syntax might be confusing for beginning C++ programmers. If you assign a variable to a reference when the reference is declared, the reference refers to that variable. However, if you assign a variable to a reference after that, the variable to which the reference refers is changed to the value of the variable being assigned. The reference is not updated to refer to that variable. Here is a code example:
+
+\begin{cpp}
+int x { 3 }, y { 4 };
+int& xRef { x };
+xRef = y; // Changes value of x to 4. Doesn't make xRef refer to y.
+\end{cpp}
+
+You might try to circumvent this restriction by taking the address of y when you assign it:
+
+\begin{cpp}
+xRef = &y; // DOES NOT COMPILE!
+\end{cpp}
+
+This code does not compile. The address of y is a pointer, but xRef is declared as a reference to an int, not a reference to a pointer.
+
+Some programmers go even further in their attempts to circumvent the intended semantics of references. What if you assign a reference to a reference? Won’t that make the first reference refer to the variable to which the second reference refers? You might be tempted to try this code:
+
+\begin{cpp}
+int x { 3 }, z { 5 };
+int& xRef { x };
+int& zRef { z };
+zRef = xRef; // Assigns values, not references
+\end{cpp}
+
+The final statement does not change to what zRef refers to. Instead, it sets the value of z to 3, because xRef refers to x, which is 3.
+
+\begin{myWarning}{WARNING}
+Once a reference is initialized to refer to a specific variable, you cannot change the reference to refer to another variable; you can change only the value of the variable the reference refers to.
+\end{myWarning}
+
+\mySamllsection{References-to-const}
+References-to-const
+const applied to references is usually easier than const applied to pointers for two reasons. First, references are const by default, in that you can’t change to what they refer. So, there is no need to mark them const explicitly. Second, you can’t create a reference to a reference, so there is usually only one level of indirection with references. The only way to get multiple levels of indirection is to create a reference to a pointer.
+
+Thus, when C++ programmers refer to a reference-to-const, they mean something like this:
+
+\begin{cpp}
+int z;
+const int& zRef { z };
+zRef = 4; // DOES NOT COMPILE
+\end{cpp}
+
+By applying const to the int\&, you prevent assignment to zRef, as shown. Similar to pointers, const int\& zRef is equivalent to int const\& zRef. Note, however, that marking zRef const has no effect on z. You can still modify the value of z by changing it directly instead of through the reference.
+
+You cannot create a reference to an unnamed value, such as an integer literal, unless the reference is to a const value. In the following example, unnamedRef1 does not compile because it is a referenceto-non-const referring to a constant. That would mean you could change the value of the constant, 5, which doesn’t make sense. unnamedRef2 works because it’s a reference-to-const, so you cannot for example write unnamedRef2 = 7.
+
+\begin{cpp}
+int& unnamedRef1 { 5 }; // DOES NOT COMPILE
+const int& unnamedRef2 { 5 }; // Works as expected
+\end{cpp}
+
+The same holds for temporary objects. You cannot create a reference-to-non-const to a temporary object, but a reference-to-const is fine. For example, suppose you have the following function returning an std::string object:
+
+\begin{cpp}
+string getString() { return "Hello world!"; }
+\end{cpp}
+
+You can create a reference-to-const to the result of calling getString(), and that reference keeps the temporary std::string object alive until the reference goes out of scope:
+
+\begin{cpp}
+string& string1 { getString() }; // DOES NOT COMPILE
+const string& string2 { getString() }; // Works as expected
+\end{cpp}
+
+\mySamllsection{References to Pointers and Pointers to References}
+
+You can create references to any type, including pointer types. Here is an example of a reference to a pointer to int:
+
+\begin{cpp}
+int* intP { nullptr };
+int*& ptrRef { intP };
+ptrRef = new int;
+*ptrRef = 5;
+delete ptrRef; ptrRef = nullptr;
+\end{cpp}
+
+The syntax is a little strange: you might not be accustomed to seeing * and \& right next to each other. However, the semantics are straightforward: ptrRef is a reference to intP, which is a pointer to int. Modifying ptrRef changes intP. References to pointers are rare but can occasionally be useful, as discussed in the “Reference Parameters” section later in this chapter.
+
+Taking the address of a reference gives the same result as taking the address of the variable to which the reference refers. Here is an example:
+
+\begin{cpp}
+int x { 3 };
+int& xRef { x };
+int* xPtr { &xRef }; // Address of a reference is pointer to value.
+*xPtr = 100;
+\end{cpp}
+
+This code sets xPtr to point to x by taking the address of a reference to x. Assigning 100 to *xPtr changes the value of x to 100. Writing the comparison xPtr == xRef will not compile because of a type mismatch; xPtr is a pointer to an int, while xRef is a reference to an int. The comparisons xPtr == \&xRef and xPtr == \&x both compile without errors and are both true.
+
+Finally, note that you cannot declare a reference to a reference or a pointer to a reference. For example, neither int\&\& nor int\&* is allowed.
+
+\mySamllsection{Structured Bindings and References}
+
+Structured bindings are introduced earlier in this chapter. One of the examples given was the following:
+
+\begin{cpp}
+pair myPair { "hello", 5 };
+auto [theString, theInt] { myPair }; // Decompose using structured bindings
+\end{cpp}
+
+Now that you know about references and const variables, it’s time to learn that both can be combined with structured bindings as well. Here’s an example:
+
+\begin{cpp}
+auto& [theString, theInt] { myPair }; // Decompose into references-to-non-const
+const auto& [theString, theInt] { myPair }; // Decompose into references-to-const
+\end{cpp}
 
 \mySamllsection{Reference Data Members}
 
+Data members of classes can be references. As discussed earlier, a reference cannot exist without referring to some other variable, and it is not possible to change where a reference refers to. Thus, reference data members cannot be initialized inside the body of a class constructor, but they must be initialized in the constructor initializer. Syntax-wise, a constructor initializer immediately follows the constructor header and starts with a colon. The following is a quick example with the constructor initializer highlighted. Chapter 9 goes in much more detail.
+
+\begin{cpp}
+class MyClass
+{
+    public:
+        MyClass(int& ref) : m_ref { ref } { /* Body of constructor */ }
+    private:
+        int& m_ref;
+};
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+A reference must always be initialized when it’s created. Usually, references are created when they are declared, but reference data members need to be initialized in a constructor initializer for the containing class.
+\end{myWarning}
+
 \mySamllsection{Reference Parameters}
+
+C++ programmers do not often use stand-alone reference variables or reference data members. The most common use of references is for parameters to functions. The default parameter-passing semantics is pass-by-value: functions receive copies of their arguments. When those parameters are modified, the original arguments remain unchanged. Pointers to stack variables are often used in C to allow functions to modify variables in other stack frames. By dereferencing the pointer, the function can change the memory that represents the variable even though that variable isn’t in the current stack frame. The problem with this approach is that it brings the messiness of pointer syntax into what is really a simple task.
+
+Instead of passing pointers to functions, C++ offers a better mechanism, called pass-by-reference, where parameters are references instead of pointers. The following are two implementations of an addOne() function. The first one has no effect on the variable that is passed in because it is passed by value, and thus the function receives a copy of the value passed to it. The second one uses a reference and thus changes the original variable.
+
+\begin{cpp}
+void addOne(int i)
+{
+    i++; // Has no real effect because this is a copy of the original
+}
+
+void addOne(int& i)
+{
+    i++; // Actually changes the original variable
+}
+\end{cpp}
+
+The syntax for the call to the addOne() function with an integer reference is no different than if the function just took an integer.
+
+\begin{cpp}
+int myInt { 7 };
+addOne(myInt);
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+There is a subtle difference between the two addOne() implementations. The version using pass-by-value accepts literals without a problem; for example, addOne(3); is legal. However, doing the same with the pass-by-reference version of addOne() will result in a compilation error. This can be solved by using reference-to-const parameters, discussed in the next section.
+\end{myNotic}
+
+Here is another example where pass-by-reference comes in handy; it’s a simple swap function to swap the values of two ints:
+
+\begin{cpp}
+void swap(int& first, int& second)
+{
+    int temp { first };
+    first = second;
+    second = temp;
+}
+\end{cpp}
+
+You can call it like this:
+
+\begin{cpp}
+int x { 5 }, y { 6 };
+swap(x, y);
+\end{cpp}
+
+When swap() is called with the arguments x and y, the first parameter is initialized to refer to x, and the second parameter is initialized to refer to y. When swap() modifies first and second, x and y are actually changed.
+
+A common quandary arises when you have a pointer to something that you need to pass to a function that takes a reference. You can “convert” a pointer to a reference in this case by dereferencing the pointer. This action gives you the value to which the pointer points, which the compiler then uses to initialize the reference parameter. For example, you can call swap() like this:
+
+\begin{cpp}
+int x { 5 }, y { 6 };
+int *xp { &x }, *yp { &y };
+swap(*xp, *yp);
+\end{cpp}
+
+Finally, if you have a function that needs to return an object of a class that is expensive to copy, you’ll often see the function accepting an output parameter of type reference-to-non-const to such a class that the function then modifies, instead of directly returning such an object. Developers thought that this was the recommended way to prevent any performance penalties with creating copies when returning objects from functions. However, even back then, compilers were usually smart enough to avoid any redundant copies. So, we have the following rule:
+
+\begin{myWarning}{WARNING}
+The recommended way to return objects from a function is to return them by value, instead of using output parameters.
+\end{myWarning}
+
+\mySamllsection{Pass-by-Reference-to-const}
+
+The main value in reference-to-const parameters is efficiency. When you pass a value into a function, an entire copy is made. When you pass a reference, you are really just passing a pointer to the original so the computer doesn’t need to make a copy. By passing a reference-to-const, you get the best of both worlds: no copy is made, and the original variable cannot be changed. References-toconst become more important when you are dealing with objects because they can be large and making copies of them can have unwanted side effects. The following example shows how to pass an std::string to a function as a reference-to-const:
+
+\begin{cpp}
+import std;
+using namespace std;
+void printString(const string& myString) { println("{}", myString); }
+
+int main()
+{
+    string someString { "Hello World" };
+    printString(someString);
+    printString("Hello World"); // Passing literals works.
+}
+\end{cpp}
+
+\mySamllsection{Pass-by-Reference vs. Pass-by-Value}
+
+Pass-by-reference is required when you want to modify the parameter and see those changes reflected in the variable passed to the function. However, you should not limit your use of pass-by-reference to only those cases. Pass-by-reference avoids copying the arguments to the function, providing two additional benefits:
+
+\begin{itemize}
+\item
+Efficiency: Large objects could take a long time to copy. Pass-by-reference passes only a reference to the object into the function.
+
+\item
+Support: Not all classes allow pass-by-value.
+\end{itemize}
+
+If you want to leverage these benefits but do not want to allow the original objects to be modified, you should mark the parameters const, giving you pass-by-reference-to-const.
+
+\begin{myNotic}{NOTE}
+These benefits of pass-by-reference imply that you should use pass-by-value only for simple built-in types such as int and double for which you don’t need to modify the arguments. If you need to pass an object to a function, prefer to pass it by reference-to-const instead of by value. This prevents unnecessary copying. Pass it by reference-to-non-const if the function needs to modify the object. Chapter 9 slightly modifies this rule after the introduction of move semantics, allowing passby-value of objects in certain cases.
+\end{myNotic}
 
 \mySamllsection{Reference Return Values}
 
+You can return a reference from a function. Of course, you can use this technique only if the variable to which the returned reference refers to continues to exist following the function termination.
+
+\begin{myWarning}{WARNING}
+From a function, never return a reference to a variable that is locally scoped to that function, such as an automatically allocated variable on the stack that will be destroyed when the function ends.
+\end{myWarning}
+
+One of the main reasons to return a reference is if you want to be able to assign to the return value directly as an lvalue (the left-hand side of an assignment statement). Several overloaded operators commonly return references, such as operators =, +=, and so on. Chapter 15 goes into more details on how to write such overloaded operators yourself.
+
+Another reason to return a reference from a function is if the return type is expensive to copy. By returning a reference or reference-to-const, the copying is avoided, but keep the earlier warning in mind. This is often used to return objects by reference-to-const from class member functions, as demonstrated later in this chapter.
+
 \mySamllsection{Deciding Between References and Pointers}
 
+References in C++ could be considered redundant: everything you can do with references, you can accomplish with pointers. For example, you could write the earlier shown swap() function like this:
 
+\begin{cpp}
+void swap(int* first, int* second)
+{
+    int temp { *first };
+    *first = *second;
+    *second = temp;
+}
+\end{cpp}
+
+However, this code is more cluttered than the version with references. References make your programs cleaner and easier to understand. They are also safer than pointers: it’s impossible to have a null reference, and you don’t explicitly dereference references, so you can’t encounter any of the dereferencing errors associated with pointers. Of course, these arguments about references being safer are valid only in the absence of any pointers. For example, take the following function that accepts a reference to an int:
+
+\begin{cpp}
+void refcall(int& t) { ++t; }
+\end{cpp}
+
+You could declare a pointer and initialize it to point to some random place in memory. Then you could dereference this pointer and pass it as the reference argument to refcall(), as in the following code. This code compiles fine, but it is undefined what will happen when executed. It could for example cause a crash.
+
+\begin{cpp}
+int* ptr { (int*)8 };
+refcall(*ptr);
+\end{cpp}
+
+Most of the time, you can use references instead of pointers. References to objects also support polymorphism, discussed in detail in Chapter 10, in the same way as pointers to objects. However, there are some use cases in which you need to use a pointer. One example is when you need to change the location to which it points. Recall that you cannot change the variable to which a reference refers. For example, when you dynamically allocate memory, you need to store a pointer to the result in a pointer rather than a reference. A second use case in which you need to use a pointer is when the pointer is optional, that is, when it can be nullptr. Yet another use case is if you want to store polymorphic types (discussed in Chapter 10) in a container.
+
+A long time ago, and in legacy code, a way to distinguish between appropriate use of pointers and references in parameters and return types was to consider who owns the memory. If the code receiving the variable became the owner and thus became responsible for releasing the memory associated with an object, it had to receive a pointer to the object. If the code receiving the variable didn’t have to free the memory, it received a reference. Nowadays, however, raw pointers should be avoided in favor of smart pointers (see Chapter 7), which is the recommended way to transfer ownership.
+
+\begin{myNotic}{NOTE}
+Prefer references over pointers; that is, use a pointer only if a reference is not possible.
+\end{myNotic}
+
+Consider a function that splits an array of ints into two arrays: one of even numbers and one of odd numbers. The function doesn’t know how many numbers in the source array will be even or odd, so it should dynamically allocate the memory for the destination arrays after examining the source array. It should also return the sizes of the two new arrays. Altogether, there are four items to return: pointers to the two new arrays and the sizes of the two new arrays. Obviously, you must use pass-by-reference. The canonical C way to write the function looks like this:
+
+\begin{cpp}
+void separateOddsAndEvens(const int arr[], size_t size, int** odds,
+    size_t* numOdds, int** evens, size_t* numEvens)
+{
+    // Count the number of odds and evens.
+    *numOdds = *numEvens = 0;
+    for (size_t i = 0; i < size; ++i) {
+        if (arr[i] % 2 == 1) {
+            ++(*numOdds);
+        } else {
+            ++(*numEvens);
+        }
+    }
+
+    // Allocate two new arrays of the appropriate size.
+    *odds = new int[*numOdds];
+    *evens = new int[*numEvens];
+
+    // Copy the odds and evens to the new arrays.
+    size_t oddsPos = 0, evensPos = 0;
+    for (size_t i = 0; i < size; ++i) {
+        if (arr[i] % 2 == 1) {
+            (*odds)[oddsPos++] = arr[i];
+        } else {
+            (*evens)[evensPos++] = arr[i];
+        }
+    }
+}
+\end{cpp}
+
+The final four parameters to the function are the “reference” parameters. To change the values to which they refer, separateOddsAndEvens() must dereference them, leading to some ugly syntax in the function body. Additionally, when you want to call separateOddsAndEvens(), you must pass the address of two pointers so that the function can change the actual pointers, and pass the address of two size\_ts so that the function can change the actual size\_ts. Note also that the caller is responsible for deleting the two arrays created by separateOddsAndEvens()!
+
+\begin{cpp}
+int unSplit[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+int* oddNums { nullptr };
+int* evenNums { nullptr };
+size_t numOdds { 0 }, numEvens { 0 };
+
+separateOddsAndEvens(unSplit, std::size(unSplit),
+    &oddNums, &numOdds, &evenNums, &numEvens);
+
+// Use the arrays...
+
+delete[] oddNums; oddNums = nullptr;
+delete[] evenNums; evenNums = nullptr;
+\end{cpp}
+
+If this syntax annoys you (which it should), you can write the same function by using references to obtain true pass-by-reference semantics:
+
+\begin{cpp}
+void separateOddsAndEvens(const int arr[], size_t size, int*& odds,
+    size_t& numOdds, int*& evens, size_t& numEvens)
+{
+    numOdds = numEvens = 0;
+    for (size_t i { 0 }; i < size; ++i) {
+        if (arr[i] % 2 == 1) {
+            ++numOdds;
+        } else {
+            ++numEvens;
+        }
+    }
+
+    odds = new int[numOdds];
+    evens = new int[numEvens];
+
+    size_t oddsPos { 0 }, evensPos { 0 };
+    for (size_t i { 0 }; i < size; ++i) {
+        if (arr[i] % 2 == 1) {
+            odds[oddsPos++] = arr[i];
+        } else {
+            evens[evensPos++] = arr[i];
+        }
+    }
+}
+\end{cpp}
+
+In this case, the odds and evens parameters are references to int*s. separateOddsAndEvens() can modify the int*s that are used as arguments to the function (through the reference), without any explicit dereferencing. The same logic applies to numOdds and numEvens, which are references to size\_ts. With this version of the function, you no longer need to pass the addresses of the pointers or size\_ts; the reference parameters handle it for you automatically:
+
+\begin{cpp}
+separateOddsAndEvens(unSplit, std::size(unSplit),
+    oddNums, numOdds, evenNums, numEvens);
+\end{cpp}
+
+Even though using reference parameters is already much cleaner than using pointers, it is recommended that you avoid dynamically allocated arrays as much as possible. For example, by using the Standard Library vector container, the separateOddsAndEvens() function can be rewritten to be much safer, shorter, more elegant, and much more readable, because all memory allocations and deallocations happen automatically.
+
+\begin{cpp}
+void separateOddsAndEvens(const vector<int>& arr,
+    vector<int>& odds, vector<int>& evens)
+{
+    for (int i : arr) {
+        if (i % 2 == 1) {
+            odds.push_back(i);
+        } else {
+            evens.push_back(i);
+        }
+    }
+}
+\end{cpp}
+
+This version can be used as follows:
+
+\begin{cpp}
+vector<int> vecUnSplit { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+vector<int> odds, evens;
+separateOddsAndEvens(vecUnSplit, odds, evens);
+\end{cpp}
+
+Note that you don’t need to deallocate the odds and evens containers; the vector class takes care of this. This version is much easier to use than the versions using pointers or references.
+
+The version using vectors is already much better than the versions using pointers or references, but as I recommended earlier, output parameters should be avoided as much as possible. If a function needs to return something, it should just return it instead of using output parameters! Since C++17, a compiler is not allowed to perform any copying or moving of objects for statements of the form return object; where object is a nameless temporary. This is called mandatory elision of copy/ move operations and means that there’s no performance penalty at all by returning object by value. If object is a local variable that is not a function parameter, non-mandatory elision of copy/move operations is allowed, an optimization also known as named return value optimization (NRVO). This optimization is not guaranteed by the standard. Some compilers perform this optimization only for release builds but not for debug builds. With mandatory and non-mandatory elision, compilers can avoid any copying of objects that are returned from functions. This results in zero-copy pass-by-value semantics. Note that for NRVO, even though the copy/move constructors won’t be called, they still need to be accessible; otherwise, the program is ill-formed according to the standard. Copy/move operations and constructors are discussed in Chapter 9, but those details are not important for the current discussion.
+
+The following version of separateOddsAndEvens() returns a simple struct of two vectors, instead of accepting two output vectors as parameters, and uses designated initializers.
+
+\begin{cpp}
+struct OddsAndEvens { vector<int> odds, evens; };
+
+OddsAndEvens separateOddsAndEvens(const vector<int>& arr)
+{
+    vector<int> odds, evens;
+    for (int i : arr) {
+        if (i % 2 == 1) {
+            odds.push_back(i);
+        } else {
+            evens.push_back(i);
+        }
+    }
+    return OddsAndEvens { .odds = odds, .evens = evens };
+}
+\end{cpp}
+
+With these changes, the code to call separateOddsAndEvens() becomes compact yet easy to read and understand:
+
+\begin{cpp}
+vector<int> vecUnSplit { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+auto oddsAndEvens { separateOddsAndEvens(vecUnSplit) };
+// Do something with oddsAndEvens.odds and oddsAndEvens.evens...
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Avoid output parameters. If a function needs to return something, just return it by value.
+\end{myNotic}
 
 \mySubsubsection{1.1.29.}{const\_cast()}
 
+In C++ every variable has a specific type. It is possible in certain situations to cast a variable of one type to a variable of another type. To that end, C++ provides five types of casts: const\_cast(), static\_cast(), reinterpret\_cast(), dynamic\_cast(), and std::bit\_cast(). This section discusses const\_cast(). The second type of cast, static\_cast(), is briefly introduced earlier in this chapter and discussed in more detail in Chapter 10. The other remaining casts are also discussed in Chapter 10.
+
+const\_cast() is the most straightforward of the different casts available. You can use it to add const-ness to a variable or cast away const-ness of a variable. It is the only cast of the five that is allowed to cast away const-ness. Theoretically, of course, there should be no need for a const cast. If a variable is const, it should stay const. In practice, however, you sometimes find yourself in a situation where a function is specified to take a const parameter, which it must then pass to a function that takes a non-const parameter, and you are absolutely sure that the latter function will not modify its non-const argument. The “correct” solution would be to make const consistent in the program, but that is not always an option, especially if you are using third-party libraries. Thus, you sometimes need to cast away the const-ness of a variable, but again you should do this only when you are sure the function you are calling will not modify the object; otherwise, there is no other option than to restructure your program. Here is an example:
+
+\begin{cpp}
+void thirdPartyLibraryFunction(char* str);
+
+void f(const char* str)
+{
+    thirdPartyLibraryFunction(const_cast<char*>(str));
+}
+\end{cpp}
+
+Additionally, the Standard Library provides a helper function called std::as\_const(), defined in <utility>, which returns a reference-to-const of its reference parameter. Basically, as\_const(obj) is equivalent to const\_cast<const T\&>(obj), where T is the type of obj. Using as\_const() results in shorter and more readable code compared to using const\_cast(). Concrete use cases for as\_const() are coming later in this book, but its basic use is as follows:
+
+\begin{cpp}
+string str { "C++" };
+const string& constStr { as_const(str) };
+\end{cpp}
+
 \mySubsubsection{1.1.30.}{Exceptions}
+
+C++ is a flexible language, but it does allow you to do unsafe things. For example, the compiler will let you write code that scribbles on random memory addresses or tries to divide by zero (computers don’t deal well with infinity). One language feature that attempts to add a degree of safety is exceptions.
+
+An exception is an exceptional situation, that is, a situation that you don’t expect or want in the normal flow of execution of a program. For example, if you are writing a function that retrieves a web page, several things could go wrong. The Internet host that contains the page might be down, the page might come back blank, or the connection could be lost. One way you could handle this situation is by returning a special value from the function, such as nullptr or an error code. Exceptions provide a much better mechanism for dealing with problems.
+
+Exceptions come with some new terminology. When a piece of code detects an exceptional situation, it throws an exception. Another piece of code catches the exception and takes appropriate action. The following example shows a function, divideNumbers(), that throws an exception if the caller passes in a denominator of zero. The std::invalid\_argument exception is defined in <stdexcept>.
+
+\begin{cpp}
+double divideNumbers(double numerator, double denominator)
+{
+    if (denominator == 0) {
+        throw invalid_argument { "Denominator cannot be 0." };
+    }
+    return numerator / denominator;
+}
+\end{cpp}
+
+When the throw statement is executed, the function immediately ends without returning a value. If the caller surrounds the function call with a try/catch block, as shown in the following code, it receives the exception and is able to handle it. Chapter 14, “Handling Errors,” goes into much more detail on exception handling, but for now, just remember that it is recommended to catch exceptions by reference-to-const, such as const invalid\_argument\& in the following example. Also note that all Standard Library exception classes have a member function called what(), which returns a string containing a brief explanation of the exception.
+
+\begin{cpp}
+try {
+    println("{}", divideNumbers(2.5, 0.5));
+    println("{}", divideNumbers(2.3, 0));
+    println("{}", divideNumbers(4.5, 2.5));
+} catch (const invalid_argument& exception) {
+    println("Exception caught: {}", exception.what());
+}
+\end{cpp}
+
+The first call to divideNumbers() executes successfully, and the result is printed on the screen. The second call throws an exception. No value is returned, and the only output is the error message that is printed when the exception is caught. The third call is never executed because the second call throws an exception, causing the program to jump to the catch block. The output for the preceding code snippet is as follows:
+
+\begin{shell}
+5
+Exception caught: Denominator cannot be 0.
+\end{shell}
+
+Exceptions can get tricky in C++. To use exceptions properly, you need to understand what happens to the stack variables when an exception is thrown, and you have to be careful to properly catch and handle the necessary exceptions. Also, if you need to include more information about an error in an exception, you can write your own exception types. Lastly, the C++ compiler doesn’t force you to catch every exception that might occur. If your code never catches any exceptions but an exception is thrown, the program will be terminated. These trickier aspects of exceptions are covered in detail in Chapter 14.
 
 \mySubsubsection{1.1.31.}{Type Aliases}
 
+A type alias provides a new name for an existing type declaration. You can think of a type alias as syntax for introducing a synonym for an existing type declaration without creating a new type. The following gives a new name, IntPtr, to the int* type declaration:
+
+\begin{cpp}
+using IntPtr = int*;
+\end{cpp}
+
+You can use the new type name and the definition it aliases interchangeably. For example, the following two lines are valid:
+
+\begin{cpp}
+int* p1;
+IntPtr p2;
+\end{cpp}
+
+Variables created with the new type name are completely compatible with those created with the original type declaration. So, it is perfectly valid, given these definitions, to write the following, because they are not just compatible types; they are the same type:
+
+\begin{cpp}
+p1 = p2;
+p2 = p1;
+\end{cpp}
+
+The most common use for type aliases is to provide manageable names when the real type declarations become too unwieldy. This situation commonly arises with templates. An example from the Standard Library itself is std::basic\_string<T> to represent strings. It’s a class template where T is the type of each character in the string, for example char. You have to specify the template type parameter any time you want to refer to such a type. For declaring variables, specifying function parameters, and so on, you would have to write basic\_string<char>:
+
+\begin{cpp}
+void processVector(const vector<basic_string<char>>& vec) { /* omitted */ }
+
+int main()
+{
+    vector<basic_string<char>> myVector;
+    processVector(myVector);
+}
+\end{cpp}
+
+Since basic\_string<char> is used that frequently, the Standard Library provides the following type alias as a shorter, more meaningful name:
+
+\begin{cpp}
+using string = basic_string<char>;
+\end{cpp}
+
+With this type alias, the previous code snippet can be written more elegantly:
+
+\begin{cpp}
+void processVector(const vector<string>& vec) { /* omitted */ }
+
+int main()
+{
+    vector<string> myVector;
+    processVector(myVector);
+}
+\end{cpp}
+
 \mySubsubsection{1.1.32.}{typedefs}
+
+Type aliases were introduced in C++11. Before C++11, you had to use typedefs to accomplish something similar but in a more convoluted way. This old mechanism is still explained here because you will come across it in legacy code bases.
+
+Just as a type alias, a typedef provides a new name for an existing type declaration. For example, take the following type alias:
+
+\begin{cpp}
+using IntPtr = int*;
+\end{cpp}
+
+This can be written as follows with a typedef:
+
+\begin{cpp}
+typedef int* IntPtr;
+\end{cpp}
+
+As you can see, it’s much less readable. The order is reversed, which causes a lot of confusion, even for professional C++ developers. Other than being more convoluted, a typedef behaves the same as a type alias. For example, the typedef can be used as follows:
+
+\begin{cpp}
+IntPtr p;
+\end{cpp}
+
+Type aliases and typedefs are not entirely equivalent, though. Compared to typedefs, type aliases are more powerful when used with templates, but that is a topic covered in Chapter 12 because it requires more details about templates.
+
+\begin{myNotic}{NOTE}
+Always prefer type aliases over typedefs.
+\end{myNotic}
 
 \mySubsubsection{1.1.33.}{Type Inference}
 
+Type inference allows the compiler to automatically deduce the type of an expression. There are two keywords for type inference: auto and decltype.
+
 \mySamllsection{The auto Keyword}
+
+The auto keyword has a number of different uses:
+
+\begin{itemize}
+\item
+To deduce a function’s return type, as explained earlier in this chapter
+
+\item
+To define structured bindings, as explained earlier in this chapter
+
+\item
+To deduce the type of an expression, as discussed in this section
+
+\item
+To deduce the type of non-type template parameters; see Chapter 12
+
+\item
+To define abbreviated function templates; see Chapter 12
+
+\item
+To use with decltype(auto); see Chapter 12
+
+\item
+To write functions using the alternative function syntax; see Chapter 12
+
+\item
+To write generic lambda expressions; see Chapter 19, “Function Pointers, Function Objects, and Lambda Expressions”
+\end{itemize}
+
+auto can be used to let the compiler automatically deduce the type of a variable at compile time. The following statement shows the simplest use of the auto keyword in that context:
+
+\begin{cpp}
+auto x { 123 }; // x is of type int.
+\end{cpp}
+
+In this example, you don’t win much by typing auto instead of int; however, it becomes useful for more complicated types. Suppose you have a function called getFoo() that has a complicated return type. If you want to assign the result of calling getFoo() to a variable, you can spell out the complicated type, or you can simply use auto and let the compiler figure it out:
+
+\begin{cpp}
+auto result { getFoo() };
+\end{cpp}
+
+This has the added benefit that you can easily change the function’s return type without having to update all the places in the code where that function is called.
+
+\mySamllsection{The auto\& Syntax}
+
+Using auto to deduce the type of an expression strips away reference and const qualifiers. Suppose you have the following:
+
+\begin{cpp}
+const string message { "Test" };
+const string& foo() { return message; }
+\end{cpp}
+
+You can call foo() and store the result in a variable with the type specified as auto, as follows:
+
+\begin{cpp}
+auto f1 { foo() };
+\end{cpp}
+
+Because auto strips away reference and const qualifiers, f1 is of type string, and thus a copy is made! If you want a reference-to-const, you can explicitly make it a reference and mark it const, as follows:
+
+\begin{cpp}
+const auto& f2 { foo() };
+\end{cpp}
+
+Earlier in this chapter, the as\_const() utility function is introduced. It returns a reference-to-const version of its reference parameter. Be careful when using as\_const() in combination with auto. Since auto strips away reference and const qualifiers, the following result variable has type string, not const string\&, and hence a copy is made:
+
+\begin{cpp}
+string str { "C++" };
+auto result { as_const(str) };
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+Always keep in mind that auto strips away reference and const qualifiers and thus creates a copy! If you do not want a copy, use auto\& or const auto\&.
+\end{myWarning}
+
+\mySamllsection{The auto* Syntax}
+
+The auto keyword can also be used for pointers. Here’s an example:
+
+\begin{cpp}
+int i { 123 };
+auto p { &i };
+\end{cpp}
+
+The type of p is int*. There is no danger here to accidentally make a copy, unlike when working with references as discussed in the previous section. However, when working with pointers, I do recommend using the auto* syntax as it more clearly states that pointers are involved, for example:
+
+\begin{cpp}
+auto* p { &i };
+\end{cpp}
+
+Additionally, using auto* versus just auto does resolve a strange behavior when using auto, const, and pointers together. Suppose you write the following:
+
+\begin{cpp}
+const auto p1 { &i };
+\end{cpp}
+
+Most of the time, this is not doing what you expect it to do!
+
+Often, when you use const, you want to protect the thing to which the pointer is pointing to. You would think that p1 is of type const int*, but in fact, the type is int* const, so it’s a const pointer to a non-const integer! Putting the const after the auto as follows doesn’t help; the type is still int* const:
+
+\begin{cpp}
+auto const p2 { &i };
+\end{cpp}
+
+When you use auto* in combination with const, then it is behaving as you would expect. Here’s an example:
+
+\begin{cpp}
+const auto* p3 { &i };
+\end{cpp}
+
+Now p3 is of type const int*. If you really want a const pointer instead of a const integer, you put the const at the end:
+
+\begin{cpp}
+auto* const p4 { &i };
+\end{cpp}
+
+p4 has type int* const.
+
+Finally, with this syntax you can make both the pointer and the integer constant:
+
+\begin{cpp}
+const auto* const p5 { &i };
+\end{cpp}
+
+p5 is of type const int* const. You cannot achieve this if you omit the *.
+
+\mySamllsection{Copy List vs. Direct List Initialization}
+
+There are two types of initializations that use braced initializer lists:
+
+\begin{itemize}
+\item
+Copy list initialization: T obj = \{arg1, arg2, ...\};
+
+\item
+Direct list initialization: T obj \{arg1, arg2, ...\};
+\end{itemize}
+
+In combination with auto type deduction, there is an important difference between copy- and direct list initialization. Here is an example:
+
+\begin{cpp}
+// Copy list initialization
+auto a = { 11 }; // initializer_list<int>
+auto b = { 11, 22 }; // initializer_list<int>
+
+// Direct list initialization
+auto c { 11 }; // int
+auto d { 11, 22 }; // Error, too many elements.
+\end{cpp}
+
+For copy list initialization, all the elements in the braced initializer must be of the same type. For example, the following does not compile:
+
+\begin{cpp}
+auto b = { 11, 22.33 }; // Compilation error
+\end{cpp}
 
 \mySamllsection{The decltype Keyword}
 
+The decltype keyword takes an expression as argument and computes the type of that expression, as shown here:
+
+\begin{cpp}
+int x { 123 };
+decltype(x) y { 456 };
+\end{cpp}
+
+In this example, the compiler deduces the type of y to be int because that is the type of x.
+
+The difference between auto and decltype is that decltype does not strip reference and const qualifiers. Take, again, a function foo() returning a reference-to-const string. Defining f2 using decltype as follows results in f2 being of type const string\&, and thus no copy is made:
+
+\begin{cpp}
+decltype(foo()) f2 { foo() };
+\end{cpp}
+
+On first sight, decltype doesn’t seem to add much value. However, it is powerful in the context of templates, discussed in Chapters 12 and 26.
 
 \mySubsubsection{1.1.34.}{The Standard Library}
 
+C++ comes with a Standard Library, which contains a lot of useful classes that can readily be used in your code. The benefit of using these classes is that you don’t need to reinvent their functionality, and you don’t need to waste time on implementing things that have already been implemented for you. Another benefit is that the classes available in the Standard Library are heavily tested and verified for correctness by thousands of users. The Standard Library classes are also optimized for performance, so using them will most likely result in better performance compared to making your own implementation.
 
+A lot of functionality is provided by the Standard Library. Chapters 16 to 24 provide more details; however, when you start working with C++, it is good to have an idea of what the Standard Library can do for you from the beginning. This is especially important if you are a C programmer. As a C programmer, you might try to solve problems in C++ the same way you would solve them in C, but in C++ there is probably an easier and safer solution to the problem that involves using Standard Library classes.
+
+That is the reason why this chapter already introduces some Standard Library classes, such as std::string, array, vector, pair, and optional. These are used throughout examples in this book from the beginning, to make sure you get into the habit of using Standard Library classes. Many more classes are introduced in Chapters 16 to 24.
 
 
 
