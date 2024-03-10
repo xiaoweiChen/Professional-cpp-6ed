@@ -1,45 +1,432 @@
 
+Up until C++20, formatting of strings was usually done with C-style functions like printf() or with C++ I/O streams such as std::cout:
+
+\begin{itemize}
+\item
+C-style functions:
+
+\begin{itemize}
+\item
+Not recommended because they are not type safe and are not extensible to support your own custom types
+
+\item
+Easy to read because of separation of format string and arguments, and hence easy to translate to different languages
+
+\item
+For example:
+\begin{cpp}
+    printf("x has value %d and y has value %d.\n", x, y);
+\end{cpp}
+\end{itemize}
+
+\item
+C++ I/O streams:
+
+\begin{itemize}
+\item
+Recommended (before C++20) because they are type safe and extensible
+
+\item
+Harder to read because the strings and arguments are intertwined, and hence harder to translate
+
+\item
+For example:
+\begin{cpp}
+    cout << "x has value " << x << " and y has value " << y << '.' << endl;
+\end{cpp}
+\end{itemize}
+
+\end{itemize}
+
+C++20 introduced std::format(), defined in <format>, to format strings. It basically combines all advantages of the C-style functions and the C++ I/O streams. It’s a type-safe and extensible formatting mechanism. For example:
+
+\begin{cpp}
+cout << format("x has value {} and y has value {}.", x, y) << endl;
+\end{cpp}
+
+C++23 makes it even easier with the introduction of std::print() and println(). For example:
+
+\begin{cpp}
+println("x has value {} and y has value {}.", x, y);
+\end{cpp}
+
+Additionally, std::print() and println() have better support for writing UTF-8 Unicode text to Unicode-compliant consoles. Unicode is discussed in Chapter 21, but here’s a quick example:
+
+\begin{cpp}
+println("こんにちは世界");
+\end{cpp}
+
+This correctly prints the string “こんにちは世界”, which is Japanese for “Hello World,” to the console(To compile source code containing Unicode characters, you might need to pass a compiler switch. For Visual C++, you must pass the /utf-8 compiler switch. For GCC, use the command line option -finput-charset=UTF-8. Clang assumes all files are UTF-8 by default. Check your compiler documentation.). If you try to print this string using C++ I/O streams as follows, depending on your console settings, the output can be something garbled such as “πüôπéôπü½πüíπü»Σ╕ûτòî”:
+
+\begin{cpp}
+cout << "こんにちは世界" << endl;
+\end{cpp}
+
+Thanks to the Unicode support, you can even print emojis. The following prints a smiley if your output console properly supports Unicode. Using cout for this would likely result in garbled output.
+
+\newfontfamily\emojifont{Segoe UI Emoji}
+println("{\emojifont 😊}");
+
+
+std::print() and println() are now the recommended ways to write text to the console; thus, they’re used throughout all the examples in this book. They are type safe, are extensible to support user types, are easy to read, support Unicode output, support localization to different languages, and so on. On top of all those benefits, the performance of print() and println() is also much better compared to doing the same using C++ I/O streams directly, even though, underneath, print() and println() are still using such streams.
 
 \mySubsubsection{2.2.1.}{Format Strings}
 
+std::format(), print(), and println() use a format string, a string specifying how the given arguments must be formatted in the output string. Its basic form is introduced in the previous chapter and already used throughout examples. Now it’s time to look at how powerful these format strings really are.
 
+The format string is usually the first argument to format(), print(), and println(). A format string can contain a set of curly brackets, \{\}, which represent a replacement field. You can have as many replacement fields as you need. Subsequent arguments to format(), print(), and println() are values that are used to fill in those replacement fields. If you need the \{ and \} characters in the output, then you need to escape them as \{\{ or \}\}.
+
+Up to now, replacement fields have always been empty sets of curly brackets, \{\}, but that is just the start. Inside those curly brackets can be a string in the format [index][:specifier]:
+
+\begin{itemize}
+\item
+The optional index is an argument index, discussed in the next section.
+
+\item
+The optional specifier is a format specifier to stipulate how a value must be formatted in the output and explained in detail in the “Format Specifiers” section.
+\end{itemize}
+
+Passing a format string to format(), print(), and println() is mandatory. For example, you cannot directly print a value as follows:
+
+\begin{cpp}
+int x { 42 };
+println(x);
+\end{cpp}
+
+Instead, you can write the following:
+
+\begin{cpp}
+println("{}", x);
+\end{cpp}
+
+You also cannot print a single newline by just writing the following:
+
+\begin{cpp}
+println();
+\end{cpp}
+
+Instead, use this:
+
+\begin{cpp}
+println("");
+\end{cpp}
 
 \mySubsubsection{2.2.2.}{Argument Indices}
 
+You can either omit the index from all replacement fields or specify, for all replacement fields, the zero-based index of one of the values passed to format(), print(), or println() as second and subsequent arguments that should be used for a replacement field. You are allowed to use a certain index multiple times if you want to output that value multiple times. If index is omitted, the values passed as second and subsequent arguments are used in their given order for all replacement fields.
 
+The following call to println() omits explicit indices in the replacement fields:
+
+\begin{cpp}
+int n { 42 };
+println("Read {} bytes from {}", n, "file1.txt");
+\end{cpp}
+
+You can specify manual indices as follows:
+
+\begin{cpp}
+println("Read {0} bytes from {1}", n, "file1.txt");
+\end{cpp}
+
+Mixing manual indices and automatic indices is not allowed. The following uses an invalid format string:
+
+\begin{cpp}
+println("Read {0} bytes from {}", n, "file1.txt");
+\end{cpp}
+
+The order of the formatted values in the output string can be changed without having to change the actual order of the arguments. This is a useful feature if you want to translate strings in your software. Certain languages have different ordering within their sentences. For example, the previous format string can be translated to Chinese as follows. In Chinese, the order of the replacement fields in the sentence is reversed, but thanks to the use of argument indices in the format string, the order of the arguments to println() remains unchanged.
+
+\begin{cpp}
+println("从{1}中读取{0}个字节。 ", n, "file1.txt");
+\end{cpp}
 
 \mySubsubsection{2.2.3.}{Printing to Different Destinations}
 
+Up to now, every call to print() and println() had a format string as the first argument, followed by a number of additional arguments. For example:
 
-\CXXTwentythreeLogo{-35}{-59}
+\begin{cpp}
+println("x has value {} and y has value {}.", x, y);
+\end{cpp}
+
+This prints the string to the standard output stream, the same stream as std::cout.
+
+As Chapter 1 explains, there’s also std::cerr, which streams to the standard error console. You can use print() and println() to print to the error console as follows:
+
+\begin{cpp}
+println(cerr, "x has value {} and y has value {}.", x, y);
+\end{cpp}
+
+\CXXTwentythreeLogo{-40}{-40}
+
 \mySubsubsection{2.2.4.}{Compile-Time Verification of Format Strings}
 
+As of C++23, the format string for format()(This is a breaking change for std::format(). Prior to C++23, the format string for format() was not enforced to be a compile-time constant.), print(), and println() must be a compile-time constant so that the compiler can check at compile time whether there are any syntax errors in the format string. That means the following does not compile:
+
+\begin{cpp}
+string s { "Hello World!" };
+println(s); // Error! Does not compile
+\end{cpp}
+
+The error produced is compiler dependent and unfortunately, at the time of this writing, rather cryptic and not always immediately helpful in pinpointing the exact cause of the error. For example, here is the error from the Microsoft Visual C++ 2022 compiler:
+
+\begin{shell}
+error C7595: 'std::basic_format_string<char>::basic_format_string': call to
+immediate function is not a constant expression
+\end{shell}
+
+The correct use is as follows:
+
+\begin{cpp}
+string s { "Hello World!" };
+println("{}", s);
+\end{cpp}
+
+constexpr format strings are naturally also allowed as those are compile-time constants. Chapter 9, “Mastering Classes and Objects,” discusses the constexpr keyword in detail.
+
+\begin{cpp}
+constexpr auto formatString { "Value: {}" };
+println(formatString, 11); // Value: 11
+\end{cpp}
 
 \mySamllsection{Non-Compile-Time Constant Format Strings}
 
+The fact that format strings must be compile-time constants can be a bit cumbersome when you need to localize/translate format strings for different languages. In such a scenario, you can use std::vprint\_unicode() or std::vprint\_nonunicode() instead of std::print(). It’s a little bit harder to use, though. You cannot just pass the arguments as you do with print(), but you need to use std::make\_format\_args() to do so. Here’s an example:
+
+\begin{cpp}
+enum class Language { English, Dutch };
+
+string_view GetLocalizedFormat(Language language)
+{
+    switch (language) {
+        case Language::English: return "Numbers: {0} and {1}.";
+        case Language::Dutch: return "Getallen: {0} en {1}.";
+    }
+}
+
+int main()
+{
+    Language language { Language::English };
+    vprint_unicode(GetLocalizedFormat(language), make_format_args(1, 2));
+    println("");
+    language = Language::Dutch;
+    vprint_unicode(GetLocalizedFormat(language), make_format_args(1, 2));
+}
+\end{cpp}
+
+The output is:
+
+\begin{shell}
+Numbers: 1 and 2.
+Getallen: 1 en 2.
+\end{shell}
+
+The following call using print() does not compile as it requires a compile-time constant format string:
+
+\begin{cpp}
+print(GetLocalizedFormat(language), 1, 2);
+\end{cpp}
+
 \mySamllsection{Handling Errors in Non-Compile-Time Constant Format Strings}
 
+When format strings are verified at run time, instead of at compile time, std::format\_error exceptions are thrown for any format string error. As explained earlier, functions such as std::format(), print(), and println() never throw such exceptions as the format strings are all verified at compile time. However, functions such as std::vformat() and vprint\_unicode() (see the previous section) don’t require the format string to be constant and hence don’t verify them at compile time but at run time. These functions might throw format\_error exceptions. Here is an example:
 
+\begin{cpp}
+try {
+    vprint_unicode("An integer: {5}", make_format_args(42));
+} catch (const format_error& caught_exception) {
+    println("{}", caught_exception.what()); // "Argument not found."
+}
+\end{cpp}
+
+Now, let’s investigate how powerful format specifiers really are.
 
 \mySubsubsection{2.2.5.}{Format Specifiers}
 
+As mentioned earlier, a format string can contain replacement fields delimited by curly brackets. Inside those curly brackets can be a string in the format [index][:specifier]. This section discusses the format specifier part of the replacement field. index is discussed earlier.
 
-\CXXTwentythreeLogo{-35}{-59}
-\mySubsubsection{2.2.6.}{Formatting Escaped Characters and Strings}
+A format specifier is used to manipulate how a value is formatted in the output. A format specifier is prefixed with a colon, :. The general form of a format specifier is as follows:
+
+\begin{shell}
+[[fill]align][sign][#][0][width][.precision][L][type]
+\end{shell}
+
+All parts between square brackets are optional. The individual specifier parts are discussed in the next subsections.
 
 \mySamllsection{width}
 
+The width specifies the minimum width of the field into which the given value should be formatted.
+
+This can also be another set of curly brackets, in which case it’s called a dynamic width. If an index is specified in the curly brackets, for example {3}, the value for the dynamic width is taken from the argument with the given index. Otherwise, if no index is specified, for example \{\}, the width is taken from the next argument in the list of arguments.
+Here are some examples:
+
+\begin{cpp}
+int i { 42 };
+println("|{:5}|", i);        // |    42|
+println("|{:{}}|", i, 7);    // |       42|
+println("|{1:{0}}|", 7, i);  // |       42|
+\end{cpp}
+
+
 \mySamllsection{[fill]align}
+
+The [fill]align part optionally says what character to use as a fill character, followed by how a value should be aligned in its field:
+
+\begin{itemize}
+\item
+< means left alignment (default for non-integers and non-floating-point numbers).
+
+\item
+> means right alignment (default for integers and floating-point numbers).
+
+\item
+\^{}  means center alignment.
+\end{itemize}
+
+The fill character is inserted into the output to make sure the field in the output reaches the desired minimum width specified by the [width] part of the specifier. If no [width] is specified, then [fill] align has no effect.
+
+When using center alignment, the same number of fill characters is on the left and on the right of the formatted value. If the total number of fill characters is odd, then the extra fill character is added on the right.
+
+Here are some examples:
+
+\begin{cpp}
+int i { 42 };
+println("|{:7}|", i);     // |     42|
+println("|{:<7}|", i);    // |42     |
+println("|{:_>7}|", i);   // |_____42|
+println("|{:_^7}|", i);   // |__42___|
+\end{cpp}
+
+The following is an interesting trick to output a character a specific number of times. Instead of typing a string literal yourself containing the correct number of characters, you specify the number of characters you need explicitly in the format specifier:
+
+\begin{cpp}
+println("|{:=>16}|", ""); // |================|
+\end{cpp}
 
 \mySamllsection{sign}
 
+The sign part can be one of the following:
+
+\begin{itemize}
+\item
+- means to only display the sign for negative numbers (default).
+
+\item
++ means to display the sign for negative and positive numbers.
+
+\item
+space means that a minus sign should be used for negative numbers, and a space for positive numbers.
+\end{itemize}
+
+Here are some examples:
+
+\begin{cpp}
+int i { 42 };
+println("|{:<5}|", i);   // |42  |
+println("|{:<+5}|", i);  // |+42 |
+println("|{:< 5}|", i);  // | 42 |
+println("|{:< 5}|", -i); // |-42 |
+\end{cpp}
+
 \mySamllsection{\#}
+
+The \# part enables the alternate formatting rules. If enabled for integral types, and hexadecimal, binary, or octal number formatting is specified as well, then the alternate format inserts a 0x, 0X, 0b, 0B, or 0 in front of the formatted number. If enabled for floating-point types, the alternate format will always output a decimal separator, even if no digits follow it.
+
+The following two sections give examples with alternate formatting.
 
 \mySamllsection{type}
 
+The type specifies the type a given value must be formatted in. There are several options:
+
+\begin{itemize}
+\item
+Integer types: b (binary), B (binary, but with 0B instead of 0b if \# is specified), d (decimal), o (octal), x (hexadecimal with lowercase a, b, c, d, e, f), X (hexadecimal with uppercase A, B, C, D, E, F, and if \# is specified, with 0X instead of 0x). If type is unspecified, d is used for integer types.
+
+\item
+Floating-point types: The following floating-point formats are supported. The result of scientific, fixed, general, and hexadecimal formatting is the same as discussed earlier in this chapter for std::chars\_format::scientific, fixed, general, and hex.
+
+\begin{itemize}
+\item
+e, E: Scientific notation with either small e or capital E as the representation of the exponent, formatted with either a given precision or 6 if no precision is specified.
+
+\item
+f, F: Fixed notation formatted with either a given precision or 6 if no precision is specified.
+
+\item
+g, G: General notation automatically chooses a representation without an exponent (fixed format) or with an exponent (small e or capital E), formatted with either a given precision or 6 if no precision is specified.
+
+\item
+a, A: Hexadecimal notation with either lowercase letters (a) or uppercase letters (A)
+
+\item
+If type is unspecified, g is used for floating-point types.
+\end{itemize}
+
+\item
+Booleans: s (outputs true or false in textual form), b, B, c, d, o, x, X (outputs 1 or 0 in integer form). If type is unspecified, s is used for Boolean types.
+
+\item
+Characters: c (character is copied to output), ? (escaped character is copied to output; see section “Formatting Escaped Characters and Strings”), b, B, d, o, x, X (integer representation). If type is unspecified, c is used for character types.
+
+\item
+String: s (string is copied to output), ? (escaped string is copied to output; see section “Formatting Escaped Characters and Strings”). If type is unspecified, s is used for string types.
+
+\item
+Pointers: p (hexadecimal notation of the pointer prefixed with 0x). If type is unspecified, p is used for pointer types. Only pointers of type void* can be formatted. Other pointer types must first be converted to type void*, for example using static\_cast<void*>(myPointer).
+\end{itemize}
+
+Here are some examples with an integral type:
+
+\begin{cpp}
+int i { 42 };
+println("|{:10d}|", i);   // |        42|
+println("|{:10b}|", i);   // |    101010|
+println("|{:#10b}|", i);  // |  0b101010|
+println("|{:10X}|", i);   // |        2A|
+println("|{:#10X}|", i);  // |      0X2A|
+\end{cpp}
+
+Here is an example with a string type:
+
+\begin{cpp}
+string s { "ProCpp" };
+println("|{:_^10}|", s); // |__ProCpp__|
+\end{cpp}
+
+Examples with floating-point types are given in the next section on precision.
+
 \mySamllsection{precision}
 
+The precision can be used only for floating-point and string types. It is specified as a dot followed by the number of decimal digits to output for floating-point types, or the number of characters to output for strings. The number of digits for floating-point types includes all digits, including the ones before the decimal separator, unless fixed floating-point notation (f or F) is used, in which case precision is the number of digits after the decimal point.
+
+Just as with width, precision can also be another set of curly brackets, in which case it’s called a dynamic precision. The precision is then taken either from the next argument in the list of arguments or from the argument with given index.
+
+Here are some examples using a floating-point type:
+
+\begin{cpp}
+double d { 3.1415 / 2.3 };
+println("|{:12g}|", d);   // |     1.36587|
+println("|{:12.2}|", d);  // |         1.4|
+println("|{:12e}|", d);   // |1.365870e+00|
+
+int width { 12 };
+int precision { 3 };
+println("|{2:{0}.{1}f}|", width, precision, d); // |     1.366|
+println("|{2:{0}.{1}}|", width, precision, d);  // |      1.37|
+\end{cpp}
+
 \mySamllsection{0}
+
+The 0 part of the specifier means that, for numeric values, zeros are inserted into the formatted value to reach the desired minimum width specified by the [width] part of the specifier (see earlier). These zeros are inserted at the front of the numeric value, but after any sign, and after any 0x, 0X, 0b, or 0B prefix. The 0 specifier is ignored if an alignment is specified.
+
+Here are some examples:
+
+\begin{cpp}
+int i { 42 };
+println("|{:06d}|", i);   // |000042|
+println("|{:+06d}|", i);  // |+00042|
+println("|{:06X}|", i);   // |00002A|
+println("|{:#06X}|", i);  // |0X002A|
+\end{cpp}
 
 \mySamllsection{L}
 
@@ -54,7 +441,43 @@ cout << format(std::locale{ "nl" }, "|{:Lg}|\n", f); // |1,2|
 
 Locales are discussed in Chapter 21.
 
-\CXXTwentythreeLogo{-35}{-49}
+\CXXTwentythreeLogo{-40}{-50}
+
+\mySubsubsection{2.2.6.}{Formatting Escaped Characters and Strings}
+
+C++23 allows you to format escaped strings and characters by using the ? type specifier. This use case does not occur often, but it can be helpful for logging and debugging purposes. The output resembles how you write string and character literals in your code: they start and end with double or single quotes, and they use escaped character sequences. The following table shows what the output is of certain characters when using escaped formatting:.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+CHARACTER       & ESCAPED OUTPUT                   \\ \hline
+\endfirsthead
+%
+\endhead
+%
+Horizontal tab  & \textbackslash{}t                \\ \hline
+New line        & \textbackslash{}n                \\ \hline
+Carriage return & \textbackslash{}r                \\ \hline
+Backslash       & \textbackslash{}\textbackslash{} \\ \hline
+Double quote    & \textbackslash{}"                \\ \hline
+Single quote    & \textbackslash{}'                \\ \hline
+\end{longtable}
+
+The escaping of double quotes happens only when the output is a double-quoted string, while the escaping of single quotes happens only when the output is a single-quoted character. The escaped output of unprintable characters is \textbackslash{}u\{hex-code-point\}.
+
+Here are some examples:
+
+\begin{cpp}
+println("|{:?}|", "Hello\tWorld!\n");   // |Hello\tWorld!\n|
+println("|{:?}|", "\"");                // |"\""|
+println("|{:?}|", '\'');                // |'\''|
+println("|{:?}|", '"');                 // |'"'|
+\end{cpp}
+
+\CXXTwentythreeLogo{-40}{-50}
+
 \mySubsubsection{2.2.7.}{Formatting Ranges}
 
 

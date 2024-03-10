@@ -5,26 +5,498 @@ The following program builds on the employee database example used earlier in th
 
 The next sections implement a program to manage a company’s employee records with the following feature set:
 
+\begin{itemize}
+\item
+Add and fire employees
+
+\item
+Promote and demote employees
+
+\item
+View all employees, past and present
+
+\item
+View all current employees
+
+\item
+View all former employees
+\end{itemize}
+
+The design for this program divides the code into three parts. The Employee class encapsulates the information describing a single employee. The Database class manages all the employees of the company. Finally, a separate UserInterface file provides the interactivity of the program.
+
 \mySubsubsection{1.2.2.}{The Employee Class}
+
+The Employee class maintains all the information about an employee. Its member functions provide a way to query and change that information. An Employee also knows how to display herself on the console. Additionally, member functions exist to adjust the employee’s salary and employment status.
 
 \mySamllsection{Employee.cppm}
 
+The Employee.cppm module interface file defines the Employee class. The sections of this file are described individually in the text that follows. The first few lines are as follows:
+
+\begin{cpp}
+export module employee;
+import std;
+namespace Records {
+\end{cpp}
+
+The first line is a module declaration and states that this file exports a module called employee, followed by an import for the Standard Library functionality. This code also declares that the subsequent code, contained within the curly braces, lives in the Records namespace. Records is the namespace that is used throughout this program for application-specific code.
+
+Next, the following two constants are defined inside the Records namespace. This book uses the convention to not prefix constants with any special letter and to start them with a capital letter to better contrast them with variables.
+
+\begin{cpp}
+const int DefaultStartingSalary { 30'000 };
+export const int DefaultRaiseAndDemeritAmount { 1'000 };
+\end{cpp}
+
+The first constant represents the default starting salary for new employees. This constant is not exported, because code outside this module does not need access to it. Code in the employee module can access this constant as Records::DefaultStartingSalary.
+
+The second constant is the default amount for promoting or demoting an employee. This constant is exported, so code outside this module could, for example, promote an employee by twice the default amount.
+
+Next, the Employee class is defined and exported, along with its public member functions:
+
+\begin{cpp}
+export class Employee
+{
+    public:
+        Employee(const std::string& firstName,
+                 const std::string& lastName);
+        void promote(int raiseAmount = DefaultRaiseAndDemeritAmount);
+        void demote(int demeritAmount = DefaultRaiseAndDemeritAmount);
+        void hire(); // Hires or rehires the employee
+        void fire(); // Dismisses the employee
+        void display() const; // Prints employee info to console
+
+        // Getters and setters
+        void setFirstName(const std::string& firstName);
+        const std::string& getFirstName() const;
+
+        void setLastName(const std::string& lastName);
+        const std::string& getLastName() const;
+
+        void setEmployeeNumber(int employeeNumber);
+        int getEmployeeNumber() const;
+
+        void setSalary(int newSalary);
+        int getSalary() const;
+
+        bool isHired() const;
+\end{cpp}
+
+A constructor is provided that accepts a first and last name. The promote() and demote() member functions both have integer parameters that have a default value equal to DefaultRaiseAndDemeritAmount. In this way, other code can omit the parameter, and the default will automatically be used. Member functions to hire and fire an employee are provided, together with a member function to display information about an employee. A number of setters and getters provide functionality to change the information or to query the current information of an employee.
+
+The data members are declared as private so that other parts of the code cannot modify them directly:
+
+\begin{cpp}
+    private:
+        std::string m_firstName;
+        std::string m_lastName;
+        int m_employeeNumber { -1 };
+        int m_salary { DefaultStartingSalary };
+        bool m_hired { false };
+    };
+}
+\end{cpp}
+
+The setters and getters provide the only public way of modifying or querying those values. The data members are directly initialized here inside the class definition instead of in a constructor. By default, new employees have no name, an employee number of –1, the default starting salary, and a status of not hired.
+
 \mySamllsection{Employee.cpp}
+
+The first few lines of the module implementation file are as follows:
+
+\begin{cpp}
+module employee;
+import std;
+using namespace std;
+\end{cpp}
+
+The first line specifies for which module this source file is, followed by an import of std, and a using directive.
+
+The constructor accepting a first and last name just sets the corresponding data members:
+
+\begin{cpp}
+namespace Records {
+    Employee::Employee(const string& firstName, const string& lastName)
+    : m_firstName { firstName }, m_lastName { lastName }
+    {
+    }
+\end{cpp}
+
+The promote() and demote() member functions simply call setSalary() with a new value. The default values for the integer parameters are not repeated here; they are allowed only in a function declaration, not in a definition.
+
+\begin{cpp}
+void Employee::promote(int raiseAmount)
+{
+    setSalary(getSalary() + raiseAmount);
+}
+
+void Employee::demote(int demeritAmount)
+{
+    setSalary(getSalary() - demeritAmount);
+}
+\end{cpp}
+
+The hire() and fire() member functions just set the m\_hired data member appropriately:
+
+\begin{cpp}
+void Employee::hire() { m_hired = true; }
+void Employee::fire() { m_hired = false; }
+\end{cpp}
+
+The display() member function uses println() to display information about the current employee. Because this code is part of the Employee class, it could access data members, such as m\_salary, directly instead of using getters, such as getSalary(). However, it is considered good style to make use of getters and setters when they exist, even from within the class.
+
+\begin{cpp}
+void Employee::display() const
+{
+    println("Employee: {}, {}", getLastName(), getFirstName());
+    println("-------------------------");
+    println("{}", (isHired() ? "Current Employee" : "Former Employee"));
+    println("Employee Number: {}", getEmployeeNumber());
+    println("Salary: ${}", getSalary());
+    println("");
+}
+\end{cpp}
+
+Finally, a number of getters and setters perform the task of getting and setting values:
+
+\begin{cpp}
+    // Getters and setters
+    void Employee::setFirstName(const string& firstName) {m_firstName = firstName;}
+    const string& Employee::getFirstName() const { return m_firstName; }
+
+    void Employee::setLastName(const string& lastName) { m_lastName = lastName; }
+    const string& Employee::getLastName() const { return m_lastName; }
+
+    void Employee::setEmployeeNumber(int employeeNumber) {
+        m_employeeNumber = employeeNumber; }
+    int Employee::getEmployeeNumber() const { return m_employeeNumber; }
+
+    void Employee::setSalary(int salary) { m_salary = salary; }
+    int Employee::getSalary() const { return m_salary; }
+
+    bool Employee::isHired() const { return m_hired; }
+}
+\end{cpp}
+
+Even though these member functions seem trivial, it’s better to have trivial getters and setters than to make your data members public. For example, in the future, you may want to perform bounds checking in the setSalary() member function. Getters and setters also make debugging easier because you can insert a breakpoint in them to inspect values when they are retrieved or set. Another reason is that when you decide to change how you are storing the data in your class, you only need to modify these getters and setters, while other code using your class can remain untouched.
 
 \mySamllsection{EmployeeTest.cpp}
 
+As you write individual classes, it is often useful to test them in isolation. The following code includes a main() function that performs some simple operations using the Employee class. Once you are confident that the Employee class works, you should remove or comment out this file so that you don’t attempt to compile your code with multiple main() functions.
+
+\begin{cpp}
+import std;
+import employee;
+
+using namespace std;
+using namespace Records;
+
+int main()
+{
+    println("Testing the Employee class.");
+    Employee emp { "Jane", "Doe" };
+    emp.setFirstName("John");
+    emp.setLastName("Doe");
+    emp.setEmployeeNumber(71);
+    emp.setSalary(50'000);
+    emp.promote();
+    emp.promote(50);
+    emp.hire();
+    emp.display();
+}
+\end{cpp}
+
+Another and much better way to test individual classes is with unit testing, discussed in Chapter 30, “Becoming Adept at Testing.” Unit tests are small pieces of code to test specific functionality and that remain in the code base. All unit tests are frequently executed; for example, they can automatically be executed by your build system. The benefit of doing this is that if you make some changes to existing functionality, the unit tests will instantly warn you if you break something.
 
 \mySubsubsection{1.2.3.}{The Database Class}
 
+The Database class is implemented next. It uses the std::vector class from the Standard Library to store Employee objects.
+
 \mySamllsection{Database.cppm}
+
+Here are the first few lines of the database.cppm module interface file:
+
+\begin{cpp}
+export module database;
+import std;
+import employee;
+
+namespace Records {
+    const int FirstEmployeeNumber { 1'000 };
+\end{cpp}
+
+Because the database will take care of automatically assigning an employee number to a new employee, a constant defines where the numbering begins.
+
+Next, the Database class is defined and exported:
+
+\begin{cpp}
+    export class Database
+    {
+        public:
+            Employee& addEmployee(const std::string& firstName,
+                                  const std::string& lastName);
+            Employee& getEmployee(int employeeNumber);
+            Employee& getEmployee(const std::string& firstName,
+                                  const std::string& lastName);
+\end{cpp}
+
+The database provides an easy way to add a new employee by providing a first and last name. For convenience, this member function returns a reference to the new employee. External code can also get an employee reference by calling the getEmployee() member function. Two overloads of this member function are declared. One allows retrieval by employee number. The other requires a first and last name.
+
+Because the database is the central repository for all employee records, it has the following member functions to display all employees, the employees who are currently hired, and the employees who are no longer hired:
+
+\begin{cpp}
+            void displayAll() const;
+            void displayCurrent() const;
+            void displayFormer() const;
+\end{cpp}
+
+Finally, the private data members are defined as follows:
+
+\begin{cpp}
+        private:
+            std::vector<Employee> m_employees;
+            int m_nextEmployeeNumber { FirstEmployeeNumber };
+    };
+}
+\end{cpp}
+
+The m\_employees data member contains the Employee objects, while m\_nextEmployeeNumber keeps track of what employee number is assigned to a new employee and is initialized with the FirstEmployeeNumber constant.
 
 \mySamllsection{Database.cpp}
 
+Here is the implementation of the addEmployee() member function:
+
+\begin{cpp}
+module database;
+import std;
+
+using namespace std;
+
+namespace Records {
+    Employee& Database::addEmployee(const string& firstName,
+                                    const string& lastName)
+    {
+        Employee theEmployee { firstName, lastName };
+        theEmployee.setEmployeeNumber(m_nextEmployeeNumber++);
+        theEmployee.hire();
+        m_employees.push_back(theEmployee);
+        return m_employees.back();
+    }
+\end{cpp}
+
+The addEmployee() member function creates a new Employee object, fills in its information, and adds it to the vector. The m\_nextEmployeeNumber data member is incremented after its use so that the next employee will get a new number. The back() member function of vector returns a reference to the last element in the vector, which is the newly added employee.
+
+One of the getEmployee() member functions is implemented as follows. The second overload is implemented similarly, hence not shown. They both loop over all employees in m\_employees using a range-based for loop and check whether an Employee is a match for the information passed to the member function. An exception is thrown if no match is found. Notice the use of auto\& in the rangebased for loop, because the loop doesn’t want to work with copies of Employees but with references to the Employees in the m\_employees vector.
+
+\begin{cpp}
+    Employee& Database::getEmployee(int employeeNumber)
+    {
+        for (auto& employee : m_employees) {
+            if (employee.getEmployeeNumber() == employeeNumber) {
+                return employee;
+            }
+        }
+        throw logic_error { "No employee found." };
+    }
+\end{cpp}
+
+The following display member functions all use a similar algorithm: they loop through all employees and ask each employee to display itself to the console if the criterion for display matches.
+
+\begin{cpp}
+    avoid Database::displayAll() const
+    {
+        for (const auto& employee : m_employees) { employee.display(); }
+    }
+
+    void Database::displayCurrent() const
+    {
+        for (const auto& employee : m_employees) {
+            if (employee.isHired()) { employee.display(); }
+        }
+    }
+
+    void Database::displayFormer() const
+    {
+        for (const auto& employee : m_employees) {
+            if (!employee.isHired()) { employee.display(); }
+        }
+    }
+}
+\end{cpp}
+
 \mySamllsection{DatabaseTest.cpp}
 
+A simple test for the basic functionality of the database is shown here:
+
+\begin{cpp}
+import std;
+import database;
+
+using namespace std;
+using namespace Records;
+
+int main()
+{
+    Database myDB;
+    Employee& emp1 { myDB.addEmployee("Greg", "Wallis") };
+    emp1.fire();
+
+    Employee& emp2 { myDB.addEmployee("Marc", "White") };
+    emp2.setSalary(100'000);
+
+    Employee& emp3 { myDB.addEmployee("John", "Doe") };
+    emp3.setSalary(10'000);
+    emp3.promote();
+
+    println("All employees:\n==============");
+    myDB.displayAll();
+
+    println("\nCurrent employees:\n==================");
+    myDB.displayCurrent();
+
+    println("\nFormer employees:\n=================");
+    myDB.displayFormer();
+}
+\end{cpp}
 
 \mySubsubsection{1.2.4.}{The User Interface}
 
+The final part of the program is a menu-based user interface that makes it easy for users to work with the employee database.
+
+The following main() function contains a loop that displays the menu, performs the selected action, and then does it all again. For most actions, separate functions are defined. For simpler actions, such as displaying employees, the actual code is put in the appropriate case.
+
+\begin{cpp}
+import std;
+import database;
+import employee;
+
+using namespace std;
+using namespace Records;
+
+int displayMenu();
+void doHire(Database& db);
+void doFire(Database& db);
+void doPromote(Database& db);
+
+int main()
+{
+    Database employeeDB;
+    bool done { false };
+    while (!done) {
+        int selection { displayMenu() };
+        switch (selection) {
+        case 0:
+            done = true;
+            break;
+        case 1:
+            doHire(employeeDB);
+            break;
+        case 2:
+            doFire(employeeDB);
+            break;
+        case 3:
+            doPromote(employeeDB);
+            break;
+        case 4:
+            employeeDB.displayAll();
+            break;
+        case 5:
+            employeeDB.displayCurrent();
+            break;
+        case 6:
+            employeeDB.displayFormer();
+            break;
+        default:
+            println(cerr, "Unknown command.");
+            break;
+        }
+    }
+}
+\end{cpp}
+
+The displayMenu() function prints the menu and gets input from the user. One important note is that this code assumes that the user will “play nice” and type a number when a number is requested. When you read about I/O in Chapter 13, you will learn how to protect against bad input.
+
+\begin{cpp}
+int displayMenu()
+{
+    int selection;
+    println("");
+    println("Employee Database");
+    println("-----------------");
+    println("1) Hire a new employee");
+    println("2) Fire an employee");
+    println("3) Promote an employee");
+    println("4) List all employees");
+    println("5) List all current employees");
+    println("6) List all former employees");
+    println("0) Quit");
+    println("");
+    print("---> ");
+    cin >> selection;
+    return selection;
+}
+\end{cpp}
+
+The doHire() function gets the new employee’s name from the user and tells the database to add the employee:
+
+\begin{cpp}
+void doHire(Database& db)
+{
+    string firstName;
+    string lastName;
+
+    print("First name? ");
+    cin >> firstName;
+
+    print("Last name? ");
+    cin >> lastName;
+
+    auto& employee { db.addEmployee(firstName, lastName) };
+    println("Hired employee {} {} with employee number {}.",
+        firstName, lastName, employee.getEmployeeNumber());
+}
+\end{cpp}
+
+doFire() and doPromote() both ask the database for an employee by their employee number and then use the public member functions of the Employee object to make changes:
+
+\begin{cpp}
+void doFire(Database& db)
+{
+    int employeeNumber;
+    print("Employee number? ");
+    cin >> employeeNumber;
+
+    try {
+        auto& emp { db.getEmployee(employeeNumber) };
+        emp.fire();
+        println("Employee {} terminated.", employeeNumber);
+    } catch (const std::logic_error& exception) {
+        println(cerr, "Unable to terminate employee: {}", exception.what());
+    }
+}
+
+void doPromote(Database& db)
+{
+    int employeeNumber;
+    print("Employee number? ");
+    cin >> employeeNumber;
+    int raiseAmount;
+    print("How much of a raise? ");
+    cin >> raiseAmount;
+
+    try {
+        auto& emp { db.getEmployee(employeeNumber) };
+        emp.promote(raiseAmount);
+    } catch (const std::logic_error& exception) {
+        println(cerr, "Unable to promote employee: {}", exception.what());
+    }
+}
+\end{cpp}
 
 \mySubsubsection{1.2.5.}{Evaluating the Program}
+
+The preceding program covers a number of topics from the simple to the more complex. There are a number of ways that you could extend this program. For example, the user interface does not expose all the functionality of the Database and Employee classes. You could modify the UI to include those features. You could also try to implement additional functionality that you can think of for both classes, which would be a great exercise to practice the material you learned in this chapter.
+
+If there are parts of this program that don’t make sense, consult the relevant sections in this chapter to review those topics. If something is still unclear, the best way to learn is to play with the code and try things. For example, if you’re not sure how to use the conditional operator, write a short main() function that uses it.
+
+
+
 

@@ -1,44 +1,780 @@
 
+Strings in languages that have supported them as first-class objects tend to have a number of attractive features, such as being able to expand to any size or to have substrings extracted or replaced. In other languages, such as C, strings were almost an afterthought; there wasn’t a really good string data type, just fixed arrays of bytes. The C string library was nothing more than a collection of rather primitive functions without even bounds checking. C++ provides a string type as a first-class data type. Before discussing what C++ provides for strings, let’s take a quick look at C-style strings first.
 
 \mySubsubsection{2.1.1.}{C-Style Strings}
 
+\myGraphic{0.6}{content/part1/chapter2/images/1.png}{FIGURE 2.1}
 
+In the C language, strings are represented as an array of characters. The last character of a string is a null character (\textbackslash{}0) so that code operating on the string can determine where it ends. This null character is officially known as NUL, spelled with one L, not two. NUL is not the same as the NULL pointer.
 
+Even though C++ provides a better string abstraction, it is important to understand the C technique for strings because they still arise in C++ programming. One of the most common situations is where a C++ program has to call a C-based interface in some third-party library or as part of interfacing to the operating system.
+By far, the most common mistake that programmers make with C strings is that they forget to allocate space for the \textbackslash{}0 character. For example, the string "hello" appears to be five characters long, but six characters worth of space are needed in memory to store the value, as shown in Figure 2.1.
+C++ contains several functions from the C language that operate on strings. These functions are defined in <cstring>. As a general rule of thumb, these functions do not handle memory allocation.
+
+For example, the strcpy() function takes two strings as parameters. It copies the second string onto the first, whether it fits or not. The following code attempts to build a wrapper around strcpy() that allocates the correct amount of memory and returns the result, instead of taking in an already allocated string. This initial attempt will turn out to be wrong! It uses the strlen() function to obtain the length of the string. The caller is responsible for freeing the memory allocated by copyString().
+
+\begin{cpp}
+char* copyString(const char* str)
+{
+    char* result { new char[strlen(str)] }; // BUG! Off by one!
+    strcpy(result, str);
+    return result;
+}
+\end{cpp}
+
+The copyString() function as written is incorrect. The strlen() function returns the length of the string, not the amount of memory needed to hold it. For the string "hello", strlen() returns 5, not 6. The proper way to allocate memory for a string is to add 1 to the amount of space needed for the actual characters. It seems a bit unnatural to have +1 all over the place. Unfortunately, that’s how it works, so keep this in mind when you work with C-style strings. The correct implementation is as follows:
+
+\begin{cpp}
+char* copyString(const char* str)
+{
+    char* result { new char[strlen(str) + 1] };
+    strcpy(result, str);
+    return result;
+}
+\end{cpp}
+
+One way to remember that strlen()returns only the number of actual characters in the string is to consider what would happen if you were allocating space for a string made up of several other strings. For example, if your function took in three strings and returned a string that was the concatenation of all three, how big would it be? To hold exactly enough space, it would be the length of all three strings added together, plus one space for the trailing \textbackslash{}0 character. If strlen() included the \textbackslash{}0 in the length of the string, the allocated memory would be too big. The following code uses the strcpy() and strcat() functions to perform this operation. The cat in strcat() stands for concatenate.
+
+\begin{cpp}
+char* appendStrings(const char* str1, const char* str2, const char* str3)
+{
+    char* result { new char[strlen(str1) + strlen(str2) + strlen(str3) + 1] };
+    strcpy(result, str1);
+    strcat(result, str2);
+    strcat(result, str3);
+    return result;
+}
+\end{cpp}
+
+The sizeof() operator in C and C++ can be used to get the size of a certain data type or variable. For example, sizeof(char) returns 1 because a char has a size of 1 byte. However, in the context of C-style strings, sizeof() is not the same as strlen(). You should never use sizeof() to try to get the size of a string. It returns different sizes depending on how the C-style string is stored. If it is stored as a char[], then sizeof() returns the actual memory used by the string, including the \textbackslash{}0 character, as in this example:
+
+\begin{cpp}
+char text1[] { "abcdef" };
+size_t s1 { sizeof(text1) }; // is 7
+size_t s2 { strlen(text1) }; // is 6
+\end{cpp}
+
+However, if the C-style string is stored as a char*, then sizeof() returns the size of a pointer!
+
+\begin{cpp}
+const char* text2 { "abcdef" };
+size_t s3 { sizeof(text2) }; // is platform-dependent
+size_t s4 { strlen(text2) }; // is 6
+\end{cpp}
+
+Here, s3 will be 4 when compiled in 32-bit mode, and 8 when compiled in 64-bit mode because it is returning the size of a const char*, which is a pointer.
+
+A complete list of functions to operate on C-style strings can be found in the <cstring> header file.
+
+\begin{myWarning}{WARNING}
+When you use the C-style string functions with Microsoft Visual Studio, the compiler is likely to give you security-related warnings or even errors about these functions being deprecated. You can eliminate these warnings by using other C Standard Library functions, such as strcpy\_s() or strcat\_s(), which are part of the “secure C library” standard (ISO/IEC TR 24731). However, the best solution is to switch to the C++ std::string class, discussed in the upcoming “The C++ std::string Class” section, but first a bit more on string literals.
+\end{myWarning}
 
 \mySubsubsection{2.1.2.}{String Literals}
 
+You’ve probably seen strings written in a C++ program with quotes around them. For example, the following code outputs the string hello by including the string itself, not a variable that contains it:
+
+\begin{cpp}
+println("hello");
+\end{cpp}
+
+In the preceding line, "hello" is a string literal because it is written as a value, not a variable. String literals are actually stored in a read-only part of memory. This allows the compiler to optimize memory usage by reusing references to equivalent string literals. That is, even if your program uses the string literal "hello" 500 times, the compiler is allowed to optimize memory by creating just one instance of hello in memory. This is called literal pooling.
+String literals can be assigned to variables, but because string literals are in a read-only part of memory and because of the possibility of literal pooling, assigning them to variables can be risky.
+
+The C++ standard officially says that string literals are of type “array of n const char”; however, for backward compatibility with older non-const-aware code, some compilers do not force you to assign a string literal to a variable of type const char*. They let you assign a string literal to a char* without const, and the program will work fine unless you attempt to change the string. Generally, the behavior of modifying string literals is undefined. It could, for example, cause a crash, it could keep working with seemingly inexplicable side effects, the modification could silently be ignored, or it could just work; it all depends on your compiler. For example, the following code exhibits undefined behavior:
+
+\begin{cpp}
+char* ptr { "hello" }; // Assign the string literal to a variable.
+ptr[1] = 'a'; // Undefined behavior!
+\end{cpp}
+
+A much safer way to code is to use a pointer to const characters when referring to string literals. The following code contains the same bug, but because it assigned the literal to a const char*, the compiler catches the attempt to write to read-only memory:
+
+\begin{cpp}
+const char* ptr { "hello" }; // Assign the string literal to a variable.
+ptr[1] = 'a'; // Error! Attempts to write to read-only memory
+\end{cpp}
+
+You can also use a string literal as an initial value for a character array (char[]). In this case, the compiler creates an array that is big enough to hold the string and copies the string to this array. The compiler does not put the literal in read-only memory and does not do any literal pooling.
+
+\begin{cpp}
+char arr[] { "hello" }; // Compiler takes care of creating appropriate sized
+                        // character array arr.
+arr[1] = 'a'; // The contents can be modified.
+\end{cpp}
+
 \mySamllsection{Raw String Literals}
 
+Raw string literals are string literals that can span multiple lines of code, don’t require escaping of embedded double quotes, and process escape sequences like \textbackslash{}t and \textbackslash{}n as normal text and not as escape sequences. Escape sequences are discussed in Chapter 1, “A Crash Course in C++ and the Standard Library.” For example, if you write the following with a normal string literal, you will get a compilation error because the string contains non-escaped double quotes:
+
+\begin{cpp}
+println("Hello "World"!"); // Error!
+\end{cpp}
+
+Normally you have to escape the double quotes as follows:
+
+\begin{cpp}
+println("Hello \"World\"!");
+\end{cpp}
+
+With a raw string literal, you can avoid the need to escape the quotes. A raw string literal starts with R"( and ends with )":
+
+\begin{cpp}
+println(R"(Hello "World"!)");
+\end{cpp}
+
+If you need a string consisting of multiple lines, without raw string literals, you need to embed \textbackslash{}n escape sequences in your string where you want to start a new line. Here’s an example:
+
+\begin{cpp}
+println("Line 1\nLine 2");
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Line 1
+Line 2
+\end{shell}
+
+With a raw string literal, instead of using \textbackslash{}n escape sequences to start new lines, you can simply press Enter to start real physical new lines in your source code as follows. The output is the same as the previous code snippet using the embedded \textbackslash{}n.
+
+\begin{cpp}
+println(R"(Line 1
+Line 2)");
+\end{cpp}
+
+Escape sequences are ignored in raw string literals. For example, in the following raw string literal, the \textbackslash{}t escape sequence is not replaced with a tab character but is kept as the sequence of a backslash followed by the letter t:
+
+\begin{cpp}
+println(R"(Is the following a tab character? \t)");
+\end{cpp}
+
+This outputs the following:
+
+\begin{cpp}
+Is the following a tab character? \t
+\end{cpp}
+
+Because a raw string literal ends with )", you cannot embed a )" in your string using this syntax. For example, the following string is not valid because it contains the )" sequence in the middle of the string:
+
+\begin{cpp}
+println(R"(Embedded )" characters)"); // Error!
+\end{cpp}
+
+If you need embedded )" characters, you need to use the extended raw string literal syntax, which is as follows:
+
+\begin{cpp}
+R"d-char-sequence(r-char-sequence)d-char-sequence"
+\end{cpp}
+
+The r-char-sequence is the actual raw string. The d-char-sequence is an optional delimiter sequence, which should be the same at the beginning and at the end of the raw string literal. This delimiter sequence can have at most 16 characters. You should choose this delimiter sequence as a sequence that will not appear in the middle of your raw string literal.
+
+The previous example can be rewritten using a unique delimiter sequence as follows:
+
+\begin{cpp}
+println(R"-(Embedded )" characters)-");
+\end{cpp}
+
+Raw string literals make it easier to work with database querying strings, regular expressions, file paths, and so on. Regular expressions are discussed in Chapter 21, “String Localization and Regular Expressions.”
 
 \mySubsubsection{2.1.3.}{The C++ std::string Class}
 
+C++ provides a much-improved implementation of the concept of a string as part of the Standard Library. In C++, std::string is a class (actually an instantiation of the std::basic\_string class template) that supports many of the same functionalities as the <cstring> functions, but that takes care of memory allocations for you. The string class is defined in <string> and lives in the std namespace. It has already been introduced in the previous chapter, but now it’s time to take a closer look at it.
+
 \mySamllsection{What Is Wrong with C-Style Strings?}
+
+To understand the necessity of the C++ string class, consider the advantages and disadvantages of C-style strings.
+
+Advantages:
+
+\begin{itemize}
+\item
+They are simple, making use of the underlying basic character type and array structure.
+
+\item
+They are lightweight, taking up only the memory that they need if used properly.
+
+\item
+They are low level, so you can easily manipulate and copy them as raw memory.
+
+\item
+If you’re a C programmer—why learn something new?
+\end{itemize}
+
+Disadvantages:
+
+\begin{itemize}
+\item
+They require incredible efforts to simulate a first-class string data type.
+
+\item
+They are unforgiving and susceptible to difficult-to-find memory bugs.
+
+\item
+They don’t leverage the object-oriented nature of C++.
+
+\item
+They require knowledge of their underlying representation on the part of the programmer.
+\end{itemize}
+
+The preceding lists were carefully constructed to make you think that perhaps there is a better way. As you’ll learn, C++ strings solve all the problems of C-style strings and render most of the arguments about the advantages of C strings over a first-class data type irrelevant.
 
 \mySamllsection{Using the std::string Class}
 
+Even though string is a class, you can almost always treat it as if it were a built-in type. In fact, the more you think of it that way, the better off you are. Through the magic of operator overloading, C++ strings are much easier to use than C-style strings. The next two sections start the discussion by demonstrating how operator overloading makes it easy to concatenate and compare strings. Subsequent sections discuss how C++ strings handle memory, their compatibility with C-style strings, and some of the built-in operations you can perform on strings.
+
+\mySamllsection{Concatenating Strings}
+
+The + operator is redefined for strings to mean “string concatenation.” The following code produces 1234:
+
+\begin{cpp}
+string a { "12" };
+string b { "34" };
+string c { a + b }; // c is "1234"
+\end{cpp}
+
+The += operator is also overloaded to allow you to easily append a string:
+
+\begin{cpp}
+a += b; // a is "1234"
+\end{cpp}
+
+\mySamllsection{Comparing Strings}
+
+Another problem with C strings is that you cannot use == to compare them. Suppose you have the following two strings:
+
+\begin{cpp}
+char* a { "12" };
+char b[] { "12" };
+\end{cpp}
+
+Writing a comparison as follows always returns false, because it compares the pointer values, not the contents of the strings:
+
+\begin{cpp}
+if (a == b) { /* ... */ }
+\end{cpp}
+
+Note that C arrays and pointers are related. You can think of C arrays, like the b array in the example, as pointers to the first element in the array. Chapter 7, “Memory Management,” goes deeper in on the array-pointer duality.
+
+To compare C strings, you have to write something like so:
+
+\begin{cpp}
+if (strcmp(a, b) == 0) { /* ... */ }
+\end{cpp}
+
+Furthermore, there is no way to use <, <=, >=, or > to compare C strings, so strcmp() performs a three-way comparison, returning a value less than 0, 0, or a value greater than 0, depending on the lexicographic ordering relationship of the strings. This results in clumsy and hard-to-read code, which is also error-prone.
+
+With C++ strings, comparison operators (==, !=, <, and so on) are all overloaded to work on the actual characters of the string. For example:
+
+\begin{cpp}
+string a { "Hello" };
+string b { "World" };
+println("'{}' < '{}' = {}", a, b, a < b); // 'Hello' < 'World' = true
+println("'{}' > '{}' = {}", a, b, a > b); // 'Hello' > 'World' = false
+\end{cpp}
+
+The C++ string class additionally provides a compare() member function that behaves like strcmp() and has a similar return type. Here is an example:
+
+\begin{cpp}
+string a { "12" };
+string b { "34" };
+
+auto result { a.compare(b) };
+if (result < 0) { println("less"); }
+if (result > 0) { println("greater"); }
+if (result == 0) { println("equal"); }
+\end{cpp}
+
+Just as with strcmp(), this is cumbersome to use. You need to remember the exact meaning of the return value. Furthermore, since the return value is just an integer, it is easy to forget the meaning of this integer and to write the following wrong code to compare for equality:
+
+\begin{cpp}
+if (a.compare(b)) { println("equal"); }
+\end{cpp}
+
+compare() returns 0 for equality, anything else for non-equality. So, this line of code does the opposite of what it was intended to do; that is, it outputs “equal” for non-equal strings! If you just want to check whether two strings are equal, do not use compare(), but simply ==.
+
+Since C++20, this is improved with the three-way comparison operator, introduced in Chapter 1. The string class has full support for this operator. Here’s an example:
+
+\begin{cpp}
+auto result { a <=> b };
+if (is_gt(result)) { println("greater"); }
+if (is_lt(result)) { println("less"); }
+if (is_eq(result)) { println("equal"); }
+\end{cpp}
+
+\mySamllsection{Memory Handling}
+
+As the following code shows, when string operations require extending the string, the memory requirements are automatically handled by the string class, so memory overruns are a thing of the past. This code snippet also demonstrates that individual characters can be accessed with the square brackets operator, [], just as with C-style strings.
+
+\begin{cpp}
+string myString { "hello" };
+myString += ", there";
+string myOtherString { myString };
+if (myString == myOtherString) {
+    myOtherString[0] = 'H';
+}
+println("{}", myString);
+println("{}", myOtherString);
+\end{cpp}
+
+The output of this code is shown here:
+
+\begin{shell}
+hello, there
+Hello, there
+\end{shell}
+
+There are several things to note in this example. One point is that there are no memory leaks even though strings are allocated and resized in a few places. All of these string objects are created as stack variables. While the string class certainly has a bunch of allocating and resizing to do, the string destructors clean up this memory when string objects go out of scope. How exactly destructors work is explained in detail in Chapter 8, “Gaining Proficiency with Classes and Objects.”
+
+Another point to note is that the operators work the way you want them to work. For example, the = operator copies the strings, which is most likely what you want. If you are used to working with array-based strings, this will be either refreshingly liberating for you or somewhat confusing. Don’t worry—once you learn to trust the string class to do the right thing, life gets so much easier.
+
+\mySamllsection{Compatibility with C-Style Strings}
+
+For compatibility, you can use the c\_str() member function on a string to get a const char pointer, representing a C-style string. However, the returned const pointer becomes invalid whenever the string has to perform any memory reallocation or when the string object is destroyed. You should call the member function just before using the result so that it accurately reflects the current contents of the string, and you must never return the result of c\_str() called on a stack-based string object from a function.
+
+There is also a data() member function that, up until C++14, always returned a const char* just as c\_str(). Starting with C++17, however, data() returns a char* when called on a non-const string.
+
+\mySamllsection{Operations on Strings}
+
+The string class supports quite a few additional operations. The following list highlights a few. Consult a Standard Library Reference (see Appendix B, “Annotated Bibliography”) for a complete list of all supported operations that can be performed on string objects.
+
+\CXXTwentythreeLogo{-40}{-110}
+
+\begin{itemize}
+\item
+substr(pos,len): Returns the substring that starts at a given position and has a given length
+
+\item
+find(str): Returns the position where a given substring is found, or string::npos if not found
+
+\item
+replace(pos,len,str): Replaces part of a string (given by a position and a length) with another string
+
+\item
+starts\_with(str)/ends\_with(str): Returns true if a string starts/ends with a given substring
+
+\item
+contains(str)/contains(ch): Returns true if a string contains another string or character
+\end{itemize}
+
+Here is a small code snippet that shows some of these operations in action:
+
+\begin{cpp}
+string strHello { "Hello!!" };
+string strWorld { "The World..." };
+auto position { strHello.find("!!") };
+if (position != string::npos) {
+    // Found the "!!" substring, now replace it.
+    strHello.replace(position, 2, strWorld.substr(3, 6));
+}
+println("{}", strHello);
+// Test contains().
+string toFind { "World" };
+println("{}", strWorld.contains(toFind));
+println("{}", strWorld.contains('.'));
+println("{}", strWorld.contains("Hello"));
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Hello World
+true
+true
+false
+\end{shell}
+
+\CXXTwentythreeLogo{-40}{-40}
+
+Before C++23, it was possible to construct a string object by passing nullptr to its constructor. This would then result in undefined behavior at run time. Starting with C++23, trying to construct a string from nullptr results in a compilation error.
+
 \mySamllsection{std::string Literals}
+
+A string literal in source code is usually interpreted as a const char* or a const char[]. You can use the standard literal s to interpret a string literal as an std::string instead.
+
+\begin{cpp}
+auto string1 { "Hello World" }; // string1 is a const char*.
+auto& string2 { "Hello World" }; // string2 is a const char[12].
+auto string3 { "Hello World"s }; // string3 is an std::string.
+\end{cpp}
+
+The standard literal s is defined in the std::literals::string\_literals namespace. However, both the string\_literals and literals namespaces are inline namespaces. As such, you have the following options to make those string literals available to your code:
+
+\begin{cpp}
+using namespace std;
+using namespace std::literals;
+using namespace std::string_literals;
+using namespace std::literals::string_literals;
+\end{cpp}
+
+Basically, everything that is declared in an inline namespace is automatically available in the parent namespace. To define an inline namespace yourself, you use the inline keyword. For example, the string\_literals inline namespace is defined as follows:
+
+\begin{cpp}
+namespace std {
+    inline namespace literals {
+        inline namespace string_literals {
+            // ...
+        }
+    }
+}
+\end{cpp}
 
 \mySamllsection{CTAD with std::vector and Strings}
 
+Chapter 1 explains that std::vector supports class template argument deduction (CTAD), allowing the compiler to automatically deduce the type of a vector based on an initializer list. You have to be careful when using CTAD for a vector of strings. Take the following declaration of a vector, for example:
 
+\begin{cpp}
+vector names { "John", "Sam", "Joe" };
+\end{cpp}
 
+The deduced type will be vector<const char*>, not vector<string>! This is an easy mistake to make and can lead to some strange behavior of your code, or even crashes, depending on what you do with the vector afterward.
+
+If you want a vector<string>, then use std::string literals as explained in the previous section. Note the s behind each string literal in the following example:
+
+\begin{cpp}
+vector names { "John"s, "Sam"s, "Joe"s };
+\end{cpp}
 
 \mySubsubsection{2.1.4.}{Numeric Conversions}
 
+The C++ Standard Library provides both high-level and low-level numeric conversion functions, explained in the upcoming sections.
+
 \mySamllsection{High-Level Numeric Conversions}
+
+The std namespace includes a number of helper functions, defined in <string>, that make it easy to convert numerical values into strings or strings into numerical values.
+
+\mySamllsection{Converting to Strings}
+
+The following functions are available to convert numerical values into strings, where T can be (unsigned) int, (unsigned) long, (unsigned) long long, float, double, or long double. All of these functions create and return a new string object and manage all necessary memory allocations.
+
+\begin{cpp}
+string to_string(T val);
+\end{cpp}
+
+These functions are straightforward to use. For example, the following code converts a long double value into a string:
+
+\begin{cpp}
+long double d { 3.14L };
+string s { to_string(d) }; // s contains 3.140000
+\end{cpp}
+
+\mySamllsection{Converting from Strings}
+
+Converting in the other direction is done by the following set of functions, also defined in the std namespace. In these prototypes, str is the string that you want to convert, pos is a pointer that receives the index of the first unconverted character, and base is the mathematical base that should be used during conversion. The pos pointer can be nullptr, in which case it is ignored. These functions ignore leading whitespace, throw invalid\_argument if no conversion could be performed, and throw out\_of\_range if the converted value is outside the range of the return type.
+
+\begin{cpp}
+int stoi(const string& str, size_t *pos = nullptr, int base = 10);
+long stol(const string& str, size_t *pos = nullptr, int base = 10);
+unsigned long stoul(const string& str, size_t *pos = nullptr, int base = 10);
+long long stoll(const string& str, size_t *pos = nullptr, int base = 10);
+unsigned long long stoull(const string& str, size_t *pos = nullptr, int base = 10);
+float stof(const string& str, size_t *pos = nullptr);
+double stod(const string& str, size_t *pos = nullptr);
+long double stold(const string& str, size_t *pos = nullptr);
+\end{cpp}
+
+Here is an example:
+
+\begin{cpp}
+const string toParse { " 123USD" };
+size_t index { 0 };
+int value { stoi(toParse, &index) };
+println("Parsed value: {}", value);
+println("First non-parsed character: '{}'", toParse[index]);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Parsed value: 123
+First non-parsed character: 'U'
+\end{shell}
+
+stoi(), stol(), stoul(), stoll(), and stoull() accept integral values and have a parameter called base, which specifies the base in which the given integral value is expressed. A base of 10, the default, assumes the usual decimal numbers, 0–9, while a base of 16 assumes hexadecimal numbers. If the base is set to 0, the function automatically figures out the base of the given number as follows:
+
+\begin{itemize}
+\item
+If the number starts with 0x or 0X, it is parsed as a hexadecimal number.
+
+\item
+If the number starts with 0, it is parsed as an octal number.
+
+\item
+Otherwise, it is parsed as a decimal number.
+\end{itemize}
 
 \mySamllsection{Low-Level Numeric Conversions}
 
+The standard also provides a number of lower-level numerical conversion functions, all defined in <charconv>. These functions do not perform any memory allocations and do not work directly with std::strings, but instead they use raw buffers provided by the caller. Additionally, they are tuned for high performance and are locale-independent (see Chapter 21 for details on locales). The end result is that these functions can be orders of magnitude faster than other higher-level numerical conversion functions. These functions are also designed for perfect round-tripping, which means that serializing a numerical value to a string representation followed by deserializing the resulting string back to a numerical value results in the exact same value as the original one.
 
+You should use these functions if you want highly performant, perfect round-tripping, localeindependent conversions, for example to serialize/deserialize numerical data to/from human-readable formats such as JSON, XML, and so on.
+
+\mySamllsection{Converting to Strings}
+
+For converting integers to characters, the following set of functions is available:
+
+\begin{cpp}
+to_chars_result to_chars(char* first, char* last, IntegerT value, int base = 10);
+\end{cpp}
+
+Here, IntegerT can be any signed or unsigned integer type or char. The result is of type to\_chars\_result, a type defined as follows:
+
+\begin{cpp}
+struct to_chars_result {
+    char* ptr;
+    errc ec;
+};
+\end{cpp}
+
+The ptr member is either equal to the one-past-the-end pointer of the written characters if the conversion was successful or equal to last if the conversion failed (in which case ec == errc::value\_too\_large). If ec is equal to a default constructed errc, then the conversion was successful.
+
+Here is an example of its use:
+
+\begin{cpp}
+const size_t BufferSize { 50 };
+string out(BufferSize, ' '); // A string of BufferSize space characters.
+auto result { to_chars(out.data(), out.data() + out.size(), 12345) };
+if (result.ec == errc{}) { println("{}", out); /* Conversion successful. */ }
+\end{cpp}
+
+Using structured bindings introduced in Chapter 1, you can write it as follows:
+
+\begin{cpp}
+string out(BufferSize, ' '); // A string of BufferSize space characters.
+auto [ptr, error] { to_chars(out.data(), out.data() + out.size(), 12345) };
+if (error == errc{}) { println("{}", out); /* Conversion successful. */ }
+\end{cpp}
+
+Similarly, the following set of conversion functions is available for floating-point types:
+
+\begin{cpp}
+to_chars_result to_chars(char* first, char* last, FloatT value);
+to_chars_result to_chars(char* first, char* last, FloatT value,
+                         chars_format format);
+to_chars_result to_chars(char* first, char* last, FloatT value,
+                         chars_format format, int precision);
+\end{cpp}
+
+Here, FloatT can be any floating-point type, e.g., float, double, or long double. Formatting can be specified with a combination of chars\_format flags.
+
+\begin{cpp}
+enum class chars_format {
+    scientific, // Style: (-)d.ddde±dd
+    fixed, // Style: (-)ddd.ddd
+    hex, // Style: (-)h.hhhp±d (Note: no 0x!)
+    general = fixed | scientific // See next paragraph.
+};
+\end{cpp}
+
+The default format is chars\_format::general, which causes to\_chars() to convert the floatingpoint value to a decimal notation in the style of (-)ddd.ddd or to a decimal exponent notation in the style of (-)d.ddde±dd, whichever results in the shortest representation with at least one digit before the decimal point (if present). If a format but no precision is specified, the precision is automatically determined to result in the shortest possible representation for the given format, with a maximum precision of six digits. Here is an example:
+
+\begin{cpp}
+double value { 0.314 };
+string out(BufferSize, ' '); // A string of BufferSize space characters.
+auto [ptr, error] { to_chars(out.data(), out.data() + out.size(), value) };
+if (error == errc{}) { println("{}", out); /* Conversion successful. */ }
+\end{cpp}
+
+\mySamllsection{Converting from Strings}
+
+For the opposite conversion—that is, converting character sequences into numerical values—the following set of functions is available(Starting with C++23, the integer overloads of to\_chars() and from\_chars() are marked as constexpr. This means that they can be evaluated at compile time in other constexpr functions and classes. See Chapter 9, “Mastering Classes and Objects,” for a discussion of constexpr.):
+
+\begin{cpp}
+from_chars_result from_chars(const char* first, const char* last, IntegerT& value,
+                             int base = 10);
+from_chars_result from_chars(const char* first, const char* last, FloatT& value,
+                             chars_format format = chars_format::general);
+\end{cpp}
+
+Here, from\_chars\_result is a type defined as follows:
+
+\begin{cpp}
+struct from_chars_result {
+    const char* ptr;
+    errc ec;
+};
+\end{cpp}
+
+The ptr member of the result type is a pointer to the first character that was not converted, or it equals last if all characters were successfully converted. If none of the characters could be converted, ptr equals first, and the value of the error code will be errc::invalid\_argument. If the parsed value is too large to be representable by the given type, the value of the error code will be errc::result\_out\_of\_range. Note that from\_chars() does not skip any leading whitespace.
+
+The perfect round-tripping feature of to\_chars() and from\_chars() can be demonstrated as follows:
+
+\begin{cpp}
+double value1 { 0.314 };
+string out(BufferSize, ' '); // A string of BufferSize space characters.
+auto [ptr1, error1] { to_chars(out.data(), out.data() + out.size(), value1) };
+if (error1 == errc{}) { println("{}", out); /* Conversion successful. */ }
+
+double value2;
+auto [ptr2, error2] { from_chars(out.data(), out.data() + out.size(), value2) };
+if (error2 == errc{}) {
+    if (value1 == value2) {
+        println("Perfect roundtrip");
+    } else {
+        println("No perfect roundtrip?!?");
+    }
+}
+\end{cpp}
 
 \mySubsubsection{2.1.5.}{The std::string\_view Class}
 
+Before C++17, there was always a dilemma of choosing the parameter type for a function that accepted a read-only string. Should it be a const char*? In that case, if a client had an std::string available, they had to call c\_str() or data() on it to get a const char*. Even worse, the function would lose the nice object-oriented aspects of string and all its nice helper member functions. Maybe the parameter could instead be a const string\&? In that case, you always needed a string. If you passed a string literal, for example, the compiler silently created a temporary string object that contained a copy of your string literal and passed a reference to that object to your function, so there was a bit of overhead. Sometimes people would write multiple overloads of the same function— one that accepted a const char* and another that accepted a const string\&—but that was obviously a less-than-elegant solution.
+
+Since C++17, all those problems are solved with the introduction of the std::string\_view class, which is an instantiation of the std::basic\_string\_view class template, and defined in <string\_view>. A string\_view is basically a drop-in replacement for const string\& but without the overhead. It never copies strings! A string\_view provides a read-only view of a string and supports an interface similar to string, including the contains() member function introduced in C++23. One exception is the absence of c\_str(), but data() is available. On the other hand, string\_view does add the member functions remove\_prefix(size\_t) and remove\_suffix(size\_t), which shrink a string by advancing the starting pointer by a given offset or by moving the end pointer backward by a given offset. Just like for string, starting with C++23, constructing a string\_view from nullptr results in a compilation error.
+
+If you know how to use std::string, then using a string\_view is straightforward, as the following example code demonstrates. The extractExtension() function extracts and returns from a given filename the extension including the dot character. Note that string\_views are usually passed by value because they are extremely cheap to copy. They just contain a pointer to, and the length of, a string. The rfind() member function searches a string for another given string or character starting from the back. The substr() member function called on a string\_view returns a string\_view, which is passed to a string constructor to convert it to a string and then returned from the function.
+
+\begin{cpp}
+string extractExtension(string_view filename)
+{
+    // Return a copy of the extension.
+    return string { filename.substr(filename.rfind('.')) };
+}
+\end{cpp}
+
+This function can be used with all kinds of different strings:
+
+\begin{cpp}
+string filename { R"(c:\temp\my file.ext)" };
+println("C++ string: {}", extractExtension(filename));
+
+const char* cString { R"(c:\temp\my file.ext)" };
+println("C string: {}", extractExtension(cString));
+
+println("Literal: {}", extractExtension(R"(c:\temp\my file.ext)"));
+\end{cpp}
+
+There is not a single copy of the argument being made in all these calls to extractExtension(). The filename parameter of the extractExtension() function is just a pointer and a length. This is all very efficient.
+
+There is also a string\_view constructor that accepts any raw buffer and a length. This can be used to construct a string\_view out of a string buffer that is not NUL (\textbackslash{}0) terminated. It is also useful when you do have a NUL-terminated string buffer, but you already know the length of the string, so the string\_view constructor does not need to count the number of characters again. Here is an example:
+
+\begin{cpp}
+const char* raw { /* ... */ };
+size_t length { /* ... */ };
+println("Raw: {}", extractExtension({ raw, length }));
+\end{cpp}
+
+The last line can also be written more explicitly as follows:
+
+\begin{cpp}
+println("Raw: {}", extractExtension(string_view { raw, length }));
+\end{cpp}
+
+Finally, you can also construct a string\_view from a common range, which is a range based on iterators and, since C++23, from a modern range. Iterators, common ranges, and modern ranges are discussed in Chapter 17, “Understanding Iterators and the Ranges Library.”
+
+\begin{myNotic}{NOTE}
+Use an std::string\_view instead of const string\& or const char* whenever a function requires a read-only string as one of its parameters.
+\end{myNotic}
+
+You cannot implicitly construct a string from a string\_view. This is prohibited to prevent accidentally copying the string in a string\_view, as constructing a string from a string\_view always involves copying the data. To convert a string\_view to a string, use an explicit string constructor. That is exactly what the return statement in extractExtension() does:
+
+\begin{cpp}
+return string { filename.substr(filename.rfind('.')) };
+\end{cpp}
+
+For the same reason, you cannot concatenate a string and a string\_view. The following code does not compile:
+
+\begin{cpp}
+string str { "Hello" };
+string_view sv { " world" };
+auto result { str + sv }; // Error, does not compile!
+\end{cpp}
+
+Instead, convert the string\_view to a string using a string constructor:
+
+\begin{cpp}
+auto result1 { str + string { sv } };
+\end{cpp}
+
+Or, use append():
+
+\begin{cpp}
+string result2 { str };
+result2.append(sv.data(), sv.size());
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+Functions returning a string should return a const string\& or a string, but not a string\_view. Returning a string\_view would introduce the risk of invalidating the returned string\_view if, for example, the string to which it refers needs to reallocate.
+\end{myWarning}
+
+\begin{myWarning}{WARNING}
+Storing a const string\& or a string\_view as a data member of a class requires you to make sure the string to which they refer stays alive for the duration of the object’s lifetime. It’s strongly recommended to store an std::string instead.
+\end{myWarning}
+
 \mySamllsection{std::string\_view and Temporary Strings}
+
+A string\_view should not be used to store a view of a temporary string. Take the following example:
+
+\begin{cpp}
+string s { "Hello" };
+string_view sv { s + " World!" };
+println("{}", sv);
+\end{cpp}
+
+This code snippet has undefined behavior, i.e., what happens when running this code depends on your compiler and compiler settings. It might crash, it might print “ello World!” (without the letter H), and so on. Why is this undefined behavior? The initializer expression for the sv string\_view results in a temporary string with the “Hello World!” contents. The string\_view then stores a pointer to this temporary string. At the end of the second line of code, this temporary string is destroyed, leaving the string\_view with a dangling pointer.
+
+\begin{myWarning}{WARNING}
+Never use std::string\_view to store a view of temporary strings.
+\end{myWarning}
 
 \mySamllsection{std::string\_view Literals}
 
+You can use the standard literal sv to interpret a string literal as an std::string\_view. Here’s an example:
 
+\begin{cpp}
+auto sv { "My string_view"sv };
+\end{cpp}
+
+The standard literal sv requires one of the following using directives:
+
+\begin{cpp}
+using namespace std::literals::string_view_literals;
+using namespace std::string_view_literals;
+using namespace std::literals;
+using namespace std;
+\end{cpp}
 
 \mySubsubsection{2.1.6.}{Nonstandard Strings}
+
+There are several reasons why many C++ programmers don’t use C++-style strings. Some programmers simply aren’t aware of the string type because it was not always part of the C++ specification. Others have discovered over the years that the C++ string doesn’t provide the behavior they need or dislike the fact that std::string is totally agnostic about the character encoding and so have developed their own string type. Chapter 21 returns to the topic of character encodings.
+
+Perhaps the most common reason is that development frameworks and operating systems tend to have their own way of representing strings, such as the CString class in the Microsoft MFC framework. Often, this is for backward compatibility or to address legacy issues. When starting a project in C++, it is important to decide ahead of time how your group will represent strings. Some things are for sure:
+
+\begin{itemize}
+\item
+You should never pick the C-style string representation.
+
+\item
+You can standardize on the string functionality available in the framework you are using, such as the built-in string features of MFC, Qt, and so on.
+
+\item
+If you use std::string for your strings, then use std::string\_view to pass read-only strings to functions; otherwise, see if your framework has support for something similar like string\_views.
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
