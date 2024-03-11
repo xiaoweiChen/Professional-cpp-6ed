@@ -1,10 +1,142 @@
 
+In the programming context, documentation usually refers to comments contained in the source files. Comments are your opportunity to tell the world what was going through your head when you wrote the accompanying code. They are a place to say anything that isn’t obvious from looking at the code itself.
 
 \mySubsubsection{3.2.1.}{Reasons to Write Comments}
 
+It may seem obvious that writing comments is a good idea, but have you ever stopped to think about why you need to comment your code? Sometimes programmers acknowledge the importance of commenting without fully understanding why comments are important. There are several reasons, all of which are explored in this chapter.
+
+
 \mySamllsection{Commenting to Explain Usage}
 
+One reason to use comments is to explain how clients should interact with the code. Normally, a developer should be able to understand what a function does simply based on the name of the function, the type of the return value, and the name and type of its parameters. However, not everything can be expressed in code. Function pre- and postconditions(Preconditions are the conditions that client code must satisfy before calling a function. Postconditions are the conditions that must be satisfied by the function when it has finished executing.) and the exceptions a function can throw are things that you can only explain in a comment. In my opinion, it is OK to only add a comment if it really adds any useful information, such as pre- and postconditions and exceptions; otherwise, it’s acceptable to omit the comment. Nevertheless, it’s rare for a function to have no pre- or postconditions. Bottom line, it’s up to the developer to decide whether a function needs a comment. Experienced programmers will have no problems deciding about this, but less experienced developers might not always make the right decision. That’s why some companies have a rule stating that at least each publicly accessible function or member function in a module or header file should have a comment explaining what it does, what its arguments are, what values it returns, which pre- and postconditions need to be satisfied, and which exceptions it can throw.
+
+A comment gives you the opportunity to state, in English, anything that you can’t state in code. For example, there’s really no way in C++ code to indicate that the saveRecord() member function of a database object throws an exception if openDatabase() has not been called yet. A comment, however, can be the perfect place to note this restriction, as follows:
+
+\begin{cpp}
+// Throws:
+//    DatabaseNotOpenedException if openDatabase() has not been called yet.
+int saveRecord(Record& record);
+\end{cpp}
+
+The saveRecord() member function accepts a reference-to-non-const Record object. Users might wonder why it’s not a reference-to-const, so this is something that needs to be explained in a comment:
+
+\begin{cpp}
+// Parameters:
+//    record: If the given record doesn't yet have a database ID, then saveRecord()
+//    modifies the record object to store the ID assigned by the database.
+// Throws:
+//    DatabaseNotOpenedException if openDatabase() has not been called yet.
+int saveRecord(Record& record);
+\end{cpp}
+
+The C++ language forces you to specify the return type of a function, but it does not provide a way for you to say what the returned value actually represents. For example, the declaration of saveRecord() indicates that it returns an int (a bad design decision discussed further in this section), but a client reading that declaration wouldn’t know what the int means. A comment explains the meaning of it:
+
+\begin{cpp}
+// Saves the given record to the database.
+//
+// Parameters:
+//    record: If the given record doesn't yet have a database ID, then saveRecord()
+//    modifies the record object to store the ID assigned by the database.
+// Returns: int
+//    An integer representing the ID of the saved record.
+// Throws:
+//    DatabaseNotOpenedException if openDatabase() has not been called yet.
+int saveRecord(Record& record);
+\end{cpp}
+
+The previous comment documents everything about saveRecord() in a formal way, including a sentence that describes what the member function does. Some companies require such formal and thorough documentation; however, I don’t recommend this style of commenting all the time. The first line, for example, is rather useless since the name of the function is self-explanatory. The description of the parameter is important as is the comment about the exception, so these definitely should stay.
+
+Documenting what exactly the return type represents for this version of saveRecord() is required since it returns a generic int. However, a much better design would be to return a RecordID instead of a plain int, which removes the need to add any comments for the return type. RecordID could be a simple class with a single int data member, but it conveys more information, and it allows you to add more data members in the future if need be. So, the following is a much better saveRecord():
+
+\begin{cpp}
+// Parameters:
+//    record: If the given record doesn't yet have a database ID, then saveRecord()
+//    modifies the record object to store the ID assigned by the database.
+// Throws:
+//    DatabaseNotOpenedException if openDatabase() has not been called yet.
+RecordID saveRecord(Record& record);
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+If your company’s coding guidelines don’t force you to write formal comments for functions, use common sense when writing them. Only state something in a comment that is not obvious based on the name of the function, the return type, and the name and type of its parameters.
+\end{myNotic}
+
+Sometimes, the parameters to and the return type from a function are generic and can be used to pass all kinds of information. In that case you need to clearly document exactly what type is being passed. For example, message handlers in Windows accept two parameters, LPARAM and WPARAM, and can return an LRESULT. All three can be used to pass almost anything you like, but you cannot change their type. By using type casting, they can, for example, be used to pass simple integers or pointers to some objects. Your documentation could look like this:
+
+\begin{cpp}
+// Parameters:
+//    WPARAM wParam: (WPARAM)(int): An integer representing...
+//    LPARAM lParam: (LPARAM)(string*): A string pointer representing...
+// Returns: (LRESULT)(Record*)
+//    nullptr in case of an error, otherwise a pointer to a Record object
+//    representing...
+LRESULT handleMessage(WPARAM wParam, LPARAM lParam);
+\end{cpp}
+
+Your public documentation should describe the behavior of your code, not the implementation. The behavior includes the inputs, outputs, error conditions and handling, intended uses, and performance guarantees. For example, public documentation describing a call to generate a single random number should specify that it takes no parameters, returns an integer in a previously specified range, and should list all the exceptions that might be thrown when something goes wrong. This public documentation should not explain the details of the linear congruence algorithm for actually generating the number. Providing too much implementation detail in comments targeted for users of your code is probably the single most common mistake in writing public comments.
+
 \mySamllsection{Commenting to Explain Complicated Code}
+
+Good comments are also important inside the actual source code. In a simple program that processes input from the user and writes a result to the console, it is probably easy to read through and understand all of the code. In the professional world, however, you will often need to write code that is algorithmically complex or too esoteric to understand simply by inspection.
+
+Consider the code that follows. It is well-written, but it may not be immediately apparent what it is doing. You might recognize the algorithm if you have seen it before, but a newcomer probably wouldn’t understand the way the code works.
+
+\begin{cpp}
+void sort(int data[], std::size_t size)
+{
+    for (int i { 1 }; i < size; ++i) {
+        int element { data[i] };
+        int j { i };
+        while (j > 0 && data[j - 1] > element) {
+            data[j] = data[j - 1];
+            j--;
+        }
+        data[j] = element;
+    }
+}
+\end{cpp}
+
+A better approach would be to include comments that describe the parameters to the function, the algorithm that is being used, and any (loop) invariants. Invariants are conditions that must be true during the execution of a piece of code, for example, a loop iteration. In the modified function that follows, a comment at the top explains the meaning of the two parameters, a thorough comment at the start of the function explains the algorithm at a high level, and inline comments explain specific lines that may be confusing:
+
+\begin{cpp}
+// Implements the "insertion sort" algorithm.
+// data is an array containing the elements to be sorted.
+// size contains the number of elements in the data array.
+void sort(int data[], std::size_t size)
+{
+    // The insertion sort algorithm separates the array into two parts--the
+    // sorted part and the unsorted part. Each element, starting at position
+    // 1, is examined. Everything earlier in the array is in the sorted part,
+    // so the algorithm shifts each element over until the correct position
+    // is found to insert the current element. When the algorithm finishes
+    // with the last element, the entire array is sorted.
+
+    // Start at position 1 and examine each element.
+    for (int i { 1 }; i < size; ++i) {
+        // Loop invariant:
+        //   All elements in the range 0 to i-1 (inclusive) are sorted.
+
+        int element { data[i] };
+        // j marks the position in the sorted part where element will be inserted.
+        int j { i };
+        // As long as the value in the slot before the current slot in the sorted
+        // array is higher than element, shift values to the right to make room
+        // for inserting element (hence the name, "insertion sort") in the correct
+        // position.
+        while (j > 0 && data[j - 1] > element) {
+            // invariant: elements in the range j+1 to i are > element.
+            data[j] = data[j - 1];
+            // invariant: elements in the range j to i are > element.
+            j--;
+        }
+        // At this point the current position in the sorted array
+        // is *not* greater than the element, so this is its new position.
+        data[j] = element;
+    }
+}
+\end{cpp}
+
+The new code is certainly more verbose, but a reader unfamiliar with sorting algorithms would be much more likely to understand it with the comments included.
 
 \mySamllsection{Commenting to Convey Meta-information}
 

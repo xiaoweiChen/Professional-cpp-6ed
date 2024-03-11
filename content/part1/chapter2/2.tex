@@ -480,9 +480,281 @@ println("|{:?}|", '"');                 // |'"'|
 
 \mySubsubsection{2.2.7.}{Formatting Ranges}
 
+Chapter 1 introduces the std::vector, array, and pair containers to store multiple elements of data. Chapter 18, “Standard Library Containers,” introduces quite a few additional containers provided by the Standard Library. Starting with C++23, it’s possible to directly format such ranges of elements. For ranges such as vectors and arrays, the output, by default, is surrounded by square brackets and individual elements are separated by commas. If the elements of the range are strings, their output is escaped by default.
 
+The formatting of ranges can be controlled using nested format specifiers. The general form is as follows:
 
+\begin{shell}
+[[fill]align][width][n][range-type][:range-underlying-spec]
+\end{shell}
+
+Everything between square brackets is optional. As with other format specifiers, fill specifies a fill character, align specifies the alignment of the output, and width specifies the width of the output field. If n is specified, the output will not contain the opening and closing brackets of the range. The range-type can be one of the following:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{RANGE-TYPE} & \textbf{DESCRIPTION}                                                                                                                     \\ \hline
+\endfirsthead
+%
+\endhead
+%
+m &
+\begin{tabular}[c]{@{}l@{}}Available only for pairs and tuples with two elements. By default, these\\ are surrounded by parentheses and separated by commas. If m is specified,\\ they are not surrounded by any type of brackets, and the two elements are\\ separated by ": ".\end{tabular} \\ \hline
+s                   & \begin{tabular}[c]{@{}l@{}}Formats the range as a string (cannot be combined with n or a\\ range-underlying-spec).\end{tabular}          \\ \hline
+?s                  & \begin{tabular}[c]{@{}l@{}}Formats the range as an escaped string (cannot be combined with n or a\\ range-underlying-spec).\end{tabular} \\ \hline
+\end{longtable}
+
+The range-underlying-spec is an optional format specifier for the individual elements of the range. Range specifiers can be nested multiple levels deep. If the elements are again ranges (e.g., a vector of vectors), then the range-underlying-spec is another range format specifier, and so on.
+
+Let’s look at some examples. First, let’s format a vector of numbers:
+
+\begin{cpp}
+vector values { 11, 22, 33 };
+println("{}", values); // [11, 22, 33]
+println("{:n}", values); // 11, 22, 33
+\end{cpp}
+
+If you want to replace the starting and ending square brackets, you can combine the n specifier with surrounding the format specifier with your own starting and ending characters. For example, the following surrounds the output with curly brackets instead. Curly brackets that you want to appear in the output need to be escaped as \{\{ and \}\}.
+
+\begin{cpp}
+println("{{{:n}}}", values); // {11, 22, 33}
+\end{cpp}
+
+The following provides a format specifier for the entire range. For both, the range is output in the center of a field that is 16 characters wide with * as a fill character. For the second, the n specifies that the opening and closing brackets should be omitted:
+
+\begin{cpp}
+println("{:*^16}", values); // **[11, 22, 33]**
+println("{:*^16n}", values); // ***11, 22, 33***
+\end{cpp}
+
+The following does not provide an explicit specifier for the entire range, but it does specify how individual elements are to be formatted. In this case, the individual elements are output in the center of a field that’s six characters wide with * as a fill character:
+
+\begin{cpp}
+println("{::*^6}", values); // [**11**, **22**, **33**]
+\end{cpp}
+
+This can again be combined with the n specifier:
+
+\begin{cpp}
+println("{:n:*^6}", values); // **11**, **22**, **33**
+\end{cpp}
+
+Here are some examples formatting a vector of strings:
+
+\begin{cpp}
+vector strings { "Hello"s, "World!\t2023"s };
+println("{}", strings);     // ["Hello", "World!\t2023"]
+println("{:}", strings);    // ["Hello", "World!\t2023"]
+println("{::}", strings);   // [Hello, World!   2023]
+println("{:n:}", strings);  // Hello, World!   2023
+\end{cpp}
+
+If you have a vector of characters, you can format them as individual characters, or you can consider the entire vector as a string using the s or ?s range type:
+
+\begin{cpp}
+vector chars { 'W', 'o', 'r', 'l', 'd', '\t', '!' };
+println("{}", chars);       // ['W', 'o', 'r', 'l', 'd', '\t', '!']
+println("{::#x}", chars);   // [0x57, 0x6f, 0x72, 0x6c, 0x64, 0x9, 0x21]
+println("{:s}", chars);     // World    !
+println("{:?s}", chars);    // "World\t!"
+\end{cpp}
+
+Here are some examples of outputting a pair. By default, a pair is surrounded by parentheses instead of square brackets, and the two elements are separated by a comma. Using the n specifier removes the opening and closing parentheses. The m specifier also removes the parentheses and separates the elements with ": ".
+
+\begin{cpp}
+pair p { 11, 22 };
+println("{}", p);     // (11, 22)
+println("{:n}", p);   // 11, 22
+println("{:m}", p);   // 11: 22
+\end{cpp}
+
+Finally, here are some examples of outputting a vector of vectors:
+
+\begin{cpp}
+vector<vector<int>> vv { {11, 22}, {33, 44, 55} };
+println("{}", vv);          // [[11, 22], [33, 44, 55]]
+println("{:n}", vv);        // [11, 22], [33, 44, 55]
+println("{:n:n}", vv);      // 11, 22, 33, 44, 55
+println("{:n:n:*^4}", vv);  // *11*, *22*, *33*, *44*, *55*
+\end{cpp}
 
 \mySubsubsection{2.2.8.}{Support for Custom Types}
+
+The formatting library can be extended to add support for custom types. This involves writing a specialization of the std::formatter class template containing two member function templates: parse() and format(). I know, at this point in the book, you will not understand all the syntax in this example yet, as it uses all of the following techniques:
+
+\begin{itemize}
+\item
+constexpr functions, discussed in Chapter 9
+
+\item
+Template specialization, member function templates, and abbreviated function template syntax, explained in Chapter 12 “Writing Generic Code with Templates”
+
+\item
+Exceptions, discussed in Chapter 14, “Handling Errors”
+
+\item
+Iterators, discussed in Chapter 17, “Understanding Iterators and the Ranges Library”
+\end{itemize}
+
+Still, for completeness and to give you a taste of what is possible, let’s see how you will be able to implement a custom formatter once you advance further in the book, at which point you can come back to this example.
+
+Suppose you have the following class to store a key-value pair:
+
+\begin{cpp}
+class KeyValue
+{
+    public:
+        KeyValue(string_view key, int value) : m_key { key }, m_value { value } {}
+
+        const string& getKey() const { return m_key; }
+        int getValue() const { return m_value; }
+    private:
+        string m_key;
+        int m_value { 0 };
+};
+\end{cpp}
+
+A custom formatter for KeyValue objects can be implemented by writing the following class template specialization. This KeyValue formatter supports:
+
+\begin{itemize}
+\item
+Custom format specifiers: \{:k\} outputs only the key, \{:v\} outputs only the value, and \{:b\} and \{\} output both key and value.
+
+\item
+Nested format specifiers: These specify optional formats for the key and or the value. The syntax is as follows: \{:b:KeyFormat:ValueFormat\}.
+
+\begin{cpp}
+template <>
+class std::formatter<KeyValue>
+{
+    public:
+        constexpr auto parse(auto& context)
+        {
+            string keyFormat, valueFormat;
+            size_t numberOfParsedColons { 0 };
+            auto iter { begin(context) };
+            for (; iter != end(context); ++iter) {
+                if (*iter == '}') { break; }
+
+                if (numberOfParsedColons == 0) { // Parsing output type
+                    switch (*iter) {
+                        case 'k': case 'K': // {:k format specifier
+                            m_outputType = OutputType::KeyOnly; break;
+                        case 'v': case 'V': // {:v format specifier
+                            m_outputType = OutputType::ValueOnly; break;
+                        case 'b': case 'B': // {:b format specifier
+                            m_outputType = OutputType::KeyAndValue; break;
+                        case ':':
+                            ++numberOfParsedColons; break;
+                        default:
+                            throw format_error { "Invalid KeyValue format." };
+                    }
+                } else if (numberOfParsedColons == 1) { // Parsing key format
+                    if (*iter == ':') { ++numberOfParsedColons; }
+                    else { keyFormat += *iter; }
+                } else if (numberOfParsedColons == 2) { // Parsing value format
+                    valueFormat += *iter;
+                }
+            }
+            // Validate key format specifier.
+            if (!keyFormat.empty()) {
+                format_parse_context keyFormatterContext { keyFormat };
+                m_keyFormatter.parse(keyFormatterContext);
+            }
+            // Validate value format specifier.
+            if (!valueFormat.empty()) {
+                format_parse_context valueFormatterContext { valueFormat };
+                m_valueFormatter.parse(valueFormatterContext);
+            }
+            if (iter != end(context) && *iter != '}') {
+                throw format_error { "Invalid KeyValue format." };
+            }
+            return iter;
+        }
+
+        auto format(const KeyValue& kv, auto& ctx) const
+        {
+            switch (m_outputType) {
+                using enum OutputType;
+                case KeyOnly:
+                    ctx.advance_to(m_keyFormatter.format(kv.getKey(), ctx));
+                    break;
+                case ValueOnly:
+                    ctx.advance_to(m_valueFormatter.format(kv.getValue(), ctx));
+                    break;
+                default:
+                    ctx.advance_to(m_keyFormatter.format(kv.getKey(), ctx));
+                    ctx.advance_to(format_to(ctx.out(), " - "));
+                    ctx.advance_to(m_valueFormatter.format(kv.getValue(), ctx));
+                    break;
+                }
+                return ctx.out();
+            }
+        private:
+            enum class OutputType { KeyOnly, ValueOnly, KeyAndValue };
+            OutputType m_outputType { OutputType::KeyAndValue };
+            formatter<string> m_keyFormatter;
+            formatter<int> m_valueFormatter;
+};
+\end{cpp}
+\end{itemize}
+
+The parse() member function is responsible for parsing the format specifier given as a character range [begin(context), end(context)). It stores the result of the parsing in data members of the formatter class and returns an iterator pointing to the character after the end of the parsed format specifier string. Two of the data members are m\_keyFormatter of type formatter<string> and m\_valueFormatter of type formatter<int> to handle parsing the KeyFormat and ValueFormat parts, respectively, of the format specifier.
+
+The format() member function formats the value given as first argument according to the format specification parsed by parse(), writes the result to ctx.out(), and returns an iterator to the end of the output. The function uses std::format\_to(), which is similar to std::format(), except that it accepts an output iterator indicating where the output should be written to.
+
+The KeyValue formatter can be tested as follows:
+
+\begin{cpp}
+const size_t len { 34 }; // Label field length
+KeyValue kv { "Key 1", 255 };
+println("{:>{}} {}", "Default:", len, kv);
+println("{:>{}} {:k}", "Key only:", len, kv);
+println("{:>{}} {:v}", "Value only:", len, kv);
+println("{:>{}} {:b}", "Key and value with default format:", len, kv);
+println("{:>{}} {:k:*^11}", "Key only with special format:", len, kv);
+println("{:>{}} {:v::#06X}", "Value only with special format:", len, kv);
+println("{:>{}} {::*^11:#06X}", "Key and value with special format:", len, kv);
+try {
+    auto formatted { vformat("{:cd}", make_format_args(kv)) };
+    println("{}", formatted);
+} catch (const format_error& caught_exception) {
+    println("{}", caught_exception.what());
+}
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+                          Default: Key 1 - 255
+                         Key only: Key 1
+                       Value only: 255
+Key and value with default format: Key 1 - 255
+     Key only with special format: ***Key 1***
+   Value only with special format: 0X00FF
+Key and value with special format: ***Key 1*** - 0X00FF
+Invalid KeyValue format.
+\end{shell}
+
+As an exercise, you could add support for a different separator symbol between the key and the value. With custom formatters, the possibilities are endless, and everything is type safe!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

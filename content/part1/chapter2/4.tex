@@ -1,0 +1,32 @@
+By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+
+\begin{itemize}
+\item
+Exercise 2-1: Write a program that asks the user for two strings and then prints them out in alphabetical order, using the three-way comparison operator. To ask the user for a string, you can use the std::cin stream, briefly introduced in Chapter 1. Chapter 13, “Demystifying C++ I/O,” explains input and output in detail, but for now, here is how to read in a string from the console. To terminate the line, just press Enter.
+
+\begin{cpp}
+std::string s;
+getline(cin, s1);
+\end{cpp}
+
+\item
+Exercise 2-2: Write a program that asks the user for a source string (= haystack), a string to find in the source string (= needle), and a replacement string. Write a function with three parameters—the haystack, needle, and replacement string—that returns a copy of the haystack with all needles replaced with the replacement string. Use only std::string, no string\_view. What kind of parameter types will you use and why? Call this function from main() and print out all the strings for verification.
+
+\item
+Exercise 2-3: Modify the program from Exercise 2-2 and use std::string\_view on as many places as reasonable.
+
+\item
+Exercise 2-4: Write a program that asks the user to enter an unknown number of floatingpoint numbers and stores all numbers in a vector. Each number should be entered followed by a new line. Stop asking for more numbers when the user inputs the number 0. To read a floating-point number from the console, use cin in the same way it was used in Chapter 1 to input integer values. Format all numbers in a table with a couple of columns where each column outputs the number in a different format. Each row in the table corresponds to one of the inputted numbers.
+
+\item
+Exercise 2-5: Write a program that asks the user to enter an unknown number of words. Stop the input when the user enters *. Store all the individual words in a vector. You can input individual words using the following:
+
+\begin{cpp}
+std::string word;
+cin >> word;
+\end{cpp}
+
+When the input is finished, calculate the length of the longest word. Finally, output all the words in columns, five on a row. The width of the columns is based on the longest word. Output the words centered within their column, and separate the columns with the | character.
+\end{itemize}
+
+
