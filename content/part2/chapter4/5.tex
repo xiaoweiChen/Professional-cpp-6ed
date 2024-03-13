@@ -1,28 +1,248 @@
 
+Experienced C++ programmers never start a project from scratch. They incorporate code from a wide variety of sources, such as the Standard Library, open-source libraries, proprietary code bases in their workplace, and their own code from previous projects. You should reuse code liberally in your projects. To make the most of this rule, this section first explains the different types of code that you can reuse, followed by the trade-offs between reusing existing code and writing it yourself. The final part of this section discusses a number of guidelines for choosing a library to reuse, once you have decided not to write the code yourself but to reuse existing code.
 
+\begin{myNotic}{NOTE}
+Reusing code does not mean copying and pasting existing code! In fact, it means quite the opposite: reusing code without duplicating it.
+\end{myNotic}
 
 \mySubsubsection{4.5.1.}{A Note on Terminology}
 
+Before analyzing the advantages and disadvantages of code reuse, it is helpful to specify the terminology involved and to categorize the types of reusable code. There are three categories of code available for reuse:
 
+\begin{itemize}
+\item
+Code you wrote yourself in the past
+
+\item
+Code written by a co-worker
+
+\item
+Code written by a third party outside your current organization or company
+\end{itemize}
+
+There are several ways that the code you reuse can be structured:
+
+\begin{itemize}
+\item
+Stand-alone functions or classes. When you reuse your own code or co-workers’ code, you will generally encounter this variety.
+
+\item
+Libraries. A library is a collection of code used to accomplish a specific task, such as parsing XML, or to handle a specific domain, such as cryptography. Other examples of functionality usually found in libraries include threads and synchronization support, networking, and graphics.
+
+\item
+Frameworks. A framework is a collection of code around which you design a program. For example, the Microsoft Foundation Classes (MFC) library provides a framework for creating graphical user interface applications for Microsoft Windows. Frameworks usually dictate the structure of your program.
+
+\item
+Entire applications. Your project might include multiple applications. Perhaps you need a web server front end to support your new e-commerce infrastructure. It is possible to bundle entire third-party applications, such as a web server, with your software. This approach takes code reuse to the extreme in that you reuse entire applications.
+\end{itemize}
+
+\begin{myNotic}{NOTE}
+A program uses a library but fits into a framework. Libraries provide specific functionality, while frameworks are fundamental to your program design and structure.
+\end{myNotic}
+
+Another term that arises frequently is application programming interface, or API. An API is an interface to a library or body of code for a specific purpose. For example, programmers often refer to the sockets API, meaning the exposed interface to the sockets networking library, instead of the library itself.
+
+\begin{myNotic}{NOTE}
+Although people use the terms API and library interchangeably, they are not equivalent. The library refers to the implementation, while the API refers to the published interface to the library.
+\end{myNotic}
+
+For the sake of brevity, the rest of this chapter uses the term library to refer to any reusable code, whether it is really a library, framework, entire application, or random collection of functions from your co-worker.
 
 \mySubsubsection{4.5.2.}{Deciding Whether to Reuse Code or Write It Yourself}
 
+The rule to reuse code is easy to understand in the abstract. However, it’s somewhat vague when it comes to the details. How do you know when it’s appropriate to reuse code and which code to reuse? There is always a trade-off, and the decision depends on the specific situation. However, there are some general advantages and disadvantages to reusing code.
+
 \mySamllsection{Advantages to Reusing Code}
+
+Reusing code can provide tremendous advantages to you and to your project:
+
+\begin{itemize}
+\item
+You may not know how to or may not be able to justify the time to write the code you need. Would you really want to write code to handle formatted output? Of course not. That’s why you use the standard C++ std::format() or print() functionality.
+
+\item
+Your designs will be simpler because you will not need to design those components of the application that you reuse.
+
+\item
+The code that you reuse usually requires no debugging. You can often assume that library code is bug-free because it has already been tested and used extensively.
+
+\item
+Libraries handle more error conditions than would your first attempt at the code. You might forget obscure errors or edge cases at the beginning of the project and would waste time fixing these problems later. Library code that you reuse has generally been tested extensively and used by many programmers before you, so you can assume that it handles most errors properly.
+
+\item
+Libraries are often tested on a wide range of platforms with different hardware, different operating systems and operating system versions, different graphic cards, and so on; much more than you could possibly have available to test yourself. Sometimes, libraries contain workarounds to make them work on specific platforms.
+
+\item
+Libraries generally are designed to be suspect of bad user inputs. Invalid requests, or requests not appropriate for the current state, usually result in suitable error notifications. For example, a request to seek a nonexistent record in a database, or to read a record from a database that is not open, would have well-specified behavior from a library.
+
+\item
+Reusing code written by domain experts is safer than writing your own code for that area. For example, you should not attempt to write your own security code unless you are a security expert. If you need security or cryptography in your programs, use a library. Many seemingly minor details in code of that nature could compromise the security of the entire program, and possibly the entire system, if you got them wrong.
+
+\item
+Library code is constantly improving. If you reuse the code, you receive the benefits of these improvements without doing the work yourself. In fact, if the library writers have properly separated the interface from the implementation, you can obtain these benefits by upgrading your library version without changing your interaction with the library. A good upgrade modifies the underlying implementation without changing the interface.
+\end{itemize}
 
 \mySamllsection{Disadvantages to Reusing Code}
 
+Unfortunately, there are also some disadvantages to reusing code:
+
+\begin{itemize}
+\item
+When you use libraries that you didn’t write yourself, you must spend time understanding the interface and correct usage before you can jump in and use it. This extra time at the beginning of your project will slow down your initial design and coding, but the advantage is that it will save you significant time later because there is less code that needs to be maintained by you, and the final code will be simpler.
+
+\item
+When you write your own code, it does exactly what you want. Library code might not provide the exact functionality that you require.
+
+\item
+Even if the library code provides the exact functionality you need, it might not give you the performance that you desire. The performance might be bad in general, poor for your specific use case, or completely unspecified.
+
+\item
+Using library code introduces a Pandora’s box of support issues. If you discover a bug in the library, what do you do? Often you don’t have access to the source code, so you couldn’t fix it even if you wanted to. If you have already invested significant time in learning the library interface and using the library, you probably don’t want to give it up, but you might find it difficult to convince the library developers to fix the bug on your time schedule. Also, if you are using a third-party library, what do you do if the library authors drop support for the library before you stop supporting the product that depends on it? Think carefully about this before you decide to use a library for which you cannot get source code.
+
+\item
+In addition to support problems, libraries present licensing issues, which cover topics such as disclosure of your source code, redistribution fees (often called binary license fees), credit attribution, and development licenses. You should carefully inspect the licensing issues before using any library. For example, some open-source libraries require you to make your own code open-source.
+
+\item
+Reusing code requires a trust factor. You must trust whoever wrote the code by assuming that they did a good job. Some people like to have control over all aspects of their project, including every line of source code.
+
+\item
+Upgrading to a new version of the library can cause problems. The upgrade could introduce bugs, which could have fatal consequences in your product. A performance-related upgrade might optimize performance in certain cases but make it worse in your specific use case.
+
+\item
+Upgrading your compiler to a new version can cause problems when you are using binaryonly libraries. You can only upgrade the compiler when the library vendor provides binaries compatible with your new version of the compiler.
+\end{itemize}
+
 \mySamllsection{Putting It Together to Make a Decision}
 
+Now that you are familiar with the terminology, advantages, and disadvantages of reusing code, you are better prepared to make the decision about whether to reuse code. Often, the decision is obvious. For example, if you want to write a graphical user interface (GUI) in C++ for Microsoft Windows, you should use a framework such as MFC or Qt. You probably don’t know how to write the underlying code to create a GUI in Windows, and more importantly, you don’t want to waste time to learn it. You will save person-years of effort by using a framework in this case.
+
+However, other times the choice is less obvious. For example, if you are unfamiliar with a library and need only a simple data structure, it might not be worth the time to learn the library to reuse only one component that you could write in a few days.
+
+Ultimately, you need to make a decision based on your own particular needs. It often comes down to a trade-off between the time it would take to write it yourself and the time required to find and learn how to use a library to solve the problem. Carefully consider how the advantages and disadvantages listed previously apply to your specific case, and decide which factors are most important to you. Finally, remember that you can always change your mind, which might even be relatively easy if you handled the abstraction correctly.
 
 \mySubsubsection{4.5.3.}{Guidelines for Choosing a Library to Reuse}
 
+When you’ve decided to reuse libraries, frameworks, co-workers’ code, entire applications, or your own code, there are several guidelines you should keep in mind to pick the right code to reuse.
+
 \mySamllsection{Understand the Capabilities and Limitations}
+
+Take the time to familiarize yourself with the code. It is important to understand both its capabilities and its limitations. Start with the documentation and the published interfaces or APIs. Ideally, that will be sufficient to understand how to use the code. However, if the library doesn’t provide a clear separation between interface and implementation, you may need to explore the source code itself if it is provided. Also, talk to other programmers who have used the code and who might be able to explain its intricacies. You should begin by learning the basic functionality. If it’s a library, what functions does it provide? If it’s a framework, how does your code fit in? What classes should you derive from? What code do you need to write yourself? You should also consider specific issues depending on the type of code.
+
+Here are some points to keep in mind when choosing a library:
+
+\begin{itemize}
+\item
+Is it safe to use the library in multithreaded programs?
+
+\item
+Does the library impose any specific compiler settings on code using it? If so, is that acceptable in your project?
+
+\item
+On what other libraries does the library depend?
+\end{itemize}
+
+Additionally, you might have to do some more detailed research for specific libraries:
+
+\begin{itemize}
+\item
+Which initialization and cleanup calls are needed?
+
+\item
+If you need to derive from a class, which constructor should you call on it? Which virtual member functions should you override?
+
+\item
+If a call returns memory pointers, who is responsible for freeing the memory: the caller or the library? If the library is responsible, when is the memory freed? It’s highly recommended to find out whether you can use smart pointers (see Chapter 7, “Memory Management”) to manage memory allocated by the library.
+
+\item
+What are all the return values (by value or reference) from a call?
+
+\item
+What are all the possible exceptions thrown?
+
+\item
+What error conditions do library calls check for, and what do they assume? How are errors handled? How is the client program notified about errors? Avoid using libraries that pop up message boxes, print messages on the standard output console, or terminate the program. The client program should decide how to inform users about an error, not the library.
+\end{itemize}
 
 \mySamllsection{Understand the Learning Cost}
 
+The learning cost is the amount of time it takes for a developer to learn how to use a library. This is not just an initial cost when starting to use the library, but a recurring cost over time. Whenever a new team member joins the project, she needs to learn how to use that library.
+
+This cost can be substantial for certain libraries. As such, if you find the functionality you need in a well-known library, I recommend using that one over using some exotic, lesser-known library. For example, if the Standard Library provides the data structure or algorithm you need, use that one instead of using another library.
+
 \mySamllsection{Understand the Performance}
 
+It is important to know the performance guarantees that the library or other code provides. Even if your particular program is not performance sensitive, you should make sure that the code you use doesn’t have awful performance for your particular use.
+
+\mySamllsection{Big-O Notation}
+
+Programmers generally discuss and document algorithm and library performance using big-O notation. This section explains the general concepts of algorithm complexity analysis and big-O notation without a lot of unnecessary mathematics. If you are already familiar with these concepts, you can skip this section.
+
+Big-O notation specifies relative, rather than absolute, performance. For example, instead of saying that an algorithm runs in a specific amount of time, such as 300 milliseconds, big-O notation specifies how an algorithm performs as its input size increases. Examples of input sizes include the number of items to be sorted by a sorting algorithm, the number of elements in a hash table during a key lookup, and the size of a file to be copied between disks.
+
+\begin{myNotic}{NOTE}
+Big-O notation applies only to algorithms whose speed depends on their inputs. It does not apply to algorithms that take no input or whose running time is random. In practice, you will find that the running times of most algorithms of interest depend on their input, so this limitation is not significant.
+\end{myNotic}
+
+To be more formal, big-O notation specifies an algorithm’s run time as a function of its input size, also known as the complexity of the algorithm. It’s not as complicated as it sounds. For example, an algorithm could take twice as long to process twice as many elements. Thus, if it takes 1 second to process 200 elements, it will take 2 seconds to process 400 elements, and 4 seconds to process 800 elements. Figure 4.3 shows this graphically. It is said that the complexity of such an algorithm is a linear function of its input size, because, graphically, it is represented by a straight line.
+
+\myGraphic{0.7}{content/part2/chapter4/images/3.png}{FIGURE 4.3}
+
+Big-O notation summarizes the algorithm’s linear performance like this: O(n). The O just means that you’re using big-O notation, while the n represents the input size. O(n) specifies that the algorithm speed is a direct linear function of the input size.
+
+Of course, not all algorithms have performance that is linear with respect to their input size. The following table summarizes the common complexities, in order of their performance from best to worst:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|l|}
+\hline
+\textbf{\begin{tabular}[c]{@{}l@{}}ALGORITHM \\COMPLEXITY\end{tabular}} &
+\textbf{\begin{tabular}[c]{@{}l@{}}BIG-O\\ NOTATION\end{tabular}} &
+\textbf{EXPLANATION} &
+\textbf{EXAMPLE ALGORITHMS} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+Constant &
+O(1) &
+\begin{tabular}[c]{@{}l@{}}The running time is\\ independent of the input size.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Accessing a single\\ element in an array.\end{tabular} \\ \hline
+Logarithmic &
+O(log n) &
+\begin{tabular}[c]{@{}l@{}}The running time is a function\\ of the logarithm base 2 of the\\ input size.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Finding an element\\ in a sorted list using\\ binary search.\end{tabular} \\ \hline
+Linear &
+O(n) &
+\begin{tabular}[c]{@{}l@{}}The running time is directly\\ proportional to the input size.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Finding an element in\\ an unsorted list.\end{tabular} \\ \hline
+Linear Logarithmic &
+O(n log n) &
+\begin{tabular}[c]{@{}l@{}}The running time is a function\\ of the linear times the\\ logarithmic function of the\\ input size.\end{tabular} &
+Merge sort. \\ \hline
+Quadratic &
+O(n2) &
+\begin{tabular}[c]{@{}l@{}}The running time is a function\\ of the square of the input\\ size.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}A slower sorting\\ algorithm like\\ selection sort.\end{tabular} \\ \hline
+Exponential &
+O(2n) &
+\begin{tabular}[c]{@{}l@{}}The running time is an\\ exponential function of the\\ input size.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Optimized traveling\\ salesman problem.\end{tabular} \\ \hline
+\end{longtable}
+
+There are two advantages to specifying performance as a function of the input size instead of in absolute numbers:
+
+\begin{itemize}
+\item
+It is platform independent. Specifying that a piece of code runs in 200 milliseconds on one computer says nothing about its speed on a second computer. It is also difficult to compare two different algorithms without running them on the same computer with the exact same load. On the other hand, performance specified as a function of the input size is applicable to any platform.
+
+\item
+Performance as a function of input size covers all possible inputs to the algorithm with one specification. The specific time in seconds that an algorithm takes to run covers only one specific input and says nothing about any other input.
+\end{itemize}
+
 \mySamllsection{Understand Platform Limitations}
+
+Now that you are familiar with big-O notation, you are prepared to understand most performance documentation. The C++ Standard Library in particular describes its algorithm and data structure performance using big-O notation. However, big-O notation is sometimes insufficient or even misleading. Consider the following issues whenever you think about big-O performance specifications:
 
 \mySamllsection{Understand Licensing}
 

@@ -1,9 +1,142 @@
 
-
+When you are designing your own C++ programs, there are two fundamental design rules to follow: abstraction and reuse. These guidelines are so important that they can be considered themes of this book. They come up repeatedly throughout the text and throughout effective C++ program designs in all domains.
 
 \mySubsubsection{4.4.1.}{Abstraction}
 
+The principle of abstraction is easiest to understand through a real-world analogy. A television is a piece of technology found in most homes. You are probably familiar with its features: you can turn it on and off, change the channel, adjust the volume, and add external components such as speakers, DVRs, and Blu-ray players. However, can you explain how it works inside the black box? That is, do you know how it receives signals through a cable, translates them, and displays them on the screen? Most people certainly can’t explain how a television works, yet are quite capable of using it. That is because the television clearly separates its internal implementation from its external interface. We interact with the television through its interface: the power button, channel changer, and volume control. We don’t know, nor do we care, how the television works; we don’t care whether it uses a cathode ray tube or some sort of alien technology to generate the image on our screen. It doesn’t matter because it doesn’t affect the interface.
 
+\mySamllsection{Benefiting from Abstraction}
+
+The abstraction principle is similar in software. You can use code without knowing the underlying implementation. As a trivial example, your program can make a call to the sqrt() function declared in <cmath> without knowing what algorithm the function actually uses to calculate the square root.
+
+In fact, the underlying implementation of the square root calculation could change between releases of the library, and as long as the interface stays the same, your function call will still work.
+
+The principle of abstraction extends to classes as well. As introduced in Chapter 1, the vector class can be used as a dynamic array; you can add and remove as many elements as you want.
+
+For example:
+
+\begin{cpp}
+vector<int> myVector;
+myVector.push_back(33);
+myVector.push_back(44);
+\end{cpp}
+
+You use the documented interface of the vector class to add the elements 33 and 44 to myVector. However, you don’t need to understand how the vector class manages its memory internally. You need to know only the public interface. The underlying implementation of vector is free to change, as long as the exposed behavior and interface remain the same.
+
+\mySamllsection{Incorporating Abstraction in Your Design}
+
+You should design functions and classes so that you and other programmers can use them without knowing, or relying on, the underlying implementations. To see the difference between a design that exposes the implementation and one that hides it behind an interface, consider the chess program again. You might want to implement the chessboard with a two-dimensional array of pointers to ChessPiece objects. You could declare and use the board like this:
+
+\begin{cpp}
+ChessPiece* chessBoard[8][8]{}; // Zero-initialized array.
+...
+chessBoard[0][0] = new Rook{};
+\end{cpp}
+
+However, that approach utterly fails to use the concept of abstraction. Every programmer who uses the chessboard knows that it is implemented as a two-dimensional array. Changing that implementation to something else, such as a one-dimensional flattened vector of size 64, would be difficult, because you would need to change every use of the board in the entire program. Everyone using the chessboard also has to properly take care of memory management. There is no separation of interface from implementation.
+
+A better approach is to model the chessboard as a class. You could then expose an interface that hides the underlying implementation details. Here is an example of the beginnings of a ChessBoard class:
+
+\begin{cpp}
+class ChessBoard
+{
+    public:
+        void setPieceAt(std::size_t x, std::size_t y, ChessPiece* piece);
+        ChessPiece* getPieceAt(std::size_t x, std::size_t y) const;
+        bool isEmpty(std::size_t x, std::size_t y) const;
+        // ...
+    private:
+        // Private implementation details...
+};
+\end{cpp}
+
+Note that this interface makes no commitment to any underlying implementation. The ChessBoard class could use a two-dimensional array, but the interface does not require it. Changing the implementation does not require changing the interface. Furthermore, the implementation can provide additional functionality, such as bounds checking. This is possible only by strictly adhering to the following rule.
+
+\begin{myWarning}{WARNING}
+All class data members must be private. Provide public getters and setters if you want to offer controlled access to data members from outside the class.
+\end{myWarning}
+
+Making all data members private is often called data hiding. Why is this so important? By following this rule, you provide the highest level of abstraction for your class:
+
+\begin{itemize}
+\item
+You can change the underlying implementation without having to change the public interface.
+
+\item
+Allowing external code access to data members only through getters and setters allows you to implement extra steps whenever a value is retrieved or set. For example, you can implement sanity checks to make sure data members are never set to invalid values, you can send out an event whenever a data member changes, and so on.
+
+\item
+With a debugger, you can put breakpoints in getters and setters to make it easier to figure out what other piece of code is retrieving or setting a data member. Debuggers are discussed in Chapter 31, “Conquering Debugging.”
+\end{itemize}
+
+Ideally, this example has convinced you that abstraction is an important technique in C++ programming. Chapter 5 covers object-oriented design in more detail, while Chapter 6 goes deeper in on the principles of abstraction. Chapters 8, “Gaining Proficiency with Classes and Objects,” 9, “Mastering Classes and Objects,” and 10, “Discovering Inheritance Techniques,” provide all the details about writing your own classes.
 
 \mySubsubsection{4.4.2.}{Reuse}
+
+The second fundamental rule of design in C++ is reuse. Again, it is helpful to examine a real-world analogy to understand this concept. Suppose that you give up your programming career in favor of working as a baker. On your first day of work, the head baker tells you to bake cookies. To fulfill his orders, you find the recipe for chocolate chip cookies, mix the ingredients, form cookies on the cookie sheet, and place the sheet in the oven. The head baker is pleased with the result.
+
+Now, I’m going to point out something so obvious that it will surprise you: you didn’t build your own oven in which to bake the cookies. Nor did you churn your own butter, mill your own flour, or form your own chocolate chips. I can hear you think, “That goes without saying.” That’s true if you’re a real cook, but what if you’re a programmer writing a baking simulation game? In that case, you would think nothing of writing every component of the program, from the chocolate chips to the oven. Or, you could save yourself time by looking around for code to reuse. Perhaps a co-worker wrote a cooking simulation game and has some nice oven code lying around. Maybe it doesn’t do everything you need, but you might be able to modify it and add the necessary functionality.
+
+Something else you took for granted is that you followed a recipe for the cookies instead of making up your own. Again, that goes without saying. However, in C++ programming, it does not go without saying. Although there are standard ways of approaching problems that arise over and over in C++, many programmers persist in reinventing these strategies in each design.
+
+The idea of using existing code is not new. You’ve been reusing code from the first day you printed something with std::println(). You didn’t write the code to actually print your data to the screen.
+
+You used the existing println() implementation to do the work. Similarly, the employee database from Chapter 1 reused the std::vector container from the C++ Standard Library to store a list of Employees; you didn’t write your own data structure to store the Employees.
+
+Unfortunately, not all programmers take advantage of available code, and often reinvent the wheel. Your designs should take into account existing code and reuse it when appropriate.
+
+\mySamllsection{Writing Reusable Code}
+
+The design theme of reuse applies to code you write as well as to code that you use. You should design your programs so that you can reuse your classes, algorithms, and data structures. You and your co-workers should be able to use these components in both the current project and future projects. In general, you should avoid designing overly specific code that is applicable only to the case at hand.
+
+One language technique for writing general-purpose code in C++ is using templates. Remember the chess example discussed earlier, but now consider that at some point you might need a ChessBoard class storing ChessPieces, and a CheckersBoard class storing CheckersPieces. You could of course write a ChessBoard class and a CheckersBoard class that are completely independent from each other, but in doing so you’ll duplicate quite a bit of code. Such duplicated code can be avoided by writing a generic GameBoard class template instead that can then be used for any type of two-dimensional board game such as chess or checkers. You would only need to change the class declaration so that it takes the piece to store as a template parameter, called PieceType, instead of hard-coding it in the interface. The class template could look something as follows. If you’ve never seen this syntax before, don’t worry! Chapter 12, “Writing Generic Code with Templates,” explains the syntax in depth.
+
+\begin{cpp}
+template <typename PieceType>
+class GameBoard
+{
+    public:
+        void setPieceAt(std::size_t x, std::size_t y, PieceType* piece);
+        PieceType* getPieceAt(std::size_t x, std::size_t y) const;
+        bool isEmpty(std::size_t x, std::size_t y) const;
+        // ...
+    private:
+        // Private implementation details...
+};
+\end{cpp}
+
+With this simple change in the interface, you now have a generic game board class that you can use for any two-dimensional board game. Although the code change is simple, it is important to make these decisions in the design phase, so that you are able to implement the code effectively and efficiently.
+
+Chapter 6 goes into more detail on how to design your code with reuse in mind.
+
+\mySamllsection{Reusing Designs}
+
+Learning the C++ language and becoming a good C++ programmer are two very different things. If you sat down and read the C++ standard, memorizing every fact, you would know C++ as well as anybody else. However, until you gained some experience by looking at code and writing your own programs, you wouldn’t necessarily be a good programmer. The reason is that the C++ syntax defines what the language can do in its raw form but does not say anything about how each feature should be used.
+
+As the baker example illustrates, it would be ludicrous to reinvent recipes for every baked good that you make. However, programmers often make an equivalent mistake in their designs. Instead of using existing “recipes,” or patterns, for designing programs, they reinvent these techniques every time they design a program.
+
+As they become more experienced in using the C++ language, C++ programmers develop their own individual ways of using the features of the language. The C++ community at large has also built some standard ways of leveraging the language, some formal and some informal. Throughout this book, I point out these reusable applications of the language, known as design techniques and design patterns. Additionally, Chapters 32, “Incorporating Design Techniques and Frameworks,” and 33, “Applying Design Patterns,” focus almost exclusively on design techniques and patterns. Some will seem obvious to you because they are simply a formalization of the obvious solution. Others describe novel solutions to problems you’ve encountered in the past. Some present entirely new ways of thinking about your program organization.
+
+For example, you might want to design your chess program so that you have a single ErrorLogger object that serializes all errors from different components to a log file. When you try to design your ErrorLogger class, you realize that you would like to have only a single instance of the ErrorLogger class in your program. But you also want several components in your program to be able to use this ErrorLogger instance; that is, these components all want to use the same ErrorLogger service. A standard pattern to implement such a service mechanism is the strategy pattern combined with dependency injection. With the strategy pattern you create an interface for each service. You can then have multiple implementations of that interface. For example, you could have several logger service implementations, one could log to a file, another could send log messages to a remote server over the Internet, and so on. Once you have defined such interfaces, you then use dependency injection to inject the interfaces a component needs into the component. Thus, a good design at this point would specify that you want to use the strategy pattern with dependency injection.
+
+It is important for you to familiarize yourself with these patterns and techniques so that you can recognize when a particular design problem calls for one of these solutions. There are many more techniques and patterns applicable to C++ than those described in this book. Even though a nice selection is covered here, you may want to consult a book on design patterns for more and different patterns.
+See Appendix B, “Annotated Bibliography,” for suggestions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
