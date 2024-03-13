@@ -1,12 +1,106 @@
 
+Many programming groups have been torn apart and friendships ruined over code-formatting arguments. In college, a friend of mine got into such a heated debate with a peer over the use of spaces in an if statement that people were stopping by to make sure that everything was OK.
+
+If your organization has standards in place for code formatting, consider yourself lucky. You may not like the standards they have in place, but at least you won’t have to argue about them.
+
+If no standards are in place for code formatting, I recommend introducing them in your organization. Standardized coding guidelines make sure that all programmers on your team follow the same naming conventions, formatting rules, and so on, which makes the code more uniform and easier to understand.
+
+There are automated tools available that can format your code according to certain rules right before committing the code to your version control system. Some IDEs have such tools built-in and can, for example, automatically format the code when saving a file.
+If everybody on your team is just writing code their own way, try to be as tolerant as you can.
+
+As you’ll see, some practices are just a matter of taste, while others actually make it difficult to work in teams.
 
 \mySubsubsection{3.6.1.}{The Curly Brace Alignment Debate}
 
+Perhaps the most frequently debated point is where to put the curly braces that demark a block of code. There are several styles of curly brace use. In this book, the curly brace is put on the same line as the leading statement, except in the case of a class, function, or member function. This style is shown in the code that follows (and throughout this book):
 
+\begin{cpp}
+void someFunction()
+{
+    if (condition()) {
+        println("condition was true");
+    } else {
+        println("condition was false");
+    }
+}
+\end{cpp}
+
+This style conserves vertical space while still showing blocks of code by their indentation. Some programmers would argue that preservation of vertical space isn’t relevant in real-world coding. A more verbose style is shown here:
+
+\begin{cpp}
+void someFunction()
+{
+    if (condition())
+    {
+        println("condition was true");
+    }
+    else
+    {
+        println("condition was false");
+    }
+}
+\end{cpp}
+
+Some programmers are even liberal with the use of horizontal space, yielding code like this:
+
+\begin{cpp}
+void someFunction()
+{
+    if (condition())
+    {
+        println("condition was true");
+    }
+    else
+    {
+        println("condition was false");
+    }
+}
+\end{cpp}
+
+Another point of debate is whether to put braces around single statements, for example:
+
+\begin{cpp}
+void someFunction()
+{
+    if (condition())
+        println("condition was true");
+    else
+        println("condition was false");
+}
+\end{cpp}
+
+Obviously, I won’t recommend any particular style because I don’t want hate mail. Personally, I always use braces, even for single statements, as it protects against certain badly written C-style macros (see Chapter 11, “Modules, Header Files, and Miscellaneous Topics”) and is safer against adding statements in the future.
+
+\begin{myNotic}{NOTE}
+When selecting a style for denoting blocks of code, the important consideration is how well you can see which block falls under which condition simply by looking at the code.
+\end{myNotic}
 
 \mySubsubsection{3.6.2.}{Coming to Blows over Spaces and Parentheses}
 
+The formatting of individual lines of code can also be a source of disagreement. Again, I won’t advocate a particular approach, but you are likely to encounter a few of the styles shown here.
 
+In this book, I use a space after any keyword, a space before and after any operator, a space after every comma in a parameter list or a call, and parentheses to clarify the order of operations, as follows:
+
+\begin{cpp}
+if (i == 2) {
+    j = i + (k / m);
+}
+\end{cpp}
+
+An alternative, shown next, treats if stylistically like a function, with no space between the keyword and the left parenthesis. Also, the parentheses used to clarify the order of operations inside of the if statement are omitted because they have no semantic relevance.
+
+\begin{cpp}
+if( i == 2 ) {
+    j = i + k / m;
+}
+\end{cpp}
+
+The difference is subtle, and the determination of which is better is left to the reader, yet I can’t move on from the issue without pointing out that if is not a function.
 
 \mySubsubsection{3.6.3.}{Spaces, Tabs, and Line Breaks}
 
+The use of spaces and tabs is not merely a stylistic preference. If your group does not agree on a convention for spaces and tabs, there are going to be major problems when programmers work jointly. The most obvious problem occurs when Alice uses four-space tabs to indent code and Bob uses five-space tabs; neither will be able to display code properly when working on the same file. An even worse problem arises when Bob reformats the code to use tabs at the same time that Alice edits the same code; many version control systems won’t be able to merge in Alice’s changes.
+
+Most, but not all, editors have configurable settings for spaces and tabs. Some environments even adapt to the formatting of the code as it is read in or always save using spaces even if the Tab key is used for authoring. If you have a flexible environment, you have a better chance of being able to work with other people’s code. Just remember that tabs and spaces are different because a tab can be any length and a space is always a space.
+
+Finally, not all platforms represent a line break in the same way. Windows, for example, uses \verb|\|r\verb|\|n for line breaks, while Linux-based platforms typically use \verb|\|n. If you use multiple platforms in your company, then you need to agree on which line break style to use. Here also, your IDE can most likely be configured to use the line break style you need, or automated tools can be used to automatically fix line breaks, for example, when committing your code to your version control system.

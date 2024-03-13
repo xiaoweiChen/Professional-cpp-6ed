@@ -1,13 +1,69 @@
 
+Decomposition is the practice of breaking up code into smaller pieces. There is nothing more daunting in the world of coding than opening up a file of source code to find 300-line functions and massive, nested blocks of code. Ideally, each function should accomplish a single task. Any subtasks of significant complexity should be decomposed into separate functions. For example, if somebody asks you what a function does and you answer, “First it does A, then it does B; then, if C, it does D; otherwise, it does E,” you should probably have separate helper functions for A, B, C, D, and E.
 
+Decomposition is not an exact science. Some programmers will say that no function should be longer than a page of printed code. That may be a good rule of thumb, but you could certainly find a quarter-page of code that is desperately in need of decomposition. Another rule of thumb is that if you squint your eyes and look at the format of the code without reading the actual content, it shouldn’t appear too dense in any one area. For example, Figures 3.2 and 3.3 show code that has been purposely blurred so that you don’t focus on the content. It should be obvious that the code in Figure 3.3 has better decomposition than the code in Figure 3.2.
+
+\myGraphic{0.4}{content/part1/chapter3/images/2.png}{FIGURE 3.2}
+
+\myGraphic{0.4}{content/part1/chapter3/images/3.png}{FIGURE 3.3}
 
 \mySubsubsection{3.3.1.}{Decomposition through Refactoring}
 
+Sometimes, when you’ve had a few coffees and you’re really in the programming zone, you start coding so fast that you end up with code that does exactly what it’s supposed to do but is far from pretty. All programmers do this from time to time. Short periods of vigorous coding are sometimes the most productive times in the course of a project. Dense code also arises over the course of time as code is modified. As new requirements and bug fixes emerge, existing code is amended with small modifications. The computing term cruft refers to the gradual accumulation of small amounts of code that eventually turns a once-elegant piece of code into a mess of patches and special cases.
 
+Refactoring is the act of restructuring your code. The book Refactoring: Improving the Design of Existing Code, 2nd edition, by Martin Fowler is one of the most influential books about refactoring (see the bibliography in Appendix B, “Annotated Bibliography”). The following list contains some example techniques to refactor code:
+
+\begin{itemize}
+\item
+Techniques that allow for more abstraction:
+
+\begin{itemize}
+\item
+Encapsulate data member: Make a data member private and give access to it with getter and setter member functions.
+
+\item
+Generalize type: Create more general types to allow for more code sharing.
+\end{itemize}
+
+\item
+Techniques for breaking code apart into more logical pieces:
+
+\begin{itemize}
+\item
+Extract member function: Turn part of a larger member function into a new member function to make it easier to understand.
+
+\item
+Extract class: Move part of the code from an existing class into a new class.
+\end{itemize}
+
+\item
+Techniques for improving names and the location of code:
+
+\begin{itemize}
+\item
+Move member function or move data member: Move to a more appropriate class or source file.
+
+\item
+Rename member function or rename data member: Change the name to better reveal its purpose.
+
+\item
+Pull up: In object-oriented programming, move to a base class.
+
+\item
+Push down: In object-oriented programming, move to a derived class.
+\end{itemize}
+\end{itemize}
+
+Whether your code starts its life as a dense block of unreadable cruft or it just evolves that way, refactoring is necessary to periodically purge the code of accumulated hacks. Through refactoring, you revisit existing code and rewrite it to make it more readable and maintainable. Refactoring is an opportunity to revisit the decomposition of code. If the purpose of the code has changed or if it was never decomposed in the first place, when you refactor the code, squint at it and determine whether it needs to be broken down into smaller parts.
+
+When refactoring code, it is important to be able to rely on a testing framework that catches any defects that you might introduce. Unit tests, discussed in Chapter 30, are particularly well suited for helping you catch mistakes during refactoring.
 
 \mySubsubsection{3.3.2.}{Decomposition by Design}
 
+If you use modular decomposition and approach every module and function by considering what pieces of it you can put off until later, your programs will generally be less dense and more organized than if you implement every feature in its entirety as you code.
 
+Of course, you should still design your program before jumping into the code.
 
 \mySubsubsection{3.3.3.}{Decomposition in This Book}
 
+You will see decomposition in many of the examples in this book. In many cases, functions are referred to for which no implementation is shown because they are not relevant to the example and would take up too much space.

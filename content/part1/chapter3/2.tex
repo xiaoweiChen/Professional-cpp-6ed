@@ -140,18 +140,249 @@ The new code is certainly more verbose, but a reader unfamiliar with sorting alg
 
 \mySamllsection{Commenting to Convey Meta-information}
 
+\begin{myWarning}{WARNING}
+All meta-information mentioned in this section is from practices from the past. Nowadays, such meta-information is highly discouraged, as the use of a version control system, as discussed in Chapter 28, “Maximizing Software Engineering Methods,” is mandatory. Such a solution offers an annotated change history with revision dates, author names, and, if properly used, comments accompanying each modification, including references to change requests and bug reports. You should check in, or commit, each change request or bug fix separately with a descriptive comment. With such a system, you don’t need to manually keep track of such meta-information directly in the source code files.
+\end{myWarning}
+
+In old legacy code bases, you might come across comments that were used to provide information at a higher level than the code itself. Such meta-information provided details about the creation of the code without addressing the specifics of its behavior, such as the original author of each function, the date a piece of code was written, the specific feature a function addresses, the bug number that corresponds to a line of code, a reminder to revisit a possible problem in the code later, a change-log, and more. Here is an example:
+
+\begin{cpp}
+// Date       | Change
+//------------+--------------------------------------------------
+// 2001-04-13 | REQ #005: <marcg> Do not normalize values.
+// 2001-04-17 | REQ #006: <marcg> use nullptr instead of NULL.
+
+// Author: marcg
+// Date: 110412
+// Feature: PRD version 3, Feature 5.10
+RecordID saveRecord(Record& record)
+{
+    if (!m_databaseOpen) { throw DatabaseNotOpenedException { }; }
+    RecordID id { getDB()->saveRecord(record) };
+    if (id != -1) { // Added to address bug #142 – jsmith 110428
+        record.setId(id);
+    }
+    // TODO: What if setId() throws an exception? – akshayr 110501
+    return id;
+}
+\end{cpp}
+
+However, it’s worth repeating, such legacy meta-information has no place in new code.
+
 \mySamllsection{Copyright Comment}
 
+Another type of meta-information is a copyright notice. Some companies require such a copyright notice at the beginning of every source file, even though, since the Berne Convention in 1886, it is not required to explicitly write a copyright statement to actually have copyright on your work.
 
 \mySubsubsection{3.2.2.}{Commenting Styles}
 
+Every organization has a different approach to commenting code. In some environments, a particular style is mandated to give the code a common standard for documentation. Other times, the quantity and style of commenting are left up to the programmer. The following examples depict several approaches to commenting code.
+
 \mySamllsection{Commenting Every Line}
+
+One way to avoid lack of documentation is to force yourself to over document by including a comment for every line. Commenting every line of code should ensure that there’s a specific reason for everything you write. In reality, such heavy commenting on a large scale is unwieldy, messy, and tedious! For example, consider the following useless comments:
+
+\begin{cpp}
+int result; // Declare an integer to hold the result.
+result = doodad.getResult(); // Get the doodad's result.
+if (result % 2 == 0) { // If the result modulo 2 is 0 ...
+    logError(); // then log an error,
+} else { // otherwise ...
+    logSuccess(); // log success.
+} // End if/else.
+return result; // Return the result.
+\end{cpp}
+
+The comments in this code express each line as part of an easily readable English story. This is entirely useless if you assume that the reader has at least basic C++ skills. These comments don’t add any additional information to code. Specifically, look at this line:
+
+\begin{cpp}
+if (result % 2 == 0) { // If the result modulo 2 is 0 ...
+\end{cpp}
+
+The comment is just an English translation of the code. It doesn’t say why the programmer has used the modulo operator on the result with the value 2. The following would be a better comment:
+
+\begin{cpp}
+if (result % 2 == 0) { // If the result is even ...
+\end{cpp}
+
+The modified comment, while still fairly obvious to most programmers, gives additional information about the code. The modulo operator with 2 is used because the code needs to check whether the result is even.
+
+Even better, if some expression does something that might not be immediately obvious to everyone, I recommend turning it into a function with a well-chosen name. This makes the code self-documenting, removing the need to write comments where the function is used, and results in a piece of reusable code. For example, you can define a function isEven() as follows:
+
+\begin{cpp}
+bool isEven(int value) { return value % 2 == 0; }
+\end{cpp}
+
+And then use it like this, without any comments:
+
+\begin{cpp}
+if (isEven(result)) {
+\end{cpp}
+
+Despite its tendency to be verbose and superfluous, heavy commenting can be useful in cases where the code would otherwise be difficult to comprehend. The following code also comments every line, but these comments are actually helpful:
+
+\begin{cpp}
+// Calculate the doodad. The start, end, and offset values come from the
+// table on page 96 of the "Doodad API v1.6."
+result = doodad.calculate(Start, End, Offset);
+// To determine success or failure, we need to bitwise AND the result with
+// the processor-specific mask (see "Doodad API v1.6," page 201).
+result &= getProcessorMask();
+// Set the user field value based on the "Marigold Formula."
+// (see "Doodad API v1.6", page 136)
+setUserField((result + MarigoldOffset) / MarigoldConstant + MarigoldConstant);
+\end{cpp}
+
+This code is taken out of context, but the comments give you a good idea of what each line does. Without them, the calculations involving \& and the mysterious “Marigold Formula” would be difficult to decipher.
+
+\begin{myNotic}{NOTE}
+Commenting every line of code is usually not warranted, but if the code is complicated enough to require it, don’t just translate the code to English: explain what’s really going on.
+\end{myNotic}
 
 \mySamllsection{Prefix Comments}
 
+Your group may decide to begin all source files with a standard comment. This is an opportunity to document important information about the program and a specific file. Examples of information that could be at the top of every file include the following:
+
+\begin{itemize}
+\item
+Copyright information
+
+\item
+A brief description of the file/class
+
+\item
+Incomplete features*
+
+\item
+Known bugs*
+\end{itemize}
+
+* These items are usually handled by your bug and feature tracking system (see Chapter 30, “Becoming Adept at Testing”).
+
+The following lists some examples of information that should never be included in such comments, as these are automatically handled by your version control system (see Chapter 28).
+
+\begin{itemize}
+\item
+The last-modified date
+
+\item
+The original author
+
+\item
+ A change-log (as described earlier)
+
+\item
+The feature ID addressed by the file
+\end{itemize}
+
+Here is an example of a prefix comment:
+
+\begin{cpp}
+// Implements the basic functionality of a watermelon. All units are expressed
+// in terms of seeds per cubic centimeter. Watermelon theory is based on the
+// white paper "Algorithms for Watermelon Processing."
+//
+// The following code is (c) copyright 2023, FruitSoft, Inc. ALL RIGHTS RESERVED
+\end{cpp}
+
 \mySamllsection{Fixed-Format Comments}
+
+Writing comments in a standard format that can be parsed by external document builders is a popular programming practice. In the Java language, programmers can write comments in a standard format that allows a tool called JavaDoc to automatically create hyperlinked documentation for the project. For C++, a free tool called Doxygen (available at doxygen.org) parses comments to automatically build HTML documentation, class diagrams, UNIX man pages, and other useful documents. Doxygen even recognizes and parses JavaDoc-style comments in C++ programs. The code that follows shows JavaDoc-style comments that are recognized by Doxygen:
+
+\begin{cpp}
+/**
+* Implements the basic functionality of a watermelon
+* TODO: Implement updated algorithms!
+*/
+export class Watermelon
+{
+    public:
+        /**
+         * @param initialSeeds The starting number of seeds, must be > 5.
+         * @throws invalid_argument if initialSeeds <= 5.
+         */
+        Watermelon(std::size_t initialSeeds);
+        /**
+         * Computes the seed ratio, using the Marigold algorithm.
+         * @param slow Whether or not to use long (slow) calculations.
+         * @return The marigold ratio.
+         */
+        double calculateSeedRatio(bool slow);
+};
+\end{cpp}
+
+Doxygen recognizes the C++ syntax and special comment directives such as @param, @return, and @throws to generate customizable output. Figure 3.1 shows an example of a Doxygen-generated HTML class reference.
+
+Note that you should still avoid writing useless comments, even when you use a tool to automatically generate documentation. Take a look at the Watermelon constructor in the previous code. Its comment omits a description and only describes the parameter and the exceptions it throws. Adding a description, as in the following example, is redundant:
+
+\begin{cpp}
+/**
+ * The Watermelon constructor.
+ * @param initialSeeds The starting number of seeds, must be > 5.
+ * @throws invalid_argument if initialSeeds <= 5.
+ */
+Watermelon(std::size_t initialSeeds);
+\end{cpp}
+
+\myGraphic{0.7}{content/part1/chapter3/images/1.png}{FIGURE 3.1}
+
+Automatically generated documentation as shown in Figure 3.1 can be helpful during development because it allows developers to browse through a high-level description of classes and their relationships. Your group can easily customize a tool like Doxygen to work with the style of comments that you have adopted. Ideally, your group would set up a machine that builds documentation on a daily basis.
 
 \mySamllsection{Ad Hoc Comments}
 
+Most of the time, you use comments on an as-needed basis. Here are some guidelines for comments that appear within the body of your code:
+
+\begin{itemize}
+\item
+Before adding a comment, first consider whether you can rework the code to make the comment redundant—for example, by renaming variables, functions, and classes; by reordering steps in the code; by introducing intermediate well-named variables; and so on.
+
+\item
+Imagine someone else is reading your code. If there are subtleties that are not immediately obvious, then you should document those.
+
+\item
+Don’t put your initials in the code. Version control systems will track that kind of information automatically for you.
+
+\item
+If you are doing something with an API that isn’t immediately obvious, include a reference to the documentation of that API where it is explained.
+
+\item
+Remember to update your comments when you update the code. Nothing is more confusing than code that is fully documented with incorrect comments.
+
+\item
+If you use comments to separate a function into sections, consider whether the function can be broken up into multiple, smaller functions.
+
+\item
+Avoid offensive or derogatory language. You never know who might look at your code someday.
+
+\item
+Liberal use of inside jokes is generally considered OK. Check with your manager.
+\end{itemize}
+
 \mySamllsection{Self-Documenting Code}
+
+Well-written code often doesn’t need abundant commenting. The best code is written to be readable.
+If you find yourself adding a comment for every line, consider whether the code could be rewritten to better match what you are saying in the comments. For example, use descriptive names for your functions, parameters, variables, classes, and so on. Properly make use of const; that is, if a variable is not supposed to be modified, mark it as const. Reorder the steps in a function to make it clearer what it is doing. Introduce intermediate well-named variables to make an algorithm easier to understand. Remember that C++ is a language. Its main purpose is to tell the computer what to do, but the semantics of the language can also be used to explain its meaning to a reader.
+
+Another way to write self-documenting code is to break up, or decompose, your code into smaller pieces. That is the topic of the next section.
+
+\begin{myNotic}{NOTE}
+Good code is naturally readable and only requires comments to provide useful additional information.
+\end{myNotic}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

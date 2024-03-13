@@ -1,20 +1,133 @@
 
+The C++ compiler has a few naming rules:
+
+\begin{itemize}
+\item
+Names can contain uppercase and lowercase letters, digits, and underscores.
+
+\item
+Letters are not limited to the English alphabet but can be letters from any language, such as Japanese, Arabic, and so on.
+
+\item
+Names cannot start with a number (for example, 9to5).
+
+\item
+Names that contain a double underscore (such as my\_\_name) are reserved for use by the Standard Library and shall not be used.
+
+\item
+Names that begin with an underscore followed by an uppercase letter (such as \_Name) are always reserved for use by the Standard Library and shall not be used.
+
+\item
+Names in the global namespace that begin with an underscore (such as \_name) are reserved and shall not be used.
+\end{itemize}
+
+Other than those rules, names exist only to help you and your fellow programmers work with the individual elements of your program. Given this purpose, it is surprising how often programmers use unspecific or inappropriate names.
 
 \mySubsubsection{3.4.1.}{Choosing a Good Name}
 
+The best name for a variable, member function, function, parameter, class, namespace, and so on, accurately describes the purpose of the item. Names can also imply additional information, such as the type or specific usage. Of course, the real test is whether other programmers understand what you are trying to convey with a particular name.
 
+There are no set-in-stone rules for naming other than the rules that work for your organization. However, there are some names that are rarely appropriate. The following table shows some names at both ends of the naming continuum:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{GOOD NAMES} &
+\textbf{BAD NAMES} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\begin{tabular}[c]{@{}l@{}}sourceName, destinationName\\ Distinguishes two objects\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}thing1, thing2\\ Too general\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}m\_nameCounter\\ Conveys data member status\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}m\_NC\\ Too obscure, too brief\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}calculateMarigoldOffset()\\ Simple, accurate\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}doAction()\\ Too general, imprecise\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}m\_typeString\\ Easy on the eyes\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}typeSTR256\\ A name only a computer could love\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}g\_settings\\ Conveys global status\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}m\_IHateLarry\\ Unacceptable inside joke\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}errorMessage\\ Descriptive name\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}string\\ Nondescriptive name\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}sourceFile, destinationFile\\ No abbreviations\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}srcFile, dstFile\\ Abbreviations\end{tabular} \\ \hline
+\end{longtable}
 
 \mySubsubsection{3.4.2.}{Naming Conventions}
 
+Selecting a name doesn’t always require a lot of thought and creativity. In many cases, you’ll want to use standard techniques for naming. The following are some of the types of data for which you can make use of standard names.
+
 \mySamllsection{Counters}
+
+Early in your programming career, you probably saw code that used the variable i as a counter. It is customary to use i and j as counters and inner-loop counters, respectively. Be careful with nested loops, however. It’s a common mistake to refer to the “ith” element when you really mean the “jth” element. When working with 2-D matrices, it’s probably easier to use row and column as indices instead of i and j. Some programmers prefer using counters outerLoopIndex and innerLoopIndex, and some even frown upon using i and j as loop counters.
 
 \mySamllsection{Prefixes}
 
+Many programmers begin their variable names with a letter that provides some information about the variable’s type or usage. On the other hand, there are as many programmers, or even more, who disapprove of using any kind of prefix because this could make evolving code less maintainable in the future. For example, if a member variable is changed from static to non-static, you have to rename all the uses of that name. If you don’t rename them, your names continue to convey semantics, but now they are the wrong semantics.
+
+However, you often don’t have a choice, and you need to follow the guidelines of your company. The following table shows some potential prefixes:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|l|}
+\hline
+\textbf{PREFIX} &
+\textbf{EXAMPLE NAME} &
+\textbf{LITERAL PREFIX MEANING} &
+\textbf{USAGE} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\begin{tabular}[c]{@{}l@{}}m\\ m\_\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}mData\\ m\_data\end{tabular} &
+“member” &
+Data member within a class \\ \hline
+\begin{tabular}[c]{@{}l@{}}s\\ ms\\ ms\_\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}sLookupTable\\ msLookupTable\\ ms\_lookupTable\end{tabular} &
+“static” &
+Static variable or data member \\ \hline
+k &
+kMaximumLength &
+\begin{tabular}[c]{@{}l@{}}“konstant” (German for\\ “constant”)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}A constant value. Some\\ programmers omit any prefix to\\ indicate constants.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}b\\ is\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}bCompleted\\ isCompleted\end{tabular} &
+“Boolean” &
+Designates a Boolean value \\ \hline
+\end{longtable}
+
 \mySamllsection{Hungarian Notation}
+
+Hungarian notation is a variable and data member-naming convention that is popular with Microsoft Windows programmers. The basic idea is that instead of using single-letter prefixes such as m, you should use more verbose prefixes to indicate additional information. The following line of code shows the use of Hungarian notation:
+
+\begin{cpp}
+char* pszName; // psz means "pointer to string, zero-terminated"
+\end{cpp}
+
+The term Hungarian notation arose from the fact that its inventor, Charles Simonyi, is Hungarian. Some also say that it accurately reflects the fact that programs using Hungarian notation end up looking as if they were written in a foreign language. For this latter reason, some programmers tend to dislike Hungarian notation. In this book, prefixes are used, but not Hungarian notation. Adequately named variables don’t need much additional context information besides the prefix. For example, a data member named m\_name says it all.
+
+\begin{myNotic}{NOTE}
+Good names convey information about their purpose without making the code unreadable
+\end{myNotic}
 
 \mySamllsection{Getters and Setters}
 
+If your class contains a data member, such as m\_status, it is customary to provide access to the member via a getter called getStatus() and, optionally, a setter called setStatus(). To give access to a Boolean data member, you typically use is as a prefix instead of get, for example isRunning(). The C++ language has no prescribed naming for these functions, but your organization will probably want to adopt this or a similar naming scheme.
+
 \mySamllsection{Capitalization}
 
+There are many different ways of capitalizing names in your code. As with most elements of coding style, it is important that your group adopts a standardized approach and that all members adopt that approach. One way to get messy code is to have some programmers naming classes in all lowercase with underscores representing spaces (priority\_queue) and others using capitals with each subsequent word capitalized (PriorityQueue). Variables and data members almost always start with a lowercase letter and use either underscores (my\_queue) or capitals (myQueue) to indicate word breaks. Functions traditionally start with a capital letter in C++, but, as you’ve seen, in this book I have adopted the style of using a lowercase first letter for functions to distinguish them from class names.
+
 \mySamllsection{Namespaced Constants}
+
+Imagine that you are writing a program with a graphical user interface. The program has several menus, including File, Edit, and Help. To represent the ID of each menu, you may decide to use a constant. A perfectly reasonable name for a constant referring to the Help menu ID is Help.
+
+The name Help will work fine until you add a Help button to the main window. You also need a constant to refer to the ID of the button, but Help is already taken.
+
+A possible solution for this is to put your constants in different namespaces, which are discussed in Chapter 1, “A Crash Course in C++ and the Standard Library.” You create two namespaces: Menu and Button. Each namespace has a Help constant, and you use them as Menu::Help and Button::Help, although in this case, a more recommended solution is to use enumerations, also introduced in Chapter 1.
 

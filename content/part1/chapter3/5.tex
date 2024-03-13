@@ -1,14 +1,65 @@
 
+The C++ language lets you do all sorts of terribly unreadable things. Take a look at this wacky code:
 
+\begin{cpp}
+i++ + ++i;
+\end{cpp}
+
+This is unreadable, but more importantly, its behavior is undefined by the C++ standard. The problem is that i++ uses the value of i but has a side effect of incrementing it. The standard does not say when this incrementing should be done, only that the side effect (increment) should be visible after the sequence point ;. However, the compiler can do it at any time during the execution of that statement.
+
+It’s impossible to know which value of i will be used for the ++i part. Running this code with different compilers and platforms can result in different values.
+Expressions such as the following
+
+\begin{cpp}
+a[i] = ++i;
+\end{cpp}
+
+are well-defined since C++17, which guarantees that the evaluation of all operations on the righthand side of an assignment is finished before evaluating the left-hand side. So, in this case, first i is incremented and then used as index in a[i]. Even so, for clarity, it remains recommended to avoid such expressions.
+
+With all the power that the C++ language offers, it is important to consider how the language features can be used toward stylistic good instead of evil.
 
 \mySubsubsection{3.5.1.}{Use Constants}
 
+Bad code is often littered with “magic numbers.” In some function, the code might be using 2.71828 or 24 or 3600, and so on. Why? What do these values mean? People with a mathematical background might find it obvious that 2.71828 represents an approximation of the transcendental value e, but most people don’t know this. The C++ language offers constants to give symbolic names to values that don’t change, such as 2.71828, 24, 3600, and so on. Here are some examples:
 
+\begin{cpp}
+const double ApproximationForE { 2.71828182845904523536 };
+const int HoursPerDay { 24 };
+const int SecondsPerHour { 3'600 };
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+The Standard Library includes a collection of predefined mathematical constants, all defined in <numbers> in the std::numbers namespace. For example, it defines std::numbers::e, pi, sqrt2, phi, and many more.
+\end{myNotic}
 
 \mySubsubsection{3.5.2.}{Use References Instead of Pointers}
 
+In the past, C++ programmers often learned C first. In C, pointers were the only pass-by-reference mechanism, and they certainly worked just fine for many years. Pointers are still required in some cases, but in many situations you can switch to references. If you learned C first, you probably think that references don’t really add any new functionality to the language. You might think that they merely introduce a new syntax for functionality that pointers could already provide.
 
+There are several advantages to using references rather than pointers. First, references are safer than pointers because they don’t deal directly with memory addresses and cannot be nullptr. Second, references are stylistically more pleasing than pointers because they use the same syntax as stack variables; i.e., they do not require you to explicitly take the address of them using \& or to explicitly dereference them using *. They’re also easy to use, so you should have no problem adopting references into your style palette. Unfortunately, some programmers think that if they see an \& in a function call, they know the called function is going to change the object, and if they don’t see the \&, it must be pass-by-value. With references, they say they don’t know if the function is going to change the object unless they look at the function prototype. This is a wrong way of thinking. Passing in a pointer does not automatically mean that the object will be modified, because the parameter might be const T*. Passing both a pointer and a reference can modify the object, or it may not, depending on whether the function parameter uses const T*, T*, const T\&, or T\&. So, you need to look at the function prototype anyway to know whether the function might change the object.
+
+Another benefit of references is that they clarify ownership of memory. If you are writing a function and another programmer passes you a reference to an object, it is clear that you can read and possibly modify the object, but you have no easy way of freeing its memory. If you are passed a pointer, this might be less clear. Do you need to delete the object to clean up memory? Or will the caller do that? Though in modern C++, the meaning is clear: any raw pointer is non-owning, and handling ownership and ownership transfer is done using smart pointers, discussed in Chapter 7, “Memory Management.”
 
 \mySubsubsection{3.5.3.}{Use Custom Exceptions}
+
+C++ makes it easy to ignore exceptions. Nothing about the language syntax forces you to deal with exceptions, and you could in theory write error-tolerant programs with traditional mechanisms such as returning special values (for example, -1, nullptr, . . .) or setting error flags. When returning special values to signal errors, the [[nodiscard]] attribute, introduced in Chapter 1, can be used to force the caller of your function to do something with the returned value.
+
+However, exceptions provide a much richer mechanism for error handling, and custom exceptions allow you to tailor this mechanism to your needs. For example, a custom exception type for a web browser could include fields that specify the web page that contained the error, the network state when the error occurred, and additional context information.
+
+Chapter 14, “Handling Errors,” contains a wealth of information about exceptions in C++.
+
+\begin{myNotic}{NOTE}
+Language features exist to help the programmer. Understand and make use of features that contribute to good programming style.
+\end{myNotic}
+
+
+
+
+
+
+
+
+
+
 
 
