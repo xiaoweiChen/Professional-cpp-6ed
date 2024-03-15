@@ -1,0 +1,34 @@
+\noindent
+\textbf{WHAT’S IN THIS CHAPTER?}
+
+\begin{itemize}
+\item
+Different ways to use and manage memory
+
+\item
+The often-perplexing relationship between arrays and pointers
+
+\item
+A low-level look at working with memory
+
+\item
+Common memory pitfalls
+
+\item
+Smart pointers and how to use them
+\end{itemize}
+
+\noindent
+\textbf{WILEY.COM DOWNLOADS FOR THIS CHAPTER}
+
+Please note that all the code examples for this chapter are available as part of this chapter’s code download on the book’s website at \url{www.wiley.com/go/proc++6e} on the Download Code tab.
+
+When you use modern constructs, such as std::vector, std::string, and so on, as is done starting from Chapter 1, “A Crash Course in C++ and the Standard Library,” and throughout all the other chapters of this book, then C++ is a safe language. The language provides many roads, lines, and traffic lights, such as the C++ Core Guidelines (see Appendix B, “Annotated Bibliography”), static code analyzers to analyze the correctness of code, and many more.
+
+However, C++ does allow you to drive off-road. One example of driving off-road is manual memory management (allocation and deallocation). Such manual memory management is a particularly error-prone area of C++ programming. To write high-quality C++ programs, professional C++ programmers need to understand how memory works behind the scenes. This first chapter of Part III explores the ins and outs of memory management. You will learn about the pitfalls of dynamic memory and some techniques for avoiding and eliminating them.
+
+This chapter discusses low-level memory handling because professional C++ programmers will encounter such code. However, in modern C++ code you should avoid low-level memory operations as much as possible. For example, instead of dynamically allocated C-style arrays, you should use Standard Library containers, such as vector, which handle all memory management automatically for you. Instead of raw pointers, you should use smart pointers, such as unique_ptr and shared_ptr both discussed later in this chapter, which automatically free the underlying resource, such as memory, when it’s not needed anymore. Basically, the goal is to avoid having calls to memory allocation routines such as new/new[] and delete/delete[] in your code. Of course, it might not always be possible, and in existing code it will most likely not be the case, so as a professional C++ programmer, you still need to know how memory works behind the scenes.
+
+\begin{myWarning}{WARNING}
+In modern C++ code you should avoid low-level memory operations as much as possible, avoid raw pointers when ownership is involved, and avoid using old C-style constructs and functions. Instead, use safe C++ alternatives, such as objects that automatically manage their memory, like the C++ string class, the vector container, smart pointers, and so on!
+\end{myWarning}
