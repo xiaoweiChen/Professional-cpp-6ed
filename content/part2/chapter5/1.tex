@@ -1,0 +1,20 @@
+A procedural language, such as C, divides code into small pieces, each of which (ideally) accomplishes a single task. Without procedures in C, all your code would be lumped together inside main(). Your code would be difficult to read, and your co-workers would be annoyed, to say the least.
+
+The computer doesn’t care if all your code is in main() or if it’s split into bite-sized pieces with descriptive names and comments. Procedures are an abstraction that exists to help you, the programmer, as well as those who read and maintain your code. The concept is built around a fundamental question about your program—What does this program do? By answering that question in English, you are thinking procedurally. For example, you might begin designing a stock selection program by answering as follows: First, the program obtains stock quotes from the Internet. Then, it sorts this data by specific metrics. Next, it performs analysis on the sorted data. Finally, it outputs a list of buy and sell recommendations. When you start coding, you might directly turn this mental model into C functions: retrieveQuotes(), sortQuotes(), analyzeQuotes(), and outputRecommendations().
+
+
+\begin{myNotic}{NOTE}
+Even though C refers to procedures as “functions,” C is not a functional language. The term functional is different from procedural and refers to languages like Lisp, which use an entirely different abstraction.
+\end{myNotic}
+
+
+The procedural approach tends to work well when your program follows a specific list of steps. However, in large, modern applications, there is rarely a linear sequence of events. Often a user is able to perform any command at any time. Procedural thinking also says nothing about data representation. In the previous example, there was no discussion of what a stock quote actually is.
+
+If the procedural mode of thought sounds like the way you approach a program, don’t worry. Once you realize that OOP is simply an alternative, more flexible way of thinking about software, it’ll come naturally.
+
+
+
+
+
+
+

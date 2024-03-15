@@ -1,21 +1,82 @@
 
+Unlike the procedural approach, which is based on the question “What does this program do?” the object-oriented approach asks another question: “What real-world objects am I modeling?” OOP is based on the notion that you should divide your program not into tasks but into models of physical objects. While this seems abstract at first, it becomes clearer when you consider physical objects in terms of their classes, components, properties, and behaviors.
 
 \mySubsubsection{5.2.1.}{Classes}
 
+A class helps distinguish an object from its definition. Consider the orange. There’s a difference between talking about oranges in general as tasty fruit that grows on trees and talking about a specific orange, such as the one that’s currently dripping juice on my keyboard.
 
+When answering the question “What are oranges?” you are talking about the class of things known as oranges. All oranges are fruit. All oranges grow on trees. All oranges are some shade of orange. All oranges have some particular flavor. A class is simply the encapsulation of what defines a classification of objects.
+
+When describing a specific orange, you are talking about an object. All objects belong to a particular class. Because the object on my desk is an orange, I know that it belongs to the orange class. Thus, I know that it is a fruit that grows on trees. I can further say that it is a medium shade of orange and ranks “mighty tasty” in flavor. An object is an instance of a class—a particular item with characteristics that distinguish it from other instances of the same class.
+
+As a more concrete example, reconsider the stock selection application from earlier. In OOP, “stock quote” is a class because it defines the abstract notion of what makes up a quote. A specific quote, such as “current Microsoft stock quote,” would be an object because it is a particular instance of the class.
+
+From a C background, think of classes and objects as analogous to types and variables. In fact, Chapter 1, “A Crash Course in C++ and the Standard Library,” shows that the syntax for classes is similar to the syntax for C structs.
 
 \mySubsubsection{5.2.2.}{Components}
 
+If you consider a complex real-world object, such as an airplane, it should be fairly easy to see that it is made up of smaller components. There’s the fuselage, the controls, the landing gear, the engines, and numerous other parts. The ability to think of objects in terms of their smaller components is essential to OOP, just as the breaking up of complicated tasks into smaller procedures is fundamental to procedural programming.
 
+A component is essentially the same thing as a class, just smaller and more specific. A good objectoriented program might have an Airplane class, but this class would be huge if it fully described an airplane. Instead, the Airplane class deals with many smaller, more manageable, components. Each of these components might have further subcomponents. For example, the landing gear is a component of an airplane, and the wheel is a component of the landing gear.
 
 \mySubsubsection{5.2.3.}{Properties}
 
+Properties are what distinguish one object from another. Going back to the Orange class, recall that all oranges are defined as having some shade of orange and a particular flavor. These two characteristics are properties. All oranges have the same properties, just with different values. My orange has a “mighty tasty” flavor, but yours may have a “terribly unpleasant” flavor.
 
+You can also think about properties on the class level. As recognized earlier, all oranges are fruit and grow on trees. These are properties of the fruit class, whereas the specific shade of orange is determined by the particular fruit object. Class properties are shared by all objects of a class, while object properties are present in all objects of the class, but with different values.
+
+In the stock selection example, a stock quote has several object properties, including the name of the company, its ticker symbol, the current price, and other statistics.
+
+Properties are the characteristics that describe an object. They answer the question, “What makes this object different?”
 
 \mySubsubsection{5.2.4.}{Behaviors}
 
+Behaviors answer either of two questions: “What does this object do?” or “What can I do to this object?” In the case of an orange, it doesn’t do a whole lot, but we can do things to it. One behavior is that it can be eaten. Like properties, you can think of behaviors on the class level or the object level. All oranges can pretty much be eaten in the same way. However, they might differ in some other behavior, such as being rolled down an incline, where the behavior of a perfectly round orange would differ from that of a more oblate one.
 
+The stock selection example provides some more practical behaviors. If you recall, when thinking procedurally, I determined that my program needed to analyze stock quotes as one of its functions. Thinking in OOP, you might decide that a stock quote object can analyze itself. Analysis becomes a behavior of the stock quote object.
+
+In object-oriented programming, the bulk of functional code is moved out of procedures and into classes. By building classes that have certain behaviors and defining how they interact, OOP offers a much richer mechanism for attaching code to the data on which it operates. Behaviors for classes are implemented in class member functions.
+
+As Chapter 4 explains, C++ is a multi-paradigm language supporting both object-oriented programming and procedural programming. Thus, C++ does not force you to put everything into classes, like languages such as Java do. In C++, you are free to use classes when OOP makes sense, but there is nothing wrong with combining it with procedural programming and keeping certain functionality in stand-alone functions. In fact, a lot of the functionality of the C++ Standard Library is provided as stand-alone functions, e.g., all its algorithms.
 
 \mySubsubsection{5.2.5.}{Bringing It All Together}
+
+With these concepts, you could take another look at the stock selection program and redesign it in an object-oriented manner.
+
+As discussed, “stock quote” would be a fine class to start with. To obtain the list of quotes, the program needs the notion of a group of stock quotes, which is often called a collection. So, a better design might be to have a class that represents a “collection of stock quotes,” which is made up of smaller components that represent a single “stock quote.”
+
+Moving on to properties, the collection class would have at least one property—the actual list of quotes received. It might also have additional properties, such as the exact date and time of the most recent retrieval. As for behaviors, the “collection of stock quotes” would be able to talk to a server to get the quotes and provide a sorted list of quotes. These are the “retrieve quotes” and “sort quotes” behaviors.
+
+The stock quote class would have the properties discussed earlier—name, symbol, current price, and so on. Also, it would have an analyze behavior. You might consider other behaviors, such as buying and selling the stock.
+
+It is often useful to create diagrams showing the relationship between components. Figure 5.1 uses the UML class diagram syntax, see Appendix D, “Introduction to UML,” to indicate that a StockQuoteCollection contains zero or more (0..*) StockQuote objects, and that a StockQuote object belongs to a single (1) StockQuoteCollection.
+
+\myGraphic{0.7}{content/part2/chapter5/images/1.png}{FIGURE 5.1}
+
+Let’s look at a second example. As described earlier, an orange has properties such as its color and flavor, as well as behaviors such as being eaten and rolled. You can come up with many more behaviors such as being tossed, peeled, or squeezed. Another property of an orange could be a collection of its seeds. Figure 5.2 shows a possible UML class diagram for the Orange and Seed classes, including the relationship that an Orange contains zero or more (0..*) Seeds and that a Seed belongs to a single (1) Orange.
+
+\myGraphic{0.7}{content/part2/chapter5/images/2.png}{FIGURE 5.2}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

@@ -1,33 +1,302 @@
 
-
+As a programmer, you will certainly encounter cases where different classes have characteristics in common, or seem somehow related to each other. Object-oriented languages provide a number of mechanisms for dealing with such relationships between classes. The tricky part is to understand what the relationship actually is. There are two main types of class relationships—a has-a relationship and an is-a relationship.
 
 \mySubsubsection{5.4.1.}{The Has-a Relationship}
 
+Classes engaged in a has-a relationship follow the pattern A has a B, or A contains a B. In this type of relationship, you can envision one class as part of another. Components, as defined earlier, generally represent a has-a relationship because they describe classes that are made up of other classes.
 
+A real-world example of this might be the relationship between a zoo and a monkey. You could say that a zoo has a monkey or a zoo contains a monkey. A simulation of a zoo in code would have a zoo class, which has a monkey component.
+
+Often, thinking about user interface scenarios is helpful in understanding class relationships. This is so because even though not all UIs are implemented in OOP (though these days, most are), the visual elements on the screen translate well into classes. One UI analogy for a has-a relationship is a window that contains a button. The button and the window are clearly two separate classes, but they are obviously related in some way. Because the button is inside the window, you say that the window has a button.
+
+Figure 5.3 shows a real-world and a user interface has-a relationship.
+
+\myGraphic{0.7}{content/part2/chapter5/images/3.png}{FIGURE 5.3}
+
+There are two types of has-a relationships:
+
+\begin{itemize}
+\item
+Aggregation: With aggregation, the aggregated objects (components) can continue to live when the aggregator is destroyed. For example, suppose a zoo object contains a bunch of animal objects. When the zoo object is destroyed because it went bankrupt, the animal objects are (ideally) not destroyed; they are moved to another zoo.
+
+\item
+Composition: With composition, if an object composed of other objects is destroyed, those other objects are destroyed as well. For example, if a window object containing buttons is destroyed, those button objects are destroyed as well.
+\end{itemize}
 
 \mySubsubsection{5.4.2.}{The Is-a Relationship (Inheritance)}
 
+The is-a relationship is such a fundamental concept of object-oriented programming that it has many names, including deriving, subclassing, extending, and inheriting. Classes model the fact that the real world contains objects with properties and behaviors. Inheritance models the fact that these objects tend to be organized in hierarchies. These hierarchies indicate is-a relationships.
+
+Fundamentally, inheritance follows the pattern A is a B or A is really quite a bit like B—it can get tricky. To stick with the simple case, revisit the zoo, but assume that there are other animals besides monkeys. That statement alone has already constructed the relationship—a monkey is an animal. Similarly, a giraffe is an animal, a kangaroo is an animal, and a penguin is an animal. So what? Well, the magic of inheritance comes when you realize that monkeys, giraffes, kangaroos, and penguins have certain things in common. These commonalities are characteristics of animals in general.
+
+What this means for the programmer is that you can define an Animal class that encapsulates all of the properties (size, location, diet, and so on) and behaviors (move, eat, sleep) that pertain to every animal. The specific animals, such as monkeys, become derived classes of Animal because a monkey contains all the characteristics of an animal. Remember, a monkey is an animal plus some additional characteristics that make it distinct. Figure 5.4 shows an inheritance diagram for animals. The arrows indicate the direction of the is-a relationship.
+
+\myGraphic{0.9}{content/part2/chapter5/images/4.png}{FIGURE 5.4}
+
+Just as monkeys and giraffes are different types of animals, a user interface often has different types of buttons. A checkbox, for example, is a button.
+Assuming that a button is simply a UI element that can be clicked to perform an action, a Checkbox extends the Button class by adding state—whether the box is checked or unchecked.
+
+When relating classes in an is-a relationship, one goal is to factor common functionality into the base class, the class that other classes extend. If you find that all of your derived classes have code that is similar or exactly the same, consider how you could move some or all of that code into the base class. That way, any changes that need to be made only happen in one place and future derived classes get the shared functionality “for free.”
+
+\begin{myNotic}{NOTE}
+Sometimes, it is clear whether a relationship represents a has-a or an is-a relationship. Other times, it is not so clear. If you can choose, has-a is preferred over is-a, as explained with an example later in this section.
+\end{myNotic}
+
 \mySamllsection{Inheritance Techniques}
+
+The preceding examples cover a few of the techniques used in inheritance without formalizing them. When deriving classes, there are several ways that the programmer can distinguish a class from its parent class, also called base class or superclass. A derived class may use one or more of these techniques, and they are recognized by completing the sentence, “A is a B that is . . . .”
+
+\mySamllsection{Adding Functionality}
+
+A derived class can augment its parent by adding additional functionality. For example, a monkey is an animal that can swing from trees. In addition to having all of the member functions of Animal, the Monkey class also has a swingFromTrees() member function, which is specific to only the Monkey class.
+
+
+\mySamllsection{Replacing Functionality}
+
+A derived class can replace or override a member function of its parent entirely. For example, most animals move by walking, so you might give the Animal class a move() member function that simulates walking. If that’s the case, a kangaroo is an animal that moves by hopping instead of walking. All the other properties and member functions of the Animal base class still apply, but the Kangaroo derived class simply changes the way that the move() member function works. Of course, if you find yourself replacing all of the functionality of your base class, it may be an indication that inheriting was not the correct thing to do after all, unless the base class is an abstract base class. An abstract base class forces each of the derived classes to implement all member functions that do not have an implementation in the abstract base class. You cannot create instances of an abstract base class. Abstract base classes are discussed in Chapter 10, “Discovering Inheritance Techniques.”
+
+\mySamllsection{Adding Properties}
+
+A derived class can also add new properties to the ones that are inherited from the base class. For example, a penguin has all the properties of an animal but also has a beak size property.
+
+\mySamllsection{Replacing Properties}
+
+C++ provides a way of overriding properties similar to the way you can override member functions.
+However, doing so is rarely appropriate, because it hides the property from the base class; that is, the base class can have a specific value for a property with a certain name, while the derived class can have another value for another property but with the same name. Hiding is explained in more detail in Chapter 10. It’s important not to get the notion of replacing a property confused with the notion of derived classes having different values for properties. For example, all animals have a diet property that indicates what they eat. Monkeys eat bananas and penguins eat fish, but neither of these is replacing the diet property—they simply differ in the value assigned to the property.
 
 \mySamllsection{Polymorphism}
 
+Polymorphism is the notion that objects that adhere to a standard set of properties and member functions can be used interchangeably. A class definition is like a contract between objects and the code that interacts with them. By definition, any Monkey object must support the properties and member functions of the Monkey class.
+
+This notion extends to base classes as well. Because all monkeys are animals, all Monkey objects support the properties and member functions of the Animal class as well.
+
+Polymorphism is a beautiful part of object-oriented programming because it truly takes advantage of what inheritance offers. In a zoo simulation, you could programmatically loop through all of the animals in the zoo and have each animal move once. Because all animals are members of the Animal class, they all know how to move. Some of the animals have overridden the move member function, but that’s the best part—your code simply tells each animal to move without knowing or caring what type of animal it is. Each one moves whichever way it knows how.
 
 \mySubsubsection{5.4.3.}{The Fine Line Between Has-a and Is-a}
 
+In the real world, it’s pretty easy to classify has-a and is-a relationships between objects. Nobody would claim that an orange has a fruit—an orange is a fruit. In code, things sometimes aren’t so clear.
 
+Consider a hypothetical class that represents an associative array, a data structure that efficiently maps a key to a value. For example, an insurance company could use an AssociativeArray class to map member IDs to names so that given an ID, it’s easy to find the corresponding member name. The member ID is the key, and the member name is the value.
+
+In a standard associative array implementation, a key is associated with a single value. If the ID 14534 maps to the member name “Kleper, Scott,” it cannot also map to the member name “Kleper, Marni.” In most implementations, if you tried to add a second value for a key that already has a value, the first value would go away. In other words, if the ID 14534 mapped to “Kleper, Scott” and you then assigned the ID 14534 to “Kleper, Marni,” then Scott would effectively be uninsured. This is demonstrated in the following sequence, which shows two calls to a hypothetical insert() member function and the resulting contents of the associative array:
+
+\begin{cpp}
+myArray.insert(14534, "Kleper, Scott");
+\end{cpp}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{KEYS} & \textbf{VALUES}              \\ \hline
+\endfirsthead
+%
+\endhead
+%
+14534         & “Kleper, Scott” {[}string{]} \\ \hline
+\end{longtable}
+
+\begin{cpp}
+myArray.insert(14534, "Kleper, Marni");
+\end{cpp}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{KEYS} & \textbf{VALUES}              \\ \hline
+\endfirsthead
+%
+\endhead
+%
+14534         & “Kleper, Marni” {[}string{]} \\ \hline
+\end{longtable}
+
+It’s not difficult to imagine uses for a data structure that’s like an associative array but allows multiple values for a given key. In the insurance example, a family might have several names that correspond to the same ID. Because such a data structure is similar to an associative array, it would be nice to leverage that functionality somehow. An associative array can have only a single value as a key, but that value can be anything. Instead of a string, the value could be a collection (such as a vector) containing the multiple values for the key. Every time you add a new member for an existing ID, you add the name to the collection. This would work as shown in the following sequence:
+
+\begin{cpp}
+Collection collection; // Make a new collection.
+collection.insert("Kleper, Scott"); // Add a new element to the collection.
+myArray.insert(14534, collection); // Insert the collection into the array.
+\end{cpp}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{KEYS} & \textbf{VALUES}                      \\ \hline
+\endfirsthead
+%
+\endhead
+%
+14534         & \{“Kleper, Scott”\} {[}Collection{]} \\ \hline
+\end{longtable}
+
+\begin{cpp}
+Collection collection { myArray.get(14534) }; // Retrieve the existing collection.
+collection.insert("Kleper, Marni"); // Add a new element to the collection.
+myArray.insert(14534, collection); // Replace the collection with the updated one.
+\end{cpp}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{KEYS} & \textbf{VALUES}                                       \\ \hline
+\endfirsthead
+%
+\endhead
+%
+14534         & \{“Kleper, Scott”, “Kleper, Marni”\} {[}Collection{]} \\ \hline
+\end{longtable}
+
+Messing around with a collection instead of a string is tedious and requires a lot of repetitive code. It would be preferable to wrap up this multiple-value functionality in a separate class, perhaps called a MultiAssociativeArray. The MultiAssociativeArray class would work just like AssociativeArray except that behind the scenes, it would store each value as a collection of strings instead of a single string. Clearly, MultiAssociativeArray is somehow related to Associative Array because it is still using an associative array to store the data. What might be unclear is whether that constitutes an is-a or a has-a relationship.
+
+To start with the is-a relationship, imagine that MultiAssociativeArray is a derived class of AssociativeArray. This will turn out to be a bad idea, but let’s run with it as an example of a bad design. MultiAssociativeArray would have to override the member function that adds an entry into the array so that it would either create a collection and add the new element or retrieve the existing collection and add the new element to it. It would also have to override the member function that retrieves a value. There is a complication, though: the overridden get() member function should return a single value, not a collection. Which value should a MultiAssociativeArray return? One option is to return the first value associated with a given key. An additional getAll() member function could be added to retrieve all values associated with a key. This might seem like a reasonable design. Even though it overrides all the member functions of the base class, it still makes use of the base class’s member functions from within the derived class. Figure 5.5 shows this approach as a UML class diagram.
+
+\myGraphic{0.7}{content/part2/chapter5/images/5.png}{FIGURE 5.5}
+
+Now consider it as a has-a relationship. MultiAssociativeArray is its own class, but it contains an AssociativeArray object. It probably has an interface similar to AssociativeArray, but it need not be the same. Behind the scenes, when a user adds something to the MultiAssociativeArray, it is really wrapped in a collection and put in an AssociativeArray object. This seems perfectly reasonable and is shown in Figure 5.6.
+
+\myGraphic{0.7}{content/part2/chapter5/images/6.png}{FIGURE 5.6}
+
+So, which solution is right? There seems to be no clear answer, but decades of experience have taught us that has-a is usually the better of the two alternatives. The main reason is to allow modifications to the exposed interface without worrying about maintaining associative array functionality. For example, in Figure 5.6, the get() member function is changed to getAll(), making it clear that this gets all the values for a particular key in a MultiAssociativeArray. Additionally, with a has-a relationship, you don’t have to worry about any associative array functionality bleeding through. For example, with an is-a relationship, if the associative array class supported a member function that would get the total number of values, it would report the number of collections unless MultiAssociativeArray knew to override it.
+
+That said, one could try to make an argument that a MultiAssociativeArray actually is an AssociativeArray with some new functionality, and it should have been an is-a relationship. The point is that there is sometimes a fine line between the two relationships, and you will need to consider how the class is going to be used and whether what you are building just leverages some functionality from another class or really is that class with modified or new functionality.
+
+The following table represents the arguments for and against taking either approach for the MultiAssociativeArray class:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{} &
+\textbf{IS-A} &
+\textbf{HAS-A} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+Reasons For &
+\begin{tabular}[c]{@{}l@{}}Fundamentally, it‘s the same\\ abstraction with different\\ characteristics.\\ It provides (almost) the\\ same member functions as\\ AssociativeArray.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}MultiAssociativeArray can have\\ whatever member functions are useful\\ without needing to worry about what\\ member functions AssociativeArray\\ has.\\ The implementation could change\\ to something other than an\\ AssociativeArray without changing\\ the exposed member functions.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}Reasons\\ Against\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}An associative array by definition\\ has one value per key. To say\\ MultiAssociativeArray is an\\ associative array is blasphemy!\\ MultiAssociativeArray\\ overrides both member functions of\\ AssociativeArray, a strong sign\\ that something about the design is\\ wrong.\\ Unknown or inappropriate\\ properties or member functions\\ of AssociativeArray\\ could “bleed through” to\\ MultiAssociativeArray.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}In a sense, MultiAssociativeArray\\ reinvents the wheel by coming up with\\ new member functions.\\ Some additional properties and member\\ functions of AssociativeArray might\\ have been useful.\end{tabular} \\ \hline
+\end{longtable}
+
+The reasons against using an is-a relationship in this case are very strong. Additionally, the Liskov substitution principle (LSP) can help you decide between an is-a and a has-a relationship. This principle states that you should be able to use a derived class instead of a base class without altering the behavior. Applied to this example, it states that this must be a has-a relationship, because you cannot just start using a MultiAssociativeArray where before you were using an AssociativeArray. If you would do so, the behavior would change. For example, the insert() member function of AssociativeArray removes an earlier value with the same key that is already in the array, while MultiAssociativeArray does not remove such values.
+The two solutions explained in detail in this section are actually not the only two possible solutions.
+
+Other options could be for AssociativeArray to contain a MultiAssociativeArray, or both AssociativeArray and MultiAssociativeArray could inherit from a common base class, and so on. There are often a multitude of solutions that you can come up with for a certain design.
+
+\begin{myWarning}{WARNING}
+If you do have a choice between the two types of relationships, I recommend, after years of experience, opting for a has-a relationship over an is-a relationship.
+\end{myWarning}
+
+Note that the AssociativeArray and MultiAssociativeArray are used here to demonstrate the difference between the is-a and has-a relationships. In your own code, it is recommended to use one of the standard associative array classes instead of writing your own. The C++ Standard Library provides std::map, which you should use instead of AssociativeArray, and std::multimap, which you should use instead of MultiAssociativeArray. Both of these standard classes are discussed in Chapter 18, “Standard Library Containers.”
 
 \mySubsubsection{5.4.4.}{The Not-a Relationship}
 
+As you consider what type of relationship classes have, you should consider whether they actually have a relationship at all. Don’t let your zeal for object-oriented design turn into a lot of needless class/derived-class relationships.
 
+One pitfall occurs when things are obviously related in the real world but have no actual relationship in code. Object-oriented hierarchies need to model functional relationships, not artificial ones. Figure 5.7 shows relationships that are meaningful as ontologies or hierarchies but are unlikely to represent meaningful relationships in code.
+
+\myGraphic{0.7}{content/part2/chapter5/images/7.png}{FIGURE 5.7}
+
+The best way to avoid needless inheritance is to sketch out your design first. For every class and derived class, write down what properties and member functions you’re planning on putting into the class. You should rethink your design if you find that a class has no particular properties or member functions of its own, or if all of those properties and member functions are completely overridden by its derived classes, except when working with abstract base classes as mentioned earlier.
 
 \mySubsubsection{5.4.5.}{Hierarchies}
 
+Just as a class A can be a base class of B, B can also be a base class of C. Object-oriented hierarchies can model multilevel relationships like this. A zoo simulation with more animals might be designed with every animal as a derived class of a common Animal class, as shown in Figure 5.8.
 
+\myGraphic{0.7}{content/part2/chapter5/images/8.png}{FIGURE 5.8}
+
+As you code each of these derived classes, you might find that a lot of them are similar. When this occurs, you should consider putting in a common parent. Realizing that Lion and Panther both move the same way and have the same diet might indicate a need for a possible BigCat class. You could further subdivide the Animal class to include WaterAnimal and Marsupial. Figure 5.9 shows a more hierarchical design that leverages this commonality.
+
+\myGraphic{0.7}{content/part2/chapter5/images/9.png}{FIGURE 5.9}
+
+A biologist looking at this hierarchy may be disappointed—a penguin isn’t really in the same family as a dolphin. However, it underlines a good point—in code, you need to balance real-world relationships with shared-functionality relationships. Even though two things might be closely related in the real world, they might have a not-a relationship in code because they really don’t share functionality. You could just as easily divide animals into mammals and fish, but that wouldn’t factor any commonality to the base class.
+
+Another important point is that there could be other ways of organizing the hierarchy. The preceding design is organized mostly by how the animals move. If it were instead organized by the animals’ diet or height, the hierarchy could be very different. In the end, what matters is how the classes will be used. The needs will dictate the design of the class hierarchy.
+
+A good object-oriented hierarchy accomplishes the following:
+
+\begin{itemize}
+\item
+Organizes classes into meaningful functional relationships
+
+\item
+Supports code reuse by factoring common functionality to base classes
+
+\item
+Avoids having derived classes that override much of the parent’s functionality, unless the parent is an abstract base class
+\end{itemize}
 
 \mySubsubsection{5.4.6.}{Multiple Inheritance}
 
+Every example so far has had a single inheritance chain. In other words, a given class has, at most, one immediate parent class. This does not have to be the case. Through multiple inheritance, a class can have more than one base class.
 
+Figure 5.10 shows a multiple inheritance design. There is still a base class called Animal, which is further divided by size. A separate hierarchy categorizes by diet, and a third takes care of movement. Each type of animal is then a derived class of all three of these classes, as shown by different lines.
+
+\myGraphic{0.8}{content/part2/chapter5/images/10.png}{FIGURE 5.10}
+
+In a user interface context, imagine an image that the user can click. This class seems to be both a button and an image so the implementation might involve inheriting from both the Image class and the Button class, as shown in Figure 5.11.
+
+\myGraphic{0.8}{content/part2/chapter5/images/11.png}{FIGURE 5.11}
+
+Multiple inheritance can be useful in certain cases, but it also has a number of disadvantages that you should always keep in mind. Many programmers dislike multiple inheritance. C++ has explicit support for such relationships, though the Java language does away with them altogether, except for inheriting from multiple interfaces (abstract base classes). There are several reasons to which multiple inheritance critics point.
+
+First, visualizing multiple inheritance is complicated. As you can see in Figure 5.10, even a simple class diagram can become complicated when there are multiple hierarchies and crossing lines.
+
+Class hierarchies are supposed to make it easier for the programmer to understand the relationships between code. With multiple inheritance, a class could have several parents that are in no way related to each other. With so many classes contributing code to your object, can you really keep track of what’s going on?
+
+Second, multiple inheritance can destroy otherwise clean hierarchies. In the animal example, switching to a multiple inheritance approach means that the Animal base class is less meaningful because the code that describes animals is now separated into three separate hierarchies. While the design illustrated in Figure 5.10 shows three clean hierarchies, it’s not difficult to imagine how they could get messy. For example, what if you realize that all Jumpers not only move in the same way, but they also eat the same things? Because there are separate hierarchies, there is no way to join the concepts of movement and diet without adding yet another derived class.
+
+Third, implementation of multiple inheritance is complicated. What if two of your base classes implement the same member function in different ways? Can you have two base classes that are themselves a derived class of a common base class? These possibilities complicate the implementation because structuring such intricate relationships in code is difficult both for the author and a reader.
+
+The reason that other languages can leave out multiple inheritance is that it is usually avoidable. By rethinking your hierarchies, you can often avoid introducing multiple inheritance when you have control over the design of a project.
 
 \mySubsubsection{5.4.7.}{Mixin Classes}
+
+Mixin classes represent another type of relationship between classes. In C++, one way to implement a mixin class is syntactically just like multiple inheritance, but the semantics are refreshingly different. A mixin class answers the question, “What else is this class able to do?” and the answer often ends with “-able.” Mixin classes are a way that you can add functionality to a class without committing to a full is-a relationship. You can think of it as a shares-with relationship.
+
+Going back to the zoo example, you might want to introduce the notion that some animals are “pettable.” That is, there are some animals that visitors to the zoo can pet, presumably without being bitten or mauled. You might want all pettable animals to support the behavior “be pet.” Because pettable animals don’t have anything else in common and you don’t want to break the existing hierarchy you’ve designed, Pettable makes a great mixin class.
+
+Mixin classes are used frequently in user interfaces. Instead of saying that a PictureButton class is both an Image and a Button, you might say that it’s an Image that is Clickable. A folder icon on your desktop could be an Image that is Draggable and Clickable. Software developers tend to make up a lot of fun adjectives.
+
+The difference between a mixin class and a base class has more to do with how you think about the class than any code difference. In general, mixin classes are easier to digest than multiple inheritance because they are very limited in scope. The Pettable mixin class just adds one behavior to any existing class. The Clickable mixin class might just add “mouse down” and “mouse up” behaviors. Additionally, mixin classes rarely have a large hierarchy so there’s no cross-contamination of functionality. Chapter 32, “Incorporating Design Techniques and Frameworks,” goes into more detail on mixin classes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

@@ -1,8 +1,72 @@
 
+Programmers who transition from a procedural thought process to the object-oriented paradigm often experience an epiphany about the combination of properties and behaviors into classes. Some programmers find themselves revisiting the design of programs they’re working on and rewriting certain pieces as classes. Others might be tempted to throw all the code away and restart the project as a fully object-oriented application.
+
+There are two major approaches to developing software with classes. To some people, classes simply represent a nice encapsulation of data and functionality. These programmers sprinkle classes throughout their programs to make the code more readable and easier to maintain. Programmers taking this approach slice out isolated pieces of code and replace them with classes like a surgeon implanting a pacemaker. There is nothing inherently wrong with this approach. These people see classes as a tool that is beneficial in many situations. Certain parts of a program just “feel like a class,” like the stock quote. These are the parts that can be isolated and described in real-world terms.
+
+Other programmers adopt the OOP paradigm fully and turn everything into a class. In their minds, some classes correspond to real-world things, such as an orange or a stock quote, while others encapsulate more abstract concepts, such as a sorter or an undo class.
+
+The ideal approach is probably somewhere in between these extremes. Your first object-oriented program might really have been a traditional procedural program with a few classes sprinkled in. Or perhaps you went whole hog and made everything a class, from a class representing an int to a class representing the main application. Over time, you will find a happy medium.
 
 \mySubsubsection{5.3.1.}{Over-Classification}
 
+There is often a fine line between designing a creative object-oriented system and annoying everybody else on your team by turning every little thing into a class. As Freud used to say, sometimes a variable is just a variable. Okay, that’s a paraphrase of what he said.
 
+Perhaps you’re designing the next bestselling tic-tac-toe game. You’re going all-out OOP on this one, so you sit down with a cup of coffee and a notepad to sketch out your classes and objects. In games like this, there’s often a class that oversees game play and is able to detect the winner. To represent the game board, you might envision a Grid class that will keep track of the markers and their locations.
+
+In fact, a component of the grid could be the Piece class that represents an X or an O.
+Wait, back up! This design proposes to have a class that represents an X or an O. That is perhaps class overkill. After all, can’t a char represent an X or an O just as well? Better yet, why can’t the Grid just use a two-dimensional array of an enumeration type? Does a Piece class just complicate the code? Take a look at the following table representing the proposed piece class:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|l|}
+\hline
+\textbf{CLASS} & \textbf{ASSOCIATED COMPONENTS} & \textbf{PROPERTIES} & \textbf{BEHAVIORS} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+Piece          & None                           & X or O              & None               \\ \hline
+\end{longtable}
+
+The table is a bit sparse, strongly hinting that what we have here may be too granular to be a fullfledged class.
+
+On the other hand, a forward-thinking programmer might argue that while Piece is a pretty meager class as it currently stands, making it into a class allows future expansion without any real penalty.
+
+Perhaps down the road, additional properties could be added such as the color of the Piece or whether the Piece was the most recently moved.
+
+Another solution might be to think about the state of a grid square instead of using pieces. The state of a square can be Empty, X, or O. To make the design future-proof, you could design an abstract base class State with concrete derived classes StateEmpty, StateX, and StateO. With this design, extra properties can be added in the future to the base class or to the individual classes.
+
+Obviously, there is no right answer. The important point is that these are issues that you should consider when designing your application. Remember that classes exist to help programmers manage their code. If classes are being used for no reason other than to make the code “more object-oriented,” something is wrong.
 
 \mySubsubsection{5.3.2.}{Overly General Classes}
+
+Perhaps a worse annoyance than classes that shouldn’t be classes is classes that are too general. All OOP students start with examples like “orange”—things that are classes, no question about it. In real-life coding, classes can get pretty abstract. Many OOP programs have an “application class,” despite that an application isn’t really something you can envision in material form. Yet it may be useful to represent the application as a class because the application itself has certain properties and behaviors.
+
+An overly general class is a class that doesn’t represent a particular thing at all. The programmer may be attempting to make a class that is flexible or reusable, but ends up with one that is confusing. For example, imagine a program that organizes and displays media. It can catalog your photos, organize your digital music and movie collection, and serve as a personal journal. The overly general approach is to think of all these things as “media” objects and build a single class that can accommodate all of the supported formats. This single class might have a property called “data” that contains the raw bits of the image, song, movie, or journal entry, depending on the type of media. The class might have a behavior called “perform” that appropriately draws the image, plays the song, plays the movie, or brings up the journal entry for editing.
+
+The clues that this single class is too general are in the names of the properties and behaviors. The word data has little meaning by itself—you have to use a general term here because this class has been overextended to three very different uses. Similarly, perform will do very different things for the different types of media. Clearly, this class is trying to do too much.
+
+Nevertheless, when designing a program to organize media, there for sure will be a Media class in your application. This Media class will contain the common properties that all types of media have, such as a name, a preview, a link to the corresponding media file, and so on. What this Media class should not contain though is the details about handling specific media. It should not contain code to display an image, or to play a song or a movie. Instead, there should be other classes in your design such as a Picture class and a Movie class. Those specific classes then contain the actual mediaspecific functionality such as displaying a picture or playing a movie. Obviously, those media-specific classes are somehow related to the Media class, and that’s exactly the topic of the next section on how to express relationships between classes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
