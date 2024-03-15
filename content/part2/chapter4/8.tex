@@ -1,0 +1,50 @@
+By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at www.wiley.com/go/ proc++6e. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+
+\begin{itemize}
+\item
+Exercise 4-1: What are the two fundamental design rules to follow when making your own designs in C++?
+
+\item
+Exercise 4-2: Suppose you have the following Card class. The class supports only the normal
+cards in a card deck and not joker cards.
+
+\begin{cpp}
+class Card
+{
+    public:
+        enum class Number { Ace, Two, Three, Four, Five, Six, Seven, Eight,
+            Nine, Ten, Jack, Queen, King };
+        enum class Figure { Diamond, Heart, Spade, Club };
+        Card() {}
+        Card(Number number, Figure figure)
+        : m_number { number }, m_figure { figure } {}
+    private:
+        Number m_number { Number::Ace };
+        Figure m_figure { Figure::Diamond };
+};
+\end{cpp}
+
+What do you think of the following use of the Card class to represent a deck of cards? Are there any improvements you can think of?
+
+\begin{cpp}
+int main()
+{
+    Card deck[52];
+    // ...
+}
+\end{cpp}
+
+\item
+Exercise 4-3: Suppose that you, together with a friend, came up with a nice idea for making a 3-D game for mobile devices. You have an Android device, while your friend has an Apple iPhone, and of course you want the game to be playable on both devices. Explain on a high level how you will handle those two different mobile platforms and how you will prepare for starting development of the game.
+
+\item
+Exercise 4-4: Given the following big-O complexities: O(n), O($n^2$), O(log n), and O(1), can you order them according to increasing complexity? What are their names? Can you think of any complexities that are even worse than these?
+\end{itemize}
+
+
+
+
+
+
+
+

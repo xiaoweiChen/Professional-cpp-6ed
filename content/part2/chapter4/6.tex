@@ -1,19 +1,237 @@
 
+This section introduces a systematic approach to designing a C++ program in the context of a simple chess game application. To provide a complete example, some of the steps refer to concepts covered in later chapters. You should read this example now to obtain an overview of the design process, but you might also consider rereading it after you have finished later chapters.
 
 \mySubsubsection{4.6.1.}{Requirements}
 
+Before embarking on the design, it is important to possess clear requirements for the program’s functionality and efficiency. Ideally, these requirements would be documented in the form of a requirements specification. The requirements for the chess program would contain the following types of specifications, although in more detail and greater number:
 
+\begin{itemize}
+\item
+The program shall support the standard rules of chess.
+
+\item
+The program shall support two human players. The program shall not provide an artificially intelligent computer player.
+
+\item
+The program shall provide a text-based interface:
+\begin{itemize}
+\item
+The program shall render the game board and pieces in plain text.
+
+\item
+Players shall express their moves by entering numbers representing locations on the chessboard.
+\end{itemize}
+\end{itemize}
+
+The requirements ensure that you design your program so that it performs as its users expect.
 
 \mySubsubsection{4.6.2.}{Design Steps}
 
+You should take a systematic approach to designing your program, working from the general to the specific. The following steps do not always apply to all programs, but they provide a general guideline. Your design should include diagrams and tables as appropriate. UML is an industry standard for making diagrams. You can refer to Appendix D for a brief introduction, but in short, UML defines a multitude of standard diagrams you can use for documenting software designs, for example, class diagrams, sequence diagrams, and so on. I recommend using UML or at least UML-like diagrams where applicable. However, I don’t advocate strictly adhering to the UML syntax because having a clear, understandable diagram is more important than having a syntactically correct one.
+
 \mySamllsection{Divide the Program into Subsystems}
+
+Your first step is to divide your program into its general functional subsystems and to specify the interfaces and interactions between the subsystems. At this point, you should not worry about specifics of data structures and algorithms, or even classes. You are only trying to obtain a general feel for the various parts of the program and their interactions. You can list the subsystems in a table that expresses the high-level behaviors or functionality of the subsystem, the interfaces exported from the subsystem to other subsystems, and the interfaces consumed, or used, by this subsystem from other subsystems.
+
+The recommended design for this chess game is to have a clear separation between storing the data and displaying the data by using the Model-View-Controller (MVC) paradigm. This paradigm models the notion that many applications commonly deal with a set of data, one or more views on that data, and manipulation of the data. In MVC, a set of data is called the model, a view is a particular visualization of the model, and the controller is the piece of code that changes the model in response to some event. The three components of MVC interact in a feedback loop: actions are handled by the controller, which adjusts the model, resulting in a change to the view or views. The controller can also directly modify the view, for example UI elements. Figure 4.4 visualizes this interaction. Using this paradigm, the different components are clearly separated, allowing you to modify one component without having to modify others. For example, without having to touch the underlying data model or logic, you can easily switch between having a text-based interface and a graphical user interface, or between an interface for running on a desktop PC and an interface for running on a phone.
+
+\myGraphic{0.7}{content/part2/chapter4/images/4.png}{FIGURE 4.4}
+
+The following table shows how the possible subsystems for the chess game could look like:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|l|l|}
+\hline
+\textbf{SUBSYSTEM NAME} &
+\textbf{INSTANCES} &
+\textbf{FUNCTIONALITY} &
+\textbf{\begin{tabular}[c]{@{}l@{}}INTERFACES\\ EXPORTED\end{tabular}} &
+\textbf{\begin{tabular}[c]{@{}l@{}}INTERFACES\\ CONSUMED\end{tabular}} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+GamePlay &
+1 &
+\begin{tabular}[c]{@{}l@{}}Starts game\\ Controls game flow\\ Controls drawing\\ Declares winner\\ Ends game\end{tabular} &
+Game Over &
+\begin{tabular}[c]{@{}l@{}}Take Turn (on\\ Player)\\ Draw (on\\ ChessBoardView)\end{tabular} \\ \hline
+ChessBoard &
+1 &
+\begin{tabular}[c]{@{}l@{}}Stores chess pieces\\ Checks for ties and\\ checkmates\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Get Piece At\\ Set Piece At\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Game Over (on\\ GamePlay)\end{tabular} \\ \hline
+ChessBoardView &
+1 &
+\begin{tabular}[c]{@{}l@{}}Draws the associated\\ ChessBoard\end{tabular} &
+Draw &
+\begin{tabular}[c]{@{}l@{}}Draw (on\\ ChessPieceView)\end{tabular} \\ \hline
+ChessPiece &
+32 &
+\begin{tabular}[c]{@{}l@{}}Moves itself\\ Checks for legal\\ moves\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Move\\ Check Move\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Get Piece At (on\\ ChessBoard)\\ Set Piece At (on\\ ChessBoard)\end{tabular} \\ \hline
+ChessPieceView &
+32 &
+\begin{tabular}[c]{@{}l@{}}Draws the associated\\ ChessPiece\end{tabular} &
+Draw &
+None \\ \hline
+Player &
+2 &
+\begin{tabular}[c]{@{}l@{}}Interacts with the user\\ by prompting the\\ user for a move, and\\ obtaining the user’s\\ move\\ Moves pieces\end{tabular} &
+Take Turn &
+\begin{tabular}[c]{@{}l@{}}Get Piece At (on\\ ChessBoard)\\ Move (on\\ ChessPiece)\\ Check Move (on\\ ChessPiece)\end{tabular} \\ \hline
+ErrorLogger &
+1 &
+\begin{tabular}[c]{@{}l@{}}Writes error messages\\ to a log file\end{tabular} &
+Log Error &
+None \\ \hline
+\end{longtable}
+
+As this table shows, the functional subsystems of this chess game include a GamePlay subsystem, a ChessBoard and ChessBoardView, 32 ChessPieces and ChessPieceViews, two Players, and one ErrorLogger. However, that is not the only reasonable approach. In software design, as in programming itself, there are often many different ways to accomplish the same goal. Not all solutions are equal; some are certainly better than others. However, there are often several equally valid solutions.
+
+A good division into subsystems separates the program into its basic functional parts. For example, a Player is a subsystem distinct from the ChessBoard, ChessPieces, or GamePlay. It wouldn’t make sense to lump the players into the GamePlay subsystem, because they are logically separate subsystems. Other choices might not be as obvious.
+
+In this MVC design, the ChessBoard and ChessPiece subsystems are part of the Model. The ChessBoardView and ChessPieceView are part of the View, and the Player is part of the Controller.
+
+Because it is often difficult to visualize subsystem relationships from tables, it is usually helpful to show the subsystems of a program in a diagram where lines represent calls from one subsystem to another. Figure 4.5 shows the chess game subsystems visualized as a diagram loosely based on a UML communication diagram.
+
+\myGraphic{0.9}{content/part2/chapter4/images/5.png}{FIGURE 4.5}
 
 \mySamllsection{Choose Threading Models}
 
+It’s too early in the design phase to think about how to multithread specific loops in algorithms you will write. However, in this step, you choose the number of high-level threads in your program and specify their interactions. Examples of high-level threads are a UI thread, an audio-playing thread, a network communication thread, and so on.
+In multithreaded designs, you should try to avoid shared data as much as possible because it will make your designs simpler and safer. If you cannot avoid shared data, you should specify locking requirements.
+
+If you are unfamiliar with multithreaded programs or your platform does not support multithreading, then you should make your programs single-threaded. However, if your program has several distinct tasks, each of which could work in parallel, it might be a good candidate for multiple threads. For example, graphical user interface applications often have one thread performing the main application work and another thread waiting for the user to press buttons or select menu items. Multithreaded programming is covered in Chapter 27, “Multithreaded Programming with C++.”
+
+The chess program needs only one thread to control the game flow.
+
 \mySamllsection{Specify Class Hierarchies for Each Subsystem}
+
+In this step, you determine the class hierarchies that you intend to write in your program. The chess program could use a class hierarchy to represent the chess pieces. This hierarchy could work as shown in Figure 4.6. The generic ChessPiece class serves as the abstract base class. A similar hierarchy is required for the ChessPieceView classes.
+
+\myGraphic{0.8}{content/part2/chapter4/images/6.png}{FIGURE 4.6}
+
+Another class hierarchy can be used for the ChessBoardView class to make it possible to have a text-based interface or a graphical user interface for the game. Figure 4.7 shows an example hierarchy that allows the chessboard to be displayed as text on a console, or with a 2D or 3D graphical user interface. A similar hierarchy is required for the individual classes of the ChessPieceView hierarchy.
+
+\myGraphic{0.8}{content/part2/chapter4/images/7.png}{FIGURE 4.7}
+
+Chapter 5 explains the details of designing classes and class hierarchies.
 
 \mySamllsection{Specify Classes, Data Structures, Algorithms, and Patterns for Each Subsystem}
 
+In this step, you consider a greater level of detail, and specify the particulars of each subsystem, including the specific classes that you’ll write for each subsystem. It may well turn out that you model each subsystem itself as a class. This information can again be summarized in a table.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|l|l|}
+\hline
+\textbf{SUBSYSTEM NAME} &
+\textbf{CLASSES} &
+\textbf{\begin{tabular}[c]{@{}l@{}}DATA\\ STRUCTURES\end{tabular}} &
+\textbf{ALGORITHMS} &
+\textbf{PATTERNS} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+GamePlay &
+GamePlay class &
+\begin{tabular}[c]{@{}l@{}}GamePlay\\ object\\ includes one\\ ChessBoard\\ object and\\ two Player\\ objects.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Gives each\\ player a turn\\ to play.\end{tabular} &
+None \\ \hline
+ChessBoard &
+ChessBoard class &
+\begin{tabular}[c]{@{}l@{}}ChessBoard\\ object stores\\ a two\\ dimensional\\ 8x8 grid\\ containing\\ up to 32\\ ChessPieces.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Checks for\\ a win or tie\\ after each\\ move.\end{tabular} &
+None \\ \hline
+ChessBoardView &
+\begin{tabular}[c]{@{}l@{}}ChessBoardView abstract\\ base class\\ Concrete derived classes\\ ChessBoardViewConsole,\\ ChessBoardViewGUI2D,\\ and so on\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Stores\\ information on\\ how to draw a\\ chessboard.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Draws a\\ chessboard.\end{tabular} &
+Observer \\ \hline
+ChessPiece &
+\begin{tabular}[c]{@{}l@{}}ChessPiece abstract base\\ class\\ Rook, Bishop, Knight,\\ King, Pawn, and Queen\\ derived classes\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Each piece\\ stores its\\ location on the\\ chessboard.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Checks\\ for a legal\\ move by\\ querying the\\ chessboard\\ for pieces\\ at various\\ locations.\end{tabular} &
+None \\ \hline
+ChessPieceView &
+\begin{tabular}[c]{@{}l@{}}ChessPieceView abstract\\ base class\\ Derived classes RookView,\\ BishopView, and so on,\\ and concrete derived\\ classes RookViewConsole,\\ RookViewGUI2D, and so\\ on\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Stores\\ information on\\ how to draw a\\ chess piece.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Draws a\\ chess piece.\end{tabular} &
+Observer \\ \hline
+Player &
+\begin{tabular}[c]{@{}l@{}}Player abstract base class\\ Concrete derived\\ classes PlayerConsole,\\ PlayerGUI2D, and so on\end{tabular} &
+None. &
+\begin{tabular}[c]{@{}l@{}}Prompts\\ the user\\ for a move,\\ checks if\\ the move is\\ legal, and\\ moves the\\ piece.\end{tabular} &
+Mediator \\ \hline
+ErrorLogger &
+ErrorLogger class &
+\begin{tabular}[c]{@{}l@{}}A queue of\\ messages to\\ log.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Buffers\\ messages\\ and writes\\ them to a\\ log file.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Strategy\\ using\\ dependency\\ injection\end{tabular} \\ \hline
+\end{longtable}
+
+Such a table already gives some information about the different classes in a software design, but it doesn’t clearly describe the interactions between them. A UML sequence diagram can be used to model such interactions. Figure 4.8 shows such a diagram visualizing the interactions of some of the classes from the previous table.
+
+\myGraphic{0.9}{content/part2/chapter4/images/8.png}{FIGURE 4.8}
+
+The diagram in Figure 4.8 shows only a single iteration, a single TakeTurn call from GamePlay to Player; hence, it’s only a partial sequence diagram. After a TakeTurn call is finished, the GamePlay object should ask the ChessBoardView to draw itself, which in turn should ask different ChessPieceViews to draw themselves. Furthermore, you should extend the sequence diagram to visualize how a chess piece takes an opponent’s piece and to include support for a castling move, a move involving a player’s king and either of the player’s rooks. Castling is the only move for which a player moves two pieces at the same time.
+
+This section of the design document would normally present the actual interfaces for each class, but this example will forgo that level of detail.
+
+Designing classes and choosing data structures, algorithms, and patterns can be tricky. You should always keep in mind the rules of abstraction and reuse discussed earlier in this chapter. For abstraction, the key is to consider the interface and the implementation separately. First, specify the interface from the perspective of the user. Decide what you want the component to do. Then decide how the component will do it by choosing data structures and algorithms. For reuse, familiarize yourself with standard data structures, algorithms, and patterns, and make sure you are aware of the Standard Library in C++, as well as any proprietary code available at your workplace.
+
 \mySamllsection{Specify Error Handling for Each Subsystem}
+
+In this design step, you delineate the error handling in each subsystem. The error handling should include both system errors, such as network access failures, and user errors, such as invalid entries. You should specify whether each subsystem uses exceptions. You can again summarize this information in a table.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{SUBSYSTEM} &
+\textbf{HANDLING SYSTEM ERRORS} &
+\textbf{HANDLING USER ERRORS} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+GamePlay &
+\begin{tabular}[c]{@{}l@{}}Logs an error with the\\ ErrorLogger, shows a message\\ to the user, and gracefully shuts\\ down the program when an\\ unexpected error occurs.\end{tabular} &
+Not applicable (no direct user interface). \\ \hline
+\begin{tabular}[c]{@{}l@{}}ChessBoard\\ ChessPiece\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Logs an error with the\\ ErrorLogger and throws an\\ exception when an unexpected\\ error occurs.\end{tabular} &
+Not applicable (no direct user interface). \\ \hline
+\begin{tabular}[c]{@{}l@{}}ChessBoardView\\ ChessPieceView\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Logs an error with the\\ ErrorLogger and throws an\\ exception if something goes\\ wrong during drawing.\end{tabular} &
+Not applicable (no direct user interface). \\ \hline
+Player &
+\begin{tabular}[c]{@{}l@{}}Logs an error with the\\ ErrorLogger and throws an\\ exception when an unexpected\\ error occurs.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Sanity checks a user’s move entry to\\ ensure that it is not off the board; it\\ then prompts the user for another entry.\\ This subsystem checks each move’s\\ legality before moving the piece; if\\ illegal, it prompts the user for another\\ move.\end{tabular} \\ \hline
+ErrorLogger &
+\begin{tabular}[c]{@{}l@{}}Attempts to log an error; informs\\ the user when an unexpected\\ error occurs.\end{tabular} &
+Not applicable (no direct user interface). \\ \hline
+\end{longtable}
+
+The general rule for error handling is to handle everything. Think hard about all possible error conditions. If you forget one possibility, it will show up as a bug in your program! Don’t treat anything as an “unexpected” error. Expect all possibilities: memory allocation failures, invalid user entries, disk failures, and network failures, to name a few. However, as the table for the chess game shows, you should handle user errors differently from internal errors. For example, a user entering an invalid move should not cause your chess program to terminate. Chapter 14, “Handling Errors,” discusses error handling in more depth.
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

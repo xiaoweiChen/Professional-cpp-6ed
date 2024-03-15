@@ -240,18 +240,135 @@ It is platform independent. Specifying that a piece of code runs in 200 millisec
 Performance as a function of input size covers all possible inputs to the algorithm with one specification. The specific time in seconds that an algorithm takes to run covers only one specific input and says nothing about any other input.
 \end{itemize}
 
-\mySamllsection{Understand Platform Limitations}
+\mySamllsection{Tips for Understanding Performance}
 
 Now that you are familiar with big-O notation, you are prepared to understand most performance documentation. The C++ Standard Library in particular describes its algorithm and data structure performance using big-O notation. However, big-O notation is sometimes insufficient or even misleading. Consider the following issues whenever you think about big-O performance specifications:
 
+\begin{itemize}
+\item
+If an algorithm takes twice as long to work on twice as much data, it doesn’t say anything about how long it took in the first place! If the algorithm is written badly but scales well, it’s still not something you want to use. For example, suppose the algorithm makes unnecessary disk accesses. That probably wouldn’t affect the big-O time but would be very bad for overall performance.
+
+\item
+Along those lines, it’s difficult to compare two algorithms with the same big-O running time. For example, if two different sorting algorithms both claim to be O(n log n), it’s hard to tell which is really faster without running your own tests.
+
+\item
+The big-O notation describes the time complexity of an algorithm asymptotically, as the input size grows to infinity. For small inputs, big-O time can be very misleading. An O(n2) algorithm might actually perform better than an O(log n) algorithm on small input sizes. Consider your likely input sizes before making a decision.
+\end{itemize}
+
+In addition to considering big-O characteristics, you should look at other facets of the algorithm performance. Here are some guidelines to keep in mind:
+
+\begin{itemize}
+\item
+You should consider how often you intend to use a particular piece of library code. Some people find the 90/10 rule helpful: 90 percent of the running time of most programs is spent in only 10 percent of the code (Hennessy and Patterson, Computer Architecture: A Quantitative Approach, Fifth Edition, 2011, Morgan Kaufmann). If the library code you intend to use falls in the oft-exercised 10 percent category of your code, you should make sure to analyze its performance characteristics carefully. On the other hand, if it falls into the oft-ignored 90 percent of the code, you should not spend much time analyzing its performance because it will not benefit the overall program performance very much. Chapter 29, “Writing Efficient C++,” discusses profilers, tools to help you find performance bottlenecks in your code.
+
+\item
+Don’t rely purely on the documentation. Always run performance tests to determine if library code provides acceptable performance characteristics for your specific use case.
+\end{itemize}
+
+\mySamllsection{Understand Platform Limitations}
+
+Before you start using library code, make sure that you understand on which platforms it runs. If you want to write a cross-platform application, make sure the libraries you choose are also cross-platform portable. That might sound obvious, but even libraries that claim to be cross-platform might contain subtle differences on different platforms.
+
+Also, platforms include not only different operating systems but different versions of the same operating system. If you write an application that should run on the operating systems Solaris 8, 9, and 10, ensure that any libraries you use also support all those releases. You cannot assume either forward or backward compatibility across operating system versions. That is, just because a library runs on Solaris 9 doesn’t mean that it will run on Solaris 10 and vice versa.
+
 \mySamllsection{Understand Licensing}
+
+Using third-party libraries often introduces complicated licensing issues. You must sometimes pay license fees to third-party vendors for the use of their libraries. There may also be other licensing restrictions, including international export restrictions. Additionally, open-source libraries are sometimes distributed under licenses that require any code that links with them to be open-source as well.
+A number of licenses commonly used by open-source libraries are discussed later in this chapter.
+
+\begin{myWarning}{WARNING}
+Make sure that you understand the license restrictions of any thirdparty libraries you use if you plan to distribute or sell the code you develop. When in doubt, consult a legal expert whose specialty is intellectual property.
+\end{myWarning}
 
 \mySamllsection{Understand Support and Know Where to Find Help}
 
+Before you use a library, make sure that you understand the process for submitting bugs and that you realize how long it will take for bugs to get fixed. If possible, determine how long the library will continue to be supported so that you can plan accordingly.
+
+Interestingly, even using libraries from within your own organization can introduce support issues. You may find it just as difficult to convince a co-worker in another part of your company to fix a bug in their library as you would to convince a stranger in another company to do the same thing. In fact, you may even find it harder, because you’re not a paying customer. Make sure that you understand the politics and organizational issues within your own organization before using internal libraries.
+
+For reusing entire applications, the support issue might even become more complex. If customers encounter a problem with your bundled web server, should they contact you or the web server vendor? Make sure that you resolve this issue before you release the software.
+
+Using libraries and frameworks can sometimes be daunting at first. Fortunately, there are many avenues of support available. First, consult the documentation that accompanies the library. If the library is widely used, such as the Standard Library or the MFC, you should be able to find a good book on the topic. In fact, for help with the Standard Library, you can consult Chapters 16 to 25. If you have specific questions not addressed by books and product documentation, try searching the Web. Type your question in your favorite search engine to find web pages that discuss the library. For example, when you search for the phrase introduction to C++ Standard Library, you will find hundreds of websites about C++ and the Standard Library. Also, many websites contain their own private newsgroups or forums on specific topics for which you can register.
+
+\begin{myWarning}{WARNING}
+A note of caution: don’t believe everything you read on the Web! Web pages do not necessarily undergo the same review process as printed books and documentation, and may contain inaccuracies.
+\end{myWarning}
+
 \mySamllsection{Prototype}
+
+When you first sit down with a new library or framework, it is often a good idea to write a quick prototype. Trying the code is the best way to familiarize yourself with the library’s capabilities. You should consider experimenting with the library even before you tackle your program design so that you are intimately familiar with the library’s capabilities and limitations. This empirical testing will allow you to determine the performance characteristics of the library as well.
+
+Even if your prototype application looks nothing like your final application, time spent prototyping is not a waste. Don’t feel compelled to write a prototype of your actual application. Write a dummy program that just tests the library capabilities you want to use. The point is only to familiarize yourself with the library.
+
+\begin{myWarning}{WARNING}
+Due to time constraints, programmers sometimes find their prototypes morphing into the final product. If you have hacked together a prototype that is insufficient as the basis for the final product, make sure that it doesn’t get used that way.
+\end{myWarning}
 
 \mySamllsection{Open-Source Libraries}
 
+Open-source libraries are an increasingly popular class of reusable code. The general meaning of open-source is that the source code is available for anyone to look at. There are formal definitions and legal rules about including source code with all your distributions, but the important thing to remember about open-source software is that anyone (including you) can look at the source code. Note that open-source applies to more than just libraries. In fact, the most famous open-source product is probably the Android operating system. Linux is another open-source operating system. Google Chrome and Mozilla Firefox are two examples of famous open-source web browsers.
+
+\mySamllsection{The Open-Source Movements}
+
+Unfortunately, there is some confusion in terminology in the open-source community. First, there are two competing names for the movement (some would say two separate, but similar, movements). Richard Stallman and the GNU project use the term free software. Note that the term free does not imply that the finished product must be available without cost. Developers are welcome to charge as much or as little as they want. Instead, the term free refers to the freedom for people to examine the source code, modify the source code, and redistribute the software. Think of the free in free speech rather than the free in free beer. You can read more about Richard Stallman and the GNU project at \url{www.gnu.org}.
+
+The Open Source Initiative uses the term open-source software to describe software in which the source code must be available. As with free software, open-source software does not require the product or library to be available without cost. However, an important difference with free software is that open-source software is not required to give you the freedom to use, modify, and redistribute it. You can read more about the Open Source Initiative at \url{www.opensource.org}.
+
+There are a lot of licensing options available for open-source projects. For example, a project could use one of the GNU Public License (GPL) versions. However, using a library under the GPL requires you to make your own product open-source under the GPL as well. On the other hand, an opensource project can use a license like Boost Software License, Berkeley Software Distribution (BSD) license, MIT License, Apache License, and so on, which allow using an open-source project in closedsource products. Some of these licenses have different versions. For example, there are actually four versions of the BSD license. Another option for an open-source project is to use one of the six flavors of the Creative Commons (CC) license.
+
+Some licenses require you to include the library’s license with your final product. Some licenses require attribution when using the library. Bottom line, all licenses come with subtleties that are important to understand if you want to use libraries in closed-source projects. The \url{opensource.org/licenses} website gives a thorough overview of approved open-source licenses.
+
+Because the name “open-source” is less ambiguous than “free software,” this book uses “open-source” to refer to products and libraries with which the source code is available. The choice of name is not intended to imply endorsement of the open-source philosophy over the free software philosophy: it is only for ease of comprehension.
+
+\mySamllsection{Finding and Using Open-Source Libraries}
+
+Regardless of the terminology, you can gain amazing benefits from using open-source software. The main benefit is functionality. There is a plethora of open-source C++ libraries available for varied tasks, from XML parsing and cross-platform error logging to deep learning and data mining using artificial neural networks.
+
+Although open-source libraries are not required to provide free distribution and licensing, many open-source libraries are available without monetary cost. You will generally be able to save money in licensing fees by using open-source libraries.
+Finally, you are often but not always free to modify open-source libraries to suit your exact needs.
+
+Most open-source libraries are available on the Web. For example, searching for open-source C++ library XML parsing results in a list of links to XML libraries for C++. There are also a few opensource portals where you can start your search, including the following:
+
+\begin{itemize}
+\item
+\url{www.boost.org}
+
+\item
+\url{www.gnu.org}
+
+\item
+\url{github.com/open-source}
+
+\item
+\url{www.sourceforge.net}
+\end{itemize}
+
+\mySamllsection{Guidelines for Using Open-Source Code}
+
+Open-source libraries present several unique issues and require new strategies. First, open-source libraries are usually written by people in their “free” time. The source base is generally available for any programmer who wants to pitch in and contribute to development or bug fixing. As a good programming citizen, you should try to contribute to open-source projects if you find yourself reaping the benefits of open-source libraries. If you work for a company, you may find resistance to this idea from your management because it does not lead directly to revenue for your company. However, you might be able to convince management that indirect benefits, such as exposure of your company name and perceived support from your company for the open-source movement, should allow you to pursue this activity.
+
+Second, because of the distributed nature of their development and lack of single ownership, opensource libraries often present support issues. If you desperately need a bug fixed in a library, it is often more efficient to make the fix yourself than to wait for someone else to do it. If you do fix bugs, make sure to put those fixes back into the public codebase for the library. Some licenses even require you to do so. Even if you don’t fix any bugs, make sure to report problems that you find so that other programmers don’t waste time encountering the same issues.
+
 \mySamllsection{The C++ Standard Library}
+
+The most important library that you will use as a C++ programmer is the C++ Standard Library. As its name implies, this library is part of the C++ standard, so any standards-conforming compiler must include it. The Standard Library is not monolithic: it includes several disparate components, some of which you have been using already. You may even have assumed they were part of the core language. Chapters 16 to 25 go into more detail about the Standard Library.
+
+\mySamllsection{C Standard Library}
+
+Because C++ is mostly a superset of C, the C Standard Library is still available. Its functionality includes mathematical functions such as abs(), sqrt(), and pow(), and error-handling helpers such as assert() and errno. Additionally, the C Standard Library facilities for manipulating character arrays as strings, such as strlen() and strcpy(), and the C-style I/O functions, such as printf() and scanf(), are all available in C++. For details on the C libraries, consult a Standard Library Reference; see Appendix B.
+
+\begin{myNotic}{NOTE}
+C++ provides better strings and I/O support than C. Even though the C-style strings and I/O routines are available in C++, you should avoid them in favor of C++ strings and formatting (Chapter 2, “Working with Strings and String Views”) and I/O streams (Chapter 13, “Demystifying C++ I/O”).
+\end{myNotic}
+
+\mySamllsection{Deciding Whether or Not to Use the Standard Library}
+
+The Standard Library was designed with functionality, performance, and orthogonality as its priorities. The benefits of using it are substantial. Imagine having to track down pointer errors in linked list or balanced binary tree implementations or to debug a sorting algorithm that isn’t sorting properly. If you use the Standard Library correctly, you will rarely, if ever, need to perform that kind of coding or debugging yourself. Another benefit is that most C++ developers know how to work with the functionality provided by the Standard Library. Hence, when using the Standard Library in your projects, new team members will get up to speed faster compared to using third-party libraries that might have a substantial learning cost. Chapters 16 to 25 provide in-depth information on the Standard Library functionality.
+
+
+
+
+
+
 
 
