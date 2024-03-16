@@ -1,8 +1,107 @@
 
+You have already seen some of the overlap between pointers and arrays. Free store-allocated arrays are referred to by a pointer to their first element. Stack-based arrays are referred to by using the array syntax ([]) with an otherwise normal variable declaration. As you are about to learn, however, the overlap doesn’t end there. Pointers and arrays have a complicated relationship.
 
 \mySubsubsection{7.2.1.}{Arrays Decay to Pointers}
 
+A free store-based array is not the only place where you can use a pointer to refer to an array. You can also use the pointer syntax to access elements of a stack-based array. The address of an array is really the address of the first element (index 0). The compiler knows that when you refer to an array in its entirety by its variable name, you are really referring to the address of the first element. In this way, the pointer works just like with a free store-based array. The following code creates a zeroinitialized array on the stack, and uses a pointer to access it:
 
+\begin{cpp}
+int myIntArray[10] {};
+
+int* myIntPtr { myIntArray };
+
+// Access the array through the pointer.
+myIntPtr[4] = 5;
+\end{cpp}
+
+The ability to refer to a stack-based array through a pointer is useful when passing arrays into functions. The following function accepts an array of integers as a pointer. Note that the caller needs to explicitly pass in the size of the array because the pointer implies nothing about size. That is another reason why you should use modern containers such as those provided by the Standard Library.
+
+\begin{cpp}
+void doubleInts(int* theArray, size_t size)
+{
+    for (size_t i { 0 }; i < size; ++i) { theArray[i] *= 2; }
+}
+\end{cpp}
+
+The caller of this function can pass a stack-based or free store-based array. In the case of a free storebased array, the pointer already exists and is passed by value into the function. In the case of a stackbased array, the caller can pass the array variable, and the compiler automatically treats the array variable as a pointer to the array, or you can explicitly pass the address of the first element. All three forms are shown here:
+
+\begin{cpp}
+size_t arrSize { 4 };
+int* freeStoreArray { new int[arrSize]{ 1, 5, 3, 4 } };
+doubleInts(freeStoreArray, arrSize);
+delete [] freeStoreArray;
+freeStoreArray = nullptr;
+
+int stackArray[] { 5, 7, 9, 11 };
+arrSize = std::size(stackArray); // Since C++17, requires <array>
+//arrSize = sizeof(stackArray) / sizeof(stackArray[0]); // Pre-C++17, see Ch1
+doubleInts(stackArray, arrSize);
+
+doubleInts(&stackArray[0], arrSize);
+\end{cpp}
+
+The parameter-passing semantics of arrays is uncannily similar to that of pointers, because the compiler treats an array as a pointer when it is passed to a function. A function that takes an array as an argument and changes values inside the array is actually changing the original array, not a copy. Just like a pointer, passing an array effectively mimics pass-by-reference functionality because what you really pass to the function is the address of the original array, not a copy. The following implementation of doubleInts() changes the original array even though the parameter is an array, not a pointer:
+
+\begin{cpp}
+void doubleInts(int theArray[], size_t size)
+{
+    for (size_t i { 0 }; i < size; ++i) { theArray[i] *= 2; }
+}
+\end{cpp}
+
+Any number between the square brackets after theArray in the function prototype is simply ignored. The following three versions are identical:
+
+\begin{cpp}
+void doubleInts(int* theArray, size_t size);
+void doubleInts(int theArray[], size_t size);
+void doubleInts(int theArray[2], size_t size);
+\end{cpp}
+
+You may be wondering why things work this way. Why doesn’t the compiler just copy the array when array syntax is used in the function definition? This is done for efficiency—it takes time to copy the elements of an array, and they potentially take up a lot of memory. By always passing a pointer, the compiler doesn’t need to include the code to copy the array.
+
+There is a way to pass known-length stack-based arrays “by reference” to a function, although the syntax is non-obvious. This does not work for free store-based arrays. For example, the following doubleIntsStack() accepts only stack-based arrays of size 4:
+
+\begin{cpp}
+void doubleIntsStack(int (&theArray)[4]);
+\end{cpp}
+
+A function template, discussed in detail in Chapter 12, can be used to let the compiler deduce the size of the stack-based array automatically:
+
+\begin{cpp}
+template <size_t N>
+void doubleIntsStack(int (&theArray)[N])
+{
+    for (size_t i { 0 }; i < N; ++i) { theArray[i] *= 2; }
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Instead of passing a C-style array directly to a function, it is recommended for the function to have a parameter of type std::span, discussed in Chapter 18, “Standard Library Containers.” span wraps a pointer to an array and its size!
+\end{myNotic}
 
 \mySubsubsection{7.2.2.}{Not All Pointers Are Arrays!}
+
+Because the compiler lets you pass in an array where a pointer is expected, as in the doubleInts() function in the previous section, you may be led to believe that pointers and arrays are the same. In fact, there are subtle, but important, differences. Pointers and arrays share many properties and can sometimes be used interchangeably (as shown earlier), but they are not the same.
+
+A pointer by itself is meaningless. It may point to random memory, a single object, or an array. You can always use array syntax with a pointer, but doing so is not always appropriate because pointers aren’t always arrays. For example, consider the following line of code:
+
+\begin{cpp}
+int* ptr { new int };
+\end{cpp}
+
+The pointer ptr is a valid pointer, but it is not an array. You can access the pointed-to value using array syntax (ptr[0]), but doing so is stylistically questionable and provides no real benefit. In fact, using array syntax with non-array pointers is an invitation for bugs. The memory at ptr[1] could be anything!
+
+\begin{myWarning}{WARNING}
+Arrays automatically decay to pointers, but not all pointers are arrays.
+\end{myWarning}
+
+
+
+
+
+
+
+
+
+
 

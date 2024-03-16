@@ -1,15 +1,193 @@
 
+As the previous section demonstrated, memory management in C++ is a perennial source of errors and bugs. Many of these bugs arise from the use of dynamic memory allocation and pointers. When you extensively use dynamic memory allocation in your program and pass many pointers between objects, it’s difficult to remember to call delete on each pointer exactly once and at the right time.
+
+The consequences of getting it wrong are severe: when you free dynamically allocated memory more than once or use a pointer to memory that was already free, you can cause memory corruption or a fatal run-time error; when you forget to free dynamically allocated memory, you cause memory leaks.
+
+Smart pointers help you manage your dynamically allocated memory and are the recommended technique for avoiding memory leaks. Conceptually, a smart pointer can hold a dynamically allocated resource, such as memory. When a smart pointer goes out of scope or is reset, it can automatically free the resource it holds. Smart pointers can be used to manage dynamically allocated resources in the scope of a function, or as data members in classes. They can also be used to pass ownership of dynamically allocated resources through function arguments.
+
+C++ provides several language features that make smart pointers attractive. First, you can write a type-safe smart pointer class for any pointer type using templates; see Chapter 12. Second, you can provide an interface to the smart pointer objects using operator overloading (see Chapter 15) that allows code to use the smart pointer objects as if they were dumb raw pointers. Specifically, you can overload the *, –>, and [] operators such that client code can dereference a smart pointer object the same way it dereferences a normal pointer.
+
+There are several types of smart pointers. The simplest type takes sole/unique ownership of a resource. Being the single owner of a resource, the smart pointer can automatically free the referenced resource when it goes out of scope or is reset. The Standard Library provides std::unique\_ptr, which is a smart pointer with unique ownership semantics.
+
+A slightly more advanced type of smart pointer allows for shared ownership; that is, several of these smart pointers can refer to the same resource. When such a smart pointer goes out of scope or is reset, it frees the referenced resource only if it’s the last smart pointer referring to that resource. The Standard Library provides std::shared\_ptr supporting shared ownership.
+
+Both standard smart pointers, unique\_ptr and shared\_ptr, are defined in <memory> and are discussed in detail in the next sections.
+
+\begin{myNotic}{NOTE}
+Your default smart pointer should be unique\_ptr. Use shared\_ptr only when you really need to share the resource.
+\end{myNotic}
+
+\begin{myWarning}{WARNING}
+Never assign the result of a resource allocation to a raw pointer! Whatever resource allocation method you use, always immediately store the resource pointer in a smart pointer, either unique\_ptr or shared\_ptr, or use other RAII classes. RAII stands for Resource Acquisition Is Initialization. An RAII class takes ownership of a certain resource and handles its deallocation at the right time. It’s a design technique discussed in Chapter 32, “Incorporating Design Techniques and Frameworks.”
+\end{myWarning}
 
 \mySubsubsection{7.5.1.}{unique\_ptr}
 
+A unique\_ptr has sole ownership of a resource. When the unique\_ptr is destroyed or reset, the resource is automatically freed. One advantage is that memory and resources are always freed, even when return statements are executed or when exceptions are thrown. This, for example, simplifies coding when a function has multiple return statements, because you don’t have to remember to free resources before each return statement.
+
+As a rule of thumb, always store dynamically allocated resources having a single owner in instances of unique\_ptr.
+
 \mySamllsection{Creating unique\_ptrs}
+
+Consider the following function that blatantly leaks memory by allocating a Simple object on the free store and neglecting to release it:
+
+\begin{cpp}
+void leaky()
+{
+    Simple* mySimplePtr { new Simple{} }; // BUG! Memory is never released!
+    mySimplePtr->go();
+}
+\end{cpp}
+
+Sometimes you might think that your code is properly deallocating dynamically allocated memory. Unfortunately, it most likely is not correct in all situations. Take the following function:
+
+\begin{cpp}
+void couldBeLeaky()
+{
+    Simple* mySimplePtr { new Simple{} };
+    mySimplePtr->go();
+    delete mySimplePtr;
+}
+\end{cpp}
+
+This function dynamically allocates a Simple object, uses the object, and then properly calls delete. However, you can still have memory leaks in this example! If the go() member function throws an exception, the call to delete is never executed, causing a memory leak.
+
+Instead, you should use a unique\_ptr, created using the std::make\_unique() helper function. unique\_ptr is a generic smart pointer that can point to any kind of memory. That’s why it is a class template, and make\_unique() a function template. Both require a template parameter between angle brackets, < >, specifying the type of memory you want the unique\_ptr to point to. Templates are discussed in detail in Chapter 12, but those details are not important to understand how to use smart pointers.
+
+The following function uses a unique\_ptr instead of a raw pointer. The Simple object is not explicitly deleted; but when the unique\_ptr instance goes out of scope (at the end of the function, or because an exception is thrown), it automatically deallocates the Simple object in its destructor.
+
+\begin{cpp}
+void notLeaky()
+{
+    auto mySimpleSmartPtr { make_unique<Simple>() };
+    mySimpleSmartPtr->go();
+}
+\end{cpp}
+
+This code uses make\_unique(), in combination with the auto keyword, so that you only have to specify the type of the pointer, Simple in this case, once. This is the recommended way to create a unique\_ptr. If the Simple constructor requires parameters, you pass them as arguments to make\_unique().
+
+make\_unique() uses value initialization. Primitive types, for example, are initialized to zero, and objects are default constructed. If you don’t need this value initialization, for instance because you will overwrite the initial value anyway, then you can skip the value initialization and improve performance by using the make\_unique\_for\_overwrite() function, which uses default initialization. For primitive types, this means they are not initialized at all and contain whatever is in memory at their location, while objects are still default constructed.
+
+You can also create a unique\_ptr by directly calling its constructor as follows. Note that Simple must now be mentioned twice:
+
+\begin{cpp}
+unique_ptr<Simple> mySimpleSmartPtr { new Simple{} };
+\end{cpp}
+
+As discussed earlier in this book, class template argument deduction (CTAD) can often be used to let the compiler deduce the template type arguments for class templates based on the arguments passed to a constructor of the class template. For example, it allows you to write vector v\{1,2\} instead of vector<int> v\{1,2\}. CTAD does not work with unique\_ptr, so you cannot omit the template type argument.
+
+Before C++17, you had to use make\_unique() not only because it meant specifying the type only once, but also because of safety reasons! Consider the following call to a function called foo():
+
+\begin{cpp}
+foo(unique_ptr<Simple> { new Simple{} }, unique_ptr<Bar> { new Bar { data() } });
+\end{cpp}
+
+If the constructor of Simple or Bar, or the data() function, throws an exception, depending on your compiler optimizations, it was possible that either a Simple or a Bar object would be leaked. With make\_unique(), nothing would leak:
+
+\begin{cpp}
+foo(make_unique<Simple>(), make_unique<Bar>(data()))
+\end{cpp}
+
+Since C++17, both calls to foo() are safe, but I still recommend using make\_unique() as it results in code that is easier to read.
+
+\begin{myNotic}{NOTE}
+Always use make\_unique() to create a unique\_ptr.
+\end{myNotic}
 
 \mySamllsection{Using unique\_ptrs}
 
+One of the greatest characteristics of the standard smart pointers is that they provide enormous benefit without requiring the user to learn a lot of new syntax. Smart pointers can still be dereferenced (using * or ->) just like standard pointers. For example, in the earlier example, the -> operator is used to call the go() member function:
+
+\begin{cpp}
+mySimpleSmartPtr->go();
+\end{cpp}
+
+Just as with standard pointers, you can also write this as follows:
+
+\begin{cpp}
+(*mySimpleSmartPtr).go();
+\end{cpp}
+
+The get() member function can be used to get direct access to the underlying pointer. This can be useful to pass the pointer to a function that requires a raw pointer. For example, suppose you have the following function:
+
+\begin{cpp}
+void processData(Simple* simple) { /* Use the simple pointer... */ }
+\end{cpp}
+
+Then you can call it as follows:
+
+\begin{cpp}
+processData(mySimpleSmartPtr.get());
+\end{cpp}
+
+You can free the underlying pointer of a unique\_ptr and optionally change it to another pointer using reset(). Here’s an example:
+
+\begin{cpp}
+mySimpleSmartPtr.reset(); // Free resource and set to nullptr
+mySimpleSmartPtr.reset(new Simple{}); // Free resource and set to a new
+// Simple instance
+\end{cpp}
+
+You can disconnect the underlying pointer from a unique\_ptr with release() which returns the underlying pointer to the resource and then sets the smart pointer to nullptr. Effectively, the smart pointer loses ownership of the resource, and as such, you become responsible for freeing the resource when you are done with it! Here’s an example:
+
+\begin{cpp}
+Simple* simple { mySimpleSmartPtr.release() }; // Release ownership
+// Use the simple pointer...
+delete simple;
+simple = nullptr;
+\end{cpp}
+
+Because a unique\_ptr represents unique ownership, it cannot be copied! But, spoiler alert, it is possible to move one unique\_ptr to another one using move semantics, as discussed in detail in Chapter 9, “Mastering Classes and Objects.” As a sneak preview, the std::move() utility function can be used to explicitly move ownership of a unique\_ptr, as in the following code snippet. Don’t worry about the syntax for now; Chapter 9 makes it all clear.
+
+\begin{cpp}
+class Foo
+{
+    public:
+    Foo(unique_ptr<int> data) : m_data { move(data) } { }
+    private:
+    unique_ptr<int> m_data;
+};
+
+auto myIntSmartPtr { make_unique<int>(42) };
+Foo f { move(myIntSmartPtr) };
+\end{cpp}
+
 \mySamllsection{unique\_ptr and C-Style Arrays}
+
+A unique\_ptr can store a dynamically allocated old C-style array. The following example creates a unique\_ptr that holds a dynamically allocated C-style array of ten integers:
+
+\begin{cpp}
+auto myVariableSizedArray { make_unique<int[]>(10) };
+\end{cpp}
+
+The type of myVariableSizedArray is unique\_ptr<int[]> and supports access to its elements using array notation. Here’s an example:
+
+\begin{cpp}
+myVariableSizedArray[1] = 123;
+\end{cpp}
+
+Just as for the non-array case, make\_unique() uses value initialization for all elements of an array, similarly as std::vector does. For primitive types, this means initialization to zero. The make\_unique\_for\_overwrite() function can be used instead to create an array with default-initialized values, which means uninitialized for primitive types. Keep in mind, though, that uninitialized data should be avoided as much as possible, so use this judiciously.
+
+Even though it is possible to use a unique\_ptr to store a dynamically allocated C-style array, it’s recommended to use a Standard Library container instead, such as std::array or vector.
 
 \mySamllsection{Custom Deleters}
 
+By default, unique\_ptr uses the standard new and delete operators to allocate and deallocate memory. You can change this behavior to use your own allocation and deallocation functions. This can come in handy when you are working with third-party C libraries. For example, suppose you have a C library that requires you to use my\_alloc() for allocation and my\_free() for deallocation:
+
+\begin{cpp}
+int* my_alloc(int value) { return new int { value }; }
+void my_free(int* p) { delete p; }
+\end{cpp}
+
+To properly call my\_free() on an allocated resource at the right time, you can use a unique\_ptr with a customer deleter:
+
+\begin{cpp}
+unique_ptr<int, decltype(&my_free)> myIntSmartPtr { my_alloc(42), my_free };
+\end{cpp}
+
+This code allocates memory for an integer with my\_alloc(), and the unique\_ptr deallocates the memory by calling the my\_free() function. This feature of unique\_ptr is also useful to manage other resources instead of just memory. For example, it can be used to automatically close a file or network socket or anything when the unique\_ptr goes out of scope.
+
+Unfortunately, the syntax for a custom deleter with unique\_ptr is a bit clumsy. You need to specify the type of your custom deleter as a template type argument, which should be the type of a pointer to a function accepting a single pointer as argument and returning void. In this example, decltype(\&my\_free) is used, which returns the type of a pointer to the function my\_free(). Using a custom deleter with shared\_ptr is easier. The following section on shared\_ptr demonstrates how to use a shared\_ptr to automatically close a file when it goes out of scope.
 
 \mySubsubsection{7.5.2.}{shared\_ptr}
 

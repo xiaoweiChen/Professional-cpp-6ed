@@ -1,15 +1,206 @@
 
+Handling dynamic memory using new/delete/new[]/delete[], and low-level memory operations are prone to errors. It is difficult to pinpoint the exact situations that can lead to a memory-related bug. Every memory leak or bad pointer has its own nuances. There is no magic bullet for resolving memory issues. This section discusses several common categories of problems and some tools you can use to detect and resolve them.
 
 \mySubsubsection{7.4.1.}{Underallocating Data Buffers and Out-of-Bounds Memory Access}
 
+Underallocation is a common problem with C-style strings, where it arises when the programmer fails to allocate an extra character for the trailing '\verb|\|0' sentinel. Underallocation of strings also occurs when programmers assume a certain fixed maximum size. The basic built-in C-style string functions do not adhere to a fixed size—they will happily write off the end of the string into uncharted memory.
 
+The following code demonstrates underallocation. It reads data off a network connection and puts it in a C-style string. This is done in a loop because the network connection receives only a small amount of data at a time. On each loop, getMoreData() is called, which returns a pointer to dynamically allocated memory. When nullptr is returned from getMoreData(), all of the data has been received. strcat() is a C function that concatenates the C-style string given as a second argument to the end of the C-style string given as a first argument. It expects the destination buffer to be big enough.
+
+\begin{cpp}
+char buffer[1024] { 0 }; // Allocate a whole bunch of memory.
+while (true) {
+    char* nextChunk { getMoreData() };
+    if (nextChunk == nullptr) {
+        break;
+    } else {
+        strcat(buffer, nextChunk); // BUG! No guarantees against buffer overrun!
+        delete [] nextChunk;
+    }
+}
+\end{cpp}
+
+There are three ways to resolve the possible underallocation problem in this example. In decreasing order of preference, they are as follows:
+
+\begin{enumerate}
+\item
+Use C++-style strings, which handle the memory associated with concatenation on your behalf.
+
+\item
+Instead of allocating a buffer as a global variable or on the stack, allocate it on the free store. When there is insufficient space left, allocate a new buffer large enough to hold at least the current contents plus the new chunk, copy the original buffer into the new buffer, append the new contents, and delete the original buffer.
+
+\item
+Create a version of getMoreData() that takes a maximum count (including the '\verb|\|0' character) and returns no more characters than that; then track the amount of space left, and the current position, in the buffer.
+\end{enumerate}
+
+Underallocation of data buffers usually leads to out-of-bounds memory access. For example, if you are filling a memory buffer with data, you might start writing outside the allocated data buffer when you assume the buffer is bigger than it actually is. It is only a matter of time before an essential part of memory is overwritten and the program crashes. Consider what might happen if the memory associated with the objects in your program is suddenly overwritten. It’s not pretty!
+
+Out-of-bounds memory access also occurs when handling C-style strings that have somehow lost their ''\verb|\|0' termination character. For example, if an improperly terminated string is handed to the following function, it will fill the string with 'm' characters and will happily continue to fill the contents of memory after the string with 'm's, overwriting memory outside the bounds of the string.
+
+\begin{cpp}
+void fillWithM(char* text)
+{
+    int i { 0 };
+    while (text[i] != '\0') {
+        text[i] = 'm';
+        ++i;
+    }
+}
+\end{cpp}
+
+Bugs that result in writing to memory past the end of an array are often called buffer overflow errors. These bugs have been exploited by several high-profile malware programs such as viruses and worms. A devious hacker can take advantage of the ability to overwrite portions of memory to inject code into a running program.
+
+\begin{myWarning}{WARNING}
+Avoid using old C-style strings and arrays that offer no protection whatsoever. Instead, use modern and safe constructs such as C++ strings and vectors that manage all their memory for you.
+\end{myWarning}
 
 \mySubsubsection{7.4.2.}{Memory Leaks}
 
+In modern C++, there are no memory leaks. All memory management is handled by higher-level classes, such as std::vector, string, and so on. Only when you drive off-road and perform manual memory allocation and deallocation can memory leaks crop up.
+
+Finding and fixing such memory leaks can be frustrating. Your program finally works and appears to give the correct results. Then, you start to notice that your program gobbles up more and more memory as it runs. Your program has a memory leak.
+
+Memory leaks occur when you allocate memory and neglect to release it. At first, this sounds like the result of careless programming that could easily be avoided. After all, if every new has a corresponding delete in every class you write, there should be no memory leaks, right? Actually, that’s not always true. For example, in the following code, the Simple class is properly written to release any memory that it allocates. However, when doSomething() is called, the outSimplePtr pointer is changed to another Simple object without deleting the old one to demonstrate a memory leak. Once you lose a pointer to an object, it’s nearly impossible to delete it.
+
+\begin{cpp}
+class Simple
+{
+    public:
+    Simple() { m_intPtr = new int{}; }
+    ˜Simple() { delete m_intPtr; }
+    void setValue(int value) { *m_intPtr = value; }
+    private:
+    int* m_intPtr;
+};
+
+void doSomething(Simple*& outSimplePtr)
+{
+    outSimplePtr = new Simple{}; // BUG! Doesn't delete the original.
+}
+
+int main()
+{
+    Simple* simplePtr { new Simple{} }; // Allocate a Simple object.
+    doSomething(simplePtr);
+    delete simplePtr; // Only cleans up the second object.
+}
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+Keep in mind that this code is only for demonstration purposes! In production-quality code, both m\_intPtr and simplePtr should not be raw pointers, but should be smart pointers discussed later in this chapter.
+\end{myWarning}
+
+In cases like the previous example, the memory leak probably arose from poor communication between programmers or poor documentation of the code. The caller of doSomething() may not have realized that the variable was passed by reference and thus had no reason to expect that the pointer would be reassigned. If they did notice that the parameter was a reference-to-non-const pointer, they may have suspected that something strange was happening, but there is no comment around doSomething() that explains this behavior.
+
 \mySamllsection{Finding and Fixing Memory Leaks in Windows with Visual C++}
+
+Memory leaks are hard to track down because you can’t easily look at memory and see what objects are not in use and where they were originally allocated. However, there are programs that can do this for you. Memory leak detection tools range from expensive professional software packages to free downloadable tools. If you work with Microsoft Visual C++, its debug library has built-in support for memory leak detection. This memory leak detection is not enabled by default, unless you create an MFC project. To enable it in other projects, you need to start by including the following three lines at the beginning of your code. These use the \#define preprocessor macro, explained in Chapter 11, “Modules, Header Files, and Miscellaneous Topics.” However, for now, just use the three lines verbatim as they are.
+
+\begin{cpp}
+#define _CRTDBG_MAP_ALLOC
+#include <cstdlib>
+#include <crtdbg.h>
+\end{cpp}
+
+These lines should be in the exact order as shown. Next, you need to redefine the new operator as follows. This uses a few other preprocessor macros, all explained in Chapter 11. Again, just use them as is for now.
+
+\begin{cpp}
+#ifdef _DEBUG
+    #ifndef DBG_NEW
+        #define DBG_NEW new ( _NORMAL_BLOCK , __FILE__ , __LINE__ )
+        #define new DBG_NEW
+    #endif
+#endif // _DEBUG
+\end{cpp}
+
+The \#ifdef \_DEBUG statement makes sure that the redefinition of new is done only when compiling a debug version of your application. This is what you normally want. Release builds usually do not do any memory leak detection, because of the performance penalty.
+
+The last thing you need to do is to add the following line as the first line in your main() function:
+
+\begin{cpp}
+_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+\end{cpp}
+
+This tells the Visual C++ CRT (C RunTime) library to write all detected memory leaks to the debug output console when the application exits. For the earlier leaky program, the debug console will contain lines similar to the following:
+
+\begin{shell}
+Detected memory leaks!
+Dumping objects ->
+c:\leaky\leaky.cpp(15) : {147} normal block at 0x014FABF8, 4 bytes long.
+ Data: < > 00 00 00 00
+c:\leaky\leaky.cpp(33) : {146} normal block at 0x014F5048, 4 bytes long.
+ Data: <Pa > 50 61 20 01
+Object dump complete.
+\end{shell}
+
+The output clearly shows in which file and on which line memory was allocated but never deallocated. The line number is between parentheses immediately behind the filename. The number between the curly braces is a counter for the memory allocations. For example, {147} means the 147th allocation in your program since it started. You can use the VC++ \_CrtSetBreakAlloc() function to tell the VC++ debug runtime to break into the debugger when a certain allocation is performed. For example, you can add the following line to the beginning of your main() function to instruct the debugger to break on the 147th allocation:
+
+\begin{cpp}
+_CrtSetBreakAlloc(147);
+\end{cpp}
+
+In this leaky program, there are two leaks: the first Simple object that is never deleted (line 33) and the integer on the free store that it creates (line 15). In the Visual C++ debugger output window, you can simply double-click one of the memory leaks, and it will automatically jump to that line in your code.
+
+Of course, programs like Microsoft Visual C++ (discussed in this section) and Valgrind (discussed in the next section) can’t actually fix the leak for you—what fun would that be? These tools provide information that you can use to find the actual problem. Normally, that involves stepping through the code to find out where the pointer to an object was overwritten without the original object being released. Most debuggers provide “watch point” functionality that can break execution of the program when this occurs.
 
 \mySamllsection{Finding and Fixing Memory Leaks in Linux with Valgrind}
 
+Valgrind is an example of a free open-source tool for Linux that, among other things, pinpoints the exact line in your code where a leaked object was allocated.
+
+The following output, generated by running Valgrind on the earlier leaky program, pinpoints the exact locations where memory was allocated but never released. Valgrind finds the same two memory leaks—the first Simple object never deleted and the integer on the free store that it creates:
+
+\begin{shell}
+==15606== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==15606== malloc/free: in use at exit: 8 bytes in 2 blocks.
+==15606== malloc/free: 4 allocs, 2 frees, 16 bytes allocated.
+==15606== For counts of detected errors, rerun with: -v
+==15606== searching for pointers to 2 not-freed blocks.
+==15606== checked 4455600 bytes.
+==15606==
+==15606== 4 bytes in 1 blocks are still reachable in loss record 1 of 2
+==15606==    at 0x4002978F: __builtin_new (vg_replace_malloc.c:172)
+==15606==    by 0x400297E6: operator new(unsigned) (vg_replace_malloc.c:185)
+==15606==    by 0x804875B: Simple::Simple() (leaky.cpp:4)
+==15606==    by 0x8048648: main (leaky.cpp:24)
+==15606==
+==15606==
+==15606== 4 bytes in 1 blocks are definitely lost in loss record 2 of 2
+==15606==    at 0x4002978F: __builtin_new (vg_replace_malloc.c:172)
+==15606==    by 0x400297E6: operator new(unsigned) (vg_replace_malloc.c:185)
+==15606==    by 0x8048633: main (leaky.cpp:20)
+==15606==    by 0x4031FA46: __libc_start_main (in /lib/libc-2.3.2.so)
+==15606==
+==15606== LEAK SUMMARY:
+==15606==     definitely lost: 4 bytes in 1 blocks.
+==15606==     possibly lost:   0 bytes in 0 blocks.
+==15606==     still reachable: 4 bytes in 1 blocks.
+==15606==          suppressed: 0 bytes in 0 blocks.
+\end{shell}
+
+\begin{myWarning}{WARNING}
+It is strongly recommended to use std::vector, array, string, smart pointers (discussed later in this chapter), and other modern C++ constructs to avoid memory leaks.
+\end{myWarning}
 
 \mySubsubsection{7.4.3.}{Double-Deletion and Invalid Pointers}
+
+Once you release memory associated with a pointer using delete, the memory is available for use by other parts of your program. Nothing stops you, however, from attempting to continue to use the pointer, which is now a dangling pointer. Double deletion is also a problem. If you use delete a second time on a pointer, the program could be releasing memory that has since been assigned to another object.
+
+Double deletion and use of already released memory are both difficult problems to track down because the symptoms may not show up immediately. If two deletions occur within a relatively short amount of time, the program potentially could work indefinitely because the associated memory might not have been reused that quickly. Similarly, if a deleted object is used immediately after being deleted, most likely it will still be intact.
+
+Of course, there is no guarantee that such behavior will work or continue to work. The memory allocator is under no obligation to preserve any object once it has been deleted. Even if it does work, it is extremely poor programming style to use objects that have been deleted.
+
+To avoid double deletion and use of already released memory, you should set your pointers to nullptr after deallocating their memory.
+
+Many memory leak-detection programs are also capable of detecting double deletion and use of released objects.
+
+
+
+
+
+
+
+
+
+
+
 

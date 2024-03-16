@@ -1,16 +1,97 @@
 
+One of the great advantages of C++ over C is that you don’t need to worry quite as much about memory. If you code using objects, you just need to make sure that each individual class properly manages its own memory. Through construction and destruction, the compiler helps you manage memory by telling you when to do it. Hiding the management of memory within classes makes a huge difference in usability, as demonstrated by the Standard Library classes. However, with some applications or with legacy code, you may encounter the need to work with memory at a lower level. Whether for legacy, efficiency, debugging, or curiosity, knowing some techniques for working with raw bytes can be helpful.
 
 \mySubsubsection{7.3.1.}{Pointer Arithmetic}
 
+The C++ compiler uses the declared types of pointers to allow you to perform pointer arithmetic. If you declare a pointer to an int and increase it by 1, the pointer moves ahead in memory by the size of an int, not by a single byte. This type of operation is most useful with arrays, because they contain homogeneous data that is sequential in memory. For example, assume you declare an array of ints on the free store:
 
+\begin{cpp}
+int* myArray { new int[8] };
+\end{cpp}
+
+You are already familiar with the following syntax for setting the value at index 2:
+
+\begin{cpp}
+myArray[2] = 33;
+\end{cpp}
+
+With pointer arithmetic, you can equivalently use the following syntax, which obtains a pointer to the memory that is “2 ints ahead” of myArray and then dereferences it to set the value:
+
+\begin{cpp}
+*(myArray + 2) = 33;
+\end{cpp}
+
+As an alternative syntax for accessing individual elements, pointer arithmetic doesn’t seem too appealing. Its real power lies in the fact that an expression like myArray+2 is still a pointer to an int and thus can represent a smaller int array.
+
+Let’s look at an example using wide strings. Wide strings are discussed in Chapter 21, “String Localization and Regular Expressions,” but the details are not important at this point. For now, it is enough to know that wide strings support Unicode characters to represent, for example, Japanese strings. The wchar\_t type is a character type that can accommodate such Unicode characters, and it is usually bigger than a char; i.e., it’s more than one byte. To tell the compiler that a string literal is a widestring literal, prefix it with an L. For example, suppose you have the following wide string:
+
+\begin{cpp}
+const wchar_t* myString { L"Hello, World" };
+\end{cpp}
+
+Suppose further that you have a function that takes in a wide string and returns a new string that contains a capitalized version of the input:
+
+\begin{cpp}
+wchar_t* toCaps(const wchar_t* text);
+\end{cpp}
+
+You can capitalize myString by passing it into this function. However, if you only want to capitalize part of myString, you can use pointer arithmetic to refer to only a latter part of the string. The following code calls toCaps() on the World part of the wide string by just adding 7 to the pointer, even though wchar\_t is usually more than 1 byte:
+
+\begin{cpp}
+toCaps(myString + 7);
+\end{cpp}
+
+Another useful application of pointer arithmetic involves subtraction. Subtracting one pointer from another of the same type gives you the number of elements of the pointed-to type between the two pointers, not the absolute number of bytes between them.
 
 \mySubsubsection{7.3.2.}{Custom Memory Management}
 
+For 99 percent of the cases you will encounter (some might say 100 percent of the cases), the built-in memory allocation facilities in C++ are adequate. Behind the scenes, new and delete do all the work of handing out memory in properly sized chunks, maintaining a list of available areas of memory and releasing chunks of memory back to that list upon deletion.
 
+When resource constraints are extremely tight, or under very special conditions, such as managing shared memory, implementing custom memory management may be a viable option. Don’t worry— it’s not as scary as it sounds. Basically, managing memory yourself means that classes allocate a large chunk of memory and dole out that memory in pieces as it is needed. How is this approach any better? Managing your own memory can potentially reduce overhead.
+
+When you use new to allocate memory, the program also needs to set aside a small amount of space to record how much memory was allocated. That way, when you call delete, the proper amount of memory can be released. For most objects, the overhead is so much smaller than the memory allocated that it makes little difference. However, for small objects or programs with enormous numbers of objects, the overhead can have an impact.
+
+When you manage memory yourself, you might know the size of each object a priori, so you might be able to avoid the overhead for each object. The difference can be enormous for large numbers of small objects. Performing custom memory management requires overloading the operators new and delete, a topic for Chapter 15, “Overloading C++ Operators.”
 
 \mySubsubsection{7.3.3.}{Garbage Collection}
 
+With environments that support garbage collection, the programmer rarely, if ever, explicitly frees memory associated with an object. Instead, objects to which there are no longer any references will be cleaned up automatically at some point by the runtime library.
 
+Garbage collection is not built into the C++ language as it is in C\# and Java. In modern C++, you use smart pointers to manage memory, while in legacy code you will see memory management at the object level through new and delete. Smart pointers such as shared\_ptr (discussed later in this chapter) provide something very similar to garbage-collected memory; that is, when the last shared\_ptr instance for a certain resource is destroyed, at that point in time the resource is destroyed as well. It is possible but not easy to implement true garbage collection in C++, but freeing yourself from the task of releasing memory would probably introduce new headaches.
+
+One approach to garbage collection is called mark and sweep. With this approach, the garbage collector periodically examines every single pointer in your program and annotates the fact that the referenced memory is still in use. At the end of the cycle, any memory that hasn’t been marked is deemed to be not in-use and is freed. Implementing such an algorithm in C++ is not trivial, and if done wrongly, it can be even more error-prone than using delete!
+
+Attempts at safe and easy mechanisms for garbage collection have been made in C++, but even if a perfect implementation of garbage collection in C++ came along, it wouldn’t necessarily be appropriate to use for all applications. Among the downsides of garbage collection are the following:
+
+\begin{itemize}
+\item
+When the garbage collector is actively running, the program might become unresponsive.
+
+\item
+With garbage collectors, you have non-deterministic destructors. Because an object is not destroyed until it is garbage-collected, the destructor is not executed immediately when the object leaves its scope. This means that cleaning up resources (such as closing a file, releasing a lock, and so on), which is done by the destructor, is not performed until some indeterminate time in the future.
+\end{itemize}
+
+Writing a garbage collection mechanism is very hard. You will undoubtedly do it wrong, it will be error prone, and more than likely it will be slow. So, if you do want to use garbage-collected memory in your application, I recommend you to research existing specialized garbage-collection libraries that you can reuse.
 
 \mySubsubsection{7.3.4.}{Object Pools}
+
+Garbage collection is like buying plates for a picnic and leaving any used plates out in the yard where someone at some point will pick them up and throw them away. Surely, there must be a more ecological approach to memory management.
+
+Object pools are the equivalent of recycling. You buy a reasonable number of plates, and after using a plate, you clean it so that it can be reused later. Object pools are ideal for situations where you need to use many objects of the same type over time, and creating each one incurs overhead.
+
+Chapter 29, “Writing Efficient C++,” contains further details on using object pools for performance efficiency.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

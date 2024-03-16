@@ -1,31 +1,419 @@
 
+Memory is a low-level component of the computer that sometimes unfortunately rears its head even in a high-level programming language like C++. A solid understanding of how dynamic memory really works in C++ is essential to becoming a professional C++ programmer.
 
 \mySubsubsection{7.1.1.}{How to Picture Memory}
 
+Understanding dynamic memory is much easier if you have a mental model for what objects look like in memory. In this book, a unit of memory is shown as a box with a label next to it. The label indicates a variable name that corresponds to the memory.
+The data inside the box displays the current value of the memory.
 
+For example, Figure 7.1 shows the state of memory after the following line of code is executed. The line should be in a function, so that i is a local variable:
+
+\begin{cpp}
+int i { 7 };
+\end{cpp}
+
+\myGraphic{0.7}{content/part3/chapter7/images/1.png}{FIGURE 7.1}
+
+i is called an automatic variable allocated on the stack. It is automatically deallocated when the program flow leaves the scope in which the variable is declared.
+
+When you use the new keyword, memory is allocated on the free store. If not explicitly initialized, memory allocated by a call to new is uninitialized; i.e., it contains whatever random data is left at that location in memory. This uninitialized state is represented with a question mark in diagrams in this chapter. The following code creates a variable ptr on the stack initialized with nullptr and then allocates memory on the free store to which ptr points:
+
+\begin{cpp}
+int* ptr { nullptr };
+ptr = new int;
+\end{cpp}
+
+This can also be written as a one-liner:
+
+\begin{cpp}
+int* ptr { new int };
+\end{cpp}
+
+\myGraphic{0.7}{content/part3/chapter7/images/2.png}{FIGURE 7.2}
+
+Figure 7.2 shows the state of memory after this code is executed. Notice that the variable ptr is still on the stack even though it points to memory on the free store. A pointer is just a variable and can live on either the stack or the free store, although this fact is easy to forget. Dynamic memory, however, is always allocated on the free store.
+
+\begin{myWarning}{WARNING}
+As mandated by the C++ Core Guidelines(Guideline ES.20 of the C++ Core Guidelines, see Appendix B, states “Always initialize an object.”), every time you declare a pointer variable, you should immediately initialize it with either a proper pointer or nullptr. Don’t leave it uninitialized!
+\end{myWarning}
+
+The next example shows that pointers can exist both on the stack and on the free store:
+
+\begin{cpp}
+int** handle { nullptr };
+handle = new int*;
+*handle = new int;
+\end{cpp}
+
+This code first declares a pointer to a pointer to an integer as the variable handle. It then dynamically allocates enough memory to hold a pointer to an integer, storing the pointer to that new memory in handle. Next, that memory (*handle) is assigned a pointer to another section of dynamic memory that is big enough to hold the integer. Figure 7.3 shows the two levels of pointers with one pointer residing on the stack (handle) and the other residing on the free store (*handle).
+
+\myGraphic{0.7}{content/part3/chapter7/images/3.png}{FIGURE 7.3}
 
 \mySubsubsection{7.1.2.}{Allocation and Deallocation}
 
+To create space for a variable, you use the new keyword. To release that space for use by other parts of the program, you use the delete keyword.
+
 \mySamllsection{Using new and delete}
+
+When you want to allocate a block of memory, you call new with the type of variable for which you need space. new returns a pointer to that memory, although it is up to you to store that pointer in a variable. If you ignore the return value of new or if the pointer variable goes out of scope, the memory becomes orphaned because you no longer have a way to access it. This is called a memory leak.
+
+For example, the following code orphans enough memory to hold an int. Figure 7.4 shows the state of memory after the code is executed. When there are blocks of data on the free store with no access, direct or indirect, from the stack, the memory is orphaned or leaked.
+
+\myGraphic{0.7}{content/part3/chapter7/images/4.png}{FIGURE 7.4}
+
+\begin{cpp}
+void leaky()
+{
+    new int; // BUG! Orphans/leaks memory!
+    println("I just leaked an int!");
+}
+\end{cpp}
+
+Until they find a way to make computers with an infinite supply of fast memory, you will need to tell the compiler when the memory associated with an object can be released and reused for another purpose. To free memory on the free store, you use the delete keyword with a pointer to the memory, as shown here:
+
+\begin{cpp}
+int* ptr { new int };
+delete ptr;
+ptr = nullptr;
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+As a rule of thumb, every line of code that allocates memory with new, and that uses a raw pointer instead of storing the pointer in a smart pointer, should correspond to another line of code that releases the same memory with delete.
+\end{myWarning}
+
+\begin{myNotic}{NOTE}
+It is recommended to set a pointer to nullptr after having freed its memory. That way, you do not accidentally use a pointer to memory that has already been deallocated. It’s also worth noting that you are allowed to call delete on a nullptr pointer; it simply will not do anything.
+\end{myNotic}
 
 \mySamllsection{What About My Good Friend malloc?}
 
+If you are a C programmer, you may be wondering what is wrong with the malloc() function. In C, malloc() is used to allocate a given number of bytes of memory. For the most part, using malloc() is simple and straightforward. The malloc() function still exists in C++, but you should avoid it. The main advantage of new over malloc() is that new doesn’t just allocate memory, it constructs objects!
+
+For example, consider the following two lines of code, which use a hypothetical class called Foo:
+
+\begin{cpp}
+Foo* myFoo { (Foo*)malloc(sizeof(Foo)) };
+Foo* myOtherFoo { new Foo{} };
+\end{cpp}
+
+After executing these lines, both myFoo and myOtherFoo point to areas of memory on the free store that are big enough for a Foo object. Data members and member functions of Foo can be accessed using both pointers. The difference is that the Foo object pointed to by myFoo isn’t a proper object because its constructor was never called. The malloc() function only sets aside a piece of memory of a certain size. It doesn’t know about or care about objects. In contrast, the call to new allocates the appropriate size of memory and also calls an appropriate constructor to construct the object.
+
+A similar difference exists between the free() function and the delete operator. With free(), the object’s destructor is not called. With delete, the destructor is called and the object is properly cleaned up.
+
+\begin{myWarning}{WARNING}
+Avoid the use of malloc() and free() in C++.
+\end{myWarning}
+
 \mySamllsection{When Memory Allocation Fails}
 
+Many, if not most, programmers write code with the assumption that new will always be successful. The rationale is that if new fails, it means that memory is very low and life is very, very bad. It is often an unfathomable state to be in because it’s unclear what your program could possibly do in this situation.
+
+By default, an exception is thrown when new fails, for example if there is not enough memory available for the request. If this exception is not caught, the program will be terminated. In many programs, this behavior is acceptable. Chapter 1 introduces exceptions, and Chapter 14, “Handling Errors,” explains exceptions in more details and provides possible approaches to recover gracefully from an out-of-memory situation.
+
+There is also an alternative version of new, which does not throw an exception. Instead, it returns nullptr if allocation fails, similar to the behavior of malloc() in C. The syntax for using this version is as follows:
+
+\begin{cpp}
+int* ptr { new(nothrow) int };
+\end{cpp}
+
+The syntax is a little strange: you really do write “nothrow” as if it’s an argument to new (which it is).
+
+Of course, you still have the same problem as the version that throws an exception—what do you do when the result is nullptr? The compiler doesn’t require you to check the result, so the nothrow version of new is more likely to lead to other bugs than the version that throws an exception. For this reason, it’s suggested that you use the standard version of new. If out-of-memory recovery is important to your program, the techniques covered in Chapter 14 give you all the tools you need.
 
 \mySubsubsection{7.1.3.}{Arrays}
 
+Arrays package multiple variables of the same type into a single variable with indices. Working with arrays quickly becomes natural to a novice programmer because it is easy to think about values in numbered slots. The in-memory representation of an array is not far off from this mental model.
+
 \mySamllsection{Arrays of Primitive Types}
+
+When your program allocates memory for an array, it is allocating contiguous pieces of memory, where each piece is large enough to hold a single element of the array. For example, a local array of five ints can be declared on the stack as follows:
+
+\begin{cpp}
+int myArray[5];
+\end{cpp}
+
+The individual elements of such a primitive type array are uninitialized; that is, they contain whatever is at that location in memory. Figure 7.5 shows the state of memory after the array is created. When creating arrays on the stack, the size must be a constant value known at compile time.
+
+\myGraphic{0.7}{content/part3/chapter7/images/5.png}{FIGURE 7.5}
+
+\begin{myNotic}{NOTE}
+Some compilers allow variable-sized arrays on the stack. This is not a standard feature of C++, so I recommend cautiously backing away when you see it.
+\end{myNotic}
+
+When creating an array on the stack, an initializer list can be used to provide initial elements:
+
+\begin{cpp}
+int myArray[5] { 1, 2, 3, 4, 5 };
+\end{cpp}
+
+If the initializer list contains less elements than the size of the array, the remaining elements of the array are zero-initialized (see Chapter 1), for example:
+
+\begin{cpp}
+int myArray[5] { 1, 2 }; // 1, 2, 0, 0, 0
+\end{cpp}
+
+To zero-initialize all elements, you can simply write:
+
+\begin{cpp}
+int myArray[5] { }; // 0, 0, 0, 0, 0
+\end{cpp}
+
+When using an initializer list, the compiler can deduce the number of elements automatically, removing the need to explicitly state the size of the array:
+
+\begin{cpp}
+int myArray[] { 1, 2, 3, 4, 5 };
+\end{cpp}
+
+Declaring arrays on the free store is no different, except that you use a pointer to refer to the location of the array. The following code allocates memory for an array of five uninitialized ints and stores a pointer to the memory in a variable called myArrayPtr:
+
+\begin{cpp}
+int* myArrayPtr { new int[5] };
+\end{cpp}
+
+As Figure 7.6 illustrates, the free store-based array is similar to a stack-based array, but in a different location. The myArrayPtr variable points to the 0th element of the array.
+
+As with the new operator, new[] accepts a nothrow argument to return nullptr instead of throwing an exception if allocation fails:
+
+\begin{cpp}
+int* myArrayPtr { new(nothrow) int[5] };
+\end{cpp}
+
+\myGraphic{0.7}{content/part3/chapter7/images/6.png}{FIGURE 7.6}
+
+Dynamically created arrays on the free store can also be initialized with an initializer list:
+
+\begin{cpp}
+int* myArrayPtr { new int[] { 1, 2, 3, 4, 5 } };
+\end{cpp}
+
+Each call to new[] should be paired with a call to delete[] to clean up the memory. Note the empty square brackets, [], behind delete[]!
+
+\begin{cpp}
+delete [] myArrayPtr;
+myArrayPtr = nullptr;
+\end{cpp}
+
+The advantage of putting an array on the free store is that you can define its size at run time. For example, the following code snippet receives a desired number of documents from a hypothetical function named askUserForNumberOfDocuments() and uses that result to create an array of Document objects.
+
+\begin{cpp}
+Document* createDocumentArray()
+{
+    size_t numberOfDocuments { askUserForNumberOfDocuments() };
+    Document* documents { new Document[numberOfDocuments] };
+    return documents;
+}
+\end{cpp}
+
+Remember that each call to new[] should be paired with a call to delete[], so in this example, it’s important that the caller of createDocumentArray() uses delete[] to clean up the returned memory. Another problem is that C-style arrays don’t know their size; thus, callers of createDocumentArray() have no idea how many elements there are in the returned array!
+
+In the preceding function, documents is a dynamically allocated array. Do not get this confused with a dynamic array. The array itself is not dynamic because its size does not change once it is allocated. Dynamic memory lets you specify the size of an allocated block at run time, but it does not automatically adjust its size to accommodate the data.
+
+\begin{myNotic}{NOTE}
+There are data structures that do dynamically adjust their size and that do know their actual size, for example Standard Library containers. You should use such containers instead of C-style arrays because they are much safer to use.
+\end{myNotic}
+
+There is a function in C++ called realloc(), which is a holdover from the C language. Do not use it! In C, realloc() is used to effectively change the size of an array by allocating a new block of memory of the new size, copying all of the old data to the new location, and deleting the original block. This approach is extremely dangerous in C++ because user-defined objects will not respond well to bitwise copying.
+
+\begin{myWarning}{WARNING}
+Never use realloc() in C++! It is not your friend.
+\end{myWarning}
 
 \mySamllsection{Arrays of Objects}
 
+Arrays of objects are no different than arrays of primitive/fundamental types, except for how their elements are initialized. When you use new[N] to allocate an array of N objects, enough space is allocated for N contiguous blocks where each block is large enough for a single object. For an array of objects, new[] automatically calls the zero-argument (= default) constructor for each of the objects, while an array of primitive types by default has uninitialized elements. In this way, allocating an array of objects using new[] returns a pointer to an array of fully constructed and initialized objects.
+
+For example, consider the following class:
+
+\begin{cpp}
+class Simple
+{
+    public:
+        Simple() { println("Simple constructor called!"); }
+        ˜Simple() { println("Simple destructor called!"); }
+};
+\end{cpp}
+
+If you allocate an array of four Simple objects, the Simple constructor is called four times.
+
+\begin{cpp}
+Simple* mySimpleArray { new Simple[4] };
+\end{cpp}
+
+Figure 7.7 shows the memory diagram for this array. As you can see, it is no different than an array of basic types.
+
+\myGraphic{0.7}{content/part3/chapter7/images/7.png}{FIGURE 7.7}
+
 \mySamllsection{Deleting Arrays}
+
+When you allocate memory with new[] (i.e., the array version of new), you must release it with delete[] (i.e., the array version of delete). This version automatically destructs the objects in the array in addition to releasing the memory associated with them.
+
+\begin{cpp}
+Simple* mySimpleArray { new Simple[4] };
+// Use mySimpleArray...
+delete [] mySimpleArray;
+
+mySimpleArray = nullptr;
+\end{cpp}
+
+If you do not use the array version of delete, your program may behave in odd ways. With some compilers, only the destructor for the first element of the array will be called because the compiler only knows that you are deleting a pointer to an object, and all the other elements of the array will become orphaned objects. With other compilers, memory corruption may occur because new and new[] can use completely different memory allocation schemes.
+
+\begin{myWarning}{WARNING}
+Always use delete on anything allocated with new, and always use delete[] on anything allocated with new[].
+\end{myWarning}
+
+Of course, the destructors are called only if the elements of the array are objects. If you have an array of pointers, you still need to delete each object pointed to individually just as you allocated each object individually, as shown in the following code:
+
+\begin{cpp}
+const size_t size { 4 };
+Simple** mySimplePtrArray { new Simple*[size] };
+
+// Allocate an object for each pointer.
+for (size_t i { 0 }; i < size; ++i) { mySimplePtrArray[i] = new Simple{}; }
+
+// Use mySimplePtrArray...
+// Delete each allocated object.
+for (size_t i { 0 }; i < size; ++i) {
+    delete mySimplePtrArray[i];
+    mySimplePtrArray[i] = nullptr;
+}
+
+// Delete the array itself.
+delete [] mySimplePtrArray;
+mySimplePtrArray = nullptr;
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+In modern C++ you should avoid using raw C-style pointers when ownership is involved. Instead of storing raw pointers in C-style arrays, you should store smart pointers in modern Standard Library containers, such as std::vector. Smart pointers, discussed later in this chapter, automatically deallocate the memory associated with them at the right time.
+\end{myWarning}
 
 \mySamllsection{Multidimensional Arrays}
 
+Multidimensional arrays extend the notion of indexed values to multiple indices. For example, a tic-tac-toe game might use a two-dimensional array to represent a three-by-three grid. The following example shows such an array declared on the stack, zero-initialized, and accessed with some test code:
+
+\begin{cpp}
+char board[3][3] {};
+// Test code
+board[0][0] = 'X'; // X puts marker in position (0,0).
+board[2][1] = 'O'; // O puts marker in position (2,1).
+\end{cpp}
+
+You may be wondering whether the first subscript in a two-dimensional array is the x-coordinate or the y-coordinate. The truth is that it doesn’t really matter, as long as you are consistent. A four-byseven grid could be declared as char board[4][7] or char board[7][4]. For most applications, it is easiest to think of the first subscript as the x-axis and the second as the y-axis.
+
+\mySamllsection{Multidimensional Stack Arrays}
+
+In memory, the three-by-three stack-based two-dimensional board array looks like Figure 7.8. Because memory doesn’t have two axes (addresses are merely sequential), the computer represents a two-dimensional array just like a one-dimensional array. The difference is in the size of the array and the method used to access it.
+
+\myGraphic{0.7}{content/part3/chapter7/images/8.png}{FIGURE 7.8}
+
+The size of a multidimensional array is all of its dimensions multiplied together and then multiplied by the size of a single element in the array. In Figure 7.8, the three-by-three board is 3 × 3 × 1 = 9 bytes, assuming that a character is 1 byte. For a four-by-seven board of characters, the array would be 4 × 7 × 1 = 28 bytes.
+
+To access a value in a multidimensional array, the computer treats each subscript as if it were accessing another subarray within the multidimensional array. For example, in the three-by-three grid, the expression board[0] actually refers to the subarray highlighted in Figure 7.9. When you add a second subscript, such as board[0][2], the computer is able to access the correct element by looking up the second subscript within the subarray, as shown in Figure 7.10.
+
+These techniques are extended to N-dimensional arrays, though dimensions higher than three tend to be difficult to conceptualize and are rarely used.
+
+\myGraphic{0.7}{content/part3/chapter7/images/9.png}{FIGURE 7.9}
+
+\myGraphic{0.7}{content/part3/chapter7/images/10.png}{FIGURE 7.10}
+
+\mySamllsection{Multidimensional Free Store Arrays}
+
+If you need to determine the dimensions of a multidimensional array at run time, you can use a free store-based array. Just as a single-dimensional dynamically allocated array is accessed through a pointer, a multidimensional dynamically allocated array is also accessed through a pointer. The only difference is that in a two-dimensional array, you need to start with a pointer-to-a-pointer; and in an N-dimensional array, you need N levels of pointers. At first, it might seem as if the correct way to declare and allocate a dynamically allocated multidimensional array is as follows:
+
+\begin{cpp}
+char** board { new char[i][j] }; // BUG! Doesn't compile
+\end{cpp}
+
+This code doesn’t compile because multidimensional free store-based arrays don’t work like stack-based arrays. Their memory layout isn’t contiguous. Instead, you start by allocating a single contiguous array for the first subscript dimension of a free store-based array. Each element of that array is actually a pointer to another array that stores the elements for the second subscript dimension. Figure 7.11 shows this layout for a two-bytwo dynamically allocated board.
+
+\myGraphic{0.7}{content/part3/chapter7/images/11.png}{FIGURE 7.11}
+
+Unfortunately, the compiler doesn’t allocate memory for the subarrays on your behalf. You can allocate the first-dimension array just like a single-dimensional free store-based array, but the individual subarrays must be explicitly allocated. The following function properly allocates memory for a two-dimensional array:
+
+\begin{cpp}
+char** allocateCharacterBoard(size_t xDimension, size_t yDimension)
+{
+    char** myArray { new char*[xDimension] }; // Allocate first dimension
+    for (size_t i { 0 }; i < xDimension; ++i) {
+        myArray[i] = new char[yDimension]; // Allocate ith subarray
+    }
+    return myArray;
+}
+\end{cpp}
+
+Similarly, when you want to release the memory associated with a multidimensional free store-based array, the array delete[] syntax will not clean up the subarrays on your behalf. Your code to release an array should mirror the code to allocate it, as in the following function:
+
+\begin{cpp}
+void releaseCharacterBoard(char**& myArray, size_t xDimension)
+{
+    for (size_t i { 0 }; i < xDimension; ++i) {
+        delete [] myArray[i]; // Delete ith subarray
+        myArray[i] = nullptr;
+    }
+    delete [] myArray; // Delete first dimension
+    myArray = nullptr;
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+This example of allocating a multidimensional array is not the most efficient solution. It first allocates memory for the first dimension, followed by allocating memory for each subarray. This results in memory blocks scattered around in memory, which will have a performance impact on algorithms working on such data structures. Algorithms run much faster if they can work with contiguous memory. A better solution is to allocate a single block of memory large enough to store xDimension * yDimension elements, and to access an element at position (x,y) with a formula such as x * yDimension + y.
+\end{myNotic}
+
+Now that you know all the details to work with arrays, it is recommended to avoid these old C-style arrays as much as possible because they do not provide any memory safety. They are explained here because you will encounter them in legacy code. In new code, you should use the C++ Standard Library containers such as std::array and vector. For example, use vector<T> for a one-dimensional dynamic array. For a two-dimensional dynamic array, you could use vector<vector<T>{}>, and similar for higher dimensions. Of course, working directly with data structures such as vector<vector<T>> is still tedious, especially for constructing them, and they suffer from the same memory fragmentation problem as discussed in the previous note. So, if you do need N-dimensional dynamic arrays in your application, consider writing helper classes that provide an easier to use interface. For example, to work with two-dimensional data with equally long rows, you should consider writing (or reusing of course) a Matrix<T> or Table<T> class template that hides the memory allocation/deallocation and element access algorithms from the user. See Chapter 12, “Writing Generic Code with Templates,” for details on writing class templates.
+
+\begin{myWarning}{WARNING}
+Use C++ Standard Library containers such as std::array, vector, and so on, instead of C-style arrays!
+\end{myWarning}
 
 \mySubsubsection{7.1.4.}{Working with Pointers}
 
+Pointers get their bad reputation from the relative ease with which you can abuse them. Because a pointer is just a memory address, you could theoretically change that address manually, even doing something as scary as the following line of code:
+
+\begin{cpp}
+char* scaryPointer { (char*)7 };
+\end{cpp}
+
+This line builds a pointer to the memory address 7, which is likely to be random garbage or memory used elsewhere in the application. If you start to use areas of memory that weren’t set aside on your behalf, for example with new or on the stack, eventually you will corrupt the memory associated with an object, or the memory involved with the management of the free store, and your program will malfunction. Such a malfunction can manifest itself in several ways. For example, it can reveal itself as invalid results because the data has been corrupted, or as hardware exceptions being triggered due to accessing non-existent memory, or attempting to write to protected memory. If you are lucky, you will get one of the serious errors that usually result in program termination by the operating system or the C++ runtime library; if you are unlucky, you will just get wrong results.
+
 \mySamllsection{A Mental Model for Pointers}
 
+There are two ways to think about pointers. More mathematically minded readers might view pointers as addresses. This view makes pointer arithmetic, covered later in this chapter, a bit easier to understand. Pointers aren’t mysterious pathways through memory; they are numbers that happen to correspond to a location in memory. Figure 7.12 illustrates a two-by-two grid in the address-based view of the world.(The addresses in Figure 7.12 are just for illustrative purpose. Addresses on a real system are highly dependent on the hardware and operating system.)
+
+\myGraphic{0.7}{content/part3/chapter7/images/12.png}{FIGURE 7.12}
+
+Readers who are more comfortable with spatial representations might derive more benefit from the “arrow” view of pointers. A pointer is a level of indirection that says to the program, “Hey! Look over there.” With this view, multiple levels of pointers become individual steps on the path to the data. Figure 7.11 shows a graphical view of pointers in memory.
+
+When you dereference a pointer, by using the * operator, you are telling the program to look one level deeper in memory. In the address-based view, think of a dereference as a jump in memory to the address indicated by the pointer. With the graphical view, every dereference corresponds to following an arrow from its base to its head.
+
+When you take the address of a location, using the \& operator, you are adding a level of indirection in memory. In the address-based view, the program is noting the numerical address of the location, which can be stored as a pointer. In the graphical view, the \& operator creates a new arrow whose head ends at the location designated by the expression. The base of the arrow can be stored as a pointer.
+
 \mySamllsection{Casting with Pointers}
+
+Because pointers are just memory addresses (or arrows to somewhere), they are somewhat weakly typed. A pointer to an XML document is the same size as a pointer to an integer. The compiler lets you easily cast any pointer type to any other pointer type using a C-style cast:
+
+\begin{cpp}
+Document* documentPtr { getDocument() };
+char* myCharPtr { (char*)documentPtr };
+\end{cpp}
+
+Of course, using the resulting pointer can result in catastrophic run-time errors. A static cast offers a bit more safety. The compiler refuses to perform a static cast on pointers to unrelated data types:
+
+\begin{cpp}
+Document* documentPtr { getDocument() };
+char* myCharPtr { static_cast<char*>(documentPtr) }; // BUG! Won't compile
+\end{cpp}
+
+Chapter 10, “Discovering Inheritance Techniques,” discusses the different styles of casts in detail.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
