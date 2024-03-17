@@ -191,34 +191,296 @@ Unfortunately, the syntax for a custom deleter with unique\_ptr is a bit clumsy.
 
 \mySubsubsection{7.5.2.}{shared\_ptr}
 
+Sometimes, several objects or pieces of code need copies of the same pointer. A unique\_ptr cannot e copied and hence cannot be used for such cases. Instead, std::shared\_ptr is a smart pointer upporting shared ownership that can be copied. But, if there are multiple instances of shared\_ptr eferring to the same resource, how can they know when to actually free the resource? This is solved hrough reference counting, the topic of an upcoming section: “The Need for Reference Counting.” ut first, let’s look at how you can construct and use shared\_ptrs.
+
 \mySamllsection{Creating and Using shared\_ptrs}
+
+You use shared\_ptr in a similar way as unique\_ptr. To create one, you use make\_shared(), which s more efficient than creating a shared\_ptr directly. Here’s an example:
+
+\begin{cpp}
+auto mySimpleSmartPtr { make_shared<Simple>() };
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+Always use make\_shared() to create a shared\_ptr.
+\end{myWarning}
+
+Just as with unique\_ptr, class template argument deduction does not work for shared\_ptr, so you ave to specify the template type.
+
+make\_shared() uses value initialization, similar to make\_unique(). If this is not desired, you can se make\_shared\_for\_overwrite() for default initialization, analogous to make\_unique\_for\_verwrite().
+
+A shared\_ptr can be used to store a pointer to a dynamically allocated C-style array, just as you can o with a unique\_ptr. You can use make\_shared() for this, just as you can use make\_unique(). However, even though it is now possible to store C-style arrays in a shared\_ptr, I still recommend to se Standard Library containers instead of C-style arrays.
+
+A shared\_ptr also supports the get() and reset() member functions, just as a unique\_ptr. The nly difference is that when calling reset(), the underlying resource is freed only when the last shared\_ptr is destroyed or reset. Note that shared\_ptr does not support release(). You can use he use\_count() member function to retrieve the number of shared\_ptr instances that are sharing he same resource.
+
+Just like unique\_ptr, shared\_ptr by default uses the standard new and delete operators to allocate nd deallocate memory, or new[] and delete[] when storing a C-style array. You can change this ehavior as follows:
+
+\begin{cpp}
+// Implementations of my_alloc() and my_free() as before.
+shared_ptr<int> myIntSmartPtr { my_alloc(42), my_free };
+\end{cpp}
+
+As you can see, you don’t have to specify the type of the custom deleter as a template type argument, o this makes it easier than a custom deleter with unique\_ptr.
+
+The following example uses a shared\_ptr to store a file pointer. When the shared\_ptr is destroyed in this case when it goes out of scope), the file pointer is automatically closed with a call to close().Note that C++ has proper object-oriented classes to work with files (see Chapter 13, “Demystifying ++ I/O”). Those classes already automatically close their files. This example using the old C-style open() and fclose() functions is just to give a demonstration of what shared\_ptrs can be used or besides pure memory. For example, it comes in handy if you have to use a C-style library, for hich there is no C++ alternative, and that has similar functions to open and close resources. You ould wrap them in shared\_ptrs as in this example.
+
+\begin{cpp}
+void close(FILE* filePtr)
+{
+    if (filePtr == nullptr) { return; }
+    fclose(filePtr);
+    println("File closed.");
+}
+int main()
+{
+    FILE* f { fopen("data.txt", "w") };
+    shared_ptr<FILE> filePtr { f, close };
+    if (filePtr == nullptr) {
+        println(cerr, "Error opening file.");
+    } else {
+        println("File opened.");
+        // Use filePtr
+    }
+}
+\end{cpp}
 
 \mySamllsection{The Need for Reference Counting}
 
+As briefly mentioned earlier, when a smart pointer with shared ownership, such as shared\_ptr, goes ut of scope or is reset, it should only free the referenced resource if it’s the last smart pointer referring to it. How is this accomplished? One solution, used by the shared\_ptr Standard Library smart ointer, is reference counting.
+
+As a general concept, reference counting is a technique for keeping track of the number of instances f a class or particular object in use. A reference-counting smart pointer is one that keeps track of ow many smart pointers have been constructed to refer to a single real pointer, or single object.Every time such a reference-counted smart pointer is copied, a new instance is created pointing to the ame resource, and the reference count is incremented. When such a smart pointer instance goes out f scope or is reset, the reference count is decremented. When the reference count drops to zero, there re no other owners of the resource anymore, so the smart pointer frees the resource.
+
+Reference-counted smart pointers solve a lot of memory management issues, such as double deletion.For example, suppose you have the following two raw pointers pointing to the same memory. The imple class is introduced earlier in this chapter and simply prints out messages when an instance is reated and destroyed.
+
+\begin{cpp}
+Simple* mySimple1 { new Simple{} };
+Simple* mySimple2 { mySimple1 }; // Make a copy of the pointer.
+\end{cpp}
+
+Deleting both raw pointers will result in a double deletion:
+
+\begin{cpp}
+delete mySimple2;
+delete mySimple1;
+\end{cpp}
+
+Of course, you’ll (ideally) never find code like this, but it can happen when there are several layers of function calls involved, where one function deletes the memory, while another function has lready done so.
+
+By using the shared\_ptr reference-counted smart pointer, such double deletions are avoided:
+
+\begin{cpp}
+auto smartPtr1 { make_shared<Simple>() };
+auto smartPtr2 { smartPtr1 }; // Make a copy of the pointer.
+\end{cpp}
+
+In this case, when both smart pointers go out of scope or are reset, only then is the Simple instance reed, exactly once.
+
+All this works correctly only when there are no raw pointers involved! For example, suppose you llocate some memory using new and then create two shared\_ptr instances referring to the same aw pointer:
+
+\begin{cpp}
+Simple* mySimple { new Simple{} };
+shared_ptr<Simple> smartPtr1 { mySimple };
+shared_ptr<Simple> smartPtr2 { mySimple };
+\end{cpp}
+
+Both these smart pointers will attempt to delete the same object when they are destroyed. Depending n your compiler, this piece of code might crash! If you do get output, it could be as follows:
+
+\begin{shell}
+Simple constructor called!
+Simple destructor called!
+Simple destructor called!
+\end{shell}
+
+Yikes! One call to the constructor and two calls to the destructor? You get the same problem with nique\_ptr. You might be surprised that even the reference-counted shared\_ptr class behaves this ay. However, this is correct behavior. The only safe way to have multiple shared\_ptr instances oint to the same memory is to simply copy such shared\_ptrs.
+
 \mySamllsection{Casting a shared\_ptr}
+
+Just as a raw pointer of a certain type can be cast to a pointer of a different type, a shared\_ptr toring a certain type can be cast to a shared\_ptr of another type. Of course, there are restrictions f what type can be cast to what type. Not all casts are valid. The functions that are available to cast shared\_ptrs are const\_pointer\_cast(), dynamic\_pointer\_cast(), static\_pointer\_cast(), nd reinterpret\_pointer\_cast(). These behave and work similar to the non-smart pointer casting unctions const\_cast(), dynamic\_cast(), static\_cast(), and reinterpret\_cast(), which are iscussed in detail with examples in Chapter 10.
+
+Note that these casts work only with shared\_ptr and not with unique\_ptr.
 
 \mySamllsection{Aliasing}
 
+A shared\_ptr supports aliasing. This allows a shared\_ptr to share ownership over a pointer owned pointer) with another shared\_ptr, but pointing to a different object (stored pointer). It can, or example, be used to have a shared\_ptr pointing to a member of an object while owning the bject itself. Here’s an example:
+
+\begin{cpp}
+class Foo
+{
+    public:
+    Foo(int value) : m_data { value } { }
+    int m_data;
+};
+
+auto foo { make_shared<Foo>(42) };
+auto aliasing { shared_ptr<int> { foo, &foo->m_data } };
+\end{cpp}
+
+The Foo object is only destroyed when both shared\_ptrs (foo and aliasing) are destroyed.
+
+The owned pointer is used for reference counting, while the stored pointer is returned when you ereference the pointer or when you call get() on it.
+
+\begin{myWarning}{WARNING}
+In modern C++ code, raw pointers are allowed only if there is no wnership involved! If there is ownership involved, use unique\_ptr by default, nd shared\_ptr if ownership needs to be shared. Additionally, use make\_unique() and make\_shared() to create these smart pointers. By doing so, there hould be almost no need to directly call the new operator, and there should never e a need to call delete.
+\end{myWarning}
 
 \mySubsubsection{7.5.3.}{weak\_ptr}
 
+There is one more smart pointer class in C++ that is related to shared\_ptr, called weak\_ptr. A weak\_ptr can contain a reference to a resource managed by a shared\_ptr. The weak\_ptr does not wn the resource, so the shared\_ptr is not prevented from deallocating the resource. A weak\_ptr oes not destroy the pointed-to resource when the weak\_ptr is destroyed (for example when it goes ut of scope); however, it can be used to determine whether the resource has been freed by the associated shared\_ptr or not. The constructor of a weak\_ptr requires a shared\_ptr or another weak\_ptr s argument. To get access to the pointer stored in a weak\_ptr, you need to convert it to a shared\_ptr. There are two ways to do this:
 
+\begin{itemize}
+\item
+Use the lock() member function on a weak\_ptr instance, which returns a shared\_ptr. The eturned shared\_ptr is nullptr if the shared\_ptr associated with the weak\_ptr has been eallocated in the meantime.
+
+\item
+Create a new shared\_ptr instance and give a weak\_ptr as argument to the shared\_ptr constructor. This throws an std::bad\_weak\_ptr exception if the shared\_ptr associated ith the weak\_ptr has been deallocated.
+\end{itemize}
+
+The following example demonstrates the use of weak\_ptr:
+
+\begin{cpp}
+void useResource(weak_ptr<Simple>& weakSimple)
+{
+    auto resource { weakSimple.lock() };
+    if (resource) { println("Resource still alive."); }
+    else { println("Resource has been freed!"); }
+}
+
+int main()
+{
+    auto sharedSimple { make_shared<Simple>() };
+    weak_ptr<Simple> weakSimple { sharedSimple };
+
+    // Try to use the weak_ptr.
+    useResource(weakSimple);
+
+    // Reset the shared_ptr.
+    // Since there is only 1 shared_ptr to the Simple resource, this will
+    // free the resource, even though there is still a weak_ptr alive.
+    sharedSimple.reset();
+
+    // Try to use the weak_ptr a second time.
+    useResource(weakSimple);
+}
+\end{cpp}
+
+The output of this code is as follows:
+
+\begin{shell}
+Simple constructor called!
+Resource still alive.
+Simple destructor called!
+Resource has been freed!
+\end{shell}
+
+weak\_ptr also supports C-style arrays, just as shared\_ptr.
 
 \mySubsubsection{7.5.4.}{Passing to Functions}
 
+A function accepting a pointer as one of its parameters should accept a smart pointer only if there s ownership transfer or ownership sharing involved. To share ownership of a shared\_ptr, simply ccept a shared\_ptr by value as parameter. Similarly, to transfer ownership of a unique\_ptr, simply ccept a unique\_ptr by value as parameter. The latter requires using move semantics, discussed in etail in Chapter 9.
 
+If neither ownership transfer nor ownership sharing is involved, then the function should simply have  reference-to-non-const or reference-to-const parameter referring to the underlying resource, or  raw pointer to it if nullptr is a valid value for the parameter. Having a parameter type such as onst shared\_ptr<T>\& or const unique\_ptr<T>\& never makes much sense.
 
 \mySubsubsection{7.5.5.}{Returning from Functions}
 
+The standard smart pointers, shared\_ptr, unique\_ptr, and weak\_ptr, can easily and efficiently be eturned from functions by value, thanks to mandatory and non-mandatory copy elision, discussed in hapter 1, and move semantics, discussed in Chapter 9. Details of move semantics are not important at this time. What is important is that all this means it is efficient to return a smart pointer from a unction. For example, you can write the following create() function and use it as demonstrated in main():
 
+\begin{cpp}
+unique_ptr<Simple> create()
+{
+    auto ptr { make_unique<Simple>() };
+    // Do something with ptr...
+    return ptr;
+}
+int main()
+{
+    unique_ptr<Simple> mySmartPtr1 { create() };
+    auto mySmartPtr2 { create() };
+}
+
+\end{cpp}
 
 \mySubsubsection{7.5.6.}{enable\_shared\_from\_this}
 
+Deriving a class from std::enable\_shared\_from\_this allows a member function called on an object to safely return a shared\_ptr or weak\_ptr to itself. Without this base class, one way to return a valid shared\_ptr or weak\_ptr to this is by adding a weak\_ptr as a member to the class, and to return copies of it or return shared\_ptrs constructed from it. The enable\_shared\_from\_this class adds the following two member functions to a class deriving from it:
 
+\begin{itemize}
+\item
+shared\_from\_this(): Returns a shared\_ptr that shares ownership of the object
+
+\item
+weak\_from\_this(): Returns a weak\_ptr that tracks ownership of the object
+\end{itemize}
+
+This is an advanced feature not discussed in detail, but the following code briefly demonstrates its use. Both shared\_from\_this() and weak\_from\_this() are public member functions. However, maybe you find the from\_this part confusing in your public interface, so just as a demonstration, the following Foo class defines its own member function called getPointer():
+
+\begin{cpp}
+class Foo : public enable_shared_from_this<Foo>
+{
+    public:
+        shared_ptr<Foo> getPointer() {
+            return shared_from_this();
+        }
+};
+
+int main()
+{
+    auto ptr1 { make_shared<Foo>() };
+    auto ptr2 { ptr1->getPointer() };
+}
+
+\end{cpp}
+
+Note that you can use shared\_from\_this() on an object only if its pointer has already been stored in a shared\_ptr; otherwise, a bad\_weak\_ptr exception is thrown. In the example, make\_shared() is used in main() to create a shared\_ptr called ptr1, which contains an instance of Foo. After this shared\_ptr creation, it is allowed to call shared\_from\_this() on that Foo instance. On the other hand, it is always allowed to call weak\_from\_this(), but it might return an empty weak\_ptr if it is called on an object for which its pointer has not been stored in a shared\_ptr yet.
+
+The following would be a completely wrong implementation of the getPointer() member function:
+
+\begin{cpp}
+class Foo
+{
+    public:
+        shared_ptr<Foo> getPointer() {
+            return shared_ptr<Foo>(this);
+        }
+};
+\end{cpp}
+
+If you use the same code for main() as shown earlier, this implementation of Foo causes a double deletion. You have two completely independent shared\_ptrs (ptr1 and ptr2) pointing to the same object, which will both try to delete the object when they go out of scope.
+
+\CXXTwentythreeLogo{-40}{-50}
 
 \mySubsubsection{7.5.7.}{Interoperability of Smart Pointers with C-Style Functions}
 
+Often, C-style functions use the return type to indicate whether a function executed correctly or whether there was any error. Since the return type is already used for reporting errors, additional output parameters are used to return other data from the function. For example:
+
+\begin{cpp}
+using errorcode = int;
+errorcode my_alloc(int value, int** data) { *data = new int { value }; return 0; }
+errorcode my_free(int* data) { delete data; return 0; }
+\end{cpp}
+
+With this C-style API, the my\_alloc() function returns an errorcode and returns the allocated data in the output parameter called data. Before C++23, you could not directly use a smart pointer, such as unique\_ptr, with my\_alloc(). Instead, you could do something like this:
+
+\begin{cpp}
+unique_ptr<int, decltype(&my_free)> myIntSmartPtr(nullptr, my_free);
+int* data { nullptr };
+my_alloc(42, &data);
+myIntSmartPtr.reset(data);
+\end{cpp}
+
+That’s rather involved for something relatively easy. C++23 introduces the std::out\_ptr() and inout\_ptr() functions to help with this, both defined in <memory>. Using these, the code snippet can be written more elegantly as follows:
+
+\begin{cpp}
+unique_ptr<int, decltype(&my_free)> myIntSmartPtr(nullptr, my_free);
+my_alloc(42, inout_ptr(myIntSmartPtr));
+\end{cpp}
+
+If you’re sure that the pointer passed to inout\_ptr() is nullptr, then you can use out\_ptr instead.
 
 
 \mySubsubsection{7.5.8.}{The Old and Removed auto\_ptr}
 
+The old, pre-C++11 Standard Library included a basic implementation of a smart pointer, called auto\_ptr. Unfortunately, auto\_ptr has some serious shortcomings. One of these shortcomings is that it does not work correctly when used inside Standard Library containers such as vectors. C++11 officially deprecated auto\_ptr, and since C++17, it has been removed entirely from the Standard Library. It is replaced with unique\_ptr and shared\_ptr. auto\_ptr is mentioned here to make sure you know about it and to make sure you never use it.
+
+\begin{myWarning}{WARNING}
+Never use the old auto\_ptr smart pointer! Instead, use unique\_ptr by default or shared\_ptr if you need shared ownership.
+\end{myWarning}

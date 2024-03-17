@@ -1,40 +1,426 @@
 
+When you write a class, you specify the behaviors, or member functions, that will apply to objects of that class, and you specify the properties, or data members, that each object will contain.
+
+There are two components in the process of writing classes: defining the classes themselves and defining their member functions.
 
 
 \mySubsubsection{8.2.1.}{Class Definitions}
 
+Here is a first attempt at a simple SpreadsheetCell class in a spreadsheet\_cell module, in which each cell can store only a single number:
+
+\begin{cpp}
+export module spreadsheet_cell;
+
+export class SpreadsheetCell
+{
+    public:
+        void setValue(double value);
+        double getValue() const;
+    private:
+        double m_value;
+};
+\end{cpp}
+
+As described in Chapter 1, the first line specifies that this is the definition of a module named spreadsheet\_cell. Every class definition begins with the keyword class followed by the name of the class. If the class is defined in a module and the class must become visible to clients importing the module, then the class keyword is prefixed with export. A class definition is a declaration and ends with a semicolon.
+
+Class definitions usually go in a file named after the class. For example, the SpreadsheetCell class definition is put in a file called SpreadsheetCell.cppm. Some compilers require the use of a specific extension; others allow you to choose any extension.
+
 \mySamllsection{Class Members}
+
+A class can have several members. A member can be a member function (which in turn is a function, constructor, or destructor), a member variable (also called a data member), member enumerations, type aliases, nested classes, and so on.
+
+The two lines that look like function prototypes declare the member functions that this class supports:
+
+\begin{cpp}
+void setValue(double value);
+double getValue() const;
+\end{cpp}
+
+Chapter 1 points out that it is always a good idea to declare member functions that do not change the object as const, like the getValue() member function.
+
+The line that looks like a variable declaration declares the data member for this class:
+
+\begin{cpp}
+double m_value;
+\end{cpp}
+
+A class defines the member functions and data members that apply. They apply only to a specific instance of the class, which is an object. The only exceptions to this rule are static members, which are explained in Chapter 9. Classes define concepts; objects contain real bits. So, each object contains its own value for the m\_value data member. The implementation of the member functions is shared across all objects. Classes can contain any number of member functions and data members. You can not give a data member the same name as a member function.
 
 \mySamllsection{Access Control}
 
+Every member in a class is subject to one of three access specifiers: public, private, or protected. The protected access specifier is explained in the context of inheritance in Chapter 10, “Discovering Inheritance Techniques.” An access specifier applies to all member declarations that follow it, until the next access specifier. In the SpreadsheetCell class, the setValue() and getValue() member functions have public access, while the m\_value data member has private access.
+
+The default access specifier for classes is private: all member declarations before the first access specifier have the private access specification. For example, moving the public access specifier to after the setValue() member function declaration gives the setValue() member function private access instead of public:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+        void setValue(double value); // now has private access
+    public:
+        double getValue() const;
+    private:
+        double m_value;
+};
+\end{cpp}
+
+In C++, a struct can have member functions just like a class. In fact, there is only one difference: for a struct, the default access specifier is public, while it’s private for a class.
+
+For example, the SpreadsheetCell class could be rewritten using a struct as follows:
+
+\begin{cpp}
+export struct SpreadsheetCell
+{
+    void setValue(double value);
+        double getValue() const;
+    private:
+        double m_value;
+};
+\end{cpp}
+
+However, it’s unconventional to do so. A struct is usually used only if you just need a collection of publicly accessible data members and no member functions. The following is an example of such a simple struct to store 2-D point coordinates:
+
+\begin{cpp}
+export struct Point
+{
+    double x;
+    double y;
+};
+\end{cpp}
+
 \mySamllsection{Order of Declarations}
+
+You can declare your members and access control specifiers in any order: C++ does not impose any restrictions, such as member functions before data members or public before private. Additionally, you can repeat access specifiers. For example, the SpreadsheetCell definition could look like this:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        void setValue(double value);
+    private:
+        double m_value;
+    public:
+        double getValue() const;
+};
+\end{cpp}
+
+However, for clarity it is a good idea to group declarations based on their access specifier and to group member functions and data members within those declarations.
+
 
 \mySamllsection{In-Class Member Initializers}
 
+Data members can be initialized directly in the class definition. For example, the SpreadsheetCell class can, by default, initialize m\_value to 0 directly in the class definition as follows:
 
+\begin{cpp}
+export class SpreadsheetCell
+{
+    // Remainder of the class definition omitted for brevity
+    private:
+        double m_value { 0 };
+};
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+It is recommended to always initialize data members of a class.
+\end{myNotic}
 
 \mySubsubsection{8.2.2.}{Defining Member Functions}
 
+The preceding definition for the SpreadsheetCell class is enough for you to create objects of the class. However, if you try to call the setValue() or getValue() member function, your linker will complain that those member functions are not defined. That’s because these member functions only have prototypes so far, but no implementations yet. Usually, a class definition goes in a module interface file. For the member function definitions, you have a choice: they can go in the module interface file or in a module implementation file.
+
+Here is the SpreadsheetCell class with in-class member function implementations:
+
+\begin{cpp}
+export module spreadsheet_cell;
+
+export class SpreadsheetCell
+{
+    public:
+        void setValue(double value) { m_value = value; }
+        double getValue() const { return m_value; }
+    private:
+        double m_value { 0 };
+};
+\end{cpp}
+
+Unlike with header files, with C++ modules there is no harm in putting member function definitions in module interface files. This is discussed in more detail in Chapter 11, “Modules, Header Files, and Miscellaneous Topics.” However, this book often puts member function definitions in module implementation files, in the interest of keeping module interface files clean and without any implementation details.
+
+The first line of a module implementation file specifies which module the implementations are for. Here are the definitions for the two member functions of the SpreadsheetCell class in the spreadsheet\_cell module:
+
+\begin{cpp}
+module spreadsheet_cell;
+
+void SpreadsheetCell::setValue(double value)
+{
+    m_value = value;
+}
+
+double SpreadsheetCell::getValue() const
+{
+    return m_value;
+}
+
+\end{cpp}
+
+Note that the name of the class followed by two colons precedes each member function name:
+
+\begin{cpp}
+void SpreadsheetCell::setValue(double value)
+\end{cpp}
+
+The :: is called the scope resolution operator. In this context, the syntax tells the compiler that the coming definition of the setValue() member function is part of the SpreadsheetCell class. Note also that you do not repeat the access specification when you define the member function.
+
 \mySamllsection{Accessing Data Members}
+
+Non-static member functions of a class, such as setValue() and getValue(), are always executed on behalf of a specific object of that class. Inside a member function’s body, you have access to all data members of the class for that object. In the previous definition for setValue(), the following line changes the m\_value variable inside whatever object calls the member function:
+
+\begin{cpp}
+m_value = value;
+\end{cpp}
+
+If setValue() is called for two different objects, the same line of code (executed once for each object) changes the variable in two different objects.
 
 \mySamllsection{Calling Other Member Functions}
 
+You can call member functions of a class from inside another member function. For example, consider an extension to the SpreadsheetCell class to allow setting and retrieving the value of a cell as a string or as a number. When you try to set the value of a cell with a string, the cell tries to convert the string to a number. If the string does not represent a valid number, the cell value is ignored. In this program, strings that are not numbers will generate a cell value of 0. Here is a first stab at such a class definition for a SpreadsheetCell:
 
-\mySubsubsection{8.2.3.}{weak\_ptr}
+\begin{cpp}
+export module spreadsheet_cell;
+import std;
+export class SpreadsheetCell
+{
+    public:
+        void setValue(double value);
+        double getValue() const;
+
+        void setString(std::string_view value);
+        std::string getString() const;
+    private:
+        std::string doubleToString(double value) const;
+        double stringToDouble(std::string_view value) const;
+        double m_value { 0 };
+};
+\end{cpp}
+
+This version of the class stores the data only as a double. If the client sets the data as a string, it is converted to a double. If the text is not a valid number, the double value is set to 0. The class definition shows two new member functions to set and retrieve the text representation of the cell, and two new private helper member functions to convert a double to a string and vice versa. Here are the implementations of all the member functions:
+
+\begin{cpp}
+module spreadsheet_cell;
+import std;
+using namespace std;
+
+void SpreadsheetCell::setValue(double value)
+{
+    m_value = value;
+}
+
+double SpreadsheetCell::getValue() const
+{
+    return m_value;
+}
+
+void SpreadsheetCell::setString(string_view value)
+{
+    m_value = stringToDouble(value);
+}
+
+string SpreadsheetCell::getString() const
+{
+    return doubleToString(m_value);
+}
+
+string SpreadsheetCell::doubleToString(double value) const
+{
+    return to_string(value);
+}
+
+double SpreadsheetCell::stringToDouble(string_view value) const
+{
+    double number { 0 };
+    from_chars(value.data(), value.data() + value.size(), number);
+    return number;
+}
+\end{cpp}
+
+The std::to\_string() and from\_chars() functions are explained in Chapter 2, “Working with Strings and String Views.”
+
+Note that with this implementation of the doubleToString() member function, a value of, for example, 6.1 is converted to 6.100000. However, because it is a private helper member function, you are free to modify the implementation without having to modify any client code.
+
+
+\mySubsubsection{8.2.3.}{Using Objects}
+
+The previous class definition says that a SpreadsheetCell consists of one data member, four public member functions, and two private member functions. However, the class definition does not actually create any SpreadsheetCells; it just specifies their shape and behavior. In that sense, a class is like architectural blueprints. The blueprints specify what a house should look like, but drawing the blueprints doesn’t build any houses. Houses must be constructed later based on the blueprints.
+
+Similarly, in C++ you can construct a SpreadsheetCell “object” from the SpreadsheetCell class definition by declaring a variable of type SpreadsheetCell. Just as a builder can build more than one house based on a given set of blueprints, a programmer can create more than one SpreadsheetCell object from a SpreadsheetCell class. There are two ways to create and use objects: on the stack and on the free store.
 
 \mySamllsection{Objects on the Stack}
 
+Here is some code that creates and uses SpreadsheetCell objects on the stack:
+
+\begin{cpp}
+SpreadsheetCell myCell, anotherCell;
+myCell.setValue(6);
+anotherCell.setString("3.2");
+println("cell 1: {}", myCell.getValue());
+println("cell 2: {}", anotherCell.getValue());
+\end{cpp}
+
+You create objects just as you declare simple variables, except that the variable type is the class name. The . in lines like myCell.setValue(6); is called the “dot” operator, also called the member access operator; it allows you to call public member functions on the object. If there were any public data members in the object, you could access them with the dot operator as well. Remember that public data members are not recommended.
+
+The output of the program is as follows:
+
+\begin{shell}
+cell 1: 6
+cell 2: 3.2
+\end{shell}
+
+
 \mySamllsection{Objects on the Free Store}
 
+You can also dynamically allocate objects by using new:
 
 
-\mySubsubsection{8.2.4.}{Using Objects}
+\begin{cpp}
+SpreadsheetCell* myCellp { new SpreadsheetCell { } };
+myCellp->setValue(3.7);
+println("cell 1: {} {}", myCellp->getValue(), myCellp->getString());
+delete myCellp;
+myCellp = nullptr;
+\end{cpp}
+
+When you create an object on the free store, you access its members through the “arrow” operator: ->. The arrow combines dereferencing (*) and member access (.). You could use those two operators instead, but doing so would be stylistically awkward:
+
+\begin{cpp}
+SpreadsheetCell* myCellp { new SpreadsheetCell { } };
+(*myCellp).setValue(3.7);
+println("cell 1: {} {}", (*myCellp).getValue(), (*myCellp).getString());
+delete myCellp;
+myCellp = nullptr;
+\end{cpp}
+
+Just as you must free other memory that you allocate on the free store, you must free the memory for objects that you allocate on the free store by calling delete on them, as is done in the previous code snippets! To guarantee safety and to avoid memory problems, you really should use smart pointers, as in the following example:
+
+\begin{cpp}
+auto myCellp { make_unique<SpreadsheetCell>() };
+// Equivalent to:
+// unique_ptr<SpreadsheetCell> myCellp { new SpreadsheetCell { } };
+myCellp->setValue(3.7);
+println("cell 1: {} {}", myCellp->getValue(), myCellp->getString());
+\end{cpp}
+
+With smart pointers you don’t need to manually free the memory; it happens automatically.
+
+\begin{myWarning}{WARNING}
+When you allocate an object with new, free it with delete after you are finished with it, or, better yet, use smart pointers to manage the memory automatically!
+\end{myWarning}
+
+\begin{myNotic}{NOTE}
+If you don’t use smart pointers, it is always a good idea to reset a pointer to nullptr after deleting the object to which it pointed. You are not required to do so, but it will make debugging easier in case the pointer is accidentally used after deleting the object
+\end{myNotic}
+
+
+\mySubsubsection{8.2.4.}{The this Pointer}
+
+Every normal member function call implicitly passes a pointer to the object for which it is called as a “hidden” parameter with the name this. You can use this pointer to access data members or call member functions, and you can pass it to other member functions or functions. It is sometimes also useful for disambiguating names. For example, you could have defined the SpreadsheetCell class with a value data member instead of m\_value. In that case, setValue() would look like the following:
+
+\begin{cpp}
+void SpreadsheetCell::setValue(double value)
+{
+    value = value; // Confusing!
+}
+\end{cpp}
+
+That line is confusing. Which value do you mean: the value that was passed as a parameter or the value that is a member of the object?
+
+\begin{myNotic}{NOTE}
+With some compilers or compiler settings, the preceding confusing line compiles without any warnings or errors, but it will not produce the results that you are expecting.
+\end{myNotic}
+
+To disambiguate the names, you can use the this pointer:
+
+\begin{cpp}
+void SpreadsheetCell::setValue(double value)
+{
+    this->value = value;
+}
+\end{cpp}
+
+However, if you use the naming conventions described in Chapter 3, “Coding with Style,” you will never encounter this type of name collision.
+
+You can also use the this pointer to call a function that takes, as a parameter, a pointer to an object from within a member function of that object. For example, suppose you write a printCell() standalone function (not a member function) like this:
+
+\begin{cpp}
+void printCell(const SpreadsheetCell& cell)
+{
+    println("{}", cell.getString());
+}
+\end{cpp}
+
+If you want to call printCell() from the setValue() member function, you must pass *this as the argument to give printCell() a reference to the SpreadsheetCell on which setValue() operates:
+
+\begin{cpp}
+void SpreadsheetCell::setValue(double value)
+{
+    this->value = value;
+    printCell(*this);
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Instead of writing a printCell() function, it would be more convenient to write a custom formatter, as explained in Chapter 2. You can then use the following line to print a SpreadsheetCell called myCell:
+
+\begin{cpp}
+std::println("{}", myCell);
+\end{cpp}
+
+Alternatively, you can overload the <{}< operator, as explained in Chapter 15, “Overloading C++ Operators.” You can then write the following:
+
+\begin{cpp}
+cout << myCell << endl;
+\end{cpp}
+\end{myNotic}
+
+\CXXTwentythreeLogo{-40}{-50}
+
+\mySubsubsection{8.2.5.}{Explicit Object Parameter}
+
+Starting with C++23, instead of relying on the compiler to provide an implicit this parameter, you can use an explicit object parameter, usually of a reference type. The following code snippet implements the setValue() member function of SpreadsheetCell from the previous section using an explicit object parameter:
+
+\begin{cpp}
+void SpreadsheetCell::setValue(this SpreadsheetCell& self, double value)
+{
+    self.m_value = value;
+    printCell(self);
+}
+\end{cpp}
+
+The first parameter of setValue() is now the explicit object parameter, usually called self, but you can use any name you want. The type of self is prefixed with the this keyword. This explicit object parameter must be the first parameter of the member function. Once you use an explicit object parameter, the function no longer has an implicitly defined this; hence, in the body of setValue(), you now must explicitly use self to access anything from the SpreadsheetCell.
+
+Calling a member function that uses an explicit object parameter is no different than calling one with an implicit this parameter. Even though setValue() now specifies two parameters, self and value, you still call it by passing just a single argument, the value that you want to set:
+
+\begin{cpp}
+SpreadsheetCell myCell;
+myCell.setValue(6);
+\end{cpp}
+
+Using explicit object parameters as demonstrated in this section has no benefits at all, it even makes the code more verbose. However, they are useful in the following situations:
+
+\begin{itemize}
+\item
+To provide a more explicit syntax for writing ref-qualified member functions, discussed in Chapter 9.
+
+\item
+For member function templates where the type of the explicit object parameter is a template type parameter. This can be useful to avoid code duplication when implementing const and non-const overloads of member functions and is discussed in Chapter 12, “Writing Generic Code with Templates.”
+
+\item
+To write recursive lambda expressions, explained in Chapter 19, “Function Pointers, Function Objects, and Lambda Expressions.”
+\end{itemize}
 
 
 
-\mySubsubsection{8.2.5.}{The this Pointer}
 
 
 
-\mySubsubsection{8.2.6.}{Explicit Object Parameter}
+
+
+
 
