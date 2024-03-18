@@ -1,0 +1,58 @@
+C++ allows classes to declare that other classes, member functions of other classes, or non-member functions are friends, and can access protected and private data members and member functions. For example, suppose you have two classes called Foo and Bar. You can specify that the Bar class is a friend of Foo as follows:
+
+\begin{cpp}
+class Foo
+{
+    friend class Bar;
+    // ...
+};
+\end{cpp}
+
+Now all the member functions of Bar can access the private and protected data members and member functions of Foo.
+
+If you only want to make a specific member function of Bar a friend, you can do that as well. Suppose the Bar class has a member function processFoo(const Foo\&). The following syntax is used to make this member function a friend of Foo:
+
+\begin{cpp}
+class Foo
+{
+    friend void Bar::processFoo(const Foo&);
+    // ...
+};
+\end{cpp}
+
+Stand-alone functions can also be friends of classes. You might, for example, want to write a function that prints all data of a Foo object to the console. You might want this function to be outside the Foo class because printing is not core functionality of Foo, but the function should be able to access the internal data members of the object to print them all. Here is the Foo class definition with printFoo() as a friend:
+
+\begin{cpp}
+class Foo
+{
+    friend void printFoo(const Foo&);
+    // ...
+};
+\end{cpp}
+
+The friend declaration in the class serves as the function’s prototype. There’s no need to write the prototype elsewhere (although it’s harmless to do so).
+
+Here is the function definition:
+
+\begin{cpp}
+void printFoo(const Foo& foo)
+{
+    // Print all data of foo to the console, including
+    // private and protected data members.
+}
+\end{cpp}
+
+You write this function outside the class definition just like any other function, except that you can directly access private and protected members of Foo. You don’t repeat the friend keyword in the function definition.
+
+Note that a class needs to know which other classes, member functions, or functions want to be its friends; a class, member function, or function cannot declare itself to be a friend of some other class to gain access to non-public members of that class.
+
+friend classes and functions are easy to abuse; they allow you to violate the principle of encapsulation by exposing internals of your class to other classes or functions. Thus, you should use them only in limited circumstances. Some use cases are shown throughout this chapter.
+
+
+
+
+
+
+
+
+

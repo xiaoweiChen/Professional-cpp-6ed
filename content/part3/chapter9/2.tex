@@ -1,38 +1,983 @@
 
+Sometimes you don’t know how much memory you will need before your program actually runs. As you read in Chapter 7, “Memory Management,” the solution is to dynamically allocate as much space as you need during program execution. Classes are no exception. Sometimes you don’t know how much memory an object will need when you write the class. In that case, the object should dynamically allocate memory. Dynamically allocated memory in objects provides several challenges, including freeing the memory, handling object copying, and handling object assignment.
 
 \mySubsubsection{9.2.1.}{The Spreadsheet Class}
 
+Chapter 8 introduces the SpreadsheetCell class. This chapter moves on to write the Spreadsheet class. As with the SpreadsheetCell class, the Spreadsheet class evolves throughout this chapter. Thus, the various attempts do not always illustrate the best way to do every aspect of class writing.
 
+To start, a Spreadsheet is simply a two-dimensional array of SpreadsheetCells, with member functions to set and retrieve cells at specific locations in the Spreadsheet. Although most spreadsheet applications use letters in one direction and numbers in the other to refer to cells, this Spreadsheet uses numbers in both directions.
+
+The first line of the Spreadsheet.cppm module interface file defines the name of the module:
+
+\begin{cpp}
+export module spreadsheet;
+\end{cpp}
+
+The Spreadsheet class needs access to the SpreadsheetCell class, so it needs to import the spreadsheet\_cell module. Additionally, to make the SpreadsheetCell class visible to users of the spreadsheet module, the spreadsheet\_cell module is imported and exported with the following funny-looking syntax:
+
+\begin{cpp}
+export import spreadsheet_cell;
+\end{cpp}
+
+The Spreadsheet class uses the std::size\_t type, which is defined in the C header called <cstddef>. You can get access to it with the following import:
+
+\begin{cpp}
+import std;
+\end{cpp}
+
+Finally, here is a first attempt at a definition of the Spreadsheet class:
+
+\begin{cpp}
+export class Spreadsheet
+{
+    public:
+        Spreadsheet(std::size_t width, std::size_t height);
+        void setCellAt(std::size_t x, std::size_t y, const SpreadsheetCell& cell);
+        SpreadsheetCell& getCellAt(std::size_t x, std::size_t y);
+    private:
+        bool inRange(std::size_t value, std::size_t upper) const;
+        std::size_t m_width { 0 };
+        std::size_t m_height { 0 };
+        SpreadsheetCell** m_cells { nullptr };
+};
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+The Spreadsheet class uses normal pointers for the m\_cells array. This is done throughout this chapter to show the consequences and to explain how to handle resources, such as dynamic memory, in classes. In production code, you should use one of the standard C++ containers, like std::vector, which greatly simplifies the implementation of Spreadsheet, but then you wouldn’t learn how to correctly handle dynamic memory using raw pointers. In modern C++, you should never use raw pointers with ownership semantics, but you might come across them in existing code, in which case you need to know how to work with them.
+\end{myNotic}
+
+Note that the Spreadsheet class does not contain a standard two-dimensional array of SpreadsheetCells. Instead, it contains a SpreadsheetCell** data member, which is a pointer to a pointer representing an array of arrays. This is because each Spreadsheet object might have different dimensions, so the constructor of the class must dynamically allocate the two-dimensional array based on the client-specified height and width.
+
+To dynamically allocate a two-dimensional array, you need to write the following code. Note that in C++, unlike in Java, it’s not possible to simply write new SpreadsheetCell[m\_width][m\_height].
+
+\begin{cpp}
+Spreadsheet::Spreadsheet(size_t width, size_t height)
+: m_width { width }, m_height { height }
+{
+    m_cells = new SpreadsheetCell*[m_width];
+    for (size_t i { 0 }; i < m_width; ++i) {
+        m_cells[i] = new SpreadsheetCell[m_height];
+    }
+}
+\end{cpp}
+
+Figure 9.1 shows the resulting memory layout for a Spreadsheet called s1 on the stack with width 4 and height 3.
+
+The implementations of the inRange() and the set and retrieval member functions are straightforward:
+
+\begin{cpp}
+bool Spreadsheet::inRange(size_t value, size_t upper) const
+{
+    return value < upper;
+}
+
+void Spreadsheet::setCellAt(size_t x, size_t y, const SpreadsheetCell& cell)
+{
+    if (!inRange(x, m_width)) {
+        throw out_of_range {
+            format("x ({}) must be less than width ({}).", x, m_width) };
+    }
+    if (!inRange(y, m_height)) {
+        throw out_of_range {
+            format("y ({}) must be less than height ({}).", y, m_height) };
+    }
+    m_cells[x][y] = cell;
+}
+
+SpreadsheetCell& Spreadsheet::getCellAt(size_t x, size_t y)
+{
+    if (!inRange(x, m_width)) {
+        throw out_of_range {
+            format("x ({}) must be less than width ({}).", x, m_width) };
+    }
+    if (!inRange(y, m_height)) {
+        throw out_of_range {
+            format("y ({}) must be less than height ({}).", y, m_height) };
+    }
+    return m_cells[x][y];
+}
+\end{cpp}
+
+\myGraphic{0.7}{content/part3/chapter9/images/1.png}{FIGURE 9.1}
+
+setCellAt() and getCellAt() both use a helper function called inRange() to check that x and y represent valid coordinates in the spreadsheet. Attempting to access an array element at an out-ofrange index will cause the program to malfunction. This example uses exceptions, which are introduced in Chapter 1, “A Crash Course in C++ and the Standard Library,” and described in detail in Chapter 14, “Handling Errors.”
+
+If you look at the setCellAt() and getCellAt() implementations, you see there is some clear code duplication. Chapter 6, “Designing for Reuse,” explains that code duplication should be avoided at all costs. So, let’s follow that guideline. Instead of a helper function called inRange(), let’s define the following verifyCoordinate() member function:
+
+\begin{cpp}
+void verifyCoordinate(std::size_t x, std::size_t y) const;
+\end{cpp}
+
+The implementation checks the given coordinate and throws an exception if the coordinate is invalid:
+
+\begin{cpp}
+void Spreadsheet::verifyCoordinate(size_t x, size_t y) const
+{
+    if (x >= m_width) {
+        throw out_of_range {
+            format("x ({}) must be less than width ({}).", x, m_width) };
+    }
+    if (y >= m_height) {
+        throw out_of_range {
+            format("y ({}) must be less than height ({}).", y, m_height) };
+    }
+}
+\end{cpp}
+
+The setCellAt() and getCellAt() implementations can now be simplified:
+
+\begin{cpp}
+void Spreadsheet::setCellAt(size_t x, size_t y, const SpreadsheetCell& cell)
+{
+    verifyCoordinate(x, y);
+    m_cells[x][y] = cell;
+}
+
+SpreadsheetCell& Spreadsheet::getCellAt(size_t x, size_t y)
+{
+    verifyCoordinate(x, y);
+    return m_cells[x][y];
+}
+\end{cpp}
 
 \mySubsubsection{9.2.2.}{Freeing Memory with Destructors}
 
+Whenever you are finished with dynamically allocated memory, you should free it. If you dynamically allocate memory in an object, the place to free that memory is in the destructor. The compiler guarantees that the destructor is called when the object is destroyed. The following is the destructor added to the Spreadsheet class definition:
 
+\begin{cpp}
+export class Spreadsheet
+{
+    public:
+        Spreadsheet(std::size_t width, std::size_t height);
+        ~Spreadsheet();
+        // Code omitted for brevity
+};
+\end{cpp}
+
+The destructor has the same name as the name of the class (and of the constructors), preceded by a tilde (~). The destructor takes no arguments, and there can be only one of them. Destructors should never throw any exceptions for reasons explained in detail in Chapter 14.
+
+Here is the implementation of the Spreadsheet class destructor:
+
+\begin{cpp}
+Spreadsheet::˜Spreadsheet()
+{
+    for (size_t i { 0 }; i < m_width; ++i) {
+        delete[] m_cells[i];
+    }
+    delete[] m_cells;
+    m_cells = nullptr;
+}
+\end{cpp}
+
+This destructor frees the memory that was allocated in the constructor. However, no rule requires you to free memory in the destructor. You can write whatever code you want in the destructor, but it is generally a good idea to use it only for freeing memory or disposing of other resources.
 
 \mySubsubsection{9.2.3.}{Handling Copying and Assignment}
 
+Recall from Chapter 8 that if you don’t write a copy constructor and a copy assignment operator yourself, C++ writes them for you. These compiler-generated member functions recursively call the copy constructor or copy assignment operator on object data members. However, for primitives, such as int, double, and pointers, they provide shallow or bitwise copying or assignment: they just copy or assign the data members from the source object directly to the destination object. That presents problems when you dynamically allocate memory in your object. For example, the following code copies the spreadsheet s1 to initialize s when s1 is passed to the printSpreadsheet() function:
+
+\begin{cpp}
+import spreadsheet;
+
+void printSpreadsheet(Spreadsheet s) { /* Code omitted for brevity. */ }
+
+int main()
+{
+    Spreadsheet s1 { 4, 3 };
+    printSpreadsheet(s1);
+}
+\end{cpp}
+
+The Spreadsheet contains one pointer variable: m\_cells. A shallow copy of a Spreadsheet gives the destination object a copy of the m\_cells pointer, but not a copy of the underlying data. Thus, you end up with a situation where both s and s1 have a pointer to the same data, as shown in Figure 9.2.
+
+\myGraphic{0.7}{content/part3/chapter9/images/2.png}{FIGURE 9.2}
+
+If s changes something to which m\_cells points, that change shows up in s1 as well. Even worse, when the printSpreadsheet() function exits, s’s destructor is called, which frees the memory pointed to by m\_cells. That leaves the situation where m\_cells in s1 no longer points to valid memory, as shown in Figure 9.3. This is called a dangling pointer.
+
+\myGraphic{0.7}{content/part3/chapter9/images/3.png}{FIGURE 9.3}
+
+Unbelievably, the problem is even worse with assignment. Suppose that you have the following code:
+
+\begin{cpp}
+Spreadsheet s1 { 2, 2 }, s2 { 4, 3 };
+s1 = s2;
+\end{cpp}
+
+After the first line, when both the s1 and s2 Spreadsheet objects are constructed, you have the memory layout shown in Figure 9.4.
+
+\myGraphic{0.7}{content/part3/chapter9/images/4.png}{FIGURE 9.4}
+
+After the assignment statement, you have the layout shown in Figure 9.5.
+
+\myGraphic{0.7}{content/part3/chapter9/images/5.png}{FIGURE 9.5}
+
+Now, not only do the m\_cells pointers in s1 and s2 point to the same memory, but you have also orphaned the memory to which m\_cells in s1 previously pointed to. This is called a memory leak.
+
+It should be clear by now that copy constructors and copy assignment operators must do a deep copy; that is, they must not just copy pointer data members, but must copy the actual data to which such pointers point to.
+
+As you can see, relying on C++’s default copy constructor and default copy assignment operator is not always a good idea.
+
+\begin{myWarning}{WARNING}
+Whenever you have dynamically allocated resources in a class, you should write your own copy constructor and copy assignment operator to provide a deep copy of the memory.
+\end{myWarning}
+
 \mySamllsection{The Spreadsheet Copy Constructor}
+
+Here is a declaration for a copy constructor in the Spreadsheet class:
+
+\begin{cpp}
+export class Spreadsheet
+{
+    public:
+        Spreadsheet(const Spreadsheet& src);
+        // Code omitted for brevity
+};
+\end{cpp}
+
+The definition is as follows:
+
+\begin{cpp}
+Spreadsheet::Spreadsheet(const Spreadsheet& src)
+    : Spreadsheet { src.m_width, src.m_height }
+{
+    for (size_t i { 0 }; i < m_width; ++i) {
+        for (size_t j { 0 }; j < m_height; ++j) {
+            m_cells[i][j] = src.m_cells[i][j];
+        }
+    }
+}
+\end{cpp}
+
+Note the use of a delegating constructor. The ctor-initializer of this copy constructor delegates first to the non-copy constructor to allocate the proper amount of memory. The body of the copy constructor then copies the actual values. Together, this process implements a deep copy of the m\_cells dynamically-allocated two-dimensional array.
+
+There is no need to delete any existing m\_cells because this is a copy constructor, and therefore there is no existing m\_cells yet in this object.
 
 \mySamllsection{The Spreadsheet Assignment Operator}
 
+The following shows the Spreadsheet class definition with an assignment operator:
+
+\begin{cpp}
+export class Spreadsheet
+{
+    public:
+        Spreadsheet& operator=(const Spreadsheet& rhs);
+        // Code omitted for brevity
+};
+\end{cpp}
+
+A naïve implementation could be as follows:
+
+\begin{cpp}
+Spreadsheet& Spreadsheet::operator=(const Spreadsheet& rhs)
+{
+    // Check for self-assignment
+    if (this == &rhs) {
+        return *this;
+    }
+
+    // Free the old memory
+    for (size_t i { 0 }; i < m_width; ++i) {
+        delete[] m_cells[i];
+    }
+    delete[] m_cells;
+    m_cells = nullptr;
+
+    // Allocate new memory
+    m_width = rhs.m_width;
+    m_height = rhs.m_height;
+
+    m_cells = new SpreadsheetCell*[m_width];
+    for (size_t i { 0 }; i < m_width; ++i) {
+        m_cells[i] = new SpreadsheetCell[m_height];
+    }
+
+    // Copy the data
+    for (size_t i { 0 }; i < m_width; ++i) {
+        for (size_t j { 0 }; j < m_height; ++j) {
+            m_cells[i][j] = rhs.m_cells[i][j];
+        }
+    }
+
+    return *this;
+}
+\end{cpp}
+
+The code first checks for self-assignment, then frees the current memory of the this object, allocates new memory, and finally copies the individual elements. There is a lot going on in this function, and a lot can go wrong! It is possible that the this object gets into an invalid state.
+
+For example, suppose that the memory is successfully freed, that m\_width and m\_height are properly set, but that an exception is thrown in the loop that is allocating the memory. When that happens, execution of the remainder of the function is skipped, and the function is exited. Now the Spreadsheet instance is corrupt; its m\_width and m\_height data members state a certain size, but the m\_cells data member does not point to the right amount of memory. Basically, this code is not exception-safe!
+
+What we need is an all-or-nothing mechanism; either everything succeeds or the this object remains untouched. To implement such an exception-safe assignment operator, the copy-and-swap idiom is used. For this, a swap() member function is added to the Spreadsheet class. Additionally, it’s recommended to provide a non-member swap() function so that it can also be used by various Standard Library algorithms. Here is the definition of the Spreadsheet class with an assignment operator, and the swap() member function and non-member function:
+
+\begin{cpp}
+export class Spreadsheet
+{
+    public:
+        Spreadsheet& operator=(const Spreadsheet& rhs);
+        void swap(Spreadsheet& other) noexcept;
+        // Code omitted for brevity
+};
+export void swap(Spreadsheet& first, Spreadsheet& second) noexcept;
+\end{cpp}
+
+A requirement for implementing the exception-safe copy-and-swap idiom is that swap() never throws any exceptions, so it is marked as noexcept.
+
+\begin{myNotic}{NOTE}
+A function can be marked with the noexcept keyword to specify that it won’t throw any exceptions. The noexcept specifier must appear after any const keyword. Here’s an example:
+
+\begin{cpp}
+void myNonThrowingConstFunction() const noexcept { /* ... */ }
+\end{cpp}
+
+If a noexcept function does throw an exception, the program is terminated. More details about noexcept are discussed in Chapter 14, but those details are not important for the remainder of the current chapter.
+\end{myNotic}
+
+The implementation of the swap() member function swaps each data member using the std::swap() utility function provided by the Standard Library in <utility>, which efficiently swaps two values:
+
+\begin{cpp}
+void Spreadsheet::swap(Spreadsheet& other) noexcept
+{
+    std::swap(m_width, other.m_width);
+    std::swap(m_height, other.m_height);
+    std::swap(m_cells, other.m_cells);
+}
+\end{cpp}
+
+The non-member swap() function simply forwards to the swap() member function:
+
+\begin{cpp}
+void swap(Spreadsheet& first, Spreadsheet& second) noexcept
+{
+    first.swap(second);
+}
+\end{cpp}
+
+Now that we have an exception-safe swap(), it can be used to implement the assignment operator:
+
+\begin{cpp}
+Spreadsheet& Spreadsheet::operator=(const Spreadsheet& rhs)
+{
+    Spreadsheet temp { rhs }; // Do all the work in a temporary instance
+    swap(temp); // Commit the work with only non-throwing operations
+    return *this;
+}
+\end{cpp}
+
+The implementation uses the copy-and-swap idiom. First, a copy of the right-hand side is made, called temp. Then the current object is swapped with this copy. This pattern is the recommended way of implementing assignment operators because it guarantees strong exception safety, meaning that if any exception occurs, then the state of the current Spreadsheet object remains unchanged. The idiom is implemented in three phases:
+
+\begin{itemize}
+\item
+The first phase makes a temporary copy. This does not modify the state of the current Spreadsheet object, and so there is no problem if an exception is thrown during this phase.
+
+\item
+The second phase uses the swap() function to swap the created temporary copy with the current object. The swap() function shall never throw exceptions.
+
+\item
+The third phase is the destruction of the temporary object, which now contains the original object (because of the swap), to clean up any memory.
+\end{itemize}
+
+When you do not use the copy-and-swap idiom for implementing an assignment operator, then for efficiency and sometimes also for correctness, the first line of code in an assignment operator usually checks for self-assignment. Here’s an example:
+
+\begin{cpp}
+Spreadsheet& Spreadsheet::operator=(const Spreadsheet& rhs)
+{
+    // Check for self-assignment
+    if (this == &rhs) { return *this; }
+    // ...
+    return *this;
+}
+\end{cpp}
+
+With the copy-and-swap idiom, such a self-assignment test is not needed.
+
+\begin{myWarning}{WARNING}
+When implementing an assignment operator, use the copy-and-swap idiom to avoid code duplication and to guarantee strong exception safety.
+\end{myWarning}
+
+\begin{myNotic}{NOTE}
+The copy-and-swap idiom can be used for more than just assignment operators. It can be used for any operation that takes multiple steps and that you want to turn into an all-or-nothing operation: first, make a copy; then, do all the modifications on the copy; and finally, if there are no errors, perform a non-throwing swap operation.
+\end{myNotic}
+
 \mySamllsection{Disallowing Assignment and Pass-by-Value}
 
+Sometimes when you dynamically allocate memory in your class, it’s easiest just to prevent anyone from copying or assigning to your objects. You can do this by explicitly deleting your operator= and copy constructor. That way, if anyone tries to pass the object by value, return it from a function, or assign to it, the compiler will complain. Here is a Spreadsheet class definition that prevents assignment and pass-by-value:
+
+\begin{cpp}
+export class Spreadsheet
+{
+    public:
+        Spreadsheet(std::size_t width, std::size_t height);
+        Spreadsheet(const Spreadsheet& src) = delete;
+        ~Spreadsheet();
+        Spreadsheet& operator=(const Spreadsheet& rhs) = delete;
+        // Code omitted for brevity
+};
+\end{cpp}
+
+You don’t provide implementations for deleted member functions. The linker will never look for them because the compiler won’t allow code to call them. When you now write code to copy or assign to a Spreadsheet object, the compiler will complain with a message like this:
+
+\begin{shell}
+'Spreadsheet &Spreadsheet::operator =(const Spreadsheet &)': attempting to
+reference a deleted function
+\end{shell}
 
 \mySubsubsection{9.2.4.}{Handling Moving with Move Semantics}
 
+Move semantics for classes requires a move constructor and a move assignment operator. These can be used by the compiler when the source object is a temporary object that will be destroyed after the operation is finished or, as you will see, explicitly when using std::move(). Moving moves ownership of memory and other resources from one object to another object. It basically does a shallow copy of data members combined with switching ownership of allocated memory and other resources to prevent dangling pointers or resources and to prevent memory leaks.
+
+Both the move constructor and the move assignment operator move the data members from a source object to a new object, leaving the source object in some valid but otherwise indeterminate state. Often, data members of the source object are reset to “null” values, but this is not a strict requirement. I do recommend, however, that you make sure your source objects are in a clearly defined empty state after a move operation. To be safe, never use any objects that have been moved from, as this could trigger undefined behavior. Some notable exceptions from the Standard Library are std::unique\_ptr and shared\_ptr. The Standard Library explicitly states that these smart pointers must reset their internal pointer to nullptr when moving from them, which makes it safe to reuse such smart pointers after a move operation.
+
+Before you can implement move semantics, you need to learn about rvalues and rvalue references.
+
 \mySamllsection{Rvalue References}
+
+In C++, an lvalue is something of which you can take an address, for example, a named variable. The name comes from the fact that lvalues can appear on the left-hand side of an assignment. An rvalue, on the other hand, is anything that is not an lvalue, such as a literal, or a temporary object or value(Technically, the C++ standard defines three more categories (xvalues, prvalues, and glvalues), but those details are not important for the current discussion.). Typically, an rvalue is on the right-hand side of an assignment operator. For example, take the following statement:
+
+\begin{cpp}
+int a { 4 * 2 };
+\end{cpp}
+
+In this statement, a is an lvalue, it has a name, and you can take the address of it with \&a. The result of the expression 4*2, on the other hand, is an rvalue. It is a temporary value that is destroyed when the statement finishes execution. In this example, a copy of this temporary value is stored in the variable with name a.
+If a function returns something by value, the result of calling that function is an rvalue, a temporary.
+
+If the function returns a reference-to-non-const, then the result of calling the function is an lvalue, as you will be able to use the result on the left-hand side of an assignment.
+
+An rvalue reference is a reference to an rvalue. In particular, it is a concept that is applied when the rvalue is a temporary object or an object that is explicitly moved using std::move(), explained later in this section. The purpose of an rvalue reference is to make it possible for a particular function overload to be chosen when an rvalue is involved. This allows certain operations that normally involve copying large values to instead copy pointers to those values.
+
+A function can specify an rvalue reference parameter by using \&\& as part of the parameter specification, for example, type\&\& name. Normally, a temporary object will be seen as a const type\&, but when there is a function overload that uses an rvalue reference, a temporary object can be resolved to that overload. The following example demonstrates this. The code first defines two handleMessage() functions, one accepting an lvalue reference and one accepting an rvalue reference:
+
+\begin{cpp}
+void handleMessage(string& message) // lvalue reference parameter
+{
+    println("handleMessage with lvalue reference: {}", message);
+}
+
+void handleMessage(string&& message) // rvalue reference parameter
+{
+    println("handleMessage with rvalue reference: {}", message);
+}
+\end{cpp}
+
+You can call handleMessage() with a named variable as an argument:
+
+\begin{cpp}
+string a { "Hello " };
+handleMessage(a); // Calls handleMessage(string& value)
+\end{cpp}
+
+Because a is a named variable, the handleMessage() function accepting an lvalue reference is called. Any changes handleMessage() does through its reference parameter will change the value of a.
+
+You can also call handleMessage() with an expression as an argument:
+
+\begin{cpp}
+string b { "World" };
+handleMessage(a + b); // Calls handleMessage(string&& value)
+\end{cpp}
+
+The handleMessage() function accepting an lvalue reference cannot be used, because the expression a + b results in a temporary, which is not an lvalue. In this case, the rvalue reference overload is called. Because the argument is a temporary, any changes handleMessage() does through its reference parameter will be lost after the call returns.
+
+A literal can also be used as argument to handleMessage(). This also triggers a call to the rvalue reference overload because a literal cannot be an lvalue (though a literal can be passed as argument to a reference-to-const parameter):
+
+\begin{cpp}
+handleMessage("Hello World"); // Calls handleMessage(string&& value)
+\end{cpp}
+
+If you remove the handleMessage() function accepting an lvalue reference, calling handleMessage() with a named variable like handleMessage(b) will result in a compilation error because an rvalue reference parameter (string\&\&) will never be bound to an lvalue (b). You can force the compiler to call the rvalue reference overload of handleMessage() by using std::move(). The only thing move() does is cast an lvalue to an rvalue reference; that is, it does not do any actual moving. However, by returning an rvalue reference, it allows the compiler to find an overload of handleMessage() accepting an rvalue reference, which can then perform the moving. Here is an example of using move():
+
+\begin{cpp}
+handleMessage(std::move(b)); // Calls handleMessage(string&& value)
+\end{cpp}
+
+As I said before, but it’s worth repeating, a named variable is an lvalue. So, inside the handleMessage(string\&\& message) function, the message rvalue reference parameter itself is an lvalue because it has a name! If you want to forward this rvalue reference parameter to another function as an rvalue, then you need to use std::move() to cast the lvalue to an rvalue reference. For example, suppose you add the following function with an rvalue reference parameter:
+
+\begin{cpp}
+void helper(string&& message) { }
+\end{cpp}
+
+Calling it as follows does not compile:
+
+\begin{cpp}
+void handleMessage(string&& message) { helper(message); }
+\end{cpp}
+
+The helper() function needs an rvalue reference, while handleMessage() passes message, which has a name, so it’s an lvalue, causing a compilation error. Here is the correct way using std::move():
+
+\begin{cpp}
+void handleMessage(string&& message) { helper(std::move(message)); }
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+A named rvalue reference, such as an rvalue reference parameter, itself is an lvalue because it has a name!
+\end{myWarning}
+
+Rvalue references are not limited to parameters of functions. You can declare a variable of an rvalue reference type and assign to it, although this usage is uncommon. Consider the following code, which is illegal in C++:
+
+\begin{cpp}
+int& i { 2 }; // Invalid: reference to a constant
+int a { 2 }, b { 3 };
+int& j { a + b }; // Invalid: reference to a temporary
+\end{cpp}
+
+Using rvalue references, the following is perfectly legal:
+
+\begin{cpp}
+int&& i { 2 };
+int a { 2 }, b { 3 };
+int&& j { a + b };
+\end{cpp}
+
+However, such stand-alone rvalue references are rarely used in this way.
+
+\begin{myNotic}{NOTE}
+If a temporary is assigned to an rvalue reference, the lifetime of the temporary is extended for as long as the rvalue reference is in scope.
+\end{myNotic}
+
+\CXXTwentythreeLogo{-40}{-50}
 
 \mySamllsection{Decay Copy}
 
+If you have an object x, writing “auto y\{x\}” creates a copy of x and gives it a name y; thus, it is an lvalue.
+
+C++23 introduces the auto(x) or auto\{x\} syntax to create a copy of an object x as an rvalue, not an lvalue.
+
+As an example, assume you have only the rvalue reference handleMessage(string\&\&) function from the previous section, not the lvalue reference overload. You know that the following won’t work in that case:
+
+\begin{cpp}
+string value { "Hello " };
+handleMessage(value); // Error
+\end{cpp}
+
+You could use std::move(), as in:
+
+\begin{cpp}
+handleMessage(std::move(value));
+\end{cpp}
+
+But, after this operation, you should not use the value object any longer, as it might have been moved.
+
+Using C++23 decay-copy syntax, you can write:
+
+\begin{cpp}
+handleMessage(auto { value });
+\end{cpp}
+
+This makes a temporary copy of object value as an rvalue and passes that rvalue to handleMessage(). If handleMessage() moves from the copy, the original object, value, is retained and not impacted
+
 \mySamllsection{Implementing Move Semantics}
+
+Move semantics is implemented using rvalue references. To add move semantics to a class, you need to implement a move constructor and a move assignment operator. Move constructors and move assignment operators should be marked with the noexcept specifier to tell the compiler that they don’t throw any exceptions. This is particularly important for compatibility with the Standard Library, as fully compliant implementations of, for example, the Standard Library containers will only move stored objects if, having move semantics implemented, they also guarantee not to throw. This is done to be able to provide strong exception safety.
+
+The following is the Spreadsheet class definition with a move constructor and move assignment operator. Two helper member functions are introduced as well: cleanup(), which is used from the destructor and the move assignment operator, and moveFrom(), which moves the data members from a source to a destination and then resets the source object.
+
+\begin{cpp}
+export class Spreadsheet
+{
+    public:
+        Spreadsheet(Spreadsheet&& src) noexcept; // Move constructor
+        Spreadsheet& operator=(Spreadsheet&& rhs) noexcept; // Move assignment
+        // Remaining code omitted for brevity
+    private:
+        void cleanup() noexcept;
+        void moveFrom(Spreadsheet& src) noexcept;
+        // Remaining code omitted for brevity
+};
+\end{cpp}
+
+The implementations are as follows:
+
+\begin{cpp}
+void Spreadsheet::cleanup() noexcept
+{
+    for (size_t i { 0 }; i < m_width; ++i) {
+        delete[] m_cells[i];
+    }
+    delete[] m_cells;
+    m_cells = nullptr;
+    m_width = m_height = 0;
+}
+
+void Spreadsheet::moveFrom(Spreadsheet& src) noexcept
+{
+    // Shallow copy of data
+    m_width = src.m_width;
+    m_height = src.m_height;
+    m_cells = src.m_cells;
+
+    // Reset the source object, because ownership has been moved!
+    src.m_width = 0;
+    src.m_height = 0;
+    src.m_cells = nullptr;
+}
+
+// Move constructor
+Spreadsheet::Spreadsheet(Spreadsheet&& src) noexcept
+{
+    moveFrom(src);
+}
+
+// Move assignment operator
+Spreadsheet& Spreadsheet::operator=(Spreadsheet&& rhs) noexcept
+{
+    // Check for self-assignment
+    if (this == &rhs) {
+        return *this;
+    }
+
+    // Free the old memory and move ownership
+    cleanup();
+    moveFrom(rhs);
+    return *this;
+}
+\end{cpp}
+
+Both the move constructor and the move assignment operator are moving ownership of the memory for m\_cells from a source object to a new object. They reset the m\_cells pointer of the source object to a null pointer and set m\_width and m\_height of the source object to zero to prevent the source object’s destructor from deallocating any memory because the new object is now the owner of it.
+
+Obviously, move semantics is useful only when you know that the source object is not needed anymore.
+
+Note that this implementation includes a self-assignment test in the move assignment operator. Depending on your class and depending on how you are moving one instance of your class to another instance, this self-assignment test might not always be necessary. However, you should always include it, just as the C++ Core Guidelines recommend(Guideline C.65 of the C++ Core Guidelines (see Appendix B, “Annotated Bibliography”) states, “Make move assignment safe for self-assignment.”), to make sure that code as follows never causes a crash at run time:
+
+\begin{cpp}
+sheet1 = std::move(sheet1);
+\end{cpp}
+
+Move constructors and move assignment operators can be explicitly deleted or defaulted, just like copy constructors and copy assignment operators, as explained in Chapter 8.
+
+The compiler automatically generates a default move constructor for a class if and only if the class has no user-declared copy constructor, copy assignment operator, move assignment operator, or destructor. A default move assignment operator is generated for a class if and only if the class has no user-declared copy constructor, move constructor, copy assignment operator, or destructor.
+
+\begin{myWarning}{WARNING}
+When you declare one or more of the special member functions (destructor, copy constructor, move constructor, copy assignment operator, and move assignment operator), then it’s recommended to declare all of them. This is called the rule of five. You either provide explicit implementations for them or explicitly default (=default) or delete (=delete) them.
+\end{myWarning}
+
+\mySamllsection{Using std::exchange}
+
+You can use std::exchange(), defined in <utility>, to replace a value with a new value and return the old value, as in this example:
+
+\begin{cpp}
+int a { 11 };
+int b { 22 };
+println("Before exchange(): a = {}, b = {}", a, b);
+int returnedValue { exchange(a, b) };
+println("After exchange(): a = {}, b = {}", a, b);
+println("exchange() returned: {}", returnedValue);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Before exchange(): a = 11, b = 22
+After exchange(): a = 22, b = 22
+exchange() returned: 11
+\end{shell}
+
+The exchange() function is useful in implementing move assignment operators. A move assignment operator needs to move the data from a source object to a destination object, after which the data in the source object is usually nullified. In the previous section, this is done as follows:
+
+\begin{cpp}
+void Spreadsheet::moveFrom(Spreadsheet& src) noexcept
+{
+    // Shallow copy of data
+    m_width = src.m_width;
+    m_height = src.m_height;
+    m_cells = src.m_cells;
+
+    // Reset the source object, because ownership has been moved!
+    src.m_width = 0;
+    src.m_height = 0;
+    src.m_cells = nullptr;
+}
+\end{cpp}
+
+This member function copies the m\_width, m\_height, and m\_cells data members from the source object and then sets them to either 0 or nullptr, because ownership has been moved. With exchange() this can be written more compactly as follows:
+
+\begin{cpp}
+void Spreadsheet::moveFrom(Spreadsheet& src) noexcept
+{
+    m_width = exchange(src.m_width, 0);
+    m_height = exchange(src.m_height, 0);
+    m_cells = exchange(src.m_cells, nullptr);
+}
+\end{cpp}
+
+\mySamllsection{Moving Object Data Members}
+
+The moveFrom() member function uses direct assignments of the three data members because they are primitive types. If your object contains other objects as data members, then you should move these objects using std::move(). Suppose the Spreadsheet class has an std::string data member called m\_name. The moveFrom() member function should then be implemented as follows:
+
+\begin{cpp}
+void Spreadsheet::moveFrom(Spreadsheet& src) noexcept
+{
+    // Move object data members
+    m_name = std::move(src.m_name);
+
+    // Move primitives:
+    m_width = exchange(src.m_width, 0);
+    m_height = exchange(src.m_height, 0);
+    m_cells = exchange(src.m_cells, nullptr);
+}
+\end{cpp}
+
+\mySamllsection{Move Constructor and Move Assignment Operator in Terms of Swap}
+
+The previous implementation of the move constructor and the move assignment operator both use the moveFrom() helper function, which moves all data members by performing shallow copies. With this implementation, if you add a new data member to the Spreadsheet class, you have to modify both the swap() function and the moveFrom() function. If you forget to update one of them, you introduce a bug. To avoid such bugs, you can write the move constructor and the move assignment operator in terms of the swap() function.
+
+First, the cleanup() and moveFrom() helper functions can be removed. The code from the cleanup() function is moved to the destructor. The move constructor and move assignment operator can then be implemented as follows:
+
+\begin{cpp}
+Spreadsheet::Spreadsheet(Spreadsheet&& src) noexcept
+{
+    swap(src);
+}
+
+Spreadsheet& Spreadsheet::operator=(Spreadsheet&& rhs) noexcept
+{
+    auto moved { std::move(rhs) }; // Move rhs into moved (noexcept)
+    swap(moved); // Commit the work with only non-throwing operations
+    return *this;
+}
+\end{cpp}
+
+The move constructor simply swaps the default constructed *this with the given source object. The move assignment operator uses the move-and-swap idiom, which is similar to the copy-and-swap idiom discussed before.
+
+\begin{myNotic}{NOTE}
+Implementing a move constructor and move assignment operator in terms of swap() requires less code. It is also less likely bugs are introduced when data members are added, because you only have to update your swap() implementation to include those new data members.
+\end{myNotic}
+
+The Spreadsheet move assignment operator could also be implemented as follows:
+
+\begin{cpp}
+Spreadsheet& Spreadsheet::operator=(Spreadsheet&& rhs) noexcept
+{
+    swap(rhs);
+    return *this;
+}
+\end{cpp}
+
+However, doing so does not guarantee that the contents of this is immediately cleaned up. Instead, the contents of this escapes through rhs to the caller of the move assignment operator and thus might stay alive longer than expected.
 
 \mySamllsection{Testing the Spreadsheet Move Operations}
 
+The Spreadsheet move constructor and move assignment operator can be tested with the following code:
+
+\begin{cpp}
+Spreadsheet createObject()
+{
+    return Spreadsheet { 3, 2 };
+}
+
+int main()
+{
+    vector<Spreadsheet> vec;
+    for (size_t i { 0 }; i < 2; ++i) {
+        println("Iteration {}", i);
+        vec.push_back(Spreadsheet { 100, 100 });
+        println("");
+    }
+
+    Spreadsheet s { 2, 3 };
+    s = createObject();
+
+    println("");
+
+    Spreadsheet s2 { 5, 6 };
+    s2 = s;
+}
+\end{cpp}
+
+Chapter 1 introduces the vector. A vector grows dynamically in size to accommodate new objects. This is done by allocating a bigger chunk of memory and then copying or moving the objects from the old vector to the new and bigger vector. If the compiler finds a noexcept move constructor, the objects are moved instead of copied. Because they are moved, there is no need for any deep copying, making it much more efficient.
+
+After adding print statements to all constructors and assignment operators of the Spreadsheet class, the output of the preceding test program can be as follows. The numbers to the right of each line are not part of the actual output but added in this text to make it easier to refer to specific lines in the discussion that follows. This output and the following discussion are based on the version of the Spreadsheet class using the move-and-swap idiom to implement its move operations, and on the Microsoft Visual C++ 2022 compiler for a release build of the code. The C++ standard does not specify the initial capacity of a vector nor its growth strategy, so the output can be different on different compilers.
+
+\begin{shell}
+Iteration 0
+Normal constructor          (1)
+Move constructor            (2)
+
+Iteration 1
+Normal constructor          (3)
+Move constructor            (4)
+Move constructor            (5)
+
+Normal constructor          (6)
+Normal constructor          (7)
+Move assignment operator    (8)
+Move constructor            (9)
+
+Normal constructor         (10)
+Copy assignment operator   (11)
+Normal constructor         (12)
+Copy constructor           (13)
+\end{shell}
+
+On the first iteration of the loop, the vector is still empty. Take the following line of code from the loop:
+
+\begin{cpp}
+vec.push_back(Spreadsheet { 100, 100 });
+\end{cpp}
+
+With this line, a new Spreadsheet object is created, invoking the normal constructor (1). The vector resizes itself to make space for the new object being pushed in. The created Spreadsheet object is then moved into the vector, invoking the move constructor (2).
+
+On the second iteration of the loop, a second Spreadsheet object is created with the normal constructor (3). At this point, the vector can hold one element, so it’s again resized to make space for a second object. Because the vector is resized, the previously added elements need to be moved from the old vector to the new and bigger vector. This triggers a call to the move constructor for each previously added element. There is one element in the vector, so the move constructor is called one time (4). Finally, the new Spreadsheet object is moved into the vector with its move constructor (5).
+
+Next, a Spreadsheet object s is created using the normal constructor (6). The createObject() function creates a temporary Spreadsheet object with its normal constructor (7), which is then returned from the function and assigned to the variable s. Because the temporary object returned from createObject() ceases to exist after the assignment, the compiler invokes the move assignment operator (8) instead of the copy assignment operator. The move assignment operator uses the moveand-swap idiom, so it delegates work to the move constructor (9).
+
+Another Spreadsheet object is created, s2, using the normal constructor (10). The assignment s2 = s invokes the copy assignment operator (11) because the right-hand side object is not a temporary object, but a named object. This copy assignment operator uses the copy-and-swap idiom, which creates a temporary copy, triggering a call to the copy constructor, which first delegates to the normal constructor (12 and 13).
+
+If the Spreadsheet class did not implement move semantics, all the calls to the move constructor and move assignment operator would be replaced with calls to the copy constructor and copy assignment operator. In the previous example, the Spreadsheet objects in the loop have 10,000 (100 × 100) elements. The implementations of the Spreadsheet move constructor and move assignment operator don’t require any memory allocation, while the copy constructor and copy assignment operator require 101 allocations each. So, using move semantics can increase performance a lot in certain situations.
+
 \mySamllsection{Implementing a Swap Function with Move Semantics}
+
+As another example where move semantics increases performance, take a swap() function that swaps two Objects. The following swapCopy() implementation does not use move semantics:
+
+\begin{cpp}
+void swapCopy(Object& a, Object& b)
+{
+    Object temp { a };
+    a = b;
+    b = temp;
+}
+\end{cpp}
+
+First, a is copied to temp, then b is copied to a, and finally temp is copied to b. This implementation will hurt performance if Object is expensive to copy. With move semantics, the implementation can avoid all copying:
+
+\begin{cpp}
+void swapMove(Object& a, Object& b)
+{
+    Object temp { std::move(a) };
+    a = std::move(b);
+    b = std::move(temp);
+}
+\end{cpp}
+
+This is how std::swap() from the Standard Library is implemented.
 
 \mySamllsection{Using std::move() in Return Statements}
 
+As Chapter 1 states, since C++17, a compiler is not allowed to perform any copying or moving of objects for statements of the form return object; where object is a nameless temporary. This is called mandatory elision of copy/move operations and means that there’s no performance penalty at all by returning object by value. If object is a local variable that is not a function parameter, nonmandatory elision of copy/move operations is allowed, an optimization also known as named return value optimization (NRVO). This optimization is not guaranteed by the standard. Some compilers perform this optimization only for release builds but not for debug builds. With mandatory and nonmandatory elision, compilers can avoid any copying of objects that are returned from functions. This results in zero-copy pass-by-value semantics.
+
+\begin{myWarning}{WARNING}
+ Note that for NRVO, even though the copy/move constructors won’t be called, they still need to be accessible; otherwise, the program is ill-formed according to the standard.
+\end{myWarning}
+
+Now, what happens when using std::move() to return an object? Consider you write the following:
+
+\begin{cpp}
+return std::move(object);
+\end{cpp}
+
+With this code, compilers cannot apply mandatory nor non-mandatory (NRVO) elision of copy/move operations anymore, as that works only for statements of the form return object;. Since copy/ move elision cannot be applied anymore, the next option for the compiler is to use move semantics if the object supports it, and if not, fall back to copy semantics.
+
+Compared to NRVO, falling back to move semantics has a small performance impact, but falling back to copy semantics can have a big performance impact! So, keep the following warning in mind:
+
+\begin{myWarning}{WARNING}
+When returning a local variable or nameless temporary from a function, simply write return object; and do not use std::move().
+\end{myWarning}
+
+Note that if you want to return a data member of a class from one of its member functions, then you need to use std::move() if you want to move it out instead of returning a copy.
+
+Additionally, be careful with expressions such as the following:
+
+\begin{cpp}
+return condition ? obj1 : obj2;
+\end{cpp}
+
+This is not of the form return object;, so the compiler cannot apply copy/move elision. Even worse, an expression of the form condition ? obj1 : obj2 is an lvalue, so the compiler uses a copy constructor instead to return one of the objects. To at least trigger move semantics, you can rewrite the return statement as follows:
+
+\begin{cpp}
+return condition ? std::move(obj1) : std::move(obj2);
+\end{cpp}
+
+or
+
+\begin{cpp}
+return std::move(condition ? obj1 : obj2);
+\end{cpp}
+
+However, it’s clearer to rewrite the return statement as follows for which a compiler can automatically use move semantics without explicitly using std::move():
+
+\begin{cpp}
+if (condition) {
+    return obj1;
+} else {
+    return obj2;
+}
+\end{cpp}
+
 \mySamllsection{Optimal Way to Pass Arguments to Functions}
 
+Up to now, the advice has been to use reference-to-const parameters for non-primitive function parameters to avoid unnecessary expensive copying of an argument passed to a function. However, with rvalues in the mix, things change slightly. Imagine a function that anyways copies an argument passed as one of its parameters. This situation often pops up with class member functions. Here is a simple example:
+
+\begin{cpp}
+class DataHolder
+{
+    public:
+        void setData(const vector<int>& data) { m_data = data; }
+    private:
+        vector<int> m_data;
+};
+\end{cpp}
+
+setData() makes a copy of the data passed in. Now that you are fluent with rvalues and rvalue references, you might want to add an overload to optimize setData() to avoid any copying in case of rvalues. Here’s an example:
+
+\begin{cpp}
+class DataHolder
+{
+    public:
+        void setData(const vector<int>& data) { m_data = data; }
+        void setData(vector<int>&& data) { m_data = move(data); }
+    private:
+        vector<int> m_data;
+};
+\end{cpp}
+
+When setData() is called with a temporary, no copies are made; the data is moved instead.
+
+The code in the following code snippet triggers a call to the reference-to-const overload of setData(), and hence a copy of the data is made:
+
+\begin{cpp}
+DataHolder wrapper;
+vector myData { 11, 22, 33 };
+wrapper.setData(myData);
+\end{cpp}
+
+On the other hand, the following code snippet calls setData() with a temporary, which triggers a call to the rvalue reference overload of setData(). The data is subsequently moved instead of copied.
+
+\begin{cpp}
+wrapper.setData({ 22, 33, 44 });
+\end{cpp}
+
+Unfortunately, this way to optimize setData() for both lvalues and rvalues requires an implementation of two overloads. Luckily, there is a better way that involves a single member function using pass-by-value. Yes, pass-by-value! Up to now, it has been advised to always pass objects using reference-to-const parameters to avoid any unnecessary copying, but now we advise to use pass-byvalue. Let’s clarify. For parameters that are not copied, passing by reference-to-const is still the way to go. The pass-by-value advice is suitable only for parameters that the function would copy anyway. In that case, by using pass-by-value semantics, the code is optimal for both lvalues and rvalues. If an lvalue is passed in, it’s copied exactly one time, just as with a reference-to-const parameter. And, if an rvalue is passed in, no copy is made, just as with an rvalue reference parameter. Let’s look at some code:
+
+\begin{cpp}
+class DataHolder
+{
+    public:
+        void setData(vector<int> data) { m_data = move(data); }
+    private:
+        vector<int> m_data;
+};
+\end{cpp}
+
+If an lvalue is passed to setData(), it is copied into the data parameter and subsequently moved to m\_data. If an rvalue is passed to setData(), it is moved into the data parameter, and moved again to m\_data.
+
+\begin{myNotic}{NOTE}
+Prefer pass-by-value for parameters that a function inherently would copy, but only if the parameter is of a type that supports move semantics and only if you don’t need polymorphic behavior on the parameter. Otherwise, use reference-toconst parameters. Passing polymorphic types by value can result in slicing. This is explained in Chapter 10, “Discovering Inheritance Techniques.”
+\end{myNotic}
 
 \mySubsubsection{9.2.5.}{Rule of Zero}
+
+Earlier in this chapter, the rule of five was introduced. It states that once you declare one of the five special member functions (destructor, copy constructor, move constructor, copy assignment operator, and move assignment operator), then you should declare all of them by either implementing, defaulting, or deleting them. The reason is that there are complicated rules that compilers follow to decide whether to automatically provide a compiler-generated version of those special member functions. By declaring all of them yourself, you don’t leave anything for the compiler to decide, making your intent much clearer.
+
+All the discussions so far have been to explain how to write those five special member functions.
+
+However, in modern C++, you should adopt the rule of zero. The rule of zero states that you should design your classes in such a way that they do not require any of those five special member functions. How do you do that? You can do that for non-polymorphic types in which you avoid using old-style dynamically allocated memory or other resources. Instead, use modern constructs such as Standard Library containers and smart pointers. For example, you can use a vector<vector<SpreadsheetCell>{}> instead of the SpreadsheetCell** data member in the Spreadsheet class. Or even better, use a vector<SpreadsheetCell> storing a linearized representation of a spreadsheet. The vector handles memory automatically, so there is no need for any of those five special member functions.
+
+\begin{myWarning}{WARNING}
+In modern C++, adopt the rule of zero!
+\end{myWarning}
+
+The rule of five should be limited to custom resource acquisition is initialization (RAII) classes. An RAII class takes ownership of a resource and handles its deallocation at the right time. It’s a design technique used, for example, by vector and unique\_ptr and discussed further in Chapter 32, “Incorporating Design Techniques and Frameworks.” Additionally, Chapter 10 explains that polymorphic types require you to follow the rule of five as well.
+
+
+
+
+
+
+
+
 

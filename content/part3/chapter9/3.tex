@@ -1,27 +1,438 @@
 
+C++ provides myriad choices for member functions. This section explains all the tricky details.
 
 \mySubsubsection{9.3.1.}{static Member Functions}
 
+Member functions, like data members, sometimes apply to the class as a whole, not to each object. You can write static member functions as well as data members. As an example, consider the SpreadsheetCell class from Chapter 8. It has two helper member functions: stringToDouble() and doubleToString(). These member functions don’t access information about specific objects, so they could be static. Here is the class definition with these member functions static:
 
+\begin{cpp}
+export class SpreadsheetCell
+{
+    // Omitted for brevity
+    private:
+        static std::string doubleToString(double value);
+        static double stringToDouble(std::string_view value);
+        // Omitted for brevity
+};
+\end{cpp}
+
+The implementations of these two member functions are identical to the previous implementations. You don’t repeat the static keyword in front of the member function definitions. Note that static member functions are not called on a specific object, so they do not have a this pointer and are not executing for a specific object with access to its non-static members. In fact, a static member function is just like a regular function. The only difference is that it can access private static and protected static members of the class. Additionally, it can also access private and protected non-static members on objects of the same type, if those objects are made available to the static member function, for example, by passing in a reference or pointer to such an object as a parameter.
+
+You call a static member function just like a regular member function from within any member function of the class. Thus, the implementation of all the member functions in SpreadsheetCell can stay the same.
+
+Outside of the class, you need to qualify the static member function name with the class name using the scope resolution operator. Access control applies as usual. For example, if you have a class Foo with a public static member function called bar(), then you can call bar() from anywhere in the code as follows:
+
+\begin{cpp}
+Foo::bar();
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+The example defining doubleToString() and stringToDouble() as private static member functions is just to demonstrate how you define and use static member functions. For this specific case, neither member function accesses any data from specific SpreadsheetCell instances. Thus, you can also define these helper functions outside of the SpreadsheetCell class in an unnamed namespace (see Chapter 11, “Modules, Header Files, and Miscellaneous Topics”) in the spreadsheet\_cell module implementation file. See the downloadable source code for such an implementation.
+\end{myNotic}
 
 \mySubsubsection{9.3.2.}{const Member Functions}
 
+A const object is an object whose value cannot be changed. If you have a const, reference to const, or pointer to a const object, the compiler does not let you call any member functions on that object unless those member functions guarantee that they won’t change any data members. The way you guarantee that a member function won’t change data members is to mark the member function itself with the const keyword. This is already done throughout Chapter 8 during the development of the SpreadsheetCell class. As a reminder, here is part of the SpreadsheetCell class with the member functions that don’t change any data members marked as const:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        double getValue() const;
+        std::string getString() const;
+        // Omitted for brevity
+};
+\end{cpp}
+
+The const specification is part of the member function prototype and must accompany its definition as well:
+
+\begin{cpp}
+double SpreadsheetCell::getValue() const
+{
+    return m_value;
+}
+
+string SpreadsheetCell::getString() const
+{
+    return doubleToString(m_value);
+}
+\end{cpp}
+
+Marking a member function as const signs a contract with client code guaranteeing that you will not change the internal values of the object from within that member function. If you try to declare a member function const that actually modifies a data member, the compiler will complain. const member functions work by making it appear inside the member function that you have a reference-toconst to each data member. Thus, if you try to change a data member, the compiler will flag an error.
+
+You cannot declare a static member function const, because it is redundant. Static member functions do not work on a specific instance of the class, so it would be impossible for them to change internal values.
+
+You can call const and non-const member functions on a non-const object. However, you can only call const member functions on a const object. Here are some examples:
+
+\begin{cpp}
+SpreadsheetCell myCell { 5 };
+println("{}", myCell.getValue()); // OK
+myCell.setString("6"); // OK
+
+const SpreadsheetCell& myCellConstRef { myCell };
+println("{}", myCellConstRef.getValue()); // OK
+myCellConstRef.setString("6"); // Compilation Error!
+\end{cpp}
+
+You should get into the habit of declaring const all member functions that don’t modify the object so that you can use references to const objects in your program.
+
+Note that const objects can still be destroyed, and their destructor can be called. Nevertheless, destructors are not allowed to be declared const.
+
 \mySamllsection{mutable Data Members}
 
+Sometimes you write a member function that is “logically” const but happens to change a data member of the object. This modification has no effect on any user-visible data, but is technically a change, so the compiler won’t let you declare the member function const. For example, suppose that you want to profile your spreadsheet application to obtain information about how often data is being read. A crude way to do this would be to add a counter to the SpreadsheetCell class that counts each call to getValue() or getString(). Unfortunately, that makes those member functions non-const in the compiler’s eyes, which is not what you intended. The solution is to make your new counter variable mutable, which tells the compiler that it’s OK to change it in a const member function. Here is the new SpreadsheetCell class definition:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    // Omitted for brevity
+    private:
+        double m_value { 0 };
+        mutable unsigned m_numAccesses { 0 };
+};
+\end{cpp}
+
+Here are the definitions for getValue() and getString():
+
+\begin{cpp}
+double SpreadsheetCell::getValue() const
+{
+    ++m_numAccesses;
+    return m_value;
+}
+
+string SpreadsheetCell::getString() const
+{
+    ++m_numAccesses;
+    return doubleToString(m_value);
+}
+\end{cpp}
 
 \mySubsubsection{9.3.3.}{Member Function Overloading}
 
+You’ve already noticed that you can write multiple constructors in a class, all of which have the same name. These constructors differ only in the number and/or types of their parameters. You can do the same thing for any member function or function in C++. Specifically, you can overload a function or member function name by using it for multiple functions, as long as the number and/or types of the parameters differ. For example, in the SpreadsheetCell class you can rename both setString() and setValue() to set(). The class definition now looks like this:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        void set(double value);
+        void set(std::string_view value);
+        // Omitted for brevity
+};
+\end{cpp}
+
+The implementations of the set() member functions stay the same. When you write code to call set(), the compiler determines which instance to call based on the argument you pass: if you pass a string\_view, the compiler calls the string\_view instance; if you pass a double, the compiler calls the double instance. This is called overload resolution.
+
+You might be tempted to do the same thing for getValue() and getString(): rename each of them to get(). However, that does not work. C++ does not allow you to overload a member function name based only on the return type because in many cases it would be impossible for the compiler to determine which instance of the member function to call. For example, if the return value of the member function is not captured anywhere, the compiler has no way to tell which instance of the member function you are trying to call.
+
 \mySamllsection{Overloading Based on const}
+
+You can overload a member function based on const. That is, you can write two member functions with the same name and same parameters, one of which is declared const and one of which is not. The compiler calls the const member function if you have a const object and calls the non-const overload if you have a non-const object. Writing these two overloaded member functions could introduce code duplication, because, often, the implementations of the const and non-const overloads are identical. As you know, code duplication should be avoided as much as possible, even if it’s just a few lines of code. Doing so follows the DRY (Don’t Repeat Yourself) principle discussed in Chapter 6 and makes future maintenance of the code easier. For example, imagine that in a few months or years you need to make a small change to duplicated code. When doing so, you need to remember to make the same change to all the places where the code has been duplicated.
+
+The next sections provide two solutions to avoid code duplication when writing such overloaded member functions.
+
+\mySamllsection{Scott Meyers’ const\_cast Pattern}
+
+To prevent code duplication, you can use the Scott Meyers’s const\_cast() pattern. For example, the Spreadsheet class has a member function called getCellAt() returning a reference-to-non-const to a SpreadsheetCell. You can add a const overload that returns a reference-to-const to a SpreadsheetCell as follows:
+
+\begin{cpp}
+export class Spreadsheet
+{
+    public:
+        SpreadsheetCell& getCellAt(std::size_t x, std::size_t y);
+        const SpreadsheetCell& getCellAt(std::size_t x, std::size_t y) const;
+        // Code omitted for brevity.
+};
+\end{cpp}
+
+Scott Meyers’ const\_cast() pattern implements the const overload as you normally would and implements the non-const overload by forwarding the call to the const overload with the appropriate casts, as follows:
+
+\begin{cpp}
+const SpreadsheetCell& Spreadsheet::getCellAt(size_t x, size_t y) const
+{
+    verifyCoordinate(x, y);
+    return m_cells[x][y];
+}
+
+SpreadsheetCell& Spreadsheet::getCellAt(size_t x, size_t y)
+{
+    return const_cast<SpreadsheetCell&>(as_const(*this).getCellAt(x, y));
+}
+\end{cpp}
+
+The pattern first casts *this (a Spreadsheet\&) to a const Spreadsheet\& using std::as\_const() (defined in <utility>). Next, you call the const overload of getCellAt(), which returns a const SpreadsheetCell\&. You then cast this to a non-const SpreadsheetCell\& with a const\_cast().
+
+With these two getCellAt() overloads, you can now call getCellAt() on const and non-const Spreadsheet objects:
+
+\begin{cpp}
+Spreadsheet sheet1 { 5, 6 };
+SpreadsheetCell& cell1 { sheet1.getCellAt(1, 1) };
+
+const Spreadsheet sheet2 { 5, 6 };
+const SpreadsheetCell& cell2 { sheet2.getCellAt(1, 1) };
+\end{cpp}
+
+\mySamllsection{Private Helper Member Function}
+
+Another option to avoid code duplication when implementing both const and non-const overloads is to have a private const helper member function with a non-const return type. The const and non-const overloaded member functions then both call this helper function. For example, for the getCellAt() overloads from the previous section, a getCellAtHelper() can be added as follows:
+
+\begin{cpp}
+export class Spreadsheet
+{
+    public:
+        SpreadsheetCell& getCellAt(std::size_t x, std::size_t y);
+        const SpreadsheetCell& getCellAt(std::size_t x, std::size_t y) const;
+        // Code omitted for brevity.
+    private:
+        SpreadsheetCell& getCellAtHelper(std::size_t x, std::size_t y) const;
+};
+\end{cpp}
+
+And here are the implementations:
+
+\begin{cpp}
+SpreadsheetCell& Spreadsheet::getCellAt(size_t x, size_t y)
+{
+    return getCellAtHelper(x, y);
+}
+
+const SpreadsheetCell& Spreadsheet::getCellAt(size_t x, size_t y) const
+{
+    return getCellAtHelper(x, y);
+}
+
+SpreadsheetCell& Spreadsheet::getCellAtHelper(size_t x, size_t y) const
+{
+    verifyCoordinate(x, y);
+    return m_cells[x][y];
+}
+\end{cpp}
 
 \mySamllsection{Explicitly Deleting Overloads}
 
+Overloaded member functions can be explicitly deleted, which enables you to forbid calling a member function with particular arguments. For example, the SpreadsheetCell class has a member function setValue(double) that can be called as follows:
+
+\begin{cpp}
+SpreadsheetCell cell;
+cell.setValue(1.23);
+cell.setValue(123);
+\end{cpp}
+
+For the third line, the compiler converts the integer value (123) to a double and then calls setValue(double). If, for some reason, you do not want setValue() to be called with integers, you can explicitly delete an integer overload of setValue():
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        void setValue(double value);
+        void setValue(int) = delete;
+};
+\end{cpp}
+
+With this change, an attempt to call setValue() with an integer will be flagged as an error by the compiler.
+
 \mySamllsection{Ref-Qualified Member Functions}
 
+Ordinary class member functions can be called on both non-temporary and temporary instances of a class. Suppose you have the following class that simply remembers the string passed as argument to the constructor:
+
+\begin{cpp}
+class TextHolder
+{
+    public:
+        explicit TextHolder(string text) : m_text { move(text) } {}
+        const string& getText() const { return m_text; }
+    private:
+        string m_text;
+};
+\end{cpp}
+
+Of course, there is no doubt that you can call the getText() member function on non-temporary instances of TextHolder. Here’s an example:
+
+\begin{cpp}
+TextHolder textHolder { "Hello world!" };
+println("{}", textHolder.getText());
+\end{cpp}
+
+However, getText() can also be called on temporary instances:
+
+\begin{cpp}
+println("{}", TextHolder{ "Hello world!" }.getText());
+\end{cpp}
+
+It is possible to explicitly specify on what kind of instances a certain member function can be called, be it temporary or non-temporary instances. This is done by adding a ref-qualifier to the member function. If a member function can only be called on non-temporary instances, a \& qualifier is added after the member function header. Similarly, if a member function can only be called on temporary instances, a \&\& qualifier is added.
+
+The following modified TextHolder class implements the \& qualified getText() by returning a reference-to-const to m\_text. The \&\& qualified getText(), on the other hand, returns an rvalue reference to m\_text so that m\_text can be moved out of a TextHolder. This can be more efficient if you, for example, want to retrieve the text from a temporary TextHolder instance.
+
+\begin{cpp}
+class TextHolder
+{
+    public:
+        explicit TextHolder(string text) : m_text { move(text) } {}
+        const string& getText() const & { return m_text; }
+        string&& getText() && { return move(m_text); }
+    private:
+        string m_text;
+};
+\end{cpp}
+
+Suppose you have the following invocations:
+
+\begin{cpp}
+TextHolder textHolder { "Hello world!" };
+println("{}", textHolder.getText());
+println("{}", TextHolder{ "Hello world!" }.getText());
+\end{cpp}
+
+Then the first call to getText() calls the \& qualified overload, while the second invocation calls the \&\& qualified overload.
+
+A second example of using ref-qualifiers is to prevent a user from assigning a value to a temporary instance of a class. For instance, you can add an assignment operator to TextHolder:
+
+\begin{cpp}
+class TextHolder
+{
+    public:
+        TextHolder& operator=(const string& rhs) { m_text = rhs; return *this; }
+    // Remainder of the class definition omitted for brevity
+};
+\end{cpp}
+
+Once such an assignment operator is added to TextHolder, assigning a new value to a temporary instance of TextHolder, as shown in the next code snippet, does not make much sense, as the object will cease to exist soon:
+
+\begin{cpp}
+TextHolder makeTextHolder() { return TextHolder { "Hello World!" }; }
+
+int main()
+{
+    makeTextHolder() = "Pointless!"; // Pointless, object is a temporary.
+}
+\end{cpp}
+
+Such pointless operations can be prevented by ref-qualifying the assignment operator to only work on lvalues:
+
+\begin{cpp}
+TextHolder& operator=(const string& rhs) & { m_text = rhs; return *this; }
+\end{cpp}
+
+With this assignment operator, the earlier "Pointless!" statement in main() fails to compile. You can now only assign values to lvalues:
+
+\begin{cpp}
+auto text { makeTextHolder() };
+text = "Ok";
+\end{cpp}
+
+\CXXTwentythreeLogo{-40}{-50}
+
+\mySamllsection{Ref-Qualification Using Explicit Object Parameters}
+
+As Chapter 8 explains, C++23 introduces the concept of explicit object parameters. This allows you to rewrite the ref-qualified member functions from the previous TextHolder class using a slightly different syntax:
+
+\begin{cpp}
+class TextHolder
+{
+    public:
+        const string& getText(this const TextHolder& self) { return self.m_text; }
+        string&& getText(this TextHolder&& self) { return move(self.m_text); }
+        TextHolder& operator=(this TextHolder& self, const string& rhs)
+        {
+            self.m_text = rhs;
+            return self;
+        }
+    // Remainder of the class definition omitted for brevity
+};
+\end{cpp}
+
+This is certainly more verbose than the syntax used in the previous section, but it makes the refqualification more obvious. In the previous section, there’s just an \& or \&\& at the end of the member function signature, but this is easily overlooked, e.g., when a colleague reviews your code.
 
 \mySubsubsection{9.3.4.}{Inline Member Functions}
 
+C++ gives you the ability to recommend to the compiler that a call to a function should not be implemented in the generated code as a call to a separate block of code. Instead, the compiler should insert the function’s body directly into the code where the function is called. This process is called inlining, and functions that want this behavior are called inline functions.
 
+You can specify an inline member function by placing the inline keyword in front of its name in the member function definition. For example, you might want to make the accessor member functions of the SpreadsheetCell class inline, in which case you would define them like this:
+
+\begin{cpp}
+inline double SpreadsheetCell::getValue() const
+{
+    ++m_numAccesses;
+    return m_value;
+}
+
+inline std::string SpreadsheetCell::getString() const
+{
+    ++m_numAccesses;
+    return doubleToString(m_value);
+}
+\end{cpp}
+
+This gives a hint to the compiler to replace calls to getValue() and getString() with the actual member function’s body instead of generating code to make a function call. Note that the inline keyword is just a hint for the compiler. The compiler can ignore it if it thinks it would hurt performance.
+
+There is one caveat: definitions of inline functions should be available in every source file in which they are called. That makes sense if you think about it: how can the compiler substitute the function’s body if it can’t see the function definition? Thus, if you write inline member functions, you should place the definitions of such member functions in the same file as the definition of the class to which the member functions belong.
+
+\begin{myNotic}{NOTE}
+Advanced C++ compilers do not require you to put definitions of inline member functions in the same file as the class definition. For example, Microsoft Visual C++ supports Link-Time Code Generation (LTCG), which automatically inlines small function bodies, even if they are not declared as inline and even if they are not defined in the same file as the class definition. GCC and Clang have similar features.
+\end{myNotic}
+
+Outside of C++ modules, if the definition of a member function is placed directly in the class definition, that member function implicitly is marked as inline, even without using the inline keyword. With classes exported from modules, this is not the case. If you want such member functions to be inline, you need to mark them with the inline keyword. Here’s an example:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        inline double getValue() const { ++m_numAccesses; return m_value; }
+        inline std::string getString() const
+        {
+            ++m_numAccesses;
+            return doubleToString(m_value);
+        }
+        // Omitted for brevity
+};
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+If you single-step with a debugger on a function call that is inlined, some advanced C++ debuggers will jump to the actual source code of the inline function, giving you the illusion of a function call while in reality, the code is inlined.
+\end{myNotic}
+
+Many C++ programmers discover the inline function syntax and employ it without understanding the ramifications. Marking a function as inline only gives a hint to the compiler. Compilers will only inline the simplest functions. If you define an inline function that the compiler doesn’t want to inline, it will silently ignore the hint. Modern compilers will take metrics such as code bloat into account before deciding to inline a function, and they will not inline anything that is not cost-effective.
 
 \mySubsubsection{9.3.5.}{Default Arguments}
+
+A feature similar to function overloading in C++ is default arguments. You can specify defaults for function parameters in the prototype. If the user provides arguments for those parameters, the default values are ignored. If the user omits those arguments, the default values are used. There is a limitation, though: you can only provide defaults for a continuous list of parameters starting from the rightmost parameter. Otherwise, the compiler will not be able to match missing arguments to default arguments. Default arguments can be used in functions, member functions, and constructors. For example, you can assign default values for the width and height in the Spreadsheet constructor as follows:
+
+\begin{cpp}
+export class Spreadsheet
+{
+    public:
+        explicit Spreadsheet(std::size_t width = 100, std::size_t height = 100);
+        // Omitted for brevity
+};
+\end{cpp}
+
+The implementation of the Spreadsheet constructor stays the same. Note that you specify the default arguments only in the function declaration, but not in the definition.
+
+Now you can call the Spreadsheet constructor with zero, one, or two arguments even though there is only one non-copy constructor:
+
+\begin{cpp}
+Spreadsheet s1;
+Spreadsheet s2 { 5 };
+Spreadsheet s3 { 5, 6 };
+\end{cpp}
+
+A constructor with defaults for all its parameters can function as a default constructor. That is, you can construct an object of that class without specifying any arguments. If you try to declare both a default constructor and a multi-argument constructor with defaults for all its parameters, the compiler will complain because it won’t know which constructor to call if you don’t specify any arguments.
+
+\begin{myNotic}{NOTE}
+Anything you can do with default arguments, you can do with function overloading. You could write three different constructors, each of which takes a different number of arguments. However, default arguments allow you to write just one constructor that can take three different number of arguments. You should use the mechanism with which you are most comfortable.
+\end{myNotic}
+
+
+
+
+
+
+
+
+
+
+
+
 
 

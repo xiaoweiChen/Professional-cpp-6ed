@@ -1,50 +1,1159 @@
 
+The object life cycle involves three activities: creation, destruction, and assignment. It is important to understand how and when objects are created, destroyed, and assigned, and how you can customize these behaviors.
 
 \mySubsubsection{8.3.1.}{Object Creation}
 
+Objects are created at the point you declare them (if they’re on the stack) or when you explicitly allocate space for them with a smart pointer, new, or new[]. When an object is created, all its embedded objects are also created. Here is an example:
+
+\begin{cpp}
+import std;
+
+class MyClass
+{
+    private:
+    std::string m_name;
+};
+
+int main()
+{
+    MyClass obj;
+}
+\end{cpp}
+
+The embedded string object is created at the point where the MyClass object is created in the main() function and is destroyed when its containing object is destroyed.
+
+It is often helpful to give variables initial values as you declare them, as so:
+
+\begin{cpp}
+int x { 0 };
+\end{cpp}
+
+Similarly, you could give initial values to objects. You can provide this functionality by declaring and writing a special member function called a constructor, in which you can perform initialization work for the object. Whenever an object is created, one of its constructors is executed.
+
+\begin{myNotic}{NOTE}
+C++ programmers sometimes call a constructor a ctor (pronounced “seetor”).
+\end{myNotic}
+
 \mySamllsection{Writing Constructors}
+
+Syntactically, a constructor is specified by a member function name that is the same as the class name.
+A constructor never has a return type and may or may not have parameters. A constructor that can be called without any arguments is called a default constructor. This can be a constructor that does not have any parameters, or a constructor for which all parameters have default values. There are certain contexts in which you may have to provide a default constructor, and you will get compilation errors if you have not provided one. Default constructors are discussed later in this chapter.
+
+Here is a first attempt at adding a constructor to the SpreadsheetCell class:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        SpreadsheetCell(double initialValue);
+        // Remainder of the class definition omitted for brevity
+};
+\end{cpp}
+
+Just as you must provide implementations for normal member functions, you must provide an implementation for the constructor:
+
+\begin{cpp}
+SpreadsheetCell::SpreadsheetCell(double initialValue)
+{
+    setValue(initialValue);
+}
+\end{cpp}
+
+The SpreadsheetCell constructor is a member of the SpreadsheetCell class, so C++ requires the normal SpreadsheetCell:: scope resolution before the constructor name. The constructor name itself is also SpreadsheetCell, so the code ends up with the funny-looking SpreadsheetCell::SpreadsheetCell. The implementation simply makes a call to setValue().
 
 \mySamllsection{Using Constructors}
 
+Using the constructor creates an object and initializes its values. You can use constructors with both stack-based and free store-based allocation.
+
+\mySamllsection{Constructors for Objects on the Stack}
+
+When you allocate a SpreadsheetCell object on the stack, you use the constructor like this:
+
+\begin{cpp}
+SpreadsheetCell myCell(5), anotherCell(4);
+println("cell 1: {}", myCell.getValue());
+println("cell 2: {}", anotherCell.getValue());
+\end{cpp}
+
+Alternatively, you can use the uniform initialization syntax:
+
+\begin{cpp}
+SpreadsheetCell myCell { 5 }, anotherCell { 4 };
+\end{cpp}
+
+Note that you do not call the SpreadsheetCell constructor explicitly. For example, do not do something as follows:
+
+\begin{cpp}
+SpreadsheetCell myCell.SpreadsheetCell(5); // WILL NOT COMPILE!
+\end{cpp}
+
+Similarly, you cannot call the constructor later. The following is also incorrect:
+
+\begin{cpp}
+SpreadsheetCell myCell;
+myCell.SpreadsheetCell(5); // WILL NOT COMPILE!
+\end{cpp}
+
+\mySamllsection{Constructors for Objects on the Free Store}
+
+When you dynamically allocate a SpreadsheetCell object, you use the constructor like this:
+
+\begin{cpp}
+auto smartCellp { make_unique<SpreadsheetCell>(4) };
+// ... do something with the cell, no need to delete the smart pointer
+
+// Or with raw pointers, without smart pointers (not recommended)
+SpreadsheetCell* myCellp { new SpreadsheetCell { 5 } };
+// Or
+// SpreadsheetCell* myCellp{ new SpreadsheetCell(5) };
+SpreadsheetCell* anotherCellp { nullptr };
+anotherCellp = new SpreadsheetCell { 4 };
+// ... do something with the cells
+delete myCellp; myCellp = nullptr;
+delete anotherCellp; anotherCellp = nullptr;
+\end{cpp}
+
+Note that you can declare a pointer to a SpreadsheetCell object without calling the constructor immediately, which is different from objects on the stack, where the constructor is called at the point of declaration.
+
+Remember to always initialize pointers, either with a proper pointer or with nullptr.
+
 \mySamllsection{Providing Multiple Constructors}
+
+You can provide more than one constructor in a class. All constructors have the same name (the name of the class), but different constructors must take a different number of arguments or different argument types. In C++, if you have more than one function with the same name, the compiler selects the one whose parameter types match the types at the call site. This is called overloading and is discussed in detail in Chapter 9.
+
+In the SpreadsheetCell class, it is helpful to have two constructors: one to take an initial double value and one to take an initial string value. Here is the new class definition:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        SpreadsheetCell(double initialValue);
+        SpreadsheetCell(std::string_view initialValue);
+        // Remainder of the class definition omitted for brevity
+};
+\end{cpp}
+
+Here is the implementation of the second constructor:
+
+\begin{cpp}
+SpreadsheetCell::SpreadsheetCell(string_view initialValue)
+{
+    setString(initialValue);
+}
+\end{cpp}
+
+Here is some code that uses the two different constructors:
+
+\begin{cpp}
+SpreadsheetCell aThirdCell { "test" }; // Uses string-arg ctor
+SpreadsheetCell aFourthCell { 4.4 }; // Uses double-arg ctor
+auto aFifthCellp { make_unique<SpreadsheetCell>("5.5") }; // string-arg ctor
+println("aThirdCell: {}", aThirdCell.getValue());
+println("aFourthCell: {}", aFourthCell.getValue());
+println("aFifthCellp: {}", aFifthCellp->getValue());
+\end{cpp}
+
+When you have multiple constructors, it is tempting to try to implement one constructor in terms of another. For example, you might want to call the double constructor from the string constructor as follows:
+
+\begin{cpp}
+SpreadsheetCell::SpreadsheetCell(string_view initialValue)
+{
+    SpreadsheetCell(stringToDouble(initialValue));
+}
+\end{cpp}
+
+That seems to make sense. After all, you can call normal class member functions from within other member functions. The code will compile, link, and run, but will not do what you expect! The explicit call to the SpreadsheetCell constructor actually creates a new temporary unnamed object of type SpreadsheetCell. It does not call the constructor for the object that you are supposed to be initializing.
+
+However, all is not lost. C++ does support delegating constructors. These allow you to call other constructors of the same class from inside the ctor-initializer, but for this, you’ll have to wait until later in this chapter after the introduction of ctor-initializers.
 
 \mySamllsection{Default Constructors}
 
+A default constructor is a constructor that requires no arguments. It is also called a zero-argument constructor.
+
+\mySamllsection{When You Need a Default Constructor}
+
+Consider arrays of objects. The act of creating an array of objects accomplishes two tasks: it allocates contiguous memory space for all the objects, and it calls the default constructor on each object. C++ fails to provide any syntax to tell the array creation code directly to call a different constructor. For example, if you do not define a default constructor for the SpreadsheetCell class, the following code does not compile:
+
+\begin{cpp}
+SpreadsheetCell cells[3]; // FAILS compilation without default constructor
+SpreadsheetCell* myCellp { new SpreadsheetCell[10] }; // Also FAILS
+\end{cpp}
+
+You can circumvent this restriction by using initializers like these:
+
+\begin{cpp}
+SpreadsheetCell cells[3] { SpreadsheetCell { 0 }, SpreadsheetCell { 23 },
+    SpreadsheetCell { 41 } };
+\end{cpp}
+
+However, it is usually easier to ensure that your class has a default constructor if you intend to create arrays of objects of that class. If you haven’t defined your own constructors, the compiler automatically creates a default constructor for you. This compiler-generated constructor is discussed in a later section.
+
+\mySamllsection{How to Write a Default Constructor}
+
+Here is part of the SpreadsheetCell class definition with a default constructor:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        SpreadsheetCell();
+        // Remainder of the class definition omitted for brevity
+};
+\end{cpp}
+
+Here is a first crack at an implementation of the default constructor:
+
+\begin{cpp}
+SpreadsheetCell::SpreadsheetCell()
+{
+    m_value = 0;
+}
+\end{cpp}
+
+If you use an in-class member initializer for m\_value, then the single statement in this default constructor can be left out.
+
+\begin{cpp}
+SpreadsheetCell::SpreadsheetCell()
+{}
+\end{cpp}
+
+You use the default constructor on the stack like this:
+
+\begin{cpp}
+SpreadsheetCell myCell;
+myCell.setValue(6);
+println("cell 1: {}", myCell.getValue());
+\end{cpp}
+
+The preceding code creates a new SpreadsheetCell called myCell, sets its value, and prints out its value. Unlike other constructors for stack-based objects, you do not call the default constructor with function-call syntax. Based on the syntax for other constructors, you might be tempted to call the default constructor like this:
+
+\begin{cpp}
+SpreadsheetCell myCell(); // WRONG, but will compile.
+myCell.setValue(6); // However, this line will not compile.
+println("cell 1: {}", myCell.getValue());
+\end{cpp}
+
+Unfortunately, the line attempting to call the default constructor compiles. The line following it does not compile. This problem is commonly known as the most vexing parse, and it means that your compiler thinks the first line is actually a function declaration for a function with the name myCell that takes zero arguments and returns a SpreadsheetCell object. When it gets to the second line, it thinks that you’re trying to use a function name as an object!
+
+Of course, instead of using function-call-style parentheses, you can use the uniform initialization syntax as follows:
+
+\begin{cpp}
+SpreadsheetCell myCell { }; // Calls the default constructor.
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+When creating an object on the stack with a default constructor, either use curly brackets for the uniform initialization syntax or omit any parentheses.
+\end{myWarning}
+
+For free store-based object allocation, the default constructor can be used as follows:
+
+\begin{cpp}
+auto smartCellp { make_unique<SpreadsheetCell>() };
+// Or with a raw pointer (not recommended)
+SpreadsheetCell* myCellp { new SpreadsheetCell { } };
+// Or
+// SpreadsheetCell* myCellp { new SpreadsheetCell };
+// Or
+// SpreadsheetCell* myCellp { new SpreadsheetCell() };
+// ... use myCellp
+delete myCellp; myCellp = nullptr;
+\end{cpp}
+
+\mySamllsection{Compiler-Generated Default Constructor}
+
+The first SpreadsheetCell class definition in this chapter looked like this:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        void setValue(double value);
+        double getValue() const;
+    private:
+        double m_value;
+};
+\end{cpp}
+
+This definition does not declare a default constructor, but still, the code that follows works fine:
+
+\begin{cpp}
+SpreadsheetCell myCell;
+myCell.setValue(6);
+\end{cpp}
+
+The following definition is the same as the preceding definition except that it adds an explicit constructor, accepting a double. It still does not explicitly declare a default constructor.
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        SpreadsheetCell(double initialValue); // No default constructor
+        // Remainder of the class definition omitted for brevity
+};
+\end{cpp}
+
+With this definition, the following code does not compile anymore:
+
+\begin{cpp}
+SpreadsheetCell myCell;
+myCell.setValue(6);
+\end{cpp}
+
+What’s going on here? The reason it is not compiling is that if you don’t specify any constructors, the compiler writes one for you that doesn’t take any arguments. This compiler-generated default constructor calls the default constructor on all object members of the class but does not initialize the language primitives such as int and double. Nonetheless, it allows you to create objects of that class. However, if you declare any constructor yourself, the compiler no longer generates a default constructor for you.
+
+\begin{myNotic}{NOTE}
+A default constructor is the same as a zero-argument constructor. The term default constructor does not refer only to the constructor that is automatically generated if you fail to declare any constructors yourself. It also refers to the constructor that is defaulted to if no arguments are required.
+\end{myNotic}
+
+\mySamllsection{Explicitly Defaulted Default Constructors}
+
+Before C++11, if your class required a number of explicit constructors accepting arguments but also a default constructor that did nothing, you still had to explicitly write your own empty default constructor as shown earlier.
+
+To avoid having to write empty default constructors manually, C++ supports the concept of explicitly defaulted default constructors. This allows you to write the class definition as follows without having to provide an empty implementation for the default constructor:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        SpreadsheetCell() = default;
+        SpreadsheetCell(double initialValue);
+        SpreadsheetCell(std::string_view initialValue);
+        // Remainder of the class definition omitted for brevity
+};
+\end{cpp}
+
+SpreadsheetCell defines two custom constructors. However, the compiler still generates a standard compiler-generated default constructor because one is explicitly defaulted using the default keyword. You are free to put the = default either directly in the class definition or in an implementation file.
+
+\mySamllsection{Explicitly Deleted Default Constructors}
+
+The opposite of explicitly defaulted default constructors is also possible and is called explicitly deleted default constructors. For example, you can define a class with only static member functions (see Chapter 9) for which you do not want to write any constructors, and you also do not want the compiler to generate the default constructor. In that case, you need to explicitly delete the default constructor.
+
+\begin{cpp}
+export class MyClass
+{
+    public:
+        MyClass() = delete;
+};
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+If a class has data members that have a deleted default constructor, then the default constructor for the class is automatically deleted as well.
+\end{myNotic}
+
 \mySamllsection{Constructor Initializers aka Ctor-Initializers}
+
+Up to now, this chapter initialized data members in the body of a constructor, as in this example:
+
+\begin{cpp}
+SpreadsheetCell::SpreadsheetCell(double initialValue)
+{
+    setValue(initialValue);
+}
+\end{cpp}
+
+C++ provides an alternative method for initializing data members in the constructor, called the constructor initializer, also known as the ctor-initializer or member initializer list. Here is the same SpreadsheetCell constructor, rewritten to use the ctor-initializer syntax:
+
+\begin{cpp}
+SpreadsheetCell::SpreadsheetCell(double initialValue)
+: m_value { initialValue }
+{}
+\end{cpp}
+
+As you can see, the ctor-initializer appears syntactically between the constructor parameter list and the opening brace for the body of the constructor. The list starts with a colon and is separated by commas. Each element in the list is an initialization of a data member using function notation or the uniform initialization syntax, a call to a base class constructor (see Chapter 10), or a call to a delegated constructor, discussed later in this chapter.
+
+Initializing data members with a ctor-initializer provides different behavior than does initializing data members inside the constructor body itself. When C++ creates an object, it must create all the data members of the object before calling the constructor. As part of creating these data members, it must call a constructor on any of them that are themselves objects. By the time you assign a value to an object inside your constructor body, you are not actually constructing that object. You are only modifying its value. A ctor-initializer allows you to provide initial values for data members as they are created, which is more efficient than assigning values to them later.
+
+If your class has as data member an object of a class that has a default constructor, then you do not have to explicitly initialize that object in the ctor-initializer. For example, if you have an std::string as data member, its default constructor initializes the string to the empty string, so initializing it to "" in the ctor-initializer is superfluous.
+
+On the other hand, if your class has as a data member an object of a class without a default constructor, you must use the ctor-initializer to properly construct that object. For example, take the following SpreadsheetCell class:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        SpreadsheetCell(double d);
+};
+\end{cpp}
+
+This class has only one constructor accepting a double and does not include a default constructor. You can use this class as a data member of another class as follows:
+
+\begin{cpp}
+class SomeClass
+{
+    public:
+        SomeClass();
+    private:
+        SpreadsheetCell m_cell;
+};
+\end{cpp}
+
+You can implement the SomeClass constructor as follows:
+
+\begin{cpp}
+SomeClass::SomeClass() { }
+\end{cpp}
+
+However, with this implementation, the code does not compile. The compiler does not know how to initialize the m\_cell data member of SomeClass because it does not have a default constructor.
+
+You must initialize the m\_cell data member in the ctor-initializer as follows:
+
+\begin{cpp}
+SomeClass::SomeClass() : m_cell { 1.0 } { }
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Ctor-initializers allow initialization of data members at the time of their creation.
+\end{myNotic}
+
+Some programmers prefer to assign initial values in the body of the constructor, even though this might be less efficient. However, several data types must be initialized in a ctor-initializer or with an in-class initializer. The following table summarizes them:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{DATA TYPE} &
+\textbf{EXPLANATION} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+const data members &
+\begin{tabular}[c]{@{}l@{}}You cannot legally assign a value to a const variable after it is\\ created. Any value must be supplied at the time of creation.\end{tabular} \\ \hline
+Reference data members &
+\begin{tabular}[c]{@{}l@{}}References cannot exist without referring to something, and once\\ created, a reference cannot be changed to refer to something\\ else.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}Object data members for\\ which there is no default\\ constructor\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}C++ attempts to initialize member objects using a default\\ constructor. If no default constructor exists, it cannot initialize the\\ object, and you must tell it explicitly which constructor to call.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}Base classes without default\\ constructors\end{tabular} &
+These are covered in Chapter 10. \\ \hline
+\end{longtable}
+
+There is one important caveat with ctor-initializers: they initialize data members in the order that they appear in the class definition, not their order in the ctor-initializer! Take the following definition for a class called Foo. Its constructor simply stores a double value and prints out the value to the console.
+
+\begin{cpp}
+class Foo
+{
+    public:
+        Foo(double value);
+    private:
+        double m_value { 0 };
+};
+
+Foo::Foo(double value) : m_value { value }
+{
+    println("Foo::m_value = {}", m_value);
+}
+\end{cpp}
+
+Suppose you have another class, MyClass, that contains a Foo object as one of its data members.
+
+\begin{cpp}
+class MyClass
+{
+    public:
+        MyClass(double value);
+    private:
+        double m_value { 0 };
+        Foo m_foo;
+};
+\end{cpp}
+
+Its constructor could be implemented as follows:
+
+\begin{cpp}
+MyClass::MyClass(double value) : m_value { value }, m_foo { m_value }
+{
+    println("MyClass::m_value = {}", m_value);
+}
+\end{cpp}
+
+The ctor-initializer first stores the given value in m\_value and then calls the Foo constructor with m\_value as argument. You can create an instance of MyClass as follows:
+
+\begin{cpp}
+MyClass instance { 1.2 };
+\end{cpp}
+
+Here is the output of the program:
+
+\begin{cpp}
+Foo::m_value = 1.2
+MyClass::m_value = 1.2
+\end{cpp}
+
+So, everything looks fine. Now make one tiny change to the MyClass definition; just reverse the order of the m\_value and m\_foo data members. Nothing else is changed.
+
+\begin{cpp}
+class MyClass
+{
+    public:
+        MyClass(double value);
+    private:
+        Foo m_foo;
+        double m_value { 0 };
+};
+\end{cpp}
+
+The output of the program now depends on your system. It could, for example, be as follows:
+
+\begin{shell}
+Foo::m_value = -9.255963134931783e+61
+MyClass::m_value = 1.2
+\end{shell}
+
+This is far from what you expected. You might assume, based on your ctor-initializer, that m\_value is initialized before using m\_value in the call to the Foo constructor. But C++ doesn’t work that way. The data members are initialized in the order they appear in the definition of the class, not the order in the ctor-initializer! So, in this case, the Foo constructor is called first with an uninitialized m\_value.
+
+Note that some compilers issue a warning when the order in the ctor-initializer does not match the order in the class definition.
+
+For this example, there is an easy fix. Don’t pass m\_value to the Foo constructor, but simply pass the value parameter:
+
+\begin{cpp}
+MyClass::MyClass(double value) : m_value { value }, m_foo { value }
+{
+    println("MyClass::m_value = {}", m_value);
+}
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+Ctor-initializers initialize data members in their declared order in the class definition, not their order in the ctor-initializer list.
+\end{myWarning}
 
 \mySamllsection{Copy Constructors}
 
+There is a special constructor in C++ called a copy constructor that allows you to create an object that is an exact copy of another object. Here is the declaration for a copy constructor in the SpreadsheetCell class:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        SpreadsheetCell(const SpreadsheetCell& src);
+        // Remainder of the class definition omitted for brevity
+};
+\end{cpp}
+
+The copy constructor takes a reference-to-const to the source object. Like other constructors, it does not return a value. The copy constructor should copy all the data members from the source object. Technically, of course, you can do whatever you want in a copy constructor, but it’s generally a good idea to follow expected behavior and initialize the new object to be a copy of the old one. Here is an example implementation of the SpreadsheetCell copy constructor. Note the use of the ctorinitializer.
+
+\begin{cpp}
+SpreadsheetCell::SpreadsheetCell(const SpreadsheetCell& src)
+: m_value { src.m_value }
+{}
+\end{cpp}
+
+If you don’t write a copy constructor yourself, C++ generates one for you that initializes each data member in the new object from its equivalent data member in the source object. For object data members, this initialization means that their copy constructors are called. Given a set of data members, called m1, m2, . . . mn, this compiler-generated copy constructor can be expressed as follows:
+
+\begin{cpp}
+classname::classname(const classname& src)
+: m1 { src.m1 }, m2 { src.m2 }, ... mn { src.mn } { }
+\end{cpp}
+
+Therefore, in most circumstances, there is no need for you to specify a copy constructor!
+
+\begin{myNotic}{NOTE}
+The SpreadsheetCell copy constructor is shown only for demonstration purposes. In fact, in this case, the copy constructor can be omitted because the default compiler-generated one is good enough. However, under certain conditions, this compiler-generated copy constructor is not sufficient. These conditions are covered in Chapter 9.
+\end{myNotic}
+
+\mySamllsection{When the Copy Constructor Is Called}
+
+The default semantics for passing arguments to functions in C++ is pass-by-value. That means that the function receives a copy of the value or object. Thus, whenever you pass an object to a function, the compiler calls the copy constructor of the new object to initialize it. For example, suppose you have the following printString() function accepting an std::string parameter by value:
+
+\begin{cpp}
+void printString(string value)
+{
+    println("{}", value);
+}
+\end{cpp}
+
+Recall that std::string is actually a class, not a built-in type. When your code makes a call to printString() passing a string argument, the string parameter value is initialized with a call to its copy constructor. The argument to the copy constructor is the string you passed to printString(). In the following example, the string copy constructor is executed for the value object in printString() with name as its argument:
+
+\begin{cpp}
+string name { "heading one" };
+printString(name); // Copies name
+\end{cpp}
+
+When the printString() member function finishes, value is destroyed. Because it was only a copy of name, name remains intact. Of course, you can avoid the overhead of copy constructors by passing parameters as references-to-const, discussed in an upcoming section.
+
+When returning objects by value from a function, the copy constructor might also get called. This is discussed in the section “Objects as Return Values” later in this chapter.
+
+\mySamllsection{Calling the Copy Constructor Explicitly}
+
+You can use the copy constructor explicitly as well. It is often useful to be able to construct one object as an exact copy of another. For example, you might want to create a copy of a SpreadsheetCell object like this:
+
+\begin{cpp}
+SpreadsheetCell myCell1 { 4 };
+SpreadsheetCell myCell2 { myCell1 }; // myCell2 has the same values as myCell1
+\end{cpp}
+
+\mySamllsection{Passing Objects by Reference}
+
+To avoid copying objects when you pass them to functions, you should declare that the function takes a reference to the object. Passing objects by reference is usually more efficient than passing them by value, because only the address of the object is copied, not the entire contents of the object.
+
+Additionally, pass-by-reference avoids problems with dynamic memory allocation in objects, which is discussed in Chapter 9.
+
+When you pass an object by reference, the function using the object reference could change the original object. When you are only using pass-by-reference for efficiency, you should preclude this possibility by declaring the object const as well. This is known as passing objects by reference-to-const and has been done in examples throughout this book.
+
+\begin{myNotic}{NOTE}
+For performance reasons, it is best to pass objects by reference-to-const instead of by value. Chapter 9 slightly modifies this rule after the introduction of move semantics, allowing pass-by-value of objects in certain cases.
+\end{myNotic}
+
+Note that the SpreadsheetCell class has a number of member functions accepting an std::string\_view as parameter. As discussed in Chapter 2, a string\_view is basically just a pointer and a length. So, it is cheap to copy and is usually passed by value.
+
+Also primitive types, such as int, double, and so on, should just be passed by value. You don’t gain anything by passing such types as reference-to-const.
+
+The doubleToString() member function of the SpreadsheetCell class always returns a string by value because the implementation of the member function creates a local string object that at the end of the member function is returned to the caller. Returning a reference to this string wouldn’t work because the string to which it refers to will be destroyed when the function exits.
+
+\mySamllsection{Explicitly Defaulted and Deleted Copy Constructors}
+
+Just as you can explicitly default or delete a compiler-generated default constructor for a class, you can also explicitly default or delete a compiler-generated copy constructor as follows:
+
+\begin{cpp}
+SpreadsheetCell(const SpreadsheetCell& src) = default;
+\end{cpp}
+
+or
+
+\begin{cpp}
+SpreadsheetCell(const SpreadsheetCell& src) = delete;
+\end{cpp}
+
+By deleting the copy constructor, the object cannot be copied anymore. This can be used to disallow passing the object by value, as discussed in Chapter 9.
+
+\begin{myNotic}{NOTE}
+If a class has data members that have a deleted or private copy constructor, then the copy constructor for the class is automatically deleted as well, even if you explicitly default one.
+\end{myNotic}
+
 \mySamllsection{Initializer-List Constructors}
+
+An initializer-list constructor is a constructor with an std::initializer\_list<T> (see Chapter 1) as the first parameter and without any additional parameters or with additional parameters having default values. The initializer\_list<T> class template is defined in <initializer\_list>. The following class demonstrates its use. The class accepts only an initializer\_list<double> with an even number of elements; otherwise, it throws an exception. Chapter 1 introduces exceptions.
+
+\begin{cpp}
+class EvenSequence
+{
+    public:
+        EvenSequence(initializer_list<double> values)
+        {
+            if (values.size() % 2 != 0) {
+                throw invalid_argument { "initializer_list should "
+                    "contain even number of elements." };
+            }
+            m_sequence.reserve(values.size());
+            for (const auto& value : values) {
+                m_sequence.push_back(value);
+            }
+        }
+
+        void print() const
+        {
+            for (const auto& value : m_sequence) {
+                std::print("{}, ", value);
+            }
+            println("");
+        }
+    private:
+        vector<double> m_sequence;
+};
+\end{cpp}
+
+Inside the initializer-list constructor you can access the elements of the initializer-list with a rangebased for loop. You can get the number of elements in an initializer-list with the size() member function.
+
+The EvenSequence initializer-list constructor uses a range-based for loop to copy elements from the given initializer\_list<T>. You can also use the assign() member function of vector. The different member functions of vector, including assign(), are discussed in detail in Chapter 18, “Standard Library Containers.” As a sneak preview, to give you an idea of the power of a vector, here is the initializer-list constructor using assign():
+
+\begin{cpp}
+EvenSequence(initializer_list<double> values)
+{
+    if (values.size() % 2 != 0) {
+        throw invalid_argument { "initializer_list should "
+            "contain even number of elements." };
+    }
+    m_sequence.assign(values);
+}
+\end{cpp}
+
+EvenSequence objects can be constructed as follows:
+
+\begin{cpp}
+try {
+    EvenSequence p1 { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
+    p1.print();
+    EvenSequence p2 { 1.0, 2.0, 3.0 };
+} catch (const invalid_argument& e) {
+    println("{}", e.what());
+}
+\end{cpp}
+
+The construction of p2 throws an exception because it has an odd number of elements in the initializer-list.
+
+The Standard Library has full support for initializer-list constructors. For example, the std::vector container can be initialized with an initializer-list:
+
+\begin{cpp}
+vector<string> myVec { "String 1", "String 2", "String 3" };
+\end{cpp}
+
+Without initializer-list constructors, one way to initialize this vector is by using several push\_back() calls:
+
+\begin{cpp}
+vector<string> myVec;
+myVec.push_back("String 1");
+myVec.push_back("String 2");
+myVec.push_back("String 3");
+\end{cpp}
+
+Initializer lists are not limited to constructors and can also be used with normal functions as explained in Chapter 1.
+
+\begin{myNotic}{NOTE}
+When a class has both an initializer-list constructor and another singleargument constructor, then you should be careful to call the correct one. For example, std::vector has an initializer-list constructor to initialize a vector with a given set of elements. It also has a constructor accepting a single argument, the desired size of the new vector. You call the initializer-list constructor using a braced initializer, \{\}, and call the other single-argument constructor using parentheses, (). For example:
+
+\begin{cpp}
+vector<int> v1 { 6 }; // Constructs a vector with a single element, 6.
+vector<int> v2 ( 6 ); // Constructs a vector with 6 default-
+                      // initialized elements.
+\end{cpp}
+\end{myNotic}
 
 \mySamllsection{Delegating Constructors}
 
+Delegating constructors allow constructors to call another constructor from the same class. However, this call cannot be placed in the constructor body; it must be in the ctor-initializer, and it must be the only member-initializer in the list. The following is an example:
+
+\begin{cpp}
+SpreadsheetCell::SpreadsheetCell(string_view initialValue)
+: SpreadsheetCell { stringToDouble(initialValue) }
+{}
+\end{cpp}
+
+When this string\_view constructor (the delegating constructor) is called, it first delegates the call to the target constructor, which is the double constructor in this example. When the target constructor returns, the body of the delegating constructor is executed.
+
+Make sure you avoid constructor recursion while using delegating constructors. Here is an example:
+
+\begin{cpp}
+class MyClass
+{
+    MyClass(char c) : MyClass { 1.2 } { }
+    MyClass(double d) : MyClass { 'm' } { }
+};
+\end{cpp}
+
+The first constructor delegates to the second constructor, which delegating back to the first one. The behavior of such code is undefined by the standard and depends on your compiler.
+
 \mySamllsection{Converting Constructors and Explicit Constructors}
+
+The current set of constructors for SpreadsheetCell is as follows:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        SpreadsheetCell() = default;
+        SpreadsheetCell(double initialValue);
+        SpreadsheetCell(std::string_view initialValue);
+        SpreadsheetCell(const SpreadsheetCell& src);
+    // Remainder omitted for brevity
+};
+\end{cpp}
+
+The single-parameter double and string\_view constructors can be used to convert a double or a string\_view into a SpreadsheetCell. Such constructors are called converting constructors. The compiler can use such constructors to perform implicit conversions for you. Here’s an example:
+
+\begin{cpp}
+SpreadsheetCell myCell { 4 };
+myCell = 5;
+myCell = "6"sv; // A string_view literal (see Chapter 2).
+\end{cpp}
+
+This might not always be the behavior you want. You can prevent the compiler from doing such implicit conversions by marking constructors as explicit. The explicit keyword goes only in the class definition. Here’s an example:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        SpreadsheetCell() = default;
+        SpreadsheetCell(double initialValue);
+        explicit SpreadsheetCell(std::string_view initialValue);
+        SpreadsheetCell(const SpreadsheetCell& src);
+    // Remainder omitted for brevity
+};
+\end{cpp}
+
+With this change, a line as follows no longer compiles:
+
+\begin{cpp}
+myCell = "6"sv; // A string_view literal (see Chapter 2).
+\end{cpp}
+
+Prior to C++11, converting constructors could have only a single parameter, as in the SpreadsheetCell example. Since C++11, converting constructors can have multiple parameters because of support for list initialization. Let’s look at an example. Suppose you have the following class:
+
+\begin{cpp}
+class MyClass
+{
+    public:
+        MyClass(int) { }
+        MyClass(int, int) { }
+};
+\end{cpp}
+
+This class has two constructors, and since C++11, both are converting constructors. The following example shows that the compiler automatically converts arguments such as 1, \{1\}, and \{1,2\}, to instances of MyClass using these converting constructors:
+
+\begin{cpp}
+void process(const MyClass& c) { }
+
+int main()
+{
+    process(1);
+    process({ 1 });
+    process({ 1, 2 });
+}
+\end{cpp}
+
+To prevent these implicit conversions, both converting constructors can be marked as explicit:
+
+\begin{cpp}
+class MyClass
+{
+    public:
+    explicit MyClass(int) { }
+    explicit MyClass(int, int) { }
+};
+\end{cpp}
+
+With this change, you have to perform these conversions explicitly; here’s an example:
+
+\begin{cpp}
+process(MyClass{ 1 });
+process(MyClass{ 1, 2 });
+\end{cpp}
+
+It is possible to pass a Boolean argument to explicit to turn it into a conditional explicit. The syntax is as follows:
+
+\begin{cpp}
+explicit(true) MyClass(int);
+\end{cpp}
+
+Of course, just writing explicit(true) is equivalent to explicit, but it becomes more useful in the context of generic template code using type traits. With type traits you can query certain properties of given types, such as whether a certain type is convertible to another type. The result of such a type trait can be used as argument to explicit(). Type traits allow for writing advanced generic code and are discussed in Chapter 26, “Advanced Templates.”
+
+\begin{myNotic}{NOTE}
+It is recommended to mark at least any constructor that can be called with a single argument as explicit to avoid accidental implicit conversions. If there is a real use case for implicit conversions, you can mark the constructor with explicit(false). Doing so explains to users of your class that the implicit conversion is consciously allowed.
+\end{myNotic}
 
 \mySamllsection{Summary of Compiler-Generated Constructors}
 
+The compiler can automatically generate a default constructor and a copy constructor for every class. However, the constructors that the compiler automatically generates depend on the constructors that you define yourself according to the rules in the following table:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{IF YOU DEFINE. . .} &
+\textbf{\begin{tabular}[c]{@{}l@{}}THEN THE COMPILER\\ GENERATES. . .\end{tabular}} &
+\textbf{AND YOU CAN CREATE AN OBJECT. . .} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+{[}no constructors{]} &
+\begin{tabular}[c]{@{}l@{}}A default\\ constructor\\ A copy constructor\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}With no arguments: SpreadsheetCell a;\\ As a copy: SpreadsheetCell b\{a\};\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}A default\\ constructor only\end{tabular} &
+A copy constructor &
+\begin{tabular}[c]{@{}l@{}}With no arguments: SpreadsheetCell a;\\ As a copy: SpreadsheetCell b\{a\};\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}A copy constructor\\ only\end{tabular} &
+No constructors &
+\begin{tabular}[c]{@{}l@{}}Theoretically, as a copy of another object\\ (practically, you can’t create any objects, because\\ there are no non-copy constructors)\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}A single- or multi\\ argument non-copy\\ constructor only\end{tabular} &
+A copy constructor &
+\begin{tabular}[c]{@{}l@{}}With arguments: SpreadsheetCell a\{6\};\\ As a copy: SpreadsheetCell b\{a\};\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}A default\\ constructor as well\\ as a single- or multi\\ argument non-copy\\ constructor\end{tabular} &
+A copy constructor &
+\begin{tabular}[c]{@{}l@{}}With no arguments: SpreadsheetCell a;\\ With arguments: SpreadsheetCell b\{5\};\\ As a copy: SpreadsheetCell c\{a\};\end{tabular} \\ \hline
+\end{longtable}
+
+Note the lack of symmetry between the default constructor and the copy constructor. As long as you don’t define a copy constructor explicitly, the compiler creates one for you. On the other hand, as soon as you define any constructor, the compiler stops generating a default constructor.
+
+As mentioned before in this chapter, the automatic generation of a default constructor and a default copy constructor can be influenced by defining them as explicitly defaulted or explicitly deleted.
+
+\begin{myNotic}{NOTE}
+A final type of constructor is a move constructor, required to implement move semantics. Move semantics is used to increase performance in certain situations and is discussed in detail in Chapter 9.
+\end{myNotic}
 
 \mySubsubsection{8.3.2.}{Object Destruction}
 
+When an object is destroyed, two events occur: the object’s destructor member function is called, and the memory it was taking up is freed. The destructor is your chance to perform any cleanup work for the object, such as freeing dynamically allocated memory or closing file handles. If you don’t declare a destructor, the compiler writes one for you that does recursive member-wise destruction and allows the object to be deleted. A destructor of a class is a member function with as name the name of the class prefixed with a tilde (~). A destructor does not return anything and does not have any parameters. Here is an example of a destructor that simply writes something to standard output:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        ~SpreadsheetCell(); // Destructor.
+        // Remainder of the class definition omitted for brevity
+};
+
+SpreadsheetCell::~SpreadsheetCell()
+{
+    println("Destructor called.");
+}
+\end{cpp}
+
+Objects on the stack are destroyed when they go out of scope, which means whenever the current function or other execution block ends. In other words, whenever the code encounters an ending curly brace, any objects created on the stack within those curly braces are destroyed. The following program shows this behavior:
+
+\begin{cpp}
+int main()
+{
+    SpreadsheetCell myCell { 5 };
+    if (myCell.getValue() == 5) {
+        SpreadsheetCell anotherCell { 6 };
+    } // anotherCell is destroyed as this block ends.
+    println("myCell: {}", myCell.getValue());
+} // myCell is destroyed as this block ends.
+\end{cpp}
+
+Objects on the stack are destroyed in the reverse order of their declaration (and construction). For example, in the following code fragment, myCell2 is created before anotherCell2, so anotherCell2 is destroyed before myCell2 (note that you can start a new code block at any point in your program with an opening curly brace):
+
+\begin{cpp}
+{
+    SpreadsheetCell myCell2 { 4 };
+    SpreadsheetCell anotherCell2 { 5 }; // myCell2 constructed before anotherCell2
+} // anotherCell2 destroyed before myCell2
+\end{cpp}
+
+This ordering also applies to objects that are data members of other objects. Recall that data members are initialized in the order of their declaration in the class. Thus, following the rule that objects are destroyed in the reverse order of their construction, data member objects are destroyed in the reverse order of their declaration order in the class.
+
+Objects allocated on the free store without the help of smart pointers are not destroyed automatically. You must call delete on the object pointer to call its destructor and free its memory. The following program shows this behavior.
+
+\begin{myWarning}{WARNING}
+Do not write programs like the next example where cellPtr2 is not deleted. Make sure you always free dynamically allocated memory by calling delete or delete[] depending on whether the memory was allocated using new or new[]. Or better yet, use smart pointers as discussed earlier!
+\end{myWarning}
+
+\begin{cpp}
+int main()
+{
+    SpreadsheetCell* cellPtr1 { new SpreadsheetCell { 5 } };
+    SpreadsheetCell* cellPtr2 { new SpreadsheetCell { 6 } };
+    println("cellPtr1: {}", cellPtr1->getValue());
+    delete cellPtr1; // Destroys cellPtr1
+    cellPtr1 = nullptr;
+} // cellPtr2 is NOT destroyed because delete was not called on it.
+\end{cpp}
 
 
 \mySubsubsection{8.3.3.}{Assigning to Objects}
 
+Just as you can assign the value of one int to another in C++, you can assign the value of one object to another. For example, the following code assigns the value of myCell to anotherCell:
+
+\begin{cpp}
+SpreadsheetCell myCell { 5 }, anotherCell;
+anotherCell = myCell;
+\end{cpp}
+
+You might be tempted to say that myCell is “copied” to anotherCell. However, in the world of C++, “copying” occurs only when an object is being initialized. If an object already has a value that is being overwritten, the more accurate term is “assigned to.” Note that the facility that C++ provides for copying is the copy constructor. Because it is a constructor, it can only be used for object creation, not for later assignments to the object.
+
+Therefore, C++ provides another member function in every class to perform assignment. This member function is called the assignment operator. Its name is operator= because it is actually an overload of the = operator for that class. In the preceding example, the assignment operator for anotherCell is called, with myCell as the argument.
+
+\begin{myNotic}{NOTE}
+The assignment operator as explained in this section is sometimes called the copy assignment operator because data is copied from the right-hand side object to the left-hand side object. Chapter 9 discusses another kind of assignment operator, the move assignment operator, in which data is moved instead of copied, which improves performance for certain use cases.
+\end{myNotic}
+
+As usual, if you don’t write your own assignment operator, C++ writes one for you to allow objects to be assigned to one another. The default C++ assignment behavior is almost identical to its default copying behavior: it recursively assigns each data member from the source to the destination object.
+
 \mySamllsection{Declaring an Assignment Operator}
+
+Here is the assignment operator for the SpreadsheetCell class:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        SpreadsheetCell& operator=(const SpreadsheetCell& rhs);
+        // Remainder of the class definition omitted for brevity
+};
+\end{cpp}
+
+The assignment operator usually takes a reference-to-const to the source object, like the copy constructor. In this case, the source object is called rhs, which stands for right-hand side of the equal sign, but you are of course free to call it whatever you want. The object on which the assignment operator is called is the left-hand side of the equal sign.
+
+Unlike a copy constructor, the assignment operator returns a reference to a SpreadsheetCell object. The reason is that assignments can be chained, as in the following example:
+
+\begin{cpp}
+myCell = anotherCell = aThirdCell;
+\end{cpp}
+
+When that line is executed, the first thing that happens is the assignment operator for anotherCell is called with aThirdCell as its “right-hand side” argument. Next, the assignment operator for myCell is called. However, its argument is not anotherCell; its right-hand side is the result of the assignment of aThirdCell to anotherCell. The equal sign is simply just shorthand for what is really a member function call. When you look at the line in its full functional syntax shown here, you can see the problem:
+
+\begin{cpp}
+myCell.operator=(anotherCell.operator=(aThirdCell));
+\end{cpp}
+
+Now, you can see that the operator= call from anotherCell must return a value, which is passed to the operator= call for myCell. The correct value to return is a reference to anotherCell itself, so it can serve as the source for the assignment to myCell.
+
+\begin{myWarning}{WARNING}
+You could actually declare the assignment operator to return whatever type you wanted, including void. However, you should always return a reference to the object on which it is called because that’s what clients expect.
+\end{myWarning}
 
 \mySamllsection{Defining an Assignment Operator}
 
+The implementation of the assignment operator is similar to that of a copy constructor but with several important differences. First, a copy constructor is called only for initialization, so the destination object does not yet have valid values. An assignment operator can overwrite the current values in an object. This consideration doesn’t really come into play until you have dynamically allocated resources, such as memory, in your objects. See Chapter 9 for details.
+
+Second, it’s legal in C++ to assign an object to itself. For example, the following code compiles and runs:
+
+\begin{cpp}
+SpreadsheetCell cell { 4 };
+cell = cell; // Self-assignment
+\end{cpp}
+
+Your assignment operator needs to take the possibility of self-assignment into account. In the SpreadsheetCell class, this is not important, as its only data member is a primitive type, double. However, when your class has dynamically allocated memory or other resources, it’s paramount to take self-assignment into account, as is discussed in detail in Chapter 9. To prevent problems in such cases, the first thing assignment operators usually do is check for self-assignment and return immediately if that’s the case.
+
+Here is the start of the definition of the assignment operator for the SpreadsheetCell class:
+
+\begin{cpp}
+SpreadsheetCell& SpreadsheetCell::operator=(const SpreadsheetCell& rhs)
+{
+    if (this == &rhs) {
+\end{cpp}
+
+This first line checks for self-assignment, but it might be a bit cryptic. Self-assignment occurs when the left-hand side and the right-hand side of the equal sign are the same. One way to tell whether two objects are the same is if they occupy the same memory location—more explicitly, if pointers to them are equal. Recall that this is a pointer to an object accessible from any member function called on the object. Thus, this is a pointer to the left-hand side object. Similarly, \&rhs is a pointer to the righthand side object. If these pointers are equal, the assignment must be self-assignment, but because the return type is SpreadsheetCell\&, a correct value must still be returned. All assignment operators return *this as follows, and the self-assignment case is no exception:
+
+\begin{cpp}
+        return *this;
+    }
+\end{cpp}
+
+this is a pointer to the object on which the member function executes, so *this is the object itself. The compiler returns a reference to the object to match the declared return type. Now, if it is not selfassignment, you have to do an assignment to every member:
+
+\begin{cpp}
+    m_value = rhs.m_value;
+    return *this;
+}
+\end{cpp}
+
+Here the member function copies the values, and finally, it returns *this, as explained earlier.
+
+Astute readers will notice there’s some code duplication between the copy assignment operator and the copy constructor; they both need to copy all data members. Chapter 9 introduces the copy-andswap idiom to prevent such code duplication.
+
+\begin{myNotic}{NOTE}
+The SpreadsheetCell assignment operator is shown only for demonstration purposes. In fact, in this case, the assignment operator can be omitted because the default compiler-generated one is good enough; it does simple member-wise assignments of all data members. However, under certain conditions, this compilergenerated assignment operator is not sufficient. These conditions are covered in Chapter 9.
+\end{myNotic}
+
+\begin{myWarning}{WARNING}
+If your class requires special handling for copy operations, always implement both the copy constructor and the copy assignment operator.
+\end{myWarning}
+
 \mySamllsection{Explicitly Defaulted and Deleted Assignment Operator}
 
+You can explicitly default or delete a compiler-generated assignment operator as follows:
+
+\begin{cpp}
+SpreadsheetCell& operator=(const SpreadsheetCell& rhs) = default;
+\end{cpp}
+
+or
+
+\begin{cpp}
+SpreadsheetCell& operator=(const SpreadsheetCell& rhs) = delete;
+\end{cpp}
 
 \mySubsubsection{8.3.4.}{Compiler-Generated Copy Constructor and Copy Assignment Operator}
 
+C++11 deprecated the generation of a copy constructor if the class has a user-declared copy assignment operator or destructor. If you still need a compiler-generated copy constructor in such a case, you can explicitly default one:
 
+\begin{cpp}
+MyClass(const MyClass& src) = default;
+\end{cpp}
+
+C++11 also deprecated the generation of a copy assignment operator if the class has a user-declared copy constructor or destructor. If you still need a compiler-generated copy assignment operator in such a case, you can explicitly default one:
+
+\begin{cpp}
+MyClass& operator=(const MyClass& rhs) = default;
+\end{cpp}
 
 \mySubsubsection{8.3.5.}{Distinguishing Copying from Assignment}
 
+It is sometimes difficult to tell when objects are initialized with a copy constructor rather than assigned to with the assignment operator. Essentially, things that look like a declaration are going to be using copy constructors, and things that look like assignment statements are handled by the assignment operator. Consider the following code:
+
+\begin{cpp}
+SpreadsheetCell myCell { 5 };
+SpreadsheetCell anotherCell { myCell };
+\end{cpp}
+
+AnotherCell is constructed with the copy constructor. Now consider the following:
+
+\begin{cpp}
+SpreadsheetCell aThirdCell = myCell;
+\end{cpp}
+
+aThirdCell is also constructed with the copy constructor, because this is a declaration. The operator= is not called for this line! This syntax is just another way to write SpreadsheetCell aThirdCell\{myCell\};. However, consider the following code:
+
+\begin{cpp}
+anotherCell = myCell; // Calls operator= for anotherCell
+\end{cpp}
+
+Here, anotherCell has already been constructed, so the compiler calls operator=.
+
 \mySamllsection{Objects as Return Values}
 
+When you return objects from functions, it is sometimes difficult to see exactly what copying and assigning is happening. For example, the implementation of SpreadsheetCell::getString() looks like this:
+
+\begin{cpp}
+string SpreadsheetCell::getString() const
+{
+    return doubleToString(m_value);
+}
+\end{cpp}
+
+Now consider the following code:
+
+\begin{cpp}
+SpreadsheetCell myCell2 { 5 };
+string s1;
+s1 = myCell2.getString();
+\end{cpp}
+
+When getString() returns the string, the compiler actually creates an unnamed temporary string object by calling a string copy constructor. When you assign this result to s1, the assignment operator is called for s1 with the temporary string as a parameter. Then, the temporary string object is destroyed. Thus, the single line of code could invoke the copy constructor and the assignment operator (for two different objects).
+
+In case you’re not confused enough, consider this code:
+
+\begin{cpp}
+SpreadsheetCell myCell3 { 5 };
+string s2 = myCell3.getString();
+\end{cpp}
+
+In this case, getString() still creates a temporary unnamed string object when it returns. But now, s2 gets its copy constructor called, not its assignment operator.
+
+With move semantics, the compiler can use a move constructor or move assignment operator instead of a copy constructor or copy assignment operator to return the string from getString(). This can be more efficient in certain cases and is discussed in Chapter 9. However, even better, compilers are free to (and often even required to) implement copy elision to optimize away costly copy operations or move operations when returning values; see Chapter 1.
+
+If you ever forget the order in which these things happen or which constructor or operator is called, you can easily figure it out by temporarily including helpful output in your code or by stepping through your code with a debugger.
+
 \mySamllsection{Copy Constructors and Object Members}
+
+You should also note the difference between assignment operator and copy constructor calls in constructors. If an object contains other objects, the compiler-generated copy constructor calls the copy constructors of each of the contained objects recursively. When you write your own copy constructor, you can provide the same semantics by using a ctor-initializer, as shown previously. If you omit a data member from the ctor-initializer, the compiler performs default initialization on it (a call to the default constructor for objects) before executing your code in the body of the constructor. Thus, by the time the body of the constructor executes, all object data members have already been initialized.
+
+For example, you could write the SpreadsheetCell copy constructor like this:
+
+\begin{cpp}
+SpreadsheetCell::SpreadsheetCell(const SpreadsheetCell& src)
+{
+    m_value = src.m_value;
+}
+\end{cpp}
+
+However, when you assign values to data members in the body of the copy constructor, you are using the assignment operator on them, not the copy constructor, because they have already been initialized.
+
+If you write the copy constructor as follows, then m\_value is initialized using the copy constructor:
+
+\begin{cpp}
+SpreadsheetCell::SpreadsheetCell(const SpreadsheetCell& src)
+: m_value { src.m_value }
+{}
+\end{cpp}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
