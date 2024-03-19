@@ -1,5 +1,165 @@
 
-
+Now that you understand all the syntax of writing classes in C++, it helps to revisit the design principles from Chapter 5, “Designing with Classes,” and Chapter 6, “Designing for Reuse.” Classes are the main unit of abstraction in C++. You should apply the principles of abstraction to your classes to separate the interface from the implementation as much as possible. Specifically, you should make all data members private and optionally provide getter and setter member functions. This is how the SpreadsheetCell class is implemented: m\_value is private, while the public set() member function sets the value, and the public getValue() and getString() retrieve the value.
 
 \mySubsubsection{9.9.1.}{Using Interface and Implementation Classes}
+
+Even with the preceding measures and the best design principles, the C++ language is fundamentally unfriendly to the principle of abstraction. The syntax requires you to combine your public interfaces and private (or protected) data members and member functions together in one class definition, thereby exposing some of the internal implementation details of the class to its clients. The downside of this is that if you have to add new non-public member functions or data members to your class, all the clients of the class have to be recompiled. This can become a burden in bigger projects.
+
+The good news is that you can make your interfaces a lot cleaner and hide all implementation details, resulting in stable interfaces. The bad news is that it takes a bit of coding. The basic principle is to define two classes for every class you want to write: the interface class and the implementation class. The implementation class is identical to the class you would have written if you were not taking this approach. The interface class presents public member functions identical to those of the implementation class, but it has only one data member: a pointer to an implementation class object. This is called the pimpl idiom, private implementation idiom, or bridge pattern. The interface class member function implementations simply call the equivalent member functions on the implementation class object. The result of this is that no matter how the implementation changes, it has no impact on the public interface class. This reduces the need for recompilation. None of the clients that use the interface class need to be recompiled if the implementation (and only the implementation) changes. Note that this idiom works only if the single data member is a pointer to the implementation class. If it were a by-value data member, clients would have to recompile when the definition of the implementation class changes.
+
+To use this approach with the Spreadsheet class, define the following public interface class, called Spreadsheet. The important parts are highlighted.
+
+\begin{cpp}
+export module spreadsheet;
+
+export import spreadsheet_cell;
+import std;
+
+export class Spreadsheet
+{
+    public:
+        explicit Spreadsheet(
+            std::size_t width = MaxWidth, std::size_t height = MaxHeight);
+        Spreadsheet(const Spreadsheet& src);
+        Spreadsheet(Spreadsheet&&) noexcept;
+        ˜Spreadsheet();
+
+        Spreadsheet& operator=(const Spreadsheet& rhs);
+        Spreadsheet& operator=(Spreadsheet&&) noexcept;
+
+        void setCellAt(std::size_t x, std::size_t y, const SpreadsheetCell& cell);
+        SpreadsheetCell& getCellAt(std::size_t x, std::size_t y);
+        const SpreadsheetCell& getCellAt(std::size_t x, std::size_t y) const;
+
+        std::size_t getId() const;
+
+        static constexpr std::size_t MaxHeight { 100 };
+        static constexpr std::size_t MaxWidth { 100 };
+
+        void swap(Spreadsheet& other) noexcept;
+
+    private:
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
+};
+export void swap(Spreadsheet& first, Spreadsheet& second) noexcept;
+\end{cpp}
+
+The implementation class, Impl, is a private nested class, because no one else besides the Spreadsheet class needs to know about this implementation class. The Spreadsheet class now contains only one data member: a pointer to an Impl instance. The public member functions are identical to the old Spreadsheet.
+
+The nested Spreadsheet::Impl class is defined in a spreadsheet module implementation file. It should be hidden from clients, so the Impl class is not exported. The Spreadsheet.cpp module implementation file starts as follows:
+
+\begin{cpp}
+module spreadsheet;
+import std;
+using namespace std;
+
+// Spreadsheet::Impl class definition.
+class Spreadsheet::Impl
+{
+    public:
+        Impl(size_t width, size_t height);
+        // Remainder omitted for brevity.
+};
+\end{cpp}
+
+This Impl class has almost the same interface as the original Spreadsheet class. You can find the full definition in the downloadable source code archive. For the member function implementations, you need to remember that Impl is a nested class; hence, you need to specify the scope as Spreadsheet::Impl. So, for the constructor, it becomes Spreadsheet::Impl::Impl(...):
+
+\begin{cpp}
+// Spreadsheet::Impl member function definitions.
+Spreadsheet::Impl::Impl(size_t width, size_t height)
+    : m_id { ms_counter++ }
+    , m_width { min(width, Spreadsheet::MaxWidth) }
+    , m_height { min(height, Spreadsheet::MaxHeight) }
+{
+    m_cells = new SpreadsheetCell*[m_width];
+    for (size_t i { 0 }; i < m_width; ++i) {
+        m_cells[i] = new SpreadsheetCell[m_height];
+    }
+}
+// Other member function definitions omitted for brevity.
+\end{cpp}
+
+Now that the Spreadsheet class has a unique\_ptr to an Impl instance, the Spreadsheet class needs to have a user-declared destructor. Since we don’t need to do anything in this destructor, it can be defaulted in the implementation file as follows:
+
+\begin{cpp}
+Spreadsheet::~Spreadsheet() = default;
+\end{cpp}
+
+In fact, it must be defaulted in the implementation file and not directly in the class definition. The reason is that the Impl class is only forward declared in the Spreadsheet class definition; that is, the compiler knows there will be a Spreadsheet::Impl class somewhere, but at this time it does not know the definition yet. As such, you cannot default the destructor in the class definition, because then the compiler would try to use the destructor of the as of yet undefined Impl class. The same is true when defaulting other member functions in this case, such as the move constructor and move assignment operator.
+
+The implementations of the Spreadsheet member functions, such as setCellAt() and getCellAt(), just pass the request on to the underlying Impl object:
+
+\begin{cpp}
+void Spreadsheet::setCellAt(size_t x, size_t y, const SpreadsheetCell& cell)
+{
+    m_impl->setCellAt(x, y, cell);
+}
+
+const SpreadsheetCell& Spreadsheet::getCellAt(size_t x, size_t y) const
+{
+    return m_impl->getCellAt(x, y);
+}
+
+SpreadsheetCell& Spreadsheet::getCellAt(size_t x, size_t y)
+{
+    return m_impl->getCellAt(x, y);
+}
+\end{cpp}
+
+The constructors for the Spreadsheet must construct a new Impl to do its work:
+
+\begin{cpp}
+Spreadsheet::Spreadsheet(size_t width, size_t height)
+{
+    : m_impl { make_unique<Impl>(width, height) }
+}
+}
+
+Spreadsheet::Spreadsheet(const Spreadsheet& src)
+: m_impl { make_unique<Impl>(*src.m_impl) }
+{}
+\end{cpp}
+
+The copy constructor looks a bit strange because it needs to copy the underlying Impl from the source Spreadsheet. The copy constructor takes a reference to an Impl, not a pointer, so you must dereference the m\_impl pointer to get to the object itself.
+
+The Spreadsheet assignment operator must similarly pass on the assignment to the underlying Impl:
+
+\begin{cpp}
+Spreadsheet& Spreadsheet::operator=(const Spreadsheet& rhs)
+{
+    *m_impl = *rhs.m_impl;
+    return *this;
+}
+\end{cpp}
+
+The first line in the assignment operator looks a little odd. The Spreadsheet assignment operator needs to forward the call to the Impl assignment operator, which runs only when you copy direct objects. By dereferencing the m\_impl pointers, you force direct object assignment, which causes the assignment operator of Impl to be called.
+
+The swap() member function simply swaps the single data member:
+
+\begin{cpp}
+void Spreadsheet::swap(Spreadsheet& other) noexcept
+{
+    std::swap(m_impl, other.m_impl);
+}
+\end{cpp}
+
+This technique to truly separate the interface from the implementation is powerful. Although it is a bit clumsy at first, once you get used to it, you will find it natural to work with. However, it’s not common practice in most workplace environments, so you might find some resistance to trying it from your coworkers. The most compelling argument in favor of it is not the aesthetic one of splitting out the interface, but the speedup in build time if the implementation of the class changes. When a class is not using the pimpl idiom, a change to its implementation details might trigger a long rebuild. For example, adding a new data member to a class definition triggers a rebuild of all other source files that use this class definition. With the pimpl idiom, you can modify the implementation class definition as much as you like, and as long as the public interface class remains untouched, it won’t trigger a long rebuild.
+
+\begin{myNotic}{NOTE}
+With stable interface classes, build times can be reduced.
+\end{myNotic}
+
+An alternative to separating the implementation from the interface is to use an abstract interface— that is, an interface with only pure virtual member functions—and then have an implementation class that implements that interface. That’s a topic for the next chapter.
+
+
+
+
+
+
+
+
+
+
+
 

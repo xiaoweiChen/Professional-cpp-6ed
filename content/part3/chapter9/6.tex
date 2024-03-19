@@ -1,0 +1,72 @@
+Class definitions can contain more than just member functions and data members. They can also contain nested classes and structs, type aliases, and enumerations. Anything declared inside a class is in the scope of that class. If it is public, you can access it outside the class by scoping it with the ClassName:: scope resolution syntax.
+
+You can provide a class definition inside another class definition. For example, you might decide that the SpreadsheetCell class is really part of the Spreadsheet class. And since it becomes part of the Spreadsheet class, you might as well rename it to Cell. You could define both of them like this:
+
+\begin{cpp}
+export class Spreadsheet
+{
+    public:
+        class Cell
+        {
+            public:
+                Cell() = default;
+                Cell(double initialValue);
+                // Remainder omitted for brevity
+        };
+
+        Spreadsheet(std::size_t width, std::size_t height,
+            const SpreadsheetApplication& theApp);
+        // Remainder of Spreadsheet declarations omitted for brevity
+};
+\end{cpp}
+
+Now, the Cell class is defined inside the Spreadsheet class, so anywhere you refer to a Cell outside of the Spreadsheet class, you must qualify the name with the Spreadsheet:: scope. This applies even to the member function definitions. For example, the double constructor of Cell now looks like this:
+
+\begin{cpp}
+Spreadsheet::Cell::Cell(double initialValue)
+    : m_value { initialValue }
+{}
+\end{cpp}
+
+You must even use the syntax for return types (but not parameters) of member functions in the Spreadsheet class itself:
+
+\begin{cpp}
+const Spreadsheet::Cell& Spreadsheet::getCellAt(size_t x, size_t y) const
+{
+    verifyCoordinate(x, y);
+    return m_cells[x][y];
+}
+\end{cpp}
+
+Fully defining the nested Cell class directly inside the Spreadsheet class makes the definition of the Spreadsheet class a bit bloated. You can alleviate this by only including a forward declaration for Cell in the Spreadsheet class and then defining the Cell class separately, as follows:
+
+\begin{cpp}
+export class Spreadsheet
+{
+    public:
+        class Cell;
+        Spreadsheet(std::size_t width, std::size_t height,
+            const SpreadsheetApplication& theApp);
+        // Remainder of Spreadsheet declarations omitted for brevity
+};
+class Spreadsheet::Cell
+{
+    public:
+        Cell() = default;
+        Cell(double initialValue);
+        // Omitted for brevity
+};
+\end{cpp}
+
+Normal access control applies to nested class definitions. If you declare a private or protected nested class, you can only use it from inside the outer class. A nested class has access to all protected and private members of the outer class. The outer class on the other hand can only access public members of the nested class.
+
+
+
+
+
+
+
+
+
+
+

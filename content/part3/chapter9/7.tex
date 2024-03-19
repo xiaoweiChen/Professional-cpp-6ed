@@ -1,0 +1,52 @@
+Enumerations can also be data members of a class. For example, you can add support for cell coloring to the SpreadsheetCell class as follows:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        // Omitted for brevity
+        enum class Color { Red = 1, Green, Blue, Yellow };
+        void setColor(Color color);
+        Color getColor() const;
+    private:
+        // Omitted for brevity
+        Color m_color { Color::Red };
+};
+\end{cpp}
+
+The implementations of the setColor() and getColor() member functions are straightforward:
+
+\begin{cpp}
+void SpreadsheetCell::setColor(Color color) { m_color = color; }
+SpreadsheetCell::Color SpreadsheetCell::getColor() const { return m_color; }
+\end{cpp}
+
+The new member functions can be used as follows:
+
+\begin{cpp}
+SpreadsheetCell myCell { 5 };
+myCell.setColor(SpreadsheetCell::Color::Blue);
+auto color { myCell.getColor() };
+\end{cpp}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

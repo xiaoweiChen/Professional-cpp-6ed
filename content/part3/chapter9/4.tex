@@ -1,12 +1,174 @@
 
+In modern C++, it’s possible to easily perform computations at compile time instead of at run time. This improves the run-time performance of your code. Two important keywords are used to accomplish this: constexpr and consteval.
 
 \mySubsubsection{9.4.1.}{The constexpr Keyword}
 
+C++ always had the notion of constant expressions, which are expressions evaluated at compile time. In some circumstances, constant expressions are a requirement. For example, when defining an array, the size of the array needs to be a constant expression. Because of this restriction, the following piece of code is not valid in C++:
 
+\begin{cpp}
+const int getArraySize() { return 32; }
+
+int main()
+{
+    int myArray[getArraySize()]; // ERROR: Invalid in C++
+    println("Size of array = {}", size(myArray));
+}
+\end{cpp}
+
+Using the constexpr keyword, getArraySize() can be redefined to allow it to be called from within a constant expression:
+
+\begin{cpp}
+constexpr int getArraySize() { return 32; }
+
+int main()
+{
+    int myArray[getArraySize()]; // OK
+    println("Size of array = {}", size(myArray));
+}
+\end{cpp}
+
+You can even do something like this:
+
+\begin{cpp}
+int myArray[getArraySize() + 1]; // OK
+\end{cpp}
+
+Constant expressions can only use constexpr entities and integer, Boolean, character, and enumeration constants.
+
+Declaring a function as constexpr imposes restrictions on what the function can do because the compiler has to be able to evaluate the function at compile time. For example, a constexpr function is not allowed to have any side effects, nor can it let any exceptions escape the function. Throwing exceptions and catching them in try blocks inside the function is allowed. A constexpr function is allowed to unconditionally call other constexpr functions. It is also allowed to call non-constexpr functions, but only if those calls are triggered during evaluation at run time, and not during constant evaluation. For example:
+
+\begin{cpp}
+void log(string_view message) { print("{}", message); }
+
+constexpr int computeSomething(bool someFlag)
+{
+    if (someFlag) {
+        log("someFlag is true");
+        return 42;
+    }
+    else { return 84; }
+}
+\end{cpp}
+
+The computeSomething() function is constexpr and includes a call to log(), which is nonconstexpr, but that call is executed only when someFlag is true. As long as computeSomething() is called with someFlag set to false, it can be called within a constant expression, for example:
+
+\begin{cpp}
+constexpr auto value1 { computeSomething(false) };
+\end{cpp}
+
+Calling the function with someFlag set to true cannot be done in a constant expression. The following does not compile:
+
+\begin{cpp}
+constexpr auto value2 { computeSomething(true) };
+\end{cpp}
+
+The following works fine, as the evaluation now happens at run time instead of at compile time:
+
+\begin{cpp}
+const auto value3 { computeSomething(true) };
+\end{cpp}
+
+\CXXTwentythreeLogo{-40}{-40}
+
+C++23 relaxes the restrictions for constexpr functions a bit: goto statements, labels (besides case labels), and static and static constexpr variables are now allowed in constexpr functions, but were not allowed before.
 
 \mySubsubsection{9.4.2.}{The consteval Keyword}
 
+The constexpr keyword specifies that a function could be executed at compile time, but it does not guarantee compile-time execution. Take the following constexpr function:
 
+\begin{cpp}
+constexpr double inchToMm(double inch) { return inch * 25.4; }
+\end{cpp}
+
+If called as follows, the function is evaluated at compile time as desired:
+
+\begin{cpp}
+constexpr double const_inch { 6.0 };
+constexpr double mm1 { inchToMm(const_inch) }; // at compile time
+\end{cpp}
+
+However, if called as follows, the function is not evaluated at compile time, but at run time!
+
+\begin{cpp}
+double dynamic_inch { 8.0 };
+double mm2 { inchToMm(dynamic_inch) }; // at run time
+\end{cpp}
+
+If you really want the guarantee that a function is always evaluated at compile time, you need to use the consteval keyword to turn a function into an immediate function. The inchToMm() function can be changed as follows:
+
+\begin{cpp}
+consteval double inchToMm(double inch) { return inch * 25.4; }
+\end{cpp}
+
+Now, the call to inchToMm() in the definition of mm1 earlier still compiles fine and results in compiletime evaluation. However, the call in the definition of mm2 now results in a compilation error because it cannot be evaluated at compile time.
+
+An immediate function can be called only during constant evaluation. For example, suppose you have the following immediate function:
+
+\begin{cpp}
+consteval int f(int i) { return i; }
+\end{cpp}
+
+\CXXTwentythreeLogo{-40}{-40}
+
+This immediate function can be called from a constexpr function, but only when the constexpr function is being executed during constant evaluation. For example, the following function uses an if consteval statement to check if constant evaluation is happening in which case it can call f(). In the else branch, f() cannot be called.
+
+\begin{cpp}
+constexpr int g(int i)
+{
+    if consteval { return f(i); }
+    else { return 42; }
+}
+\end{cpp}
 
 \mySubsubsection{9.4.3.}{constexpr and consteval Classes}
+
+By defining a constexpr or consteval constructor, you can create constant-expression variables of user-defined types. Just as constexpr functions, constexpr classes may or may not be evaluated at compile time, while consteval classes are guaranteed to be evaluated at compile time.
+
+The following Matrix class defines a constexpr constructor. It also defines a constexpr getSize() member function that is performing some calculation.
+
+\begin{cpp}
+class Matrix
+{
+    public:
+        Matrix() = default; // Implicitly constexpr
+
+        constexpr explicit Matrix(unsigned rows, unsigned columns)
+            : m_rows { rows }, m_columns { columns } { }
+
+        constexpr unsigned getSize() const { return m_rows * m_columns; }
+    private:
+        unsigned m_rows { 0 }, m_columns { 0 };
+};
+\end{cpp}
+
+Using this class to declare constexpr objects is straightforward:
+
+\begin{cpp}
+constexpr Matrix matrix { 8, 2 };
+constexpr Matrix matrixDefault;
+\end{cpp}
+
+Such a constexpr object can now be used, e.g., to create an array big enough to store the matrix in linear form:
+
+\begin{cpp}
+int linearizedMatrix[matrix.getSize()]; // OK
+\end{cpp}
+
+Compiler-generated (either implicitly or explicitly using =default) member functions, such as default constructors, destructors, assignment operators, and so on, are automatically constexpr unless the class contains data members where those member functions are not constexpr.
+
+The definition of constexpr and consteval member functions must be available for the compiler so they can be evaluated at compile time. This means that if the class is defined in a module, such member functions must be defined in the module interface file, not in a module implementation file.
+
+\begin{myNotic}{NOTE}
+Several classes from the Standard Library are constexpr and so can be used within other constexpr functions and classes. Examples are std::vector (Chapter 1), optional (Chapter 1), string (Chapter 2, “Working with Strings and String Views”), unique\_ptr (Chapter 7, since C++23), bitset (Chapter 18, “Standard Library Containers”), and variant (Chapter 24, “Additional Vocabulary Types”).
+\end{myNotic}
+
+
+
+
+
+
+
+
+
+
 

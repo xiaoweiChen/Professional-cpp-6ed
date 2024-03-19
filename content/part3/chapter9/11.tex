@@ -1,0 +1,25 @@
+
+By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+
+\begin{itemize}
+\item
+Exercise 9-1: Take your implementation of the Person class from Exercise 8-3 and adapt it to pass strings in the most optimal way you can think of. Additionally, add a move constructor and move assignment operator to it. In both member functions, write a message to the console so you can track when they get called. Implement any additional member functions you need for implementing the move member functions and for improving the implementation of other member functions from Exercise 8-3 to avoid code duplication. Modify main() to test your member functions.
+
+\item
+Exercise 9-2: Take the Person class from Exercise 8-4. Just as for Exercise 9-1, make changes to pass strings in the most optimal way. Then add full support for all six comparison operators to compare two Person objects. Try to implement this support in the least amount of code. Test your implementation by performing all kinds of comparisons in main(). How are Persons ordered? Is the ordering happening based on the first name, based on the last name, or based on a combination?
+
+\item
+Exercise 9-3: Before C++20, adding support for all six comparison operators required a bit more lines of code. Start from the Person class from Exercise 9-2, remove the operator<=>, and add the necessary code to add all comparison operators to compare two Person objects without using <=>. Perform the same set of tests as you’ve implemented for Exercise 9-2.
+
+\item
+Exercise 9-4: In this exercise, you’ll practice writing stable interfaces. Take your Person class from Exercise 8-4 and split it into a stable public interface class and a separate implementation class.
+
+\item
+Exercise 9-5: Start from your solution for Exercise 9-2, and optimize the getFirstName(), getLastName(), and getInitials() member functions for when these are called on rvalues.
+\end{itemize}
+
+
+
+
+
+

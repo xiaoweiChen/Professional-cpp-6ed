@@ -1,26 +1,540 @@
 
+In Chapter 5, you learned that an is-a relationship recognizes the pattern that real-world objects tend to exist in hierarchies. In programming, that pattern becomes relevant when you need to write a class that builds on, or slightly changes, another class. One way to accomplish this aim is to copy code from one class and paste it into the other. By changing the relevant parts or amending the code, you can achieve the goal of creating a new class that is slightly different from the original. This approach, however, leaves an OOP programmer feeling sullen and highly annoyed for the following reasons:
 
+\begin{itemize}
+\item
+A bug fix to the original class will not be reflected in the new class because the two classes contain completely separate code.
+
+\item
+The compiler does not know about any relationship between the two classes, so they are not polymorphic (see Chapter 5)—they are not just different variations on the same thing.
+
+\item
+This approach does not build a true is-a relationship. The new class is similar to the original because it has similar code, not because it really is the same type of object.
+
+\item
+The original code might not be obtainable. It may exist only in a precompiled binary format, so copying and pasting the code might be impossible.
+\end{itemize}
+
+Not surprisingly, C++ provides built-in support for defining a true is-a relationship. The characteristics of C++ is-a relationships are described in the following section.
 
 \mySubsubsection{10.1.1.}{Extending Classes}
 
+When you write a class definition in C++, you can tell the compiler that your class is inheriting from, deriving from, or extending an existing class. By doing so, your class automatically contains the data members and member functions of the original class, which is called the parent class, base class, or superclass. Extending an existing class gives your class (which is now called a child class, derived class, or subclass) the ability to describe only the ways in which it is different from the parent class.
+To extend a class in C++, you specify the class you are extending when you write the class definition.
+
+To show the syntax for inheritance, two classes are used, Base and Derived. Don’t worry—more interesting examples are coming later. To begin, consider the following definition for the Base class:
+
+\begin{cpp}
+class Base
+{
+    public:
+        void someFunction() {}
+    protected:
+        int m_protectedInt { 0 };
+    private:
+        int m_privateInt { 0 };
+};
+\end{cpp}
+
+If you want to build a new class, called Derived, which inherits from Base, you use the following syntax:
+
+\begin{cpp}
+class Derived : public Base
+{
+    public:
+        void someOtherFunction() {}
+};
+\end{cpp}
+
+Derived is a full-fledged class that just happens to share the characteristics of the Base class. Don’t worry about the word public for now—its meaning is explained later in this chapter. Figure 10.1 shows the simple relationship between Derived and Base. You can declare objects of type Derived just like any other object. You could even define a third class that inherits from Derived, forming a chain of classes, as shown in Figure 10.2.
+
+\myGraphic{0.7}{content/part3/chapter10/images/1.png}{FIGURE 10.1}
+
+\myGraphic{0.7}{content/part3/chapter10/images/2.png}{FIGURE 10.2}
+
+Derived doesn’t have to be the only derived class of Base. Additional classes can also inherit from Base, effectively becoming siblings to Derived, as shown in Figure 10.3.
+
+\myGraphic{0.7}{content/part3/chapter10/images/3.png}{FIGURE 10.3}
+
+Internally, a derived class contains an instance of the base class as a subobject. Graphically this can be represented as in Figure 10.4.
+
+\myGraphic{0.7}{content/part3/chapter10/images/4.png}{FIGURE 10.4}
+
 \mySamllsection{A Client’s View of Inheritance}
+
+To a client, or another part of your code, an object of type Derived is also an object of type Base because Derived inherits from Base. This means that all the public member functions and data members of Base and all the public member functions and data members of Derived are available.
+
+Code that uses the derived class does not need to know which class in your inheritance chain has defined a member function in order to call it. For example, the following code calls two member functions of a Derived object, even though one of the member functions is defined by the Base class:
+
+\begin{cpp}
+Derived myDerived;
+myDerived.someFunction();
+myDerived.someOtherFunction();
+\end{cpp}
+
+It is important to understand that inheritance works in only one direction. The Derived class has a clearly defined relationship to the Base class, but the Base class, as written, doesn’t know anything about the Derived class. That means objects of type Base do not have access to member functions and data members of Derived because Base is not a Derived.
+
+The following code does not compile because the Base class does not contain a public member function called someOtherFunction():
+
+\begin{cpp}
+Base myBase;
+myBase.someOtherFunction(); // Error! Base doesn't have a someOtherFunction().
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+From the perspective of code using an object, the object belongs to its defined class as well as to any base classes.
+\end{myNotic}
+
+A pointer or reference to a class type can refer to an object of the declared class type or any of its derived classes. This tricky subject is explained in detail later in this chapter. The concept to understand now is that a pointer to Base can actually be pointing to a Derived object. The same is true for a reference. The client can still access only the member functions and data members that exist in Base, but through this mechanism, any code that operates on a Base can also operate on a Derived.
+
+For example, the following code compiles and works just fine, even though it initially appears that there is a type mismatch:
+
+\begin{cpp}
+Base* base { new Derived {} }; // Create Derived, store in Base pointer.
+\end{cpp}
+
+However, you cannot call member functions from the Derived class through the Base pointer. The following does not work:
+
+\begin{cpp}
+base->someOtherFunction();
+\end{cpp}
+
+This is flagged as an error by the compiler because, although the object is of type Derived and therefore does have someOtherFunction() defined, the compiler can only think of it as type Base, which does not have someOtherFunction() defined.
 
 \mySamllsection{A Derived Class’s View of Inheritance}
 
+To the derived class, nothing much has changed in terms of how it is written or how it behaves. You can still define member functions and data members on a derived class just as you would on a regular class. The previous definition of Derived declares a member function called someOtherFunction(). Thus, the Derived class augments the Base class by adding an additional member function.
+
+A derived class can access public and protected member functions and data members declared in its base class as though they were its own, because technically they are. For example, the implementation of someOtherFunction() on Derived could make use of the data member m\_protectedInt, which is declared as part of Base. The following code shows this. Accessing a base class member is no different than if the member were declared as part of the derived class.
+
+\begin{cpp}
+void Derived::someOtherFunction()
+{
+    println("I can access base class data member m_protectedInt.");
+    println("Its value is {}", m_protectedInt);
+}
+\end{cpp}
+
+If a class declares members as protected, derived classes have access to them. If they are declared as private, derived classes do not have access. The following implementation of someOtherFunction() does not compile because the derived class attempts to access a private data member from the base class:
+
+\begin{cpp}
+void Derived::someOtherFunction()
+{
+    println("I can access base class data member m_protectedInt.");
+    println("Its value is {}", m_protectedInt);
+    println("The value of m_privateInt is {}", m_privateInt); // Error!
+}
+\end{cpp}
+
+The private access specifier gives you control over how a potential derived class could interact with your class.
+
+Chapter 4, “Designing Professional C++ Programs,” gives the following rule: all data members should be private; provide public getters and setters if you want to provide access to data members from outside the class. This rule can now be extended to include the protected access specifier.
+
+\begin{myWarning}{WARNING}
+All data members should be private. Provide public getters and setters if you want to provide access to data members from outside the class and provide protected getters and setters if you want only derived classes to access them.
+\end{myWarning}
+
+The reason to make data members private by default is that this provides the highest level of encapsulation. This means that you can change how you represent your data while keeping the public and protected interfaces unchanged. Additionally, without giving direct access to data members, you can easily add checks on the input data in your public and protected setters. Member functions should also be private by default. Only make those member functions public that are designed to be public and make member functions protected if you want only derived classes to have access to them.
+
+\begin{myNotic}{NOTE}
+From the perspective of a derived class, all public and protected data members and member functions from the base class are available for use.
+\end{myNotic}
+
+The following table summarizes the meaning of all three access specifiers:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{\begin{tabular}[c]{@{}l@{}}ACCESS\\ SPECIFIER\end{tabular}} &
+\textbf{MEANING} &
+\textbf{WHEN TO USE} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+public &
+\begin{tabular}[c]{@{}l@{}}Any code can call a public member\\ function or access a public data\\ member of an object.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Behaviors (member functions) that you\\ want clients to use.\\ Access member functions (getters and\\ setters) for private and protected\\ data members.\end{tabular} \\ \hline
+protected &
+\begin{tabular}[c]{@{}l@{}}Any member function of the class can\\ call protected member functions and\\ access protected data members.\\ Member functions of derived classes\\ can access protected members of a\\ base class.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}“Helper” member functions that you\\ do not want clients to use.\end{tabular} \\ \hline
+private &
+\begin{tabular}[c]{@{}l@{}}Only member functions of the class\\ can call private member functions\\ and access private data members.\\ Member functions in derived classes\\ cannot access private members of a\\ base class.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Everything should be private by\\ default, especially data members.\\ You can provide protected getters\\ and setters if you only want to allow\\ derived classes to access them, and\\ provide public getters and setters if\\ you want clients to access them.\end{tabular} \\ \hline
+\end{longtable}
+
 \mySamllsection{Preventing Inheritance}
 
+C++ allows you to mark a class as final, which means trying to inherit from it will result in a compilation error. A class can be marked as final with the final keyword right behind the name of the class. For example, if a class tries to inherit from the following Foo class, the compiler will produce an error:
 
+\begin{cpp}
+class Foo final { };
+\end{cpp}
 
 \mySubsubsection{10.1.2.}{Overriding Member Functions}
 
+The main reasons to inherit from a class are to add or replace functionality. The definition of Derived adds functionality to its parent class by providing an additional member function, someOtherFunction(). The other member function, someFunction(), is inherited from Base and behaves in the derived class exactly as it does in the base class. In many cases, you will want to modify the behavior of a class by replacing, or overriding, a member function.
+
 \mySamllsection{The virtual Keyword}
+
+Simply defining a member function from a base class in a derived class does not properly override that member function. To correctly override a member function, we need a new C++ keyword called virtual. Only member functions that are declared as virtual in the base class can be overridden properly by derived classes. The keyword goes at the beginning of a member function declaration as shown in the modified version of Base that follows:
+
+\begin{cpp}
+class Base
+{
+    public:
+        virtual void someFunction();
+        // Remainder omitted for brevity.
+};
+\end{cpp}
+
+The same holds for the Derived class. Its member functions should also be marked virtual if you want to override them in further derived classes:
+
+\begin{cpp}
+class Derived : public Base
+{
+    public:
+        virtual void someOtherFunction();
+};
+\end{cpp}
+
+The virtual keyword is not repeated in front of the member function definition, e.g.:
+
+\begin{cpp}
+void Base::someFunction()
+{
+    println("This is Base's version of someFunction().");
+}
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+Attempting to override a non-virtual member function from a base class hides the base class definition, and it will be used only in the context of the derived class.
+\end{myWarning}
 
 \mySamllsection{Syntax for Overriding a Member Function}
 
+To override a member function, you redeclare it in the derived class definition exactly as it was declared in the base class, but you add the override keyword and remove the virtual keyword. For example, if you want to provide a new definition for someFunction() in the Derived class, you must first add it to the class definition for Derived, as follows:
+
+\begin{cpp}
+class Derived : public Base
+{
+    public:
+        void someFunction() override; // Overrides Base's someFunction()
+        virtual void someOtherFunction();
+};
+\end{cpp}
+
+The new definition of someFunction() is specified along with the rest of Derived’s member functions. Just as with the virtual keyword, you do not repeat the override keyword in the member function definition:
+
+\begin{cpp}
+void Derived::someFunction()
+{
+    println("This is Derived's version of someFunction().");
+}
+\end{cpp}
+
+If you want, you are allowed to add the virtual keyword in front of overridden member functions, but it’s redundant. Here’s an example:
+
+\begin{cpp}
+class Derived : public Base
+{
+    public:
+        virtual void someFunction() override; // Overrides Base's someFunction()
+};
+\end{cpp}
+
+Once a member function or destructor is marked as virtual, it is virtual for all derived classes even if the virtual keyword is removed from derived classes.
+
 \mySamllsection{A Client’s View of Overridden Member Functions}
+
+With the preceding changes, other code still calls someFunction() the same way it did before. Just as before, the member function could be called on an object of class Base or an object of class Derived. Now, however, the behavior of someFunction() varies based on the class of the object.
+
+For example, the following code works just as it did before, calling Base’s version of someFunction():
+
+\begin{cpp}
+Base myBase;
+myBase.someFunction(); // Calls Base's version of someFunction().
+\end{cpp}
+
+The output of this code is as follows:
+
+\begin{shell}
+This is Base's version of someFunction().
+\end{shell}
+
+If the code declares an object of class Derived, the other version is automatically called:
+
+\begin{cpp}
+Derived myDerived;
+myDerived.someFunction(); // Calls Derived's version of someFunction()
+\end{cpp}
+
+The output this time is as follows:
+
+\begin{shell}
+This is Derived's version of someFunction().
+\end{shell}
+
+Everything else about objects of class Derived remains the same. Other member functions that might have been inherited from Base still have the definition provided by Base unless they are explicitly overridden in Derived.
+
+As you learned earlier, a pointer or reference can refer to an object of a class or any of its derived classes. The object itself “knows” the class of which it is actually a member, so the appropriate member function is called as long as it was declared virtual. For example, if you have a Base reference that refers to an object that is really a Derived, calling someFunction() actually calls the derived class’s version, as shown next. This aspect of overriding does not work properly if you omit the virtual keyword in the base class.
+
+\begin{cpp}
+Derived myDerived;
+Base& ref { myDerived };
+ref.someFunction(); // Calls Derived's version of someFunction()
+\end{cpp}
+
+Remember that even though a Base reference or pointer knows that it is referring to a Derived instance, you cannot access Derived class members that are not defined in Base. The following code does not compile because a Base reference does not have a member function called someOtherFunction():
+
+\begin{cpp}
+Derived myDerived;
+Base& ref { myDerived };
+myDerived.someOtherFunction(); // This is fine.
+ref.someOtherFunction(); // Error
+\end{cpp}
+
+This derived class knowledge characteristic is not true for nonpointer or nonreference objects. You can cast or assign a Derived to a Base because a Derived is a Base. However, the object loses any knowledge of the Derived class at that point.
+
+\begin{cpp}
+Derived myDerived;
+Base assignedObject { myDerived }; // Assigns a Derived to a Base.
+assignedObject.someFunction(); // Calls Base's version of someFunction()
+\end{cpp}
+
+One way to remember this seemingly strange behavior is to imagine what the objects look like in memory. Picture a Base object as a box taking up a certain amount of memory. A Derived object is a box that is slightly bigger because it has everything a Base has plus a bit more. Whether you have a Derived or Base reference or pointer to a Derived, the box doesn’t change—you just have a new way of accessing it. However, when you cast a Derived into a Base, you are throwing out all the “uniqueness” of the Derived class to fit it into a smaller box.
+
+\begin{myNotic}{NOTE}
+Derived classes retain all their data members and member functions when referred to by base class pointers or references. They lose their uniqueness when cast to a base class object. The loss of the derived class’s data members and member functions is called slicing.
+\end{myNotic}
 
 \mySamllsection{The override Keyword}
 
+The use of the override keyword is optional, but highly recommended. Without the keyword, it is possible to accidentally create a new (virtual) member function in a derived class instead of overriding a member function from the base class, effectively hiding the member function from the base class. Take the following Base and Derived classes where Derived is properly overriding someFunction(), but is not using the override keyword:
+
+\begin{cpp}
+class Base
+{
+    public:
+    virtual void someFunction(double d);
+};
+
+class Derived : public Base
+{
+    public:
+    virtual void someFunction(double d);
+};
+\end{cpp}
+
+You can call someFunction() through a reference as follows:
+
+\begin{cpp}
+Derived myDerived;
+Base& ref { myDerived };
+ref.someFunction(1.1); // Calls Derived's version of someFunction()
+\end{cpp}
+
+This correctly calls the overridden someFunction() from the Derived class. Now, suppose you accidentally use an integer parameter instead of a double while overriding someFunction(), as follows:
+
+\begin{cpp}
+class Derived : public Base
+{
+    public:
+        virtual void someFunction(int i);
+};
+\end{cpp}
+
+This code does not override someFunction() from Base, but instead creates a new virtual member function. If you try to call someFunction() through a Base reference as in the following code, someFunction() of Base is called instead of the one from Derived!
+
+\begin{cpp}
+Derived myDerived;
+Base& ref { myDerived };
+ref.someFunction(1.1); // Calls Base's version of someFunction()
+\end{cpp}
+
+This type of problem can happen when you start to modify the Base class but forget to update all derived classes. For example, maybe your first version of the Base class has a member function called someFunction() accepting an integer. You then write the Derived class overriding this someFunction() accepting an integer. Later you decide that someFunction() in Base needs a double instead of an integer, so you update someFunction() in the Base class. It could happen that at that time, you forget to update overrides of someFunction() in derived classes to also accept a double instead of an integer. By forgetting this, you are now actually creating a new virtual member function instead of properly overriding the base member function.
+
+You can prevent this situation by using the override keyword as follows:
+
+\begin{cpp}
+class Derived : public Base
+{
+    public:
+        void someFunction(int i) override;
+};
+\end{cpp}
+
+This definition of Derived generates a compilation error, because with the override keyword you are saying that someFunction() is supposed to be overriding a member function from a base class, but the Base class has no someFunction() accepting an integer, only one accepting a double.
+
+The problem of accidentally creating a new member function instead of properly overriding one can also happen when you rename a member function in the base class and forget to rename the overriding member functions in derived classes.
+
+\begin{myWarning}{WARNING}
+Always use the override keyword on member functions that are meant to be overriding member functions from a base class.
+\end{myWarning}
+
 \mySamllsection{The Truth about virtual}
 
+By now you know that if a member function is not virtual, trying to override it in a derived class will hide the base class’s version of that member function. This section explores how virtual member functions are implemented by the compiler and what their performance impact is, as well as discussing the importance of virtual destructors.
+
+\mySamllsection{How virtual Is Implemented}
+
+To understand how member function hiding is avoided, you need to know a bit more about what the virtual keyword actually does. When a class is compiled in C++, a binary object is created that contains all member functions for the class. In the non-virtual case, the code to transfer control to the appropriate member function is hard-coded directly where the member function is called based on the compile-time type. This is called static binding, also known as early binding.
+
+If the member function is declared virtual, the correct implementation is called through the use of a special area of memory called the vtable, or “virtual table.” Each class that has one or more virtual member functions has a vtable, and every object of such a class contains a pointer to said vtable. This vtable contains pointers to the implementations of the virtual member functions. In this way, when a member function is called on a pointer or reference to an object, its vtable pointer is followed, and the appropriate version of the member function is executed based on the actual type of the object at run time. This is called dynamic binding, also known as late binding. It’s important to remember that this dynamic binding works only when using pointers or references to objects. If you call a virtual member function directly on an object, then that call will use static binding resolved at compile time.
+
+To better understand how vtables make overriding of member functions possible, take the following Base and Derived classes as an example:
+
+\begin{cpp}
+class Base
+{
+    public:
+        virtual void func1();
+        virtual void func2();
+        void nonVirtualFunc();
+};
+
+class Derived : public Base
+{
+    public:
+        void func2() override;
+        void nonVirtualFunc();
+};
+\end{cpp}
+
+For this example, assume that you have the following two instances:
+
+\begin{cpp}
+Base myBase;
+Derived myDerived;
+\end{cpp}
+
+Figure 10.5 shows a high-level view of the vtables of both instances. The myBase object contains a pointer to its vtable. This vtable has two entries, one for func1() and one for func2(). Those entries point to the implementations of Base::func1() and Base::func2().
+
+\myGraphic{0.7}{content/part3/chapter10/images/5.png}{FIGURE 10.5}
+
+myDerived also contains a pointer to its vtable, which also has two entries, one for func1() and one for func2(). Its func1() entry points to Base::func1() because Derived does not override func1(). On the other hand, its func2() entry points to Derived::func2().
+
+Note that both vtables do not contain any entry for the nonVirtualFunc() member function because that member function is not virtual.
+
+\mySamllsection{The Justification for virtual}
+
+In some languages, such as Java, all member functions are automatically virtual so they can be overridden properly. In C++ that’s not the case. The argument against making everything virtual in C++, and the reason that the keyword was created in the first place, has to do with the overhead of the vtable. To call a virtual member function, the program needs to perform an extra operation by dereferencing the pointer to the appropriate code to execute. This is a miniscule performance hit in most cases, but the designers of C++ thought that it was better, at least at the time, to let the programmer decide if the performance hit was necessary. If the member function was never going to be overridden, there was no need to make it virtual and take the performance hit. However, with today’s CPUs, the performance hit is measured in fractions of a nanosecond, and this will keep getting smaller with future CPUs. In most applications, you will not have a measurable performance difference between using virtual member functions and avoiding them.
+
+Still, in certain specific use cases, the performance overhead might be too costly, and you may need to have an option to avoid the hit. For example, suppose you have a Point class that has a virtual member function. If you have another data structure that stores millions or even billions of Points, calling a virtual member function on each point creates significant overhead. In that case, it’s probably wise to avoid any virtual member functions in your Point class.
+
+There is also a tiny hit to memory usage for each object. In addition to the implementation of the member function, each object also needs a pointer for its vtable, which takes up a tiny amount of space. This is not an issue in the majority of cases. However, sometimes it does matter. Take again the Point class and the container storing billions of Points. In that case, the additional required memory becomes significant.
+
+\mySamllsection{The Need for virtual Destructors}
+
+Destructors should almost always be virtual. Making your destructors non-virtual can easily result in situations in which memory is not freed by object destruction. Only for a class that is marked as final could you make its destructor non-virtual.
+
+For example, if a derived class uses memory that is dynamically allocated in the constructor and deleted in the destructor, it will never be freed if the destructor is never called. Similarly, if your derived class has members that are automatically deleted when an instance of the class is destroyed, such as std::unique\_ptrs, then those members will not get deleted either if the destructor is never called.
+
+As the following code shows, it is easy to “trick” the compiler into skipping the call to the destructor if it is non-virtual:
+
+\begin{cpp}
+class Base
+{
+    public:
+        Base() = default;
+        ~Base() {}
+};
+
+class Derived : public Base
+{
+    public:
+        Derived()
+        {
+            m_string = new char[30];
+            println("m_string allocated");
+        }
+
+        ~Derived()
+        {
+            delete[] m_string;
+            println("m_string deallocated");
+        }
+    private:
+        char* m_string;
+};
+
+int main()
+{
+    Base* ptr { new Derived {} }; // m_string is allocated here.
+    delete ptr; // ~Base is called, but not ˜Derived because the destructor
+                // is not virtual!
+}
+\end{cpp}
+
+As you can see from the following output, the destructor of the Derived object is never called, that is, the “m\_string deallocated” message is never displayed:
+
+\begin{cpp}
+m_string allocated
+\end{cpp}
+
+Technically, the behavior of the delete call in the preceding code is undefined by the standard. A C++ compiler could do whatever it wants in such undefined situations. However, most compilers simply call the destructor of the base class, and not the destructor of the derived class.
+
+The fix is to mark the destructor in the base class as virtual. If you don’t need to do any extra work in that destructor but want to make it virtual, you can explicitly default it. Here’s an example:
+
+\begin{cpp}
+class Base
+{
+    public:
+        Base() = default;
+        virtual ˜Base() = default;
+};
+\end{cpp}
+
+With this change, the output is as expected:
+
+\begin{shell}
+m_string allocated
+m_string deallocated
+\end{shell}
+
+Note that since C++11, the generation of a copy constructor and copy assignment operator is deprecated if the class has a user-declared destructor. Basically, once you have a user-declared destructor, the rule of five kicks in. This means you need to declare a copy constructor, copy assignment operator, move constructor, and move assignment operator, possibly by explicitly defaulting them. This is not done in the examples in this chapter in the interest of keeping them concise and to the point.
+
+\begin{myWarning}{WARNING}
+Unless you have a specific reason not to, or the class is marked as final, destructors should be marked as virtual. Constructors cannot and need not be virtual because you always specify the exact class being constructed when creating an object.
+\end{myWarning}
+
+Earlier in this chapter it was advised to use the override keyword on member functions that are meant to override base class member functions. It’s also possible to use the override keyword on a destructor. This makes sure that the compiler will trigger an error if the destructor in the base class is not virtual. You can combine virtual, override, and default. Here’s an example:
+
+\begin{cpp}
+class Derived : public Base
+{
+    public:
+        virtual ˜Derived() override = default;
+};
+\end{cpp}
+
 \mySamllsection{Preventing Overriding}
+
+Besides marking an entire class as final, C++ also allows you to mark individual member functions as final. Such member functions cannot be overridden in a further derived class. For example, overriding someFunction() from the following Derived class in DerivedDerived results in a compilation error:
+
+\begin{cpp}
+class Base
+{
+    public:
+        virtual ˜Base() = default;
+        virtual void someFunction();
+};
+class Derived : public Base
+{
+    public:
+        void someFunction() override final;
+};
+class DerivedDerived : public Derived
+{
+    public:
+        void someFunction() override; // Compilation error.
+};
+\end{cpp}
+
+
+
+
+
+

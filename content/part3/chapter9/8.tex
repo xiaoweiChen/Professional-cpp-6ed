@@ -1,23 +1,470 @@
 
+You often want to perform operations on objects, such as adding them, comparing them, or streaming them to or from files. For example, spreadsheets are useful only when you can perform arithmetic actions on them, such as summing an entire row of cells. All this can be accomplished by overloading operators.
+
+Many people find the syntax of operator overloading tricky and confusing, at least at first. The irony is that it’s supposed to make things simpler. As you will discover in this section, that doesn’t mean simpler for the person writing the class, but simpler for the person using the class. The point is to make your new classes as similar as possible to built-in types such as int and double: it’s easier to add objects using + than to remember whether the member function name you should call is add() or sum().
+
+\begin{myNotic}{NOTE}
+Provide operator overloading as a service to clients of your class.
+\end{myNotic}
+
+At this point, you might be wondering exactly which operators you can overload. The answer is almost all of them—even some you’ve never heard of. This chapter just scratches the surface: the assignment operator is explained earlier in this chapter, while this section introduces the basic arithmetic operators, the shorthand arithmetic operators, and the comparison operators. Overloading the stream insertion and extraction operators is also useful. In addition, there are some tricky, but interesting, things you can do with operator overloading that you might not anticipate at first. The Standard Library uses operator overloading extensively. Chapter 15 explains how and when to overload the rest of the operators. Chapters 16 to 24 cover the Standard Library.
 
 \mySubsubsection{9.8.1.}{Example: Implementing Addition for SpreadsheetCells}
 
+In true object-oriented fashion, SpreadsheetCell objects should be able to add themselves to other SpreadsheetCell objects. Adding one cell to another cell produces a third cell with the result. It doesn’t change either of the original cells. The meaning of addition for SpreadsheetCells is the addition of the values of the cells.
+
 \mySamllsection{First Attempt: The add Member Function}
+
+You can declare and define an add() member function for your SpreadsheetCell class like this:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        SpreadsheetCell add(const SpreadsheetCell& cell) const;
+        // Omitted for brevity
+};
+\end{cpp}
+
+This member function adds two cells together, returning a new third cell whose value is the sum of the first two. It is declared const and takes a reference to a const SpreadsheetCell because add() does not change either of the source cells. Here is the implementation:
+
+\begin{cpp}
+SpreadsheetCell SpreadsheetCell::add(const SpreadsheetCell& cell) const
+{
+    return SpreadsheetCell { getValue() + cell.getValue() };
+}
+\end{cpp}
+
+You can use the add() member function like this:
+
+\begin{cpp}
+SpreadsheetCell myCell { 4 }, anotherCell { 5 };
+SpreadsheetCell aThirdCell { myCell.add(anotherCell) };
+auto aFourthCell { aThirdCell.add(anotherCell) };
+\end{cpp}
+
+That works, but it’s a bit clumsy. We can do better.
 
 \mySamllsection{Second Attempt: Overloaded operator+ as a Member Function}
 
+It would be convenient to be able to add two cells with the plus sign the way that you add two ints or two doubles—something like this:
+
+\begin{cpp}
+SpreadsheetCell myCell { 4 }, anotherCell { 5 };
+SpreadsheetCell aThirdCell { myCell + anotherCell };
+auto aFourthCell { aThirdCell + anotherCell };
+\end{cpp}
+
+C++ allows you to write your own version of the plus sign, called the addition operator, to work correctly for your classes. To do that, you write a member function with the name operator+ that looks like this:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        SpreadsheetCell operator+(const SpreadsheetCell& cell) const;
+        // Omitted for brevity
+};
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+You are allowed to insert spaces between operator and the plus sign. For example, instead of writing operator+, you can write operator +. This book adopts the style without spaces.
+\end{myNotic}
+
+The definition of the overloaded operator+ member function is identical to the implementation of the add() member function:
+
+\begin{cpp}
+SpreadsheetCell SpreadsheetCell::operator+(const SpreadsheetCell& cell) const
+{
+    return SpreadsheetCell { getValue() + cell.getValue() };
+}
+\end{cpp}
+
+Now you can add two cells together using the plus operator as shown earlier.
+
+This syntax takes a bit of getting used to. Try not to worry too much about the strange member function name operator+——it’s just a name like foo or add. To understand the rest of the syntax, it helps to understand what’s really going on. When your C++ compiler parses a program and encounters an operator, such as +, -, =, or <{}<, it tries to find a function or member function with the name operator+, operator-, operator=, or operator<{}<, respectively, that takes the appropriate parameters. For example, when the compiler sees the following line, it tries to find a member function in the SpreadsheetCell class named operator+ that accepts another SpreadsheetCell as argument (or, as discussed later in this chapter, a global function named operator+ that accepts two SpreadsheetCell arguments):
+
+\begin{cpp}
+SpreadsheetCell aThirdCell { myCell + anotherCell };
+\end{cpp}
+
+If the SpreadsheetCell class contains such an operator+ member function, then the previous line is translated to this:
+
+\begin{cpp}
+SpreadsheetCell aThirdCell { myCell.operator+(anotherCell) };
+\end{cpp}
+
+Note that there’s no requirement that operator+ takes as a parameter an object of the same type as the class for which it’s written. You could write an operator+ for SpreadsheetCells that takes a Spreadsheet to add to the SpreadsheetCell. That wouldn’t make sense to the programmer, but the compiler would allow it. The next section gives an example of an operator+ for SpreadsheetCells accepting a double value.
+
+Note also that you can give operator+ any return type you want. However, you should follow the principle of least astonishment; that is, the return type of your operator+ should generally be what users would expect.
+
+\mySamllsection{Implicit Conversions}
+
+Surprisingly, once you’ve written the operator+ shown earlier, not only can you add two cells together, but you can also add a cell to a string\_view, a double, or an int! Here are some examples:
+
+\begin{cpp}
+SpreadsheetCell myCell { 4 }, aThirdCell;
+string str { "hello" };
+aThirdCell = myCell + string_view{ str };
+aThirdCell = myCell + 5.6;
+aThirdCell = myCell + 4;
+\end{cpp}
+
+The reason this code works is that the compiler does more to try to find an appropriate operator+ than just look for one with the exact types specified. The compiler also tries to find an appropriate conversion for the types so that an operator+ can be found. The SpreadsheetCell class has converting constructors (discussed in Chapter 8) to convert a double or a string\_view into a SpreadsheetCell. In the preceding example, when the compiler sees a SpreadsheetCell trying to add itself to a double, it finds the SpreadsheetCell constructor that takes a double and constructs a temporary SpreadsheetCell object to pass to operator+. Similarly, when the compiler sees the line trying to add a SpreadsheetCell to a string\_view, it calls the string\_view SpreadsheetCell constructor to create a temporary SpreadsheetCell to pass to operator+.
+
+Keep in mind, though, that the use of an implicit converting constructor might be inefficient, because temporary objects must be created. In this example, to avoid implicit construction for adding a double, you could write a second operator+ as follows:
+
+\begin{cpp}
+SpreadsheetCell SpreadsheetCell::operator+(double rhs) const
+{
+    return SpreadsheetCell { getValue() + rhs };
+}
+\end{cpp}
+
 \mySamllsection{Third Attempt: Global operator+}
 
+Implicit conversions allow you to use an operator+ member function to add your SpreadsheetCell objects to ints and doubles. However, the operator is not commutative, as shown in the following code:
+
+\begin{cpp}
+aThirdCell = myCell + 5.6; // Works fine.
+aThirdCell = myCell + 4; // Works fine.
+aThirdCell = 5.6 + myCell; // FAILS TO COMPILE!
+aThirdCell = 4 + myCell; // FAILS TO COMPILE!
+\end{cpp}
+
+The implicit conversion works fine when the SpreadsheetCell object is on the left of the operator, but it doesn’t work when it’s on the right. Addition is supposed to be commutative, so something is wrong here. The problem is that the operator+ member function must be called on a SpreadsheetCell object, and that object must be on the left-hand side of the operator+. That’s just the way the C++ language is defined. So, there’s no way you can get this code to work with an operator+ member function.
+
+However, you can get it to work if you replace the in-class operator+ member function with a global operator+ function that is not tied to any particular object. The function looks like this:
+
+\begin{cpp}
+SpreadsheetCell operator+(const SpreadsheetCell& lhs,
+    const SpreadsheetCell& rhs)
+{
+    return SpreadsheetCell { lhs.getValue() + rhs.getValue() };
+}
+\end{cpp}
+
+You need to declare this operator in the module interface file and export it:
+
+\begin{cpp}
+export class SpreadsheetCell { /* Omitted for brevity */ };
+
+export SpreadsheetCell operator+(const SpreadsheetCell& lhs,
+    const SpreadsheetCell& rhs);
+\end{cpp}
+
+Now all four of the earlier additions work as you expect.
+
+\begin{cpp}
+aThirdCell = myCell + 5.6; // Works fine.
+aThirdCell = myCell + 4; // Works fine.
+aThirdCell = 5.6 + myCell; // Works fine.
+aThirdCell = 4 + myCell; // Works fine.
+\end{cpp}
+
+You might be wondering what happens if you write the following code:
+
+\begin{cpp}
+aThirdCell = 4.5 + 5.5;
+\end{cpp}
+
+It compiles and runs, but it’s not calling the operator+ you wrote. It does normal double addition of 4.5 and 5.5, which results in the following intermediate statement:
+
+\begin{cpp}
+aThirdCell = 10;
+\end{cpp}
+
+To make this assignment work, there should be a SpreadsheetCell object on the right-hand side. The compiler will discover a non-explicit user-defined constructor that takes a double, will use this constructor to implicitly convert the double value into a temporary SpreadsheetCell object, and will then call the assignment operator.
 
 \mySubsubsection{9.8.2.}{Overloading Arithmetic Operators}
 
+Now that you understand how to write operator+, the rest of the basic arithmetic operators are straightforward. Here are the declarations of +, -, *, and /, where you have to replace <op> with +, -, *, and /, resulting in four functions. You can also overload \%, but it doesn’t make sense for the double values stored in SpreadsheetCells.
+
+\begin{cpp}
+export class SpreadsheetCell { /* Omitted for brevity */ };
+
+export SpreadsheetCell operator<op>(const SpreadsheetCell& lhs,
+    const SpreadsheetCell& rhs);
+\end{cpp}
+
+The implementations of operator- and operator* are similar to the implementation of operator+, so these are not shown. For operator/, the only tricky aspect is remembering to check for division by zero. This implementation throws an exception if division by zero is detected:
+
+\begin{cpp}
+SpreadsheetCell operator/(const SpreadsheetCell& lhs,
+    const SpreadsheetCell& rhs)
+{
+    if (rhs.getValue() == 0) {
+        throw invalid_argument { "Divide by zero." };
+    }
+    return SpreadsheetCell { lhs.getValue() / rhs.getValue() };
+}
+\end{cpp}
+
+C++ does not require you to actually implement multiplication in operator*, division in operator/, and so on. You could implement multiplication in operator/, division in operator+, and so forth. However, that would be extremely confusing, and there is no good reason to do so. Whenever possible, stick to the commonly used operator meanings in your implementations.
+
+\begin{myNotic}{NOTE}
+In C++, you cannot change the precedence of operators. For example, * and / are always evaluated before + and -. The only thing user-defined operators can do is specify the implementation once the precedence of operations has been determined. C++ also does not allow you to invent new operator symbols or to change the number of arguments for operators. Operator overloading is discussed in more detail in Chapter 15, “Overloading C++ Operators.”
+\end{myNotic}
+
 \mySamllsection{Overloading the Arithmetic Shorthand Operators}
 
+In addition to the basic arithmetic operators, C++ provides shorthand operators such as += and -=. You might assume that writing operator+ for your class also provides operator+=. No such luck. You have to overload the shorthand arithmetic operators explicitly. These operators differ from the basic arithmetic operators in that they change the object on the left-hand side of the operator instead of creating a new object. A second, subtler difference is that, like the assignment operator, they generate a result that is a reference to the modified object.
+
+The arithmetic shorthand operators always require an object of your class on the left-hand side, so you should write them as member functions, not as global functions. Here are the declarations for the SpreadsheetCell class:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        SpreadsheetCell& operator+=(const SpreadsheetCell& rhs);
+        SpreadsheetCell& operator-=(const SpreadsheetCell& rhs);
+        SpreadsheetCell& operator*=(const SpreadsheetCell& rhs);
+        SpreadsheetCell& operator/=(const SpreadsheetCell& rhs);
+        // Omitted for brevity
+};
+\end{cpp}
+
+Here is the implementation for operator+=. The others are similar.
+
+\begin{cpp}
+SpreadsheetCell& SpreadsheetCell::operator+=(const SpreadsheetCell& rhs)
+{
+    set(getValue() + rhs.getValue());
+    return *this;
+}
+\end{cpp}
+
+The shorthand arithmetic operators are combinations of the basic arithmetic and assignment operators. With the previous definitions, you can now write code like this:
+
+\begin{cpp}
+SpreadsheetCell myCell { 4 }, aThirdCell { 2 };
+aThirdCell -= myCell;
+aThirdCell += 5.4;
+\end{cpp}
+
+You cannot, however, write code like this (which is a good thing!):
+
+\begin{cpp}
+5.4 += aThirdCell;
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+When you have both a normal and a shorthand version of a certain operator, it’s recommended to implement the normal one in terms of the shorthand version to avoid code duplication.
+\end{myNotic}
+
+Here’s an example:
+
+\begin{cpp}
+SpreadsheetCell operator+(const SpreadsheetCell& lhs, const SpreadsheetCell& rhs)
+{
+    auto result { lhs }; // Local copy
+    result += rhs; // Forward to +=()
+    return result;
+}
+\end{cpp}
 
 \mySubsubsection{9.8.3.}{Overloading Comparison Operators}
 
+The comparison operators, >, <, <=, >=, ==, and !=, are another useful set of operators to define for your classes. The C++20 standard has brought quite a few changes for these operators and has added the three-way comparison operator, also known as the spaceship operator, <=>, introduced in Chapter 1. To make you appreciate more what has changed since C++20, let’s first start by looking at what you had to do before C++20 and what you still need to do as long as your compiler does not support the three-way comparison operator yet.
+
 \mySamllsection{Overloading Comparison Operators Before C++20}
+
+Like the basic arithmetic operators, the six pre-C++20 comparison operators should be global functions so that you can use implicit conversion on both the left- and the right-hand side argument of the operator. The comparison operators all return a bool. Of course, you can change the return type, but that’s not recommended.
+
+Here are the declarations, where you have to replace <op> with ==, <, >, !=, <=, and >=, resulting in six functions:
+
+\begin{cpp}
+class SpreadsheetCell { /* Omitted for brevity */ };
+
+bool operator<op>(const SpreadsheetCell& lhs, const SpreadsheetCell& rhs);
+\end{cpp}
+
+Here is the definition of operator==. The others are similar.
+
+\begin{cpp}
+bool operator==(const SpreadsheetCell& lhs, const SpreadsheetCell& rhs)
+{
+    return (lhs.getValue() == rhs.getValue());
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+These overloaded comparison operators are comparing double values. Most of the time, performing equality or inequality tests on floating-point values is not a good idea. You should use an epsilon test, but that falls outside the scope of this book.
+\end{myNotic}
+
+In classes with more data members, it might be painful to compare each data member. However, once you’ve implemented == and <, you can write the rest of the comparison operators in terms of those two. For example, here is a definition of operator>= that uses operator<:
+
+\begin{cpp}
+bool operator>=(const SpreadsheetCell& lhs, const SpreadsheetCell& rhs)
+{
+    return !(lhs < rhs);
+}
+\end{cpp}
+
+You can use these operators to compare SpreadsheetCells to other SpreadsheetCells, and also to doubles and ints:
+
+\begin{cpp}
+if (myCell > aThirdCell || myCell < 10) {
+    cout << myCell.getValue() << endl;
+}
+\end{cpp}
+
+As you can see, you need to write six separate functions to support the six comparison operators, and that’s only to compare two SpreadsheetCells with each other. With the current six implemented comparison functions, it’s possible to compare a SpreadsheetCell with a double because a double argument is implicitly converted to a SpreadsheetCell. As discussed earlier, such implicit conversions might be inefficient, because temporary objects must be created. Just as with operator+ earlier, you can avoid this by implementing explicit functions to compare with doubles. For each operator <op>, you would then need the following three overloads:
+
+\begin{cpp}
+bool operator<op>(const SpreadsheetCell& lhs, const SpreadsheetCell& rhs);
+bool operator<op>(double lhs, const SpreadsheetCell& rhs);
+bool operator<op>(const SpreadsheetCell& lhs, double rhs);
+\end{cpp}
+
+If you want to support all comparison operators, that’s a lot of repetitive code to write!
 
 \mySamllsection{Overloading Comparison Operators Since C++20}
 
+Let’s now switch gears and see what C++20 and later versions bring to the table. Starting with C++20, adding support for comparison operators to your classes is simplified a lot. First, it is now actually recommended to implement operator== as a member function of the class instead of a global function. Note also that it’s a good idea to add the [[nodiscard]] attribute so the result of the operator cannot be ignored. Here’s an example:
+
+\begin{cpp}
+[[nodiscard]] bool operator==(const SpreadsheetCell& rhs) const;
+\end{cpp}
+
+Since C++20, this single operator== overload makes the following comparisons work:
+
+\begin{cpp}
+if (myCell == 10) { println("myCell == 10"); }
+if (10 == myCell) { println("10 == myCell"); }
+\end{cpp}
+
+An expression such as 10 == myCell is now rewritten by the compiler as myCell == 10 for which the operator== member function can be called. Additionally, by implementing operator==, the compiler automatically adds support for != as well; expressions using != are rewritten to use ==.
+
+Next, to implement support for the full suite of comparison operators, you just need to implement one additional overloaded operator, operator<=>. Once your class has an overload for operator== and <=>, the compiler automatically provides support for all six comparison operators! For the SpreadsheetCell class, operator<=> looks as follows:
+
+\begin{cpp}
+[[nodiscard]] std::partial_ordering operator<=>(const SpreadsheetCell& rhs) const;
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+A compiler will not rewrite == or != comparisons in terms of <=>. This is done to avoid performance issues, as an explicit implementation of operator== is typically more efficient than using <=>. For example, take std::string. Its implementation of operator== and != can first check the lengths of both strings to compare. If the lengths are different, operator== and != can immediately return false, respectively true, without having to check individual characters. However, operator<=> always has to compare individual characters until it finds two characters that don’t match.
+\end{myNotic}
+
+The value stored in a SpreadsheetCell is a double. Remember from Chapter 1 that floating-point types only have a partial order, so that’s why the overload returns std::partial\_ordering. The implementation is straightforward:
+
+\begin{cpp}
+partial_ordering SpreadsheetCell::operator<=>(const SpreadsheetCell& rhs) const
+{
+    return getValue() <=> rhs.getValue();
+}
+\end{cpp}
+
+By implementing operator<=>, the compiler automatically provides support for >, <, <=, and >=, by rewriting expressions using those operators to use <=> instead. For example, an expression such as myCell < aThirdCell is automatically rewritten to something equivalent to std::is\_lt(myCell <=> aThirdCell), where is\_lt() is a named comparison function; see Chapter 1.
+
+So, by just implementing operator== and operator<=>, the SpreadsheetCell class supports the full set of comparison operators:
+
+\begin{cpp}
+if (myCell < aThirdCell) { println("myCell < aThirdCell"); }
+if (aThirdCell < myCell) { println("aThirdCell < myCell"); }
+
+if (myCell <= aThirdCell) { println("myCell <= aThirdCell"); }
+if (aThirdCell <= myCell) { println("aThirdCell <= myCell"); }
+
+if (myCell > aThirdCell) { println("myCell > aThirdCell"); }
+if (aThirdCell > myCell) { println("aThirdCell > myCell"); }
+
+if (myCell >= aThirdCell) { println("myCell >= aThirdCell"); }
+if (aThirdCell >= myCell) { println("aThirdCell >= myCell"); }
+
+if (myCell == aThirdCell) { println("myCell == aThirdCell"); }
+if (aThirdCell == myCell) { println("aThirdCell == myCell"); }
+
+if (myCell != aThirdCell) { println("myCell != aThirdCell"); }
+if (aThirdCell != myCell) { println("aThirdCell != myCell"); }
+\end{cpp}
+
+Since the SpreadsheetCell class supports implicit conversion from double to a SpreadsheetCell, comparisons such as the following are supported as well:
+
+\begin{cpp}
+if (myCell < 10) { println("myCell < 10"); }
+if (10 < myCell) { println("10 < myCell"); }
+if (10 != myCell) { println("10 != myCell"); }
+\end{cpp}
+
+As with comparing two SpreadsheetCell objects, the compiler rewrites such expressions in terms of operator== and <=>, and optionally swaps the order of the arguments. For example, 10 < myCell is rewritten first to something equivalent to is\_lt(10 <=> myCell), which won’t work because we only have an overload for <=> as a member, meaning that the left-hand side argument must be a SpreadsheetCell. Noticing this, the compiler then tries to rewrite the expression to something equivalent to is\_gt(myCell <=> 10), which works out fine.
+
+As before, if you want to avoid the slight performance impact of implicit conversions, you can provide specific overloads for doubles. And since C++20, this is not even a lot of work. You only need to provide the following two additional overloaded operators as member functions:
+
+\begin{cpp}
+[[nodiscard]] bool operator==(double rhs) const;
+[[nodiscard]] std::partial_ordering operator<=>(double rhs) const;
+\end{cpp}
+
+These are implemented as follows:
+
+\begin{cpp}
+bool SpreadsheetCell::operator==(double rhs) const
+{
+    return getValue() == rhs;
+}
+partial_ordering SpreadsheetCell::operator<=>(double rhs) const
+{
+    return getValue() <=> rhs;
+}
+\end{cpp}
+
 \mySamllsection{Compiler-Generated Comparison Operators}
+
+Looking at the implementation of operator== and <=> for SpreadsheetCell, they simply compare all data members. In such a case, you can reduce the number of lines of code needed even further, as C++20 (and later) can write those for you. Just as, for example, a copy constructor can be explicitly defaulted, operator== and <=> can also be defaulted in which case the compiler writes them for you and implements them by comparing each data member in turn in the order they are declared in the class definition, also known as a member-wise lexicographical comparison.
+
+Additionally, if you just explicitly default operator<=>, the compiler automatically includes a defaulted operator== as well. So, for the SpreadsheetCell version without the explicit operator== and <=> for doubles (I’ll come back to this later in this section), you can simply write the following single line of code to add full support for all six comparison operators to compare two SpreadsheetCells:
+
+\begin{cpp}
+[[nodiscard]] std::partial_ordering operator<=>(
+    const SpreadsheetCell&) const = default;
+\end{cpp}
+
+Furthermore, you can use auto as the return type for operator<=>, in which case the compiler deduces the return type based on the return types of the <=> operator for the data members:
+
+\begin{cpp}
+[[nodiscard]] auto operator<=>(const SpreadsheetCell&) const = default;
+\end{cpp}
+
+If not all data members of the class have an accessible operator==, then a defaulted operator== for the class is implicitly deleted.
+
+If the class has data members that do not support operator<=>, a defaulted operator<=> falls back to using operator< and == for those data members. In that case, return type deduction won’t work and you need to explicitly specify the return type to be either strong\_ordering, partial\_ordering, or weak\_ordering. If the data members don’t even have an accessible operator< and ==, then the defaulted operator<=> is implicitly deleted.
+
+To summarize, for the compiler to be able to write a defaulted <=> operator, all data members of the class need to either support operator<=>, in which case the return type can be auto, or operator< and ==, in which case the return type cannot be auto. Since SpreadsheetCell has a single double as data member, the compiler deduces the return type to be partial\_ordering.
+
+In the beginning of this section, I mentioned that this single explicitly defaulted operator<=> works for the SpreadsheetCell version without the explicit operator== and <=> for doubles. If you do add those explicit double versions, you are adding a user-declared operator==(double). Because of this, the compiler will no longer automatically generate an operator==(const SpreadsheetCell\&), so you have to explicitly default one yourself as follows:
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        // Omitted for brevity
+        [[nodiscard]] auto operator<=>(const SpreadsheetCell&) const = default;
+        [[nodiscard]] bool operator==(const SpreadsheetCell&) const = default;
+
+        [[nodiscard]] bool operator==(double rhs) const;
+        [[nodiscard]] std::partial_ordering operator<=>(double rhs) const;
+        // Omitted for brevity
+};
+\end{cpp}
+
+If you can explicitly default operator<=> for your class, I recommend doing so instead of implementing it yourself. By letting the compiler write it for you, it will stay up-to-date with newly added or modified data members. If you implement the operator yourself, then whenever you add data members or change existing data members, you need to remember to update your implementation of operator<=>. The same holds for operator== in case it’s not automatically generated by the compiler.
+
+It is only possible to explicitly default operator== and <=> when they have as parameter a reference-to-const to the class type for which the operators are defined. For example, the following does not work:
+
+\begin{cpp}
+[[nodiscard]] auto operator<=>(double) const = default; // Does not work!
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+To add support for all six comparison operators to a class in C++20 or later:
+
+\begin{itemize}
+\item
+If a defaulted operator<=> works for your class, then a single line of code to explicitly default operator<=> as a member function is all you need to do. In certain cases, you might need to explicitly default operator== as well.
+
+\item
+Otherwise, just overload and implement operator== and <=> as member functions.
+\end{itemize}
+
+There is no need to manually implement the other comparison operators.
+\end{myNotic}

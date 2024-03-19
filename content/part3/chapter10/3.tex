@@ -1,22 +1,306 @@
 
+When you write a derived class, you need to be aware of the interaction between parent classes and child classes. Issues such as order of creation, constructor chaining, and casting are all potential sources of bugs.
 
 \mySubsubsection{10.3.1.}{Parent Constructors}
 
+Objects don’t spring to life all at once; they must be constructed along with their parents and any objects that are contained within them. C++ defines the creation order as follows:
 
+\begin{enumerate}
+\item
+If the class has a base class, the default constructor of the base class is executed, unless there is a call to a base class constructor in the ctor-initializer, in which case that constructor is called instead of the default constructor.
+
+\item
+Non-static data members of the class are constructed in the order in which they are declared.
+
+\item
+The body of the class’s constructor is executed.
+\end{enumerate}
+
+These rules can apply recursively. If the class has a grandparent, the grandparent is initialized before the parent, and so on. The following code shows this creation order. The proper execution of this code outputs 123.
+
+\begin{cpp}
+class Something
+{
+    public:
+        Something() { print("2"); }
+};
+
+class Base
+{
+    public:
+        Base() { print("1"); }
+};
+
+class Derived : public Base
+{
+    public:
+        Derived() { print("3"); }
+    private:
+        Something m_dataMember;
+};
+
+int main()
+{
+    Derived myDerived;
+}
+\end{cpp}
+
+When the myDerived object is created, the constructor for Base is called first, outputting the string "1". Next, m\_dataMember is initialized, calling the Something constructor, which outputs the string "2". Finally, the Derived constructor is called, which outputs "3".
+
+Note that the Base constructor is called automatically. C++ automatically calls the default constructor for the parent class if one exists. If no default constructor exists in the parent class or if one does exist but you want to use an alternate parent constructor, you can chain the constructor just as when initializing data members in the ctor-initializer. For example, the following code shows a version of Base that lacks a default constructor. The associated version of Derived must explicitly tell the compiler how to call the Base constructor or the code will not compile.
+
+\begin{cpp}
+class Base
+{
+    public:
+        explicit Base(int i) {}
+};
+
+class Derived : public Base
+{
+    public:
+        Derived() : Base { 7 } { /* Other Derived's initialization ... */ }
+};
+\end{cpp}
+
+The Derived constructor passes a fixed value (7) to the Base constructor. Of course, Derived could also pass a variable:
+
+\begin{cpp}
+Derived::Derived(int i) : Base { i } { /* Other Derived's initialization ... */ }
+\end{cpp}
+
+Passing constructor arguments from the derived class to the base class is perfectly fine and quite normal. Passing data members, however, will not work. The code will compile, but remember that data members are not initialized until after the base class is constructed. If you pass a data member as an argument to the parent constructor, it will be uninitialized.
 
 \mySubsubsection{10.3.2.}{Parent Destructors}
 
+Because destructors cannot take arguments, the language can always automatically call the destructor for parent classes. The order of destruction is conveniently the reverse of the order of construction:
 
+\begin{enumerate}
+\item
+The body of the class’s destructor is called.
+
+\item
+Any data members of the class are destroyed in the reverse order of their construction.
+
+\item
+The parent class, if any, is destructed.
+\end{enumerate}
+
+Again, these rules apply recursively. The lowest member of the chain is always destructed first. The following code adds destructors to the earlier example. The destructors are all declared virtual! If executed, this code outputs "123321".
+
+\begin{cpp}
+class Something
+{
+    public:
+        Something() { print("2"); }
+        virtual ˜Something() { print("2"); }
+};
+
+class Base
+{
+    public:
+        Base() { print("1"); }
+        virtual ˜Base() { print("1"); }
+};
+
+class Derived : public Base
+{
+    public:
+        Derived() { print("3"); }
+        virtual ˜Derived() override { print("3"); }
+    private:
+        Something m_dataMember;
+};
+\end{cpp}
+
+If the preceding destructors were not declared virtual, the code would seem to work fine. However, if code ever called delete on a Base pointer that was really pointing to a Derived instance, the destruction chain would begin in the wrong place. For example, if you remove the virtual and override keywords from all destructors in the previous code, then a problem arises when a Derived object is accessed as a pointer to a Base and deleted, as shown here:
+
+\begin{cpp}
+Base* ptr { new Derived{} };
+delete ptr;
+\end{cpp}
+
+The output of this code is a shockingly terse "1231". When the ptr variable is deleted, only the Base destructor is called because the destructor was not declared virtual. As a result, the Derived destructor is not called, and the destructors for its data members are not called!
+
+Technically, you could fix the preceding problem by marking only the Base destructor virtual. The “virtualness” automatically applies to any derived classes. However, I advocate explicitly making all destructors virtual so that you never have to worry about it.
+
+\begin{myWarning}{WARNING}
+Always make your destructors virtual! The compiler-generated default destructor is not virtual, so you should define (or explicitly default) a virtual destructor, at least for your non-final base classes.
+\end{myWarning}
 
 \mySubsubsection{10.3.3.}{virtual Member Function Calls within Constructors and Destructor}
 
+virtual member functions behave differently in constructors and destructors. If your derived class has overridden a virtual member function from a base class, calling that member function from a base class constructor or destructor calls the base class implementation of that virtual member function and not your overridden version in the derived class! In other words, calls to virtual member functions from within a constructor or destructor are resolved statically at compile time.
 
+The reason for this behavior of constructors has to do with the order of initialization when constructing an instance of a derived class. When creating such an instance, the constructor of any base class is called first, before the derived class instance is fully initialized. Hence, it would be dangerous to already call overridden virtual member functions from the not-yet-fully initialized derived class. A similar reasoning holds for destructors due to the order of destruction when destroying an object.
+
+If you really need polymorphic behavior in your constructors, although this is not recommended, you can define an initialize() virtual member function in your base class, which derived classes can override. Clients creating an instance of your class will have to call this initialize() member function after construction has finished.
+
+Similarly, if you need polymorphic behavior in your destructor, again, not recommended, you can define a shutdown() virtual member function that clients then need to call before the object is destroyed.
 
 \mySubsubsection{10.3.4.}{Referring to Parent Names}
 
+When you override a member function in a derived class, you are effectively replacing the original as far as other code is concerned. However, that parent version of the member function still exists, and you may want to make use of it. For example, an overridden member function would like to keep doing what the base class implementation does, plus something else. Take a look at the getTemperature() member function in the WeatherPrediction class that returns a string representation of the current temperature:
 
+\begin{cpp}
+export class WeatherPrediction
+{
+    public:
+        virtual std::string getTemperature() const;
+        // Remainder omitted for brevity.
+};
+\end{cpp}
+
+You can override this member function in the MyWeatherPrediction class as follows:
+
+\begin{cpp}
+export class MyWeatherPrediction : public WeatherPrediction
+{
+    public:
+        std::string getTemperature() const override;
+        // Remainder omitted for brevity.
+};
+\end{cpp}
+
+Suppose the derived class wants to add °F to the string by first calling the base class’s getTemperature() member function and then adding °F to it. You might write this as follows:
+
+\begin{cpp}
+string MyWeatherPrediction::getTemperature() const
+{
+    // Note: \u00B0 is the ISO/IEC 10646 representation of the degree symbol.
+    return getTemperature() + "\u00B0F"; // BUG
+}
+\end{cpp}
+
+However, this does not work because, under the rules of name resolution for C++, it first resolves against the local scope, then resolves against the class scope, and as a result ends up calling MyWeatherPrediction::getTemperature(). This causes an infinite recursion until you run out of stack space (some compilers detect this error and report it at compile time).
+
+To make this work, you need to use the scope resolution operator as follows:
+
+\begin{cpp}
+string MyWeatherPrediction::getTemperature() const
+{
+    // Note: \u00B0 is the ISO/IEC 10646 representation of the degree symbol.
+    return WeatherPrediction::getTemperature() + "\u00B0F";
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Microsoft Visual C++ supports the non-standard \_\_super keyword (with two underscores). This allows you to write the following:
+
+\begin{cpp}
+return __super::getTemperature() + "\u00B0F";
+\end{cpp}
+\end{myNotic}
+
+Calling the parent version of the current member function is a commonly used pattern in C++. If you have a chain of derived classes, each might want to perform the operation already defined by the base class but add their own additional functionality as well.
+Let’s look at another example. Imagine a class hierarchy of book types, as shown in Figure 10.6.
+
+\myGraphic{0.7}{content/part3/chapter10/images/6.png}{FIGURE 10.6}
+
+Because each lower class in the hierarchy further specifies the type of book, a member function that gets the description of a book really needs to take all levels of the hierarchy into consideration. This can be accomplished by chaining to the parent member function. The following code illustrates this pattern:
+
+\begin{cpp}
+class Book
+{
+    public:
+        virtual ˜Book() = default;
+        virtual string getDescription() const { return "Book"; }
+        virtual int getHeight() const { return 120; }
+};
+
+class Paperback : public Book
+{
+    public:
+        string getDescription() const override {
+            return "Paperback " + Book::getDescription();
+        }
+};
+
+class Romance : public Paperback
+{
+    public:
+        string getDescription() const override {
+            return "Romance " + Paperback::getDescription();
+        }
+        int getHeight() const override { return Paperback::getHeight() / 2; }
+};
+
+class Technical : public Book
+{
+    public:
+        string getDescription() const override {
+            return "Technical " + Book::getDescription();
+        }
+};
+
+int main()
+{
+    Romance novel;
+    Book book;
+    println("{}", novel.getDescription()); // Outputs "Romance Paperback Book"
+    println("{}", book.getDescription()); // Outputs "Book"
+    println("{}", novel.getHeight()); // Outputs "60"
+    println("{}", book.getHeight()); // Outputs "120"
+}
+\end{cpp}
+
+The Book base class has two virtual member functions: getDescription() and getHeight(). All derived classes override getDescription(), but only the Romance class overrides getHeight() by calling getHeight() on its parent class (Paperback) and dividing the result by two. Paperback does not override getHeight(), but C++ walks up the class hierarchy to find a class that implements getHeight(). In this example, Paperback::getHeight() resolves to Book::getHeight().
 
 \mySubsubsection{10.3.5.}{Casting Up and Down}
+
+As you have already seen, an object can be cast or assigned to its parent class. Here’s an example:
+
+\begin{cpp}
+Derived myDerived;
+Base myBase { myDerived }; // Slicing!
+\end{cpp}
+
+Slicing occurs in situations like this because the end result is a Base object, and Base objects lack the additional functionality defined in the Derived class. However, slicing does not occur if a derived class is assigned to a pointer or reference to its base class:
+
+\begin{cpp}
+Base& myBase { myDerived }; // No slicing!
+\end{cpp}
+
+This is generally the correct way to refer to a derived class in terms of its base class, also called upcasting. This is why it’s always a good idea for functions to take references to classes instead of directly using objects of those classes. By using references, derived classes can be passed in without slicing.
+
+\begin{myWarning}{WARNING}
+When upcasting, use a pointer or reference to the base class to avoid slicing.
+\end{myWarning}
+
+Casting from a base class to one of its derived classes, also called downcasting, is often frowned upon by professional C++ programmers because there is no guarantee that the object really belongs to that derived class and because downcasting is a sign of bad design. For example, consider the following code:
+
+\begin{cpp}
+void presumptuous(Base* base)
+{
+    Derived* myDerived { static_cast<Derived*>(base) };
+    // Proceed to access Derived member functions on myDerived.
+}
+\end{cpp}
+
+If the author of presumptuous() also writes the code that calls presumptuous(), everything will probably be OK, albeit still ugly, because the author knows that the function expects the argument to be of type Derived*. However, if other programmers call presumptuous(), they might pass in a Base*. There are no compile-time checks that can be done to enforce the type of the argument, and the function blindly assumes that base is actually a pointer to a Derived object.
+
+Downcasting is sometimes necessary, and you can use it effectively in controlled circumstances. However, if you are going to downcast, you should use a dynamic\_cast(), which uses the object’s built-in knowledge of its type to refuse a cast that doesn’t make sense. This built-in knowledge typically resides in the vtable, which means that dynamic\_cast() works only for objects with a vtable, that is, objects with at least one virtual member. If a dynamic\_cast() fails on a pointer, the result will be nullptr instead of pointing to nonsensical data. If a dynamic\_cast() fails on an object reference, an std::bad\_cast exception will be thrown. The last section of this chapter discusses the different options for casting in more detail.
+
+The previous example could have been written as follows:
+
+\begin{cpp}
+void lessPresumptuous(Base* base)
+{
+    Derived* myDerived { dynamic_cast<Derived*>(base) };
+    if (myDerived != nullptr) {
+        // Proceed to access Derived member functions on myDerived.
+    }
+}
+\end{cpp}
+
+However, keep in mind that the use of downcasting is often a sign of a bad design. You should rethink and modify your design so that downcasting can be avoided. For example, the lessPresumptuous() function only really works with Derived objects, so instead of accepting a Base pointer, it should simply accept a Derived pointer. This eliminates the need for any downcasting. If the function should work with different derived classes, all inheriting from Base, then look for a solution that uses polymorphism, which is discussed next.
+
+\begin{myWarning}{WARNING}
+Use downcasting only when really necessary, and be sure to use dynamic\_cast().
+\end{myWarning}
+
+
+
 
 
 

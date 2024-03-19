@@ -1,13 +1,135 @@
 
+Now that you are familiar with the basic syntax for inheritance, it’s time to explore one of the main reasons that inheritance is an important feature of the C++ language. Inheritance is a vehicle that allows you to leverage existing code. This section presents an example of inheritance for the purpose of code reuse.
 
 \mySubsubsection{10.2.1.}{The WeatherPrediction Class}
 
+Imagine that you are given the task of writing a program to issue simple weather predictions, working with both Fahrenheit and Celsius. Weather predictions may be a little bit out of your area of expertise as a programmer, so you obtain a third-party class library that was written to make weather predictions based on the current temperature and the current distance between Jupiter and Mars (hey, it’s plausible). This third-party package is distributed as a compiled library to protect the intellectual property of the prediction algorithms, but you do get to see the class definition. The weather\_prediction module interface file looks as follows:
 
+\begin{cpp}
+export module weather_prediction;
+import std;
+// Predicts the weather using proven new-age techniques given the current
+// temperature and the distance from Jupiter to Mars. If these values are
+// not provided, a guess is still given but it's only 99% accurate.
+export class WeatherPrediction
+{
+    public:
+        // Virtual destructor
+        virtual ˜WeatherPrediction();
+        // Sets the current temperature in Fahrenheit
+        virtual void setCurrentTempFahrenheit(int temp);
+        // Sets the current distance between Jupiter and Mars
+        virtual void setPositionOfJupiter(int distanceFromMars);
+        // Gets the prediction for tomorrow's temperature
+        virtual int getTomorrowTempFahrenheit() const;
+        // Gets the probability of rain tomorrow. 1 means
+        // definite rain. 0 means no chance of rain.
+        virtual double getChanceOfRain() const;
+        // Displays the result to the user in this format:
+        // Result: x.xx chance. Temp. xx
+        virtual void showResult() const;
+        // Returns a string representation of the temperature
+        virtual std::string getTemperature() const;
+    private:
+        int m_currentTempFahrenheit { 0 };
+        int m_distanceFromMars { 0 };
+};
+\end{cpp}
+
+Note that this class marks all member functions as virtual, because the class presumes that they might get overridden in derived classes.
+
+This class solves most of the problems for your program. However, as is usually the case, it’s not exactly right for your needs. First, all the temperatures are given in Fahrenheit. Your program needs to operate in Celsius as well. Also, the showResult() member function might not display the result in a way you require.
 
 \mySubsubsection{10.2.2.}{Adding Functionality in a Derived Class}
 
+When you learned about inheritance in Chapter 5, adding functionality was the first technique described. Fundamentally, your program needs something just like the WeatherPrediction class but with a few extra bells and whistles. Sounds like a good case for inheritance to reuse code. To begin, define a new class, MyWeatherPrediction, that inherits from WeatherPrediction:
 
+\begin{cpp}
+import weather_prediction;
+
+export class MyWeatherPrediction : public WeatherPrediction
+{
+};
+\end{cpp}
+
+The preceding class definition compiles just fine. The MyWeatherPrediction class can already be used in place of WeatherPrediction. It provides the same functionality, but nothing new yet. For the first modification, you might want to add knowledge of the Celsius scale to the class. There is a bit of a quandary here because you don’t know what the class is doing internally. If all of the internal calculations are made using Fahrenheit, how do you add support for Celsius? One way is to use the derived class to act as a go-between, interfacing between the user, who can use either scale, and the base class, which only understands Fahrenheit.
+
+The first step in supporting Celsius is to add new member functions that allow clients to set the current temperature in Celsius instead of Fahrenheit and to get tomorrow’s prediction in Celsius instead of Fahrenheit. You also need private helper functions that convert between Celsius and Fahrenheit in both directions. These functions can be static because they are the same for all instances of the class.
+
+\begin{cpp}
+export class MyWeatherPrediction : public WeatherPrediction
+{
+    public:
+        virtual void setCurrentTempCelsius(int temp);
+        virtual int getTomorrowTempCelsius() const;
+    private:
+        static int convertCelsiusToFahrenheit(int celsius);
+        static int convertFahrenheitToCelsius(int fahrenheit);
+};
+\end{cpp}
+
+The new member functions follow the same naming convention as the parent class. Remember that from the point of view of other code, a MyWeatherPrediction object has all of the functionality defined in both MyWeatherPrediction and WeatherPrediction. Adopting the parent class’s naming convention presents a consistent interface.
+
+The implementation of the Celsius/Fahrenheit conversion functions is left as an exercise for the reader—and a fun one at that! The other two member functions are more interesting. To set the current temperature in Celsius, you need to convert the temperature first and then present it to the parent class in units that it understands:
+
+\begin{cpp}
+void MyWeatherPrediction::setCurrentTempCelsius(int temp)
+{
+    int fahrenheitTemp { convertCelsiusToFahrenheit(temp) };
+    setCurrentTempFahrenheit(fahrenheitTemp);
+}
+\end{cpp}
+
+As you can see, once the temperature is converted, the member function calls the existing functionality from the base class. Similarly, the implementation of getTomorrowTempCelsius() uses the parent’s existing functionality to get the temperature in Fahrenheit, but converts the result before returning it:
+
+\begin{cpp}
+int MyWeatherPrediction::getTomorrowTempCelsius() const
+{
+    int fahrenheitTemp { getTomorrowTempFahrenheit() };
+    return convertFahrenheitToCelsius(fahrenheitTemp);
+}
+\end{cpp}
+
+The two new member functions effectively reuse the parent class because they “wrap” the existing functionality in a way that provides a new interface for using it.
+
+You can also add new functionality completely unrelated to existing functionality of the parent class.
+For example, you could add a member function that retrieves alternative forecasts from the Internet or a member function that suggests an activity based on the predicted weather.
 
 \mySubsubsection{10.2.3.}{Replacing Functionality in a Derived Class}
+
+The other major technique for inheritance is replacing existing functionality. The showResult() member function in the WeatherPrediction class is in dire need of a facelift. MyWeatherPrediction can override this member function to replace the behavior with its own implementation.
+
+The new class definition for MyWeatherPrediction is as follows:
+
+\begin{cpp}
+export class MyWeatherPrediction : public WeatherPrediction
+{
+    public:
+        virtual void setCurrentTempCelsius(int temp);
+        virtual int getTomorrowTempCelsius() const;
+        void showResult() const override;
+    private:
+        static int convertCelsiusToFahrenheit(int celsius);
+        static int convertFahrenheitToCelsius(int fahrenheit);
+};
+\end{cpp}
+
+Here is a new, user-friendlier implementation of the overridden showResult() member function:
+
+\begin{cpp}
+void MyWeatherPrediction::showResult() const
+{
+    println("Tomorrow will be {} degrees Celsius ({} degrees Fahrenheit)",
+        getTomorrowTempCelsius(), getTomorrowTempFahrenheit());
+    println("Chance of rain is {}%", getChanceOfRain() * 100);
+    if (getChanceOfRain() > 0.5) { println("Bring an umbrella!"); }
+}
+\end{cpp}
+
+To clients using this class, it’s as if the old version of showResult() never existed. As long as the object is a MyWeatherPrediction object, the new version is called. As a result of these changes, MyWeatherPrediction has emerged as a new class with new functionality tailored to a more specific purpose. Yet, it did not require much code because it leveraged its base class’s existing functionality.
+
+
+
+
 
 
