@@ -1,0 +1,22 @@
+By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at www.wiley.com/go/ proc++6e. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+
+\begin{itemize}
+\item
+Exercise 10-1: Take the Person class from Exercise 9-2 and add a derived class called Employee. You can omit the overload of operator<=> from Exercise 9-2. The Employee class adds one data member, an employee ID. Provide an appropriate constructor. From Employee, derive two more classes called Manager and Director.
+
+Put all your classes, including the Person class, in a namespace called HR. Note that you can export everything in a namespace from a module as follows:
+
+\begin{cpp}
+export namespace HR { /* ... */ }
+\end{cpp}
+
+\item
+Exercise 10-2: Continuing with your solution from Exercise 10-1, add a toString() member function to the Person class returning a string representation of a person. Override this member function in the Employee, Manager, and Director classes to build up a complete string representation by delegating part of their work to parent classes.
+
+\item
+Exercise 10-3: Practice polymorphic behavior of the classes in your Person hierarchy from Exercise 10-2. Define a vector to store a mix of persons, employees, managers, and directors, and fill it with some test data. Finally, use a single range-based for loop to call toString() on all of the elements in the vector.
+
+\item
+Exercise 10-4: In real companies, employees can get promoted to manager or director positions, and managers can get promoted to director. Do you see a way you can add support for this to your class hierarchy of Exercise 10-3?
+\end{itemize}
+

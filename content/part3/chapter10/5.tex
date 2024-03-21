@@ -1,12 +1,186 @@
 
+As you read in Chapter 5, multiple inheritance is often perceived as a complicated and unnecessary part of object-oriented programming. I’ll leave the decision of whether it is useful up to you and your co-workers. This section explains the mechanics of multiple inheritance in C++.
 
 \mySubsubsection{10.5.1.}{Inheriting from Multiple Classes}
 
+Defining a class to have multiple parent classes is simple from a syntactic point of view. All you need to do is list the base classes individually when declaring the class name.
+
+\begin{cpp}
+class Baz : public Foo, public Bar { /* Etc. */ };
+\end{cpp}
+
+By listing multiple parents, a Baz object has the following characteristics:
+
+\begin{itemize}
+\item
+A Baz object supports the public member functions and contains the data members of both Foo and Bar.
+
+\item
+The member functions of the Baz class have access to protected data and member functions in both Foo and Bar.
+
+\item
+A Baz object can be upcast to either a Foo or a Bar.
+
+\item
+Creating a new Baz object automatically calls the Foo and Bar default constructors, in the order in which the classes are listed in the class definition.
+
+\item
+Deleting a Baz object automatically calls the destructors for the Foo and Bar classes, in the reverse order that the classes are listed in the class definition.
+\end{itemize}
+
+The following example shows a class, DogBird, that has two parent classes—a Dog class and a Bird class, as shown in Figure 10.9. The fact that a dog-bird is a ridiculous example should not be viewed as a statement that multiple inheritance itself is ridiculous. Honestly, I leave that judgment up to you.
+
+\myGraphic{0.7}{content/part3/chapter10/images/9.png}{FIGURE 10.9}
+
+\begin{cpp}
+class Dog
+{
+    public:
+        virtual void bark() { println("Woof!"); }
+};
+
+class Bird
+{
+    public:
+        virtual void chirp() { println("Chirp!"); }
+};
+
+class DogBird : public Dog, public Bird
+{
+};
+\end{cpp}
+
+Using objects of classes with multiple parents is no different from using objects without multiple parents. In fact, the client code doesn’t even have to know that the class has two parents. All that really matters are the properties and behaviors supported by the class. In this case, a DogBird object supports all of the public member functions of Dog and Bird.
+
+\begin{cpp}
+DogBird myConfusedAnimal;
+myConfusedAnimal.bark();
+myConfusedAnimal.chirp();
+\end{cpp}
+
+The output of this program is as follows:
+
+\begin{shell}
+Woof!
+Chirp!
+\end{shell}
+
+\mySubsubsection{10.5.2.}{Naming Collisions and Ambiguous Base Classess}
+
+It’s not difficult to construct a scenario where multiple inheritance would seem to break down. The following examples show some of the edg
+
 \mySamllsection{Name Ambiguity}
+
+What if the Dog class and the Bird class both had a member function called eat()? Because Dog and Bird are not related in any way, one version of the member function does not override the other— they both continue to exist in the DogBird-derived class.
+As long as client code never attempts to call the eat() member function, that is not a problem.
+
+The DogBird class compiles correctly despite having two versions of eat(). However, if client code attempts to call the eat() member function on a DogBird, the compiler gives an error indicating that the call to eat() is ambiguous. The compiler does not know which version to call. The following code provokes this ambiguity error:
+
+\begin{cpp}
+class Dog
+{
+    public:
+        virtual void bark() { println("Woof!"); }
+        virtual void eat() { println("The dog ate."); }
+};
+
+class Bird
+{
+    public:
+        virtual void chirp() { println("Chirp!"); }
+        virtual void eat() { println("The bird ate."); }
+};
+
+class DogBird : public Dog, public Bird
+{
+};
+
+int main()
+{
+    DogBird myConfusedAnimal;
+    myConfusedAnimal.eat(); // Error! Ambiguous call to member function eat()
+}
+\end{cpp}
+
+If you comment out the last line from main() calling eat(), the code compiles fine.
+
+The solution to the ambiguity is either to explicitly upcast the object using a dynamic\_cast(), essentially hiding the undesired version of the member function from the compiler, or to use a disambiguation syntax. For example, the following code shows two ways to invoke the Dog version of eat():
+
+\begin{cpp}
+dynamic_cast<Dog&>(myConfusedAnimal).eat(); // Calls Dog::eat()
+myConfusedAnimal.Dog::eat(); // Calls Dog::eat()
+\end{cpp}
+
+Member functions of the derived class itself can also explicitly disambiguate between different member functions of the same name by using the same syntax used to access parent member functions, that is, the :: scope resolution operator. For example, the DogBird class could prevent ambiguity errors in other code by defining its own eat() member function. Inside this member function, it would determine which parent version to call.
+
+\begin{cpp}
+class DogBird : public Dog, public Bird
+{
+    public:
+        void eat() override
+        {
+            Dog::eat(); // Explicitly call Dog's version of eat()
+        }
+};
+\end{cpp}
+
+Yet another way to prevent the ambiguity error is to use a using declaration to explicitly state which version of eat() should be inherited in DogBird. Here’s an example:
+
+\begin{cpp}
+class DogBird : public Dog, public Bird
+{
+    public:
+        using Dog::eat; // Explicitly inherit Dog's version of eat()
+};
+\end{cpp}
 
 \mySamllsection{Ambiguous Base Classes}
 
+Another way to provoke ambiguity is to inherit from the same class twice. This can happen if multiple parents themselves have a common parent. For example, perhaps both Bird and Dog are inheriting from an Animal class, as shown in Figure 10.10.
+
+\myGraphic{0.7}{content/part3/chapter10/images/10.png}{FIGURE 10.10}
+
+This type of class hierarchy is permitted in C++, though name ambiguity can still occur. For example, if the Animal class has a public member function called sleep(), that member function cannot be called on a DogBird object because the compiler does not know whether to call the version inherited by Dog or by Bird.
+
+The best way to use these “diamond-shaped” class hierarchies is to make the topmost class an abstract base class with all member functions declared as pure virtual. Because the class only declares member functions without providing definitions, there are no member functions in the base class to call, and thus there are no ambiguities at that level.
+
+The following example implements a diamond-shaped class hierarchy in which the Animal abstract base class has a pure virtual eat() member function that must be defined by each derived class. The DogBird class still needs to be explicit about which parent’s eat() member function it uses, but any ambiguity is caused by Dog and Bird having the same member function, not because they inherit from the same class.
+
+\begin{cpp}
+class Animal
+{
+    public:
+        virtual void eat() = 0;
+};
+
+class Dog : public Animal
+{
+    public:
+        virtual void bark() { println("Woof!"); }
+        void eat() override { println("The dog ate."); }
+};
+
+class Bird : public Animal
+{
+    public:
+        virtual void chirp() { println("Chirp!"); }
+        void eat() override { println("The bird ate."); }
+};
+
+class DogBird : public Dog, public Bird
+{
+    public:
+        using Dog::eat;
+};
+\end{cpp}
+
+A more refined mechanism for dealing with the top class in a diamond-shaped hierarchy, virtual base classes, is explained later in this chapter.
+
 \mySamllsection{Uses for Multiple Inheritance}
 
-\mySubsubsection{10.5.2.}{Naming Collisions and Ambiguous Base Classess}
+At this point, you’re probably wondering why programmers would want to tackle multiple inheritance in their code. The most straightforward use case for multiple inheritance is to define a class of objects that is-a something and also is-a something else. As was said in Chapter 5, any real-world objects you find that follow this pattern are unlikely to translate well into code.
+
+One of the most compelling and simple uses of multiple inheritance is for the implementation of mixin classes. Mixin classes are introduced in Chapter 5 and are discussed in more detail in Chapter 32, “Incorporating Design Techniques and Frameworks.” Another reason that people sometimes use multiple inheritance is to model a component-based class.
+
+Chapter 5 gives the example of an airplane simulator. The Airplane class has an engine, fuselage, controls, and other components. While the typical implementation of an Airplane class would make each of these components a separate data member, you could use multiple inheritance. The airplane class would inherit from engine, fuselage, and controls, in effect getting the behaviors and properties of all of its components. I recommend that you stay away from this type of code because it confuses a clear has-a relationship with inheritance, which should be used for is-a relationships. The recommended solution is to have an Airplane class that contains data members of type Engine, Fuselage, and Controls.
 

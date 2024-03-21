@@ -1,20 +1,213 @@
 
+The basic types in C++ are reviewed in Chapter 1, while Chapters 8 through 10 show how to write your own types with classes. This section explores some of the trickier aspects of casting one type to another type.
+
+C++ provides five specific casts: const\_cast(), static\_cast(), reinterpret\_cast(), dynamic\_cast(), and std::bit\_cast(). The first one is discussed in Chapter 1. Chapter 1 also introduces static\_cast() for casting between certain primitive types, but there is more to say about it in the context of inheritance. Now that you are fluent in writing your own classes and understand class inheritance, it’s time to take a closer look at these casts.
+
+Note that the old C-style casts such as (int)myFloat still work in C++ and are still used extensively in existing code bases. C-style casts cover all C++ casts except bit\_cast() and thus are more errorprone because it’s not always obvious what you are trying to achieve, and you might end up with unexpected results. I strongly recommend you only use the C++ style casts in new code because they are safer and stand out better syntactically and visually in your code.
 
 \mySubsubsection{10.7.1.}{static\_cast()}
 
+You can use static\_cast() to perform explicit conversions that are supported directly by the language. For example, if you write an arithmetic expression in which you need to convert an int to a double to avoid integer division, use a static\_cast(). In this example, it’s enough to only use static\_cast() with i, because that makes one of the two operands a double, making sure C++ performs floating-point division.
 
+\begin{cpp}
+int i { 3 };
+int j { 4 };
+double result { static_cast<double>(i) / j };
+\end{cpp}
+
+You can also use static\_cast() to perform explicit conversions that are allowed because of userdefined constructors or conversion routines. For example, if class A has a constructor that takes an object of class B, you can convert a B object to an A object using a static\_cast(). In most situations where you want this behavior, however, the compiler performs the conversion automatically.
+
+Another use for static\_cast() is to perform downcasts in an inheritance hierarchy, as in this example:
+
+\begin{cpp}
+class Base
+{
+    public:
+        virtual ˜Base() = default;
+};
+
+class Derived : public Base
+{
+    public:
+        virtual ˜Derived() = default;
+};
+
+int main()
+{
+    Base* b { nullptr };
+    Derived* d { new Derived {} };
+    b = d; // Don't need a cast to go up the inheritance hierarchy.
+    d = static_cast<Derived*>(b); // Need a cast to go down the hierarchy.
+
+    Base base;
+    Derived derived;
+    Base& br { derived };
+    Derived& dr { static_cast<Derived&>(br) };
+}
+\end{cpp}
+
+These casts work with both pointers and references. They do not work with objects themselves.
+
+Note that casts using static\_cast() do not perform run-time type checking. They allow you to convert any Base pointer to a Derived pointer, or Base reference to a Derived reference, even if the Base really isn’t a Derived at run time. For example, the following code compiles and executes, but using the pointer d can result in potentially catastrophic failure, including memory overwrites outside the bounds of the object.
+
+\begin{cpp}
+Base* b { new Base {} };
+Derived* d { static_cast<Derived*>(b) };
+\end{cpp}
+
+To perform such casts safely with run-time type checking, use dynamic\_cast(), which is explained a bit later in this chapter.
+
+static\_cast() is not all-powerful. You can’t static\_cast() pointers of one type to pointers of another unrelated type. You can’t directly static\_cast() objects of one type to objects of another type if there is no converting constructor available. You can’t static\_cast() a const type to a nonconst type. You can’t static\_cast() pointers to ints. Basically, you can only do things that make sense according to the type rules of C++.
 
 \mySubsubsection{10.7.2.}{reinterpret\_cast()}
 
+reinterpret\_cast() is a bit more powerful, and concomitantly less safe, than static\_cast(). You can use it to perform some casts that are not technically allowed by the C++ type rules but that might make sense to the programmer in some circumstances. For example, you can use reinterpret\_cast() to cast a reference to one type to a reference to another type, even if the types are unrelated. Similarly, you can use it to cast a pointer type to any other pointer type, even if they are unrelated by an inheritance hierarchy. However, casting a pointer to a void* can be done implicitly, without an explicit cast. To cast a void* back to a correctly typed pointer, a static\_cast() is enough. A void* pointer is just a pointer to some location in memory. No type information is associated with a void* pointer. Here are some examples:
 
+\begin{cpp}
+class X {};
+class Y {};
+
+int main()
+{
+    X x;
+    Y y;
+    X* xp { &x };
+    Y* yp { &y };
+    // Need reinterpret_cast for pointer conversion from unrelated classes
+    // static_cast doesn't work.
+    xp = reinterpret_cast<X*>(yp);
+    // No cast required for conversion from pointer to void*
+    void* p { xp };
+    // static_cast is enough for pointer conversion from void*
+    xp = static_cast<X*>(p);
+    // Need reinterpret_cast for reference conversion from unrelated classes
+    // static_cast doesn't work.
+    X& xr { x };
+    Y& yr { reinterpret_cast<Y&>(x) };
+}
+\end{cpp}
+
+reinterpret\_cast() is not all-powerful; it comes with quite a few restrictions on what can be cast to what. These restrictions are not further discussed in this text, as I recommend that you use these kinds of casts judiciously.
+
+In general, you should be careful with reinterpret\_cast() because it allows you to do conversions without performing any type checking.
+
+\begin{myWarning}{WARNING}
+You can also use reinterpret\_cast() to cast pointers to integral types and back. However, you can only cast a pointer to an integral type that is large enough to hold it. For example, trying to use reinterpret\_cast() to cast a 64-bit pointer to a 32-bit integer results in a compilation error.
+\end{myWarning}
 
 \mySubsubsection{10.7.3.}{dynamic\_cast()}
 
+dynamic\_cast() provides a run-time check on casts within an inheritance hierarchy. You can use it to cast pointers or references. dynamic\_cast() checks the run-time type information of the underlying object at run time. If the cast doesn’t make sense, dynamic\_cast() returns a null pointer (for the pointer version) or throws an std::bad\_cast exception (for the reference version).
+
+For example, suppose you have the following class hierarchy:
+
+\begin{cpp}
+class Base
+{
+    public:
+        virtual ˜Base() = default;
+};
+
+class Derived : public Base
+{
+    public:
+        virtual ˜Derived() = default;
+};
+\end{cpp}
+
+The following example shows a correct use of dynamic\_cast():
+
+\begin{cpp}
+Base* b;
+Derived* d { new Derived {} };
+b = d;
+d = dynamic_cast<Derived*>(b);
+\end{cpp}
+
+The following dynamic\_cast() on a reference will cause an exception to be thrown:
+
+\begin{cpp}
+Base base;
+Derived derived;
+Base& br { base };
+try {
+    Derived& dr { dynamic_cast<Derived&>(br) };
+} catch (const bad_cast&) {
+    println("Bad cast!");
+}
+\end{cpp}
+
+Note that you can perform the same casts down the inheritance hierarchy with a static\_cast() or reinterpret\_cast(). The difference with dynamic\_cast() is that it performs run-time (dynamic) type checking, while static\_cast() and reinterpret\_cast() perform the cast even if they are erroneous.
+
+Remember, the run-time type information is stored in the vtable of an object. Therefore, to use dynamic\_cast(), your classes must have at least one virtual member function. If your classes don’t have a vtable, trying to use dynamic\_cast() will result in a compilation error. Microsoft Visual C++, for example, gives the following error:
+
+\begin{shell}
+error C2683: 'dynamic_cast' : 'Base' is not a polymorphic type.
+\end{shell}
 
 
 \mySubsubsection{10.7.4.}{std::bit\_cast()}
 
+std::bit\_cast() is defined in <bit>. It’s the only cast that’s part of the Standard Library; the other casts are part of the C++ language itself. bit\_cast() resembles reinterpret\_cast(), but it creates a new object of a given target type and copies the bits from a source object to this new object. It effectively interprets the bits of the source object as if they are the bits of the target object. bit\_cast() requires that the size of the source and target objects are the same and that both are trivially copyable.
 
+\begin{myNotic}{NOTE}
+A trivially copyable type is a type of which the underlying bytes making up the object can be copied into an array of, for example, char. If the data of that array is then copied back into the object, the object keeps its original value.
+\end{myNotic}
+
+Here is an example:
+
+\begin{cpp}
+float asFloat { 1.23f };
+auto asUint { bit_cast<unsigned int>(asFloat) };
+if (bit_cast<float>(asUint) == asFloat) { println("Roundtrip success."); }
+\end{cpp}
+
+A use case for bit\_cast() is with binary I/O of trivially copyable types. For example, you can write the individual bytes of such types to a file. When you read the file back into memory, you can use bit\_cast() to correctly interpret the bytes read from the file.
 
 \mySubsubsection{10.7.5.}{Summary of Casts}
+
+The following table summarizes the casts you should use for different situations.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{SITUATION}                                                                                                          & \textbf{CAST}       \\ \hline
+\endfirsthead
+%
+\endhead
+%
+Remove const-ness                                                                                                           & const\_cast()       \\ \hline
+\begin{tabular}[c]{@{}l@{}}Explicit cast supported by the language (for example,\\ int to double, int to bool)\end{tabular} & static\_cast()      \\ \hline
+\begin{tabular}[c]{@{}l@{}}Explicit cast supported by user-defined constructors\\ or conversions\end{tabular}               & static\_cast()      \\ \hline
+\begin{tabular}[c]{@{}l@{}}Object of one class to object of another\\ (unrelated) class\end{tabular}                        & bit\_cast()         \\ \hline
+\begin{tabular}[c]{@{}l@{}}Pointer-to-object of one class to pointer-to-object of\\ another class in the same inheritance hierarchy\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}dynamic\_cast() recommended, or\\ static\_cast()\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}Reference-to-object of one class to reference\\ to-object of another class in the same\\ inheritance hierarchy\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}dynamic\_cast() recommended, or\\ static\_cast()\end{tabular} \\ \hline
+Pointer-to-type to unrelated pointer-to-type                                                                                & reinterpret\_cast() \\ \hline
+Reference-to-type to unrelated reference-to-type                                                                            & reinterpret\_cast() \\ \hline
+Pointer-to-function to pointer-to-function                                                                                  & reinterpret\_cast() \\ \hline
+\end{longtable}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

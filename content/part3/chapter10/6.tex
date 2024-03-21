@@ -1,49 +1,1004 @@
 
+Extending a class opens up a variety of issues. What characteristics of the class can and cannot be changed? What is non-public inheritance? What are virtual base classes? These questions, and more, are answered in the following sections.
 
 \mySubsubsection{10.6.1.}{Changing the Overridden Member Function’s Return Type}
 
+For the most part, the reason you override a member function is to change its implementation. Sometimes, however, you may want to change other characteristics of the member function, such as its return type.
+
+A good rule of thumb is to override a member function with the exact member function declaration, or member function prototype, that the base class uses. The implementation can change, but the prototype stays the same.
+
+That does not have to be the case, however. In C++, an overriding member function can change the return type as long as the return type of the member function in the base class is a pointer or reference to a class, and the return type in the derived class is a pointer or reference to a descendant, i.e., more specialized class. Such types are called covariant return types. This feature sometimes comes in handy when the base class and derived class work with objects in a parallel hierarchy—that is, another group of classes that is tangential, but related, to the first class hierarchy.
+
+For example, consider a basic car simulator. You might have two hierarchies of classes that model different real-world objects but are obviously related. The first is the Car hierarchy. The base class, Car, has derived classes GasolineCar and ElectricalCar. Similarly, there is another hierarchy of classes with a base class called PowerSource and derived classes GasolinePowerSource and ElectricalPowerSource. Figure 10.11 shows the two class hierarchies.
+
+\myGraphic{0.7}{content/part3/chapter10/images/11.png}{FIGURE 10.11}
+
+Let’s assume a power source can print its own type and that a gasoline power source has a member function fillTank(), while an electrical power source has a member function chargeBatteries():
+
+\begin{cpp}
+class PowerSource
+{
+    public:
+        virtual void printType() = 0;
+};
+
+class GasolinePowerSource : public PowerSource
+{
+    public:
+        void printType() override { println("GasolinePowerSource"); }
+        virtual void fillTank() { println("Gasoline tank filled up."); }
+};
+
+class ElectricalPowerSource : public PowerSource
+{
+    public:
+        void printType() override { println("ElectricalPowerSource"); }
+        virtual void chargeBatteries() { println("Batteries charged."); }
+};
+\end{cpp}
+
+Now assume that Car has a virtual member function called getFilledUpPowerSource() that returns a reference to the “filled-up” power source of a specific car:
+
+\begin{cpp}
+class Car
+{
+    public:
+        virtual PowerSource& getFilledUpPowerSource() = 0;
+};
+\end{cpp}
+
+This is a pure virtual, abstract member function, as it only makes sense to provide an actual implementation in concrete derived classes. Since a GasolinePowerSource is a PowerSource, the GasolineCar class can implement this member function as follows:
+
+\begin{cpp}
+class GasolineCar : public Car
+{
+    public:
+        PowerSource& getFilledUpPowerSource() override
+        {
+            m_engine.fillTank();
+            return m_engine;
+        }
+    private:
+        GasolinePowerSource m_engine;
+};
+\end{cpp}
+
+ElectricalCar can implement it as follows:
+
+\begin{cpp}
+class ElectricalCar : public Car
+{
+    public:
+        PowerSource& getFilledUpPowerSource() override
+        {
+            m_engine.chargeBatteries();
+            return m_engine;
+        }
+    private:
+        ElectricalPowerSource m_engine;
+};
+\end{cpp}
+
+These classes can be tested as follows:
+
+\begin{cpp}
+GasolineCar gc;
+gc.getFilledUpPowerSource().printType();
+println("");
+ElectricalCar ev;
+ev.getFilledUpPowerSource().printType();
+\end{cpp}
+
+The output is:
+
+\begin{shell}
+Gasoline tank filled up.
+GasolinePowerSource
+
+Batteries charged.
+ElectricalPowerSource
+\end{shell}
+
+This implementation is fine. However, because you know that the getFilledUpPowerSource() member function for GasolineCar always returns a GasolinePowerSource, and for ElectricalCar always an ElectricalPowerSource, you can indicate this fact to potential users of these classes by changing the return type, as shown here:
+
+\begin{cpp}
+class GasolineCar : public Car
+{
+    public:
+    GasolinePowerSource& getFilledUpPowerSource() override
+    { /* omitted for brevity */ }
+};
+
+class ElectricalCar : public Car
+{
+    public:
+    ElectricalPowerSource& getFilledUpPowerSource() override
+    { /* omitted for brevity */ }
+};
+\end{cpp}
+
+A good way to figure out whether you can change the return type of an overridden member function is to consider whether existing code would still work; this is called the Liskov substitution principle (LSP). In the preceding example, changing the return type was fine because any code that assumed that the getFilledUpPowerSource() member function would always return a PowerSource would still compile and work correctly. Because an ElectricalPowerSource and a GasolinePowerSource are both PowerSources, any member functions that were called on the result of getFilledUpPowerSource() returning a PowerSource could still be called on the result of getFilledUpPowerSource() returning an ElectricalPowerSource or a GasolinePowerSource.
+
+You could not, for example, change the return type to something completely unrelated, such as int\&. The following code does not compile:
+
+\begin{cpp}
+class ElectricalCar : public Car
+{
+    public:
+        int& getFilledUpPowerSource() override // Error!
+        { /* omitted for brevity */ }
+};
+\end{cpp}
+
+This generates a compilation error, something like this:
+
+\begin{shell}
+'ElectricalCar::getFilledUpPowerSource': overriding virtual function return type
+differs and is not covariant from 'Car::getFilledUpPowerSource'
+\end{shell}
+
+This example is using references to PowerSources and not smart pointers. Changing the return type does not work when using, for example, shared\_ptr as return type. Suppose Car::getFilledUpPowerSource() returns a shared\_ptr<PowerSource>. In that case, you cannot change the return type for ElectricalCar::getFilledUpPowerSource() to shared\_ ptr<ElectricalPowerSource>. The reason is that shared\_ptr is a class template. Two instantiations of the shared\_ptr class template are created, shared\_ptr<PowerSource> and shared\_ptr<ElectricalPowerSource>. Both these instantiations are completely different types and are in no way related to each other. You cannot change the return type of an overridden member function to return a completely different type.
 
 
 \mySubsubsection{10.6.2.}{Adding Overloads of virtual Base Class Member Functions to Derived Classes}
 
+It is possible to add new overloads of virtual base class member functions to derived classes. That is, you can add an overload of a virtual member function in the derived class with a new prototype but continue to inherit the base class version. This technique uses a using declaration to explicitly include the base class definition of the member function within the derived class. Here is an example:
 
+\begin{cpp}
+class Base
+{
+    public:
+        virtual void someFunction();
+};
+
+class Derived : public Base
+{
+    public:
+        using Base::someFunction; // Explicitly inherits the Base version.
+        virtual void someFunction(int i); // Adds a new overload of someFunction().
+        virtual void someOtherFunction();
+};
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+It is rare to find a member function in a derived class with the same name as a member function in the base class but using a different parameter list.
+\end{myNotic}
 
 \mySubsubsection{10.6.3.}{Inherited Constructors}
 
+In the previous section, you saw the use of a using declaration to explicitly include the base class definition of a member function within a derived class. This works for normal class member functions, but also for constructors, allowing you to inherit constructors from base classes. Take a look at the following definitions for the Base and Derived classes:
+
+\begin{cpp}
+class Base
+{
+    public:
+        virtual ˜Base() = default;
+        Base() = default;
+        explicit Base(int i) {}
+};
+
+class Derived : public Base
+{
+    public:
+        explicit Derived(int i) : Base(i) {}
+};
+\end{cpp}
+
+The only thing the Derived constructor is doing is passing its parameter to a Base constructor.
+
+You can construct a Base object only with the provided Base constructors, either the default constructor or the constructor accepting an int. On the other hand, constructing a Derived object can happen only with the provided Derived constructor, which requires a single integer as argument. You cannot construct Derived objects using the default constructor from the Base class. Here is an example:
+
+\begin{cpp}
+Base base { 1 }; // OK, calls integer Base ctor.
+Derived derived1 { 2 }; // OK, calls integer Derived ctor.
+Derived derived2; // Error, Derived does not have a default ctor.
+\end{cpp}
+
+As the Derived constructor is just passing its parameter to a Base constructor and isn’t doing anything else, you can simply inherit the Base constructors explicitly with a using declaration in the Derived class as follows:
+
+\begin{cpp}
+class Derived : public Base
+{
+    public:
+        using Base::Base;
+};
+\end{cpp}
+
+The using declaration inherits all constructors from Base, so now you can construct Derived objects in the following ways:
+
+\begin{cpp}
+Derived derived1 { 2 }; // OK, calls inherited integer Base ctor.
+Derived derived2; // OK, calls inherited default Base ctor.
+\end{cpp}
+
+The inherited constructors in a derived class have the same access specifier (public, protected, or private) as the constructors in the base class. Inherited constructors that are explicitly deleted with =delete in the base class are deleted in the derived class as well.
+
 \mySamllsection{Hiding of Inherited Constructors}
+
+The Derived class can define a constructor with the same parameter list as one of the inherited constructors in the Base class. In this case, the constructor of the Derived class takes precedence over the inherited constructor. In the following example, the Derived class inherits all constructors, from the Base class with the using declaration. However, because the Derived class defines its own constructor with a single parameter of type float, the inherited constructor from the Base class with a single parameter of type float is hidden.
+
+\begin{cpp}
+class Base
+{
+    public:
+        virtual ˜Base() = default;
+        Base() = default;
+        explicit Base(std::string_view str) {}
+        explicit Base(float f) {}
+};
+
+class Derived : public Base
+{
+    public:
+        using Base::Base;
+        explicit Derived(float f) {} // Hides inherited float Base ctor.
+};
+\end{cpp}
+
+With this definition, objects of Derived can be created as follows:
+
+\begin{cpp}
+Derived derived1 { "Hello" }; // OK, calls inherited string_view Base ctor.
+Derived derived2 { 1.23f }; // OK, calls float Derived ctor.
+Derived derived3; // OK, calls inherited default Base ctor.
+\end{cpp}
+
+A few restrictions apply to inheriting constructors from a base class with a using declaration.
+
+\begin{itemize}
+\item
+When you inherit a constructor from a base class, you inherit all of them. It is not possible to inherit only a subset of the constructors of a base class.
+
+\item
+When you inherit constructors, they are inherited with the same access specification as they have in the base class, irrespective of which access specification the using declaration is under.
+\end{itemize}
 
 \mySamllsection{Inherited Constructors and Multiple Inheritance}
 
+Another restriction with inheriting constructors is related to multiple inheritance. It’s not possible to inherit constructors from one of the base classes if another base class has a constructor with the same parameter list, because this leads to ambiguity. To resolve this, the Derived class needs to explicitly define the conflicting constructors. For example, the following Derived class tries to inherit all constructors from both Base1 and Base2, which results in an ambiguity for the float-based constructors.
+
+\begin{cpp}
+class Base1
+{
+    public:
+        virtual ˜Base1() = default;
+        Base1() = default;
+        explicit Base1(float f) {}
+};
+
+class Base2
+{
+    public:
+        virtual ˜Base2() = default;
+        Base2() = default;
+        explicit Base2(std::string_view str) {}
+        explicit Base2(float f) {}
+};
+
+class Derived : public Base1, public Base2
+{
+    public:
+        using Base1::Base1;
+        using Base2::Base2;
+        explicit Derived(char c) {}
+};
+
+int main()
+{
+    Derived d { 1.2f }; // Error, ambiguity.
+}
+\end{cpp}
+
+The first using declaration in Derived inherits all constructors from Base1. This means that Derived gets the following constructor:
+
+\begin{cpp}
+Derived(float f); // Inherited from Base1.
+\end{cpp}
+
+The second using declaration in Derived tries to inherit all constructors from Base2. However, this means that Derived gets a second Derived(float) constructor. The problem is solved by explicitly declaring conflicting constructors in the Derived class as follows:
+
+\begin{cpp}
+class Derived : public Base1, public Base2
+{
+    public:
+        using Base1::Base1;
+        using Base2::Base2;
+        explicit Derived(char c) {}
+        explicit Derived(float f) {}
+};
+\end{cpp}
+
+The Derived class now explicitly declares a constructor with a single parameter of type float, solving the ambiguity. If you want, this explicitly declared constructor in the Derived class accepting a float argument can still forward the call to both the Base1 and Base2 constructors in its ctorinitializer as follows:
+
+\begin{cpp}
+Derived::Derived(float f) : Base1 { f }, Base2 { f } {}
+\end{cpp}
+
 \mySamllsection{Initialization of Data Members}
 
+When using inherited constructors, make sure that all data members are properly initialized. For example, take the following new definitions for Base and Derived. These definitions do not properly initialize the m\_int data member in all cases, and, as you know, uninitialized data members are not recommended.
+
+\begin{cpp}
+class Base
+{
+    public:
+        virtual ˜Base() = default;
+        explicit Base(std::string_view str) : m_str { str } {}
+    private:
+        std::string m_str;
+};
+
+class Derived : public Base
+{
+    public:
+        using Base::Base;
+        explicit Derived(int i) : Base { "" }, m_int { i } {}
+    private:
+        int m_int;
+};
+\end{cpp}
+
+You can create a Derived object as follows:
+
+\begin{cpp}
+Derived s1 { 2 };
+\end{cpp}
+
+This calls the Derived(int) constructor, which initializes the m\_int data member of the Derived class and calls the Base constructor with an empty string to initialize the m\_str data member.
+
+Because the Base constructor is inherited in the Derived class, you can also construct a Derived object as follows:
+
+\begin{cpp}
+Derived s2 { "Hello World" };
+\end{cpp}
+
+This calls the inherited Base constructor in the Derived class. However, this inherited Base constructor only initializes m\_str of the Base class and does not initialize m\_int of the Derived class, leaving it in an uninitialized state. This is not recommended! The solution in this case is to use in-class member initializers, which are discussed in Chapter 8.
+
+The following code uses an in-class member initializer to initialize m\_int to 0. Of course, the Derived(int) constructor can still change this and initialize m\_int to the constructor parameter i.
+
+\begin{cpp}
+class Derived : public Base
+{
+    public:
+        using Base::Base;
+        explicit Derived(int i) : Base { "" }, m_int { i } {}
+    private:
+        int m_int { 0 };
+};
+\end{cpp}
 
 \mySubsubsection{10.6.4.}{Special Cases in Overriding Member Functions}
 
+Several special cases require attention when overriding a member function. This section outlines the cases that you are likely to encounter.
+
 \mySamllsection{The Base Class Member Function Is static}
+
+In C++, you cannot override a static member function. For the most part, that’s all you need to know. There are, however, a few corollaries that you need to understand.
+
+First of all, a member function cannot be both static and virtual. This is the first clue that attempting to override a static member function will not do what you intend it to do. If you have a static member function in your derived class with the same name as a static member function in your base class, you actually have two separate member functions.
+
+The following code shows two classes that both happen to have static member functions called beStatic(). These two member functions are in no way related.
+
+\begin{cpp}
+class BaseStatic
+{
+    public:
+    static void beStatic() { println("BaseStatic being static."); }
+};
+
+class DerivedStatic : public BaseStatic
+{
+    public:
+    static void beStatic() { println("DerivedStatic keepin' it static."); }
+};
+\end{cpp}
+
+Because a static member function belongs to its class, calling the identically named member functions on the two different classes calls their respective member functions.
+
+\begin{cpp}
+BaseStatic::beStatic();
+DerivedStatic::beStatic();
+\end{cpp}
+
+This outputs the following:
+
+\begin{shell}
+BaseStatic being static.
+DerivedStatic keepin' it static.
+\end{shell}
+
+Everything makes perfect sense as long as the member functions are accessed by their class names. The behavior is less clear when objects are involved. In C++, you can call a static member function using an object, but because the member function is static, it has no this pointer and no access to the object itself, so it is equivalent to calling it by its class name. Referring to the previous example classes, you can write code as follows, but the results may be surprising.
+
+\begin{cpp}
+DerivedStatic myDerivedStatic;
+BaseStatic& ref { myDerivedStatic };
+myDerivedStatic.beStatic();
+ref.beStatic();
+\end{cpp}
+
+The first call to beStatic() obviously calls the DerivedStatic version because it is explicitly called on an object declared as a DerivedStatic. The second call might not work as you expect. The object is a BaseStatic reference, but it refers to a DerivedStatic object. In this case, BaseStatic’s version of beStatic() is called. The reason is that C++ doesn’t care what the object actually is when calling a static member function. It only cares about the compile-time type. In this case, the type is a reference to a BaseStatic.
+
+The output of the previous example is as follows:
+
+\begin{shell}
+DerivedStatic keepin' it static.
+BaseStatic being static.
+\end{shell}
+
+\begin{myNotic}{NOTE}
+static member functions are scoped by the name of the class in which they are defined, but they are not member functions that apply to a specific object. When you call a static member function, the version determined by normal name resolution is called. When the member function is called syntactically by using an object, the object is not actually involved in the call, except to determine the type at compile time.
+\end{myNotic}
 
 \mySamllsection{The Base Class Member Function Is Overloaded}
 
+When you override a member function by specifying a name and a set of parameters, the compiler implicitly hides all other instances of the same name in the base class. The idea is that if you have overridden one member function with a given name, you might have intended to override all the member functions with that name, but simply forgot, and therefore this should be treated as an error. It makes sense if you think about it—why would you want to change some overloads of a member function and not others? Consider the following Derived class, which overrides a member function without overriding its associated overloaded siblings:
+
+\begin{cpp}
+class Base
+{
+    public:
+        virtual ˜Base() = default;
+        virtual void overload() { println("Base's overload()"); }
+        virtual void overload(int i) { println("Base's overload(int i)"); }
+};
+
+class Derived : public Base
+{
+    public:
+        void overload() override { println("Derived's overload()"); }
+};
+\end{cpp}
+
+If you attempt to call the version of overload() that takes an int parameter on a Derived object, your code will not compile because it was not explicitly overridden.
+
+\begin{cpp}
+Derived myDerived;
+myDerived.overload(2); // Error! No matching member function for overload(int).
+\end{cpp}
+
+It is possible, however, to access this version of the member function from a Derived object. All you need is a pointer or a reference to a Base object.
+
+\begin{cpp}
+Derived myDerived;
+Base& ref { myDerived };
+ref.overload(7);
+\end{cpp}
+
+The hiding of unimplemented overloaded member functions is only skin deep in C++. Objects that are explicitly declared as instances of the derived class do not make the member functions available, but a simple cast to the base class brings them right back.
+
+A using declaration can be employed to save you the trouble of overriding all the overloads when you really only want to change one. In the following code, the Derived class definition uses one version of overload() from Base and explicitly overrides the other:
+
+\begin{cpp}
+class Derived : public Base
+{
+    public:
+        using Base::overload;
+        void overload() override { println("Derived's overload()"); }
+};
+\end{cpp}
+
+The using declaration has certain risks. Suppose a third overload() member function is added to Base, which should have been overridden in Derived. This will now not be detected as an error, because with the using declaration, the designer of the Derived class has explicitly said, “I am willing to accept all other overloads of this member function from the parent class.”
+
+\begin{myNotic}{NOTE}
+To avoid obscure bugs when overriding a member function from a base class, override all overloads of that member function as well.
+\end{myNotic}
+
 \mySamllsection{The Base Class Member Function Is private}
+
+There’s absolutely nothing wrong with overriding a private member function. Remember that the access specifier for a member function determines who is able to call the member function. Just because a derived class can’t call its parent’s private member functions doesn’t mean it can’t override them. In fact, the template member function pattern is a common pattern in C++ that is implemented by overriding private member functions. It allows derived classes to define their own “uniqueness” that is referenced in the base class. Note that, for example, Java and C\# only allow overriding public and protected member functions, not private member functions.
+
+For example, the following class is part of a car simulator that estimates the number of miles the car can travel based on its gas mileage and the amount of fuel left. The getMilesLeft() member function is the template member function. Usually, template member functions are not virtual. They typically define some algorithmic skeleton in a base class, calling virtual member functions to query for information. A derived class can then override these virtual member functions to change aspects of the algorithm without having to modify the algorithm in the base class itself.
+
+\begin{cpp}
+export class MilesEstimator
+{
+    public:
+        virtual ˜MilesEstimator() = default;
+        int getMilesLeft() const { return getMilesPerGallon() * getGallonsLeft(); }
+        virtual void setGallonsLeft(int gallons) { m_gallonsLeft = gallons; }
+        virtual int getGallonsLeft() const { return m_gallonsLeft; }
+    private:
+        int m_gallonsLeft { 0 };
+        virtual int getMilesPerGallon() const { return 20; }
+};
+\end{cpp}
+
+The getMilesLeft() member function performs a calculation based on the results of two of its own member functions: getGallonsLeft() which is public, and getMilesPerGallon() which is private. The following code uses the MilesEstimator to calculate how many miles can be traveled with two gallons of gas:
+
+\begin{cpp}
+MilesEstimator myMilesEstimator;
+myMilesEstimator.setGallonsLeft(2);
+println("Normal estimator can go {} more miles.",
+    myMilesEstimator.getMilesLeft());
+\end{cpp}
+
+The output of this code is as follows:
+
+\begin{shell}
+Normal estimator can go 40 more miles.
+\end{shell}
+
+To make the simulator more interesting, you may want to introduce different types of vehicles, perhaps a more efficient car. The existing MilesEstimator assumes that all cars get 20 miles per gallon, but this value is returned from a separate member function specifically so that a derived class can override it. Such a derived class is shown here:
+
+\begin{cpp}
+export class EfficientCarMilesEstimator : public MilesEstimator
+{
+    private:
+        int getMilesPerGallon() const override { return 35; }
+};
+\end{cpp}
+
+By overriding this one private member function, the new class completely changes the behavior of existing, unmodified, public member functions in the base class. The getMilesLeft() member function in the base class automatically calls the overridden version of the private getMilesPerGallon() member function. An example using the new class is shown here:
+
+\begin{cpp}
+EfficientCarMilesEstimator myEstimator;
+myEstimator.setGallonsLeft(2);
+println("Efficient estimator can go {} more miles.",
+        myEstimator.getMilesLeft());
+\end{cpp}
+
+This time, the output reflects the overridden functionality:
+
+\begin{shell}
+Efficient estimator can go 70 more miles.
+\end{shell}
+
+\begin{myNotic}{NOTE}
+Overriding private and protected member functions is a good way to change certain features of a class without a major overhaul.
+\end{myNotic}
+
 
 \mySamllsection{The Base Class Member Function Has Default Arguments}
 
+An overridden member function in a derived class can have different default arguments than in the base class. The arguments that are used depend on the declared type of the variable, not the underlying object. The following is a simple example of a derived class that provides a different default argument in an overridden member function:
+
+\begin{cpp}
+class Base
+{
+    public:
+        virtual ˜Base() = default;
+        virtual void go(int i = 2) { println("Base's go with i={}", i); }
+};
+
+class Derived : public Base
+{
+    public:
+        void go(int i = 7) override { println("Derived's go with i={}", i); }
+};
+\end{cpp}
+
+If go() is called on a Derived object, Derived’s version of go() is executed with the default argument of 7. If go() is called on a Base object, Base’s version of go() is called with the default argument of 2. However (and this is the weird part), if go() is called on a Base pointer or Base reference that really points to a Derived object, Derived’s version of go() is called but with Base’s default argument of 2. This behavior is shown in the following example:
+
+\begin{cpp}
+Base myBase;
+Derived myDerived;
+Base& myBaseReferenceToDerived { myDerived };
+myBase.go();
+myDerived.go();
+myBaseReferenceToDerived.go();
+\end{cpp}
+
+The output of this code is as follows:
+
+\begin{shell}
+Base's go with i=2
+Derived's go with i=7
+Derived's go with i=2
+\end{shell}
+
+The reason for this behavior is that C++ uses the compile-time type of the expression to bind default arguments, not the run-time type. Default arguments are not “inherited” in C++. If the Derived class in this example failed to provide a default argument for go() as its parent did, it would not be possible to call go() on a Derived object without passing an argument to it.
+
+\begin{myNotic}{NOTE}
+When overriding a member function that has a default argument, you should provide a default argument as well, and it should probably be the same value. It is recommended to use a named constant for default values so that the same named constant can be used in derived classes.
+\end{myNotic}
+
 \mySamllsection{The Base Class Member Function Has a Different Access Specification}
 
+There are two ways you may want to change the access specification of a member function: you could try to make it more restrictive or less restrictive. Neither case makes much sense in C++, but there are a few legitimate reasons for attempting to do so.
 
+To enforce tighter restrictions on a member function (or on a data member for that matter), there are two approaches you can take. One way is to change the access specifier for the entire base class. This approach is described later in this chapter. The other approach is simply to redefine the access in the derived class, as illustrated in the Shy class that follows:
 
+\begin{cpp}
+class Gregarious
+{
+    public:
+        virtual void talk() { println("Gregarious says hi!"); }
+};
+
+class Shy : public Gregarious
+{
+    protected:
+        void talk() override { println("Shy reluctantly says hello."); }
+};
+\end{cpp}
+
+The protected version of talk() in Shy properly overrides the Gregarious::talk() member function. Any client code that attempts to call talk() on a Shy object gets a compilation error:
+
+\begin{cpp}
+Shy myShy;
+myShy.talk(); // Error! Attempt to access protected member function.
+\end{cpp}
+
+However, the member function is not fully protected. One only has to obtain a Gregarious reference or pointer to access the member function that you thought was protected:
+
+\begin{cpp}
+Shy myShy;
+Gregarious& ref { myShy };
+ref.talk();
+\end{cpp}
+
+The output of this code is as follows:
+
+\begin{shell}
+Shy reluctantly says hello.
+\end{shell}
+
+This proves that making the member function protected in the derived class did override the member function (because the derived class version is correctly called), but it also proves that the protected access can’t be fully enforced if the base class makes it public.
+
+\begin{myNotic}{NOTE}
+There is no reasonable way (or good reason) to restrict access to a public base class member function.
+\end{myNotic}
+
+\begin{myNotic}{NOTE}
+The previous example redefined the member function in the derived class because it wants to display a different message. If you don’t want to change the implementation but instead only want to change the access specification of a member function, the preferred way is to simply add a using declaration in the derived class definition with the desired access specification.
+\end{myNotic}
+
+It is much easier (and makes more sense) to lessen access restrictions in derived classes. The simplest way is to provide a public member function in the derived class that calls a protected member function from the base class, as shown here:
+
+\begin{cpp}
+class Secret
+{
+    protected:
+        virtual void dontTell() { println("I'll never tell."); }
+};
+
+class Blabber : public Secret
+{
+    public:
+        virtual void tell() { dontTell(); }
+};
+\end{cpp}
+
+A client calling the public tell() member function of a Blabber object effectively accesses the protected member function of the Secret class. Of course, this doesn’t really change the access specification of dontTell(); it just provides a public way of accessing it.
+
+You can also override dontTell() explicitly in Blabber and give it new behavior with public access. This makes a lot more sense than reducing the access specification because it is entirely clear what happens with a reference or pointer to the base class. For example, suppose that Blabber actually makes the dontTell() member function public:
+
+\begin{cpp}
+class Blabber : public Secret
+{
+    public:
+        void dontTell() override { println("I'll tell all!"); }
+};
+\end{cpp}
+
+Now you can call dontTell() on a Blabber object:
+
+\begin{cpp}
+myBlabber.dontTell(); // Outputs "I'll tell all!"
+\end{cpp}
+
+If you don’t want to change the implementation of the overridden member function but only change the access specification, then you can use a using declaration. Here’s an example:
+
+\begin{cpp}
+class Blabber : public Secret
+{
+    public:
+        using Secret::dontTell;
+};
+\end{cpp}
+
+This also allows you to call dontTell() on a Blabber object, but this time the output will be “I’ll never tell”:
+
+\begin{cpp}
+myBlabber.dontTell(); // Outputs "I'll never tell."
+\end{cpp}
+
+In both previous cases, however, the protected member function in the base class stays protected because any attempts to call Secret’s dontTell() member function through a Secret pointer or reference will not compile:
+
+\begin{cpp}
+Blabber myBlabber;
+Secret& ref { myBlabber };
+Secret* ptr { &myBlabber };
+ref.dontTell(); // Error! Attempt to access protected member function.
+ptr->dontTell(); // Error! Attempt to access protected member function.
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+The only useful way to change a member function’s access specification is by providing a less restrictive accessor to a protected member function.
+\end{myNotic}
 
 \mySubsubsection{10.6.5.}{Copy Constructors and Assignment Operators in Derived Classes}
 
+Chapter 9 explains that providing a copy constructor and assignment operator is a must when you have dynamically allocated memory in a class. When defining a derived class, you need to be careful about copy constructors and operator=.
 
+If your derived class does not have any special data (pointers, usually) that require a nondefault copy constructor or operator=, you don’t need to have one, regardless of whether the base class has one. If your derived class omits the copy constructor or operator=, a default copy constructor or operator= will be provided for the data members specified in the derived class, and the base class copy constructor or operator= will be used for the data members specified in the base class.
+
+On the other hand, if you do specify a copy constructor in the derived class, you need to explicitly call the parent copy constructor, as shown in the following code. If you do not do this, the default constructor (not the copy constructor!) will be used for the parent portion of the object.
+
+\begin{cpp}
+class Base
+{
+    public:
+        virtual ˜Base() = default;
+        Base() = default;
+        Base(const Base& src) { }
+};
+
+class Derived : public Base
+{
+    public:
+        Derived() = default;
+        Derived(const Derived& src) : Base { src } { }
+};
+\end{cpp}
+
+Similarly, if the derived class overrides operator=, it is almost always necessary to call the parent’s version of operator= as well. The only case where you wouldn’t do this would be if there was some bizarre reason why you only wanted part of the object assigned when an assignment took place. The following code shows how to call the parent’s assignment operator from the derived class:
+
+\begin{cpp}
+Derived& Derived::operator=(const Derived& rhs)
+{
+    if (&rhs == this) { return *this; }
+    Base::operator=(rhs); // Calls parent's operator=.
+    // Do necessary assignments for derived class.
+    return *this;
+}
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+If your derived class does not specify its own copy constructor or operator=, the base class functionality continues to work. However, if the derived class does provide its own copy constructor or operator=, it needs to explicitly call the base class versions.
+\end{myWarning}
+
+
+\begin{myNotic}{NOTE}
+When you need copy functionality in an inheritance hierarchy, a common idiom employed by professional C++ developers is to implement a polymorphic clone() member function, because relying on the standard copy constructor and copy assignment operators is not sufficient. The polymorphic clone() idiom is discussed in Chapter 12, “Writing Generic Code with Templates.”
+\end{myNotic}
 
 \mySubsubsection{10.6.6.}{Run-Time Type Facilities}
 
+Relative to other object-oriented languages, C++ is very compile-time oriented. As you learned earlier, overriding member functions works because of a level of indirection between a member function and its implementation, not because the object has built-in knowledge of its own class.
 
+There are, however, features in C++ that provide a run-time view of an object. These features are commonly grouped together under a feature set called run-time type information (RTTI). RTTI provides a number of useful features for working with information about an object’s class membership. One such feature is dynamic\_cast(), which allows you to safely convert between types within an object-oriented hierarchy; this was discussed earlier in this chapter. Using dynamic\_cast() on a class without a vtable, that is, without any virtual member functions, causes a compilation error.
+
+A second RTTI feature is the typeid operator, which lets you query for types at run time. The result of applying the operator is a reference to an std::type\_info object, defined in <typeinfo>. The type\_info class has a member function called name() returning the compiler-dependent name of the type. The typeid operator behaves as follows:
+
+\begin{itemize}
+\item
+typeid(type): Results in a reference to a type\_info object representing the given type.
+
+\item
+typeid(expression)
+\begin{itemize}
+\item
+If evaluating expression results in a polymorphic type, then expression is evaluated and the result of the typeid operator is a reference to a type\_info object representing the dynamic type of the evaluated expression.
+
+\item
+Otherwise, expression is not evaluated, and the result is a reference to a type\_info object representing the static type.
+\end{itemize}
+\end{itemize}
+
+For the most part, you shouldn’t ever need to use typeid because any code that is conditionally executed based on the type of the object would be better handled with, for example, virtual member functions.
+
+The following code uses typeid to print a message based on the type of the object:
+
+\begin{cpp}
+class Animal { public: virtual ˜Animal() = default; };
+class Dog : public Animal {};
+class Bird : public Animal {};
+
+void speak(const Animal& animal)
+{
+    if (typeid(animal) == typeid(Dog)) {
+        println("Woof!");
+    } else if (typeid(animal) == typeid(Bird)) {
+        println("Chirp!");
+    }
+}
+\end{cpp}
+
+Whenever you see code like this, you should immediately consider reimplementing the functionality as a virtual member function. In this case, a better implementation would be to declare a virtual member function called speak() in the Animal base class. Dog would override the member function to print "Woof!", and Bird would override it to print "Chirp!". This approach better fits objectoriented programming, where functionality related to objects is given to those objects.
+
+\begin{myWarning}{WARNING}
+ The typeid operator works correctly only if the class has at least one virtual member function, that is, when the class has a vtable. Additionally, the typeid operator strips reference and const qualifiers from its argument.
+\end{myWarning}
+
+One possible use case of the typeid operator is for logging and debugging purposes. The following code makes use of typeid for logging. The logObject() function takes a “loggable” object as a parameter. The design is such that any object that can be logged inherits from the Loggable class and supports a member function called getLogMessage().
+
+\begin{cpp}
+class Loggable
+{
+    public:
+        virtual ˜Loggable() = default;
+        virtual string getLogMessage() const = 0;
+};
+
+class Foo : public Loggable
+{
+    public:
+        string getLogMessage() const override { return "Hello logger."; }
+};
+
+void logObject(const Loggable& loggableObject)
+{
+    print("{}: ", typeid(loggableObject).name());
+    println("{}", loggableObject.getLogMessage());
+}
+\end{cpp}
+
+logObject() first prints the name of the object’s class to the console, followed by its log message.
+This way, when you read the log later, you can see which object was responsible for every written line. Here is the output generated by Microsoft Visual C++ 2022 when logObject() is called with an instance of Foo:
+
+\begin{shell}
+class Foo: Hello logger.
+\end{shell}
+
+As you can see, the name returned by the typeid operator is “class Foo”. However, this name depends on your compiler. For example, if you compile and run the same code with GCC, the output is as follows:
+
+\begin{cpp}
+3Foo: Hello logger.
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+If you are using typeid for purposes other than logging and debugging, consider changing your design, for example, by using virtual member functions.
+\end{myNotic}
 
 \mySubsubsection{10.6.7.}{Non-public Inheritance}
 
+In all previous examples, parent classes were always listed using the public keyword. You may be wondering if a parent can be private or protected. In fact, it can, though neither is as common as public. If you don’t specify any access specifier for the parent, then it is private inheritance for a class, and public inheritance for a struct.
 
+Declaring the relationship with the parent to be protected means that all public member functions and data members from the base class become protected in the context of the derived class. Similarly, specifying private inheritance means that all public and protected member functions and data members of the base class become private in the derived class.
+
+There are a handful of reasons why you might want to uniformly degrade the access level of the parent in this way, but most reasons imply flaws in the design of the hierarchy. Some programmers abuse this language feature, often in combination with multiple inheritance, to implement “components” of a class. Instead of making an Airplane class that contains an engine data member and a fuselage data member, they make an Airplane class that is a protected engine and a protected fuselage. In this way, the Airplane doesn’t look like an engine or a fuselage to client code (because everything is protected), but it is able to use all of that functionality internally.
+
+\begin{myNotic}{NOTE}
+Non-public inheritance is rare, and I recommend using it cautiously, if for no other reason than that most programmers are not familiar with it.
+\end{myNotic}
 
 \mySubsubsection{10.6.8.}{Virtual Base Classes}
+
+Earlier in this chapter, you learned about ambiguous base classes, a situation that arises when multiple parents each have a parent in common, as shown again in Figure 10.12. The solution recommended earlier was to make sure that the shared parent doesn’t have any functionality of its own. That way, its member functions can never be called, and there is no ambiguity problem.
+
+\myGraphic{0.7}{content/part3/chapter10/images/12.png}{FIGURE 10.12}
+
+C++ has another mechanism, called virtual base classes, for addressing this problem if you do want the shared parent to have its own functionality. If the shared parent is marked as a virtual base class, there will not be any ambiguity. The following code adds a sleep() member function, including an implementation, to the Animal base class, and modifies the Dog and Bird classes to inherit from Animal as a virtual base class. Without using a virtual base class, a call to sleep() on a DogBird object would be ambiguous and would generate a compiler error because DogBird would have two subobjects of class Animal, one coming from Dog and one coming from Bird. However, when Animal is inherited virtually, DogBird has only one subobject of class Animal, so there will be no ambiguity with calling sleep().
+
+\begin{cpp}
+class Animal
+{
+    public:
+        virtual void eat() = 0;
+        virtual void sleep() { println("zzzzz...."); }
+};
+
+class Dog : public virtual Animal
+{
+    public:
+        virtual void bark() { println("Woof!"); }
+        void eat() override { println("The dog ate."); }
+};
+
+class Bird : public virtual Animal
+{
+    public:
+        virtual void chirp() { println("Chirp!"); }
+        void eat() override { println("The bird ate."); }
+};
+
+class DogBird : public Dog, public Bird
+{
+    public:
+        void eat() override { Dog::eat(); }
+};
+
+int main()
+{
+    DogBird myConfusedAnimal;
+    myConfusedAnimal.sleep(); // Not ambiguous because of virtual base class.
+}
+\end{cpp}
+
+Be careful with constructors in such class hierarchies. For example, the following code adds some data members to the different classes, adds constructors to initialize those data members, and, for reasons explained after the code snippet, adds a protected default constructor to Animal.
+
+\begin{cpp}
+class Animal
+{
+    public:
+        explicit Animal(double weight) : m_weight { weight } {}
+        virtual double getWeight() const { return m_weight; }
+    protected:
+        Animal() = default;
+    private:
+        double m_weight { 0.0 };
+};
+class Dog : public virtual Animal
+{
+    public:
+        explicit Dog(double weight, string name)
+            : Animal { weight }, m_name { move(name) } {}
+    private:
+        string m_name;
+};
+class Bird : public virtual Animal
+{
+    public:
+        explicit Bird(double weight, bool canFly)
+            : Animal { weight }, m_canFly { canFly } {}
+    private:
+        bool m_canFly { false };
+};
+
+class DogBird : public Dog, public Bird
+{
+    public:
+        explicit DogBird(double weight, string name, bool canFly)
+            : Dog { weight, move(name) }, Bird { weight, canFly } {}
+};
+
+int main()
+{
+    DogBird dogBird { 22.33, "Bella", true };
+    println("Weight: {}", dogBird.getWeight());
+}
+\end{cpp}
+
+When you run this code, the output is unexpected:
+
+\begin{cpp}
+Weight: 0
+\end{cpp}
+
+It seems that the given weight of 22.33 when constructing the DogBird in main() is lost. Why? This code is using a virtual Animal base class; hence, a DogBird instance has only one Animal subobject. The DogBird constructor calls the constructors of both Dog and Bird, which both forward to their Animal base class constructor. This would mean that Animal is constructed twice. This is not allowed. In such cases, the compiler disables the call to the Animal constructor in the Dog and Bird constructors when it’s being called from a derived class’s constructor and, instead, calls a default constructor of the Animal base class, thus the need for the protected default constructor in Animal. All this means that the most derived class itself is responsible for calling a constructor of the shared base class. A correct implementation is as follows:
+
+\begin{cpp}
+class Animal { /* Same as before. */ };
+
+class Dog : public virtual Animal
+{
+    public:
+        explicit Dog(double weight, string name)
+            : Animal { weight }, m_name { move(name) } {}
+    protected:
+        explicit Dog(string name) : m_name { move(name) } {}
+    private:
+        string m_name;
+};
+
+class Bird : public virtual Animal
+{
+    public:
+        explicit Bird(double weight, bool canFly)
+            : Animal { weight }, m_canFly { canFly } {}
+    protected:
+        explicit Bird(bool canFly) : m_canFly { canFly } {}
+    private:
+        bool m_canFly { false };
+};
+
+class DogBird : public Dog, public Bird
+{
+    public:
+        explicit DogBird(double weight, string name, bool canFly)
+            : Animal { weight }, Dog { move(name) }, Bird { canFly } {}
+};
+\end{cpp}
+
+In this implementation, protected single-argument constructors are added to Dog and Bird. They are protected as they should be used only by derived classes. Client code is allowed to construct Dogs and Birds only using the two-argument constructors.
+
+After these changes, the output is correct:
+
+\begin{shell}
+Weight: 22.33
+\end{shell}
+
+\begin{myNotic}{NOTE}
+Virtual base classes are a great way to avoid ambiguity in class hierarchies. The only drawback is that many C++ programmers are unfamiliar with the concept.
+\end{myNotic}
+
+
+
+
+
+
+
+
 
 

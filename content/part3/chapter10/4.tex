@@ -1,37 +1,337 @@
 
-
+Now that you understand the relationship between a derived class and its parent, you can use inheritance in its most powerful scenario—polymorphism. Chapter 5 discusses how polymorphism allows you to use objects with a common parent class interchangeably and to use objects in place of their parents.
 
 \mySubsubsection{10.4.1.}{Return of the Spreadsheet}
 
+Chapters 8 and 9 use a spreadsheet program as an example of an application that lends itself to an object-oriented design. A SpreadsheetCell represents a single element of data. Up to now, that element always stored a single double value. A simplified class definition for SpreadsheetCell follows. Note that a cell can be set either as a double or as a string\_view, but it is always stored as a double. The current value of the cell, however, is always returned as a string for this example.
 
+\begin{cpp}
+class SpreadsheetCell
+{
+    public:
+        virtual void set(double value);
+        virtual void set(std::string_view value);
+        virtual std::string getString() const;
+    private:
+        static std::string doubleToString(double value);
+        static double stringToDouble(std::string_view value);
+        double m_value;
+};
+\end{cpp}
+
+In a real spreadsheet application, cells can store different things. A cell could store a double, but it might just as well store a piece of text. There could also be a need for additional types of cells, such as a formula cell or a date cell. How can you support this?
 
 \mySubsubsection{10.4.2.}{Designing the Polymorphic Spreadsheet Cell}
 
+The SpreadsheetCell class is screaming out for a hierarchical makeover. A reasonable approach would be to narrow the scope of the SpreadsheetCell to cover only strings, perhaps renaming it to StringSpreadsheetCell in the process. To handle doubles, a second class, DoubleSpreadsheetCell, would inherit from the StringSpreadsheetCell and provide functionality specific to its own format. Figure 10.7 illustrates such a design. This approach models inheritance for reuse because the DoubleSpreadsheetCell would be deriving from StringSpreadsheetCell only to make use of some of its built-in functionality.
 
+\myGraphic{0.7}{content/part3/chapter10/images/7.png}{FIGURE 10.7}
+
+If you were to implement the design shown in Figure 10.7, you might discover that the derived class would override most, if not all, of the functionality of the base class. Because doubles are treated differently from strings in almost all cases, the relationship may not be quite as it was originally understood. Yet, there clearly is a relationship between a cell containing strings and a cell containing doubles. Rather than using the model in Figure 10.7, which implies that somehow a DoubleSpreadsheetCell “is-a” StringSpreadsheetCell, a better design would make these classes peers with a common parent, SpreadsheetCell. Figure 10.8 shows such a design.
+
+\myGraphic{0.7}{content/part3/chapter10/images/8.png}{FIGURE 10.8}
+
+The design in Figure 10.8 shows a polymorphic approach to the SpreadsheetCell hierarchy. Because DoubleSpreadsheetCell and StringSpreadsheetCell both inherit from a common parent, SpreadsheetCell, they are interchangeable in the view of other code. In practical terms, that means the following:
+
+\begin{itemize}
+\item
+Both derived classes support the same interface (set of member functions) defined by the base class.
+
+\item
+Code that makes use of SpreadsheetCell objects can call any member function in the interface without even knowing whether the cell is a DoubleSpreadsheetCell or a StringSpreadsheetCell.
+
+\item
+Through the magic of virtual member functions, the appropriate instance of every member function in the interface is called depending on the class of the object.
+
+\item
+Other data structures, such as the Spreadsheet class described in Chapter 9, can contain a collection of multityped cells by referring to the base type.
+\end{itemize}
 
 \mySubsubsection{10.4.3.}{The SpreadsheetCell Base Class}
 
+Because all spreadsheet cells are deriving from the SpreadsheetCell base class, it is probably a good idea to write that class first. When designing a base class, you need to consider how the derived classes relate to each other. From this information, you can derive the commonality that will go inside the parent class. For example, string cells and double cells are similar in that they both contain a single piece of data. Because the data is coming from the user and will be displayed back to the user, the value is set as a string and retrieved as a string. These behaviors are the shared functionality that will make up the base class.
+
 \mySamllsection{A First Attempt}
+
+The SpreadsheetCell base class is responsible for defining the behaviors that all SpreadsheetCell-derived classes will support. In this example, all cells need to be able to set their value as a string. All cells also need to be able to return their current value as a string. The base class definition declares these member functions, as well as an explicitly defaulted virtual destructor, but note that it has no data members. The definition is in a spreadsheet\_cell module.
+
+\begin{cpp}
+export module spreadsheet_cell;
+import std;
+
+export class SpreadsheetCell
+{
+    public:
+        virtual ˜SpreadsheetCell() = default;
+        virtual void set(std::string_view value);
+        virtual std::string getString() const;
+};
+\end{cpp}
+
+When you start writing the .cpp file for this class, you quickly run into a problem. Considering that the base class of the spreadsheet cell contains neither a double nor a string data member, how can you implement it? More generally, how do you write a base class that declares the behaviors that are supported by derived classes without actually defining the implementation of those behaviors?
+
+One possible approach is to implement “do nothing” functionality for those behaviors. For example, calling the set() member function on the SpreadsheetCell base class will have no effect because the base class has nothing to set. This approach still doesn’t feel right, however. Ideally, there should never be an object that is an instance of the base class. Calling set() should always have an effect because it should always be called on either a DoubleSpreadsheetCell or a StringSpreadsheet Cell. A good solution enforces this constraint.
 
 \mySamllsection{Pure virtual Member Functions and Abstract Base Classes}
 
+Pure virtual member functions are member functions that are explicitly undefined in the class definition. By making a member function pure virtual, you are telling the compiler that no definition for the member function exists in the current class. A class with at least one pure virtual member function is said to be an abstract class because no other code will be able to instantiate it. The compiler enforces the fact that if a class contains one or more pure virtual member functions, it can never be used to construct an object of that type.
+
+There is a special syntax for designating a pure virtual member function. The member function declaration is followed by =0. No implementation needs to be written.
+
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        virtual ˜SpreadsheetCell() = default;
+        virtual void set(std::string_view value) = 0;
+        virtual std::string getString() const = 0;
+};
+\end{cpp}
+
+Now that the base class is an abstract class, it is impossible to create a SpreadsheetCell object. The following code does not compile and returns an error such as “‘SpreadsheetCell’: cannot instantiate abstract class”:
+
+\begin{cpp}
+SpreadsheetCell cell; // Error! Attempts creating abstract class instance.
+\end{cpp}
+
+However, once the StringSpreadsheetCell class has been implemented, the following code will compile fine because it instantiates a derived class of the abstract base class:
+
+\begin{cpp}
+unique_ptr<SpreadsheetCell> cell { new StringSpreadsheetCell {} };
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+An abstract class provides a way to prevent other code from instantiating an object directly, as opposed to one of its derived classes.
+\end{myNotic}
+
+Note that there is nothing to implement for the SpreadsheetCell class. All member functions are pure virtual, and the destructor is explicitly defaulted.
 
 \mySubsubsection{10.4.4.}{The Individual Derived Classes}
 
+Writing the StringSpreadsheetCell and DoubleSpreadsheetCell classes is just a matter of implementing the functionality that is defined in the parent. Because you want clients to be able to instantiate and work with string cells and double cells, the cells can’t be abstract—they must implement all of the pure virtual member functions inherited from their parent. If a derived class does not implement all pure virtual member functions from the base class, then the derived class is abstract as well, and clients will not be able to instantiate objects of the derived class.
+
 \mySamllsection{StringSpreadsheetCell Class Definition}
+
+The StringSpreadsheetCell class is defined in its own module called string\_spreadsheet\_cell. The first step in writing the class definition of StringSpreadsheetCell is to inherit from SpreadsheetCell. For this, the spreadsheet\_cell module needs to be imported.
+
+Next, the inherited pure virtual member functions are overridden, this time without being set to zero.
+
+Finally, the string cell adds a private data member, m\_value, which stores the actual cell data. This data member is an std::optional, introduced in Chapter 1, “A Crash Course in C++ and the Standard Library.” By using an optional, it is possible to distinguish whether a value for a cell has never been set or whether it was set to the empty string.
+
+\begin{cpp}
+export module string_spreadsheet_cell;
+export import spreadsheet_cell;
+import std;
+
+export class StringSpreadsheetCell : public SpreadsheetCell
+{
+    public:
+        void set(std::string_view value) override;
+        std::string getString() const override;
+    private:
+        std::optional<std::string> m_value;
+};
+\end{cpp}
 
 \mySamllsection{StringSpreadsheetCell Implementation}
 
+The set() member function is straightforward because the internal representation is already a string. The getString() member function has to keep into account that m\_value is of type optional and that it might not have a value. When m\_value doesn’t have a value, getString() should return a default string, the empty string for this example. This is made easy with the value\_or() member function of optional. By using m\_value.value\_or(""), the real value is returned if m\_value contains an actual value; otherwise, the empty string is returned.
+
+\begin{cpp}
+void set(std::string_view value) override { m_value = value; }
+std::string getString() const override { return m_value.value_or(""); }
+\end{cpp}
+
 \mySamllsection{DoubleSpreadsheetCell Class Definition and Implementation}
 
+The double version follows a similar pattern, but with different logic. In addition to the set() member function from the base class that takes a string\_view, it also provides a new set() member function that allows a client to set the value with a double argument. Additionally, it provides a new getValue() member function to retrieve the value as a double. Two new private static member functions are used to convert between a string and a double, and vice versa. As in StringSpreadsheetCell, it has a data member called m\_value, this time of type optional<double>.
+
+\begin{cpp}
+export module double_spreadsheet_cell;
+export import spreadsheet_cell;
+import std;
+
+export class DoubleSpreadsheetCell : public SpreadsheetCell
+{
+    public:
+        virtual void set(double value);
+        virtual double getValue() const;
+
+        void set(std::string_view value) override;
+        std::string getString() const override;
+    private:
+        static std::string doubleToString(double value);
+        static double stringToDouble(std::string_view value);
+        std::optional<double> m_value;
+};
+\end{cpp}
+
+The set() member function that takes a double is straightforward, as is the implementation of getValue(). The string\_view overload uses the private static member function stringToDouble(). The getString() member function returns the stored double value as a string, or returns an empty string if no value has been stored. It uses the has\_value() member function of std::optional to query whether the optional has a value. If it has a value, the value() member function is used to retrieve it.
+
+\begin{cpp}
+virtual void set(double value) { m_value = value; }
+virtual double getValue() const { return m_value.value_or(0); }
+
+void set(std::string_view value) override { m_value = stringToDouble(value); }
+std::string getString() const override
+{
+    return (m_value.has_value() ? doubleToString(m_value.value()) : "");
+}
+\end{cpp}
+
+You may already see one major advantage of implementing spreadsheet cells in a hierarchy—the code is much simpler. Each class can be self-centered and deal only with its own functionality.
+
+Note that the implementations of doubleToString() and stringToDouble() are omitted because they are the same as in Chapter 8.
 
 \mySubsubsection{10.4.5.}{Leveraging Polymorphism}
 
+Now that the SpreadsheetCell hierarchy is polymorphic, client code can take advantage of the many benefits that polymorphism has to offer. The following test program explores many of these features.
+
+To demonstrate polymorphism, the test program declares a vector of three SpreadsheetCell pointers. Remember that because SpreadsheetCell is an abstract class, you can’t create objects of that type. However, you can still have a pointer or reference to a SpreadsheetCell because it would actually be pointing to one of the derived classes. This vector, because it is a vector of the parent type SpreadsheetCell, allows you to store a heterogeneous mixture of the two derived classes. This means that elements of the vector could be either a StringSpreadsheetCell or a DoubleSpreadsheetCell.
+
+\begin{cpp}
+vector<unique_ptr<SpreadsheetCell>> cellArray;
+\end{cpp}
+
+The first two elements of the vector are set to point to a new StringSpreadsheetCell, while the third is a new DoubleSpreadsheetCell.
+
+\begin{cpp}
+cellArray.push_back(make_unique<StringSpreadsheetCell>());
+cellArray.push_back(make_unique<StringSpreadsheetCell>());
+cellArray.push_back(make_unique<DoubleSpreadsheetCell>());
+\end{cpp}
+
+Now that the vector contains multityped data, any of the member functions declared by the base class can be applied to the objects in the vector. The code just uses SpreadsheetCell pointers— the compiler has no idea at compile time what types the objects actually are. However, because the objects are inheriting from SpreadsheetCell, they must support the member functions of SpreadsheetCell.
+
+\begin{cpp}
+cellArray[0]->set("hello");
+cellArray[1]->set("10");
+cellArray[2]->set("18");
+\end{cpp}
+
+When the getString() member function is called, each object properly returns a string representation of their value. The important, and somewhat amazing, thing to realize is that the different objects do this in different ways. A StringSpreadsheetCell returns its stored value, or an empty string. A DoubleSpreadsheetCell first performs a conversion if it contains a value; otherwise, it returns an empty string. As the programmer, you don’t need to know how the object does it—you just need to know that because the object is a SpreadsheetCell, it can perform this behavior.
+
+\begin{cpp}
+println("Vector: [{},{},{}]", cellArray[0]->getString(),
+                              cellArray[1]->getString(),
+                              cellArray[2]->getString());
+\end{cpp}
 
 
 \mySubsubsection{10.4.6.}{Future Considerations}
 
+The new implementation of the SpreadsheetCell hierarchy is certainly an improvement from an object-oriented design point of view. Yet, it would probably not suffice as an actual class hierarchy for a real-world spreadsheet program for several reasons.
 
+First, despite the improved design, one feature is still missing: the ability to convert from one cell type to another. By dividing them into two classes, the cell objects become more loosely integrated. To provide the ability to convert from a DoubleSpreadsheetCell to a StringSpreadsheetCell, you could add a converting constructor, also known as a typed constructor. It has a similar appearance as a copy constructor, but instead of a reference to an object of the same class, it takes a reference to an object of a sibling class. Note also that you now have to declare a default constructor, which can be explicitly defaulted, because the compiler stops generating one as soon as you declare any constructor yourself.
+
+\begin{cpp}
+export class StringSpreadsheetCell : public SpreadsheetCell
+{
+    public:
+        StringSpreadsheetCell() = default;
+        StringSpreadsheetCell(const DoubleSpreadsheetCell& cell)
+            : m_value { cell.getString() }
+        { }
+        // Remainder omitted for brevity.
+};
+\end{cpp}
+
+With a converting constructor, you can easily create a StringSpreadsheetCell given a DoubleSpreadsheetCell. Don’t confuse this with casting pointers or references, however. Casting from one sibling pointer or reference to another does not work, unless you overload the cast operator as described in Chapter 15, “Overloading C++ Operators.”
+
+\begin{myWarning}{WARNING}
+You can always cast up the hierarchy, and you can sometimes cast down the hierarchy. Casting across the hierarchy is possible by changing the behavior of the cast operator or by using reinterpret\_cast(), neither of which is recommended.
+\end{myWarning}
+
+Second, the question of how to implement overloaded operators for cells is an interesting one, and there are several possible approaches.
+
+One approach is to implement a version of each operator for every combination of cells. With only two derived classes, this is manageable. There would be an operator+ function to add two double cells, to add two string cells, and to add a double cell to a string cell. For each combination, you decide what the result is. For example, the result of adding two double cells could be the result of mathematically adding both values together. The result of adding two string cells could be a string representing the concatenation of both strings, and so on.
+
+Another approach is to decide on a common representation. The earlier implementation already standardizes on a string as a common representation of sorts. A single operator+ could cover all the cases by taking advantage of this common representation.
+
+Yet another approach is a hybrid one. One operator+ can be provided that adds two DoubleSpreadsheetCells resulting in a DoubleSpreadsheetCell. This operator can be implemented in the double\_spreadsheet\_cell module as follows:
+
+\begin{cpp}
+export DoubleSpreadsheetCell operator+(const DoubleSpreadsheetCell& lhs,
+                                       const DoubleSpreadsheetCell& rhs)
+{
+    DoubleSpreadsheetCell newCell;
+    newCell.set(lhs.getValue() + rhs.getValue());
+    return newCell;
+}
+\end{cpp}
+
+This operator can be tested as follows:
+
+\begin{cpp}
+DoubleSpreadsheetCell doubleCell; doubleCell.set(8.4);
+DoubleSpreadsheetCell result { doubleCell + doubleCell };
+println("{}", result.getString()); // Prints 16.800000
+\end{cpp}
+
+A second operator+ can be provided for use when at least one of the two operands is a StringSpreadsheetCell. You could decide that the result of this operator should always be a string cell. Such an operator can be added to the string\_spreadsheet\_cell module and can be implemented as follows:
+
+\begin{cpp}
+export StringSpreadsheetCell operator+(const StringSpreadsheetCell& lhs,
+                                       const StringSpreadsheetCell& rhs)
+{
+    StringSpreadsheetCell newCell;
+    newCell.set(lhs.getString() + rhs.getString());
+    return newCell;
+}
+\end{cpp}
+
+As long as the compiler has a way to turn a particular cell into a StringSpreadsheetCell, the operator will work. Given the previous example of having a StringSpreadsheetCell constructor that takes a DoubleSpreadsheetCell as an argument, the compiler will automatically perform the conversion if it is the only way to get the operator+ to work. That means the following code adding a double cell to a string cell works, even though there are only two operator+ implementations provided: one adding two double cells and one adding two string cells.
+
+\begin{cpp}
+DoubleSpreadsheetCell doubleCell; doubleCell.set(8.4);
+StringSpreadsheetCell stringCell; stringCell.set("Hello ");
+StringSpreadsheetCell result { stringCell + doubleCell };
+println("{}", result.getString()); // Prints Hello 8.400000
+\end{cpp}
+
+If you are feeling a little unsure about polymorphism, start with the code for this example and try things out. It is a great starting point for experimental code that simply exercises various aspects of polymorphism.
 
 \mySubsubsection{10.4.7.}{Providing Implementations for Pure virtual Member Functions}
+
+Technically, it is possible to provide an implementation for a pure virtual member function. This implementation cannot be in the class definition itself but must be provided outside. The class remains abstract though, and any derived classes are still required to provide an implementation of the pure virtual member function. Since the class remains abstract, no instances of it can be created. Still, its implementation of the pure virtual member function can be called, for example, from a derived class. The following code snippet demonstrates this:
+
+\begin{cpp}
+class Base
+{
+    public:
+        virtual void doSomething() = 0; // Pure virtual member function.
+};
+
+// An out-of-class implementation of a pure virtual member function.
+void Base::doSomething() { println("Base::doSomething()"); }
+
+class Derived : public Base
+{
+    public:
+        void doSomething() override
+        {
+            // Call pure virtual member function implementation from base class.
+            Base::doSomething();
+            println("Derived::doSomething()");
+        }
+};
+
+int main()
+{
+    Derived derived;
+    Base& base { derived };
+    base.doSomething();
+}
+\end{cpp}
+
+The output is as expected:
+
+\begin{shell}
+Base::doSomething()
+Derived::doSomething()
+\end{shell}
+
+
+
+
 
