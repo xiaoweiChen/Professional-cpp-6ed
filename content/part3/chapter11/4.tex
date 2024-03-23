@@ -1,20 +1,92 @@
 
+Before the introduction of C++20’s modules, header files, also called headers, were used as a mechanism for providing the interface to a subsystem or piece of code. The most common use of headers is to declare functions that will be defined elsewhere. A declaration tells the compiler that an entity (function, variable, etc.) with a certain name exists. For functions, a declaration specifies how a function is called, declaring the number and types of parameters and the function’s return type. A definition also tells the compiler that an entity with a certain name exists, but also defines the entity itself. For functions, a definition contains the actual code for the function. All definitions are declarations, but not all declarations are definitions. Declarations, and thus also class definitions, which are declarations, see Chapter 8, “Gaining Proficiency with Classes and Objects,” usually go into header files, typically with extension .h. Definitions, including definitions of non-inline class members, usually go into source files, typically with extension .cpp. This book uses modules everywhere, but this section briefly discusses a few trickier aspects of using header files, such as avoiding duplicate definitions and circular dependencies, because you will encounter these in legacy code bases.
 
 \mySubsubsection{11.4.1.}{One Definition Rule (ODR)}
 
+A single translation unit can have exactly one definition of a variable, function, class type, enumeration type, concept, or template. For some types, multiple declarations are allowed, but not multiple definitions. Furthermore, exactly one definition of non-inline functions and non-inline variables is allowed in the entire program.
 
+With header files, it’s easy to violate the one definition rule, resulting in duplicate definitions. The next section discusses how such duplicate definitions through header files can be avoided.
+
+Between modules, it’s harder to violate the one definition rule, as each module is much better isolated from other modules. A major reason for this is that an entity in a module that is not exported from that module has module linkage and thus is inaccessible from code in other modules. That is, multiple modules can define their own local non-exported entities with the same name without any problem. On the other hand, in non-modular source files, local entities have external linkage by default. Of course, within a module itself, you still need to make sure you don’t violate the one definition rule.
 
 \mySubsubsection{11.4.2.}{Duplicate Definitions}
 
+Suppose A.h includes Logger.h, defining a Logger class, and B.h also includes Logger.h. If you have a source file called App.cpp, which includes both A.h and B.h, you end up with duplicate definitions of the Logger class because the Logger.h header is included through A.h and B.h.
 
+This problem of duplicate definitions can be avoided with a mechanism known as include guards, also known as header guards. The following code snippet shows the Logger.h header with include guards. At the beginning of each header file, the \#ifndef directive checks whether a certain key has not been defined. If the key has been defined, the compiler skips to the matching \#endif, which is usually placed at the end of the file. If the key has not been defined, the file proceeds to define the key so that a subsequent include of the same file will be skipped.
+
+\begin{cpp}
+#ifndef LOGGER_H
+#define LOGGER_H
+
+class Logger { /* ... */ };
+
+#endif // LOGGER_H
+\end{cpp}
+
+Alternatively, nearly all compilers these days support the \#pragma once directive, which replaces include guards. Placing a \#pragma once at the beginning of a header file makes sure it’ll be included only once and hence avoids duplicate definitions resulting from including the header multiple times. Here’s an example:
+
+\begin{cpp}
+#pragma once
+
+class Logger { /* ... */ };
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Include guards and \#pragma once directives prevent only one definition rule violations when a header file is included multiple times within a single translation unit, not across multiple translation units.
+\end{myNotic}
 
 \mySubsubsection{11.4.3.}{Circular Dependencies}
 
+Another tool for avoiding problems with header files is forward declarations. If you need to refer to a class but you cannot include its header file (for example, because it relies heavily on the class you are writing), you can tell the compiler that such a class exists without providing a formal definition through the \#include mechanism. Of course, you cannot actually use the class in the code because the compiler knows nothing about it, except that the named class will exist after everything is linked together. However, you can still make use of pointers and references to forward-declared classes in your code. You can also declare functions that return such forward-declared classes by value or that have such forward-declared classes as pass-by-value function parameters. Of course, both the code defining the function and any code calling the function will need to include the right header files that properly define the forward-declared classes.
 
+For example, assume that the Logger class uses another class called Preferences that keeps track of user settings. The Preferences class may in turn use the Logger class, so you have a circular dependency that cannot be resolved with include guards. You need to make use of forward declarations in such cases. In the following code, the Logger.h header file uses a forward declaration for the Preferences class and subsequently refers to the Preferences class without including its header file:
+
+\begin{cpp}
+#pragma once
+
+#include <string_view>
+
+class Preferences; // forward declaration
+
+class Logger
+{
+    public:
+        void setPreferences(const Preferences& preferences);
+        void logError(std::string_view error);
+};
+\end{cpp}
+
+It’s recommended to use forward declarations as much as possible in your header files instead of including other headers. This can reduce your compilation and recompilation times, because it breaks dependencies of your header file on other headers. Of course, your implementation file needs to include the correct headers for types that you’ve forward-declared; otherwise, it won’t compile.
 
 \mySubsubsection{11.4.4.}{Querying Existence of Headers}
 
+To query whether a certain header file exists, use the \_\_has\_include("filename") or \_\_has\_include(<filename>) preprocessor constant expressions. These evaluate to 1 if the header file exists, 0 if it doesn’t exist. For example, before the <optional> header file was fully approved for C++17, some compilers already had a preliminary version in <experimental/optional>. You could use \_\_has\_include() to check which of the two header files was available on your system:
 
+\begin{cpp}
+#if __has_include(<optional>)
+    #include <optional>
+#elif __has_include(<experimental/optional>)
+    #include <experimental/optional>
+#endif
+\end{cpp}
 
 \mySubsubsection{11.4.5.}{Module Import Declarations}
+
+Header files should not contain any module import declarations. The standard mandates that module import declarations must be at the beginning of a file before any other declarations and must not be coming from header inclusions or preprocessor macro expansions. This makes it easier on build systems to discover module dependencies, which are then used to determine the order modules need to be built.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

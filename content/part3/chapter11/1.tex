@@ -1,46 +1,590 @@
 
+Modules are introduced in Chapter 1, “A Crash Course in C++ and the Standard Library,” and you have already authored and consumed your own simple modules in previous chapters. However, there are quite a few more things to say about modules. Before the introduction of modules in C++20, header files, discussed later in this chapter, were used to provide the interface to a reusable piece of code. Header files do have a number of problems, though, such as avoiding multiple includes of the same header file and making sure header files are included in the correct order. Additionally, simply \#include’ing, for example, <iostream> adds tens of thousands of lines of code that the compiler has to crunch through. If several source files \#include <iostream>, all of those translation units grow much bigger. And that is with an include of just a single header file. Imagine if you need <iostream>, <vector>, <format>, and more. Modules solve all these issues, and more. The order in which modules are imported is not important.
+
+Modules are compiled once to a binary format, which the compiler can then use whenever a module is imported in another source file. This is in stark contrast with header files, which the compiler has to compile over and over again, every time it encounters an \#include of that header file. Hence, modules can drastically improve compilation times. Incremental compilation times also improve, as certain modifications in modules, for example, modifying an exported function’s implementation in a module interface file, do not trigger recompilation of users of that module (discussed in more details later in this chapter). Modules are not influenced by any externally defined macros, and any macros defined inside a module are never visible to any code outside the module, that is, modules are selfisolating. Hence, the following recommendation:
+
+\begin{myNotic}{NOTE}
+With all the discussed benefits, if your compiler supports modules, newly written code should use modules to structure code into building blocks that are logically separated.
+\end{myNotic}
+
+If possible, legacy code can slowly be transitioned to modules as well. However, there is a lot of legacy code in the world, and a lot of third-party libraries don’t embrace modules yet, as not all compilers fully support modules at the time of this writing. For these reasons it is still important to know how legacy header files work. That’s why this chapter still includes discussions on header files.
+
+\begin{myNotic}{NOTE}
+How to compile modules is compiler dependent. Consult your compiler’s documentation to learn how to work with modules with your specific compiler.
+\end{myNotic}
+
+
+\begin{myNotic}{NOTE}
+As mentioned, at the time of this writing, not all compilers fully support modules yet, though all major compilers do, at least partially. This book uses modules everywhere. If your compiler does not yet fully support modules, you can convert the modularized code to non-modularized code, as explained next.
+\end{myNotic}
 
 \mySubsubsection{11.1.1.}{Unmodularizing Code}
 
+If you want to compile code samples from this book with a compiler that does not yet fully support modules, you can unmodularize the code as follows:
 
+\begin{itemize}
+\item
+Rename .cppm module interface files to .h header files.
+
+\item
+Add a \#pragma once at the top of each .h header file
+
+\item
+Remove export module xyz declarations.
+
+\item
+Replace module xyz declarations with an \#include to include the corresponding header file.
+
+\item
+Replace import and export import declarations with proper \#include directives. If the code is using import std;, then those need to be replaced with \#include directives to include all necessary individual header files. See Appendix C, “Standard Library Header Files,” for a list of all Standard Library headers and a brief description of their contents.
+
+\item
+Remove any export keywords.
+
+\item
+Remove all occurrences of module;, which denotes the start of a global module fragment.
+
+\item
+If a function definition or variable definition appears in a .h header file, add the inline keyword in front of it.
+\end{itemize}
+
+\CXXTwentythreeLogo{-40}{-60}
 
 \mySubsubsection{11.1.2.}{Standard Named Modules}
 
-
+As Chapter 1 explains, you get access to everything from the C++ Standard Library by importing the standard named module std. This named module makes the entire Standard Library available to you, including all C functionality, defined in such headers as <cstddef>. However, all C functionality is made available only through the std namespace. For legacy code, you can consider importing the std.compat named module instead, which imports everything std imports but makes all C functionality available both in the std namespace and the global namespace. The use of std.compat is not recommended in new code.
 
 \mySubsubsection{11.1.3.}{Module Interface Files}
 
+A module interface file defines the interface for the functionality provided by a module and usually has .cppm as a file extension. A module interface file starts with a declaration stating that the file is defining a module with a certain name. This is called the module declaration. A module’s name can be any valid C++ identifier. The name can include dots but cannot start or end with a dot and cannot contain multiple dots in a row. Examples of valid names are datamodel, mycompany.datamodel, mycompany.datamodel.core, datamodel\_core, and so on.
+
+\begin{myNotic}{NOTE}
+Currently, there is no standardized extension for module interface files. However, most compilers support the .cppm (C++ module) extension, so that’s what this book uses. Check the documentation of your compiler to learn which extension to use.
+\end{myNotic}
+
+A module needs to explicitly state what to export, i.e., what should be visible when client code imports the module. A module can export any declaration, such as variable declarations, function declarations, type declarations, using directives, and using declarations. Additionally, import declarations can be exported as well. Exporting entities from a module is done with the export keyword. Anything that is not exported from a module is visible only from within the module itself. The collection of all exported entities is called the module interface.
+
+Here is an example of a module interface file called Person.cppm, defining a person module and exporting a Person class. Note that it imports the functionality provided by std.
+
+\begin{cpp}
+export module person; // Named module declaration
+
+import std; // Import declaration
+
+export class Person // Export declaration
+{
+    public:
+        Person(std::string firstName, std::string lastName)
+            : m_firstName { std::move(firstName) }
+            , m_lastName { std::move(lastName) } { }
+        const std::string& getFirstName() const { return m_firstName; }
+        const std::string& getLastName() const { return m_lastName; }
+    private:
+        std::string m_firstName;
+        std::string m_lastName;
+};
+\end{cpp}
+
+In standardese terms, everything starting from a named module declaration (the first line in the previous code snippet) until the end of the file is called the module purview.
+
+This Person class can be made available for use by importing the person module as follows (test.cpp):
+
+\begin{cpp}
+import person; // Import declaration for person module
+import std;
+
+using namespace std;
+
+int main()
+{
+    Person person { "Kole", "Webb" };
+    println("{}, {}", person.getLastName(), person.getFirstName());
+}
+\end{cpp}
+
+Pretty much anything can be exported from a module, as long as it has a name. Examples are class definitions, function prototypes, class enumeration types, using declarations and directives, namespaces, and so on. If a namespace is explicitly exported with the export keyword, everything inside that namespace is automatically exported as well. For example, the following code snippet exports the entire DataModel namespace; hence, there is no need to explicitly export the individual classes and type alias:
+
+\begin{cpp}
+export module datamodel;
+import std;
+export namespace DataModel
+{
+    class Person { /* ... */ };
+    class Address { /* ... */ };
+    using Persons = std::vector<Person>;
+}
+\end{cpp}
+
+You can also export a whole block of declarations using an export block. Here’s an example:
+
+\begin{cpp}
+export
+{
+    namespace DataModel
+    {
+        class Person { /* ... */ };
+        class Address { /* ... */ };
+        using Persons = std::vector<Person>;
+    }
+}
+\end{cpp}
 
 
 \mySubsubsection{11.1.4.}{Module Implementation Files}
 
+A module can be split into a module interface file and one or more module implementation files.
+Module implementation files usually have .cpp as their extension. You are free to decide which implementations you move to module implementation files and which implementations you leave in the module interface file. One option is to move all function and member function implementations to a module implementation file and leave only the function prototypes, class definitions, and so on in the module interface file. Another option is to leave the implementation of small functions and member functions in the interface file, while moving the implementations of other functions and member functions to an implementation file. You have a lot of flexibility here.
 
+A module implementation file again contains a named module declaration to specify for which module the implementations are for, but without the export keyword. For example, the previous person module can be split into an interface and an implementation file as follows. Here is the module interface file:
+
+\begin{cpp}
+export module person; // Module declaration
+
+import std;
+
+export class Person
+{
+    public:
+        Person(std::string firstName, std::string lastName);
+        const std::string& getFirstName() const;
+        const std::string& getLastName() const;
+    private:
+        std::string m_firstName;
+        std::string m_lastName;
+};
+\end{cpp}
+
+The implementations now go in a Person.cpp module implementation file:
+
+\begin{cpp}
+module person; // Module declaration, but without the export keyword
+
+using namespace std;
+
+Person::Person(string firstName, string lastName)
+: m_firstName { move(firstName) }, m_lastName { move(lastName) }
+{}
+
+const string& Person::getFirstName() const { return m_firstName; }
+const string& Person::getLastName() const { return m_lastName; }
+\end{cpp}
+
+Note that the implementation file does not have an import declaration for the person module. The module person declaration implicitly includes an import person declaration. Also note that the implementation file does not have any import declaration for std, even though it’s using std::string in the implementation of the member functions. Thanks to the implicit import person, and because this implementation file is part of the same person module, it implicitly inherits the std import declaration from the module interface file. In contrast, adding an import person declaration to the test.cpp file does not implicitly inherit the std import declaration because test.cpp is not part of the person module. There is more to be said about this, which is the topic of the “Visibility vs. Reachability” section later in this chapter.
+
+\begin{myNotic}{NOTE}
+All import declarations in module interface and module implementation files must be at the top of the file, after the named module declaration, but before any other declarations.
+\end{myNotic}
+
+\begin{myWarning}{WARNING}
+Module implementation files cannot export anything; only module interface files can.
+\end{myWarning}
 
 \mySubsubsection{11.1.5.}{Splitting Interface from Implementation}
 
+When using header files, discussed later in this chapter, instead of modules, it is strongly recommended to put only declarations in your header file (.h) and move all implementations to a source file (.cpp). One of the reasons is to improve compilation times. If you were to put your implementations in the header file, any change, even just changing a comment, would require you to recompile all other source files that include that header. For certain header files, this could ripple through the entire code base, causing a full recompile of the program. By putting your implementations in a source file instead, making changes to those implementations without touching the header file means that only that single source file needs to be recompiled.
+
+Modules work differently. A module interface consists only of class definitions, function prototypes, and so on, but does not include any function or member function implementations, even if those implementations are directly in the module interface file. This means that changing a function or member function implementation that is inside a module interface file does not require a recompilation of users of that module, as long as you do not touch the interface part, for example, the function header (= function name, parameter list, and return type). Two exceptions are functions marked with the inline keyword, and template definitions. For both of these, the compiler needs to know their complete implementations at the time client code using them is compiled. Hence, any change to inline functions or template definitions can trigger recompilation of client code.
+
+\begin{myNotic}{NOTE}
+When class definitions in header files contain member function implementations, those member functions are implicitly inline, even without marking them with the inline keyword. This is not true for member function implementations in class definitions in module interface files. If these need to be inline, they need to be explicitly marked as such.
+\end{myNotic}
+
+Even though technically, it is not required anymore to split the interface from the implementation, in some cases I still recommend doing so. The main goal should be to have clean and easy-to-read interfaces. Implementations of functions can stay in the interface, as long as they don’t obscure the interface and make it harder for users to quickly grasp what the public interface provides. For example, if a module has a rather big public interface, it might be better not to obscure that interface with implementations, so the user can have a better overview of what’s being offered. Still, small getter and setter functions can stay in the interface, as they don’t really impact the readability of the interface.
+
+Separating the interface from the implementation can be done in several ways. One option is to split a module into interface and implementation files, as discussed in the previous section. Another option is to separate the interface and the implementations within a single module interface file. For example, here is the Person class defined in a single module interface file (person.cppm), but with the implementations split from the interface:
+
+\begin{cpp}
+export module person;
+import std;
+// Class definition
+export class Person
+{
+    public:
+        Person(std::string firstName, std::string lastName);
+        const std::string& getFirstName() const;
+        const std::string& getLastName() const;
+    private:
+        std::string m_firstName;
+        std::string m_lastName;
+};
+// Implementations
+Person::Person(std::string firstName, std::string lastName)
+    : m_firstName { std::move(firstName) }, m_lastName { std::move(lastName) } { }
+const std::string& Person::getFirstName() const { return m_firstName; }
+const std::string& Person::getLastName() const { return m_lastName; }
+\end{cpp}
 
 
 \mySubsubsection{11.1.6.}{Visibility vs. Reachability}
 
+As mentioned earlier, when you import the person module in another source file that is not part of the person module, for example in a test.cpp file, then you are not implicitly inheriting the std import declaration from the person module interface file. Without an explicit import for std in test.cpp, the std::string name, for example, is not visible, meaning the following highlighted line of code does not compile:
 
+\begin{cpp}
+import person;
+int main()
+{
+    std::string str;
+}
+\end{cpp}
+
+Still, even without adding an explicit import for std to test.cpp, the following lines of code work just fine:
+
+\begin{cpp}
+Person person { "Kole", "Webb" };
+const auto& lastName { person.getLastName() };
+auto length { lastName.length() };
+\end{cpp}
+
+Why is this working? There is a difference between visibility and reachability of entities in C++. By importing the person module, the functionality from std becomes reachable but not visible. Member functions of reachable classes automatically become visible. All this means that you can use certain functionality from std, such as storing the result of getLastName() in a variable by using auto type deduction and calling member functions on it such as length().
+
+To make the std::string name properly visible in test.cpp, an explicit import of std or <string> is required.
 
 \mySubsubsection{11.1.7.}{Submodules}
 
+The C++ standard does not speak about submodules as such; however, it is allowed to use dots in a module’s name, and that makes it possible to structure your modules in any hierarchy you want. For example, earlier, the following example of a DataModel namespace was given:
 
+\begin{cpp}
+export module datamodel;
+import std;
+export namespace DataModel
+{
+    class Person { /* ... */ };
+    class Address { /* ... */ };
+    using Persons = std::vector<Person>;
+}
+\end{cpp}
+
+Both the Person and Address classes are inside the DataModel namespace and in the datamodel module. This can be restructured by defining two submodules: datamodel.person and datamodel .address. The module interface file for the datamodel.person submodule is as follows:
+
+\begin{cpp}
+export module datamodel.person; // datamodel.person submodule
+export namespace DataModel { class Person { /* ... */ }; }
+\end{cpp}
+
+Here is the module interface file for datamodel.address:
+
+\begin{cpp}
+export module datamodel.address; // datamodel.address submodule
+export namespace DataModel { class Address { /* ... */ }; }
+\end{cpp}
+
+Finally, a datamodel module is defined as follows. It imports and immediately exports both submodules.
+
+\begin{cpp}
+export module datamodel; // datamodel module
+export import datamodel.person; // Import and export person submodule
+export import datamodel.address; // Import and export address submodule
+import std;
+export namespace DataModel { using Persons = std::vector<Person>; }
+\end{cpp}
+
+Of course, the member function implementations of classes in submodules can also go into module implementation files. For example, suppose the Address class has a default constructor that just prints a statement to standard output. That implementation could be in a file called datamodel .address.cpp:
+
+\begin{cpp}
+module datamodel.address; // datamodel.address submodule
+import std;
+using namespace std;
+DataModel::Address::Address() { println("Address::Address()"); }
+\end{cpp}
+
+A benefit of structuring your code with submodules is that clients can import either everything at once or only specific parts they want to use. For example, if client code needs access to everything in the datamodel module, then the following import declaration is the easiest:
+
+\begin{cpp}
+import datamodel;
+\end{cpp}
+
+On the other hand, if client code is only interested in using the Address class, then the following import declaration suffices:
+
+\begin{cpp}
+import datamodel.address;
+\end{cpp}
+
+Importing everything at once is more convenient than selectively importing what you need, especially for stable modules that rarely change. However, by using selective imports for less stable modules, it might be possible to improve build times if changes are made to the module. For example, if a change is made to the interface of the datamodel.address submodule, then only those files that import that submodule need to be recompiled.
 
 \mySubsubsection{11.1.8.}{Module Partitions}
 
+Another option to structure modules is to split them into separate partitions. The difference between submodules and partitions is that the submodule structuring is visible to users of the module, allowing users to selectively import only those submodules they want to use. Partitions, on the other hand, are used to structure a module internally. Partitions are not exposed to users of the module. All partitions declared in module interface partition files must ultimately be exported by the primary module interface file, either directly or indirectly. A module always has only one such primary module interface file, and that’s the interface file containing the export module name declaration.
+
+A module partition is created by separating the name of the module and the name of the partition with a colon. The name of a partition can be any legal identifier. For example, the DataModel module from the previous section can be restructured using partitions instead of submodules. Here is the person partition in a datamodel.person.cppm module interface partition file:
+
+\begin{cpp}
+export module datamodel:person; // datamodel:person partition
+export namespace DataModel { class Person { /* ... */ }; }
+\end{cpp}
+
+Here is the address partition, including a default constructor:
+
+\begin{cpp}
+export module datamodel:address; // datamodel:address partition
+export namespace DataModel
+{
+    class Address
+    {
+        public:
+        Address();
+        /* ... */
+    };
+}
+\end{cpp}
+
+Unfortunately, there is a caveat when using implementation files in combination with partitions: there can be only one file with a certain partition name. So, having an implementation file that starts with the following declaration is ill-formed:
+
+\begin{cpp}
+module datamodel:address;
+\end{cpp}
+
+Instead, you can just put the address partition implementations in an implementation file for the datamodel module as follows:
+
+\begin{cpp}
+module datamodel; // Not datamodel:address!
+import std;
+using namespace std;
+DataModel::Address::Address() { println("Address::Address()"); }
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+Multiple files cannot have the same partition name. Having multiple module interface partition files with the same partition name is illegal, and implementations for declarations in a module interface partition file cannot go in an implementation file with the same partition name. Instead, just put those implementations in a module implementation file for the module instead.
+\end{myWarning}
+
+An important point to remember when authoring modules structured in partitions is that each module interface partition must ultimately be exported by the primary module interface file, either directly or indirectly. To import a partition, you just specify the name of the partition prefixed with a colon, for example import :person. It’s illegal to say something like import datamodel:person. Remember, partitions are not exposed to users of a module; partitions only structure a module internally. Hence, users cannot import a specific partition; they must import the entire module. Partitions can be imported only within the module itself, so it’s redundant (and illegal) to specify the name of the module before the colon. Here is the primary module interface file for the datamodel module:
+
+\begin{cpp}
+export module datamodel; // datamodel module (primary module interface file)
+export import :person; // Import and export person partition
+export import :address; // Import and export address partition
+import std;
+export namespace DataModel { using Persons = std::vector<Person>; }
+\end{cpp}
+
+This partition-structured datamodel module can be used as follows:
+
+\begin{cpp}
+import datamodel;
+int main() { DataModel::Address a; }
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Partitions are used to structure modules internally and are not visible outside of a module. Thus, users of a module cannot import specific partitions; they must import the entire module. You can use submodules instead of partitions if you want to allow users to selectively import parts of a module.
+\end{myNotic}
+
+Earlier it is explained that a module name declaration implicitly includes an import name declaration. This is not the case for partitions.
+
+For example, the datamodel:person partition does not have an implicit import datamodel declaration. In this example, it’s even not allowed to add an explicit import datamodel to the datamodel:person interface partition file. Doing so would result in a circular dependency: the datamodel interface file contains an import :person declaration, while the datamodel:person interface partition file would contain an import datamodel declaration.
+
+To break such circular dependencies, you can move the functionality that the datamodel:person partition needs from the datamodel interface file to another partition, which subsequently can be imported by both the datamodel:person interface partition file and the datamodel interface file.
+
 \mySamllsection{Implementation Partitions}
 
+A partition does not need to be declared in a module interface partition file, it can also be declared in a module implementation partition file, a normal source code file with extension .cpp, in which case it’s an implementation partition, sometimes called an internal partition. Such partitions cannot be exported, compared to module interface partitions, which must be exported by the primary module interface file.
+
+For example, suppose you have the following math primary module interface file (math.cppm):
+
+\begin{cpp}
+export module math; // math module declaration
+export namespace Math
+{
+    double superLog(double z, double b);
+    double lerchZeta(double lambda, double alpha, double s);
+}
+\end{cpp}
+
+Suppose further that the implementations of the math functions require some helper functions that must not be exported by the module. An implementation partition is the perfect place to put such helper functions. The following defines such an implementation partition in a file called math\_helpers.cpp:
+
+\begin{cpp}
+module math:details; // math:details implementation partition
+double someHelperFunction(double a) { return /* ... */ ; }
+\end{cpp}
+
+Other math module implementation files can get access to these helper functions by importing this implementation partition. For example, a math module implementation file (math.cpp) could look like this:
+
+\begin{cpp}
+module math;
+import :details;
+double Math::superLog(double z, double b) { return /* ... */; }
+double Math::lerchZeta(double lambda, double alpha, double s) { return /* ... */; }
+\end{cpp}
+
+With the import :details; declaration, the superLog() and lerchZeta() functions can call someHelperFunction().
+
+Of course, using such implementation partitions with helper functions makes sense only if multiple other source files use those helper functions.
 
 \mySubsubsection{11.1.9.}{Private Module Fragment}
 
+The primary module interface can include a private module fragment. This private module fragment starts with the following line:
 
+\begin{cpp}
+module :private;
+\end{cpp}
+
+Everything after this line is part of the private module fragment. Anything that is defined in this private module fragment is not exported and thus not visible to consumers of the module.
+
+Chapter 9, “Mastering Classes and Objects,” demonstrates the pimpl idiom, also known as the private implementation idiom. It hides all implementation details from consumers of a class. The solution in Chapter 9 requires two files: a primary module interface file and a module implementation file. Using a private module fragment, you can achieve this separation using a single file. Here is a concise example:
+
+\begin{cpp}
+export module adder;
+import std;
+export class Adder
+{
+    public:
+    Adder();
+    virtual ˜Adder();
+    int add(int a, int b) const;
+    private:
+    class Impl;
+    std::unique_ptr<Impl> m_impl;
+};
+
+module :private;
+
+class Adder::Impl
+{
+    public:
+    ˜Impl() { std::println("Destructor of Adder::Impl"); }
+    int add(int a, int b) const { return a + b;}
+};
+
+Adder::Adder() : m_impl { std::make_unique<Impl>() } { }
+Adder::˜Adder() {}
+int Adder::add(int a, int b) const { return m_impl->add(a, b); }
+\end{cpp}
+
+This class can be tested as follows:
+
+\begin{cpp}
+Adder adder;
+println("Value: {}", adder.add(20, 22));
+\end{cpp}
+
+Now, to prove that everything in the private module fragment is truly hidden, let’s add a public member function getImplementation() at the end of the Adder class:
+
+\begin{cpp}
+export class Adder
+{
+    /* ... as before, omitted for brevity ... */
+    private:
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
+    public:
+        Impl* getImplementation() { return m_impl.get(); }
+};
+\end{cpp}
+
+The following compiles and works fine:
+
+\begin{cpp}
+Adder adder;
+auto impl { adder.getImplementation() };
+\end{cpp}
+
+From the point of view of consumers of the Adder module, getImplementation() returns a pointer to an incomplete type. The code snippet is storing that pointer in a variable called impl. Simply storing a pointer to an incomplete type is fine, as long as you use auto type deduction. However, you cannot do anything with that pointer. Calling add() on that incomplete pointer results in an error:
+
+\begin{cpp}
+auto result { impl->add(20, 22) }; // Error!
+\end{cpp}
+
+The error is something like: use of undefined type Adder::Impl. The reason is that the Adder::Impl class is part of the private module fragment and hence not accessible from consumers of the Adder module.
+
+If you remove the module :private; line from the module interface file, then the previous code snippet compiles and runs fine. You might be surprised at first sight by this; after all, the Adder::Impl class is not explicitly exported. That’s correct—it’s not explicitly exported, but it is implicitly exported because the Adder class is exported and the Impl class is declared within the Adder class.
 
 \mySubsubsection{11.1.10.}{Header Units}
 
+When importing a module, you use an import declaration such as the following:
 
+\begin{cpp}
+import person;
+\end{cpp}
+
+If you have legacy code, such as a person.h header file defining a Person class, then you can modularize it by converting it to a proper module, person.cppm, and use import declarations to make it available to client code. However, sometimes you cannot modularize such headers. Maybe your Person class should remain usable by compilers that do not yet have support for modules. Or maybe the person.h header is part of a third-party library that you cannot modify. In such cases, you can import your header file directly, as follows:
+
+\begin{cpp}
+import "person.h";
+\end{cpp}
+
+With such a declaration, everything in the person.h header file becomes implicitly exported. Additionally, macros defined in the header become visible to client code, which is not the case for real modules, neither for your own modules nor for the named std and std.compat modules.
+
+Such an import declaration can include relative or absolute paths to header files, and you can use < > instead of "" to search in the system include directories:
+
+\begin{cpp}
+import "include/person.h"; // Can include a relative or absolute path.
+import <person.h>; // Search in system include directories.
+\end{cpp}
+
+Compared to using \#include to add a header file, using import will improve build throughput, as the person.h header will implicitly be converted to a module and hence be compiled only once, instead of every time when the header is included in a source file. As such, it can be used as a standardized way to support precompiled header files, instead of using compiler-dependent precompiled header file support.
+
+For each import declaration naming a header file, the compiler creates a module with an exported interface similar to what the header file defines, i.e., it implicitly exports everything from the header file. This is called a header unit. The procedure for this is compiler dependent, so check the documentation of your compiler to learn how to work with header units.
+
+\begin{myNotic}{NOTE}
+By importing a header unit, the preprocessor definitions from that header unit become available to you. However, if you export import a header unit, its preprocessor definitions are not exported further. Any code that needs access to those preprocessor definitions needs to explicitly import the header unit.
+\end{myNotic}
 
 \mySubsubsection{11.1.11.}{Importable Standard Library Headers}
+
+All C++ headers, such as <iostream>, <vector>, <string>, and so on, are importable headers that can be imported with an import declaration. That means you can, for example, write the following:
+
+\begin{cpp}
+import <vector>;
+\end{cpp}
+
+Of course, starting with C++23, it’s more convenient to simply import the named module called std, instead of manually importing those importable headers that you need. For example, the following makes everything in the Standard Library available for your use:
+
+\begin{cpp}
+import std;
+\end{cpp}
+
+As you know by now, importable C++ Standard Library headers don’t have any .h extension, e.g., <vector>, and they define everything in the std namespace or a subnamespace of std.
+
+In C, the names of Standard Library header files end with .h, such as <stdio.h>, and namespaces are not used.
+
+Most of the Standard Library functionality from C is available in C++ but is provided through two different headers:
+
+\begin{itemize}
+\item
+The recommended versions without the .h extension but with a c prefix, for example, <cstdio>. These put everything in the std namespace.
+
+\item
+The C-style versions with the .h extension, for example, <stdio.h>. These do not use namespaces. Their use is discouraged, except when you are writing code that needs to be both valid C++ and valid C at the same time. This use case is not further discussed in this C++ book.
+\end{itemize}
+
+\CXXTwentythreeLogo{-40}{-60}
+
+\begin{myNotic}{NOTE}
+Up until C++23, the use of <name.h> C Standard Library headers was deprecated. Starting with C++23, their use is no longer deprecated, but discouraged.
+\end{myNotic}
+
+Technically, the old versions are allowed to put things in the std namespace as well, and the new versions are allowed to additionally put things in the global namespace. This behavior is not standardized, so you should not rely on it.
+
+As mentioned earlier, when using import std; you automatically get access to C-style functions, such as the mathematical functions defined in <cmath>. They will be in the std namespace, e.g., std::sqrt(). If you import std.compat; these C-style functions will additionally be available in the global namespace, e.g., ::sqrt().
+
+However, if you cannot use the std or std.compat named modules, then keep in mind that the C Standard Library headers are not guaranteed to be importable with an import declaration. In that case, to be safe, use \#include <cxyz> instead of import <cxyz>;.
+
+Additionally, as mentioned in the previous section, importing a proper module, e.g., std or std .compat, won’t make any C-style macros defined in the module available to the importing code. This is especially important to remember when you want to use C-style macros from the C Standard Library. Luckily, there aren’t many! One of them is <cassert>, a C Standard Library header that defines the assert() macro, which is explained in more detail in Chapter 31, “Conquering Debugging.” Since the named std and std.compat modules won’t make the assert() macro available to importing code, and since <cassert> is a C Standard Library header and thus not guaranteed to be importable, you must use \#include <cassert> to get access to assert().
+
+\begin{myNotic}{NOTE}
+If you can import a header file, it’s recommended to do so. Only \#include a header file if it’s not importable, for instance, because the content of the header file is dependent on some preprocessor \#defines (see the next section).
+\end{myNotic}
+
+If you do need to \#include a header in a module interface or module implementation file, the \#include directives should be placed in the global module fragment, which must come before any named module declaration and starts with a nameless module declaration. A global module fragment can only contain preprocessing directives such as \#includes, \#defines, and so on. Such a global module fragment and comments are the only things that are allowed to appear before a named module declaration. For example, if you need to use functionality from the <cassert> C header file, you can make that available as follows:
+
+\begin{cpp}
+module; // Start of the global module fragment
+#include <cassert> // Include legacy header files
+
+export module person; // Named module declaration
+import std;
+export class Person { /* ... */ };
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+Place all \#include directives in a module interface or module implementation file in the global module fragment.
+\end{myWarning}
+
+
+
+
+
+
+
+
+
 
 

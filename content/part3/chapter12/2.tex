@@ -1,11 +1,314 @@
 
+A class template defines a blueprint (= template) for a family of class definitions where the types of some of the variables, return types of member functions, and/or parameters to member functions are specified as template type parameters. Class templates are like construction blueprints. They allow the compiler to build (also known as instantiate) concrete class definitions by replacing template type parameters with concrete types.
 
+Class templates are useful primarily for containers, or data structures, that store objects. You already used class templates often earlier in this book, e.g., std::vector, unique\_ptr, string, and so on. This section discusses how to write your own class templates by using a running example of a Grid container. To keep the examples reasonable in length and simple enough to illustrate specific points, different sections of the chapter add features to the Grid container that are not used in subsequent sections.
 
 \mySubsubsection{12.2.1.}{Writing a Class Template}
 
+Suppose that you want a generic game board class that you can use as a chessboard, checkers board, tic-tac-toe board, or any other two-dimensional game board. To make it general-purpose, you should be able to store chess pieces, checkers pieces, tic-tac-toe pieces, or any type of game piece.
+
 \mySamllsection{Coding Without Templates}
 
+Without templates, the best approach to build a generic game board is to employ polymorphism to store generic GamePiece objects. Then, you could let the pieces for each game inherit from the GamePiece class. For example, in a chess game, ChessPiece would be a derived class of GamePiece. Through polymorphism, the GameBoard, written to store GamePieces, could also store ChessPieces. Because it should be possible to copy a GameBoard, the GameBoard needs to be able to copy GamePieces. This implementation employs polymorphism, so one solution is to add a pure virtual clone() member function to the GamePiece base class, which derived classes must implement to return a copy of a concrete GamePiece. Here is the basic GamePiece interface:
+
+\begin{cpp}
+export class GamePiece
+{
+    public:
+        virtual ˜GamePiece() = default;
+        virtual std::unique_ptr<GamePiece> clone() const = 0;
+};
+\end{cpp}
+
+GamePiece is an abstract base class. Concrete classes, such as ChessPiece, derive from it and implement the clone() member function:
+
+\begin{cpp}
+class ChessPiece : public GamePiece
+{
+    public:
+        std::unique_ptr<GamePiece> clone() const override
+        {
+            // Call the copy constructor to copy this instance
+            return std::make_unique<ChessPiece>(*this);
+        }
+};
+\end{cpp}
+
+A GameBoard represents a two-dimensional grid, so one option to store the GamePieces in GameBoard could be a vector of vectors of unique\_ptrs. However, that’s not an optimal representation of the data, as the data will be fragmented in memory. It’s better to store a linearized representation of the GamePieces as a single vector of unique\_ptrs. Converting a two-dimensional coordinate, say (x,y), to a one-dimensional location in the linearized representation is easily done using the formula x+y*width.
+
+\begin{cpp}
+export class GameBoard
+{
+    public:
+        explicit GameBoard(std::size_t width = DefaultWidth,
+            std::size_t height = DefaultHeight);
+        GameBoard(const GameBoard& src); // copy constructor
+        virtual ˜GameBoard() = default; // virtual defaulted destructor
+        GameBoard& operator=(const GameBoard& rhs); // assignment operator
+
+        // Explicitly default a move constructor and move assignment operator.
+        GameBoard(GameBoard&& src) = default;
+        GameBoard& operator=(GameBoard&& src) = default;
+
+        std::unique_ptr<GamePiece>& at(std::size_t x, std::size_t y);
+        const std::unique_ptr<GamePiece>& at(std::size_t x, std::size_t y) const;
+
+        std::size_t getHeight() const { return m_height; }
+        std::size_t getWidth() const { return m_width; }
+
+        static constexpr std::size_t DefaultWidth { 10 };
+        static constexpr std::size_t DefaultHeight { 10 };
+
+        void swap(GameBoard& other) noexcept;
+    private:
+        void verifyCoordinate(std::size_t x, std::size_t y) const;
+
+        std::vector<std::unique_ptr<GamePiece>> m_cells;
+        std::size_t m_width { 0 }, m_height { 0 };
+};
+export void swap(GameBoard& first, GameBoard& second) noexcept;
+\end{cpp}
+
+In this implementation, at() returns a reference to the game piece at a given location instead of a copy of the piece. GameBoard serves as an abstraction of a two-dimensional array, so it should provide array access semantics by returning a reference to the actual object at any location, not a copy of the object. Client code should not store this reference for future use because it might become invalid, for example when the m\_cells vector needs to be resized. Instead, client code shall call at() right before using the returned reference. This follows the design philosophy of the Standard Library vector class.
+
+\begin{myNotic}{NOTE}
+This implementation provides two versions of at(); one returns a reference-to-non-const while the other returns a reference-to-const.
+\end{myNotic}
+
+\CXXTwentythreeLogo{-40}{-60}
+
+\begin{myNotic}{NOTE}
+Starting with C++23, it is possible to provide a multidimensional subscripting operator for the GameBoard class. By providing such an operator, clients can write myGameBoard[x,y] instead of myGameBoard.at(x,y) to get access to a piece at location (x,y). This operator is discussed in Chapter 15, “Overloading C++ Operators.”
+\end{myNotic}
+
+Here are the member function definitions. Note that this implementation uses the copy-and-swap idiom for the assignment operator, and Scott Meyers’ const\_cast() pattern to avoid code duplication, both of which are discussed in Chapter 9, “Mastering Classes and Objects.”
+
+\begin{cpp}
+GameBoard::GameBoard(size_t width, size_t height)
+    : m_width { width }, m_height { height }
+{
+    m_cells.resize(m_width * m_height);
+}
+GameBoard::GameBoard(const GameBoard& src)
+    : GameBoard { src.m_width, src.m_height }
+{
+    // The ctor-initializer of this constructor delegates first to the
+    // non-copy constructor to allocate the proper amount of memory.
+
+    // The next step is to copy the data.
+    for (size_t i { 0 }; i < m_cells.size(); ++i) {
+        if (src.m_cells[i]) {
+            m_cells[i] = src.m_cells[i]->clone();
+        }
+    }
+}
+
+void GameBoard::verifyCoordinate(size_t x, size_t y) const
+{
+    if (x >= m_width) {
+        throw out_of_range {
+            format("x ({}) must be less than width ({}).", x, m_width) };
+    }
+    if (y >= m_height) {
+        throw out_of_range {
+            format("y ({}) must be less than height ({}).", y, m_height) };
+    }
+}
+
+void GameBoard::swap(GameBoard& other) noexcept
+{
+    std::swap(m_width, other.m_width);
+    std::swap(m_height, other.m_height);
+    std::swap(m_cells, other.m_cells);
+}
+
+void swap(GameBoard& first, GameBoard& second) noexcept
+{
+    first.swap(second);
+}
+
+GameBoard& GameBoard::operator=(const GameBoard& rhs)
+{
+    // Copy-and-swap idiom
+    GameBoard temp { rhs }; // Do all the work in a temporary instance.
+    swap(temp); // Commit the work with only non-throwing operations.
+    return *this;
+}
+
+const unique_ptr<GamePiece>& GameBoard::at(size_t x, size_t y) const
+{
+    verifyCoordinate(x, y);
+    return m_cells[x + y * m_width];
+}
+
+unique_ptr<GamePiece>& GameBoard::at(size_t x, size_t y)
+{
+    return const_cast<unique_ptr<GamePiece>&>(as_const(*this).at(x, y));
+}
+\end{cpp}
+
+This GameBoard class works pretty well:
+
+\begin{cpp}
+GameBoard chessBoard { 8, 8 };
+auto pawn { std::make_unique<ChessPiece>() };
+chessBoard.at(0, 0) = std::move(pawn);
+chessBoard.at(0, 1) = std::make_unique<ChessPiece>();
+chessBoard.at(0, 1) = nullptr;
+\end{cpp}
+
 \mySamllsection{A Template Grid Class}
+
+The GameBoard class in the previous section is nice but insufficient. One problem is that you cannot use GameBoard to store elements by value; it always stores pointers. Another, more serious issue is related to type safety. Each cell in a GameBoard stores a unique\_ptr<GamePiece>. Even if you are storing ChessPieces, when you use at() to request a certain piece, you will get back a unique\_ptr<GamePiece>. This means you have to downcast the retrieved GamePiece to a ChessPiece to be able to make use of ChessPiece’s specific functionality. Additionally, nothing stops you from mixing all kinds of different GamePiece-derived objects in a GameBoard. For example, suppose there is not only a ChessPiece but also a TicTacToePiece:
+
+\begin{cpp}
+class TicTacToePiece : public GamePiece
+{
+    public:
+        std::unique_ptr<GamePiece> clone() const override
+        {
+            // Call the copy constructor to copy this instance
+            return std::make_unique<TicTacToePiece>(*this);
+        }
+};
+\end{cpp}
+
+With the polymorphic solution from the previous section, nothing stops you from storing tic-tac-toe pieces and chess pieces on a single game board:
+
+\begin{cpp}
+GameBoard gameBoard { 8, 8 };
+gameBoard.at(0, 0) = std::make_unique<ChessPiece>();
+gameBoard.at(0, 1) = std::make_unique<TicTacToePiece>();
+\end{cpp}
+
+The big problem with this is that you somehow need to remember what is stored at a certain location so that you can perform the correct downcast when you call at().
+
+Another shortcoming of GameBoard is that it cannot be used to store primitive types, such as int or double, because the type stored in a cell must derive from GamePiece.
+
+It would be nice if you could write a generic Grid class that you could use for storing ChessPieces, SpreadsheetCells, ints, doubles, and so on. In C++, you can do this by writing a class template, which is a blueprint for class definitions. In a class template, not all types are known yet. Clients then instantiate the template by specifying the types they want to use. This is called generic programming. The biggest advantage of generic programming is type safety. The types used in instantiated class definitions and their member functions are concrete types, and not abstract base class types, as is the case with the polymorphic solution from the previous section.
+
+Let’s start by looking at how such a Grid class template definition can be written.
+
+\mySamllsection{The Grid Class Template Definition}
+
+To understand class templates, it is helpful to examine the syntax. The following example shows how you can modify the GameBoard class to make a parametrized Grid class template. The syntax is explained in detail following the code. Note that the name has changed from GameBoard to Grid. A Grid should also be usable with primitive types such as int and double. That’s why I opted to implement this solution using value semantics without polymorphism, compared to the polymorphic pointer semantics used in the GameBoard implementation. The m\_cells container stores actual objects, instead of pointers. A downside of using value semantics compared to pointer semantics is that you cannot have a true empty cell; that is, a cell must always contain some value. With pointer semantics, an empty cell stores nullptr. Luckily, std::optional, introduced in Chapter 1, “A Crash Course in C++ and the Standard Library,” comes to the rescue here. It allows you to use value semantics, while still having a way to represent empty cells.
+
+\begin{cpp}
+export template <typename T>
+class Grid
+{
+    public:
+        explicit Grid(std::size_t width = DefaultWidth,
+            std::size_t height = DefaultHeight);
+        virtual ˜Grid() = default;
+
+        // Explicitly default a copy constructor and copy assignment operator.
+        Grid(const Grid& src) = default;
+        Grid& operator=(const Grid& rhs) = default;
+
+        // Explicitly default a move constructor and move assignment operator.
+        Grid(Grid&& src) = default;
+        Grid& operator=(Grid&& rhs) = default;
+
+        std::optional<T>& at(std::size_t x, std::size_t y);
+        const std::optional<T>& at(std::size_t x, std::size_t y) const;
+
+        std::size_t getHeight() const { return m_height; }
+        std::size_t getWidth() const { return m_width; }
+
+        static constexpr std::size_t DefaultWidth { 10 };
+        static constexpr std::size_t DefaultHeight { 10 };
+    private:
+        void verifyCoordinate(std::size_t x, std::size_t y) const;
+
+        std::vector<std::optional<T>> m_cells;
+        std::size_t m_width { 0 }, m_height { 0 };
+};
+\end{cpp}
+
+Now that you’ve seen the full class template definition, take another look at it, starting with the first line.
+
+\begin{cpp}
+export template <typename T>
+\end{cpp}
+
+This first line says that the following class definition is a template on one type, T, and that it’s being exported from the module. The “template <typename T>” part is called the template header. Both template and typename are keywords in C++. As discussed earlier, templates “parameterize” types in the same way that functions “parameterize” values. Just as you use parameter names in functions to represent the arguments that the caller will pass, you use template type parameter names (such as T) in templates to represent the types that the caller will pass as template type arguments. There’s nothing special about the name T—you can use whatever name you want. Traditionally, when a single type is used, it is called T, but that’s just a historical convention, like calling the integer that indexes an array i or j. The template specifier holds for the entire statement, which in this case is the class template definition.
+
+\begin{myNotic}{NOTE}
+For historical reasons, you can use the keyword class instead of typename to specify template type parameters. Thus, many books and existing programs use syntax like this: template <class T>. However, the use of the word class in this context is confusing because it implies that the type must be a class, which is not true. The type can be a class, a struct, a union, a primitive type of the language like int or double, and so on. To avoid such confusion, this book uses typename.
+\end{myNotic}
+
+In the earlier GameBoard class, the m\_cells data member is a vector of pointers, which requires special code for copying—thus the need for a copy constructor and copy assignment operator. In the Grid class, m\_cells is a vector of optional values, so the compiler-generated copy constructor and assignment operator are fine. However, as explained in Chapter 8, “Gaining Proficiency with Classes and Objects,” once you have a user-declared destructor, it’s deprecated for the compiler to implicitly generate a copy constructor or copy assignment operator, so the Grid class template explicitly defaults them. It also explicitly defaults the move constructor and move assignment operator. Here is the explicitly defaulted copy assignment operator:
+
+\begin{cpp}
+Grid& operator=(const Grid& rhs) = default;
+\end{cpp}
+
+As you can see, the type of the rhs parameter is no longer a const GameBoard\&, but a const Grid\&. Within a class definition, the compiler interprets Grid as Grid<T> where needed, but if you want, you can explicitly use Grid<T>:
+
+\begin{cpp}
+Grid<T>& operator=(const Grid<T>& rhs) = default;
+\end{cpp}
+
+However, outside a class definition you must use Grid<T>. When you write a class template, what you used to think of as the class name (Grid) is actually the template name. When you want to talk about actual Grid classes or types, you have to use the template ID, i.e., Grid<T>, which are instantiations of the Grid class template for a certain type, such as int, SpreadsheetCell, or ChessPiece.
+
+Because m\_cells is not storing pointers anymore, but optional values, the at() member functions now return optional<T>s instead of unique\_ptrs, that is, optionals that can either have a value of type T, or be empty:
+
+\begin{cpp}
+std::optional<T>& at(std::size_t x, std::size_t y);
+const std::optional<T>& at(std::size_t x, std::size_t y) const;
+\end{cpp}
+
+\mySamllsection{The Grid Class Template Member Function Definitions}
+
+The template <typename T> template header must precede each member function definition for the Grid class template. The constructor looks like this:
+
+\begin{cpp}
+template <typename T>
+Grid<T>::Grid(std::size_t width, std::size_t height)
+    : m_width { width }, m_height { height }
+{
+    m_cells.resize(m_width * m_height);
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Member function definitions of class templates need to be visible to any client code using the class template. This places some restrictions on where such member function definitions can be placed. Usually, they are simply put in the same file as the class template definition itself. Some ways around this restriction are discussed later in this chapter.
+\end{myNotic}
+
+Note that the name before the :: is Grid<T>, not Grid. The body of the constructor is identical to the GameBoard constructor. The rest of the member function definitions are also similar to their equivalents in the GameBoard class with the exception of the appropriate template header and Grid<T> syntax changes:
+
+\begin{cpp}
+template <typename T>
+void Grid<T>::verifyCoordinate(std::size_t x, std::size_t y) const
+{
+    if (x >= m_width) {
+        throw std::out_of_range {
+            std::format("x ({}) must be less than width ({}).", x, m_width) };
+    }
+    if (y >= m_height) {
+        throw std::out_of_range {
+            std::format("y ({}) must be less than height ({}).", y, m_height) };
+    }
+}
+
+template <typename T>
+const std::optional<T>& Grid<T>::at(std::size_t x, std::size_t y) const
+{
+    verifyCoordinate(x, y);
+    return m_cells[x + y * m_width];
+}
+
+template <typename T>
+std::optional<T>& Grid<T>::at(std::size_t x, std::size_t y)
+{
+    return const_cast<std::optional<T>&>(std::as_const(*this).at(x, y));
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+If an implementation of a class template member function needs a default value for a certain template type parameter, for example T, then you can use the T\{\} syntax. T\{\} calls the default constructor for the object if T is a class type, or generates zero if T is a primitive type. This syntax is called the zero-initialization syntax. It’s a good way to provide a reasonable default value for a variable whose type you don’t know yet.
+\end{myNotic}
 
 \mySamllsection{Using the Grid Template}
 

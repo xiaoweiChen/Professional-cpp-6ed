@@ -1,16 +1,83 @@
 
+There are several uses of the keyword static in C++, all seemingly unrelated. Part of the motivation for “overloading” the keyword was attempting to avoid having to introduce new keywords into the language. One use of the keyword is discussed earlier in this chapter in the context of linkage. Other uses are discussed in this section.
 
 \mySubsubsection{11.6.1.}{static Data Members and Member Functions}
 
+You can declare static data members and member functions of classes. static data members, unlike non-static data members, are not part of each object. Instead, there is only one copy of the data member, which exists outside any objects of that class.
 
+static member functions are similarly at the class level instead of the object level. A static member function does not execute in the context of a specific object; hence, it does not have an implicit this pointer. This also means that static member functions cannot be marked as const.
+
+Chapter 9 provides examples of both static data members and member functions.
 
 \mySubsubsection{11.6.2.}{static Variables in Functions}
 
+Another use of the static keyword in C++ is to create variables that retain their values between exits and entrances to their scope. For example, a static local variable inside a function is like a global variable that is accessible only from within that function. One common use of static variables is to “remember” whether a particular initialization has been performed for a certain function. For example, code that employs this technique might look something like this:
 
+\begin{cpp}
+void performTask()
+{
+    static bool initialized { false };
+    if (!initialized) {
+        println("initializing");
+        // Perform initialization.
+        initialized = true;
+    }
+    // Perform the desired task.
+}
+\end{cpp}
+
+However, static variables can be confusing, and there are usually better ways to structure your code so that you can avoid them. In this case, you might want to write a class in which the constructor performs the required initialization.
+
+\begin{myNotic}{NOTE}
+Avoid using stand-alone static variables. Maintain state within an object instead.
+\end{myNotic}
+
+Sometimes, however, they can be useful. One example is for implementing the Meyers’ singleton design pattern, as explained in Chapter 33, “Applying Design Patterns.”
+
+\begin{myNotic}{NOTE}
+The implementation of performTask() is not thread-safe; it contains a race condition. In a multithreaded environment, you need to use atomics or other mechanisms for synchronization of multiple threads. Multithreading is discussed in detail in Chapter 27, “Multithreaded Programming with C++.”
+\end{myNotic}
 
 \mySubsubsection{11.6.3.}{Order of Initialization of Nonlocal Variables}
 
+Before leaving the topic of static variables, consider the order of initialization of such variables. All global and static variables in a program are initialized before main() begins. The variables in a given source file are initialized in the order they appear in the source file. For example, in the following file, Demo::x is guaranteed to be initialized before y:
+
+\begin{cpp}
+class Demo
+{
+    public:
+        static int x;
+};
+int Demo::x { 3 };
+int y { 4 };
+\end{cpp}
+
+However, C++ provides no specifications or guarantees about the initialization ordering of nonlocal variables in different source files. If you have a global variable x in one source file and a global variable y in another, you have no way of knowing which will be initialized first. Normally, this lack of specification isn’t cause for concern. However, it can be problematic if one global or static variable depends on another. Recall that initialization of objects implies running their constructors. The constructor of one global object might access another global object, assuming that it is already constructed. If these two global objects are declared in two different source files, you cannot count on one being constructed before the other, and you cannot control the order of initialization. This order might not be the same for different compilers or even different versions of the same compiler, and the order might even change when you simply add another file to your project.
+
+\begin{myWarning}{WARNING}
+Initialization order of nonlocal variables in different source files is undefined.
+\end{myWarning}
 
 
 \mySubsubsection{11.6.4.}{Order of Destruction of Nonlocal Variables}
+
+Nonlocal variables are destroyed in the reverse order they were initialized. Nonlocal variables in different source files are initialized in an undefined order, which means that the order of destruction is also undefined.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -1,0 +1,31 @@
+By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at www.wiley.com/go/ proc++6e. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+
+\begin{itemize}
+\item
+Exercise 11-1: Write a single-file module called simulator containing two classes, CarSimulator and BikeSimulator, in a Simulator namespace. The content of the classes is not important for these exercises. Just provide a default constructor that prints a message to the standard output. Test your code in a main() function.
+
+\item
+Exercise 11-2: Take your solution from Exercise 11-1 and split the module into several files: a primary module interface file without any implementations and two module implementation files, one for the CarSimulator and one for the BikeSimulator class.
+
+\item
+Exercise 11-3: Take your solution from Exercise 11-2 and convert it to use one primary module interface file and two module interface partition files, one for the simulator:car partition containing the CarSimulator class, and one for the simulator:bike partition containing the BikeSimulator class.
+
+\item
+Exercise 11-4: Take your solution from Exercise 11-3 and add an implementation partition called internals, containing a helper function called convertMilesToKm(double miles) in the Simulator namespace. One mile is 1.6 kilometers. Add a member function to both the CarSimulator and BikeSimulator classes called setOdometer(double miles), which uses the helper function to convert the given miles to kilometers and then prints it out to the standard output. Confirm in your main() function that the setOdometer() works on both classes. Also confirm that main() cannot call convertMilesToKm().
+
+\item
+Exercise 11-5: Write a source file containing a preprocessor identifier with the value 0 or 1. Use preprocessor directives to check the value of this identifier. If the value is 1, make the compiler output a warning. If it’s 0, ignore it. If it’s any other value, make the compiler generate an error
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+

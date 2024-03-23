@@ -1,4 +1,103 @@
 
 
+Chapter 1 introduces the \#include preprocessor directive to include the contents of a header file. There are a few more preprocessor directives available. The following table shows some of the most commonly used preprocessor directives:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{PREPROCESSOR DIRECTIVE} &
+\textbf{FUNCTIONALITY} &
+\textbf{COMMON USES} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\#include {[}file{]} &
+\begin{tabular}[c]{@{}l@{}}The contents of the file with\\ name {[}file{]} is inserted\\ into the code at the location\\ of the directive.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Almost always used to include\\ header files so that code can\\ make use of functionality defined\\ elsewhere.\end{tabular} \\ \hline
+\#define {[}id{]} {[}value{]} &
+\begin{tabular}[c]{@{}l@{}}Every occurrence of the\\ identifier {[}id{]} is replaced\\ with {[}value{]}.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Often used in C to define a constant\\ value or a macro. C++ provides\\ better mechanisms for constants\\ and most types of macros. Macros\\ can be dangerous, so use them\\ cautiously. See the next section for\\ some examples.\end{tabular} \\ \hline
+\#undef {[}id{]} &
+\begin{tabular}[c]{@{}l@{}}Undefines the identifier\\ {[}id{]} previously defined\\ using \#define.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Used if a defined identifier is only\\ required within a limited scope\\ of the code.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}\#if {[}expression{]}\\ \#elif {[}expression{]}\\ \#else\\ \#endif\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Conditionally include a\\ block of code based on the\\ result of a given expression.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Often used to provide specific code\\ for specific platforms.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}\#ifdef {[}id{]}\\ \#endif\\ \\ \#ifndef {[}id{]}\\ \#endif\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Conditionally include code\\ based on whether the\\ specified identifier has been\\ defined with \#define.\\ \#ifdef {[}id{]} is equivalent\\ to \#if defined(id) and\\ \#ifndef {[}id{]} is equivalent\\ to \#if !defined(id).\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Used most frequently to protect\\ against circular includes. Each\\ header file starts with an \#ifndef\\ checking the absence of an\\ identifier, followed by a \#define\\ directive to define that identifier.\\ The header file ends with an\\ \#endif. This prevents the file from\\ being included multiple times; see\\ the Header Files section later in\\ this chapter.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}\#elifdef {[}id{]}\\ \#elifndef {[}id{]}\\ (C++23)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}\#elifdef {[}id{]} is\\ equivalent to\\ \#elif defined(id)\\ and \#elifndef {[}id{]} is\\ equivalent to\\ \#elif !defined(id).\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Shorthand notations for other\\ functionality.\end{tabular} \\ \hline
+\#pragma {[}xyz{]} &
+\begin{tabular}[c]{@{}l@{}}Controls compiler-specific\\ behavior. {[}xyz{]} is compiler\\ dependent. Most compilers\\ support once to prevent\\ a header file from being\\ included multiple times.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}See the Header Files section later in\\ this chapter for an example.\end{tabular} \\ \hline
+\#error {[}message{]} &
+\begin{tabular}[c]{@{}l@{}}Causes the compilation\\ to stop with the\\ given message.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Can be used to stop the compilation\\ if the user tries to compile code on\\ an unsupported platform.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}\#warning {[}message{]}\\ (C++23)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Causes the compiler to\\ emit the given message as\\ a warning, but compilation\\ continues.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Used to display a warning to\\ the user without affecting the\\ compilation result.\end{tabular} \\ \hline
+\end{longtable}
+
 \mySubsubsection{11.2.1.}{Preprocessor Macros}
+
+You can use the C++ preprocessor to write macros, which are like little functions. Here is an example:
+
+\begin{cpp}
+#define SQUARE(x) ((x) * (x)) // No semicolon after the macro definition!
+
+int main()
+{
+    println("{}", SQUARE(5));
+}
+\end{cpp}
+
+Macros are a remnant from C that are quite similar to inline functions, except that they are not type-checked, and the preprocessor dumbly replaces any calls to them with their expansions. The preprocessor does not apply true function-call semantics. This behavior can cause unexpected results. For example, consider what would happen if you called the SQUARE macro with 2+3 instead of 5, like this:
+
+\begin{cpp}
+println("{}", SQUARE(2 + 3));
+\end{cpp}
+
+You expect SQUARE to calculate 25, which it does. However, what if you left out some parentheses from the macro definition, so that it looks like this?
+
+\begin{cpp}
+#define SQUARE(x) (x * x)
+\end{cpp}
+
+Now the call to SQUARE(2+3) generates 11, not 25! Remember that the macro is dumbly expanded without regard to function-call semantics. This means that any x in the macro body is replaced by 2 + 3, leading to this expansion:
+
+\begin{cpp}
+println("{}", (2 + 3 * 2 + 3));
+\end{cpp}
+
+Following proper order of operations, this line performs the multiplication first, followed by the additions, generating 11 instead of 25!
+
+Macros can also have a performance impact. Suppose you call the SQUARE macro as follows:
+
+\begin{cpp}
+println("{}", SQUARE(veryExpensiveFunctionCallToComputeNumber()));
+\end{cpp}
+
+The preprocessor replaces this with the following:
+
+\begin{cpp}
+println("{}", ((veryExpensiveFunctionCallToComputeNumber()) *
+        (veryExpensiveFunctionCallToComputeNumber())));
+\end{cpp}
+
+Now you are calling the expensive function twice—another reason to avoid macros.
+
+Macros also cause problems for debugging because the code you write is not the code that the compiler sees or that shows up in your debugger (because of the search-and-replace behavior of the preprocessor). For these reasons, you should avoid macros entirely in favor of inline functions. The details are shown here only because quite a bit of C++ code out there still employs macros. You need to understand them to read and maintain such code.
+
+\begin{myNotic}{NOTE}
+Most compilers can output the preprocessed source to a file or to standard output. You can use that feature to see how the preprocessor is preprocessing your file. For example, with Microsoft Visual C++ you can use the /P switch. With GCC you can use the -E switch.
+\end{myNotic}
+
+
+
+
 

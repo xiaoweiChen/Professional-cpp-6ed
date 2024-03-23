@@ -1,0 +1,55 @@
+
+You can use feature-test macros to detect which core language features are supported by a compiler. All these macros start with either \_\_cpp\_ or \_\_has\_cpp\_. The following are some examples. Consult your favorite C++ reference for a complete list of all possible core language feature-test macros.
+
+\begin{itemize}
+\item
+\_\_cpp\_range\_based\_for
+
+\item
+\_\_cpp\_binary\_literals
+
+\item
+\_\_cpp\_char8\_t
+
+\item
+\_\_cpp\_generic\_lambdas
+
+\item
+\_\_cpp\_consteval
+
+\item
+\_\_cpp\_coroutines
+
+\item
+. . .
+
+\item
+\_\_has\_cpp\_attribute([attribute\_name])
+
+\item
+. . .
+\end{itemize}
+
+The value of these macros is a number representing the month and year when a specific feature was added or updated. The date is formatted as YYYYMM. For example, the value of \_\_cpp\_binary\_literals is 201304, i.e., April 2013, which is the date when binary literals were introduced. As another example, the value of \_\_has\_cpp\_attribute(nodiscard) can be 201603, i.e., March 2016, which is the date when the [[nodiscard]] attribute was first introduced. Or it can be 201907, i.e., July 2019, which is the date when the attribute was updated to allow specifying a reason such as [[nodiscard("Reason")]].
+
+All these core language feature-test macros are available without having to include any specific header. Here is an example use:
+
+\begin{cpp}
+int main()
+{
+#ifdef __cpp_range_based_for
+    println("Range-based for loops are supported!");
+#else
+    println("Bummer! Range-based for loops are NOT supported!");
+#endif
+}
+\end{cpp}
+
+Chapter 16, “Overview of the C++ Standard Library,” explains that there are similar feature-test macros for Standard Library features.
+
+\begin{myNotic}{NOTE}
+You will rarely need these feature-test macros, unless you are writing crossplatform and cross-compiler code. In that case, you might want to know if certain functionality is supported by a given compiler so that you can provide fallback code in case a feature is missing. Chapter 34, “Developing Cross-Platform and Cross-Language Applications,” discusses cross-platform development.
+\end{myNotic}
+
+
+
