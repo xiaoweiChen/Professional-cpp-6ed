@@ -1,0 +1,34 @@
+
+In addition to class templates, class member function templates, and function templates, C++ supports variable templates. The syntax is as follows:
+
+\begin{cpp}
+template <typename T>
+constexpr T pi { T { 3.141592653589793238462643383279502884 } };
+\end{cpp}
+
+This is a variable template for the value of π. To get the value of pi in a certain type, you use the following syntax:
+
+\begin{cpp}
+float piFloat { pi<float> };
+auto piLongDouble { pi<long double> };
+\end{cpp}
+
+You will always get the closest value of pi representable in the requested type. Just like other types of templates, variable templates can also be specialized.
+
+\begin{myNotic}{NOTE}
+The C++ Standard Library includes <numbers>, which defines a selection of commonly used mathematical constants, including π: std::numbers::pi.
+\end{myNotic}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,42 +1,545 @@
 
+Concepts are named requirements used to constrain template arguments of class and function templates. These are written as predicates and evaluated at compile time to verify template arguments passed to a template. The main goal of concepts is to make template-related compiler errors more human readable. Everybody has encountered the situation where the compiler spews out hundreds or even thousands of lines of errors when you provide the wrong argument for a class or function template. It’s not always easy to dig through those compiler errors to find the root cause.
+
+The reason why the compiler generates that many errors is that the compiler just blindly instantiates templates with the template arguments you provide. Once a template is instantiated, it is compiled, and only then is the compiler able to find out if the provided template type arguments do not support certain operations required deep down in the template implementation. This can be far away from the place where you instantiated a template, hence the myriad of errors. With concepts, the compiler can verify that provided template arguments satisfy certain constraints before it even starts instantiating a template.
+
+Concepts allow the compiler to output readable error messages if certain type constraints are not satisfied. As such, to get meaningful semantical errors, it’s recommended to write concepts to model semantic requirements. Avoid concepts that validate only for syntactic aspects without any semantic meaning, such as a concept that just checks if a type supports operator+. Such a concept would check only for syntax, not semantics. An std::string supports operator+, but obviously, it has a completely different meaning compared to operator+ for integers. On the other hand, concepts such as sortable and swappable are good examples of concepts modeling some semantic meaning.
+
+\begin{myNotic}{NOTE}
+When writing concepts, make sure they model semantics and not just syntax.
+\end{myNotic}
+
+Let’s start by looking at the syntax to write concepts.
 
 \mySubsubsection{12.5.1.}{Syntax}
 
+The syntax of a concept definition, a template for a named set of constraints, is as follows:
 
+\begin{cpp}
+template <parameter-list>
+concept concept-name = constraints-expression;
+\end{cpp}
+
+It starts with a familiar template header, template<>, but unlike class and function templates, concepts are never instantiated. Next, a new keyword, concept, is used followed by the name of the concept. You can use any name you want. The constraints-expression can be any constant expression, that is, any expression that can be evaluated at compile time. The constraints expression must result in a Boolean value (exactly bool as the compiler will not insert any type conversions). This can also be a conjunction, \&\&, or disjunction, ||, of constant expressions. The constraints are never evaluated at run time. Constraints expressions are discussed in detail in the next section.
+
+A concept expression has the following syntax:
+
+\begin{cpp}
+concept-name<argument-list>
+\end{cpp}
+
+Concept expressions evaluate to either true or false. If it evaluates to true, then it is said that the given template arguments model the concept. The next section gives an example.
 
 \mySubsubsection{12.5.2.}{Constraints Expression}
 
+Constant expressions that evaluate to a Boolean can directly be used as constraints for a concept definition. It must evaluate exactly to a Boolean without any type conversions. Here’s an example:
+
+\begin{cpp}
+template <typename T>
+concept Big = sizeof(T) > 4;
+\end{cpp}
+
+Based on this concept, the concept expressions Big<char> and Big<short> usually evaluate to false, while concept expressions like Big<long double> will usually evaluate to true. A concept expression evaluates to a Boolean value at compile time that can be verified using a static assertion. A static assertion uses static\_assert() and allows certain conditions to be asserted at compile time. An assertion is something that needs to be true. If an assertion is false, the compiler issues an error. Chapter 26 discusses static assertions in a bit more detail, but their use with concept expressions is straightforward. The following code asserts that Big<char> and Big<short> indeed evaluate to false, and that Big<long double> evaluates to true:
+
+\begin{cpp}
+static_assert(!Big<char>);
+static_assert(!Big<short>);
+static_assert(Big<long double>);
+\end{cpp}
+
+When compiling this, there shouldn’t be any compilation errors. However, if you remove the exclamation point in the first line, then the compiler will issue an error similar to the following:
+
+\begin{shell}
+error C2607: static assertion failed
+01_Big.cpp(4,15): message : the concept 'Big<char>' evaluated to false
+01_Big.cpp(2,25): message : the constraint was not satisfied
+\end{shell}
+
+Together with the introduction of concepts, a new type of constant expression is introduced called a requires expression, used to define the syntactical requirements of concepts, and explained next.
+
 \mySamllsection{Requires Expressions}
+
+A requires expression has the following syntax:
+
+\begin{cpp}
+requires (parameter-list) { requirements; }
+\end{cpp}
+
+The (parameter-list) is optional and is syntactically similar to the parameter list of functions, except that default argument values are not allowed. The parameter list of a requires expression is used to introduce named variables that are local to the body of the requires expression. The body of a requires expression cannot have regular variable declarations.
+
+The requirements is a sequence of requirements. Each requirement must end with a semicolon.
+
+There are four types of requirements: simple, type, compound, and nested requirements, all discussed in the upcoming sections.
+
+\mySamllsection{Simple Requirements}
+
+A simple requirement is an arbitrary expression statement, not starting with requires. Variable declarations, loops, conditional statements, and so on are not allowed. This expression statement is never evaluated; the compiler simply validates that it compiles.
+
+For example, the following concept definition specifies that a type T must be incrementable; that is, type T must support the post- and prefix ++ operator. Remember, you cannot define local variables in the body of a requires expression; instead, you define those as parameters, x in this example.
+
+\begin{cpp}
+template <typename T>
+concept Incrementable = requires(T x) { x++; ++x; };
+\end{cpp}
+
+\mySamllsection{Type Requirements}
+
+A type requirement verifies that a certain type is valid. It starts with the keyword typename, followed by the type to check. For example, the following concept requires that a certain type T has a value\_type member:
+
+\begin{cpp}
+template <typename T>
+concept C = requires { typename T::value_type; };
+\end{cpp}
+
+A type requirement can also be used to verify that a certain template can be instantiated with a given type. Here’s an example:
+
+\begin{cpp}
+template <typename T>
+concept C = requires { typename SomeTemplate<T>; };
+\end{cpp}
+
+
+\mySamllsection{Compound Requirements}
+
+A compound requirement can be used to verify that something does not throw any exceptions and/or to verify that a certain function returns a certain type. The syntax is as follows:
+
+\begin{cpp}
+{ expression } noexcept -> type-constraint;
+\end{cpp}
+
+Both the noexcept and ->type-constraint are optional. There is no semicolon after expression inside the curly brackets, but there is a semicolon at the end of the compound requirement.
+
+Let’s look at an example. The following concept requires that a given type has a non-throwing destructor and non-throwing swap() member function:
+
+\begin{cpp}
+template <typename T>
+concept C = requires (T x, T y) {
+    { x.˜T()} noexcept;
+    { x.swap(y) } noexcept;
+};
+\end{cpp}
+
+The type-constraint can be any type constraint. A type constraint is simply the name of a concept with zero or more template type arguments. The type of the expression on the left of the arrow is automatically passed as the first template type argument to the type constraint. Hence, a type constraint always has one less argument than the number of template type parameters of the corresponding concept definition. For example, a type constraint for a concept definition with a single template type does not require any template arguments; you can either specify empty brackets, <>, or omit them. This might sound tricky, but an example will make this clear. The following concept validates that a given type has a member function called size() returning a type that is convertible to a size\_t. It also validates that size() is marked as const because the parameter x is of type const T.
+
+\begin{cpp}
+template <typename T>
+concept C = requires (const T x) {
+    { x.size() } -> convertible_to<size_t>;
+};
+\end{cpp}
+
+std::convertible\_to<From, To> is a concept predefined by the Standard Library in <concepts> and has two template type parameters. The type of the expression on the left of the arrow is automatically passed as the first template type argument to the convertible\_to type constraint. As such, you only need to specify the To template type argument, size\_t in this case.
+
+Here is another example. The following concept requires that instances of a type T are comparable:
+
+\begin{cpp}
+template <typename T>
+concept Comparable = requires(const T a, const T b) {
+    { a == b } -> convertible_to<bool>;
+    { a < b } -> convertible_to<bool>;
+    // ... similar for the other comparison operators ...
+};
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+Remember, the type-constraint in a compound requirement must be a type constraint, never a type. The following, for instance, will not compile:
+
+\begin{cpp}
+{ a == b } -> bool;
+\end{cpp}
+
+Instead, a correct type constraint could be the following:
+
+\begin{cpp}
+{ a == b } -> convertible_to<bool>;
+\end{cpp}
+\end{myWarning}
+
+\mySamllsection{Nested Requirements}
+
+A requires expression can have nested requirements. For example, the following is a concept that requires a type to support the pre- and postfix increment and decrement operations. Additionally, the requires expression has a nested requirement to verify that the size of the type is 4 bytes.
+
+\begin{cpp}
+template <typename T>
+concept C = requires (T t) {
+    ++t; --t; t++; t--;
+    requires sizeof(t) == 4;
+};
+\end{cpp}
 
 \mySamllsection{Combining Concept Expressions}
 
+Existing concept expressions can be combined using conjunctions (\&\&) and disjunctions (||). For example, suppose you have a Decrementable concept, similar to Incrementable; the following example shows a concept that requires a type to be both incrementable and decrementable:
+
+\begin{cpp}
+template <typename T>
+concept IncrementableAndDecrementable = Incrementable<T> && Decrementable<T>;
+\end{cpp}
 
 \mySubsubsection{12.5.3.}{Predefined Standard Concepts}
 
+The Standard Library defines a whole collection of predefined concepts, more than 100 of them, divided into a number of categories. The following list gives just a few example concepts of each category, all defined in <concepts> and in the std namespace:
 
+\begin{itemize}
+\item
+Core language concepts: same\_as, derived\_from, convertible\_to, integral, floating\_point, copy\_constructible, and so on
+
+\item
+Comparison concepts: equality\_comparable, totally\_ordered, and so on
+
+\item
+Object concepts: movable, copyable, and so on
+
+\item
+Callable concepts: invocable, predicate, and so on
+\end{itemize}
+
+Additionally, <iterator> defines iterator-related concepts such as random\_access\_iterator, forward\_iterator, incrementable, indirectly\_copyable, indirectly\_swappable, and so on. A concept such as indirectly\_copyable is not meant to verify that a given iterator itself is copyable, but rather that the elements pointed to by a given iterator are copyable, hence the “indirectly” part of the name. Finally, <iterator> also defines algorithm requirements such as mergeable, sortable, permutable, and so on.
+
+The C++ ranges library also provides a number of standard concepts. Chapter 17, “Understanding Iterators and the Ranges Library,” discusses iterators and ranges in detail, while Chapter 20 goes deeper into the algorithms provided by the Standard Library. Consult your favorite Standard Library reference for a full list of available standard concepts.
+
+If any of these standard concepts is what you need, you can use them directly without having to implement your own. For example, the following concept requires that a type T is derived from class Foo:
+
+\begin{cpp}
+template <typename T>
+concept IsDerivedFromFoo = derived_from<T, Foo>;
+\end{cpp}
+
+The following concept requires that type T is convertible to bool:
+
+\begin{cpp}
+template <typename T>
+concept IsConvertibleToBool = convertible_to<T, bool>;
+\end{cpp}
+
+More concrete examples follow in the upcoming sections.
+
+Of course, these standard concepts can also be combined into more specific concepts. The following concept, for example, requires a type T to be both default and copy constructible:
+
+\begin{cpp}
+template <typename T>
+concept DefaultAndCopyConstructible =
+    default_initializable<T> && copy_constructible<T>;
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Writing semantically complete and correct concepts is not always easy. If possible, use the available standard concepts or combinations of them to constrain your types.
+\end{myNotic}
 
 \mySubsubsection{12.5.4.}{Type-Constrained auto}
 
+Type constraints can be used to constrain variables defined with auto type deduction, to constrain return types when using function return type deduction, to constrain parameters in abbreviated function templates and generic lambda expressions, and so on. Using type constraints with auto type deduction makes the code more self-documenting. It also results in better error messages if the constraints get violated at some point, as the error then points to the variable definition instead of to some unsupported operation later in the code.
 
+For example, the following compiles without errors because the deduced type is int, which models the Incrementable concept:
+
+\begin{cpp}
+Incrementable auto value1 { 1 };
+\end{cpp}
+
+However, the following causes a compilation error stating that the constraints are not satisfied. The deduced type is std::string, due to the use of the standard literal s, and string does not model Incrementable:
+
+\begin{cpp}
+Incrementable auto value { "abc"s };
+\end{cpp}
 
 \mySubsubsection{12.5.5.}{Type Constraints and Function Templates}
 
+There are several syntactically different ways to use type constraints with function templates. A first syntax is to use a requires clause as follows:
+
+\begin{cpp}
+template <typename T> requires constraints-expression
+void process(const T& t);
+\end{cpp}
+
+The constraints-expression can be any constant expression, or a conjunction and disjunction of constant expressions, resulting in a Boolean type, just as the constraints-expression of a concept definition. For example, the constraints expression can be a concept expression:
+
+\begin{cpp}
+template <typename T> requires Incrementable<T>
+void process(const T& t);
+\end{cpp}
+
+or a predefined standard concept:
+
+\begin{cpp}
+template <typename T> requires convertible_to<T, bool>
+void process(const T& t);
+\end{cpp}
+
+or a requires expression (note the two requires keywords):
+
+\begin{cpp}
+template <typename T> requires requires(T x) { x++; ++x; }
+void process(const T& t);
+\end{cpp}
+
+or any constant expression resulting in a Boolean:
+
+\begin{cpp}
+template <typename T> requires (sizeof(T) == 4)
+void process(const T& t);
+\end{cpp}
+
+or a combination of conjunctions and disjunctions:
+
+\begin{cpp}
+template <typename T> requires Incrementable<T> && Decrementable<T>
+void process(const T& t);
+\end{cpp}
+
+or a type trait (see Chapter 26):
+
+\begin{cpp}
+template <typename T> requires is_arithmetic_v<T>
+void process(const T& t);
+\end{cpp}
+
+The requires clause can also be specified after the function header, called a trailing requires clause:
+
+\begin{cpp}
+template <typename T>
+void process(const T& t) requires Incrementable<T>;
+\end{cpp}
+
+Another syntax is to use the familiar template<> syntax, but instead of using typename (or class), you use a type constraint. Here are two examples:
+
+\begin{cpp}
+template <convertible_to<bool> T>
+void process(const T& t);
+
+template <Incrementable T>
+void process(const T& t);
+\end{cpp}
+
+These are type constraints as discussed in the section on compound requirements, so they require one less template type parameter than usual. Concretely:
+
+\begin{cpp}
+template <convertible_to<bool> T>
+void process(const T& t);
+\end{cpp}
+
+is entirely analogous to:
+
+\begin{cpp}
+template <typename T> requires convertible_to<T, bool>
+void process(const T& t);
+\end{cpp}
+
+Yet another, more elegant, syntax to use type constraints combines the abbreviated function template syntax, discussed earlier in this chapter, and type constraints, resulting in the following nice and compact syntax. Mind you, even though there is no template header, template<>, don’t be fooled: process() is still a function template.
+
+\begin{cpp}
+void process(const Incrementable auto& t);
+\end{cpp}
+
+Compilation errors when requirements are violated are pretty readable. Calling process() with an integer argument works as expected. Calling it with an std::string, for instance, results in an error complaining about unsatisfied constraints. As an example, the Clang compiler produces the following errors. On first sight, it might still look a bit verbose, but it’s surprisingly readable.
+
+\begin{shell}
+<source>:17:2: error: no matching function for call to 'process'
+        process(str);
+        ^˜˜˜˜˜˜
+<source>:9:6: note: candidate template ignored: constraints not satisfied [with T =
+std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>]
+void process(const T& t)
+     ^
+<source>:8:11: note: because 'std::__cxx11::basic_string<char, std::char_
+traits<char>, std::allocator<char>>' does not satisfy 'Incrementable'
+template <Incrementable T>
+          ^
+<source>:6:42: note: because 'x++' would be invalid: cannot increment value of type
+'std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>'
+concept Incrementable = requires(T x) { x++; ++x; };
+\end{shell}
+
+You are free to use whatever syntax suits you best, but in certain cases, you don’t have a choice but to use the trailing requires clause syntax:
+
+\begin{itemize}
+\item
+When the constraint uses parameter names of the function, the trailing requires clause syntax must be used; otherwise, the function template’s parameter names are not yet in scope.
+
+\item
+To constrain a member function of a class template that is defined directly in the class template’s body, the trailing requires clause syntax is required because such a member function doesn’t have a template header.
+\end{itemize}
+
+\begin{myNotic}{NOTE}
+With the introduction of type constraints, unconstrained template type parameters for function and class templates should be a thing of the past. Every template type inevitably needs to satisfy certain constraints directly related to what you do with that type in the implementation. Hence, you should put a type constraint on it so the compiler can verify it at compile time.
+\end{myNotic}
+
 \mySamllsection{Constraint Subsumption}
 
+You can overload a function template with different type constraints. The compiler always uses the template with the most specific constraints; the more specific constraints subsume/imply the lesser constraints. Here’s an example:
 
+\begin{cpp}
+template <typename T> requires integral<T>
+void process(const T& t) { println("integral<T>"); }
 
+template <typename T> requires (integral<T> && sizeof(T) == 4)
+void process(const T& t) { println("integral<T> && sizeof(T) == 4"); }
+\end{cpp}
+
+Suppose you have the following calls to process():
+
+\begin{cpp}
+process(int { 1 });
+process(short { 2 });
+\end{cpp}
+
+Then the output is as follows on a typical system where an int has 32 bits and a short has 16 bits:
+
+\begin{shell}
+integral<T> && sizeof(T) == 4
+integral<T>
+\end{shell}
+
+The compiler resolves any subsumption by first normalizing the constraints expressions. During normalization of a constraints expression, all concept expressions are recursively expanded to their definitions until the result is a single constant expression consisting of conjunctions and disjunctions of constant Boolean expressions. A normalized constraints expression then subsumes another one if the compiler can prove that it implies the other one. Only conjunctions and disjunctions are taken into account to prove any subsumption, never negations.
+
+This subsumption reasoning is done only at the syntactical level, not semantically. For example, sizeof(T)>4 is semantically more specific than sizeof(T)>=4, but syntactically the former will not subsume the latter.
+
+One caveat, though, is that type traits, such as the std::is\_arithmetic trait used earlier, are not expanded during normalization. Hence, if there is a predefined concept and a type trait available, you should use the concept and not the type trait. For example, use the std::integral concept instead of the std::is\_integral type trait.
 
 \mySubsubsection{12.5.6.}{Type Constraints and Class Templates}
 
+All type constraints examples up to now are using function templates. Type constraints can also be used with class templates, using a similar syntax. As an example, let’s revisit the GameBoard class template from earlier in this chapter. The following is a new definition for it, requiring its template type parameter to be a derived class of GamePiece:
+
+\begin{cpp}
+template <std::derived_from<GamePiece> T>
+class GameBoard : public Grid<T>
+{
+    public:
+        // Inherit constructors from Grid<T>.
+        using Grid<T>::Grid;
+
+        void move(std::size_t xSrc, std::size_t ySrc,
+            std::size_t xDest, std::size_t yDest);
+};
+\end{cpp}
+
+The member function implementations need to be updated as well. Here’s an example:
+
+\begin{cpp}
+template <std::derived_from<GamePiece> T>
+void GameBoard<T>::move(std::size_t xSrc, std::size_t ySrc,
+    std::size_t xDest, std::size_t yDest) { /*...*/ }
+\end{cpp}
+
+Alternatively, you can also use a requires clause as follows:
+
+\begin{cpp}
+template <typename T> requires std::derived_from<T, GamePiece>
+class GameBoard : public Grid<T> { /*...*/ };
+\end{cpp}
 
 
 \mySubsubsection{12.5.7.}{Type Constraints and Class Member Functions}
 
+It’s possible to put additional constraints on specific member functions of a class template. For example, the move() member function of the GameBoard class template could be further constrained to require that type T is moveable:
 
+\begin{cpp}
+template <std::derived_from<GamePiece> T>
+class GameBoard : public Grid<T>
+{
+    public:
+        // Inherit constructors from Grid<T>.
+        using Grid<T>::Grid;
+
+        void move(std::size_t xSrc, std::size_t ySrc,
+            std::size_t xDest, std::size_t yDest) requires std::movable<T>;
+};
+\end{cpp}
+
+Such a requires clause also needs to be repeated on the member function definition:
+
+\begin{cpp}
+template <std::derived_from<GamePiece> T>
+void GameBoard<T>::move(std::size_t xSrc, std::size_t ySrc,
+    std::size_t xDest, std::size_t yDest) requires std::movable<T>
+{ /*...*/ }
+\end{cpp}
+
+Remember that, thanks to selective instantiation discussed earlier in this chapter, you can still use this GameBoard class template with non-movable types, as long as you never call move() on it.
 
 \mySubsubsection{12.5.8.}{Constraint-Based Class Template Specialization and Function Template Overloading}
 
+As described earlier in this chapter, you can write specializations for class templates and overloads for function templates to have a different implementation for certain types. It’s also possible to write a specialization or overload for a collection of types satisfying certain constraints.
 
+Let’s take one more look at the Find() function template from earlier in this chapter. To refresh your memory:
+
+\begin{cpp}
+template <typename T>
+optional<size_t> Find(const T& value, const T* arr, size_t size)
+{
+    for (size_t i { 0 }; i < size; ++i) {
+        if (arr[i] == value) {
+            return i; // Found it; return the index.
+            }
+        }
+    return {}; // Failed to find it; return empty optional.
+}
+\end{cpp}
+
+This implementation uses the == operator to compare values. It’s usually not advisable to compare floating-point types for equality using ==, but instead to use an epsilon test. The following overload of Find() for floating-point types uses an epsilon test implemented in an AreEqual() helper function instead of operator==:
+
+\begin{cpp}
+template <std::floating_point T>
+optional<size_t> Find(const T& value, const T* arr, size_t size)
+{
+    for (size_t i { 0 }; i < size; ++i) {
+        if (AreEqual(arr[i], value)) {
+            return i; // Found it; return the index.
+        }
+    }
+    return {}; // Failed to find it; return empty optional.
+}
+\end{cpp}
+
+AreEqual() is defined as follows, also using a type constraint. A detailed discussion of the mathematics behind the epsilon test logic is outside the scope of this book and not important for this discussion.
+
+\begin{cpp}
+template <std::floating_point T>
+bool AreEqual(T x, T y, int precision = 2)
+{
+    // Scale the machine epsilon to the magnitude of the given values and
+    // multiply by the required precision.
+    return fabs(x - y) <= numeric_limits<T>::epsilon() * fabs(x + y) * precision
+        || fabs(x - y) < numeric_limits<T>::min(); // The result is subnormal.
+}
+\end{cpp}
 
 \mySubsubsection{12.5.9.}{Best Practices}
+
+As this section shows, concepts are a powerful mechanism to constrain types. They provide for a lot of flexibility. Always keep the following in mind:
+
+\begin{itemize}
+\item
+Prefer using predefined Standard Library concepts or combinations of them over writing your own, because writing your own complete and correct concepts is difficult and time-consuming.
+
+\item
+When you do write your own concepts, make sure they model semantic requirements, not just syntactical requirements. For example, if your code technically only requires operator== and <, don’t write a concept that only requires the availability of those two operators, because that would be a syntactical constraint. Instead, require the type to be orderable— that’s a semantic constraint.
+
+\item
+By using proper semantic type requirements up front, you are less likely to have to add more requirements later. For example, if your class template is constrained with a concept that just requires operator== and <, then it could be that you might have to add a requirement in the future for operator>. In doing so, you’ll break existing code. If you would have used a proper concept from the start modeling orderability, you won’t be breaking existing code.
+
+\item
+If a parameter of a requires expression is not meant to be modified, mark the parameter as const to capture that requirement.
+
+\item
+When writing new class or function templates, try to put proper type constraints on all template type parameters. Unconstrained template type parameters should be a thing of the past.
+
+\item
+Remember that you can use type constraints with auto type deduction.
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

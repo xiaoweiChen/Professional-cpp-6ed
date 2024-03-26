@@ -312,51 +312,944 @@ If an implementation of a class template member function needs a default value f
 
 \mySamllsection{Using the Grid Template}
 
+When you want to create Grid objects, you cannot use Grid alone as a type; you must specify the type that is to be stored in that Grid. Creating concrete instances of class templates for specific types is called template instantiation. Here is an example:
+
+\begin{cpp}
+Grid<int> myIntGrid; // Declares a grid that stores ints,
+// using default arguments for the constructor.
+Grid<double> myDoubleGrid { 11, 11 }; // Declares an 11x11 Grid of doubles.
+
+myIntGrid.at(0, 0) = 10;
+int x { myIntGrid.at(0, 0).value_or(0) };
+
+Grid<int> grid2 { myIntGrid }; // Copy constructor
+Grid<int> anotherIntGrid;
+anotherIntGrid = grid2; // Assignment operator
+\end{cpp}
+
+Note that the type of myIntGrid, grid2, and anotherIntGrid is Grid<int>. You cannot store SpreadsheetCells or ChessPieces in these grids; the compiler will generate an error if you try to do so.
+
+Note also the use of value\_or(). The at() member functions return an optional reference, which can contain a value or not. value\_or() returns the value inside the optional if there is a value; otherwise, it returns the argument given to value\_or().
+
+The type specification is important; neither of the following two lines compiles:
+
+\begin{cpp}
+Grid test; // WILL NOT COMPILE
+Grid<> test; // WILL NOT COMPILE
+\end{cpp}
+
+The first line causes the compiler to produce an error like “use of class template requires template argument list.” The second line causes an error like “too few template arguments.”
+
+If you want to declare a function that takes a Grid object, you must specify the type stored in that grid as part of the Grid type:
+
+\begin{cpp}
+void processIntGrid(Grid<int>& grid) { /* Body omitted for brevity */ }
+\end{cpp}
+
+Alternatively, you can use function templates, discussed later in this chapter, to write a function parametrized on the type of the elements in the grid.
+
+The Grid class template can store more than just ints. For example, you can instantiate a Grid that stores SpreadsheetCells:
+
+\begin{cpp}
+Grid<SpreadsheetCell> mySpreadsheet;
+SpreadsheetCell myCell { 1.234 };
+mySpreadsheet.at(3, 4) = myCell;
+\end{cpp}
+
+You can store pointer types as well:
+
+\begin{cpp}
+Grid<const char*> myStringGrid;
+myStringGrid.at(2, 2) = "hello";
+\end{cpp}
+
+The type specified can even be another template type:
+
+\begin{cpp}
+Grid<vector<int>> gridOfVectors;
+vector<int> myVector { 1, 2, 3, 4 };
+gridOfVectors.at(5, 6) = myVector;
+\end{cpp}
+
+You can also dynamically allocate Grid objects on the free store:
+
+\begin{cpp}
+auto myGridOnFreeStore { make_unique<Grid<int>>(2, 2) }; // 2x2 Grid on free store.
+myGridOnFreeStore->at(0, 0) = 10;
+int x { myGridOnFreeStore->at(0, 0).value_or(0) };
+\end{cpp}
+
 
 \mySubsubsection{12.2.2.}{How the Compiler Processes Templates}
 
+To understand the intricacies of templates, you need to learn how the compiler processes template code. When the compiler encounters class template member function definitions, it performs syntax checking, but doesn’t actually compile the templates. It can’t compile template definitions because it doesn’t know for which types they will be used. It’s impossible for a compiler to generate code for something like x = y without knowing the types of x and y. This syntax-checking step is the first step in the two-phase name lookup process.
+
+The second step in the two-phase name lookup process happens when the compiler encounters an instantiation of the template, such as Grid<int>. At that moment, the compiler writes code for an int version of the Grid template by replacing each T in the class template definition with int. When the compiler encounters a different instantiation of the template, such as Grid<SpreadsheetCell>, it writes another version of the Grid class for SpreadsheetCells. The compiler just writes the code
+
+that you would write if you didn’t have template support in the language and had to write separate classes for each element type. There’s no magic here; templates just automate an annoying process. If you don’t instantiate a class template for any types in your program, then the class template member function definitions are never compiled.
+
+This instantiation process explains why you need to use the Grid<T> syntax in various places in your definition. When the compiler instantiates the template for a particular type, such as int, it replaces T with int, so that Grid<int> is the type.
+
 \mySamllsection{Selective/Implicit Instantiation}
+
+For implicit class template instantiations such as the following:
+
+\begin{cpp}
+Grid<int> myIntGrid;
+\end{cpp}
+
+the compiler always generates code for all virtual member functions of the class template. However, for non-virtual member functions, the compiler generates code only for those non-virtual member functions that are actually called. For example, given the earlier Grid class template, suppose that you write this code (and only this code) in main():
+
+\begin{cpp}
+Grid<int> myIntGrid;
+myIntGrid.at(0, 0) = 10;
+\end{cpp}
+
+The compiler generates only the zero-argument constructor, the destructor, and the non-const at() member function for an int version of Grid. It does not generate other member functions like the copy constructor, the assignment operator, or getHeight(). This is called selective instantiation.
+
 
 \mySamllsection{Explicit Instantiation}
 
+The danger exists that there are compilation errors in some class template member functions that go unnoticed with implicit instantiations. Unused member functions of class templates can contain syntax errors, as these will not be compiled. This makes it hard to test all code for syntax errors. You can force the compiler to generate code for all member functions, virtual and non-virtual, by using explicit template instantiations. Here’s an example:
+
+\begin{cpp}
+template class Grid<string>;
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Explicit template instantiations help with finding errors, as they force all your class template member functions to be compiled even when unused.
+\end{myNotic}
+
+When using explicit template instantiations, don’t just try to instantiate the class template with basic types like int, but try it with more complicated types like string, if those are accepted by the class template.
+
 \mySamllsection{Template Requirements on Types}
 
+When you write code that is independent of types, you must assume certain things about those types. For example, in the Grid class template, you assume that the element type (represented by T) is destructible, copy/move constructible, and copy/move assignable.
+
+When the compiler attempts to instantiate a template with types that do not support all the operations used by class template member functions that are called, the code will not compile, and the error messages will often be quite obscure. However, even if the types you want to use don’t support the operations required by all the member functions of the class template, you can exploit selective instantiation to use some member functions but not others.
+
+You can use concepts to write requirements for template parameters that the compiler can interpret and validate. The compiler can generate more readable errors if the template arguments passed to instantiate a template do not satisfy these requirements. Concepts are discussed later in this chapter.
 
 \mySubsubsection{12.2.3.}{Distributing Template Code Between Files}
 
+With class templates, both the class template definition and the member function definitions must be available to the compiler from any source file that uses them. There are several mechanisms to accomplish this.
+
 \mySamllsection{Member Function Definitions in Same File as Class Template Definition}
+
+You can place the member function definitions directly in the module interface file where you define the class template itself. When you import this module in another source file where you use the template, the compiler will have access to all the code it needs. This mechanism is used for the previous Grid implementation.
 
 \mySamllsection{Member Function Definitions in Separate File}
 
+Alternatively, you can place the class template member function definitions in a separate module interface partition file. You then also need to put the class template definition in its own module interface partition. For example, the primary module interface file for the Grid class template could look like this:
 
+\begin{cpp}
+export module grid;
+
+export import :definition;
+export import :implementation;
+\end{cpp}
+
+This imports and exports two module interface partitions: definition and implementation. The class template definition is defined in the definition partition:
+
+\begin{cpp}
+export module grid:definition;
+
+import std;
+
+export template <typename T> class Grid { ... };
+\end{cpp}
+
+The implementations of the member functions are in the implementation partition, which also needs to import the definition partition because it needs the Grid class template definition:
+
+\begin{cpp}
+export module grid:implementation;
+
+import :definition;
+import std;
+
+export template <typename T>
+Grid<T>::Grid(std::size_t width, std::size_t height)
+    : m_width { width }, m_height { height }
+{ /* ... */ }
+// Remainder omitted for brevity.
+\end{cpp}
 
 \mySubsubsection{12.2.4.}{Template Parameters}
 
+In the Grid example, the Grid class template has one template parameter: the type that is stored in the grid. When you write the class template, you specify the parameter list inside the angle brackets, like this:
+
+\begin{cpp}
+template <typename T>
+\end{cpp}
+
+This parameter list is similar to the parameter list of functions. As with functions, you can write a class template with as many template parameters as you want. Additionally, these parameters don’t have to be types, and they can have default values.
+
 \mySamllsection{Non-type Template Parameters}
+
+Non-type template parameters are “normal” parameters such as ints and pointers—the kind of parameters which you’re familiar with from functions. However, non-type template parameters can only be integral types (char, int, long, and so on), enumerations, pointers, references, std::nullptr\_t, auto, auto\&, auto*, floating-point types, and class types. The latter, however, come with a lot of limitations, not further discussed in this text. Remember that templates are instantiated at compile time; hence, arguments for non-type template parameters are evaluated at compile time. That means such arguments must be literals or compile-time constants.
+
+In the Grid class template, you could use non-type template parameters to specify the height and width of the grid instead of specifying them in the constructor. The principal advantage of using nontype template parameters instead of constructor parameters is that the values are known before the code is compiled. Recall that the compiler generates code for template instantiations by substituting the template parameters before compiling. Thus, you can use a normal two-dimensional array in the following implementation instead of a linearized representation using a vector that is dynamically resized. Here is the new class template definition with the changes highlighted:
+
+\begin{cpp}
+export template <typename T, std::size_t WIDTH, std::size_t HEIGHT>
+class Grid
+{
+    public:
+        Grid() = default;
+        virtual ˜Grid() = default;
+
+        // Explicitly default a copy constructor and copy assignment operator.
+        Grid(const Grid& src) = default;
+        Grid& operator=(const Grid& rhs) = default;
+
+        // Explicitly default a move constructor and move assignment operator.
+        Grid(Grid&& src) = default;
+        Grid& operator=(Grid&& rhs) = default;
+
+        std::optional<T>& at(std::size_t x, std::size_t y);
+        const std::optional<T>& at(std::size_t x, std::size_t y) const;
+
+        std::size_t getHeight() const { return HEIGHT; }
+        std::size_t getWidth() const { return WIDTH; }
+
+    private:
+        void verifyCoordinate(std::size_t x, std::size_t y) const;
+
+        std::optional<T> m_cells[WIDTH][HEIGHT];
+};
+\end{cpp}
+
+The template parameter list now has three parameters: the type of objects stored in the grid, and the width and height of the grid. The width and height are used to create a two-dimensional array to store the objects. Here are the class template member function definitions:
+
+\begin{cpp}
+template <typename T, std::size_t WIDTH, std::size_t HEIGHT>
+void Grid<T, WIDTH, HEIGHT>::verifyCoordinate(std::size_t x, std::size_t y) const
+{
+    if (x >= WIDTH) {
+        throw std::out_of_range {
+            std::format("x ({}) must be less than width ({}).", x, WIDTH) };
+    }
+    if (y >= HEIGHT) {
+        throw std::out_of_range {
+            std::format("y ({}) must be less than height ({}).", y, HEIGHT) };
+    }
+}
+
+template <typename T, std::size_t WIDTH, std::size_t HEIGHT>
+const std::optional<T>& Grid<T, WIDTH, HEIGHT>::at(
+    std::size_t x, std::size_t y) const
+{
+    verifyCoordinate(x, y);
+    return m_cells[x][y];
+}
+
+template <typename T, std::size_t WIDTH, std::size_t HEIGHT>
+std::optional<T>& Grid<T, WIDTH, HEIGHT>::at(std::size_t x, std::size_t y)
+{
+    return const_cast<std::optional<T>&>(std::as_const(*this).at(x, y));
+}
+\end{cpp}
+
+Note that wherever you previously specified Grid<T> you must now specify Grid<T,WIDTH,HEIGHT> to specify the three template parameters.
+
+You can instantiate this template and use it as follows:
+
+\begin{cpp}
+Grid<int, 10, 10> myGrid;
+Grid<int, 10, 10> anotherGrid;
+myGrid.at(2, 3) = 42;
+anotherGrid = myGrid;
+println("{}", anotherGrid.at(2, 3).value_or(0));
+\end{cpp}
+
+This code seems great, but unfortunately, there are more restrictions than you might initially expect. First, you can’t use a non-constant integer to specify the height or width. The following code doesn’t compile:
+
+\begin{cpp}
+size_t height { 10 };
+Grid<int, 10, height> testGrid; // DOES NOT COMPILE
+\end{cpp}
+
+If you define height as a constant, it compiles:
+
+\begin{cpp}
+const size_t height { 10 };
+Grid<int, 10, height> testGrid; // Compiles and works
+\end{cpp}
+
+constexpr functions with the correct return type also work. For example, if you have a constexpr function returning a size\_t, you can use it to initialize the height template parameter:
+
+\begin{cpp}
+constexpr size_t getHeight() { return 10; }
+...
+Grid<double, 2, getHeight()> myDoubleGrid;
+\end{cpp}
+
+A second restriction might be more significant. Now that the width and height are template parameters, they are part of the type of each grid. That means Grid<int,10,10> and Grid<int,10,11> are two different types. You can’t assign an object of one type to an object of the other, and variables of one type can’t be passed to functions that expect variables of another type.
+
+\begin{myNotic}{NOTE}
+Non-type template parameters become part of the type specification of instantiated objects.
+\end{myNotic}
 
 \mySamllsection{Default Values for Template Parameters}
 
+If you continue the approach of making height and width template parameters, you might want to provide defaults for the height and width non-type template parameters just as you did previously in the constructor of the Grid<T> class template. C++ allows you to provide defaults for template parameters with a similar syntax. While you are at it, you could also provide a default for the T type parameter. Here is the class definition:
+
+\begin{cpp}
+export template <typename T = int, std::size_t WIDTH = 10, std::size_t HEIGHT = 10>
+class Grid
+{
+    // Remainder is identical to the previous version
+};
+\end{cpp}
+
+You don’t specify the default values for T, WIDTH, and HEIGHT in the template header for the member function definitions. For example, here is the implementation of at():
+
+\begin{cpp}
+template <typename T, std::size_t WIDTH, std::size_t HEIGHT>
+const std::optional<T>& Grid<T, WIDTH, HEIGHT>::at(
+    std::size_t x, std::size_t y) const
+{
+    verifyCoordinate(x, y);
+    return m_cells[x][y];
+}
+\end{cpp}
+
+With these changes, you can instantiate a Grid without any template parameters, with only the element type, the element type and the width, or the element type, width, and height:
+
+\begin{cpp}
+Grid<> myIntGrid;
+Grid<int> myGrid;
+Grid<int, 5> anotherGrid;
+Grid<int, 5, 5> aFourthGrid;
+\end{cpp}
+
+Note that if you don’t specify any class template parameters, you still need to specify an empty set of angle brackets. For example, the following does not compile!
+
+\begin{cpp}
+Grid myIntGrid;
+\end{cpp}
+
+The rules for default arguments in class template parameter lists are the same as for functions; that is, you can provide defaults for parameters in order starting from the right.
+
 \mySamllsection{Class Template Argument Deduction}
 
+With class template argument deduction, the compiler can automatically deduce the template type parameters from the arguments passed to a class template constructor.
+
+For example, the Standard Library has a class template called std::pair, defined in <utility> and introduced in Chapter 1. A pair stores exactly two values of two possibly different types, which you normally would have to specify as the template type parameters. Here’s an example:
+
+\begin{cpp}
+pair<int, double> pair1 { 1, 2.3 };
+\end{cpp}
+
+To avoid having to write the template type parameters explicitly, a helper function template called std::make\_pair() is available. Details of writing your own function templates are discussed later in this chapter. Function templates have always supported the automatic deduction of template type parameters based on the arguments passed to the function template. Thus, make\_pair() is capable of automatically deducing the template type parameters based on the values passed to it. For example, the compiler deduces pair<int, double> for the following call:
+
+\begin{cpp}
+auto pair2 { make_pair(1, 2.3) };
+\end{cpp}
+
+With class template argument deduction (CTAD), such helper function templates are no longer necessary. The compiler now automatically deduces the template type parameters based on the arguments passed to a constructor. For the pair class template, you can simply write the following code:
+
+\begin{cpp}
+pair pair3 { 1, 2.3 }; // pair3 has type pair<int, double>
+\end{cpp}
+
+Of course, this works only when all template type parameters of a class template either have default values or are used as parameters in the constructor so that they can be deduced.
+
+Note that an initializer is required for CTAD to work. The following is illegal:
+
+\begin{cpp}
+pair pair4;
+\end{cpp}
+
+A lot of the Standard Library classes support CTAD, for example, vector, array, and so on.
+
+\begin{myNotic}{NOTE}
+This type deduction is disabled for std::unique\_ptr and shared\_ptr. You pass a T* to their constructors, which means that the compiler would have to choose between deducing <T> or <T[]>, a dangerous choice to get wrong. So, just remember that for unique\_ptr and shared\_ptr, you need to keep using make\_unique() and make\_shared().
+\end{myNotic}
+
+\mySamllsection{User-Defined Deduction Guides}
+
+You can also write your own user-defined deduction guides to help the compiler. These allow you to write rules for how the template type parameters have to be deduced. The following is an example demonstrating their use.
+
+Suppose you have this SpreadsheetCell class template:
+
+\begin{cpp}
+template <typename T>
+class SpreadsheetCell
+{
+    public:
+        explicit SpreadsheetCell(T t) : m_content { move(t) } { }
+        const T& getContent() const { return m_content; }
+    private:
+        T m_content;
+};
+\end{cpp}
+
+Thanks to CTAD, you can create a SpreadsheetCell with an std::string type. The deduced type is SpreadsheetCell<string>:
+
+\begin{cpp}
+string myString { "Hello World!" };
+SpreadsheetCell cell { myString };
+\end{cpp}
+
+However, if you pass a const char* to the SpreadsheetCell constructor, then type T is deduced as const char*, which is not what you want! You can create the following user-defined deduction guide to make sure T is deduced as std::string when passing a const char* as argument to the constructor:
+
+\begin{cpp}
+SpreadsheetCell(const char*) -> SpreadsheetCell<std::string>;
+\end{cpp}
+
+This guide has to be defined outside the class definition but inside the same namespace as the SpreadsheetCell class.
+
+The general syntax is as follows. The explicit keyword is optional and behaves the same as explicit for constructors. Such deduction guides are, more often than not, templates as well.
+
+\begin{cpp}
+template <...>
+explicit TemplateName(Parameters) -> DeducedTemplate<...>;
+\end{cpp}
 
 \mySubsubsection{12.2.5.}{Member Function Templates}
 
+C++ allows you to parametrize individual member functions of a class. Such member functions are called member function templates and can be inside a normal class or in a class template. When you write a member function template, you are actually writing many different versions of that member function for many different types. Member function templates are useful for assignment operators and copy constructors in class templates.
+
+\begin{myWarning}{WARNING}
+Virtual member functions and destructors cannot be member function templates.
+\end{myWarning}
+
+Consider the original Grid template with only one template parameter: the element type. You can instantiate grids of many different types, such as ints and doubles:
+
+\begin{cpp}
+Grid<int> myIntGrid;
+Grid<double> myDoubleGrid;
+\end{cpp}
+
+However, Grid<int> and Grid<double> are two different types. If you write a function that takes an object of type Grid<double>, you cannot pass a Grid<int>. Even though you know that the elements of an int grid could be copied to the elements of a double grid, because ints can be converted into doubles, you cannot assign an object of type Grid<int> to one of type Grid<double> or construct a Grid<double> from a Grid<int>. Neither of the following two lines compiles:
+
+\begin{cpp}
+myDoubleGrid = myIntGrid; // DOES NOT COMPILE
+Grid<double> newDoubleGrid { myIntGrid }; // DOES NOT COMPILE
+\end{cpp}
+
+The problem is that the copy constructor and assignment operator for the Grid template are as follows:
+
+\begin{cpp}
+Grid(const Grid& src);
+Grid& operator=(const Grid& rhs);
+\end{cpp}
+
+which are equivalent to:
+
+\begin{cpp}
+Grid(const Grid<T>& src);
+Grid<T>& operator=(const Grid<T>& rhs);
+\end{cpp}
+
+The Grid copy constructor and operator= both take a reference to a const Grid<T>. When you instantiate a Grid<double> and try to call the copy constructor and operator=, the compiler generates member functions with these prototypes:
+
+\begin{cpp}
+Grid(const Grid<double>& src);
+Grid<double>& operator=(const Grid<double>& rhs);
+\end{cpp}
+
+There are no constructors or operator= that take a Grid<int> within the generated Grid<double> class.
+
+Luckily, you can rectify this oversight by adding parametrized versions of the copy constructor and assignment operator to the Grid class template to generate member functions that will convert from one grid type to another. Here is the new Grid class template definition:
+
+\begin{cpp}
+export template <typename T>
+class Grid
+{
+    public:
+        template <typename E>
+        Grid(const Grid<E>& src);
+
+        template <typename E>
+        Grid& operator=(const Grid<E>& rhs);
+
+        void swap(Grid& other) noexcept;
+
+        // Omitted for brevity
+};
+\end{cpp}
+
+The original copy constructor and copy assignment operator cannot be removed. The compiler will not call these new parametrized copy constructor and parametrized copy assignment operator if E equals T.
+
+Examine the new parametrized copy constructor first:
+
+\begin{cpp}
+template <typename E>
+Grid(const Grid<E>& src);
+\end{cpp}
+
+You can see that there is another template header with a different typename, E (short for “element”). The class is parametrized on one type, T, and the new copy constructor is additionally parametrized on a different type, E. This twofold parametrization allows you to copy grids of one type to another. Here is the definition of the new copy constructor:
+
+\begin{cpp}
+template <typename T>
+template <typename E>
+Grid<T>::Grid(const Grid<E>& src)
+    : Grid { src.getWidth(), src.getHeight() }
+{
+    // The ctor-initializer of this constructor delegates first to the
+    // non-copy constructor to allocate the proper amount of memory.
+
+    // The next step is to copy the data.
+    for (std::size_t i { 0 }; i < m_width; ++i) {
+        for (std::size_t j { 0 }; j < m_height; ++j) {
+            at(i, j) = src.at(i, j);
+        }
+    }
+}
+\end{cpp}
+
+As you can see, you must declare the class template header (with the T parameter) before the member template header (with the E parameter). You can’t combine them like this:
+
+\begin{cpp}
+template <typename T, typename E> // Wrong for nested template constructor!
+Grid<T>::Grid(const Grid<E>& src)
+\end{cpp}
+
+In addition to the extra template header before the constructor definition, note that you must use the public accessor member functions getWidth(), getHeight(), and at() to access the elements of src. That’s because the object you’re copying to is of type Grid<T>, and the object you’re copying from is of type Grid<E>. They are not the same type, so you must use public member functions.
+
+The swap() member function is straightforward:
+
+\begin{cpp}
+template <typename T>
+void Grid<T>::swap(Grid& other) noexcept
+{
+    std::swap(m_width, other.m_width);
+    std::swap(m_height, other.m_height);
+    std::swap(m_cells, other.m_cells);
+}
+\end{cpp}
+
+The parametrized assignment operator takes a const Grid<E>\& but returns a Grid<T>\&:
+
+\begin{cpp}
+template <typename T>
+template <typename E>
+Grid<T>& Grid<T>::operator=(const Grid<E>& rhs)
+{
+    // Copy-and-swap idiom
+    Grid<T> temp { rhs }; // Do all the work in a temporary instance.
+    swap(temp); // Commit the work with only non-throwing operations.
+    return *this;
+}
+\end{cpp}
+
+The implementation of this assignment operator uses the copy-and-swap idiom introduced in Chapter 9. The swap() member function can only swap Grids of the same type, but that’s OK because this parametrized assignment operator first converts a given Grid<E> to a Grid<T> called temp using the parametrized copy constructor. Afterward, it uses the swap() member function to swap this temporary Grid<T> with this, which is also of type Grid<T>.
+
 \mySamllsection{Member Function Templates with Non-type Template Parameters}
+
+A major problem with the earlier Grid class template with integer template parameters for HEIGHT and WIDTH is that the height and width become part of the types. This restriction prevents you from assigning a grid with one height and width to a grid with a different height and width. In some cases, however, it’s desirable to assign or copy a grid of one size to a grid of a different size. Instead of making the destination object a perfect clone of the source object, you would copy only those elements from the source array that fit in the destination array, padding the destination array with default values if the source array is smaller in either dimension. With member function templates for the assignment operator and copy constructor, you can do exactly that, thus allowing assignment and copying of different-sized grids. Here is the class definition:
+
+\begin{cpp}
+export template <typename T, std::size_t WIDTH = 10, std::size_t HEIGHT = 10>
+class Grid
+{
+    public:
+        Grid() = default;
+        virtual ˜Grid() = default;
+
+        // Explicitly default a copy constructor and assignment operator.
+        Grid(const Grid& src) = default;
+        Grid& operator=(const Grid& rhs) = default;
+
+        // Explicitly default a move constructor and move assignment operator.
+        Grid(Grid&& src) = default;
+        Grid& operator=(Grid&& rhs) = default;
+
+        template <typename E, std::size_t WIDTH2, std::size_t HEIGHT2>
+        Grid(const Grid<E, WIDTH2, HEIGHT2>& src);
+        template <typename E, std::size_t WIDTH2, std::size_t HEIGHT2>
+        Grid& operator=(const Grid<E, WIDTH2, HEIGHT2>& rhs);
+
+        void swap(Grid& other) noexcept;
+
+        std::optional<T>& at(std::size_t x, std::size_t y);
+        const std::optional<T>& at(std::size_t x, std::size_t y) const;
+
+        std::size_t getHeight() const { return HEIGHT; }
+        std::size_t getWidth() const { return WIDTH; }
+
+    private:
+        void verifyCoordinate(std::size_t x, std::size_t y) const;
+
+        std::optional<T> m_cells[WIDTH][HEIGHT];
+};
+\end{cpp}
+
+This new definition includes member function templates for the copy constructor and assignment operator, plus a helper member function swap(). Note that the non-parametrized copy constructor and assignment operator are explicitly defaulted (because of the user-declared destructor). They simply copy or assign m\_cells from the source to the destination, which is exactly the semantics you want for two grids of the same size.
+
+Here is the parametrized copy constructor:
+
+\begin{cpp}
+template <typename T, std::size_t WIDTH, std::size_t HEIGHT>
+template <typename E, std::size_t WIDTH2, std::size_t HEIGHT2>
+Grid<T, WIDTH, HEIGHT>::Grid(const Grid<E, WIDTH2, HEIGHT2>& src)
+{
+    for (std::size_t i { 0 }; i < WIDTH; ++i) {
+        for (std::size_t j { 0 }; j < HEIGHT; ++j) {
+            if (i < WIDTH2 && j < HEIGHT2) {
+                m_cells[i][j] = src.at(i, j);
+            } else {
+                m_cells[i][j].reset();
+            }
+        }
+    }
+}
+\end{cpp}
+
+Note that this copy constructor copies only WIDTH and HEIGHT elements in the x and y dimensions, respectively, from src, even if src is bigger than that. If src is smaller in either dimension, the std::optional objects in the extra spots are reset using the reset() member function.
+
+Here are the implementations of swap() and operator=:
+
+
+\begin{cpp}
+template <typename T, std::size_t WIDTH, std::size_t HEIGHT>
+void Grid<T, WIDTH, HEIGHT>::swap(Grid& other) noexcept
+{
+    std::swap(m_cells, other.m_cells);
+}
+template <typename T, std::size_t WIDTH, std::size_t HEIGHT>
+template <typename E, std::size_t WIDTH2, std::size_t HEIGHT2>
+Grid<T, WIDTH, HEIGHT>& Grid<T, WIDTH, HEIGHT>::operator=(
+    const Grid<E, WIDTH2, HEIGHT2>& rhs)
+{
+    // Copy-and-swap idiom
+    Grid<T, WIDTH, HEIGHT> temp { rhs }; // Do all the work in a temp instance.
+    swap(temp); // Commit the work with only non-throwing operations.
+    return *this;
+}
+\end{cpp}
+
+
+\CXXTwentythreeLogo{-40}{-50}
 
 \mySamllsection{Using Member Function Templates with Explicit Object Parameters to Avoid Code Duplication}
 
+Our running example of the Grid class template with a single template type parameter T contains two overloads of an at() member function, const and non-const. As a reminder:
+
+\begin{cpp}
+export template <typename T>
+class Grid
+{
+    public:
+        std::optional<T>& at(std::size_t x, std::size_t y);
+        const std::optional<T>& at(std::size_t x, std::size_t y) const;
+        // Remainder omitted for brevity
+};
+\end{cpp}
+
+Their implementations use Scott Meyers’ const\_cast() pattern to avoid code duplication:
+
+\begin{cpp}
+template <typename T>
+const std::optional<T>& Grid<T>::at(std::size_t x, std::size_t y) const
+{
+    verifyCoordinate(x, y);
+    return m_cells[x + y * m_width];
+}
+
+template <typename T>
+std::optional<T>& Grid<T>::at(std::size_t x, std::size_t y)
+{
+    return const_cast<std::optional<T>&>(std::as_const(*this).at(x, y));
+}
+\end{cpp}
+
+Although there is no code duplication, you still need to define both the const and non-const overloads explicitly. Starting with C++23, you can use an explicit object parameter (see Chapter 8) to avoid having to provide the two overloads explicitly. The trick is to turn the at() member function into a member function template where the type of the explicit object parameter self is itself a template type parameter, Self, and thus deduced automatically. This feature is called deducing this. Here is such a declaration:
+
+\begin{cpp}
+export template <typename T>
+class Grid
+{
+    public:
+        template <typename Self>
+        auto&& at(this Self&& self, std::size_t x, std::size_t y);
+        // Remainder omitted for brevity
+};
+\end{cpp}
+
+The implementation uses a forwarding reference, Self\&\&; see the following note. Such a forwarding reference can bind to Grid<T>\&, const Grid<T>\&, and Grid<T>\&\&.
+
+\begin{myNotic}{NOTE}
+A reference of type Self\&\& is only a forwarding reference when it is used as a parameter for a function or member function template with Self as one of its template type parameters. If a class member function has a Self\&\& parameter, but with Self a template type parameter of the class and not of the member function itself, then that Self\&\& is not a forwarding reference, but just an rvalue reference. That’s because at the time the compiler starts processing that member function with a Self\&\& parameter, the class template parameter Self has already been resolved to a concrete type, for example int, and at that time, that member function parameter type has already been replaced with int\&\&.
+\end{myNotic}
+
+Here is the implementation. Remember from Chapter 8 that in the body of a member function using an explicit object parameter, you need to use the explicit object parameter, self in this case, to get access to the object; there is no this pointer.
+
+\begin{cpp}
+template <typename T>
+template <typename Self>
+auto&& Grid<T>::at(this Self&& self, std::size_t x, std::size_t y)
+{
+    self.verifyCoordinate(x, y);
+    return std::forward_like<Self>(self.m_cells[x + y * self.m_width]);
+}
+\end{cpp}
+
+The implementation uses std::forward\_like<Self>(x) introduced in C++23. This returns a reference to x with similar properties as Self\&\&. Thus, since the type of the elements of m\_cells is optional<T>, the following holds:
+
+\begin{itemize}
+\item
+If Self\&\& is bound to a Grid<T>\&, the return type will be an optional<T>\&.
+
+\item
+If Self\&\& is bound to a const Grid<T>\&, the return type will be a const optional<T>\&.
+
+\item
+If Self\&\& is bound to a Grid<T>\&\&, the return type will be an optional<T>\&\&.
+\end{itemize}
+
+To summarize, with a combination of member function templates, explicit object parameters, forwarding references, and forward\_like(), it becomes possible to declare and define just a single member function template that provides both const and non-const instantiations.
 
 \mySubsubsection{12.2.6.}{Class Template Specialization}
 
+You can provide alternate implementations of class templates for specific types. For example, you might decide that the Grid behavior for const char*s (C-style strings) doesn’t make sense. A Grid<const char*> will store its elements in a vector<optional<const char*>{}>. The copy constructor and assignment operator will perform shallow copies of this const char* pointer type. For const char*s, it makes more sense to do a deep copy of strings. The easiest solution for this is to write an alternative implementation specifically for const char*s, which converts them to C++ strings and stores them in a vector<optional<string>{}>.
 
+Alternate implementations of templates are called template specializations. You might find the syntax to be a little weird at first. When you write a class template specialization, you must specify that it’s based on a template and that you are writing a version of the template for a particular type. Here is the syntax for a const char* specialization for Grid. For this implementation, the original Grid class template is moved to a module interface partition called main, while the specialization is in a module interface partition called string.
+
+
+\begin{cpp}
+export module grid:string;
+import std;
+// When the template specialization is used, the original template must be
+// visible too.
+import :main;
+
+export template <>
+class Grid<const char*>
+{
+    public:
+        explicit Grid(std::size_t width = DefaultWidth,
+            std::size_t height = DefaultHeight);
+        virtual ˜Grid() = default;
+
+        // Explicitly default a copy constructor and assignment operator.
+        Grid(const Grid& src) = default;
+        Grid& operator=(const Grid& rhs) = default;
+
+        // Explicitly default a move constructor and assignment operator.
+        Grid(Grid&& src) = default;
+        Grid& operator=(Grid&& rhs) = default;
+
+        std::optional<std::string>& at(std::size_t x, std::size_t y);
+        const std::optional<std::string>& at(std::size_t x, std::size_t y) const;
+
+        std::size_t getHeight() const { return m_height; }
+        std::size_t getWidth() const { return m_width; }
+
+        static constexpr std::size_t DefaultWidth { 10 };
+        static constexpr std::size_t DefaultHeight { 10 };
+
+    private:
+        void verifyCoordinate(std::size_t x, std::size_t y) const;
+
+        std::vector<std::optional<std::string>> m_cells;
+        std::size_t m_width { 0 }, m_height { 0 };
+};
+\end{cpp}
+
+Note that you don’t refer to any type variable, such as T, in the specialization: you work directly with const char*s and strings. One obvious question at this point is why this class still has a template header. That is, what good is the following syntax?
+
+\begin{cpp}
+template <>
+class Grid<const char*>
+\end{cpp}
+
+This syntax tells the compiler that this class is a const char* specialization of the Grid class template. Suppose that you didn’t use that syntax and just tried to write this:
+
+\begin{cpp}
+class Grid
+\end{cpp}
+
+The compiler wouldn’t let you do that because there is already a class template named Grid (the original class template). Only by specializing it can you reuse the name. The main benefit of specializations is that they can be invisible to the user. When a user creates a Grid of ints or SpreadsheetCells, the compiler generates code from the original Grid template. When the user creates a Grid of const char*s, the compiler uses the const char* specialization. This can all be “behind the scenes.”
+
+The primary module interface file simply imports and exports both module interface partitions:
+
+\begin{cpp}
+export module grid;
+
+export import :main;
+export import :string;
+\end{cpp}
+
+The specialization can be tested as follows:
+
+\begin{cpp}
+Grid<int> myIntGrid; // Uses original Grid template.
+Grid<const char*> stringGrid1 { 2, 2 }; // Uses const char* specialization.
+
+const char* dummy { "dummy" };
+stringGrid1.at(0, 0) = "hello";
+stringGrid1.at(0, 1) = dummy;
+stringGrid1.at(1, 0) = dummy;
+stringGrid1.at(1, 1) = "there";
+
+Grid<const char*> stringGrid2 { stringGrid1 };
+\end{cpp}
+
+When you specialize a class template, you don’t “inherit” any code; specializations are not like derivations. You must rewrite the entire implementation of the class. There is no requirement that you provide member functions with the same names or behavior. As an example, the const char* specialization of Grid implements the at() member functions by returning an optional<string>, not an optional<const char*>. As a matter of fact, you could write a completely different class with no relation to the original. Of course, that would abuse the template specialization ability, and you shouldn’t do it without good reason. Here are the implementations for the member functions of the const char* specialization. Unlike in the class template definition, you do not repeat the template header, template<>, before each member function definition.
+
+\begin{cpp}
+Grid<const char*>::Grid(std::size_t width, std::size_t height)
+: m_width { width }, m_height { height }
+{
+    m_cells.resize(m_width * m_height);
+}
+
+void Grid<const char*>::verifyCoordinate(std::size_t x, std::size_t y) const
+{
+    if (x >= m_width) {
+        throw std::out_of_range {
+            std::format("x ({}) must be less than width ({}).", x, m_width) };
+    }
+    if (y >= m_height) {
+        throw std::out_of_range {
+            std::format("y ({}) must be less than height ({}).", y, m_height) };
+    }
+}
+
+const std::optional<std::string>& Grid<const char*>::at(
+std::size_t x, std::size_t y) const
+{
+    verifyCoordinate(x, y);
+    return m_cells[x + y * m_width];
+}
+
+std::optional<std::string>& Grid<const char*>::at(std::size_t x, std::size_t y)
+{
+    return const_cast<std::optional<std::string>&>(
+    std::as_const(*this).at(x, y));
+}
+\end{cpp}
+
+This section discussed how to use class template specialization to write a special implementation for a class template, with all template type parameters replaced with specific types. This is called full template specialization. Such a full class template specialization is no longer a class template itself but a class definition. Chapter 26, “Advanced Templates,” continues the discussion of class template specialization with a more advanced feature called partial specialization.
 
 \mySubsubsection{12.2.7.}{Deriving from Class Templates}
 
+You can inherit from class templates. If the derived class inherits from the template itself, it must be a template as well. Alternatively, you can derive from a specific instantiation of the class template, in which case your derived class does not need to be a template. As an example of the former, suppose you decide that the generic Grid class doesn’t provide enough functionality to use as a game board. Specifically, you would like to add a move() member function to the game board that moves a piece from one location on the board to another. Here is the class definition for the GameBoard template:
 
+\begin{cpp}
+import grid;
+
+export template <typename T>
+class GameBoard : public Grid<T>
+{
+    public:
+        // Inherit constructors from Grid<T>.
+        using Grid<T>::Grid;
+
+        void move(std::size_t xSrc, std::size_t ySrc,
+            std::size_t xDest, std::size_t yDest);
+};
+\end{cpp}
+
+This GameBoard template derives from the Grid template and thereby inherits all its functionality. You don’t need to rewrite at(), getHeight(), or any of the other member functions. You also don’t need to add a copy constructor, operator=, or destructor, because you don’t have any dynamically allocated memory in GameBoard. Additionally, GameBoard explicitly inherits the constructors from the base class, Grid<T>. Inheriting constructors from base classes is explained in Chapter 10, “Discovering Inheritance Techniques.”
+
+The inheritance syntax looks normal, except that the base class is Grid<T>, not Grid. The reason for this syntax is that the GameBoard template doesn’t really derive from the generic Grid template.
+
+Rather, each instantiation of the GameBoard template for a specific type derives from the Grid instantiation for that same type. For example, if you instantiate a GameBoard with a ChessPiece type, then the compiler generates code for a Grid<ChessPiece> as well. The : public Grid<T> syntax says that this class inherits from whatever Grid instantiation makes sense for the T type parameter.
+
+Here is the implementation of the move() member function:
+
+\begin{cpp}
+template <typename T>
+void GameBoard<T>::move(std::size_t xSrc, std::size_t ySrc,
+    std::size_t xDest, std::size_t yDest)
+{
+    Grid<T>::at(xDest, yDest) = std::move(Grid<T>::at(xSrc, ySrc));
+    Grid<T>::at(xSrc, ySrc).reset(); // Reset source cell
+    // Or:
+    // this->at(xDest, yDest) = std::move(this->at(xSrc, ySrc));
+    // this->at(xSrc, ySrc).reset();
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Although some compilers don’t enforce it, the C++ name lookup rules require you to use the this pointer or Grid<T>:: to refer to data members and member functions in a base class template. Hence, we use Grid<T>::at() instead of just at().
+\end{myNotic}
+
+You can use the GameBoard template as follows:
+
+\begin{cpp}
+GameBoard<ChessPiece> chessboard { 8, 8 };
+ChessPiece pawn;
+chessBoard.at(0, 0) = pawn;
+chessBoard.move(0, 0, 0, 1);
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Of course, if you want to override member functions from Grid, you will have to mark them virtual in the Grid class template.
+\end{myNotic}
 
 \mySubsubsection{12.2.8.}{Inheritance vs. Specialization}
 
+Some programmers find the distinction between template inheritance and template specialization confusing. The following table summarizes the differences:
 
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+&
+\textbf{INHERITANCE} &
+\textbf{SPECIALIZATION} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\textbf{Reuses code?} &
+\begin{tabular}[c]{@{}l@{}}Yes: Derived classes contain all base\\ class data members and member\\ functions.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}No: You must rewrite\\ all required code in the\\ specialization.\end{tabular} \\ \hline
+\textbf{Reuses name?} &
+\begin{tabular}[c]{@{}l@{}}No: The derived class name must be\\ different from the base class name.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Yes: The specialization must\\ have the same name as\\ the original.\end{tabular} \\ \hline
+\textbf{\begin{tabular}[c]{@{}l@{}}Supports\\ polymorphism?\end{tabular}} &
+\begin{tabular}[c]{@{}l@{}}Yes: Objects of the derived class can\\ stand in for objects of the base class.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}No: Each instantiation of\\ a template for a type is a\\ different type.\end{tabular} \\ \hline
+\end{longtable}
+
+\begin{myNotic}{NOTE}
+Use inheritance for extending implementations and for polymorphism. Use specialization for customizing implementations for particular types.
+\end{myNotic}
 
 \mySubsubsection{12.2.9.}{Alias Templates}
+
+Chapter 1 introduces the concept of type aliases and typedefs. They allow you to give other names to specific types. To refresh your memory, you could, for example, write the following type alias to give a second name to type int:
+
+\begin{cpp}
+using MyInt = int;
+\end{cpp}
+
+Similarly, you can use a type alias to give another name to a class template. Suppose you have the following class template:
+
+\begin{cpp}
+template <typename T1, typename T2>
+class MyClassTemplate { /* ... */ };
+\end{cpp}
+
+You can define the following type alias in which you specify both class template type parameters:
+
+\begin{cpp}
+using OtherName = MyClassTemplate<int, double>;
+\end{cpp}
+
+A typedef can also be used instead of such a type alias.
+
+Additionally, it’s also possible to specify only some of the types and keep the other types as template type parameters. This is called an alias template. Here’s an example:
+
+\begin{cpp}
+template <typename T1>
+using OtherName = MyClassTemplate<T1, double>;
+\end{cpp}
+
+This is something you cannot do with a typedef.
+
+
+
+
+
+
+
+
 

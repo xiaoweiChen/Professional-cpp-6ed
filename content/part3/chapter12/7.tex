@@ -1,0 +1,29 @@
+By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+
+\begin{itemize}
+\item
+Exercise 12-1: Write a KeyValuePair class template with two template type parameters: Key and Value. The class should have two private data members to store a key and a value. Provide a constructor accepting a key and a value, and add appropriate getters and setters. Test your class by creating a few instantiations in your main() function and try class template argument deduction.
+
+\item
+Exercise 12-2: The KeyValuePair class template from Exercise 12-1 supports all kind of data types for both its key and value template type parameters. For example, the following instantiates the class template with std::string as the type for both the key and the value:
+
+\begin{cpp}
+KeyValuePair<std::string, std::string> kv { "John Doe", "New York" };
+\end{cpp}
+
+However, using const char* as template type arguments results in data members of type const char*, which is not what we want.
+
+Write a class template specialization for const char* keys and values that converts the given strings to std::strings.
+
+\item
+Exercise 12-3: Take your solution from Exercise 12-1 and make the appropriate changes to only allow integer types as the type of the key and only floating-point types as the type of the value.
+
+\item
+Exercise 12-4: Write a function template called concat() with two template type parameters and two function parameters t1 and t2. The function first converts t1 and t2 to a string and then returns the concatenation of those two strings. For this exercise, focus only on types for which std::to\_string() is supported. Create and use a proper concept to make sure users of the function template don’t try to use it with unsupported types. Try to write your function template without using the template keyword.
+
+\item
+Exercise 12-5: The concat() function template from Exercise 12-4 only works with types that are supported by std::to\_string(). In this exercise, modify your solution to make it also work with strings, and any combinations.
+
+\item
+Exercise 12-6: Take the original Find() function template from earlier in this chapter and add an appropriate constraint on the type T.
+\end{itemize}

@@ -1,24 +1,394 @@
 
+You can also write templates for stand-alone functions. The syntax is similar to the syntax for class templates. For example, you could write the following generic function to find a value in an array and return its index:
+
+\begin{cpp}
+template <typename T>
+optional<size_t> Find(const T& value, const T* arr, size_t size)
+{
+    for (size_t i { 0 }; i < size; ++i) {
+        if (arr[i] == value) {
+            return i; // Found it; return the index.
+        }
+    }
+    return {}; // Failed to find it; return empty optional.
+}
+\end{cpp}
+
+The Find() function template can work on arrays of any type. For example, you could use it to find the index of an int in an array of ints or a SpreadsheetCell in an array of SpreadsheetCells.
+
+You can call the function in two ways: explicitly specifying the template type parameter with angle brackets or omitting the type and letting the compiler deduce the type parameter from the arguments.
+
+Here are some examples:
+
+\begin{cpp}
+int myInt { 3 }, intArray[] {1, 2, 3, 4};
+const size_t sizeIntArray { size(intArray) };
+
+optional<size_t> res;
+res = Find(myInt, intArray, sizeIntArray); // calls Find<int> by deduction.
+res = Find<int>(myInt, intArray, sizeIntArray); // calls Find<int> explicitly.
+if (res) { println("{}", *res); }
+else { println("Not found"); }
+
+double myDouble { 5.6 }, doubleArray[] {1.2, 3.4, 5.7, 7.5};
+const size_t sizeDoubleArray { size(doubleArray) };
+
+// calls Find<double> by deduction.
+res = Find(myDouble, doubleArray, sizeDoubleArray);
+// calls Find<double> explicitly.
+res = Find<double>(myDouble, doubleArray, sizeDoubleArray);
+if (res) { println("{}", *res); }
+else { println("Not found"); }
+
+//res = Find(myInt, doubleArray, sizeDoubleArray); // DOES NOT COMPILE!
+                                                // Arguments are different types.
+
+// calls Find<double> explicitly, even with myInt.
+res = Find<double>(myInt, doubleArray, sizeDoubleArray);
+
+SpreadsheetCell cell1 { 10 }
+SpreadsheetCell cellArray[] { SpreadsheetCell { 4 }, SpreadsheetCell { 10 } };
+const size_t sizeCellArray { size(cellArray) };
+
+res = Find(cell1, cellArray, sizeCellArray);
+res = Find<SpreadsheetCell>(cell1, cellArray, sizeCellArray);
+\end{cpp}
+
+The previous implementation of the Find() function template requires the size of the array as one of the parameters. Sometimes the compiler knows the exact size of an array, for example, for stackbased arrays. It would be nice to be able to call Find() with such arrays without the need to pass it the size of the array. This can be accomplished by adding the following function template. The implementation just forwards the call to the previous Find() function template. This also demonstrates that function templates can take non-type parameters, just like class templates.
+
+\begin{cpp}
+template <typename T, size_t N>
+optional<size_t> Find(const T& value, const T(&arr)[N])
+{
+    return Find(value, arr, N);
+}
+\end{cpp}
+
+The syntax of this overload of Find() looks a bit strange, but its use is straightforward, as in this example:
+
+\begin{cpp}
+int myInt { 3 }, intArray[] {1, 2, 3, 4};
+optional<size_t> res { Find(myInt, intArray) };
+\end{cpp}
+
+Like class template member function definitions, function template definitions (not just the prototypes) must be available to all source files that use them. Thus, you should put the definitions in module interface files and export them if more than one source file uses them.
+
+Finally, template parameters of function templates can have defaults, just like class templates.
+
+\begin{myNotic}{NOTE}
+The C++ Standard Library provides an std::find() function template that is more powerful than the Find() function template shown here. See Chapter 20, “Mastering Standard Library Algorithms,” for details.
+\end{myNotic}
 
 \mySubsubsection{12.3.1.}{Function Overloads vs. Function Template}
 
+There are two options when you want to provide a function that can work with different data types: provide function overloads or provide a function template. How do you choose between those two options?
 
+When writing a function that should work with different data types and for which the body of the function is the same for all data types, provide a function template. If the body of the function is different for every data type, provide function overloads.
 
 \mySubsubsection{12.3.2.}{Function Template Overloading}
 
+In theory, the C++ language allows you to write function template specializations, just as you can write class template specializations. However, you rarely want to do this because such function template specializations do not participate in overload resolution and hence might behave unexpectedly.
 
+Instead, you can overload function templates with either non-template functions or other function templates. For example, you might want to write a Find() overload for const char* C-style strings that compares them with strcmp() (see Chapter 2, “Working with Strings and String Views”) instead of operator==, as == would only compare pointers, not the actual strings. Here is such an overload:
+
+\begin{cpp}
+optional<size_t> Find(const char* value, const char** arr, size_t size)
+{
+    for (size_t i { 0 }; i < size; ++i) {
+        if (strcmp(arr[i], value) == 0) {
+            return i; // Found it; return the index.
+        }
+    }
+    return {}; // Failed to find it; return empty optional.
+}
+\end{cpp}
+
+This function overload can be used as follows:
+
+\begin{cpp}
+// Using an array for word to make sure no literal pooling happens, see Chapter 2.
+const char word[] { "two" };
+const char* words[] { "one", "two", "three", "four" };
+const size_t sizeWords { size(words) };
+optional<size_t> res { Find(word, words, sizeWords) }; // Calls non-template Find.
+if (res) { println("{}", *res); }
+else { println("Not found"); }
+\end{cpp}
+
+The call to Find() correctly finds the string “two” at index 1.
+
+If you do explicitly specify the template type parameter as follows, then the function template will be called with T=const char*, and not the overload for const char*:
+
+\begin{cpp}
+res = Find<const char*>(word, words, sizeWords);
+\end{cpp}
+
+This call of Find() does not find any matches, as it doesn’t compare the actual strings, but just pointers.
+
+When the overload resolution process of the compiler results in two possible candidates, one being a function template, the other being a non-template function, then the compiler always prefers to use the non-template function.
 
 \mySubsubsection{12.3.3.}{Function Templates as Friends of Class Templates}
 
+Function templates are useful when you want to overload operators in a class template. For example, you might want to overload the addition operator (operator+) for the Grid class template to be able to add two grids together. The result will be a Grid with the same size as the smallest Grid of the two operands. Corresponding cells are added together only if both cells contain an actual value. Suppose you want to make your operator+ a stand-alone function template. The definition, which should go in the Grid.cppm module interface file, looks as follows. The implementation uses std::min(), defined in <algorithm>, to return the minimum value of two given arguments:
 
+\begin{cpp}
+export template <typename T>
+Grid<T> operator+(const Grid<T>& lhs, const Grid<T>& rhs)
+{
+    std::size_t minWidth { std::min(lhs.m_width, rhs.m_width) };
+    std::size_t minHeight { std::min(lhs.m_height, rhs.m_height) };
+
+    Grid<T> result { minWidth, minHeight };
+    for (std::size_t y { 0 }; y < minHeight; ++y) {
+        for (std::size_t x { 0 }; x < minWidth; ++x) {
+            const auto& leftElement { lhs.at(x, y) };
+            const auto& rightElement { rhs.at(x, y) };
+            if (leftElement.has_value() && rightElement.has_value()) {
+                result.at(x, y) = leftElement.value() + rightElement.value();
+            }
+        }
+    }
+    return result;
+}
+\end{cpp}
+
+To query whether an optional contains an actual value, you use the has\_value() member function, while value() is used to retrieve this value.
+
+This function template works on any Grid, as long as there is an addition operator for the type of elements stored in the grid. The only problem with this implementation is that it accesses private members m\_width and m\_height of the Grid class. The obvious solution is to use the public getWidth() and getHeight() member functions, but let’s see how you can make a function template a friend of a class template. For this example, you can make the operator a friend of the Grid class template. However, both Grid and the operator+ are templates. What you really want is for each instantiation of operator+ for a particular type T to be a friend of the Grid template instantiation for that same type. The syntax looks like this:
+
+\begin{cpp}
+export template <typename T>
+class Grid
+{
+    public:
+        friend Grid operator+<T>(const Grid& lhs, const Grid& rhs);
+        // Omitted for brevity
+};
+\end{cpp}
+
+This friend declaration is tricky: you’re saying that, for an instance of the class template with type T, the T instantiation of operator+ is a friend. In other words, there is a one-to-one mapping of friends between the class instantiations and the function instantiations. Note particularly the explicit template specification <T> on operator+. This syntax tells the compiler that operator+ is itself a template.
+
+This friend operator+ can be tested as follows. The following code first defines two helper function templates: fillGrid(), which fills any Grid with increasing numbers, and printGrid(), which prints any Grid to the console.
+
+\begin{cpp}
+template <typename T> void fillGrid(Grid<T>& grid)
+{
+    T index { 0 };
+    for (size_t y { 0 }; y < grid.getHeight(); ++y) {
+        for (size_t x { 0 }; x < grid.getWidth(); ++x) {
+            grid.at(x, y) = ++index;
+        }
+    }
+}
+
+template <typename T> void printGrid(const Grid<T>& grid)
+{
+    for (size_t y { 0 }; y < grid.getHeight(); ++y) {
+        for (size_t x { 0 }; x < grid.getWidth(); ++x) {
+            const auto& element { grid.at(x, y) };
+            if (element.has_value()) { print("{}\t", element.value()); }
+            else { print("n/a\t"); }
+        }
+        println("");
+    }
+}
+
+int main()
+{
+    Grid<int> grid1 { 2, 2 };
+    Grid<int> grid2 { 3, 3 };
+    fillGrid(grid1); println("grid1:"); printGrid(grid1);
+    fillGrid(grid2); println("\ngrid2:"); printGrid(grid2);
+    auto result { grid1 + grid2 };
+    println("\ngrid1 + grid2:"); printGrid(result);
+}
+\end{cpp}
 
 \mySubsubsection{12.3.4.}{More on Template Type Parameter Deduction}
 
+The compiler deduces the type of function template parameters based on the arguments passed to the function template. Template parameters that cannot be deduced have to be specified explicitly.
 
+For example, the following add() function template requires three template parameters: the type of the return value and the types of the two operands:
+
+\begin{cpp}
+template <typename RetType, typename T1, typename T2>
+RetType add(const T1& t1, const T2& t2) { return t1 + t2; }
+\end{cpp}
+
+You can call this function template specifying all three parameters as follows:
+
+\begin{cpp}
+auto result { add<long long, int, int>(1, 2) };
+\end{cpp}
+
+However, because the template parameters T1 and T2 are parameters to the function, the compiler can deduce those two parameters, so you can call add() by only specifying the type for the return value:
+
+\begin{cpp}
+auto result { add<long long>(1, 2) };
+\end{cpp}
+
+This works only when the parameters to deduce are last in the list of parameters. Suppose the function template is defined as follows:
+
+\begin{cpp}
+template <typename T1, typename RetType, typename T2>
+RetType add(const T1& t1, const T2& t2) { return t1 + t2; }
+\end{cpp}
+
+You have to specify RetType, because the compiler cannot deduce that type. However, because RetType is the second parameter, you have to explicitly specify T1 as well:
+
+\begin{cpp}
+auto result { add<int, long long>(1, 2) };
+\end{cpp}
+
+You can also provide a default value for the return type template parameter so that you can call add() without specifying any types:
+
+\begin{cpp}
+template <typename RetType = long long, typename T1, typename T2>
+RetType add(const T1& t1, const T2& t2) { return t1 + t2; }
+...
+auto result { add(1, 2) };
+\end{cpp}
 
 \mySubsubsection{12.3.5.}{Return Type of Function Templates}
 
+Continuing the example of the add() function template, wouldn’t it be nice to let the compiler deduce the type of the return value? It would; however, the return type depends on the template type parameters, so how can you do this? For example, take the following function template:
 
+\begin{cpp}
+template <typename T1, typename T2>
+RetType add(const T1& t1, const T2& t2) { return t1 + t2; }
+\end{cpp}
+
+In this example, RetType should be the type of the expression t1+t2, but you don’t know this because you don’t know what T1 and T2 are.
+
+As discussed in Chapter 1, since C++14 you can ask the compiler to automatically deduce the return type for a function. So you can simply write add() as follows:
+
+\begin{cpp}
+template <typename T1, typename T2>
+auto add(const T1& t1, const T2& t2) { return t1 + t2; }
+\end{cpp}
+
+However, using auto to deduce the type of an expression strips away reference and const qualifiers, while decltype does not strip those. This stripping is fine for the add() function template because operator+ usually returns a new object anyway, but this stripping might not be desirable for certain other function templates, so let’s see how you can avoid it.
+
+Before continuing with the function template examples, however, let’s first look at the differences between auto and decltype using a non-template example. Suppose you have the following function:
+
+\begin{cpp}
+const std::string message { "Test" };
+
+const std::string& getString() { return message; }
+\end{cpp}
+
+You can call getString() and store the result in a variable with the type specified as auto as follows:
+
+\begin{cpp}
+auto s1 { getString() };
+\end{cpp}
+
+Because auto strips reference and const qualifiers, s1 is of type string, and thus a copy is made. If you want a reference-to-const, you can explicitly make it a reference and mark it const as follows:
+
+\begin{cpp}
+const auto& s2 { getString() };
+\end{cpp}
+
+An alternative solution is to use decltype, which does not strip anything:
+
+\begin{cpp}
+decltype(getString()) s3 { getString() };
+\end{cpp}
+
+In this case, s3 is of type const string\&; however, there is code duplication because you need to specify getString() twice, which can be cumbersome when getString() is a more complicated expression. This is solved with decltype(auto):
+
+\begin{cpp}
+decltype(auto) s4 { getString() };
+\end{cpp}
+
+s4 is also of type const string\&.
+
+So, with this knowledge, we can write our add() function template using decltype(auto) to avoid stripping any const and reference qualifiers:
+
+\begin{cpp}
+template <typename T1, typename T2>
+decltype(auto) add(const T1& t1, const T2& t2) { return t1 + t2; }
+\end{cpp}
+
+Before C++14—that is, before function return type deduction and decltype(auto) were supported—the problem was solved using decltype(expression), introduced with C++11. For example, you would think you could write the following:
+
+\begin{cpp}
+template <typename T1, typename T2>
+decltype(t1+t2) add(const T1& t1, const T2& t2) { return t1 + t2; }
+\end{cpp}
+
+However, this is wrong. You are using t1 and t2 in the beginning of the prototype line, but these are not yet known. t1 and t2 become known once the semantic analyzer reaches the end of the parameter list.
+
+This problem used to be solved with the alternative function syntax. Note that with this syntax, auto is used at the beginning of the prototype line, and the actual return type is specified after the parameter list (trailing return type); thus, the names of the parameters (and their types, and consequently, the type t1+t2) are known:
+
+\begin{cpp}
+template <typename T1, typename T2>
+auto add(const T1& t1, const T2& t2) -> decltype(t1+t2)
+{
+    return t1 + t2;
+}
+\end{cpp}
+
+Another option is to use std::declval<>(), which returns an rvalue reference to the type you requested. This is not a fully constructed object, as no constructor gets called! You cannot use the object at run time. You should only use it, for example, in combination with decltype(). It comes in handy in generic code and when you need to create an object of some unknown type. In that case, you can’t call any sensible constructor as you don’t know what constructors the unknown type supports. Let’s look at an example. The earlier add() code snippet with an explicit return type of decltype(t1+t2) at the beginning of the prototype line doesn’t compile because the names t1 and t2 are not yet known at that time. To remedy this, you can use declval<>() as follows:
+
+\begin{cpp}
+template <typename T1, typename T2>
+decltype(std::declval<T1>() + std::declval<T2>()) add(const T1& t1, const T2& t2)
+{
+    return t1 + t2;
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Now that C++ supports auto return type deduction and decltype(auto), it is recommended to use one of these mechanisms, instead of the alternative function syntax or declval<>().
+\end{myNotic}
 
 \mySubsubsection{12.3.6.}{Abbreviated Function Template Syntax}
+
+The abbreviated function template syntax makes writing function templates easier. Let’s take another look at the add() function template from the previous section:
+
+\begin{cpp}
+template <typename T1, typename T2>
+decltype(auto) add(const T1& t1, const T2& t2) { return t1 + t2; }
+\end{cpp}
+
+Looking at this, it’s a rather verbose syntax to specify a simple function template. With the abbreviated function template syntax, this can be written more elegantly as follows:
+
+\begin{cpp}
+decltype(auto) add(const auto& t1, const auto& t2) { return t1 + t2; }
+\end{cpp}
+
+With this syntax, there is no template header, template<>, anymore to specify template parameters. Instead, where previously the implementation used T1 and T2 as types for the parameters of the function, they are now specified as auto. This abbreviated syntax is just syntactical sugar; the compiler automatically translates this abbreviated implementation to the longer original code. Basically, every function parameter that is specified as auto becomes a template type parameter.
+
+There are two caveats that you have to keep in mind. First, each parameter specified as auto becomes a different template type parameter. Suppose you have a function template like this:
+
+\begin{cpp}
+template <typename T>
+decltype(auto) add(const T& t1, const T& t2) { return t1 + t2; }
+\end{cpp}
+
+This version has only a single template type parameter, and both parameters to the function, t1 and t2, are of type const T\&. For such a function template, you cannot use the abbreviated syntax, as that would be translated to a function template having two different template type parameters.
+
+A second issue is that you cannot use the deduced types explicitly in the implementation of the function template, as these automatically deduced types have no name. If you need this, you either need to keep using the longer function template syntax or use decltype() to figure out the type.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
