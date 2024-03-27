@@ -1,0 +1,16 @@
+By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+
+\begin{itemize}
+\item
+Exercise 13-1: Let’s revisit the Person class you developed during exercises in previous chapters. Take your implementation from Exercise 9-2 and add an output() member function that writes the details of a person to the standard output console.
+
+\item
+Exercise 13-2: The output() member function from the previous exercise always writes the details of a person to the standard output console. Change the output() member function to have an output stream as parameter and write the details of a person to that stream. Test your new implementation in main() by writing a person to the standard output console, a string stream, and a file. Notice how it’s possible to output a person to all kinds of different targets (output console, string streams, files, and so on) with a single member function using streams.
+
+\item
+Exercise 13-3: Develop a class called Database that stores Persons (from Exercise 13-2) in an std::vector. Provide an add() member function to add a person to the database. Also provide a save() member function, accepting the name of a file to which it saves all persons in the database. Any existing contents in the file is removed. Add a load() member function, accepting the name of a file from which the database loads all persons. Provide a clear() member function to remove all persons from the database. Finally, add a member function outputAll() that calls output() on all persons in the database. Make sure your implementation works, even if there are spaces in a person’s first or last name.
+
+\item
+Exercise 13-4: The Database from Exercise 13-3 stores all persons in a single file. To practice the filesystem support library, let’s change that to store each person in its own file. Modify the save() and load() member functions to accept a directory as argument where files should be stored to or loaded from. The save() member function saves every person in the database to its own file. The name of each file is the first name of the person followed by an underscore followed by the last name of the person. The extension of the files should be .person. If a file already exists, overwrite it. The load() member function iterates over all .person files in a given directory and loads all of them.
+\end{itemize}
+

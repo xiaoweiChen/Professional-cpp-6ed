@@ -1,17 +1,185 @@
 
+The C++ Standard Library includes a filesystem support library, defined in <filesystem> and living in the std::filesystem namespace. It allows you to write portable code to work with the filesystem. You can use it for querying whether something is a directory or a file, iterating over the contents of a directory, manipulating paths, and retrieving information about files such as their size, extension, creation time, and so on. The two most important parts of the library—paths and directory entries— are introduced in the next sections.
 
 \mySubsubsection{13.6.1.}{Path}
 
+The basic component of the library is a path. A path can be absolute or relative and can optionally include a filename. For example, the following code defines a couple of paths. Note the use of raw string literals, introduced in Chapter 2, to avoid having to escape backslashes:
 
+\begin{cpp}
+path p1 { R"(D:\Foo\Bar)" };
+path p2 { "D:/Foo/Bar" };
+path p3 { "D:/Foo/Bar/MyFile.txt" };
+path p4 { R"(..\SomeFolder)" };
+path p5 { "/usr/lib/X11" };
+\end{cpp}
+
+A path can be converted to the native format of the system on which the code is running by calling string(). Here’s an example:
+
+\begin{cpp}
+println("{}", p1.string());
+println("{}", p2.string());
+\end{cpp}
+
+The output on Windows, which supports both forward and backward slashes, is as follows:
+
+\begin{shell}
+D:\Foo\Bar
+D:/Foo/Bar
+\end{shell}
+
+You can append a component to a path with the append() member function or with operator/=. A platform-dependent path separator is automatically inserted. Here’s an example:
+
+\begin{cpp}
+path p { "D:\\Foo" };
+p.append("Bar");
+p /= "Bar";
+println("{}", p.string());
+\end{cpp}
+
+The output on Windows is D:\verb|\|Foo\verb|\|Bar\verb|\|Bar.
+
+You can use concat() or operator+= to concatenate a string to an existing path. This does not insert any path separator! Here’s an example:
+
+\begin{cpp}
+path p { "D:\\Foo" };
+p.concat("Bar");
+p += "Bar";
+println("{}", p.string());
+\end{cpp}
+
+The output on Windows now is D:\verb|\|FooBarBar.
+
+\begin{myWarning}{WARNING}
+append() and operator/= automatically insert a platform-dependent path separator, while concat() and operator+= do not.
+\end{myWarning}
+
+A range-based for loop can be used to iterate over the different components of a path. Here is an example:
+
+\begin{cpp}
+path p { R"(C:\Foo\Bar)" };
+for (const auto& component : p) {
+    println("{}", component.string());
+}
+\end{cpp}
+
+The output on Windows is as follows:
+
+\begin{cpp}
+C:
+\
+Foo
+Bar
+\end{cpp}
+
+The path interface supports operations such as remove\_filename(), replace\_filename(), replace\_extension(), root\_name(), parent\_path(), extension(), stem(), filename(), has\_extension(), is\_absolute(), is\_relative(), and more. A few of these are demonstrated in the following code snippet:
+
+\begin{cpp}
+path p { R"(C:\Foo\Bar\file.txt)" };
+println("{}", p.root_name().string());
+println("{}", p.filename().string());
+println("{}", p.stem().string());
+println("{}", p.extension().string());
+\end{cpp}
+
+This code produces the following result on Windows:
+
+\begin{shell}
+C:
+file.txt
+file
+.txt
+\end{shell}
+
+Consult your favorite Standard Library reference for a full list of all available functionality.
 
 \mySubsubsection{13.6.2.}{Directory Entry}
 
+A path just represents a directory or a file on a filesystem. A path may refer to a non-existing directory or file. If you want to query an actual directory or file on the filesystem, you need to construct a directory\_entry from a path. The directory\_entry interface supports operations such as exists(), is\_directory(), is\_regular\_file(), file\_size(), last\_write\_time(), and others.
 
+The following example constructs a directory\_entry from a path to query the size of a file:
+
+\begin{cpp}
+path myPath { "c:/windows/win.ini" };
+directory_entry dirEntry { myPath };
+if (dirEntry.exists() && dirEntry.is_regular_file()) {
+    println("File size: {}", dirEntry.file_size());
+}
+\end{cpp}
 
 \mySubsubsection{13.6.3.}{Helper Functions}
 
+An entire collection of helper functions is available as well. For example, you can use copy() to copy files or directories, create\_directory() to create a new directory on the filesystem, exists() to query whether a given directory or file exists, file\_size() to get the size of a file, last\_write\_time() to get the time the file was last modified, remove() to delete a file, temp\_directory\_path() to get a directory suitable for storing temporary files, space() to query the available space on a filesystem, and more. Consult a Standard Library reference (see Appendix B, “Annotated Bibliography”) for a full list.
+
+The following example prints out the capacity of a filesystem and how much space is still free:
+
+\begin{cpp}
+space_info s { space("c:\\") };
+println("Capacity: {}", s.capacity);
+println("Free: {}", s.free);
+\end{cpp}
+
+You can find more examples of these helper functions in the following section on directory iteration.
 
 
 \mySubsubsection{13.6.4.}{Directory Iteration}
+
+If you want to recursively iterate over all files and subdirectories in a given directory, you can use a recursive\_directory\_iterator. To start the iteration process, you need an iterator to the first directory\_entry. To know when to stop the iteration, you need an end iterator. To create the start iterator, construct a recursive\_directory\_iterator and pass as argument a path of the directory over which you want to iterate. To construct the end iterator, default construct a recursive\_directory\_iterator. To get access to the directory\_entry that an iterator refers to, use the dereferencing operator, *. Traversing all elements in the collection is accomplished by simply incrementing the iterator using the ++ operator until it reaches the end iterator. Note that the end iterator is not part of the collection anymore and hence does not refer to a valid directory\_entry and must not be dereferenced.
+
+\begin{cpp}
+void printDirectoryStructure(const path& p)
+{
+    if (!exists(p)) { return; }
+
+    recursive_directory_iterator begin { p };
+    recursive_directory_iterator end { };
+    for (auto iter { begin }; iter != end; ++iter) {
+
+        const string spacer(iter.depth() * 2, ' ');
+
+        auto& entry { *iter }; // Dereference iter to access directory_entry.
+
+        if (is_regular_file(entry)) {
+            println("{}File: {} ({} bytes)",
+            spacer, entry.path().string(), file_size(entry));
+        } else if (is_directory(entry)) {
+            println("{}Dir: {}", spacer, entry.path().string());
+        }
+    }
+}
+\end{cpp}
+
+This function can be called as follows:
+
+\begin{cpp}
+path p { R"(D:\Foo\Bar)" };
+printDirectoryStructure(p);
+\end{cpp}
+
+You can also use a directory\_iterator to iterate over the contents of a directory and implement the recursion yourself. Here is an example that does the same thing as the previous example but using a directory\_iterator instead of a recursive\_directory\_iterator:
+
+\begin{cpp}
+void printDirectoryStructure(const path& p, unsigned level = 0)
+{
+    if (!exists(p)) { return; }
+
+    const string spacer(level * 2, ' ');
+
+    if (is_regular_file(p)) {
+        println("{}File: {} ({} bytes)", spacer, p.string(), file_size(p));
+    } else if (is_directory(p)) {
+        println("{}Dir: {}", spacer, p.string());
+        for (auto& entry : directory_iterator { p }) {
+            printDirectoryStructure(entry, level + 1);
+        }
+    }
+}
+\end{cpp}
+
+
+
+
+
+
+
 
 

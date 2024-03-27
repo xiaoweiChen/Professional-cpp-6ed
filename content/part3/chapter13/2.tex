@@ -1,0 +1,67 @@
+String streams provide a way to use stream semantics with strings. In this way, you can have an in-memory stream that represents textual data. For example, in a GUI application you might want to use streams to build up textual data, but instead of outputting the text to the console or a file, you might want to display the result in a GUI element like a message box or an edit control. Another example could be that you want to pass a string stream around to different functions, while retaining the current read position, so that each function can process the next part of the stream. String streams are also useful for parsing text, because streams have built-in tokenizing functionality.
+
+The std::ostringstream class is used to write data to a string, while std::istringstream is used to read data from a string. The o in ostringstream stands for output, while the i in istringstream stands for input. They are both defined in <sstream>. Because ostringstream and istringstream inherit the same behavior as ostream and istream, working with them is pleasantly similar.
+
+The following program requests words from the user and outputs them to a single ostringstream, separated by commas and surrounded by double quotes. At the end of the program, the whole stream is turned into a string object using the str() member function and is written to the console.
+
+Input of tokens can be stopped by entering the token “done” or by closing the input stream with Control+D (Unix) or Control+Z (Windows).
+
+\begin{cpp}
+println("Enter tokens. "
+        "Control+D (Unix) or Control+Z (Windows) followed by Enter to end.");
+ostringstream outStream;
+bool firstLoop { true };
+while (cin) {
+    string nextToken;
+    print("Next token: ");
+    cin >> nextToken;
+
+    if (!cin || nextToken == "done") { break; }
+
+    if (!firstLoop) { outStream << ", "; }
+    outStream << '"' << nextToken << '"';
+    firstLoop = false;
+}
+println("The end result is: {}", outStream.str());
+\end{cpp}
+
+Reading data from a string stream is similarly familiar. The following function creates and populates a Muffin object (see the earlier example) from a string input stream. The stream data is in a fixed format so that the function can easily turn its values into calls to Muffin’s setters. This fixed format is the description of the muffin between double quotes, followed by the size, followed by true or false depending on whether the muffin has chocolate chips. For example, the following string is a valid muffin:
+
+\begin{shell}
+"Raspberry Muffin" 12 true
+\end{shell}
+
+Here is the implementation. Note the use of the quoted manipulator to read a quoted string from the input stream.
+
+\begin{cpp}
+Muffin createMuffin(istringstream& stream)
+{
+    Muffin muffin;
+    // Assume data is properly formatted:
+    // "Description" size chips
+
+    string description;
+    int size;
+    bool hasChips;
+
+    // Read all three values. Note that chips is represented
+    // by the strings "true" and "false".
+    stream >> quoted(description) >> size >> boolalpha >> hasChips;
+    if (stream) { // Reading was successful.
+        muffin.setSize(size);
+        muffin.setDescription(description);
+        muffin.setHasChocolateChips(hasChips);
+    }
+    return muffin;
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Turning an object into a “flattened” type, like a string, is often called marshaling. Marshaling is useful for saving objects to disk or sending them across a network.
+\end{myNotic}
+
+An advantage of string streams over standard C++ strings is that, in addition to data, they know where the next read or write operation will take place, also called the current position.
+
+Another advantage is that string streams support manipulators and locales to enable more powerful formatting compared to strings.
+
+Finally, if you need to build up a string by concatenating several smaller strings, using a string stream will be more performant compared to concatenating string objects directly.

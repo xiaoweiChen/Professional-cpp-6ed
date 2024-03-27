@@ -1,0 +1,43 @@
+
+\CXXTwentythreeLogo{-40}{12}
+
+C++23 introduces span-based streams, defined in <spanstream>, which allow you to use the stream metaphor on any fixed memory buffer you have available. How memory was allocated for that buffer is not important. The most important classes in this context that you’ll use are ispanstream for input, ospanstream for output, and spanstream for input and output. Technically, these are char instantiations for the class templates basic\_ispanstream, basic\_ospanstream, and basic\_spanstream. There are also wide-character, wchar\_t instantiations available called wispanstream, wospanstream, and wspanstream. Wide characters are mentioned earlier in this chapter and covered in more detail in Chapter 21. This section gives examples of the non-widecharacter classes, as the others work very similarly.
+
+The constructors of the span-based stream classes require an std::span. Chapter 18, “Standard Library Containers,” discusses span in detail and explains why and when you want to use it, but those details are not important for this section. The use of span in the context of span-based streams is straightforward, as you’ll see. In a nutshell, a span allows you to make a view over a contiguous block of memory. It’s a bit similar to how std::string\_view allows you to create a read-only view over any kind of string, as discussed in Chapter 2. The difference is that a span can be a read-only view, but it can also be a writable view allowing modifications to the underlying buffer.
+
+Here is an example of using an ispanstream to parse data stored in a fixed memory buffer called fixedBuffer. To construct a span over that buffer, you simply use the span constructor and pass it the location of the buffer.
+
+\begin{cpp}
+char fixedBuffer[] { "11 2.222 Hello" };
+ispanstream stream { span { fixedBuffer } };
+int i; double d; string str;
+stream >> i >> d >> str;
+println("Parsed data: int: {}, double: {}, string: {}", i, d, str);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Parsed data: int: 11, double: 2.222, string: Hello
+\end{shell}
+
+Using an ospanstream is similarly straightforward. The following code creates a fixed buffer of 32 chars, constructs a writable ospanstream view over that buffer, uses standard stream insertion operations to output some data to the buffer, and finally prints out the result:
+
+\begin{cpp}
+char fixedBuffer[32] {};
+ospanstream stream { span { fixedBuffer } };
+stream << "Hello " << 2.222 << ' ' << 11;
+println("Buffer contents: \"{}\"", fixedBuffer);
+\end{cpp}
+
+The output is:
+
+\begin{shell}
+Buffer contents: "Hello 2.222 11"
+\end{shell}
+
+
+
+
+
+

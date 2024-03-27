@@ -1,16 +1,252 @@
 
+Files lend themselves well to the stream abstraction because reading and writing files always involves a position in addition to the data. In C++, the std::ofstream and ifstream classes provide output and input functionality for files. They are defined in <fstream>.
+
+When dealing with the filesystem, it is especially important to detect and handle error cases. The file you are working with could be on a network file store that just went offline, or you may be trying to write to a file that is located on a disk that is full. Maybe you are trying to open a file for which the current user does not have permissions. Error conditions can be detected by using the standard error handling mechanisms described earlier.
+
+The only major difference between output file streams and other output streams is that the file stream constructor can take the name of the file and the mode in which you would like to open it. The default mode is write, ios\_base::out, which starts writing to a file at the beginning, overwriting any existing data. You can also open an output file stream in append mode by specifying the constant ios\_base::app as the second argument to the file stream constructor. The following table lists the different constants that are available:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{CONSTANT} & \textbf{DESCRIPTION}                                    \\ \hline
+\endfirsthead
+%
+\endhead
+%
+ios\_base::app    & Open, and go to the end before each write operation.    \\ \hline
+ios\_base::ate    & Open, and go to the end once immediately after opening. \\ \hline
+ios\_base::binary           & \begin{tabular}[c]{@{}l@{}}Perform input and output in binary mode as opposed to text mode.\\ See the next section.\end{tabular} \\ \hline
+ios\_base::in     & Open for input, start reading at the beginning.         \\ \hline
+ios\_base::out              & \begin{tabular}[c]{@{}l@{}}Open for output, start writing at the beginning, overwriting\\ existing data.\end{tabular}            \\ \hline
+ios\_base::trunc  & Option for out. Delete all existing data (truncate).    \\ \hline
+ios\_base::noreplace(C++23) & \begin{tabular}[c]{@{}l@{}}Option for out. Open in exclusive mode. Open will fail if the file\\ already exists.\end{tabular}     \\ \hline
+\end{longtable}
+
+Note that modes can be combined. For example, if you want to open a file for output in binary mode, while truncating existing data, you would specify the open mode as follows:
+
+\begin{cpp}
+ios_base::out | ios_base::binary | ios_base::trunc
+\end{cpp}
+
+An ifstream automatically includes the ios\_base::in mode, while an ofstream automatically includes the ios\_base::out mode, even if you don’t explicitly specify in or out as the mode.
+
+The following program opens the test.txt file and writes the program’s arguments to it. The ifstream and ofstream destructors automatically close the underlying file, so there is no need to explicitly call close().
+
+\begin{cpp}
+int main(int argc, char* argv[])
+{
+    ofstream outFile { "test.txt", ios_base::trunc };
+    if (!outFile.good()) {
+        println(cerr, "Error while opening output file!");
+        return -1;
+    }
+    outFile << "There were " << argc << " arguments to this program." << endl;
+    outFile << "They are: " << endl;
+    for (int i { 0 }; i < argc; i++) {
+        outFile << argv[i] << endl;
+    }
+}
+\end{cpp}
 
 \mySubsubsection{13.4.1.}{Text Mode vs. Binary Mode}
 
+By default, a file stream is opened in text mode. If you specify the ios\_base::binary flag, then the file is opened in binary mode.
 
+In binary mode, the exact bytes you ask the stream to write are written to the file. When reading, the bytes are returned to you exactly as they are in the file.
+
+In text mode, there is some hidden conversion happening: each line you write to, or read from, a file ends with \verb|\|n. However, how the end of a line is encoded in a file depends on the operating system. For example, on Windows, a line ends with \verb|\|r\verb|\|n instead of with a single \verb|\|n character. Therefore, when a file is opened in text mode and you write a line ending with \verb|\|n to it, the underlying implementation automatically converts the \verb|\|n to \verb|\|r\verb|\|n before writing it to the file. Similarly, when reading a line from the file, the \verb|\|r\verb|\|n that is read from the file is automatically converted back to \verb|\|n before being returned to you.
 
 \mySubsubsection{13.4.2.}{Jumping Around with seek() and tell()}
 
+The seekx() and tellx() member functions are present on all input and output streams. The seekx() member functions let you move to an arbitrary position within an input or output stream. There are several forms of seekx(). For an input stream, the member function is called seekg() (the g is for get), and for an output stream, it is called seekp() (the p is for put). You might wonder why there is both a seekg() and a seekp() member function, instead of one seek() member function. The reason is that you can have streams that are both input and output, for example, file streams. In that case, the stream needs to remember both a read position and a separate write position. This is also called bidirectional I/O and is covered later in this chapter.
 
+There are two overloads of seekg() and two of seekp(). One overload accepts a single argument, an absolute position, and seeks to this absolute position. The second overload accepts an offset and a position and seeks an offset relative to the given position. Positions are of type std::streampos, while offsets are of type std::streamoff; both are measured in bytes. There are three predefined positions available, as shown in the following table:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{POSITION} & \textbf{DESCRIPTION}               \\ \hline
+\endfirsthead
+%
+\endhead
+%
+ios\_base::beg    & The beginning of the stream        \\ \hline
+ios\_base::end    & The end of the stream              \\ \hline
+ios\_base::cur    & The current position in the stream \\ \hline
+\end{longtable}
+
+
+For example, to seek to an absolute position in an output stream, you can use the one-parameter overload of seekp(), as in the following case, which uses the constant ios\_base::beg to move to the beginning of the stream:
+
+\begin{cpp}
+outStream.seekp(ios_base::beg);
+\end{cpp}
+
+Seeking within an input stream is the same, except that the seekg() member function is used:
+
+\begin{cpp}
+inStream.seekg(ios_base::beg);
+\end{cpp}
+
+The two-argument overloads move to a relative position in the stream. The first argument prescribes how many positions to move, and the second argument provides the starting point. To move relative to the beginning of the file, the constant ios\_base::beg is used. To move relative to the end of the file, ios\_base::end is used. To move relative to the current position, ios\_base::cur is used. For example, the following line moves to the second byte from the beginning of the output stream. Note that integers are implicitly converted to type streampos and streamoff.
+
+\begin{cpp}
+outStream.seekp(2, ios_base::beg);
+\end{cpp}
+
+The next example moves to the third-to-last byte of an input stream:
+
+\begin{cpp}
+inStream.seekg(-3, ios_base::end);
+\end{cpp}
+
+You can also query a stream’s current location using the tellx() member function, which returns a streampos that indicates the current position. You can use this result to remember the current marker position before doing a seekx() or to query whether you are in a particular location. There are again separate versions of tellx() for input streams and output streams. Input streams use tellg(), and output streams use tellp().
+
+The following code checks the position of an input stream to determine whether it is at the beginning:
+
+\begin{cpp}
+streampos curPos { inStream.tellg() };
+if (ios_base::beg == curPos) {
+    println("We're at the beginning.");
+}
+\end{cpp}
+
+The following is a sample program that brings it all together. This program writes into a file called test.out and performs the following tests:
+
+\begin{enumerate}
+\item
+Outputs the string 54321 to the file
+
+\item
+Verifies that the marker is at position 5 in the stream
+
+\item
+Moves to position 2 in the output stream
+
+\item
+Outputs a 0 in position 2 and closes the output stream
+
+\item
+Opens an input stream on the test.out file
+
+\item
+Reads the first token as an integer
+
+\item
+Confirms that the value is 54021
+\end{enumerate}
+
+\begin{cpp}
+ofstream fout { "test.out" };
+if (!fout) {
+    println(cerr, "Error opening test.out for writing.");
+    return 1;
+}
+
+// 1. Output the string "54321".
+fout << "54321";
+
+// 2. Verify that the marker is at position 5.
+streampos curPos { fout.tellp() };
+if (curPos == 5) {
+    println("Test passed: Currently at position 5.");
+} else {
+    println("Test failed: Not at position 5!");
+}
+
+// 3. Move to position 2 in the output stream.
+fout.seekp(2, ios_base::beg);
+
+// 4. Output a 0 in position 2 and close the output stream.
+fout << 0;
+fout.close();
+
+// 5. Open an input stream on test.out.
+ifstream fin { "test.out" };
+if (!fin) {
+    println(cerr, "Error opening test.out for reading.");
+    return 1;
+}
+
+// 6. Read the first token as an integer.
+int testVal;
+fin >> testVal;
+if (!fin) {
+    println(cerr, "Error reading from file.");
+    return 1;
+}
+
+// 7. Confirm that the value is 54021.
+const int expected { 54021 };
+if (testVal == expected) {
+    println("Test passed: Value is {}.", expected);
+} else {
+    println("Test failed: Value is not {} (it was {}).", expected, testVal);
+}
+\end{cpp}
 
 \mySubsubsection{13.4.3.}{Linking Streams Together}
 
+A link can be established between any input and output streams to give them flush-on-access behavior. In other words, when data is requested from an input stream, its linked output stream is automatically flushed. This behavior is available to all streams but is particularly useful for file streams that may be dependent upon each other.
 
+Stream linking is accomplished with the tie() member function. To tie an output stream to an input stream, call tie() on the input stream, and pass the address of the output stream. To break the link, pass nullptr.
+
+The following program ties the input stream of one file to the output stream of an entirely different file. You could also tie it to an output stream on the same file, but bidirectional I/O (covered in the next section) is perhaps a more elegant way to read and write the same file simultaneously.
+
+\begin{cpp}
+ifstream inFile { "input.txt" }; // Note: input.txt must exist.
+ofstream outFile { "output.txt" };
+// Set up a link between inFile and outFile.
+inFile.tie(&outFile);
+// Output some text to outFile. Normally, this would
+// not flush because std::endl is not send.
+outFile << "Hello there!";
+// outFile has NOT been flushed.
+// Read some text from inFile. This will trigger flush() on outFile.
+string nextToken;
+inFile >> nextToken;
+// outFile HAS been flushed.
+\end{cpp}
+
+The flush() member function is defined on the ostream base class, so you can also link an output stream to another output stream. Here’s an example:
+
+\begin{cpp}
+outFile.tie(&anotherOutputFile);
+\end{cpp}
+
+Such a relationship means that every time you write to one file, the buffered data that has been sent to the other file is flushed. You can use this mechanism to keep two related files synchronized.
+
+One example of this stream linking is the link between cout and cin. Whenever you try to input data from cin, cout is automatically flushed. There is also a link between cerr and cout, meaning that any output to cerr causes cout to flush. The clog stream, on the other hand, is not linked to cout. The wide versions of these streams have similar links.
 
 \mySubsubsection{13.4.4.}{Read an Entire File}
+
+You can use getline() to read the entire contents of a file by specifying \verb|\|0 as the delimiter. This works only as long as the file doesn’t contain any \verb|\|0 characters in its contents. For example:
+
+\begin{cpp}
+ifstream inputFile { "some_data.txt" };
+if (inputFile.fail()) {
+    println(cerr, "Unable to open file for reading.");
+    return 1;
+}
+string fileContents;
+getline(inputFile, fileContents, '\0');
+println("\"{}\"", fileContents);
+\end{cpp}
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -1,0 +1,71 @@
+So far, this chapter has discussed input and output streams as two separate but related classes. However, there is such a thing as a stream that performs both input and output: a bidirectional stream.
+
+Bidirectional streams derive from iostream, which in turn derives from both istream and ostream, thus serving as an example of useful multiple inheritance. As you would expect, bidirectional streams support both the >{}> operator and the <{}< operator, as well as the member functions of both input streams and output streams.
+
+The fstream class provides a bidirectional file stream. fstream is ideal for applications that need to replace data within a file, because you can read until you find the correct position and then immediately switch to writing. For example, imagine a program that stores a list of mappings between ID numbers and phone numbers. It might use a data file with the following format:
+
+\begin{shell}
+123 408-555-0394
+124 415-555-3422
+263 585-555-3490
+100 650-555-3434
+\end{shell}
+
+A reasonable approach to such a program would be to read in the entire data file when the program opens and rewrite the file, with any modifications, when the program closes. If the data set is huge, however, you might not be able to keep everything in memory. With iostreams, you don’t have to. You can easily scan through the file to find a record, and you can add new records by opening the file for output in append mode. To modify an existing record, you could use a bidirectional stream, as in the following function that changes the phone number for a given ID:
+
+
+\begin{shell}
+bool changeNumberForID(const string& filename, int id, string_view newNumber)
+{
+    fstream ioData { filename };
+    if (!ioData) {
+        println(cerr, "Error while opening file {}.", filename);
+        return false;
+    }
+
+    // Loop until the end of file.
+    while (ioData) {
+        // Read the next ID.
+        int idRead;
+        ioData >> idRead;
+        if (!ioData) { break; }
+
+        // Check to see if the current record is the one being changed.
+        if (idRead == id) {
+            // Seek the write position to the current read position.
+            ioData.seekp(ioData.tellg());
+            // Output a space, then the new number.
+            ioData << " " << newNumber;
+            break;
+        }
+
+        // Read the current number to advance the stream.
+        string number;
+        ioData >> number;
+    }
+    return true;
+}
+\end{shell}
+
+Of course, an approach like this only works properly if the data is of a fixed size. When the preceding program switched from reading to writing, the output data overwrote other data in the file. To preserve the format of the file and to avoid writing over the next record, the data had to be the exact same size.
+
+String streams can also be accessed in a bidirectional manner through the stringstream class.
+
+\begin{myNotic}{NOTE}
+Bidirectional streams have separate pointers for the read position and the write position. When switching between reading and writing, you need to seek the appropriate position.
+\end{myNotic}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

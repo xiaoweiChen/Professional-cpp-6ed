@@ -691,6 +691,115 @@ If your system locale is U.S. English, you can enter 1,000 and it will be parsed
 
 \mySubsubsection{13.1.5.}{Input and Output with Objects}
 
+If you are familiar with the old-school printf() function from C for output, you know that it is not flexible and does not support custom types. printf() knows about several types of data, but there really isn’t a way to give it additional knowledge. For example, consider the following simple class:
 
+\begin{cpp}
+class Muffin final
+{
+    public:
+        const string& getDescription() const { return m_description; }
+        void setDescription(string description)
+        {
+            m_description = std::move(description);
+        }
+
+        int getSize() const { return m_size; }
+        void setSize(int size) { m_size = size; }
+
+        bool hasChocolateChips() const { return m_hasChocolateChips; }
+        void setHasChocolateChips(bool hasChips)
+        {
+            m_hasChocolateChips = hasChips;
+        }
+    private:
+        string m_description;
+        int m_size { 0 };
+        bool m_hasChocolateChips { false };
+};
+\end{cpp}
+
+To output an object of class Muffin by using printf(), it would be nice if you could specify it as an argument, perhaps using \%m as a placeholder:
+
+\begin{cpp}
+printf("Muffin: %m\n", myMuffin); // BUG! printf doesn't understand Muffin.
+\end{cpp}
+
+Unfortunately, the printf() function knows nothing about the Muffin type and is unable to output an object of type Muffin. Worse still, because of the way the printf() function is declared, this will result in a run-time error, not a compile-time error (though a good compiler will give you a warning).
+
+The best you can do with printf() is to add a new output() member function to the Muffin class:
+
+\begin{cpp}
+class Muffin final
+{
+    public:
+    void output() const
+    {
+        printf("%s, size is %d, %s", getDescription().c_str(), getSize(),
+            (hasChocolateChips() ? "has chips" : "no chips"));
+    }
+    // Omitted for brevity
+};
+\end{cpp}
+
+Using such a mechanism is cumbersome, however. To output a Muffin in the middle of another line of text, you’d need to split the line into two calls with a call to Muffin::output() in between, as shown here:
+
+\begin{cpp}
+printf("The muffin is a ");
+myMuffin.output();
+printf(" -- yummy!\n");
+\end{cpp}
+
+A much better and modern option is to write a custom std::formatter specialization for Muffin objects as explained in Chapter 2. The following is a simple custom formatter for Muffins. To keep the example concise, this formatter does not support any format specifiers. Thus, the parse() abbreviated member function template does not need to parse anything and can just return begin(context).
+
+\begin{cpp}
+template <>
+class std::formatter<Muffin>
+{
+    public:
+    constexpr auto parse(auto& context) { return begin(context); }
+
+    auto format(const Muffin& muffin, auto& ctx) const
+    {
+        ctx.advance_to(format_to(ctx.out(), "{}, size is {}, {}",
+            muffin.getDescription(), muffin.getSize(),
+            (muffin.hasChocolateChips() ? "has chips" : "no chips")));
+        return ctx.out();
+    }
+};
+\end{cpp}
+
+With this custom formatter, you can use the modern std::print() and println() functions to print a muffin. Here is an example:
+
+\begin{cpp}
+println("The muffin is a {} -- yummy!", myMuffin);
+\end{cpp}
+
+Yet another option to print Muffins is to overload the <{}< operator after which you output a Muffin just like you output a string—by providing it as an argument to operator<{}<. Additionally, you can overload the >{}> operator so that you can input Muffins from an input stream. Chapter 15 covers the details of overloading the <{}< and >{}> operators.
 
 \mySubsubsection{13.1.6.}{Custom Manipulators}
+
+The Standard Library comes with a number of built-in stream manipulators, but, if need be, custom manipulators can be written.
+
+Writing your own non-parameterized manipulator is easy. Here’s a simple example defining a tab output manipulator which outputs the tab character to a given stream:
+
+\begin{cpp}
+ostream& tab(ostream& stream) { return stream << '\t'; }
+
+int main()
+{
+    cout << "Test" << tab << "!" << endl;
+}
+\end{cpp}
+
+Writing custom parameterized manipulators is more complicated. It involves using functionality exposed by ios\_base, such as xalloc(), iword(), pword(), and register\_callback(). Since such manipulators are rarely needed, this text does not further discuss this topic. Consult your favorite Standard Library reference in case you are interested.
+
+\begin{myNotic}{NOTE}
+Turning an object into a “flattened” type, like a string, is often called marshaling. Marshaling is useful for saving objects to disk or sending them across a network.
+\end{myNotic}
+
+An advantage of string streams over standard C++ strings is that, in addition to data, they know where the next read or write operation will take place, also called the current position.
+
+Another advantage is that string streams support manipulators and locales to enable more powerful formatting compared to strings.
+
+Finally, if you need to build up a string by concatenating several smaller strings, using a string stream will be more performant compared to concatenating string objects directly.
+
