@@ -556,7 +556,7 @@ An overridden member function in a derived class can have different default argu
 class Base
 {
     public:
-        virtual ˜Base() = default;
+        virtual ~Base() = default;
         virtual void go(int i = 2) { println("Base's go with i={}", i); }
 };
 
@@ -719,7 +719,7 @@ On the other hand, if you do specify a copy constructor in the derived class, yo
 class Base
 {
     public:
-        virtual ˜Base() = default;
+        virtual ~Base() = default;
         Base() = default;
         Base(const Base& src) { }
 };
@@ -807,7 +807,7 @@ One possible use case of the typeid operator is for logging and debugging purpos
 class Loggable
 {
     public:
-        virtual ˜Loggable() = default;
+        virtual ~Loggable() = default;
         virtual string getLogMessage() const = 0;
 };
 

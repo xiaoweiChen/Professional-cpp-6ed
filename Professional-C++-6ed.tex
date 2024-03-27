@@ -3,7 +3,7 @@
 
 \documentclass[11pt,a4paper,UTF8]{book}
 
-\usepackage{minted}
+\usepackage{verbatim}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{authblk}
@@ -18,7 +18,7 @@
 \usepackage{ctex} %导入中文包
 %\usepackage{ulem}
 \usepackage{tocvsec2}
-\usepackage{verbatim}
+
 
 \usepackage{tabularx}
 \usepackage{longtable}
@@ -71,8 +71,50 @@
 \usepackage{wallpaper}
 
 \usepackage[most]{tcolorbox}
-\tcbuselibrary{breakable} % 引入 breakable 库
-\tcbuselibrary{skins} % 引入 skins 库
+\tcbuselibrary{breakable, minted, skins}
+
+%https://tex.stackexchange.com/questions/173850/problem-in-adding-a-background-color-in-a-minted-environment
+\newtcblisting{shell}{
+    listing engine=minted,
+    minted language=text,%bash, % 使用text就不会有语法高亮显示
+    minted options={autogobble,linenos,breaklines},
+    listing only,
+    size=title,
+    arc=1.5mm,
+    breakable,
+    enhanced jigsaw,
+    colframe=black,
+    boxrule=0.5mm,
+    colback=bashcodebg,
+    coltext=Black,
+    minted options={linenos=false,texcl=true},
+}
+\definecolor{bashcodebg}{rgb}{0.85,0.85,0.85}
+
+% https://tex.stackexchange.com/questions/304449/combine-minted-and-tcolorbox-for-code-from-file-inputminted
+\newcounter{inputPrg}
+\newtcblisting[use counter=inputPrg, number format=\arabic]{cpp}{
+    listing engine=minted,
+    minted language=c++,
+    minted options={autogobble,linenos,breaklines},
+    listing only,
+    size=title,
+    arc=1.5mm,
+    breakable,
+    enhanced jigsaw,
+    colframe=black,
+    %coltitle=White,
+    boxrule=0.5mm,
+    colback=blue!3!white,
+    coltext=Black,
+    %title=\TwoSymbolsAndText{\faCode}{%
+        %    \textbf{Input program \thetcbcounter}\ifthenelse{\equal{#2}{}}{}{\textbf{:} \textit{#2}}%
+        %}{\faCode},
+    %label=inputPrg:#3
+    left=6.5mm,enhanced,
+    overlay={\begin{tcbclipinterior}\fill[black!5] (frame.south west)
+            rectangle ([xshift=5mm]frame.north west);\end{tcbclipinterior}}
+}
 
 \usepackage{tikz}
 
@@ -116,6 +158,7 @@
 \newcommand{\subsubsubsectionmark}[1]{}
 \makeatother
 
+
 \ExplSyntaxOn
 
 % Setup enumerate, itemize and description
@@ -124,7 +167,7 @@
 \setdescription{ nosep }
 
 % Setup minted
-\setminted { obeytabs, tabsize=2, breaklines=true, fontsize=\footnotesize, frame=single }
+\setminted { obeytabs, tabsize=2, breaklines=true, fontsize=\footnotesize}
 
 % Def \filename
 \NewDocumentCommand { \filename } { m }
@@ -147,21 +190,15 @@
 { \mintinline { cpp } { #1 } }
 
 % Def cpp environment
-\NewDocumentEnvironment { cpp } { }
-{ \VerbatimEnvironment
-  \begin { minted } [ linenos=true ] { cpp } }
-{ \end   { minted } }
+%\NewDocumentEnvironment { cpp } { }
+%{ \VerbatimEnvironment
+%  \begin { minted } [ linenos=true, frame=single ] { cpp } }
+%{ \end   { minted } }
 
 % Def cmake environment
 \NewDocumentEnvironment { cmake } { }
 { \VerbatimEnvironment
   \begin { minted } [ linenos=true, frame=single ] { cmake } }
-{ \end   { minted } }
-
-% Def shell environment
-\NewDocumentEnvironment { shell } { }
-{ \VerbatimEnvironment
-  \begin { minted } [ linenos=false ] { text } }
 { \end   { minted } }
 
 \NewDocumentEnvironment { myNotic } { m }
@@ -264,6 +301,7 @@
 
 \newpage
 
+\begin{comment}
 \pagestyle{empty}
 \tableofcontents
 \newpage
@@ -409,7 +447,7 @@
 \mySubsection{12.6.}{Summary}{content/part3/chapter12/6.tex}
 \mySubsection{12.7.}{Exercises}{content/part3/chapter12/7.tex}
 \newpage
-
+\end{comment}
 \mySection{第13章}{Demystifying C++ I/O}{content/part3/chapter13/0.tex}
 \mySubsection{13.1.}{Using Streams}{content/part3/chapter13/1.tex}
 \mySubsection{13.2.}{String Streams}{content/part3/chapter13/2.tex}

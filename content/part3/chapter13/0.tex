@@ -1,0 +1,40 @@
+\noindent
+\textbf{WHAT’S IN THIS CHAPTER?}
+
+\begin{itemize}
+\item
+The concept of streams
+
+\item
+How to use streams for input and output of data
+
+\item
+The available standard streams provided by the Standard Library
+
+\item
+How to use the filesystem support library
+\end{itemize}
+
+\noindent
+\textbf{WILEY.COM DOWNLOADS FOR THIS CHAPTER}
+
+Please note that all the code examples for this chapter are available as part of this chapter’s code download on the book’s website at \url{www.wiley.com/go/proc++6e} on the Download Code tab.
+
+A program’s fundamental job is to accept input and produce output. A program that produces no output of any sort would not be very useful. All languages provide some mechanism for I/O, either as a built-in part of the language or through an OS-specific API. A good I/O system is both flexible and easy to use. Flexible I/O systems support input and output through a variety of devices, such as files and the user console. Files could be standard files but could also be data coming from a variety of sources such as Internet of Things (IoT) devices, web services, and more. It could be weather data from a weather device or stock values from a stockbroker web service. Flexible I/O systems also support reading and writing of different types of data. I/O is error-prone because data coming from a user can be incorrect or the underlying filesystem or other data source can be inaccessible. Thus, a good I/O system is also capable of handling error conditions.
+
+If you are familiar with the C language, you have undoubtedly used printf() and scanf(). As I/O mechanisms, printf() and scanf()are certainly flexible. Through escape codes and variable placeholders (similar to format specifiers and replacement fields for std::format(), print(), and println() as discussed in Chapter 2, “Working with Strings and String Views”), they can be customized to read in specially formatted data or output any value that the formatting codes permit. Supported types are limited to integer/character values, floating-point values, and strings. However, printf() and scanf() falter on other measures of good I/O systems. They do not handle errors particularly well. For example, if you tell them to interpret a floating-point number as an integer, they will happily do so. Additionally, they are not flexible enough to handle custom data types, they are not type safe, and in an object-oriented language like C++, they are not at all object oriented.
+
+C++ provides a more refined, more flexible, and object-oriented approach to I/O. Streams are encapsulated in classes that result in a user-friendly and safe solution. In this chapter, you will first learn what streams are and then learn how to use streams for data output and input. You will also learn how to use the stream mechanism to read from various sources and write to various destinations, such as the user console, files, and even strings. This chapter covers the most commonly used I/O features.
+
+Almost all examples in this book use print() and println() to print text to the user console. An alternative is to use the I/O streaming functionality discussed in this chapter. I recommend using print() and println() instead of streaming to standard output, as the former is easier to read, more compact, and more performant. However, this chapter discusses I/O streaming in detail, as it’s still important to know how it works in C++ because you’ll undoubtedly have to work with code that uses I/O streaming.
+
+The last part of this chapter discusses the filesystem support library provided by the C++ Standard Library. This library allows you to work with paths, directories, and files, and it nicely complements the mechanisms provided for I/O by the streams.
+
+
+
+
+
+
+
+
+
