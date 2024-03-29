@@ -1,16 +1,321 @@
 
+As described earlier, you can actually throw any type of exception. However, classes are the most useful types of exceptions. In fact, exception classes are usually written in a hierarchy so that you can employ polymorphism when you catch the exceptions.
 
 \mySubsubsection{14.3.1.}{The Standard Exception Hierarchy}
 
+You’ve already seen several exceptions from the C++ standard exception hierarchy: exception, runtime\_error, and invalid\_argument. Figure 14.3 shows the full hierarchy. For completeness, all standard exceptions are shown, including those thrown by parts of the Standard Library that are discussed in later chapters.
 
+\myGraphic{0.7}{content/part3/chapter14/images/3.png}{FIGURE 14.3}
+
+All of the exceptions thrown by the C++ Standard Library are objects of classes in this hierarchy.
+Each class in the hierarchy supports a what() member function that returns a const char* string describing the exception. You can use this string in an error message.
+
+Some of the exception classes require you to set in the constructor the string that is returned by what(). That’s why you have to specify a string in the constructors for runtime\_error and invalid\_argument. This has already been done in examples throughout this chapter. Here is another version of readIntegerFile() that includes the filename in the error message:
+
+\begin{cpp}
+vector<int> readIntegerFile(const string& filename)
+{
+    ifstream inputStream { filename };
+    if (inputStream.fail()) {
+        // We failed to open the file: throw an exception.
+        const string error { format("Unable to open file {}.", filename) };
+        throw invalid_argument { error };
+    }
+
+    // Read the integers one-by-one and add them to a vector.
+    vector<int> integers;
+    int temp;
+    while (inputStream >> temp) {
+        integers.push_back(temp);
+    }
+
+    if (!inputStream.eof()) {
+        // We did not reach the end-of-file.
+        // This means that some error occurred while reading the file.
+        // Throw an exception.
+        const string error { format("Unable to read file {}.", filename) };
+        throw runtime_error { error };
+    }
+
+    return integers;
+}
+\end{cpp}
 
 \mySubsubsection{14.3.2.}{Catching Exceptions in a Class Hierarchy}
 
+A feature of exception hierarchies is that you can catch exceptions polymorphically. For example, if you look at the following two catch statements, you can see that they are identical except for the exception class that they handle:
 
+\begin{cpp}
+try {
+    myInts = readIntegerFile(filename);
+} catch (const invalid_argument& e) {
+    println(cerr, "{}", e.what());
+    return 1;
+} catch (const runtime_error& e) {
+    println(cerr, "{}", e.what());
+    return 1;
+}
+\end{cpp}
+
+Conveniently, invalid\_argument and runtime\_error are both derived classes of exception, so you can replace the two catch statements with a single catch statement for exception:
+
+\begin{cpp}
+try {
+    myInts = readIntegerFile(filename);
+} catch (const exception& e) {
+    println(cerr, "{}", e.what());
+    return 1;
+}
+\end{cpp}
+
+The catch statement for an exception reference matches any derived classes of exception, including both invalid\_argument and runtime\_error. Note that the higher in the exception hierarchy you catch exceptions, the less specific your error handling can be. You should generally catch exceptions at as specific a level as possible.
+
+\begin{myWarning}{WARNING}
+When you catch exceptions polymorphically, make sure to catch them by reference! If you catch exceptions by value, you can encounter slicing, in which case you lose information from the object. See Chapter 10 for details on slicing.
+\end{myWarning}
+
+When more than one catch clause is used, the catch clauses are matched in syntactic order as they appear in your code; the first one that matches wins. If one catch is more inclusive than a later one, it will match first, and the more restrictive one, which comes later, will never be executed. Therefore, you should place your catch clauses from most restrictive to least restrictive in order. For example, suppose that you want to catch invalid\_argument from readIntegerFile() explicitly, but you also want to leave the generic exception handler for any other exceptions. The correct way to do so is like this:
+
+\begin{cpp}
+try {
+    myInts = readIntegerFile(filename);
+} catch (const invalid_argument& e) { // List the derived class first.
+    // Take some special action for invalid filenames.
+} catch (const exception& e) { // Now list exception.
+    println(cerr, "{}", e.what());
+    return 1;
+}
+\end{cpp}
+
+The first catch statement catches invalid\_argument exceptions, and the second catches any other exceptions of type exception. However, if you reverse the order of the catch statements, you don’t get the same result:
+
+\begin{cpp}
+try {
+    myInts = readIntegerFile(filename);
+} catch (const exception& e) { // BUG: catching base class first!
+    println(cerr, "{}", e.what());
+    return 1;
+} catch (const invalid_argument& e) {
+    // Take some special action for invalid filenames.
+}
+\end{cpp}
+
+With this order, any exception of a class that derives from exception is caught by the first catch statement; the second catch will never be reached. Some compilers issue a warning in this case, but you shouldn’t count on it.
 
 \mySubsubsection{14.3.3.}{Writing Your Own Exception Classes}
 
+There are two advantages to writing your own exception classes:
+
+\begin{itemize}
+\item
+The number of exceptions in the C++ Standard Library is limited. Instead of using an exception class with a generic name, such as runtime\_error, you can create classes with names that are more meaningful for the particular errors in your program.
+
+\item
+You can add your own information to these exceptions. Most exceptions in the standard hierarchy allow you to set only an error string. You might want to pass different information in the exception.
+\end{itemize}
+
+It’s recommended that all the exception classes that you write inherit directly or indirectly from the standard exception class. If everyone on your project follows that rule, you know that every exception in the program will be derived from exception (assuming that you aren’t using third-party libraries that break this rule). This guideline makes exception handling via polymorphism significantly easier.
+
+Let’s look at an example. invalid\_argument and runtime\_error don’t do a good job at capturing the file opening and reading errors in readIntegerFile(). You can define your own error hierarchy for file errors, starting with a generic FileError class:
+
+\begin{cpp}
+class FileError : public exception
+{
+    public:
+        explicit FileError(string filename) : m_filename { move(filename) } {}
+        const char* what() const noexcept override { return m_message.c_str(); }
+        virtual const string& getFilename() const noexcept { return m_filename; }
+    protected:
+        virtual void setMessage(string message) { m_message = move(message); }
+    private:
+        string m_filename;
+        string m_message;
+};
+\end{cpp}
+
+As a good programming citizen, you make FileError a part of the standard exception hierarchy. It seems appropriate to integrate it as a child of exception. When you derive from exception, you can override the what() member function, which has the prototype shown and which must return a const char* string that is valid until the object is destroyed. In the case of FileError, this string comes from the m\_message data member. Derived classes of FileError can set the message using the protected setMessage() member function. The generic FileError class also contains a filename and a public accessor for that filename.
+
+The first exceptional situation in readIntegerFile() occurs when the file cannot be opened. Thus, you might want to write a FileOpenError exception derived from FileError:
+
+\begin{cpp}
+class FileOpenError : public FileError
+{
+    public:
+    explicit FileOpenError(string filename) : FileError { move(filename) }
+    {
+        setMessage(format("Unable to open {}.", getFilename()));
+    }
+};
+\end{cpp}
+
+The FileOpenError exception calls setMessage() to change the m\_message string to represent the file-opening error. Note that in the body of the constructor, getFilename() is used to get the filename. The filename parameter cannot be used for this as the ctor-initializer has moved filename in the call to the FileError constructor. As you know, after a move operation, you shouldn’t use an object any longer.
+
+The second exceptional situation in readIntegerFile() occurs if the file cannot be read properly. It might be useful for this exception to include the line number where the error occurred, as well as the filename in the error message string returned from what(). Here is a FileReadError exception derived from FileError:
+
+\begin{cpp}
+class FileReadError : public FileError
+{
+    public:
+        explicit FileReadError(string filename, size_t lineNumber)
+        : FileError { move(filename) }, m_lineNumber { lineNumber }
+        {
+            setMessage(format("Error reading {}, line {}.",
+            getFilename(), lineNumber));
+        }
+        virtual size_t getLineNumber() const noexcept { return m_lineNumber; }
+    private:
+        size_t m_lineNumber { 0 };
+};
+\end{cpp}
+
+Of course, to set the line number properly, readIntegerFile() needs to be modified to track the number of lines read instead of just reading integers directly. Here is a new readIntegerFile() function that uses the new exceptions:
+
+\begin{cpp}
+vector<int> readIntegerFile(const string& filename)
+{
+    ifstream inputStream { filename };
+    if (inputStream.fail()) {
+        // We failed to open the file: throw an exception.
+        throw FileOpenError { filename };
+    }
+
+    vector<int> integers;
+    size_t lineNumber { 0 };
+    while (!inputStream.eof()) {
+        // Read one line from the file.
+        string line;
+        getline(inputStream, line);
+        ++lineNumber;
+
+        // Create a string stream out of the line.
+        istringstream lineStream { line };
+        // Read the integers one-by-one and add them to the vector.
+        int temp;
+        while (lineStream >> temp) {
+            integers.push_back(temp);
+        }
+
+        if (!lineStream.eof()) {
+            // We did not reach the end of the string stream.
+            // This means that some error occurred while reading this line.
+            // Throw an exception.
+            throw FileReadError { filename, lineNumber };
+        }
+    }
+    return integers;
+}
+\end{cpp}
+
+Now, code that calls readIntegerFile() can use polymorphism to catch exceptions of type FileError like this:
+
+\begin{cpp}
+try {
+    myInts = readIntegerFile(filename);
+} catch (const FileError& e) {
+    println(cerr, "{}", e.what());
+    return 1;
+}
+\end{cpp}
+
+There is one caveat when writing classes whose objects will be used as exceptions. When a piece of code throws an exception, the object or value thrown is moved or copied, using either the move constructor or the copy constructor. Thus, if you write a class whose objects will be thrown as exceptions, you must make sure those objects are copyable and/or moveable. This means that if you have dynamically allocated memory in your exception class, your class must have a destructor, but also a copy constructor and copy assignment operator and/or a move constructor and move assignment operator, see Chapter 9, “Mastering Classes and Objects.”
+
+\begin{myWarning}{WARNING}
+Objects thrown as exceptions are always moved or copied at least once.
+\end{myWarning}
+
+It is possible for exceptions to be copied more than once, but only if you catch the exception by value instead of by reference.
+
+\begin{myNotic}{NOTE}
+Catch exception objects by reference (preferably reference-to-const) to avoid unnecessary copying.
+\end{myNotic}
 
 
 \mySubsubsection{14.3.4.}{Nested Exceptions}
+
+It could happen that during handling of a first exception, a second exceptional situation is triggered that requires a second exception to be thrown. Unfortunately, when you throw the second exception, all information about the first exception that you are currently trying to handle will be lost. The solution provided by C++ for this problem is called nested exceptions, which allow you to nest a caught exception in the context of a new exception. This can also be useful if you call a function in a thirdparty library that throws an exception of a certain type, A, but you only want exceptions of another type, B, in your code. In such a case, you catch all exceptions from the library and nest them in an exception of type B.
+
+You use std::throw\_with\_nested() to throw an exception with another exception nested inside it. A catch handler for this new exception can use a dynamic\_cast() to get access to the std::nested\_exception representing the first exception. The upcoming example demonstrates this. It first defines a MyException class, which derives from exception and accepts a string in its constructor:
+
+\begin{cpp}
+class MyException : public exception
+{
+    public:
+        explicit MyException(string message) : m_message { move(message) } {}
+        const char* what() const noexcept override { return m_message.c_str(); }
+    private:
+        string m_message;
+};
+\end{cpp}
+
+The following doSomething() function throws a runtime\_error that is immediately caught in a catch handler. The catch handler writes a message and then uses the throw\_with\_nested() function to throw a second exception that has the first one nested inside it. Note that nesting the exception happens automatically:
+
+\begin{cpp}
+void doSomething()
+{
+    try {
+        throw runtime_error { "A runtime_error exception" };
+    } catch (const runtime_error& e) {
+        println("doSomething() caught a runtime_error");
+        println("doSomething() throwing MyException");
+        throw_with_nested(
+            MyException { "MyException with nested runtime_error" });
+    }
+}
+\end{cpp}
+
+throw\_with\_nested() works by throwing an unnamed new compiler-generated type that derives from both nested\_exception and, in this example, from MyException. Hence, it’s another example of useful multiple inheritance in C++. The default constructor of the nested\_exception base class automatically captures the exception currently being handled by calling std::current\_exception() and stores it in an std::exception\_ptr. An exception\_ptr is a pointer-like type capable of storing either a null pointer or a pointer to an exception object that was thrown and captured with current\_exception(). Instances of exception\_ptr can be passed to functions (usually by value) and across different threads.
+
+Finally, the following code snippet demonstrates how to handle an exception with a nested exception. The code calls doSomething() and has one catch handler for exceptions of type MyException. When it catches such an exception, it writes a message and then uses a dynamic\_cast() to get access to the nested exception. If there is no nested exception inside, the result will be a null pointer. If there is a nested exception inside, the rethrow\_nested() member function on the nested\_exception is called. This causes the nested exception to be rethrown, which you can then catch in another try/catch block.
+
+\begin{cpp}
+try {
+    doSomething();
+} catch (const MyException& e) {
+    println("main() caught MyException: {}", e.what());
+
+    const auto* nested { dynamic_cast<const nested_exception*>(&e) };
+    if (nested) {
+        try {
+            nested->rethrow_nested();
+        } catch (const runtime_error& e) {
+            // Handle nested exception.
+            println(" Nested exception: {}", e.what());
+        }
+    }
+}
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+doSomething() caught a runtime_error
+doSomething() throwing MyException
+main() caught MyException: MyException with nested runtime_error
+  Nested exception: A runtime_error exception
+\end{shell}
+
+
+This code uses a dynamic\_cast() to check for a nested exception. Because you always have to perform such a dynamic\_cast() if you want to check for a nested exception, the standard provides a helper function called std::rethrow\_if\_nested() that does it for you. This helper function can be used as follows:
+
+\begin{cpp}
+try {
+    doSomething();
+} catch (const MyException& e) {
+    println("main() caught MyException: {}", e.what());
+    try {
+        rethrow_if_nested(e);
+    } catch (const runtime_error& e) {
+        // Handle nested exception.
+        println(" Nested exception: {}", e.what());
+    }
+}
+\end{cpp}
+
+throw\_with\_nested(), nested\_exception, rethrow\_if\_nested(), current\_exception(), and exception\_ptr are all defined in <exception>.
+
+
+
+
+
+
 

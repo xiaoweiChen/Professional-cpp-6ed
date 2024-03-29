@@ -1,0 +1,91 @@
+The throw keyword can also be used to rethrow the current exception without copying it, as in the following example:
+
+\begin{cpp}
+void g() { throw invalid_argument { "Some exception" }; }
+
+void f()
+{
+    try {
+        g();
+    } catch (const invalid_argument& e) {
+        println("caught in f(): {}", e.what());
+        throw; // rethrow
+    }
+}
+
+int main()
+{
+    try {
+        f();
+    } catch (const invalid_argument& e) {
+        println("caught in main(): {}", e.what());
+    }
+}
+\end{cpp}
+
+This example produces the following output:
+
+\begin{shell}
+caught in f(): Some exception
+caught in main(): Some exception
+\end{shell}
+
+You might think you could rethrow a caught exception e with throw e;. However, that’s wrong, because it can cause slicing of your exception object. For example, suppose f() is modified to catch std::exceptions, and main() is modified to catch both exception and invalid\_argument exceptions:
+
+\begin{cpp}
+void g() { throw invalid_argument { "Some exception" }; }
+void f()
+{
+    try {
+        g();
+        } catch (const exception& e) {
+        println("caught in f(): {}", e.what());
+        throw; // rethrow
+        }
+    }
+
+int main()
+{
+    try {
+        f();
+    } catch (const invalid_argument& e) {
+        println("invalid_argument caught in main(): {}", e.what());
+    } catch (const exception& e) {
+        println("exception caught in main(): {}", e.what());
+    }
+}
+\end{cpp}
+
+Remember that invalid\_argument derives from exception, hence it must be caught first. The output of this code is as you would expect, shown here:
+
+\begin{shell}
+caught in f(): Some exception
+invalid_argument caught in main(): Some exception
+\end{shell}
+
+Now, try replacing the throw; statement in f() with throw e;. The output then becomes as follows:
+
+\begin{shell}
+caught in f(): Some exception
+exception caught in main(): Some exception
+\end{shell}
+
+main() seems to be catching an exception object, instead of an invalid\_argument object. That’s because the throw e; statement causes slicing, reducing the invalid\_argument to an exception.
+
+\begin{myWarning}{WARNING}
+Always use throw; to rethrow an exception. Never do something like throw e; to rethrow a caught exception e!
+\end{myWarning}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

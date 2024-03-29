@@ -1,20 +1,378 @@
 
+Whether or not you use exceptions in your programs is up to you and your colleagues. However, you are strongly encouraged to formalize an error-handling plan for your programs, regardless of your use of exceptions. If you use exceptions, it is generally easier to come up with a unified error-handling scheme, but it is not impossible without exceptions. The most important aspect of a good plan is uniformity of error handling throughout all the modules of the program. Make sure that every programmer on the project understands and follows the error-handling rules.
+
+This section discusses the most common error-handling issues in the context of exceptions, but the issues are also relevant to programs that do not use exceptions.
 
 \mySubsubsection{14.8.1.}{Memory Allocation Errors}
 
+Despite that all the examples so far in this book have ignored the possibility, memory allocation can fail. On current 64-bit platforms, this will almost never happen, but on mobile or legacy systems, memory allocation can fail. On such systems, you must account for memory allocation failures. C++ provides several different ways to handle memory errors.
+
+The default behaviors of new and new[] are to throw an exception of type bad\_alloc, defined in <new>, if they cannot allocate memory. Your code could catch these exceptions and handle them appropriately.
+
+It’s not realistic to wrap all your calls to new and new[] with a try/catch, but at least you should do so when you are trying to allocate a big block of memory. The following example demonstrates how to catch memory allocation exceptions:
+
+\begin{cpp}
+int* ptr { nullptr };
+size_t integerCount { numeric_limits<size_t>::max() };
+println("Trying to allocate memory for {} integers.", integerCount);
+try {
+    ptr = new int[integerCount];
+} catch (const bad_alloc& e) {
+    auto location { source_location::current() };
+    println(cerr, "{}({}): Unable to allocate memory: {}",
+        location.file_name(), location.line(), e.what());
+    // Handle memory allocation failure.
+    return;
+}
+// Proceed with function that assumes memory has been allocated.
+\end{cpp}
+
+Note that this code uses source\_location to include the name of the file and the current line number in the error message. This makes debugging easier.
+
+You could, of course, bulk handle many possible new failures with a single try/catch block at a higher point in the program, if that works for your program.
+
+Another point to consider is that logging an error might try to allocate memory. If new fails, there might not be enough memory left even to log the error message.
+
 \mySamllsection{Non-throwing new}
+
+If you don’t like exceptions, you can revert to the old C model in which memory allocation routines return a null pointer if they cannot allocate memory. C++ provides nothrow overloads of new and new[], which return nullptr instead of throwing an exception if they fail to allocate memory. This is done by using the syntax new(nothrow) instead of new, as shown in the following example:
+
+\begin{cpp}
+int* ptr { new(nothrow) int[integerCount] };
+if (ptr == nullptr) {
+    auto location { source_location::current() };
+    println(cerr, "{}({}): Unable to allocate memory!",
+        location.file_name(), location.line());
+    // Handle memory allocation failure.
+    return;
+}
+// Proceed with function that assumes memory has been allocated.
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+I do not recommend using non-throwing new, but the default behavior, which uses exceptions. An exception thrown when allocation fails cannot be ignored, while it’s easy to forget checking for nullptr when using non-throwing new.
+\end{myNotic}
 
 \mySamllsection{Customizing Memory Allocation Failure Behavior}
 
+C++ allows you to specify a new handler callback function. By default, there is no new handler, so new and new[] just throw bad\_alloc exceptions. However, if there is a new handler, the memory allocation routine calls the new handler upon memory allocation failure instead of throwing an exception. If the new handler returns, the memory allocation routine attempts to allocate memory again, calling the new handler again if it fails. This cycle could become an infinite loop unless your new handler changes the situation with one of three alternatives. Practically speaking, some of the options are better than others.
 
+\begin{itemize}
+\item
+Make more memory available. One trick to expose space is to allocate a large chunk of memory at program start-up and then to free it in the new handler. A practical example is when you hit an allocation error and you need to save the user state so no work gets lost. The key is to allocate a block of memory at program start-up large enough to allow a complete document save operation. When the new handler is triggered, you free this block, save the document, restart the application, and let it reload the saved document.
+
+\item
+Throw an exception. The C++ standard mandates that if you throw an exception from your new handler, it must be a bad\_alloc exception or an exception derived from bad\_alloc. Here are some examples:
+\begin{itemize}
+\item
+Write and throw a document\_recovery\_alloc exception, deriving from bad\_alloc. This exception can be caught somewhere in your application to trigger the document save operation and restart of the application.
+
+\item
+Write and throw a please\_terminate\_me exception, deriving from bad\_alloc. In your top-level function—for example, main()—you catch this exception and handle it by returning from the top-level function. It’s recommended to terminate a program by returning from the top-level function, instead of by calling a function such as exit().
+\end{itemize}
+
+\item
+Set a different new handler. Theoretically, you could have a series of new handlers, each of which tries to create memory and sets a different new handler if it fails. However, such a scenario is usually more complicated than useful.
+\end{itemize}
+
+If you don’t do one of these things in your new handler, any memory allocation failure will cause an infinite loop.
+
+If there are some memory allocations that can fail but you don’t want your new handler to be called, you can simply set the new handler back to its default of nullptr temporarily before calling new in such cases.
+
+You set the new handler with a call to set\_new\_handler(), declared in <new>. Here is an example of a new handler that logs an error message and throws an exception:
+
+\begin{cpp}
+class please_terminate_me : public bad_alloc { };
+
+void myNewHandler()
+{
+    println(cerr, "Unable to allocate memory.");
+    throw please_terminate_me {};
+}
+\end{cpp}
+
+The new handler must take no arguments and return no value. This new handler throws a please\_terminate\_me exception, as suggested in the preceding list. You can activate this new handler like this:
+
+\begin{cpp}
+int main()
+{
+    try {
+        // Set the new new_handler and save the old one.
+        new_handler oldHandler { set_new_handler(myNewHandler) };
+
+        // Generate allocation error.
+        size_t numInts { numeric_limits<size_t>::max() };
+        int* ptr { new int[numInts] };
+
+        // Reset the old new_handler.
+        set_new_handler(oldHandler);
+    } catch (const please_terminate_me&) {
+        auto location { source_location::current() };
+        println(cerr, "{}({}): Terminating program.",
+            location.file_name(), location.line());
+        return 1;
+    }
+}
+\end{cpp}
+
+new\_handler is a type alias for the type of function pointer that set\_new\_handler() takes.
 
 \mySubsubsection{14.8.2.}{Errors in Constructors}
 
+Before C++ programmers discover exceptions, they are often stymied by error handling and constructors. What if a constructor fails to construct the object properly? Constructors don’t have a return value, so the standard pre-exception error-handling mechanism doesn’t work. Without exceptions, the best you can do is to set a flag in the object specifying that it is not constructed properly. You can provide a member function, with a name like checkConstructionStatus(), which returns the value of that flag, and hope that clients remember to call this member function on the object after constructing it.
 
+Exceptions provide a much better solution. You can throw an exception from a constructor, even though you can’t return a value(There is one caveat, do not throw exceptions from constructors of global objects. Such exceptions cannot be caught because these objects are constructed before main() even starts executing.). With exceptions, you can easily tell clients whether construction of an object succeeded. However, there is one major problem: if an exception leaves a constructor, the destructor for that object will never be called! Thus, you must be careful to clean up any resources and free any allocated memory in constructors before allowing exceptions to leave the constructor.
+
+This section describes a Matrix class template as an example in which the constructor correctly handles exceptions. Note that this example is using a raw pointer called m\_matrix to demonstrate the problems. In production-quality code, you should avoid using raw pointers, for example, by using a Standard Library container! The definition of the Matrix class template looks like this:
+
+\begin{cpp}
+export template <typename T>
+class Matrix final
+{
+    public:
+        explicit Matrix(std::size_t width, std::size_t height);
+        ~Matrix();
+        // Copy/move ctors and copy/move assignment operators deleted (omitted).
+    private:
+        void cleanup();
+
+        std::size_t m_width { 0 };
+        std::size_t m_height { 0 };
+        T** m_matrix { nullptr };
+};
+\end{cpp}
+
+The implementation of the Matrix class is as follows. The first call to new is not protected with a try/catch block. It doesn’t matter if the first new throws an exception because the constructor hasn’t allocated anything else yet that needs freeing. If any of the subsequent new calls throw an exception, though, the constructor must clean up all of the memory already allocated. The constructor doesn’t know what exceptions the T constructors themselves might throw, so it catches all exceptions via ... and then nests the caught exception inside a bad\_alloc exception. The array allocated with the first call to new is zero-initialized using the \{\} syntax; that is, each element will be nullptr. This makes the cleanup() member function easier, because it is allowed to call delete on a nullptr.
+
+\begin{cpp}
+template <typename T>
+Matrix<T>::Matrix(std::size_t width, std::size_t height)
+{
+    m_matrix = new T*[width] {}; // Array is zero-initialized!
+
+    // Don't initialize the m_width and m_height members in the ctor-
+    // initializer. These should only be initialized when the above
+    // m_matrix allocation succeeds!
+    m_width = width;
+    m_height = height;
+
+    try {
+        for (std::size_t i { 0 }; i < width; ++i) {
+            m_matrix[i] = new T[height];
+        }
+    } catch (...) {
+        std::println(std::cerr, "Exception caught in constructor, cleaning up...");
+        cleanup();
+        // Nest any caught exception inside a bad_alloc exception.
+        std::throw_with_nested(std::bad_alloc {});
+    }
+}
+
+template <typename T>
+Matrix<T>::~Matrix()
+{
+    cleanup();
+}
+
+template <typename T>
+void Matrix<T>::cleanup()
+{
+    for (std::size_t i { 0 }; i < m_width; ++i) {
+        delete[] m_matrix[i];
+    }
+    delete[] m_matrix;
+    m_matrix = nullptr;
+    m_width = m_height = 0;
+}
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+Remember, if an exception leaves a constructor, the destructor for that object will never be called!
+\end{myWarning}
+
+The Matrix class template can be tested as follows. Catching the bad\_alloc exception in main() is omitted for brevity.
+
+\begin{cpp}
+class Element
+{
+    // Kept to a bare minimum, but in practice, this Element class
+    // could throw exceptions in its constructor.
+    private:
+    int m_value;
+};
+
+int main()
+{
+    Matrix<Element> m { 10, 10 };
+}
+\end{cpp}
+
+You might be wondering what happens when you add inheritance into the mix. Base class constructors run before derived class constructors. If a derived class constructor throws an exception, C++ will execute the destructor of the fully constructed base classes.
+
+\begin{myNotic}{NOTE}
+C++ guarantees that it will run the destructor for all fully constructed “subobjects.” Therefore, any constructor that completes without an exception will cause the corresponding destructor to be run.
+\end{myNotic}
 
 \mySubsubsection{14.8.3.}{Function-Try-Blocks for Constructors}
 
+The exception mechanism, as discussed up to now in this chapter, is perfect for handling exceptions within functions. But how should you handle exceptions thrown from inside a ctor-initializer of a constructor? This section explains a feature called function-try-blocks, which are capable of catching those exceptions. Function-try-blocks work for normal functions as well as for constructors. This section focuses on the use with constructors. Most C++ programmers, even experienced C++ programmers, don’t know of the existence of this feature, even though it was introduced a long time ago.
 
+The following piece of pseudo-code shows the basic syntax for a function-try-block for a constructor:
+
+\begin{cpp}
+MyClass::MyClass()
+try
+: <ctor-initializer>
+{
+    /* ... constructor body ... */
+}
+catch (const exception& e)
+{
+    /* ... */
+}
+\end{cpp}
+
+As you can see, the try keyword should be right before the start of the ctor-initializer. The catch statements should be after the closing brace for the constructor, actually putting them outside the constructor body. There are a number of restrictions and guidelines that you should keep in mind when using function-try-blocks with constructors:
+
+\begin{itemize}
+\item
+The catch statements catch any exception thrown either directly or indirectly by the ctorinitializer or by the constructor body.
+
+\item
+The catch statements have to rethrow the current exception or throw a new exception. If a catch statement doesn’t do this, the runtime automatically rethrows the current exception.
+
+\item
+The catch statements can access arguments passed to the constructor.
+
+\item
+When a catch statement catches an exception in a function-try-block, all fully constructed base classes and members of the object are destroyed before execution of the catch statement starts.
+
+\item
+Inside catch statements you should not access data members that are objects because these are destroyed prior to executing the catch statements (see the previous bullet). However, if your object contains non-class data members—for example, raw pointers—you can access them if they have been initialized before the exception was thrown. If you have such raw, also called naked, resources, you have to take care of them by freeing them in the catch statements, as the upcoming example demonstrates.
+
+\item
+The catch statements in a function-try-block for a constructor cannot use the return keyword.
+\end{itemize}
+
+Based on this list of limitations, function-try-blocks for constructors are useful only in a limited number of situations:
+
+\begin{itemize}
+\item
+To convert an exception thrown by the ctor-initializer to another exception
+
+\item
+To log a message to a log file
+
+\item
+To free raw resources that have been allocated in the ctor-initializer prior to the exception being thrown
+\end{itemize}
+
+The following example demonstrates how to use function-try-blocks. The code defines a class called SubObject. It has only one constructor, which throws an exception of type runtime\_error:
+
+\begin{cpp}
+class SubObject
+{
+    public:
+        explicit SubObject(int i) {
+            throw runtime_error { "Exception by SubObject ctor" }; }
+};
+\end{cpp}
+
+Next, the MyClass class has a data member of type int* and another one of type SubObject:
+
+\begin{cpp}
+class MyClass
+{
+    public:
+        MyClass();
+    private:
+        int* m_data { nullptr };
+        SubObject m_subObject;
+};
+\end{cpp}
+
+The SubObject class does not have a default constructor. This means you need to initialize m\_subObject in the MyClass ctor-initializer. The constructor of MyClass uses a function-try-block to catch exceptions thrown in its ctor-initializer as follows:
+
+\begin{cpp}
+MyClass::MyClass()
+try
+    : m_data { new int[42]{ 1, 2, 3 } }, m_subObject { 42 }
+{
+    /* ... constructor body ... */
+}
+catch (const exception& e)
+{
+    // Cleanup memory.
+    delete[] m_data;
+    m_data = nullptr;
+    println(cerr, "function-try-block caught: '{}'", e.what());
+}
+\end{cpp}
+
+Remember that catch statements in a function-try-block for a constructor have to either rethrow the current exception or throw a new exception. The preceding catch statement does not throw anything, so the C++ runtime automatically rethrows the current exception. The following is a simple function that uses MyClass:
+
+\begin{cpp}
+int main()
+{
+    try {
+        MyClass m;
+    } catch (const exception& e) {
+        println(cerr, "main() caught: '{}'", e.what());
+    }
+}
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+function-try-block caught: 'Exception by SubObject ctor'
+main() caught: 'Exception by SubObject ctor'
+\end{shell}
+
+Note that the code in this example is error prone and not recommended. A proper solution for this example’s case is to make the m\_data member a container, such as std::vector, or a smart pointer, such as unique\_ptr, and to remove the function-try-block.
+
+Function-try-blocks are not limited to constructors. They can be used with ordinary functions as well. However, for normal functions, there is no useful reason to use function-try-blocks because they can just as easily be converted to a simple try/catch block inside the function body. One notable difference when using a function-try-block on a normal function compared to a constructor is that rethrowing the current exception or throwing a new exception in the catch statements is not required, and the C++ runtime will not automatically rethrow the exception. Using the return keyword in such catch statements is allowed.
+
+\begin{myWarning}{WARNING}
+Avoid using function-try-blocks!
+
+Function-try-blocks are usually necessary only when you have raw resources as data members. Raw resources should be avoided by using RAII classes such as std::vector or unique\_ptr. The RAII design pattern is discussed in Chapter 32.
+\end{myWarning}
 
 \mySubsubsection{14.8.4.}{Errors in Destructors}
+
+You should handle all error conditions that arise in destructors in the destructors themselves. You should not let any exceptions be thrown from destructors, for a couple of reasons:
+
+\begin{enumerate}
+\item
+What action would clients take? Clients don’t call destructors explicitly; destructors are called automatically for them. If you throw an exception from a destructor, what is a client supposed to do? There is no reasonable action the client can take, so there is no reason to burden that code with exception handling.
+
+\item
+The destructor is your one chance to free memory and resources used in the object. If you waste your chance by exiting the function early due to an exception, you will never be able to go back and free the memory or resources.
+
+\item
+Destructors are implicitly marked as noexcept, unless they are explicitly marked with noexcept(false) or the class has any subobjects with a noexcept(false) destructor. If you throw an exception from a noexcept destructor, the C++ runtime calls std::terminate() to terminate the application.
+
+\item
+Destructors can run during the process of stack unwinding while there is another exception being handled. If you throw an exception from the destructor in the middle of stack unwinding, the C++ runtime calls std::terminate() to terminate the application. For the brave and curious, C++ does provide the ability to determine, in a destructor, whether you are executing as a result of a normal function exit or delete call or because of stack unwinding. The function uncaught\_exceptions(), declared in <exception>, returns the number of uncaught exceptions, that is, exceptions that have been thrown but that have not reached a matching catch yet. If the result of uncaught\_exceptions() is greater than zero, then you are in the middle of stack unwinding. However, correct use of this function is complicated, messy, and should be avoided. Note that before C++17, the function was called uncaught\_exception() (singular) and returned a bool that was true if you were in the middle of stack unwinding. This singular version is deprecated since C++17 and removed since C++20.
+\end{enumerate}
+
+\begin{myWarning}{WARNING}
+Be careful not to let any exceptions escape from a destructor.
+\end{myWarning}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

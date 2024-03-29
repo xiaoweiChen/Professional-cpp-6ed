@@ -1,8 +1,142 @@
 
 
+Before C++20, you could use the following preprocessor macros to get information about a location in your source code:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{MACRO} & \textbf{DESCRIPTION}                                     \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\_\_FILE\_\_   & Replaced with the current source code filename           \\ \hline
+\_\_LINE\_\_   & Replaced with the current line number in the source code \\ \hline
+\end{longtable}
+
+Additionally, every function has a locally defined static character array called \_\_func\_\_ containing the name of the function.
+
+Since C++20, a proper object-oriented replacement for \_\_func\_\_ and these C-style preprocessor macros is available in the form of an std::source\_location class, defined in <source\_location>. An instance of source\_location has the following public accessors:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{ACCESSOR} & \textbf{DESCRIPTION}                                  \\ \hline
+\endfirsthead
+%
+\endhead
+%
+file\_name()      & Contains the current source code filename             \\ \hline
+function\_name() & \begin{tabular}[c]{@{}l@{}}Contains the current function name, if the current position is inside\\ a function\end{tabular} \\ \hline
+line()            & Contains the current line number in the source code   \\ \hline
+column()          & Contains the current column number in the source code \\ \hline
+\end{longtable}
+
+A static member function current() is provided that creates a source\_location instance based on the location in the source code where the member function is called.
+
 \mySubsubsection{14.6.1.}{Source Location for Logging}
 
+The source\_location class is useful for logging purposes. Previously, logging often involved writing C-style macros to automatically gather the current file name, function name, and line number, so they could be included in the log output. Now, with source\_location, you can write a pure C++ function to perform your logging and to automatically collect the location data you require. A nice trick to do this is defining a logMessage() function as follows. This time, the code is prefixed with line numbers to better explain what is happening.
 
+\begin{shell}
+5.  void logMessage(string_view message,
+6.  const source_location& location = source_location::current())
+7.  {
+8.      println("{}({}): {}: {}", location.file_name(),
+9.      location.line(), location.function_name(), message);
+10. }
+11.
+12. void foo()
+13. {
+14.     logMessage("Starting execution of foo().");
+15. }
+16.
+17. int main()
+18. {
+19.     foo();
+20. }
+\end{shell}
+
+he second parameter of logMessage() is a source\_location with the result of the static member function current() as default value. The trick here is that the call to current() does not happen on line 6, but actually at the location where logMessage() is called, which is line 14, and that’s exactly the location you are interested in.
+
+When executing this program with Microsoft Visual C++, the output is as follows:
+
+\begin{shell}
+./01_Logging.cpp(14): void __cdecl foo(void): Starting execution of foo().
+\end{shell}
+
+Line 14 indeed corresponds to the line calling logMessage(). The exact name of the function, void \_\_cdecl foo(void) in this case, is compiler dependent.
 
 \mySubsubsection{14.6.2.}{Automatically Embed a Source Location in Custom Exceptions}
+
+Another interesting use case for source\_location is in your own exception classes to automatically store the location where an exception was thrown. Here’s an example:
+
+\begin{cpp}
+class MyException : public exception
+{
+    public:
+        explicit MyException(string message,
+            source_location location = source_location::current())
+            : m_message { move(message) }
+            , m_location { move(location) }
+        { }
+
+        const char* what() const noexcept override { return m_message.c_str(); }
+        virtual const source_location& where() const noexcept{ return m_location; }
+    private:
+        string m_message;
+        source_location m_location;
+};
+
+void doSomething()
+{
+    throw MyException { "Throwing MyException." };
+}
+
+int main()
+{
+    try {
+        doSomething();
+    } catch (const MyException& e) {
+        const auto& location { e.where() };
+        println(cerr, "Caught: '{}' at line {} in {}.",
+            e.what(), location.line(), location.function_name());
+    }
+}
+\end{cpp}
+
+The output with Microsoft Visual C++ is similar to the following:
+
+\begin{shell}
+Caught: 'Throwing MyException.' at line 26 in void __cdecl doSomething(void).
+\end{shell}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

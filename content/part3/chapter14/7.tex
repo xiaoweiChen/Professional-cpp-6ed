@@ -1,9 +1,181 @@
 
+\CXXTwentythreeLogo{-40}{10}
+
+Whenever a function A() calls another function B(), the arguments to be passed to B() are recorded and information about where to return to when the function is finished is recorded as well. The execution of B() can again call another function C() and so on. All this information is recorded in frames on a stack trace, also known as a call stack. For each function call, a new frame is added to the stack trace. When the execution of the function is finished, its frame is removed from the stack trace. At any given moment in the execution of your program, the stack trace tells you exactly through which function calls you arrived in the currently executing function. Information like this is vital for finding and fixing bugs in your program. Chapter 31, “Conquering Debugging,” discusses debugging in detail. This section discusses the functionality provided by the Standard Library to work with stack traces, as well as how this can be very useful in combination with custom exceptions. Everything discussed in this section is new since C++23.
 
 \mySubsubsection{14.7.1.}{The Stack Trace Library}
 
+The stack trace library is defined in <stacktrace>. You can retrieve a stack trace at any moment in time using the static member function std::stacktrace::current(). You can pass an integer to current() if you want to skip a certain number of top frames. An example of this is given in the next section. Once you have a stack trace, you can easily print it to the console using print() or println(). You can also convert a stack trace to a string using std::to\_string(). Here is an example, with the stack trace–related statements highlighted:
 
+\begin{cpp}
+void handleStackTrace(const stacktrace& trace)
+{
+    println(" Stack trace information:");
+    println("   There are {} frames in the stack trace.", trace.size());
+    println("   Here are all the frames:");
+    println("---------------------------------------------------------");
+    println("{}", trace);
+    // If the above statement doesn't work yet, you can use the following:
+    //println("{}", to_string(trace));
+    println("---------------------------------------------------------");
+}
+
+void C()
+{
+    println("Entered C().");
+    handleStackTrace(stacktrace::current());
+}
+
+void B() { println("Entered B()."); C(); }
+void A() { println("Entered A()."); B(); }
+
+int main()
+{
+    A();
+}
+\end{cpp}
+
+Compiled with Microsoft Visual C++ and running on Windows, the output resembles the following. Long pathnames have been trimmed to prevent wrapping of lines. The 01\_stacktrace.cpp file is our code. The exe\_common.inl and exe\_main.cpp files belong to the Visual C++ runtime. The final two frames, kernel32 and ntdll, are part of the Windows kernel. Function names are highlighted for readability.
+
+\begin{shell}
+Entered A().
+Entered B().
+Entered C().
+  Stack trace information:
+    There are 10 frames in the stack trace.
+    Here are all the frames:
+---------------------------------------------------------
+0> D:\...\01_stacktrace.cpp(20): TestApp!C+0x77
+1> D:\...\01_stacktrace.cpp(27): TestApp!B+0x61
+2> D:\...\01_stacktrace.cpp(33): TestApp!A+0x61
+3> D:\...\01_stacktrace.cpp(38): TestApp!main+0x20
+4> D:\...\exe_common.inl(79): TestApp!invoke_main+0x39
+5> D:\...\exe_common.inl(288): TestApp!__scrt_common_main_seh+0x12E
+6> D:\...\exe_common.inl(331): TestApp!__scrt_common_main+0xE
+7> D:\...\exe_main.cpp(17): TestApp!mainCRTStartup+0xE
+8> KERNEL32!BaseThreadInitThunk+0x1D
+9> ntdll!RtlUserThreadStart+0x28
+---------------------------------------------------------
+\end{shell}
+
+You can iterate over the individual frames of a stack trace and query for information of each frame. A frame is represented by the std::stacktrace\_entry class, which supports the following member functions:
+
+\begin{itemize}
+\item
+description(): Returns the description of the frame
+
+\item
+source\_file() and source\_line(): The name of the source file and the line number within it that contains the statement represented by the frame
+\end{itemize}
+
+For example, the following implementation of handleStackTrace() doesn’t just print the entire stack trace all at once but iterates over the individual frames and prints out only the description of each.
+
+\begin{cpp}
+void handleStackTrace(const stacktrace& trace)
+{
+    println(" Stack trace information:");
+    println(" There are {} frames in the stack trace.", trace.size());
+    println(" Here are the descriptions of all the frames:");
+    for (unsigned index { 0 }; auto&& frame : trace) {
+        println(" {} -> {}", index++, frame.description());
+    }
+}
+\end{cpp}
+
+The output now is as follows:
+
+\begin{shell}
+Entered A().
+Entered B().
+Entered C().
+  Stack trace information:
+    There are 10 frames in the stack trace.
+    Here are the descriptions of all the frames:
+      0 -> TestApp!C+0x77
+      1 -> TestApp!B+0x61
+      2 -> TestApp!A+0x61
+      3 -> TestApp!main+0x20
+      4 -> TestApp!invoke_main+0x39
+      ... <snip> ...
+\end{shell}
 
 \mySubsubsection{14.7.2.}{Automatically Embed a Stack Trace in Custom Exceptions}
+
+We can extend the MyException class from an earlier section on source\_location to include a stack trace in addition to the source location.
+
+\begin{cpp}
+class MyException : public exception
+{
+    public:
+        explicit MyException(string message,
+        source_location location = source_location::current())
+            : m_message { move(message) }
+            , m_location { move(location) }
+            , m_stackTrace { stacktrace::current(1) } // 1 means skip top frame.
+        { }
+
+        const char* what() const noexcept override { return m_message.c_str(); }
+        virtual const source_location& where() const noexcept{ return m_location; }
+        virtual const stacktrace& how() const noexcept { return m_stackTrace; }
+    private:
+        string m_message;
+        source_location m_location;
+        stacktrace m_stackTrace;
+};
+\end{cpp}
+
+Note that the constructor passes 1 to stacktrace::current() to skip the top frame of the stack trace. This top frame would be the constructor of MyException, which we are not interested in. We’re interested only in the stack trace leading up to the construction of this MyException instance. This new exception class can be tested as follows:
+
+\begin{cpp}
+void doSomething()
+{
+    throw MyException { "Throwing MyException." };
+}
+
+int main()
+{
+    try {
+        doSomething();
+    } catch (const MyException& e) {
+        // Print exception description + location where exception was raised.
+        const auto& location { e.where() };
+        println(cerr, "Caught: '{}' at line {} in {}.",
+            e.what(), location.line(), location.function_name());
+
+        // Print the stack trace at the point where the exception was raised.
+        println(cerr, " Stack trace:");
+        for (unsigned index { 0 }; auto&& frame : e.how()) {
+            const string& fileName { frame.source_file() };
+            println(cerr, " {}> {}, {}({})", index++, frame.description(),
+                (fileName.empty() ? "n/a" : fileName), frame.source_line());
+        }
+    }
+}
+\end{cpp}
+
+When compiling with Microsoft Visual C++ and running on Windows, the output resembles the following. Only the top two relevant entries of the stack trace are shown. The stack entries that are inside the Visual C++ runtime or inside Windows itself are omitted for brevity.
+
+\begin{shell}
+Caught: 'Throwing MyException.' at line 30 in void __cdecl doSomething(void).
+  Stack trace:
+    0> TestApp!doSomething+0xD2, D:\...\03_CustomExceptionWithStackTrace.cpp(30)
+    1> TestApp!main+0x4D, D:\...\03_CustomExceptionWithStackTrace.cpp(36)
+    ... <snip> ...
+\end{shell}
+
+\begin{myNotic}{NOTE}
+If you are using custom exceptions, embed a stack trace in them for easier debugging of errors.
+\end{myNotic}
+
+
+
+
+
+
+
+
+
+
+
 
 

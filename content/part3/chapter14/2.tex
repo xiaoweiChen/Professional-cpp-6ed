@@ -1,39 +1,505 @@
 
+Exceptional situations arise frequently in file input and output. The following is a function to open a file, read a list of integers from the file, and return the integers in an std::vector data structure. The lack of error handling should jump out at you:
+
+\begin{cpp}
+vector<int> readIntegerFile(const string& filename)
+{
+    ifstream inputStream { filename };
+    // Read the integers one-by-one and add them to a vector.
+    vector<int> integers;
+    int temp;
+    while (inputStream >> temp) {
+        integers.push_back(temp);
+    }
+    return integers;
+}
+\end{cpp}
+
+The following line keeps reading values from the ifstream until the end of the file is reached or until an error occurs:
+
+\begin{cpp}
+while (inputStream >> temp) {
+\end{cpp}
+
+If the >> operator encounters an error, it sets the fail bit of the ifstream object. In that case, the bool() conversion operator returns false, and the while loop terminates. Streams are discussed in more detail in Chapter 13, “Demystifying C++ I/O.”
+
+You might use readIntegerFile() like this:
+
+\begin{cpp}
+const string filename { "IntegerFile.txt" };
+vector<int> myInts { readIntegerFile(filename) };
+println("{} ", myInts);
+\end{cpp}
+
+The rest of this section shows how to add error handling with exceptions, but first, we need to delve a bit deeper into how you throw and catch exceptions.
 
 \mySubsubsection{14.2.1.}{Throwing and Catching Exceptions}
 
+Using exceptions consists of providing two parts in your program: a try/catch construct to handle an exception, and a throw statement that throws an exception. Both must be present in some form to make exceptions work. However, in many cases, the throw happens deep inside some library (including the C++ runtime), and the programmer never sees it, but still has to react to it using a try/catch construct.
 
+The try/catch construct looks like this:
+
+\begin{cpp}
+try {
+    // ... code which may result in an exception being thrown
+} catch (exception-type1 exception-name) {
+    // ... code which responds to the exception of type 1
+} catch (exception-type2 exception-name) {
+    // ... code which responds to the exception of type 2
+}
+// ... remaining code
+\end{cpp}
+
+The code that may result in an exception being thrown might contain a throw directly. It might also be calling a function that either directly throws an exception or calls—by some unknown number of layers of calls—a function that throws an exception.
+
+If no exception is thrown, no code from any catch block is executed, and the “remaining code” that follows will follow the last statement executed in the try block.
+
+If an exception is thrown, any code following the throw or following the call that resulted in the throw is not executed; instead, control immediately goes to the right catch block, depending on the type of the exception that is thrown.
+
+If the catch block does not do a control transfer—for example, by returning from the function, throwing a new exception, or rethrowing the caught exception—then the “remaining code” is executed after the last statement of that catch block.
+
+The simplest example to demonstrate exception handling is avoiding division-by-zero. The following example throws an exception of type std::invalid\_argument, defined in <stdexcept>:
+
+\begin{cpp}
+double safeDivide(double num, double den)
+{
+    if (den == 0) { throw invalid_argument { "Divide by zero" }; }
+    return num / den;
+}
+
+int main()
+{
+    try {
+        println("{}", safeDivide(5, 2));
+        println("{}", safeDivide(10, 0));
+        println("{}", safeDivide(3, 3));
+    } catch (const invalid_argument& e) {
+        println("Caught exception: {}", e.what());
+    }
+}
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+2.5
+Caught exception: Divide by zero
+\end{shell}
+
+throw is a keyword in C++ and is the only way to throw an exception. In the code snippet we throw a new instance of invalid\_argument. It is one of the standard exceptions provided by the C++ Standard Library. All Standard Library exceptions form a hierarchy, which is discussed later in this chapter. Each class in the hierarchy supports a what() member function that returns a const char* string describing the exception. This is the string you provide in the constructor of the exception.
+
+\begin{myNotic}{NOTE}
+Even though the return type of what() is const char*, exceptions can support Unicode strings if you encode them using UTF-8. See Chapter 21, “String Localization and Regular Expressions,” for details on Unicode strings.
+\end{myNotic}
+
+Let’s go back to the readIntegerFile() function. The most likely problem to occur is for the file open to fail. That’s a perfect situation for throwing an exception. The following code throws an exception of type std::exception, defined in <exception>, if the file fails to open:
+
+\begin{cpp}
+vector<int> readIntegerFile(const string& filename)
+{
+    ifstream inputStream { filename };
+    if (inputStream.fail()) {
+        // We failed to open the file: throw an exception.
+        throw exception {};
+    }
+
+    // Read the integers one-by-one and add them to a vector.
+    vector<int> integers;
+    int temp;
+    while (inputStream >> temp) {
+        integers.push_back(temp);
+    }
+    return integers;
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Always document the possible exceptions a function can throw in its code documentation, because users of the function need to know which exceptions might get thrown so they can properly handle them.
+\end{myNotic}
+
+If the function fails to open the file and executes the throw exception{}; statement, the rest of the function is skipped, and control transitions to the nearest exception handler.
+
+Throwing exceptions in your code is most useful when you also write code that handles them. Exception handling is a way to “try” a block of code, with another block of code designated to react to any problems that might occur. In the following main() function, the catch statement reacts to any exception of type exception that was thrown within the try block by printing an error message. If a try block finishes without throwing an exception, the catch blocks are skipped. You can think of try/catch blocks as glorified if statements: if an exception is thrown in the try block, then execute a catch block, else skip all catch blocks.
+
+\begin{cpp}
+int main()
+{
+    const string filename { "IntegerFile.txt" };
+    vector<int> myInts;
+    try {
+        myInts = readIntegerFile(filename);
+    } catch (const exception& e) {
+        println(cerr, "Unable to open file {}", filename);
+        return 1;
+    }
+    println("{} ", myInts);
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Although by default streams do not throw exceptions, you can tell the streams to throw exceptions for error conditions by calling their exceptions() member function. However, most compilers give useless information in the stream exceptions they throw. For such compilers, it might be better to deal with the stream state directly instead of using exceptions. This book does not use stream exceptions.
+\end{myNotic}
 
 \mySubsubsection{14.2.2.}{Exception Types}
 
+You can throw an exception of any type. The earlier example throws an object of type std::exception, but exceptions do not need to be objects. You could throw a simple int like this:
 
+\begin{cpp}
+vector<int> readIntegerFile(const string& filename)
+{
+    ifstream inputStream { filename };
+    if (inputStream.fail()) {
+        // We failed to open the file: throw an exception.
+        throw 5;
+    }
+    // Omitted for brevity
+}
+\end{cpp}
+
+You would then need to change the catch statement as follows:
+
+\begin{cpp}
+try {
+    myInts = readIntegerFile(filename);
+} catch (int e) {
+    println(cerr, "Unable to open file {} (Error Code {})", filename, e);
+    return 1;
+}
+\end{cpp}
+
+Alternatively, you could throw a const char* C-style string. This technique is sometimes useful because the string can contain information about the exception:
+
+\begin{cpp}
+vector<int> readIntegerFile(const string& filename)
+{
+    ifstream inputStream { filename };
+    if (inputStream.fail()) {
+        // We failed to open the file: throw an exception.
+        throw "Unable to open file";
+    }
+    // Omitted for brevity
+}
+\end{cpp}
+
+When you catch the const char* exception, you can print the result as follows:
+
+\begin{cpp}
+try {
+    myInts = readIntegerFile(filename);
+} catch (const char* e) {
+    println(cerr, "{}", e);
+    return 1;
+}
+\end{cpp}
+
+Despite the previous examples, keep the following in mind:
+
+\begin{myNotic}{NOTE}
+You should generally throw objects rather than other data types as exceptions for two reasons:
+
+\begin{itemize}
+\item
+Objects convey information by their class name.
+
+\item
+Objects can store all kinds of information, including strings that describe the exception.
+\end{itemize}
+\end{myNotic}
+
+The C++ Standard Library defines a number of predefined exception classes structured in a class hierarchy, discussed later in this chapter. Additionally, you can write your own exception classes and fit them in the standard hierarchy, as you’ll also learn later in this chapter.
 
 \mySubsubsection{14.2.3.}{Catching Exception Objects as Reference-to-const}
 
+In the earlier example in which readIntegerFile() throws an object of type exception, the catch handler looks like this:
 
+\begin{cpp}
+} catch (const exception& e) {
+\end{cpp}
+
+However, there is no requirement to catch objects as reference-to-const. You could catch the object by value like this:
+
+\begin{cpp}
+} catch (exception e) {
+\end{cpp}
+
+Alternatively, you could catch the object as reference-to-non-const:
+
+\begin{cpp}
+} catch (exception& e) {
+\end{cpp}
+
+Also, as you saw in the const char* example earlier, you can catch pointers to exceptions, as long as pointers to exceptions are thrown.
+
+Still, I recommend sticking with the following advice:
+
+\begin{myNotic}{NOTE}
+Always throw objects as exceptions, and always catch exception objects as reference-to-const! This avoids object slicing (see Chapter 10, “Discovering Inheritance Techniques”), which could happen when you catch exception objects by value. Capturing by reference-to-non-const is not recommended either, as caught exceptions are normally never modified.
+\end{myNotic}
 
 \mySubsubsection{14.2.4.}{Throwing and Catching Multiple Exceptions}
 
+Failure to open the file is not the only problem readIntegerFile() could encounter. Reading the data from the file can cause an error if it is formatted incorrectly. Here is an implementation of readIntegerFile() that throws an exception if it cannot either open the file or read the data correctly. This time, it uses a runtime\_error, derived from exception and which allows you to specify a descriptive string in its constructor. The runtime\_error exception class is defined in <stdexcept>.
+
+\begin{cpp}
+vector<int> readIntegerFile(const string& filename)
+{
+    ifstream inputStream { filename };
+    if (inputStream.fail()) {
+        // We failed to open the file: throw an exception.
+        throw runtime_error { "Unable to open the file." };
+    }
+
+    // Read the integers one-by-one and add them to a vector.
+    vector<int> integers;
+    int temp;
+    while (inputStream >> temp) {
+        integers.push_back(temp);
+    }
+
+    if (!inputStream.eof()) {
+        // We did not reach the end-of-file.
+        // This means that some error occurred while reading the file.
+        // Throw an exception.
+        throw runtime_error { "Error reading the file." };
+    }
+
+    return integers;
+}
+\end{cpp}
+
+Your code in main() does not need to change much because it already catches an exception of type exception, from which runtime\_error derives. However, that exception could now be thrown in two different situations, so we use the what() member function to get a proper description of the caught exception:
+
+\begin{cpp}
+try {
+    myInts = readIntegerFile(filename);
+} catch (const exception& e) {
+    println(cerr, "{}", e.what());
+    return 1;
+}
+\end{cpp}
+
+Alternatively, you could throw two different types of exceptions from readIntegerFile(). Here is an implementation of readIntegerFile() that throws an exception object of class invalid\_argument if the file cannot be opened, and an object of class runtime\_error if the integers cannot be read. Both invalid\_argument and runtime\_error are classes defined in <stdexcept> as part of the C++ Standard Library.
+
+\begin{cpp}
+vector<int> readIntegerFile(const string& filename)
+{
+    ifstream inputStream { filename };
+    if (inputStream.fail()) {
+        // We failed to open the file: throw an exception.
+        throw invalid_argument { "Unable to open the file." };
+    }
+
+    // Read the integers one-by-one and add them to a vector.
+    vector<int> integers;
+    int temp;
+    while (inputStream >> temp) {
+        integers.push_back(temp);
+    }
+
+    if (!inputStream.eof()) {
+        // We did not reach the end-of-file.
+        // This means that some error occurred while reading the file.
+        // Throw an exception.
+        throw runtime_error { "Error reading the file." };
+    }
+    return integers;
+}
+\end{cpp}
+
+There are no public default constructors for invalid\_argument and runtime\_error, only string constructors, so you always must pass a string as argument.
+
+Now, main() can catch both invalid\_argument and runtime\_error exceptions with two catch statements:
+
+\begin{cpp}
+try {
+    myInts = readIntegerFile(filename);
+} catch (const invalid_argument& e) {
+    println(cerr, "{}", e.what());
+    return 1;
+} catch (const runtime_error& e) {
+    println(cerr, "{}", e.what());
+    return 2;
+}
+\end{cpp}
+
+If an exception is thrown inside the try block, the compiler matches the type of the exception to the proper catch handler. So, if readIntegerFile() is unable to open the file and throws an invalid\_argument object, it is caught by the first catch statement. If readIntegerFile() is unable to read the file properly and throws a runtime\_error, then the second catch statement catches the exception.
+
 \mySamllsection{Matching and const}
+
+The const-ness specified in the type of the exception you want to catch makes no difference for matching purposes. That is, this line matches any exception of type runtime\_error:
+
+\begin{cpp}
+} catch (const runtime_error& e) {
+\end{cpp}
+
+The following line also matches any exception of type runtime\_error:
+
+\begin{cpp}
+} catch (runtime_error& e) {
+\end{cpp}
+
+Still, it’s advised to always catch exception objects as reference-to-const.
 
 \mySamllsection{Matching Any Exception}
 
+You can write a catch-all block that matches any possible exception with the special syntax shown in the following example:
+
+\begin{cpp}
+try {
+    myInts = readIntegerFile(filename);
+} catch (...) {
+    println(cerr, "Error reading or opening file {}", filename);
+    return 1;
+}
+\end{cpp}
+
+The three dots are not a typo. They are a wildcard that matches any exception type. The downside of using a catch-all block is that you don’t get any details of the caught exception. When you are calling poorly documented code, this technique could be useful to ensure that you catch all possible exceptions. But even then, what would you possibly be able to do to recover from an unknown exception?
+
+One useful use case of a catch-all block is to log that an exception was thrown and then rethrow the exception. The following example shows how you can write catch handlers that explicitly handle invalid\_argument and runtime\_error exceptions, as well as how to include a catch-all handler for all other exceptions. In any catch block, you can rethrow the currently caught exception using just the throw keyword without any arguments. There is more to say about rethrowing exceptions, but that has to wait until later in this chapter.
+
+\begin{cpp}
+try {
+    // Code that can throw exceptions.
+} catch (const invalid_argument& e) {
+    // Handle invalid_argument exception.
+} catch (const runtime_error& e) {
+    // Handle runtime_error exception.
+} catch (...) {
+    // Handle all other exceptions.
+    // Log that an exception occurred...
+    throw; // Rethrow the caught exception.
+}
+\end{cpp}
+
+In situations where you have complete information about the set of thrown exceptions, a catch-all block is not recommended because it handles every exception type identically. It’s better to match exception types explicitly and take appropriate, targeted actions.
 
 \mySubsubsection{14.2.5.}{Uncaught Exceptions}
 
+If your program throws an exception that is not caught anywhere, the program terminates. Basically, there is a try/catch construct around the call to your main() function, which catches all unhandled exceptions and behaves like the following pseudocode:
 
+\begin{cpp}
+try {
+    main(argc, argv);
+} catch (...) {
+    // Issue error message and terminate program.
+}
+// Normal termination code.
+\end{cpp}
+
+However, this behavior is usually not what you want. The point of exceptions is to give your program a chance to handle and correct undesirable or unexpected situations.
+
+\begin{myWarning}{WARNING}
+You should catch and handle all exceptions thrown in your programs, as far as possible.
+\end{myWarning}
+
+It is also possible to change the behavior of your program if there is an uncaught exception. When the program encounters an uncaught exception, it calls the built-in terminate() function, which calls abort() from <cstdlib> to kill the program. You can set your own terminate\_handler by calling set\_terminate() with a pointer to a function that takes no arguments and returns no value. terminate(), set\_terminate(), and terminate\_handler are all declared in <exception>. The following pseudocode shows a high-level overview of how it works:
+
+\begin{cpp}
+try {
+    main(argc, argv);
+} catch (...) {
+    if (terminate_handler != nullptr) {
+        terminate_handler();
+    } else {
+        terminate();
+    }
+}
+// Normal termination code.
+\end{cpp}
+
+Before you get too excited about this feature, you should know that your callback function must still terminate the program using either abort() or \_Exit(). It can’t just ignore the error. Both abort() and \_Exit() are defined in <cstdlib> and terminate the application without cleaning up resources. For example, destructors of objects won’t get called. The \_Exit() function accepts an integer argument that is returned to the operating system and can be used to determine how a process exited. A value of 0 or EXIT\_SUCCESS means the program exited without any error; otherwise, the program terminated abnormally. The abort() function does not accept any arguments. Additionally, there is an exit() function that also accepts an integer that is returned to the operating system and that does clean up resources by calling destructors, but it’s not recommended to call exit() from a terminate\_handler.
+
+A terminate\_handler can be used to print a helpful error message before exiting. Here is an example of a main() function that doesn’t catch the exceptions thrown by readIntegerFile(). Instead, it sets the terminate\_handler to a custom callback. This callback prints an error message and terminates the process by calling \_Exit(). Note the use of the [[noreturn]] attribute, introduced in Chapter 1.
+
+\begin{cpp}
+[[noreturn]] void myTerminate()
+{
+    println(cerr, "Uncaught exception!");
+    _Exit(1);
+}
+
+int main()
+{
+    set_terminate(myTerminate);
+
+    const string filename { "IntegerFile.txt" };
+    vector<int> myInts { readIntegerFile(filename) };
+    println("{} ", myInts);
+}
+\end{cpp}
+
+Although not shown in this example, set\_terminate() returns the old terminate\_handler when it sets the new one. The terminate\_handler applies program-wide, so it’s considered good style to restore the old terminate\_handler when you have completed the code that needed the new terminate\_handler. In this case, the entire program needs the new terminate\_handler, so there’s no point in restoring it.
+
+While it’s important to know about set\_terminate(), it’s not an effective exception-handling approach. It’s recommended to catch and handle each exception individually to provide more precise error handling.
+
+\begin{myNotic}{NOTE}
+In professionally written software, a terminate\_handler is usually set up to create a crash dump before terminating the process. A crash dump usually contains information such as the call stack and local variables at the time the uncaught exception was thrown. Such a crash dump can then be loaded into a debugger and allows you to figure out what the uncaught exception was and what caused it. However, writing crash dumps is platform dependent and therefore not further discussed in this book.
+\end{myNotic}
 
 \mySubsubsection{14.2.6.}{noexcept Specifier}
 
+By default, a function is allowed to throw any exception it likes. However, it is possible to mark a function with the noexcept specifier, a C++ keyword, to state that it will not throw any exceptions. For example, the following function is marked as noexcept, so it is not allowed to throw any exceptions:
 
+\begin{cpp}
+void printValues(const vector<int>& values) noexcept;
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+A function marked with noexcept must not throw any exceptions.
+\end{myNotic}
+
+When a function marked as noexcept throws an exception anyway, C++ calls terminate() to terminate the application.
+
+When you override a virtual member function in a derived class, you are allowed to mark the overridden member function as noexcept, even if the version in the base class is not noexcept. The opposite is not allowed.
 
 \mySubsubsection{14.2.7.}{noexcept(expression) Specifier}
 
-
+The noexcept(expression) specifier marks a function as noexcept if and only if the given expression returns true. In other words, noexcept equals noexcept(true), and noexcept(false) is the opposite of noexcept(true); that is, a member function marked with noexcept(false) can throw any exception it wants, which is the default.
 
 \mySubsubsection{14.2.8.}{noexcept(expression) Operator}
 
+The noexcept(expression) operator returns true if the given expression is noexcept. This evaluation happens at compile time.
 
+Here’s an example:
+
+\begin{cpp}
+void f1() noexcept {}
+void f2() noexcept(false) {}
+void f3() noexcept(noexcept(f1())) {}
+void f4() noexcept(noexcept(f2())) {}
+
+int main()
+{
+    println("{} {} {} {}", noexcept(f1()),
+                           noexcept(f2()),
+                           noexcept(f3()),
+                           noexcept(f4()));
+}
+\end{cpp}
+
+The output of this code snippet is true false true false:
+
+\begin{itemize}
+\item
+noexcept(f1()) is true because f1() is explicitly marked with a noexcept specifier.
+
+\item
+noexcept(f2()) is false because f2() is explicitly marked as such using a noexcept(expression) specifier.
+
+\item
+noexcept(f3()) is true because f3() is marked as noexcept but only if f1() is noexcept which it is.
+
+\item
+noexcept(f4()) is false because f4() is marked as noexcept but only if f2() is noexcept which it isn’t.
+\end{itemize}
 
 \mySubsubsection{14.2.9.}{Throw Lists}
+
+Older versions of C++ allowed you to specify the exceptions a function intended to throw. This specification was called the throw list or the exception specification.
+
+\begin{myNotic}{NOTE}
+C++11 has deprecated, and C++17 has removed support for exception specifications, apart from noexcept and throw(). The latter was equivalent to noexcept. Since C++20, support for throw() has been removed as well.
+\end{myNotic}
+
+Because C++17 has officially removed support for exception specifications, this book does not further discuss them.
 

@@ -1,8 +1,132 @@
 
+When a piece of code throws an exception, it searches for a catch handler on the stack. This catch handler could be zero or more function calls up the stack of execution. When one is found, the stack is stripped back to the stack level that defines the catch handler by unwinding all intermediate stack frames. Stack unwinding means that the destructors for all locally scoped variables are called, and all code remaining in each function past the current point of execution is skipped.
+
+During stack unwinding, pointer variables are obviously not freed, and other cleanup is not performed either. This behavior can present problems. For example, the following code causes a memory leak:
+
+\begin{cpp}
+void funcOne();
+void funcTwo();
+
+int main()
+{
+    try {
+        funcOne();
+    } catch (const exception& e) {
+        println(cerr, "Exception caught!");
+        return 1;
+    }
+}
+
+void funcOne()
+{
+    string str1;
+    string* str2 { new string {} };
+    funcTwo();
+    delete str2;
+}
+
+void funcTwo()
+{
+    ifstream fileStream;
+    fileStream.open("filename");
+    throw exception {};
+    fileStream.close();
+}
+\end{cpp}
+
+When funcTwo() throws an exception, the closest exception handler is in main(). Control then jumps immediately from this line in funcTwo(),
+
+\begin{cpp}
+throw exception {};
+\end{cpp}
+
+to this line in main():
+
+\begin{cpp}
+println(cerr, "Exception caught!");
+\end{cpp}
+
+In funcTwo(), control remains at the line that threw the exception, so this subsequent line never gets a chance to run:
+
+\begin{cpp}
+fileStream.close();
+\end{cpp}
+
+However, luckily for you, the ifstream destructor is called because fileStream is a local variable on the stack. The ifstream destructor closes the file for you, so there is no resource leak here. If you had dynamically allocated fileStream, it would not be destroyed, and the file would not be closed.
+
+In funcOne(), control is at the call to funcTwo(), so this subsequent line never gets a chance to run:
+
+\begin{cpp}
+delete str2;
+\end{cpp}
+
+In this case, there really is a memory leak. Stack unwinding does not automatically call delete on str2 for you. On the other hand, str1 is destroyed properly because it is a local variable on the stack. Stack unwinding destroys all local variables correctly.
+
+\begin{myWarning}{WARNING}
+Careless exception handling can lead to memory and resource leaks.
+\end{myWarning}
+
+This is one reason why you should never mix older C models of allocation (even if you are calling new so it looks like C++) with modern programming methodologies like exceptions. In C++, this situation should be handled by using stack-based allocations or, if that is not possible, by one of the techniques discussed in the upcoming two sections.
 
 \mySubsubsection{14.5.1.}{Use Smart Pointers}
 
+If stack-based allocation is not possible, then use smart pointers. They allow you to write code that automatically prevents memory or resource leaks during exception handling. Whenever a smart pointer object is destroyed, it frees the underlying resource. Here is a modified funcOne() implementation using a unique\_ptr smart pointer, defined in <memory>, and introduced in Chapter 7, “Memory Management”:
 
+\begin{cpp}
+void funcOne()
+{
+    string str1;
+    auto str2 { make_unique<string>("hello") };
+    funcTwo();
+}
+\end{cpp}
+
+The str2 pointer will automatically be deleted when you return from funcOne() or when an exception is thrown.
+
+Of course, you should only allocate something dynamically if you have a good reason to do so. For example, in funcOne(), there is no good reason to make str2 a dynamically allocated string. It should just be a stack-based string variable. It’s merely shown here as an artificial example of the consequences of throwing exceptions.
+
+\begin{myNotic}{NOTE}
+With smart pointers, or other resource acquisition is initialization (RAII) objects, you never have to remember to free the underlying resource: the destructor of the RAII object does it for you, whether you leave the function normally or via an exception. It’s a design technique discussed in Chapter 32, “Incorporating Design Techniques and Frameworks.”
+\end{myNotic}
 
 \mySubsubsection{14.5.2.}{Catch, Cleanup, and Rethrow}
+
+Another technique for avoiding memory and resource leaks is for each function to catch any possible exceptions, perform necessary cleanup work, and rethrow the exception for the function higher up the stack to handle. Here is a revised funcOne() with this technique:
+
+\begin{cpp}
+void funcOne()
+{
+    string str1;
+    string* str2 { new string {} };
+    try {
+        funcTwo();
+    } catch (...) {
+        delete str2;
+        throw; // Rethrow the exception.
+    }
+    delete str2;
+}
+\end{cpp}
+
+This function wraps the call to funcTwo() with an exception handler that performs the cleanup (calls delete on str2) and then rethrows the exception. The keyword throw by itself rethrows whatever exception was caught most recently. Note that the catch statement uses the ... syntax to catch all exceptions.
+
+This method works fine but is messy and error prone. In particular, note that there are now two identical lines that call delete on str2: one while handling the exception and one when the function exits normally.
+
+\begin{myWarning}{WARNING}
+The preferred solution is to use stack-based allocation, or, if not possible, to use smart pointers or other RAII classes instead of the catch, cleanup, and rethrow technique.
+\end{myWarning}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

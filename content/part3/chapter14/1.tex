@@ -1,12 +1,55 @@
 
+No program exists in isolation; they all depend on external facilities such as interfaces with the operating system, networks and file systems, external code such as third-party libraries, and user input. Each of these areas can introduce situations that require you to respond to problems your program may encounter. These potential problems can be referred to with the general term exceptional situations. Even perfectly written programs encounter errors and exceptional situations. Thus, anyone who writes professional computer programs must include error-handling capabilities. Some languages, such as C, do not include many specific language facilities for error handling. Programmers using these languages generally rely on return values from functions and other ad hoc approaches. Other languages, such as Java, enforce the use of a language feature called exceptions as an error-handling mechanism. C++ lies between these extremes. It provides language support for exceptions but does not require their use. However, you can’t ignore exceptions entirely in C++ because a few basic facilities, such as memory allocation routines, use them by default, and several classes from the Standard Library use exceptions as well.
 
 \mySubsubsection{14.1.1.}{What Are Exceptions, Anyway?}
 
+Exceptions are a mechanism for a piece of code to notify another piece of code of an “exceptional” situation or error condition without progressing through the normal code paths. The code that encounters the error throws the exception, and the code that handles the exception catches it. Exceptions do not follow the fundamental rule of step-by-step execution to which you are accustomed. When a piece of code throws an exception, the program control immediately stops executing code step-by-step and transitions to the exception handler, which could be anywhere from the next line in the same function to several function calls up the stack. If you like sports analogies, you can think of the code that throws an exception as an outfielder throwing a baseball back to the infield, where the nearest infielder (closest exception handler) catches it. Figure 14.1 shows a hypothetical stack of three function calls. Function A() has the exception handler. It calls function B(), which calls function C(), which throws the exception.
 
+\myGraphic{0.7}{content/part3/chapter14/images/1.png}{FIGURE 14.1}
+
+Figure 14.2 shows the handler catching the exception. The stack frames for C() and B() have been removed, leaving only A().
+
+\myGraphic{0.7}{content/part3/chapter14/images/2.png}{FIGURE 14.2}
+
+Most modern programming languages, such as C\# and Java, have support for exceptions, so it’s no surprise that C++ has full-fledged support for them as well. However, if you are coming from C, then exceptions are something new; but once you get used to them, you probably don’t want to go back.
 
 \mySubsubsection{14.1.2.}{Why Exceptions in C++ Are a Good Thing}
 
+As mentioned earlier, run-time errors in programs are inevitable. Despite that fact, error handling in most C and C++ programs is messy and ad hoc. The de facto C error-handling standard, which was carried over into many C++ programs, uses integer function return codes, and the errno macro to signify errors. Each thread has its own errno value. errno acts as a thread-local integer variable that functions can use to communicate errors back to calling functions.
 
+Unfortunately, the integer return codes and errno are used inconsistently. Some functions might choose to return 0 for success and -1 for an error. If they return -1, they also set errno to an error code. Other functions return 0 for success and nonzero for an error, with the actual return value specifying the error code. These functions do not use errno. Still others return 0 for failure instead of for success, presumably because 0 always evaluates to false in C and C++.
+
+These inconsistencies can cause problems because programmers encountering a new function often assume that its return codes are the same as other similar functions. That is not always true. For example, on the Solaris 11 operating system, there are two different libraries of synchronization objects: the Portable Operating System Interface (POSIX) version and the Solaris version. The function to initialize a semaphore in the POSIX version is called sem\_init(), and the function to initialize a semaphore in the Solaris version is called sema\_init(). As if that weren’t confusing enough, the two functions handle error codes differently! sem\_init() returns -1 and sets errno on error, while sema\_init() returns the error code directly as a positive integer and does not set errno.
+
+Another problem is that the return type of functions in C++ can be of only one type, so if you need to return both an error and a value, you must find an alternative mechanism. One solution is to return an std::pair or tuple, an object that you can use to store two or more types. The pair class is introduced in Chapter 1, “A Crash Course in C++ and the Standard Library,” while tuple is discussed in the upcoming chapters that cover the Standard Library. Starting with C++23, you can return an std::expected from a function, which can contain either the result of the function or an error if something went wrong. Chapter 24, “Additional Vocabulary Types,” discusses expected in detail. Another choice is to define your own struct or class that contains several values and return an instance of that struct or class from your function. Yet another option is to return the value or error through a reference parameter or to make the error code one possible value of the return type, such as a nullptr pointer. In all these solutions, the caller is responsible for explicitly checking for any errors returned from the function, and if it doesn’t handle the error itself, it should propagate the error to its caller. Unfortunately, this often results in the loss of critical details about the error.
+
+C programmers may be familiar with a mechanism known as setjmp()/longjmp(). This mechanism cannot be used correctly in C++, because it bypasses scoped destructors on the stack. You should avoid it at all costs, even in C programs; therefore, this book does not explain the details of how to use it.
+
+Exceptions provide an easier, more consistent, and safer mechanism for error handling. There are several specific advantages of exceptions over the ad hoc approaches in C and C++:
+
+\begin{itemize}
+\item
+When return codes are used as an error reporting mechanism, you might forget to check the return code and properly handle it either locally or by propagating it upward. The [[nodiscard]] attribute, introduced in Chapter 1, offers a possible solution to prevent return codes from being ignored, but it’s not foolproof either. Exceptions cannot be forgotten or ignored: if your program fails to catch an exception, it terminates.
+
+\item
+When integer return codes are used, they generally do not contain sufficient information. You can use exceptions to pass as much information as you want from the code that finds the error to the code that handles it. Exceptions can also be used to communicate information other than errors, though many developers, including myself, consider that an abuse of the exception mechanism.
+
+\item
+Exception handling can skip levels of the call stack. That is, a function can handle an error that occurred several function calls down the stack, without error-handling code in the intermediate functions. Return codes require each level of the call stack to clean up explicitly after the previous level and to explicitly propagate the error code.
+\end{itemize}
+
+In some compilers in the past, exception handling added a tiny amount of overhead to any function that had an exception handler. For most modern compilers there is a trade-off in that there is almost no, or even zero, overhead in the non-throwing case, and only some slight overhead when you actually throw something. This trade-off is not a bad thing. Exceptions should not be used for controlling the standard execution flow of a program, such as returning a value from a function. Exceptions should be used only to handle exceptional events that are generally not encountered in normal program use, for example, a failure while reading from a file on disk. All this means that using exceptions actually results in faster code for the non-error case compared to an implementation using error return codes.
+
+Exception handling is not enforced in C++. In Java, for example, it is enforced. A Java function that does not specify a list of exceptions that it can possibly throw is not allowed to throw any exceptions. In C++, it is just the opposite: a function can throw any exception it wants, unless it specifies that it will not throw any exceptions using the noexcept keyword, which is discussed later in this chapter!
 
 \mySubsubsection{14.1.3.}{Recommendation}
+
+I recommend exceptions as a useful mechanism for error handling. I feel that the structure and errorhandling formalization that exceptions provide outweigh the less desirable aspects. Thus, the remainder of this chapter focuses on exceptions. Also, many popular libraries, such as the Standard Library and Boost, use exceptions, so you need to be prepared to handle them.
+
+
+
+
+
+
+
 
