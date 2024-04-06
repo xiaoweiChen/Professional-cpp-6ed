@@ -1,5 +1,112 @@
 
+C++ allows you to overload the function call operator, written as operator(). If you write an operator() for your class, you can use objects of that class as if they were function pointers. An object of a class with a function call operator is called a function object, or functor, for short. Here is an example of a simple class with an overloaded operator() and a class member function with the same behavior:
+
+\begin{cpp}
+class Squarer
+{
+    public:
+        int operator()(int value) const; // Overloaded function call operator.
+        int doSquare(int value) const; // Normal member function.
+};
+// Implementation of overloaded function call operator.
+int Squarer::operator()(int value) const { return doSquare(value); }
+// Implementation of normal member function.
+int Squarer::doSquare(int value) const { return value * value; }
+\end{cpp}
+
+Here is an example of code that uses the function call operator, contrasted with a call to the normal member function of the class:
+
+\begin{cpp}
+int x { 3 };
+Squarer square;
+int xSquared { square(x) }; // Call the function call operator.
+int xSquaredAgain { square.doSquare(xSquared) };// Call the normal member function.
+println("{} squared is {}, and squared again is {}.", x, xSquared, xSquaredAgain);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+3 squared is 9, and squared again is 81.
+\end{shell}
+
+At first, the function call operator probably seems a little strange. Why would you want to write a special member function for a class to make objects of the class look like function pointers? Why wouldn’t you just write a global function or a standard member function of a class?
+
+The advantage of function objects over standard member functions of objects is simple: these objects can sometimes masquerade as function pointers; that is, you can pass function objects as callback functions to other functions. This is discussed in more detail in Chapter 19.
+
+The advantages of function objects over global functions are more intricate. There are two main benefits:
+
+\begin{itemize}
+\item
+Objects can retain information in their data members between repeated calls to their function call operators. For example, a function object might be used to keep a running sum of numbers collected from each call to the function call operator.
+
+\item
+You can customize the behavior of a function object by setting data members. For example, you could write a function object to compare an argument to the function call operator against a data member. This data member could be configurable so that the object could be customized for whatever comparison you want.
+\end{itemize}
+
+Of course, you could implement either of the preceding benefits with global or static variables. However, function objects provide a cleaner way to do it, and besides, using global or static variables should be avoided and can cause problems in a multithreaded application. The true benefits of function objects are demonstrated with the Standard Library in Chapter 20, “Mastering Standard Library Algorithms.”
+
+By following the normal member function overloading rules, you can write as many operator()s for your classes as you want. For example, you could add an operator() to the Squarer class that takes a double:
+
+\begin{cpp}
+int operator()(int value) const;
+double operator()(double value) const;
+\end{cpp}
+
+This double overload can be implemented as follows:
+
+\begin{cpp}
+double Squarer::operator()(double value) const { return value * value; }
+\end{cpp}
+
+\CXXTwentythreeLogo{-40}{-60}
 
 \mySubsubsection{15.6.1.}{static Function Call Operator}
+
+Starting with C++23, a function call operator can be marked as static if its implementation does not require access to this, or, in other words, does not need access to non-static data members and non-static member functions. This is similar to how subscripting operators, discussed earlier in this chapter, can be marked as static, and doing so allows the compiler to better optimize the code.
+
+Here is an example, a reduced Squarer functor with a static, constexpr, and noexcept function call operator:
+
+\begin{cpp}
+class Squarer
+{
+    public:
+        static constexpr int operator()(int value) noexcept
+        {
+            return value * value;
+        }
+};
+\end{cpp}
+
+This functor can be used as follows:
+
+\begin{cpp}
+int x { 3 };
+int xSquared { Squarer::operator()(x) };
+int xSquaredAgain { Squarer{}(xSquared) };
+println("{} squared is {}, and squared again is {}.", x, xSquared, xSquaredAgain);
+\end{cpp}
+
+Another benefit of static function call operators is that you can easily take their address, for example, \&Squarer::operator(), which allows you to use them as if they were function pointers. This can improve the performance when working with the Standard Library algorithms discussed in detail in Chapter 20. Quite a few of those algorithms accept a callable, such as a functor, to customize their behavior. If your functor has a static function call operator, then passing the address of that function call operator to such algorithms allows the compiler to generate more performant code than with a non-static function call operator. The reason is that with a static function call operator, the compiler doesn’t need to worry about any this pointer.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

@@ -1,8 +1,94 @@
 
+Chapter 9 shows how to write the binary arithmetic operators and the shorthand arithmetic assignment operators, but it does not cover how to overload the other arithmetic operators.
 
 \mySubsubsection{15.2.1.}{Overloading Unary Minus and Unary Plus}
 
+C++ has several unary arithmetic operators. Two of these are unary minus and unary plus. Here is an example of these operators using ints:
 
+\begin{cpp}
+int i, j { 4 };
+i = -j; // Unary minus
+i = +i; // Unary plus
+j = +(-i); // Apply unary plus to the result of applying unary minus to i.
+j = -(-i); // Apply unary minus to the result of applying unary minus to i.
+\end{cpp}
+
+Unary minus negates the operand, while unary plus returns the operand directly. Note that you can apply unary plus or unary minus to the result of unary plus or unary minus. These operators don’t change the object on which they are called so you should make them const.
+
+Here is an example of a unary operator- as a member function for a SpreadsheetCell class. Unary plus is usually an identity operation, so this class doesn’t overload it.
+
+\begin{cpp}
+SpreadsheetCell SpreadsheetCell::operator-() const
+{
+    return SpreadsheetCell { -getValue() };
+}
+\end{cpp}
+
+operator- doesn’t change the operand, so this member function must construct a new SpreadsheetCell with the negated value and return it. Hence, it can’t return a reference. You can use this operator as follows:
+
+\begin{cpp}
+SpreadsheetCell c1 { 4 };
+SpreadsheetCell c3 { -c1 };
+\end{cpp}
 
 \mySubsubsection{15.2.2.}{Overloading Increment and Decrement}
+
+There are several ways to add 1 to a variable:
+
+\begin{cpp}
+i = i + 1;
+i = 1 + i;
+i += 1;
+++i;
+i++;
+\end{cpp}
+
+The last two forms are called the increment operators. The first of these is prefix increment, which adds 1 to the variable and then returns the newly incremented value for use in the rest of the expression. The second is postfix increment, which also adds 1 to the variable but returns the old (nonincremented) value for use in the rest of the expression. The decrement operators work similarly.
+
+The two possible meanings for operator++ and operator-- (prefix and postfix) present a problem when you want to overload them. When you write an overloaded operator++, for example, how do you specify whether you are overloading the prefix or the postfix version? C++ introduced a hack to allow you to make this distinction: the prefix versions of operator++ and operator-- take no arguments, while the postfix versions take one unused argument of type int.
+
+The prototypes of these overloaded operators for the SpreadsheetCell class look like this:
+
+\begin{cpp}
+SpreadsheetCell& operator++(); // Prefix
+SpreadsheetCell operator++(int); // Postfix
+SpreadsheetCell& operator--(); // Prefix
+SpreadsheetCell operator--(int); // Postfix
+\end{cpp}
+
+The return value in the prefix forms is the same as the end value of the operand, so prefix increment and decrement can return a reference to the object on which they are called. The postfix versions of increment and decrement, however, return values that are different from the end values of the operands, so they cannot return references.
+
+Here are the implementations for operator++:
+
+\begin{cpp}
+SpreadsheetCell& SpreadsheetCell::operator++()
+{
+    set(getValue() + 1);
+    return *this;
+}
+
+SpreadsheetCell SpreadsheetCell::operator++(int)
+{
+    auto oldCell { *this }; // Save current value
+    ++(*this); // Increment using prefix ++
+    return oldCell; // Return the old value
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+It is recommended to implement the postfix operator in terms of the prefix operator.
+\end{myNotic}
+
+The implementations for operator-- are virtually identical. Now you can increment and decrement SpreadsheetCell objects to your heart’s content:
+
+\begin{cpp}
+SpreadsheetCell c1 { 4 };
+SpreadsheetCell c2 { 4 };
+c1++;
+++c2;
+\end{cpp}
+
+Increment and decrement operators also work on pointers. When you write classes that are smart pointers, for example, you can overload operator++ and operator-- to provide pointer incrementing and decrementing.
+
+
 

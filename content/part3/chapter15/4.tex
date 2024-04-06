@@ -1,0 +1,77 @@
+In C++, you use operators not only for arithmetic operations but also for reading from, and writing to, streams. For example, when you write ints and strings to cout, you use the insertion operator <{}<:
+
+\begin{cpp}
+int number { 10 };
+cout << "The number is " << number << endl;
+\end{cpp}
+
+When you read from streams, you use the extraction operator >{}>:
+
+\begin{cpp}
+int number;
+string str;
+cin >> number >> str;
+\end{cpp}
+
+You can write insertion and extraction operators that work on your classes as well, so that you can read and write them like this:
+
+\begin{cpp}
+SpreadsheetCell myCell, anotherCell, aThirdCell;
+cin >> myCell >> anotherCell >> aThirdCell;
+cout << myCell << " " << anotherCell << " " << aThirdCell << endl;
+\end{cpp}
+
+Before you write the insertion and extraction operators, you need to decide how you want to stream your class out and how you want to read it in. In this example, the SpreadsheetCells simply read and write a single double value.
+
+The object on the left of an extraction or insertion operator is an istream or ostream (such as cin or cout), not a SpreadsheetCell object. Because you can’t add a member function to the istream or ostream classes, you must write the extraction and insertion operators as global functions. The declaration of these functions looks like this:
+
+\begin{cpp}
+export std::ostream& operator<<(std::ostream& ostr, const SpreadsheetCell& cell);
+export std::istream& operator>>(std::istream& istr, SpreadsheetCell& cell);
+\end{cpp}
+
+By making the insertion operator take a reference to an ostream as its first parameter, you allow it to be used for file output streams, string output streams, cout, cerr, clog, and more. See Chapter 13, “Demystifying C++ I/O,” for details on streams. Similarly, by making the extraction operator take a reference to an istream, you make it work with any input stream, such as a file input stream, string input stream, and cin.
+
+The second parameter to operator<{}< and operator>{}> is a reference to the SpreadsheetCell object that you want to write or read. The insertion operator doesn’t change the SpreadsheetCell it writes, so the parameter is of type reference-to-const. The extraction operator, however, modifies the SpreadsheetCell object, requiring the parameter to be a reference-to-non-const.
+
+Both operators return a reference to the stream they were given as their first parameter so that calls to the operator can be nested. Remember that the operator syntax is shorthand for calling the global operator>{}> or operator<{}< functions explicitly. Consider this line:
+
+\begin{cpp}
+cin >> myCell >> anotherCell >> aThirdCell;
+\end{cpp}
+
+This line is shorthand for:
+
+\begin{cpp}
+operator>>(operator>>(operator>>(cin, myCell), anotherCell), aThirdCell);
+\end{cpp}
+
+As you can see, the return value of the first call to operator>{}> is used as input to the next call. Thus, you must return the stream reference so that it can be used in the next nested call. Otherwise, the nesting won’t compile.
+
+Here are the implementations for operator<{}< and >{}> for the SpreadsheetCell class:
+
+\begin{cpp}
+ostream& operator<<(ostream& ostr, const SpreadsheetCell& cell)
+{
+    ostr << cell.getValue();
+    return ostr;
+}
+
+istream& operator>>(istream& istr, SpreadsheetCell& cell)
+{
+    double value;
+    istr >> value;
+    cell.set(value);
+    return istr;
+}
+\end{cpp}
+
+
+
+
+
+
+
+
+
+

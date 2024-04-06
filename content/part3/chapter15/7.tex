@@ -1,12 +1,145 @@
 
+You can overload three dereferencing operators: *, ->, and ->*. Ignoring ->* for the moment (I’ll come back to it later), consider the built-in meanings of * and ->. The * operator dereferences a pointer to give you direct access to its value, while -> is shorthand for a * dereference followed by a . member selection. The following code shows the equivalences:
+
+\begin{cpp}
+SpreadsheetCell* cell { new SpreadsheetCell };
+(*cell).set(5); // Dereference plus member selection.
+cell->set(5); // Shorthand arrow dereference and member selection together.
+\end{cpp}
+
+You can overload the dereferencing operators for your classes to make objects of the classes behave like pointers. The main use of this capability is for implementing smart pointers, introduced in Chapter 7, “Memory Management.” It is also useful for iterators, which the Standard Library uses extensively. Iterators are discussed in Chapter 17, “Understanding Iterators and the Ranges Library.” This chapter teaches you the basic mechanics for overloading the relevant operators in the context of a simple smart pointer class template.
+
+\begin{myWarning}{WARNING}
+C++ has two standard smart pointers called std::unique\_ptr and shared\_ptr. You should use these standard smart pointers instead of writing your own. The example here is given only to demonstrate how to write dereferencing operators.
+\end{myWarning}
+
+Here is an example of a smart pointer class template definition, without the dereferencing operators filled in yet:
+
+\begin{cpp}
+export template <typename T> class Pointer
+{
+    public:
+        explicit Pointer(T* ptr) : m_ptr { ptr } {}
+        virtual ˜Pointer() { reset(); }
+        // Disallow copy constructor and copy assignment.
+        Pointer(const Pointer& src) = delete;
+        Pointer& operator=(const Pointer& rhs) = delete;
+        // Allow move construction.
+        Pointer(Pointer&& src) noexcept : m_ptr{ std::exchange(src.m_ptr, nullptr)}
+        { }
+        // Allow move assignment.
+        Pointer& operator=(Pointer&& rhs) noexcept
+        {
+            if (this != &rhs) {
+                reset();
+                m_ptr = std::exchange(rhs.m_ptr, nullptr);
+            }
+            return *this;
+        }
+
+        // Dereferencing operators will go here...
+    private:
+        void reset()
+        {
+            delete m_ptr;
+            m_ptr = nullptr;
+        }
+        T* m_ptr { nullptr };
+};
+\end{cpp}
+
+This smart pointer is about as simple as you can get. All it does is store a dumb raw pointer, and the storage pointed to by the pointer is deleted when the smart pointer is destroyed. The implementation is equally simple: the constructor takes a raw pointer, which is stored as the only data member in the class. The destructor frees the storage referenced by the pointer.
+
+You want to be able to use the smart pointer class template like this:
+
+\begin{cpp}
+Pointer<int> smartInt { new int };
+*smartInt = 5; // Dereference the smart pointer.
+println("{} ", *smartInt);
+
+Pointer<SpreadsheetCell> smartCell { new SpreadsheetCell };
+smartCell->set(5); // Dereference and member select the set() member function.
+println("{} ", smartCell->getValue());
+\end{cpp}
+
+As you can see from this example, you have to provide implementations of operator* and operator-> for this class. These are implemented in the next two sections.
+
+\begin{myWarning}{WARNING}
+You should rarely, if ever, write an implementation of just one of operator* and operator->. You should almost always write both operators together. It would confuse the users of your class if you failed to provide both.
+\end{myWarning}
 
 \mySubsubsection{15.7.1.}{Implementing operator*}
 
+When you dereference a pointer, you expect to be able to access the memory to which the pointer points. If that memory contains a simple type such as an int, you should be able to change its value directly. If the memory contains a more complicated type, such as an object, you should be able to access its data members or member functions with the . operator.
 
+To provide these semantics, you should return a reference from operator*. For the Pointer class this is done as follows:
+
+\begin{cpp}
+export template <typename T> class Pointer
+{
+    public:
+        // Omitted for brevity
+        T& operator*() { return *m_ptr; }
+        const T& operator*() const { return *m_ptr; }
+        // Omitted for brevity
+};
+\end{cpp}
+
+As you can see, operator* returns a reference to the object or variable to which the underlying raw pointer points. As with overloading the subscripting operators earlier in this chapter, it’s useful to provide both const and non-const overloads of the member function, which return a reference-toconst and a reference-to-non-const, respectively.
 
 \mySubsubsection{15.7.2.}{Implementing operator–>}
 
+The arrow operator is a bit trickier. The result of applying the arrow operator should be a member or member function of an object. However, to implement it like that, you would have to be able to implement the equivalent of operator* followed by operator.; C++ doesn’t allow you to overload operator. for good reason: it’s impossible to write a single prototype that allows you to capture any possible member or member function selection. Therefore, C++ treats operator-> as a special case.
+Consider this line:
 
+\begin{cpp}
+smartCell->set(5);
+\end{cpp}
+
+C++ translates this to the following:
+
+\begin{cpp}
+(smartCell.operator->())->set(5);
+\end{cpp}
+
+As you can see, C++ applies another operator-> to whatever you return from your overloaded operator->. Therefore, you must return a pointer, like this:
+
+\begin{cpp}
+export template <typename T> class Pointer
+{
+    public:
+        // Omitted for brevity
+        T* operator->() { return m_ptr; }
+        const T* operator->() const { return m_ptr; }
+        // Omitted for brevity
+};
+\end{cpp}
+
+You may find it confusing that operator* and operator-> are asymmetric, but once you see them a few times, you’ll get used to it.
 
 \mySubsubsection{15.7.3.}{What in the World Are operator.* and operator–>*?}
+
+It’s perfectly legitimate in C++ to take the address of class data members and member functions to obtain pointers to them. However, you can’t access a non-static data member or call a non-static member function without an object. The whole point of class data members and member functions is that they exist on a per-object basis. Thus, when you want to call the member function or access the data member via the pointer, you must dereference the pointer in the context of an object. The syntax details for using operator.* and ->* is deferred until Chapter 19, as it requires knowledge of how to define function pointers.
+
+C++ does not allow you to overload operator.* (just as you can’t overload operator.), but you could overload operator->*. However, it is tricky, and, given that most C++ programmers don’t even know that you can access member functions and data members through pointers, it’s probably not worth the trouble. The shared\_ptr smart pointer in the Standard Library, for example, does not overload operator->*.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

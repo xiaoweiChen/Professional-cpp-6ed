@@ -1,44 +1,389 @@
 
+As Chapter 1, “A Crash Course in C++ and the Standard Library,” explains, operators in C++ are symbols such as +, <, *, and <{}<. They work on built-in types such as int and double to allow you to perform arithmetic, logical, and other operations. There are also operators such as -> and * that allow you to dereference pointers. The concept of operators in C++ is broad, and even includes [] (array index), () (function call), casting, and the memory allocation and deallocation operators. Operator overloading allows you to change the behavior of language operators for your classes. However, this capability comes with rules, limitations, and choices.
 
 \mySubsubsection{15.1.1.}{Why Overload Operators?}
 
+Before learning how to overload operators, you probably want to know why you would ever want to do so. The reasons vary for the different operators, but the general guiding principle is to make your classes behave like built-in types. The closer your classes are to built-in types, the easier they will be for clients to use. For example, if you want to write a class to represent fractions, it’s quite helpful to have the ability to define what +, -, *, and / mean when applied to objects of that class.
 
+Another reason to overload operators is to gain greater control over the behavior in your program. For example, you can overload memory allocation and deallocation operators for your classes to specify exactly how memory should be distributed and reclaimed for each new object.
+
+It’s important to emphasize that operator overloading doesn’t necessarily make things easier for you as the class developer; its main purpose is to make things easier for users of the class.
 
 \mySubsubsection{15.1.2.}{Limitations to Operator Overloading}
 
+Here is a list of things you cannot do when you overload operators:
 
+\begin{itemize}
+\item
+You cannot add new operator symbols. You can only redefine the meanings of operators already in the language. The table in the section “Summary of Overloadable Operators” later in this chapter lists all of the operators that you can overload.
+
+\item
+There are a few operators that you cannot overload, such as . and .* (member access in an object), :: (scope resolution operator), and ?: (the conditional operator). The table lists all the operators that you can overload. The operators that you can’t overload are usually not those you would care to overload anyway, so you shouldn’t find this restriction limiting.
+
+\item
+The arity describes the number of arguments, or operands, associated with the operator. You can change the arity only for the function call, new, and delete operators, and, since C++23, also for the subscripting operator (array index), []. For all other operators, you cannot change the arity. Unary operators, such as ++, work on only one operand. Binary operators, such as /, work on two operands.
+
+\item
+You cannot change the precedence nor the associativity of an operator. The precedence is used to decide which operators need to be executed before other operators, while the associativity can be either left-to-right or right-to-left and specifies in which order operators of the same precedence are executed. Again, this constraint shouldn’t be cause for concern in most programs because there are rarely benefits to changing the order of evaluation, but, in certain domains, it’s something to keep in mind. For example, if you are writing a class to represent mathematical vectors and would like to overload the \^{} operator to be able to raise a vector to a certain power, then keep in mind that \^{} has lower precedence compared to many other operators such as +. For instance, suppose x and y are mathematical vectors, writing x\^{}3+y will be evaluated as x\^{}(3+y) and not as (x\^{}3)+y as you probably intended.
+
+\item
+You cannot redefine operators for built-in types. The operator must be a member function in a class, or at least one of the arguments to a global overloaded operator function must be a user-defined type (for example, a class). This means that you can’t do something ridiculous, such as redefine + for ints to mean subtraction (though you could do so for your own classes). The one exception to this rule is the memory allocation and deallocation operators; you can replace the global operators for all memory allocations in your program.
+\end{itemize}
+
+Some of the operators already mean two different things. For example, operator- can be used as a binary operator (as in x=y-z;) or as a unary operator (as in x=-y;). The * operator can be used for multiplication or for dereferencing a pointer. The << operator is the stream insertion operator or the left-shift operator, depending on the context. For such dual-meaning operators, you can overload both meanings.
 
 \mySubsubsection{15.1.3.}{Choices in Operator Overloading}
 
+When you overload an operator, you write a global function or member function with the name operatorX, where X is the symbol for some operator, and with optional whitespace between operator and X. For example, Chapter 9 declares operator+ for SpreadsheetCell objects like this:
+
+\begin{cpp}
+SpreadsheetCell operator+(const SpreadsheetCell& lhs, const SpreadsheetCell& rhs);
+\end{cpp}
+
+The following sections describe several choices involved in each overloaded operator you write.
+
 \mySamllsection{Member Function or Global Function}
+
+First, you must decide whether your operator should be a member function of your class or a global function. The latter can be a friend of the class, although that should be a last resort — adding friends to a class should be limited as much as possible, as they can access private data members directly and thus circumvent the data-hiding principle.
+
+How do you choose between a member function or a global function? First, you need to understand the difference between these two choices. When the operator is a member function of a class, the left-hand side of the operator expression must always be an object of that class. If you write a global function, the left-hand side can be an object of a different type.
+
+There are three different types of operators:
+
+\begin{itemize}
+\item
+Operators that must be member functions. The C++ language requires some operators to be member functions of a class because they don’t make sense outside of a class. For example, operator= is tied so closely to the class that it can’t exist anywhere else. The table in the section “Summary of Overloadable Operators” lists those operators that must be member functions. Most operators do not impose this requirement.
+
+\item
+Operators that must be global functions. Whenever you need to allow the left-hand side of the operator to be a variable of a different type than your class, you must make the operator a global function. This rule applies specifically to the <{}< and >{}> insertion and extraction streaming operators, where the left-hand side is an iostream object, not an object of your class. It also applies to commutative operators like binary + and –, which should allow variables that are not objects of your class on the left-hand side. A global function is required if implicit conversions are desired for the left operand of a binary operator. Chapter 9 discusses this problem.
+
+\item
+Operators that can be either member functions or global functions. There is some disagreement in the C++ community on whether it’s better to write member functions or global functions to overload operators. However, I recommend the following rule: make every operator a member function unless you must make it a global function, as described previously.
+One major advantage to this rule is that member functions can be virtual, while global functions obviously cannot. Therefore, when you plan to write overloaded operators in an inheritance tree, you should make them member functions if possible.
+\end{itemize}
+
+When you write an overloaded operator as a member function, you should mark it const if it doesn’t change the object. That way, it can be called on const objects.
+
+When you write an overloaded operator as a global function, put it in the same namespace that contains the class for which the operator is written.
 
 \mySamllsection{Choosing Argument Types}
 
+You are somewhat limited in your choice of argument types because, as stated earlier, for most operators you cannot change the number of arguments. For example, operator/ must always have two arguments if it is a global function, and one argument if it’s a member function. The compiler issues an error if it differs from this standard. In this sense, the operator functions are different from normal functions, which you can overload with any number of parameters. Additionally, although you can write the operator for whichever types you want, the choice is usually constrained by the class for which you are writing the operator. For example, if you want to implement addition for class T, you don’t write an operator+ that takes two strings! The real choice arises when you try to determine whether to take parameters by value or by reference and whether to make them const.
+
+The choice of value versus reference is easy: you should take every non-primitive parameter type by reference, unless the function always makes a copy of the passed object, see Chapter 9.
+
+The const decision is also trivial: mark every parameter const unless you actually modify it. The table in the section “Summary of Overloadable Operators” shows sample prototypes for each operator, with the arguments marked const and reference as appropriate.
+
 \mySamllsection{Choosing Return Types}
+
+C++ doesn’t determine overload resolution based on return type. Thus, you can specify any return type you want when you write overloaded operators. However, just because you can do something doesn’t mean you should do it. This flexibility implies that you could write confusing code in which comparison operators return pointers, and arithmetic operators return bools. However, you shouldn’t do that. Instead, you should write your overloaded operators such that they return the same types as the operators do for the built-in types. If you write a comparison operator, return a bool. If you write an arithmetic operator, return an object representing the result. Sometimes the return type is not obvious at first. For example, as Chapter 8 mentions, operator= should return a reference to the object on which it’s called in order to support chained assignments. Other operators have similarly tricky return types, all of which are summarized in the table in the section “Summary of Overloadable Operators.”
+
+The same choices of reference and const apply to return types as well. However, for return values, the choices are more difficult. The general rule for value or reference is to return a reference if you can; otherwise, return a value. How do you know when you can return a reference? This choice applies only to operators that return objects: the choice is moot for the comparison operators that return bool, the conversion operators that have no return type, and the function call operator, which may return any type you want. If your operator constructs a new object, then you must return that new object by value. If it does not construct a new object, you can return a reference to the object on which the operator is called, or one of its arguments. The table in the section “Summary of Overloadable Operators” shows examples.
+
+A return value that can be modified as an lvalue (e.g., on the left-hand side of an assignment expression) must be non-const. Otherwise, it should be const. More operators than you might expect require that you return lvalues, including all of the assignment operators (operator=, operator+=, operator-=, and so on).
 
 \mySamllsection{Choosing Behavior}
 
-
+You can provide whichever implementation you want in an overloaded operator. For example, you could write an operator+ that launches a game of Scrabble. However, as Chapter 6 describes, you should generally constrain your implementations to provide behaviors that clients expect. Write operator+ so that it performs addition, or something like addition, such as string concatenation. This chapter explains how you should implement your overloaded operators. In exceptional circumstances, you might want to differ from these recommendations; but, in general, you should follow the standard patterns.
 
 \mySubsubsection{15.1.4.}{Operators You Shouldn’t Overload}
 
+Some operators should not be overloaded, even though it is permitted. Specifically, the address-of operator (operator\&) is not particularly useful to overload and leads to confusion if you do because you are changing fundamental language behavior (taking addresses of variables) in potentially unexpected ways. The entire Standard Library, which uses operator overloading extensively, never overloads the address-of operator.
 
+Additionally, you should avoid overloading the binary Boolean operators operator\&\& and || because you lose C++’s short-circuit evaluation rules. Short-circuiting is not possible in that case because all operands need to be evaluated before they can be passed to your overloaded operator function. If your class needs logical operators, provide operator\& and | instead.
+
+Finally, you should not overload the comma operator (operator,). Yes, you read that correctly: there really is a comma operator in C++. It’s also called the sequencing operator, and is used to separate two expressions in a single statement, while guaranteeing that they are evaluated left to right. The following snippet demonstrates the comma operator:
+
+\begin{cpp}
+int x { 1 };
+println("{}", (++x, 2 * x)); // Increments x to 2, doubles it, and prints 4.
+\end{cpp}
+
+There is rarely a good reason to overload the comma operator.
 
 \mySubsubsection{15.1.5.}{Summary of Overloadable Operators}
+
+The following table lists the operators you can overload, specifies whether they should be member functions of the class or global functions, summarizes when you should (or should not) overload them, and provides sample prototypes showing the proper parameter and return value types. Operators that cannot be overloaded, such as ., .*, ::, and ?: are not in this list.
+
+This table is a useful reference for the future when you want to write an overloaded operator. You’re bound to forget which return type you should use and whether or not the function should be a member function.
+
+In this table, T is the name of the class for which the overloaded operator is written, and E is a different type. The sample prototypes given are not exhaustive; often there are other combinations of T and E possible for a given operator:
+
+% Please add the following required packages to your document preamble:
+% \usepackage[normalem]{ulem}
+% \useunder{\uline}{\ul}{}
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|l|l|}
+\hline
+\textbf{OPERATOR} &
+\textbf{\begin{tabular}[c]{@{}l@{}}NAME OR\\ CATEGORY\end{tabular}} &
+\textbf{\begin{tabular}[c]{@{}l@{}}MEMBER\\ FUNCTION\\ OR GLOBAL\\ FUNCTION\end{tabular}} &
+\textbf{\begin{tabular}[c]{@{}l@{}}WHEN TO\\ OVERLOAD\end{tabular}} &
+\textbf{\begin{tabular}[c]{@{}l@{}}SAMPLE\\ PROTOTYPES\end{tabular}} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\begin{tabular}[c]{@{}l@{}}operator+\\ operator\\ operator*\\ operator/\\ operator\%\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Binary\\ arithmetic\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Global function\\ recommended\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Whenever\\ you want to\\ provide these\\ operations for\\ your class\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}T operator+(const\\ T\&, const T\&);\\ T operator+(const\\ T\&, const E\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}operator\\ operator+\\ operator˜\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Unary\\ arithmetic\\ and bitwise\\ operators\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Member function\\ recommended\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Whenever\\ you want to\\ provide these\\ operations for\\ your class\end{tabular} &
+T operator-() const; \\ \hline
+\begin{tabular}[c]{@{}l@{}}operator++\\ operator--\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Pre-increment\\ and pre\\ decrement\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Member function\\ recommended\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Whenever you\\ overload +=\\ and -= taking\\ an arithmetic\\ argument (int,\\ long, . . .)\end{tabular} &
+T\& operator++(); \\ \hline
+\begin{tabular}[c]{@{}l@{}}operator++\\ operator--\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Post-increment\\ and post\\ decrement\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Member function\\ recommended\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Whenever you\\ overload +=\\ and -= taking\\ an arithmetic\\ argument (int,\\ long, . . .)\end{tabular} &
+T operator++(int); \\ \hline
+operator= &
+\begin{tabular}[c]{@{}l@{}}Assignment\\ operator\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Member function\\ required\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Whenever\\ your class has\\ dynamically\\ allocated\\ resources, or\\ members that\\ are references\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}T\& operator=(const\\ T\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}operator+=\\ operator-=\\ operator*=\\ operator/=\\ operator\%=\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Shorthand /\\ compound\\ arithmetic\\ assignment\\ operator\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Member function\\ recommended\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Whenever\\ you overload\\ the binary\\ arithmetic\\ operators and\\ your class is not\\ designed to be\\ immutable\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}T\& operator+=(const\\ T\&);\\ T\& operator+=(const\\ E\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}operator\textless{}\textless\\ operator\textgreater{}\textgreater\\ operator\&\\ operator|\\ operator\textasciicircum{}\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Binary bitwise\\ operators\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Global function\\ recommended\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Whenever\\ you want to\\ provide these\\ operations\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}T operator\textless{}\textless{}(const\\ T\&, const T\&);\\ T operator\textless{}\textless{}(const\\ T\&, const E\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}operator\textless{}\textless{}=\\ operator\textgreater{}\textgreater{}=\\ operator\&=\\ operator|=\\ operator\textasciicircum{}=\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Shorthand /\\ compound\\ bitwise\\ assignment\\ operator\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Member function\\ recommended\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Whenever you\\ overload the\\ binary bitwise\\ operators and\\ your class is not\\ designed to be\\ immutable\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}T\& operator\textless{}\textless{}=(const\\ T\&);\\ T\& operator\textless{}\textless{}=(const\\ E\&);\end{tabular} \\ \hline
+operator\textless{}=\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Three-way\\ comparison\\ operator\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Member function\\ recommended\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Whenever you\\ want to provide\\ comparison\\ support for\\ your class; if\\ possible, this\\ should be\\ defaulted using\\ =default\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}auto\\ operator\textless{}=\textgreater{}(const\\ T\&) const = default;\\ partial\_ordering\\ operator\textless{}=\textgreater{}(const\\ E\&) const;\end{tabular} \\ \hline
+operator== &
+\begin{tabular}[c]{@{}l@{}}Binary equality\\ operator\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Post-C++20:\\ member function\\ recommended\\ Pre-C++20:\\ global function\\ recommended\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Whenever you\\ want to provide\\ comparison\\ support for\\ your class, and\\ you cannot\\ default the\\ three-way\\ comparison\\ operator\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}bool operator==(const\\ T\&) const;\\ bool operator==(const\\ E\&) const;\\ bool operator==(const\\ T\&, const T\&);\\ bool operator==(const\\ T\&, const E\&);\end{tabular} \\ \hline
+operator!= &
+\begin{tabular}[c]{@{}l@{}}Binary\\ inequality\\ operator\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Post-C++20:\\ member function\\ recommended\\ Pre-C++20:\\ global function\\ recommended\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Post-C++20:\\ not needed as\\ the compiler\\ automatically\\ provides !=\\ when == is\\ supported\\ Pre-C++20:\\ Whenever you\\ want to provide\\ comparison\\ support for\\ your class\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}bool operator!=(const\\ T\&) const;\\ bool operator!=(const\\ E\&) const;\\ bool operator!=(const\\ T\&, const T\&);\\ bool operator!=(const\\ T\&, const E\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}operator\textless\\ operator\textgreater\\ operator\textless{}=\\ operator\textgreater{}=\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Binary\\ comparison\\ operators\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Global function\\ recommended\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Whenever\\ you want to\\ provide these\\ operations; not\\ needed when\\ \textless{}=\textgreater is provided\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}bool operator\textless{}(const\\ T\&, const T\&);\\ bool operator\textless{}(const\\ T\&, const E\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}operator\textless{}\textless\\ operator\textgreater{}\textgreater{}\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}I/O stream\\ operators\\ (insertion and\\ extraction)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Global function\\ required\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Whenever\\ you want to\\ provide these\\ operations\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}ostream\&\\ operator\textless{}\textless{}(ostream\&,\\ const T\&);\\ istream\&\\ operator\textgreater{}\textgreater{}(istream\&,\\ T\&);\end{tabular} \\ \hline
+operator! &
+\begin{tabular}[c]{@{}l@{}}Boolean\\ negation\\ operator\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Member function\\ recommended\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Rarely; use\\ bool or void*\\ conversion\\ instead\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}bool operator!()\\ const;\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}operator\&\&\\ operator||\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Binary Boolean\\ operators\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Global function\\ recommended\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Rarely, if ever,\\ because you\\ lose short\\ circuiting;\\ it’s better to\\ overload \& and\\ | instead, as\\ these never\\ short-circuit\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}bool operator\&\&(const\\ T\&, const T\&);\end{tabular} \\ \hline
+operator{[}{]} &
+\begin{tabular}[c]{@{}l@{}}Subscripting\\ (array index)\\ operator\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Member function\\ required\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}When you want\\ to support\\ subscripting\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}E\& operator{[}{]}\\ (size\_t);\\ const E\& operator{[}{]}\\ (size\_t) const;\end{tabular} \\ \hline
+operator() &
+\begin{tabular}[c]{@{}l@{}}Function call\\ operator\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Member function\\ required\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}When you\\ want objects\\ to behave\\ like function\\ pointers\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Return type and parameters\\ can vary; see later examples\\ in this chapter\end{tabular} \\ \hline
+operator type() &
+\begin{tabular}[c]{@{}l@{}}Conversion, or\\ cast, operators\\ (separate\\ operator for\\ each type)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Member function\\ required\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}When you want\\ to provide\\ conversions\\ from your class\\ to other types\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}operator double()\\ const;\end{tabular} \\ \hline
+operator ""\_x &
+\begin{tabular}[c]{@{}l@{}}User-defined\\ literal operator\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Global function\\ required\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}When you want\\ to support user\\ defined literals\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}T operator""\_i(long\\ double d);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}operator new\\ operator new{[}{]}\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Memory\\ allocation\\ routines\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Member function\\ recommended\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}When you\\ want to control\\ memory\\ allocation for\\ your classes\\ (rarely)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}void* operator\\ new(size\_t size);\\ void* operator new{[}{]}\\ (size\_t size);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}operator delete\\ operator delete{[}{]}\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Memory\\ deallocation\\ routines\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Member function\\ recommended\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Whenever\\ you overload\\ the memory\\ allocation\\ routines (rarely)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}void operator\\ delete(void* ptr)\\ noexcept;\\ void operator\\ delete{[}{]}(void* ptr)\\ noexcept;\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}operator*\\ operator-\textgreater{}\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Dereferencing\\ operators\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Member function\\ recommended\\ for operator*\\ Member function\\ required for\\ operator-\textgreater{}\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Useful for smart\\ pointers\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}E\& operator*() const;\\ E* operator-\textgreater{}()\\ const;\end{tabular} \\ \hline
+operator\& &
+\begin{tabular}[c]{@{}l@{}}Address-of\\ operator\end{tabular} &
+N/A &
+Never &
+N/A \\ \hline
+operator-\textgreater{}* &
+\begin{tabular}[c]{@{}l@{}}Dereference\\ pointer-to\\ member\end{tabular} &
+N/A &
+Never &
+N/A \\ \hline
+operator, &
+\begin{tabular}[c]{@{}l@{}}Comma\\ operator\end{tabular} &
+N/A &
+Never &
+N/A \\ \hline
+\end{longtable}
 
 
 
 \mySubsubsection{15.1.6.}{Rvalue References}
 
+Chapter 9 discusses move semantics and rvalue references. It demonstrates these by defining move assignment operators, which are used by the compiler in cases where the source object is a temporary object that will be destroyed after the assignment, or an object that is explicitly moved from using std::move(). The normal assignment operator from the preceding table has the following prototype:
 
+\begin{cpp}
+T& operator=(const T&);
+\end{cpp}
+
+The move assignment operator has almost the same prototype, but uses an rvalue reference. It modifies the argument so it cannot be passed as const. See Chapter 9 for details.
+
+\begin{cpp}
+T& operator=(T&&) noexcept;
+\end{cpp}
+
+The preceding table does not include sample prototypes with rvalue references. However, for most operators it can make sense to write both a version using normal lvalue references and a version using rvalue references. Whether or not it does make sense depends on implementation details of your class. The operator= is one example from Chapter 9. Another example is operator+ to prevent unnecessary memory allocations. The std::string class from the Standard Library, for example, implements an operator+ using rvalue references as follows (simplified):
+
+\begin{cpp}
+string operator+(string&& lhs, string&& rhs);
+\end{cpp}
+
+The implementation of this operator reuses memory of one of the arguments because they are being passed as rvalue references, meaning both are temporary objects that will be destroyed when this operator+ is finished. The implementation of this operator+ has the following effect depending on the size and the capacity of both operands:
+
+\begin{cpp}
+return move(lhs.append(rhs));
+\end{cpp}
+
+or
+
+\begin{cpp}
+return move(rhs.insert(0, lhs));
+\end{cpp}
+
+In fact, string defines several operator+ overloads accepting two strings as arguments and different combinations of lvalue and rvalue references. Here is a list (simplified):
+
+\begin{cpp}
+string operator+(const string& lhs, const string& rhs); // No memory reuse.
+string operator+(string&& lhs, const string& rhs); // Can reuse memory of lhs.
+string operator+(const string& lhs, string&& rhs); // Can reuse memory of rhs.
+string operator+(string&& lhs, string&& rhs); // Can reuse memory of lhs or rhs.
+\end{cpp}
+
+Reusing memory of one of the rvalue reference arguments is implemented in the same way as it is explained for move assignment operators in Chapter 9.
 
 \mySubsubsection{15.1.7.}{Precedence and Associativity}
 
+In statements containing multiple operators, the precedence of the operators is used to decide which operators need to be executed before other operators. For example, * and / are always executed before + and -.
 
+The associativity can be either left-to-right or right-to-left and specifies in which order operators of the same precedence are executed.
+
+The following table lists the precedence and associativity of all available C++ operators, including those that you cannot overload and operators you haven’t seen mentioned in this book yet. Operators with a lower precedence number are executed before operators with a higher precedence number. In the table, T represents a type, while x, y, and z represent objects:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{PRECEDENCE} & \textbf{OPERATOR}                                   & \textbf{ASSOCIATIVITY} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+1                   & ::                                                  & Left-to-right          \\ \hline
+2                   & x++{} x-- x() x{[}{]} T() T\{\} . -\textgreater{}     & Left-to-right          \\ \hline
+3 &
+\begin{tabular}[c]{@{}l@{}}++x --x +x -x ! ˜ *x \&x (T)\\ sizeof co\_await new delete new{[}{]} delete{[}{]}\end{tabular} &
+Right-to-left \\ \hline
+4                   & .* -\textgreater{}*                                 & Left-to-right          \\ \hline
+5                   & x*y x/y x\%y                                        & Left-to-right          \\ \hline
+6                   & x+y x-y                                             & Left-to-right          \\ \hline
+7                   & \textless{}\textless \textgreater{}\textgreater{}   & Left-to-right          \\ \hline
+8                   & \textless{}=\textgreater{}                          & Left-to-right          \\ \hline
+9                   & \textless \textless{}= \textgreater \textgreater{}= & Left-to-right          \\ \hline
+10                  & == !=                                               & Left-to-right          \\ \hline
+11                  & x\&y                                                & Left-to-right          \\ \hline
+12                  & \textasciicircum{}                                  & Left-to-right          \\ \hline
+13                  & |                                                   & Left-to-right          \\ \hline
+14                  & \&\&                                                & Left-to-right          \\ \hline
+15                  & ||                                                  & Left-to-right          \\ \hline
+16 &
+\begin{tabular}[c]{@{}l@{}}x?y:z throw co\_yield\\ = += -= *= /= \%= \textless{}\textless{}= \textgreater{}\textgreater{}= \&= \textasciicircum{}= |=\end{tabular} &
+Right-to-left \\ \hline
+17                  & ,                                                   & Left-to-right          \\ \hline
+\end{longtable}
 
 \mySubsubsection{15.1.8.}{Relational Operators}
 
+The following set of function templates for relational operators are defined in <utility> in the std::rel\_ops namespace:
 
+\begin{cpp}
+template<class T> bool operator!=(const T& a, const T& b);// Needs operator==
+template<class T> bool operator>(const T& a, const T& b); // Needs operator<
+template<class T> bool operator<=(const T& a, const T& b);// Needs operator<
+template<class T> bool operator>=(const T& a, const T& b);// Needs operator<
+\end{cpp}
+
+These function templates define the operators !=, >, <=, and >= in terms of the == and < operators for any class. So, if you implement operator== and < for your class, you get the other relational operators for free with these templates.
+
+However, there are a lot of problems with this technique. A first problem is that those operators might be created for all classes that you use in relational operations, not only for your own class.
+
+A second problem with this technique is that utility templates such as std::greater<T> (discussed in Chapter 19, “Function Pointers, Function Objects, and Lambda Expressions”) do not work with those automatically generated relational operators.
+
+Yet another problem with these is that implicit conversions won’t work.
+
+Finally, with C++20’s three-way comparison operator and the fact that C++20 has deprecated the std::rel\_ops namespace, there is no longer any reason to still use rel\_ops.
+
+\begin{myWarning}{WARNING}
+Never use std::rel\_ops; it has been deprecated since C++20! Instead, to add support for all six comparison operators to a class, just explicitly default or implement operator<=> and possibly operator== for the class. See Chapter 9 for details.
+\end{myWarning}
 
 \mySubsubsection{15.1.9.}{Alternative Notation}
+
+C++ supports the following alternative notations for a selection of operators. These were mainly used in the old days when using character sets that didn’t include certain characters such as ~, |, and \^{}.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|l|}
+\hline
+\textbf{OPERATOR} & \textbf{ALTERNATIVE NOTATION} & \textbf{OPERATOR} & \textbf{ALTERNATIVE NOTATION} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\&\&   & and     & !=                  & not\_eq \\ \hline
+\&=    & and\_eq & ||                  & or      \\ \hline
+\&     & bitand  & |=                  & or\_eq  \\ \hline
+|      & bitor   & \textasciicircum{}  & xor     \\ \hline
+$\sim$ & compl   & \textasciicircum{}= & xor\_eq \\ \hline
+！      & not     &                     &         \\ \hline
+\end{longtable}
+
+
 

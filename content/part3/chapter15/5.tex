@@ -1,17 +1,353 @@
 
+Pretend for a few minutes that you have never heard of the vector or array class templates in the Standard Library, and so you have decided to write your own dynamically allocated array class. This class would allow you to set and retrieve elements at specified indices and would take care of all memory allocation “behind the scenes.” A first stab at the class definition for a dynamically allocated array might look like this:
+
+\begin{cpp}
+export template <typename T>
+class Array
+{
+    public:
+        // Creates an array with a default size that will grow as needed.
+        Array();
+        virtual ˜Array();
+
+        // Disallow copy constructor and copy assignment.
+        Array& operator=(const Array& rhs) = delete;
+        Array(const Array& src) = delete;
+
+        // Move constructor and move assignment operator.
+        Array(Array&& src) noexcept;
+        Array& operator=(Array&& rhs) noexcept;
+
+        // Returns the value at index x. Throws an exception of type
+        // out_of_range if index x does not exist in the array.
+        const T& getElementAt(std::size_t x) const;
+
+        // Sets the value at index x. If index x is out of range,
+        // allocates more space to make it in range.
+        void setElementAt(std::size_t x, const T& value);
+
+        // Returns the number of elements in the array.
+        std::size_t getSize() const noexcept;
+    private:
+        static constexpr std::size_t AllocSize { 4 };
+        void resize(std::size_t newSize);
+        T* m_elements { nullptr };
+        std::size_t m_size { 0 };
+};
+\end{cpp}
+
+The interface supports setting and accessing elements. It provides random-access guarantees: a client could create a default array and set elements 1, 100 and 1000 without worrying about memory management.
+
+Here are the implementations of the member functions:
+
+\begin{cpp}
+template <typename T> Array<T>::Array()
+{
+    m_elements = new T[AllocSize] {}; // Elements are zero-initialized!
+    m_size = AllocSize;
+}
+
+template <typename T> Array<T>::˜Array()
+{
+    delete[] m_elements;
+    m_elements = nullptr;
+    m_size = 0;
+}
+
+template <typename T> Array<T>::Array(Array&& src) noexcept
+: m_elements { std::exchange(src.m_elements, nullptr) }
+, m_size { std::exchange(src.m_size, 0) }
+{}
+
+template <typename T> Array<T>& Array<T>::operator=(Array<T>&& rhs) noexcept
+{
+    if (this == &rhs) { return *this; }
+    delete[] m_elements;
+    m_elements = std::exchange(rhs.m_elements, nullptr);
+    m_size = std::exchange(rhs.m_size, 0);
+    return *this;
+}
+
+template <typename T> void Array<T>::resize(std::size_t newSize)
+{
+    // Create new bigger array with zero-initialized elements.
+    auto newArray { std::make_unique<T[]>(newSize) };
+
+    // The new size is always bigger than the old size (m_size).
+    for (std::size_t i { 0 }; i < m_size; ++i) {
+        // Copy the elements from the old array to the new one.
+        newArray[i] = m_elements[i];
+    }
+    // Delete the old array, and set the new array.
+    delete[] m_elements;
+    m_size = newSize;
+    m_elements = newArray.release();
+}
+
+template <typename T> const T& Array<T>::getElementAt(std::size_t x) const
+{
+    if (x >= m_size) { throw std::out_of_range { "" }; }
+    return m_elements[x];
+}
+
+template <typename T> void Array<T>::setElementAt(std::size_t x, const T& val)
+{
+    if (x >= m_size) {
+        // Allocate AllocSize past the element the client wants.
+        resize(x + AllocSize);
+    }
+    m_elements[x] = val;
+}
+
+template <typename T> std::size_t Array<T>::getSize() const noexcept
+{
+    return m_size;
+}
+\end{cpp}
+
+Pay attention to the exception-safe implementation of the resize() member function. First, it creates a new array of appropriate size using make\_unique() and stores it in a unique\_ptr. Then, all elements are copied from the old array to the new array. If anything goes wrong while copying the values, the unique\_ptr cleans up the newly allocated memory automatically. Finally, when both the allocation of the new array and copying all the elements is successful, that is, no exceptions have been thrown, only then do we delete the old m\_elements array and assign the new array to it. The last line has to use release() to release the ownership of the new array from the unique\_ptr; otherwise, the array would get destroyed when the destructor for the unique\_ptr is called.
+
+To guarantee strong exception safety (see Chapter 14, “Handling Errors”), resize() copies elements from the old array to the newly allocated array. Chapter 26, “Advanced Templates,” discusses and implements a move\_assign\_if\_noexcept() helper function. This helper function can be used in the implementation of resize() so that elements are moved from the old array to the new array, but only if the move assignment operator of the element type is marked as noexcept. If that’s not the case, the elements are copied. With that change, whether elements are moved or copied, strong exception safety remains guaranteed.
+
+Here is a small example of how you could use this class:
+
+\begin{cpp}
+Array<int> myArray;
+for (size_t i { 0 }; i < 20; i += 2) {
+    myArray.setElementAt(i, 100);
+}
+for (size_t i { 0 }; i < 20; ++i) {
+    print("{} ", myArray.getElementAt(i));
+}
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+100 0 100 0 100 0 100 0 100 0 100 0 100 0 100 0 100 0 100 0
+\end{shell}
+
+As you can see, you never have to tell the array how much space you need. It allocates as much space as it requires to store the elements you give it.
+
+\begin{myNotic}{NOTE}
+This is not a memory efficient implementation. If you create an array and only assign a value to the element with index 4000, then it allocates memory for 4004 elements, all zero initialized except for the element with index 4000.
+\end{myNotic}
+
+However, it’s inconvenient to always have to use the setElementAt() and getElementAt() member functions.
+
+This is where the overloaded subscripting operator comes in. You can add an operator[] to the class as follows:
+
+\begin{cpp}
+export template <typename T>
+class Array
+{
+    public:
+        T& operator[](std::size_t x);
+        // Remainder omitted for brevity.
+};
+\end{cpp}
+
+Here is the implementation:
+
+\begin{cpp}
+template <typename T> T& Array<T>::operator[](std::size_t x)
+{
+    if (x >= m_size) {
+        // Allocate AllocSize past the element the client wants.
+        resize(x + AllocSize);
+    }
+    return m_elements[x];
+}
+\end{cpp}
+
+With this change, you can use conventional array index notation like this:
+
+\begin{cpp}
+Array<int> myArray;
+for (size_t i { 0 }; i < 20; i += 2) {
+    myArray[i] = 100;
+}
+for (size_t i { 0 }; i < 20; ++i) {
+    print("{} ", myArray[i]);
+}
+\end{cpp}
+
+The operator[] can be used to both set and get elements because it returns a reference to the element at location x. This reference can be used to assign to that element. When operator[] is used on the left-hand side of an assignment statement, the assignment actually changes the value at location x in the m\_elements array.
 
 \mySubsubsection{15.5.1.}{Providing Read-Only Access with operator[]}
 
+Although it’s sometimes convenient for operator[] to return an element that can serve as an lvalue, you don’t always want that behavior. It would be nice to be able to provide read-only access to the elements of the array as well, by returning a reference-to-const. To provide for this, you need two operator[] overloads: one returning a reference-to-non-const and one returning a reference-to-const:
 
+\begin{cpp}
+T& operator[](std::size_t x);
+const T& operator[](std::size_t x) const;
+\end{cpp}
+
+Remember that you can’t overload a member function or operator based only on the return type, so the second overload returns a reference-to-const and is marked as const.
+
+Here is the implementation of the const operator[]. It throws an exception if the index is out of range instead of trying to allocate new space. It doesn’t make sense to allocate new space when you’re only trying to read the element value.
+
+\begin{cpp}
+template <typename T> const T& Array<T>::operator[](std::size_t x) const
+{
+    if (x >= m_size) { throw std::out_of_range { "" }; }
+    return m_elements[x];
+}
+\end{cpp}
+
+The following code demonstrates these two forms of operator[]:
+
+\begin{cpp}
+void printArray(const Array<int>& arr)
+{
+    for (size_t i { 0 }; i < arr.getSize(); ++i) {
+        print("{} ", arr[i]); // Calls the const operator[] because arr is
+                              // a const object.
+    }
+    println("");
+}
+
+int main()
+{
+    Array<int> myArray;
+    for (size_t i { 0 }; i < 20; i += 2) {
+        myArray[i] = 100; // Calls the non-const operator[] because
+                          // myArray is a non-const object.
+    }
+    printArray(myArray);
+}
+\end{cpp}
+
+Note that the const operator[] is called in printArray() only because the parameter arr is const. If arr were not const, the non-const operator[] would be called, despite that the result is not modified.
+
+The const operator[] is called for const objects, so it cannot grow the size of the array. The current implementation throws an exception when the given index is out of bounds. An alternative would be to return a zero-initialized element instead of throwing. This can be done as follows:
+
+\begin{cpp}
+template <typename T> const T& Array<T>::operator[](std::size_t x) const
+{
+    if (x >= m_size) {
+        static T nullValue { T{} };
+        return nullValue;
+    }
+    return m_elements[x];
+}
+\end{cpp}
+
+The nullValue static variable is initialized using the zero-initialization syntax T\{\}. It’s up to you and your specific use case whether you opt for the throwing version or the version returning a null value.
+
+\begin{myNotic}{NOTE}
+Zero-initialization constructs objects with the default constructor and initializes primitive integer types (such as char, int, and so on) to zero, primitive floating-point types to 0.0, and pointer types to nullptr.
+\end{myNotic}
+
+\CXXTwentythreeLogo{-40}{-60}
 
 \mySubsubsection{15.5.2.}{Multidimensional Subscripting Operator}
 
+Starting with C++23, a subscripting operator can support multidimensional indexing. The syntax is straightforward. Instead of writing a subscripting operator accepting a single index parameter, you write a subscripting operator with as many index parameters as dimensions you need.
+
+To demonstrate, let’s revisit the Grid class template from Chapter 12, “Writing Generic Code with Templates.” Its interface contains a const and non-const overload of an at(x,y) member function. These at() member functions can be replaced with two-dimensional const and non-const subscripting operators as follows:
+
+\begin{cpp}
+template <typename T>
+class Grid
+{
+    public:
+        std::optional<T>& operator[](std::size_t x, std::size_t y);
+        const std::optional<T>& operator[](std::size_t x, std::size_t y) const;
+        // Remainder omitted for brevity.
+};
+\end{cpp}
+
+The syntax simply specifies two parameters, x and y, for these two-dimensional subscripting operators. The implementations are almost identical to the implementations of the original at() member functions:
+
+\begin{cpp}
+template <typename T>
+const std::optional<T>& Grid<T>::operator[](std::size_t x, std::size_t y) const
+{
+    verifyCoordinate(x, y);
+    return m_cells[x + y * m_width];
+}
+template <typename T>
+std::optional<T>& Grid<T>::operator[](std::size_t x, std::size_t y)
+{
+    return const_cast<std::optional<T>&>(std::as_const(*this)[x, y]);
+}
+\end{cpp}
+
+Here is an example of these new operators in action:
+
+\begin{cpp}
+Grid<int> myIntGrid { 4, 4 };
+int counter { 0 };
+for (size_t y { 0 }; y < myIntGrid.getHeight(); ++y) {
+    for (size_t x { 0 }; x < myIntGrid.getWidth(); ++x) {
+        myIntGrid[x, y] = ++counter;
+    }
+}
+for (size_t y { 0 }; y < myIntGrid.getHeight(); ++y) {
+    for (size_t x { 0 }; x < myIntGrid.getWidth(); ++x) {
+        print("{:3} ", myIntGrid[x, y].value_or(0));
+    }
+    println("");
+}
+\end{cpp}
+
+The output is:
+
+\begin{shell}
+ 1  2  3  4
+ 5  6  7  8
+ 9 10 11 12
+13 14 15 16
+\end{shell}
 
 
 \mySubsubsection{15.5.3.}{Non-integral Array Indices}
 
+It is a natural extension of the paradigm of “indexing” into a collection to provide a key of some sort; a vector (or in general, any linear array) is a special case where the “key” is just a position in the array. Think of the argument of operator[] as providing a mapping between two domains: the domain of keys and the domain of values. Thus, you can write an operator[] that uses any type as its index. This type does not need to be an integer type. This is done for the Standard Library associative containers, like std::map, which are discussed in Chapter 18, “Standard Library Containers.”
 
+For example, you could create an associative array in which you use string keys instead of integral indices. The operator[] for such a class would accept a string, or better yet string\_view, as an argument. Implementing such a class is an exercise for you at the end of this chapter.
+
+\CXXTwentythreeLogo{-40}{-60}
 
 \mySubsubsection{15.5.4.}{static Subscripting Operator}
+
+With C++23, the subscripting operator can be marked as static as long as the implementation of the operator does not require access to this, or, in other words, does not need access to non-static data members and non-static member functions. This allows the compiler to better optimize the code as it doesn’t need to worry about any this pointer. Here is an example where operator[] is marked as static, constexpr (see Chapter 9), and noexcept (Chapter 14):
+
+\begin{cpp}
+enum class Figure { Diamond, Heart, Spade, Club };
+
+class FigureEnumToString
+{
+    public:
+        static constexpr string_view operator[](Figure figure) noexcept
+        {
+            switch (figure) {
+                case Figure::Diamond: return "Diamond";
+                case Figure::Heart: return "Heart";
+                case Figure::Spade: return "Spade";
+                case Figure::Club: return "Club";
+            }
+        }
+};
+
+int main()
+{
+    Figure f { Figure::Spade };
+    FigureEnumToString converter;
+    println("{}", converter[f]);
+    println("{}", FigureEnumToString{}[f]);
+}
+\end{cpp}
+
+
+
+
+
+
+
+
+
+
 
 
