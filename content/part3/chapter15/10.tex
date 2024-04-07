@@ -1,14 +1,182 @@
 
+C++ has a number of built-in literal types that you can use in your code. Here are some examples:
+
+\begin{itemize}
+\item
+'a': Character
+
+\item
+"A string": Zero-terminated sequence of characters, C-style string
+
+\item
+3.14f: float single-precision floating-point value
+
+\item
+0xabc: Hexadecimal value
+\end{itemize}
+
+C++ also allows you to define your own literals, and the Standard Library does exactly that; it provides a number of additional literal types to construct Standard Library objects. Let’s take a look at these first and then see how you can define your own.
 
 \mySubsubsection{15.10.1.}{Standard Library Literals}
 
+The C++ Standard Library defines the following standard literals. Note that these literals do not start with an underscore:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|l|}
+\hline
+\textbf{LITERAL} &
+\textbf{\begin{tabular}[c]{@{}l@{}}CREATES INSTANCES\\ OF . . .\end{tabular}} &
+\textbf{EXAMPLE} &
+\textbf{REQUIRES NAMESPACE} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+s &
+string &
+\begin{tabular}[c]{@{}l@{}}auto myString \{\\ "Hello"s \};\end{tabular} &
+string\_literals \\ \hline
+sv &
+string\_view &
+\begin{tabular}[c]{@{}l@{}}auto myStringView \{\\ "Hello"sv \};\end{tabular} &
+string\_view\_literals \\ \hline
+\begin{tabular}[c]{@{}l@{}}h, min, s,\\ ms, us, ns\end{tabular} &
+chrono::duration &
+\begin{tabular}[c]{@{}l@{}}auto myDuration \{\\ 42min \};\end{tabular} &
+chrono\_literals \\ \hline
+y, d &
+chrono::year and day &
+\begin{tabular}[c]{@{}l@{}}auto thisYear \{\\ 2024y \};\end{tabular} &
+chrono\_literals \\ \hline
+i, il, if &
+\begin{tabular}[c]{@{}l@{}}complex\textless{}T\textgreater with\\ T equal to double,\\ long double, float,\\ respectively\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}auto\\ myComplexNumber \{\\ 1.3i \};\end{tabular} &
+complex\_literals \\ \hline
+\end{longtable}
+
+Technically, all of these are defined in subnamespaces of std::literals, for example std::literals::string\_literals. However, both string\_literals and literals are inline namespaces that automatically make their contents available in their parent namespace. Hence, if you want to use s string literals, you can use any of the following using directives:
+
+\begin{cpp}
+using namespace std;
+using namespace std::literals;
+using namespace std::string_literals;
+using namespace std::literals::string_literals;
+\end{cpp}
 
 
 \mySubsubsection{15.10.2.}{User-Defined Literals}
 
+User-defined literals should start with exactly one underscore. Some examples are \_i, \_s, \_km, \_miles, \_K, and so on.
+
+User-defined literals are implemented by writing literal operators. A literal operator can work in raw or cooked mode. In raw mode, your literal operator receives a sequence of characters, while in cooked mode your literal operator receives a specific interpreted type. For example, take the C++ literal 123. A raw literal operator receives this as a sequence of characters '1', '2', '3'. A cooked literal operator receives this as the integer 123. The literal 0x23 is received by a raw operator as the characters '0', 'x', '2', '3', while a cooked operator receives the integer 35. A literal such as 3.14 is received by a raw operator as '3', '.', '1', '4', while a cooked operator receives the floatingpoint value 3.14.
+
 \mySamllsection{Cooked-Mode Literal Operator}
 
+A cooked-mode literal operator should have either of the following:
+
+\begin{itemize}
+\item
+To process numeric values: One parameter of type unsigned long long, long double, char, wchar\_t, char8\_t, char16\_t, or char32\_t
+
+\item
+To process strings: Two parameters where the first is a C-style string and the second is the length of the string, for instance, (const char* str, std::size\_t len)
+\end{itemize}
+
+For example, the following code defines a Length class storing a length in meters. The constructor is private because users should only be able to construct a Length instance using the provided userdefined literals. The code provides cooked literal operators for user-defined literal operators \_km and \_m. Both of these are friends of Length so that they can access the private constructor. There must not be any space between the "" and the underscore of these operators.
+
+\begin{cpp}
+// A class representing a length. The length is always stored in meters.
+class Length
+{
+    public:
+        long double getMeters() const { return m_length; }
+        // The user-defined literals _km and _m are friends of Length so they
+        // can use the private constructor.
+        friend Length operator ""_km(long double d);
+        friend Length operator ""_m(long double d);
+    private:
+        // Private constructor because users should only be able to construct a
+        // Length using the provided user-defined literals.
+        Length(long double length) : m_length { length } {}
+        long double m_length;
+};
+Length operator ""_km(long double d) // Cooked _km literal operator
+{
+    return Length { d * 1000 }; // Convert to meters.
+}
+Length operator ""_m(long double d) // Cooked _m literal operator
+{
+    return Length { d };
+}
+\end{cpp}
+
+These literal operators can be used as follows:
+
+\begin{cpp}
+Length d1 { 1.2_km };
+auto d2 { 1.2_m };
+println("d1 = {}m; d2 = {}m", d1.getMeters(), d2.getMeters());
+\end{cpp}
+
+Here is the output:
+
+\begin{shell}
+d1 = 1200m; d2 = 1.2m
+\end{shell}
+
+To demonstrate the variant of a cooked literal operator accepting a const char* and a size\_t, we can re-create the standard string literal, s, provided by the Standard Library, to construct an std::string. Let’s call the literal \_s.
+
+\begin{cpp}
+string operator ""_s(const char* str, size_t len)
+{
+    return string { str, len };
+}
+\end{cpp}
+
+This literal operator can be used as follows:
+
+\begin{cpp}
+string str1 { "Hello World"_s };
+auto str2 { "Hello World"_s }; // str2 has as type string
+\end{cpp}
+
+Without the \_s literal operator, the auto type deduction would result in const char*:
+
+\begin{cpp}
+auto str3 { "Hello World" }; // str3 has as type const char*
+\end{cpp}
+
+
 \mySamllsection{Raw-Mode Literal Operator}
+
+A raw-mode literal operator requires one parameter of type const char*, a zero-terminated C-style string. The following example defines the earlier literal operator \_m as a raw literal operator:
+
+\begin{cpp}
+Length operator ""_m(const char* str)
+{
+    // Implementation omitted; it requires parsing the C-style string
+    // converting it to a long double, and constructing a Length.
+    ...
+}
+\end{cpp}
+
+Using this raw-mode literal operator is the same as using the cooked version.
+
+\begin{myNotic}{NOTE}
+Raw-mode literal operators work only with non-string literals. For example, 1.23\_m could be implemented with a raw-mode literal operator, but "1.23"\_m cannot. The latter one requires a cooked-mode literal with two parameters: the zero-terminated string and its length.
+\end{myNotic}
+
+
+
+
+
+
+
+
+
+
 
 
 

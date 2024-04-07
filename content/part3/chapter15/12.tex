@@ -1,0 +1,27 @@
+By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+
+\begin{itemize}
+\item
+Exercise 15-1: Implement an AssociativeArray class template. The class should store a number of elements in a vector, where each element consists of a key and a value. The key is always a string, while the type of the value can be specified using a template type parameter. Provide overloaded subscripting operators so that elements can be retrieved based on their key. Test your implementation in your main() function. Note: this exercise is just to practice implementing subscripting operators using non-integral indices. In practice, you should just use the std::map class template provided by the Standard Library and discussed in Chapter 18 for such an associative array.
+
+\item
+Exercise 15-2: Take your Person class implementation from Exercise 13-2 and add implementations of the insertion and extraction operators to it. Make sure that your extraction operator can read back what your insertion operator writes out.
+
+\item
+Exercise 15-3: Add a string conversion operator to your solution of Exercise 15-2. The operator simply returns a string constructed from the first and last name of the person.
+
+\item
+Exercise 15-4: Start from your solution of Exercise 15-3 and add a user-defined literal operator \_p that constructs a Person from a string literal. It should support spaces in last names, but not in first names. For example, "Peter Van Weert"\_p should result in a Person object with first name Peter and last name Van Weert.
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,61 @@
+\noindent
+\textbf{WHAT’S IN THIS CHAPTER?}
+
+\begin{itemize}
+\item
+The coding principles used throughout the Standard Library
+
+\item
+A high-level overview of the functionality provided by the Standard Library
+\end{itemize}
+
+\noindent
+\textbf{WILEY.COM DOWNLOADS FOR THIS CHAPTER}
+
+Please note that all the code examples for this chapter are available as part of this chapter’s code download on the book’s website at \url{www.wiley.com/go/proc++6e} on the Download Code tab.
+
+The most important library that you will use as a C++ programmer is the C++ Standard Library. As its name implies, this library is part of the C++ standard, so any standardsconforming compiler should include it. The Standard Library is not monolithic: it includes several disparate components, some of which you have been using already. You may even have assumed they were part of the core language. All Standard Library classes and functions are declared in the std namespace, or a subnamespace of std.
+
+The heart of the C++ Standard Library is its generic containers and algorithms. Some people still call this subset of the library the Standard Template Library, or STL for short, because originally it was based on a third-party library called the Standard Template Library, which used templates abundantly. However, STL is not a term defined by the C++ standard itself, so this book does not use it. The power of the Standard Library is that it provides generic containers and generic algorithms in such a way that most of the algorithms work on most of the containers, no matter what type of data the containers store. Performance is an important aspect of the Standard Library. The goal is to make the Standard Library containers and algorithms as fast as, or faster than, handwritten code.
+
+The C++ Standard Library also includes most of the C headers that are part of the C11 standard, but with new names. For example, you can access the functionality from the C <stdio.h> header by including <cstdio>. The former puts everything in the global namespace, while the latter puts everything in the std namespace. Though, technically, the former is allowed to put things in the std namespace as well, and the latter is allowed to additionally put things in the global namespace. The C11 headers <stdnoreturn.h>, <threads.h>, and their <c...> equivalents are not included in the C++ standard. The <stdatomic.h> header from C11 has been available since C++23, but no equivalent <cstdatomic> is provided. Furthermore, C++17 has deprecated, and C++20 has removed the following C headers:
+
+\begin{itemize}
+\item
+<ccomplex> and <ctgmath>: Replace the use of these with <complex> and/or <cmath>.
+
+\item
+<ciso646>, <cstdalign>, and <cstdbool>: These headers were useless in C++ as these were either empty or defined macros that are keywords in C++.
+\end{itemize}
+
+C headers are not guaranteed to be importable. Use \#include instead of import to get access to the functionality defined by them.
+
+\begin{myNotic}{NOTE}
+If there is a C++ equivalent of functionality provided by a C header, it is recommended to use the C++ equivalent.
+\end{myNotic}
+
+A C++ programmer who wants to claim language expertise is expected to be familiar with the Standard Library. You can save yourself immeasurable time and energy by incorporating Standard Library containers and algorithms into your programs instead of writing and debugging your own versions. Now is the time to master this Standard Library.
+
+This first chapter on the Standard Library provides a general overview of the available functionality. The next few chapters go into more detail on several aspects of the Standard Library, including containers, iterators, generic algorithms, predefined function object classes, regular expressions, random number generation, and much more. Additionally, Chapter 25, “Customizing and Extending the Standard Library,” is dedicated to customizing and extending the library with your own Standard Library–compliant algorithms and data structures.
+
+Despite the depth of material found in this and the following chapters, the Standard Library is too large for this book to cover exhaustively. You should read these chapters to learn about the Standard Library, but keep in mind that they don’t mention every member function and data member that the various classes provide or show you the prototypes of every algorithm. Appendix C, “Standard Library Header Files,” summarizes all the header files in the Standard Library. Consult your favorite Standard Library Reference for a complete reference of all provided functionality.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
