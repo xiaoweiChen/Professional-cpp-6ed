@@ -1,9 +1,12 @@
 
+The Standard Library makes heavy use of the C++ features called templates and operator overloading.
 
 \mySubsubsection{16.1.1.}{Use of Templates}
 
+Templates are used to allow generic programming. They make it possible to write code that can work with all kinds of objects, even objects unknown to the programmer when writing the code. The obligation of the programmer writing the template code is to specify the requirements of the classes that define these objects, for example, that they have an operator for comparison or a copy constructor, or whatever is deemed appropriate, and then making sure the code that is written uses only those required capabilities. The obligation of the programmer creating the objects is to supply those operators and member functions that the template requires.
 
+Unfortunately, many programmers consider templates to be the most difficult part of C++ and, for that reason, tend to avoid them. However, even if you never write your own templates, you need to understand their syntax and capabilities to use the Standard Library. Templates are described in detail in Chapter 12, “Writing Generic Code with Templates.” If you skipped that chapter and are not familiar with templates, I suggest you first read Chapter 12 and then come back to learn more about the Standard Library.
 
 \mySubsubsection{16.1.2.}{Use of Operator Overloading}
 
-
+Operator overloading is another feature used extensively by the C++ Standard Library. Chapter 9, “Mastering Classes and Objects,” has a whole section devoted to operator overloading. Make sure you read that section and understand it before tackling this and subsequent chapters. In addition, Chapter 15, “Overloading C++ Operators,” presents much more detail on the subject of operator overloading, but those details are not required to understand the following chapters.
