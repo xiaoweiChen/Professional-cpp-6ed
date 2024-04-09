@@ -1,12 +1,228 @@
 
+The Standard Library provides a number of iterator adapters, which are special iterators, all defined in <iterator>. They are split into two groups. The first group of adapters are created from a container and are usually used as output iterators:
+
+\begin{itemize}
+\item
+back\_insert\_iterator: Uses push\_back() to insert elements into a container
+
+\item
+front\_insert\_iterator: Uses push\_front() to insert elements into a container
+
+\item
+insert\_iterator: Uses insert() to insert elements into a container
+\end{itemize}
+
+Other adapters are created from another iterator, not a container, and are usually used as input iterators. Two common adapters are:
+
+\begin{itemize}
+\item
+reverse\_iterator: Reverse the iteration order of another iterator.
+
+\item
+move\_iterator: The dereferencing operator for a move\_iterator automatically converts the value to an rvalue reference, so it can be moved to a new destination.
+\end{itemize}
+
+It’s also possible to write your own iterator adapters, but this is not covered in this book. Consult one of the Standard Library references listed in Appendix B, “Annotated Bibliography,” for details.
 
 \mySubsubsection{17.3.1.}{Insert Iterators}
 
+The myCopy() function template as implemented earlier in this chapter does not insert elements into a container; it simply replaces old elements in a range with new ones. To make such algorithms more useful, the Standard Library provides three insert iterator adapters that really insert elements into a container: insert\_iterator, back\_insert\_iterator, and front\_insert\_iterator. They are all parametrized on a container type and take an actual container reference in their constructor. Because they supply the necessary iterator interfaces, these adapters can be used as the destination iterators for algorithms like myCopy(). However, instead of replacing elements in the container, they make calls on their container to actually insert new elements.
+
+The basic insert\_iterator calls insert(position,element) on the container, back\_insert\_iterator calls push\_back(element), and front\_insert\_iterator calls push\_front(element).
+
+The following example uses a back\_insert\_iterator with myCopy() to populate vectorTwo with copies of all elements from vectorOne. Note that vectorTwo is not first resized to have enough elements, the insert iterator takes care of properly inserting new elements.
+
+\begin{cpp}
+vector vectorOne { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+vector<int> vectorTwo;
+
+back_insert_iterator<vector<int>> inserter { vectorTwo };
+myCopy(cbegin(vectorOne), cend(vectorOne), inserter);
+
+println("{:n}", vectorTwo);
+\end{cpp}
+
+As you can see, when you use insert iterators, you don’t need to size the destination containers ahead of time.
+
+You can also use the std::back\_inserter() utility function to create a back\_insert\_iterator. In the previous example, you can remove the line that defines the inserter variable and rewrite the myCopy() call as follows. The result remains the same.
+
+\begin{cpp}
+myCopy(cbegin(vectorOne), cend(vectorOne), back_inserter(vectorTwo));
+\end{cpp}
+
+With class template argument deduction (CTAD), this can also be written as follows:
+
+\begin{cpp}
+myCopy(cbegin(vectorOne), cend(vectorOne), back_insert_iterator { vectorTwo });
+\end{cpp}
+
+The front\_insert\_iterator and insert\_iterator work similarly, except that the insert\_iterator also takes an initial iterator position in its constructor, which it passes to the first call to insert(position,element). Subsequent iterator position hints are generated based on the return value from each insert() call.
+
+One benefit of using an insert\_iterator is that it allows you to use associative containers as destinations of modifying algorithms. Chapter 20, “Mastering Standard Library Algorithms,” explains that the problem with associative containers is that you are not allowed to modify the keys over which you iterate. By using an insert\_iterator, you insert elements instead of modifying existing ones. Associative containers have an insert() member function that takes an iterator position and can use the position as a “hint,” which they can ignore. When you use an insert\_iterator on an associative container, you can pass the begin() or end() iterator of the container as the hint. The insert\_iterator modifies the iterator hint that it passes to insert() after each call to insert(), such that the position is one past the just-inserted element.
+
+Here is the previous example modified so that the destination container is a set instead of a vector:
+
+\begin{cpp}
+vector vectorOne { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+set<int> setOne;
+
+insert_iterator<set<int>> inserter { setOne, begin(setOne) };
+myCopy(cbegin(vectorOne), cend(vectorOne), inserter);
+
+println("{:n}", setOne);
+\end{cpp}
+
+Similar to the back\_insert\_iterator example, you can use the std::inserter() utility function to create an insert\_iterator:
+
+\begin{cpp}
+myCopy(cbegin(vectorOne), cend(vectorOne), inserter(setOne, begin(setOne)));
+\end{cpp}
+
+Or, use class template argument deduction:
+
+\begin{cpp}
+myCopy(cbegin(vectorOne), cend(vectorOne),
+    insert_iterator { setOne, begin(setOne) });
+\end{cpp}
 
 
 \mySubsubsection{17.3.2.}{Reverse Iterators}
 
+The Standard Library provides an std::reverse\_iterator class template that iterates through a bidirectional or random-access iterator in a reverse direction. Every reversible container in the Standard Library, which happens to be every container that’s part of the standard except forward\_list and the unordered associative containers, supplies a reverse\_iterator type alias and member functions called rbegin() and rend(). These reverse\_iterator type aliases are of type std::reverse\_iterator<T> with T equal to the iterator type alias of the container. The member function rbegin() returns a reverse\_iterator pointing to the last element of the container, and rend() returns a reverse\_iterator pointing to the element before the first element of the container. Applying operator++ to a reverse\_iterator calls operator-{}- on the underlying container iterator, and vice versa. For example, iterating over a collection from the beginning to the end can be done as follows:
 
+\begin{cpp}
+for (auto iter { begin(collection) }; iter != end(collection); ++iter) {}
+\end{cpp}
+
+Iterating over the elements in the collection from the end to the beginning can be done using a reverse\_iterator by calling rbegin() and rend(). Note that you still call ++iter.
+
+\begin{cpp}
+for (auto iter { rbegin(collection) }; iter != rend(collection); ++iter) {}
+\end{cpp}
+
+An std::reverse\_iterator is useful mostly with algorithms in the Standard Library or your own functions that have no equivalents that work in reverse order. The myFind() function introduced earlier in this chapter searches for the first element in a sequence. If you want to find the last element in the sequence, you can use a reverse\_iterator. Note that when you call an algorithm such as myFind() with a reverse\_iterator, it returns a reverse\_iterator as well. You can always obtain the underlying iterator from a reverse\_iterator by calling its base() member function. However, because of how reverse\_iterator is implemented, the iterator returned from base() always refers to one element past the element referred to by the reverse\_iterator on which it’s called. To get to the same element, you must subtract one.
+
+Here is an example of myFind() with a reverse\_iterator:
+
+\begin{cpp}
+vector myVector { 11, 22, 33, 22, 11 };
+auto it1 { myFind(begin(myVector), end(myVector), 22) };
+auto it2 { myFind(rbegin(myVector), rend(myVector), 22) };
+if (it1 != end(myVector) && it2 != rend(myVector)) {
+    println("Found at position {} going forward.",
+             distance(begin(myVector), it1));
+    println("Found at position {} going backward.",
+             distance(begin(myVector), --it2.base()));
+} else {
+    println("Failed to find.");
+}
+\end{cpp}
+
+The output of this program is as follows:
+
+\begin{shell}
+Found at position 1 going forward.
+Found at position 3 going backward.
+\end{shell}
 
 \mySubsubsection{17.3.3.}{Move Iterators}
+
+Chapter 9, “Mastering Classes and Objects,” discusses move semantics, which can be used to prevent unnecessary copying in cases where you know that the source object will be destroyed after an assignment operation or copy construction, or explicitly when using std::move(). The Standard Library provides an iterator adapter called std::move\_iterator. The dereferencing operator of a move\_iterator automatically converts the value to an rvalue reference, which means that the value can be moved to a new destination without the overhead of copying. Before you can use move semantics, you need to make sure your objects are supporting it. The following MoveableClass supports move semantics. For more details, see Chapter 9.
+
+\begin{cpp}
+class MoveableClass
+{
+    public:
+        MoveableClass() {
+            println("Default constructor");
+        }
+        MoveableClass(const MoveableClass& src) {
+            println("Copy constructor");
+        }
+        MoveableClass(MoveableClass&& src) noexcept {
+            println("Move constructor");
+        }
+        MoveableClass& operator=(const MoveableClass& rhs) {
+            println("Copy assignment operator");
+            return *this;
+        }
+        MoveableClass& operator=(MoveableClass&& rhs) noexcept {
+            println("Move assignment operator");
+            return *this;
+        }
+};
+\end{cpp}
+
+The constructors and assignment operators are not doing anything useful here, except printing a message to make it easy to see which one is being called. Now that you have this class, you can define a vector and store a few MoveableClass instances in it as follows:
+
+\begin{cpp}
+vector<MoveableClass> vecSource;
+MoveableClass mc;
+vecSource.push_back(mc);
+vecSource.push_back(mc);
+\end{cpp}
+
+The output could be as follows. The numbers behind each line are not part of the output but are added to make it easier for the upcoming discussion to refer to specific lines.
+
+\begin{cpp}
+Default constructor // [1]
+Copy constructor // [2]
+Copy constructor // [3]
+Move constructor // [4]
+\end{cpp}
+
+The second line of the code creates a MoveableClass instance by using the default constructor, [1]. The first push\_back() call triggers the copy constructor to copy mc into the vector, [2]. After this operation, the vector has space for one element, the first copy of mc. Note that this discussion is based on the growth strategy and the initial size of a vector as implemented by Microsoft Visual C++ 2022. The C++ standard does not specify the initial capacity of a vector or its growth strategy, so the output can be different with different compilers.
+
+The second push\_back() call triggers the vector to resize itself, to allocate space for the second element. This resizing causes the move constructor to be called to move every element from the old vector to the new resized vector, [4]. The copy constructor is triggered to copy mc a second time into the vector, [3]. The order of moving and copying is undefined, so [3] and [4] could be reversed.
+
+You can create a new vector called vecOne that contains a copy of the elements from vecSource as follows:
+
+\begin{cpp}
+vector<MoveableClass> vecOne { cbegin(vecSource), cend(vecSource) };
+\end{cpp}
+
+Without using move\_iterators, this code triggers the copy constructor two times, once for every element in vecSource:
+
+\begin{shell}
+Copy constructor
+Copy constructor
+\end{shell}
+
+By using std::make\_move\_iterator() to create move\_iterators, the move constructor of MoveableClass is called instead of the copy constructor:
+
+\begin{cpp}
+vector<MoveableClass> vecTwo { make_move_iterator(begin(vecSource)),
+                               make_move_iterator(end(vecSource)) };
+\end{cpp}
+
+This generates the following output:
+
+\begin{shell}
+Move constructor
+Move constructor
+\end{shell}
+
+You can also use class template argument deduction (CTAD) with move\_iterator:
+
+\begin{cpp}
+vector<MoveableClass> vecTwo { move_iterator { begin(vecSource) },
+                               move_iterator { end(vecSource) } };
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+Remember that you should no longer use an object once it has been moved to another object.
+\end{myWarning}
+
+
+
+
+
+
+
+
+
+
+
+
+
 

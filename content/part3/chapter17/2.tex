@@ -1,12 +1,116 @@
 
+The Standard Library provides four stream iterators. These are iterator-like class templates that allow you to treat input and output streams as input and output iterators. Using these stream iterators, you can adapt input and output streams so that they can serve as sources and destinations, respectively, for various Standard Library algorithms. The following stream iterators are available:
+
+\begin{itemize}
+\item
+ostream\_iterator: Output iterator writing to a basic\_ostream
+
+\item
+istream\_iterator: Input iterator reading from a basic\_istream
+
+\item
+ostreambuf\_iterator: Output iterator writing to a basic\_streambuf
+
+\item
+istreambuf\_iterator: Input iterator reading from a basic\_streambuf
+\end{itemize}
 
 \mySubsubsection{17.2.1.}{Output Stream Iterator: ostream\_iterator}
 
+ostream\_iterator is an output stream iterator. It is a class template that takes the element type as a template type parameter. The constructor takes an output stream and a delimiter string to write to the stream following each element. The ostream\_iterator class writes elements using operator<{}<.
 
+Let’s look at an example. Suppose you have the following myCopy() function template that copies a common range given as a begin and end iterator to a target range given as a begin iterator. The second template type parameter is constrained to be an output iterator that accepts values of type std::iter\_reference\_t<InputIter> which is the type of the values referred to by the given InputIter.
+
+\begin{cpp}
+template <input_iterator InputIter,
+    output_iterator<iter_reference_t<InputIter>> OutputIter>
+void myCopy(InputIter begin, InputIter end, OutputIter target)
+{
+    for (auto iter { begin }; iter != end; ++iter, ++target) { *target = *iter; }
+}
+\end{cpp}
+
+The first two parameters of myCopy() are the begin and end iterator of the range to copy, and the third parameter is an iterator to the destination range. You have to make sure the destination range is big enough to hold all the elements from the source range. Using the myCopy() function template to copy the elements of one vector to another one is straightforward.
+
+\begin{cpp}
+vector myVector { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+// Use myCopy() to copy myVector to vectorCopy.
+vector<int> vectorCopy(myVector.size());
+myCopy(cbegin(myVector), cend(myVector), begin(vectorCopy));
+\end{cpp}
+
+Now, by using an ostream\_iterator, the myCopy() function template can also be used to print elements of a container with just a single line of code. The following code snippet prints the contents of myVector and vectorCopy:
+
+\begin{cpp}
+// Use the same myCopy() to print the contents of both vectors.
+myCopy(cbegin(myVector), cend(myVector), ostream_iterator<int> { cout, " " });
+println("");
+myCopy(cbegin(vectorCopy), cend(vectorCopy), ostream_iterator<int> { cout, " " });
+println("");
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+1 2 3 4 5 6 7 8 9 10
+1 2 3 4 5 6 7 8 9 10
+\end{shell}
 
 \mySubsubsection{17.2.2.}{Input Stream Iterator: istream\_iterator}
 
+You can use the input stream iterator, istream\_iterator, to read values from an input stream using the iterator abstraction. It is a class template that takes the element type as a template type parameter. Its constructor takes an input stream as a parameter. Elements are read using operator>{}>. You can use an istream\_iterator as a source for algorithms and container member functions.
+
+Suppose you have the following sum() function template that calculates the sum of all the elements in a given common range:
+
+\begin{cpp}
+template <input_iterator InputIter>
+auto sum(InputIter begin, InputIter end)
+{
+    auto sum { *begin };
+    for (auto iter { ++begin }; iter != end; ++iter) { sum += *iter; }
+    return sum;
+}
+\end{cpp}
+
+Now, an istream\_iterator can be used to read integers from the console until the end of the stream is reached. On Windows, this happens when you press Ctrl+Z followed by Enter, while on Linux you press Enter followed by Ctrl+D. The sum() function is used to calculate the sum of all the integers. A default constructed istream\_iterator represents the end iterator.
+
+\begin{cpp}
+println("Enter numbers separated by whitespace.");
+println("Press Ctrl+Z followed by Enter to stop.");
+istream_iterator<int> numbersIter { cin };
+istream_iterator<int> endIter;
+int result { sum(numbersIter, endIter) };
+println("Sum: {}", result);
+\end{cpp}
 
 
 \mySubsubsection{17.2.3.}{Input Stream Iterator: istreambuf\_iterator}
+
+One use case of the istreambuf\_iterator input stream iterator is to easily read the contents of an entire file with a single statement. A default constructed istreambuf\_iterator represents the end iterator. Here is an example:
+
+\begin{cpp}
+ifstream inputFile { "some_data.txt" };
+if (inputFile.fail()) {
+    println(cerr, "Unable to open file for reading.");
+    return 1;
+}
+string fileContents {
+    istreambuf_iterator<char> { inputFile },
+    istreambuf_iterator<char> { }
+};
+println("{}", fileContents);
+\end{cpp}
+
+
+
+
+
+
+
+
+
+
+
+
+
 

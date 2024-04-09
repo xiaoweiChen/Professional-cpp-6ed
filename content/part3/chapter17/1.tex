@@ -1,17 +1,336 @@
 
+The Standard Library uses the iterator pattern to provide a generic abstraction for accessing the elements of a container. Each container provides a container-specific iterator, which is a glorified pointer that knows how to iterate over the elements of that specific container, i.e., an iterator supports traversing the elements of a container. The different iterators for the various containers adhere to standard interfaces defined by the C++ standard. Thus, even though the containers provide different functionality, the iterators present a common interface to code that wants to work with elements of the containers. This results in code that is easier to read and write, less error-prone (e.g., iterators are easier to use correctly compared to pointer arithmetic), more efficient (especially for containers that do not support random access, such as std::list and forward\_list; see Chapter 16), and easier to debug (e.g., iterators could perform bounds checking in debug builds of your code). Additionally, when using iterators to iterate over the contents of a container, the underlying implementation of the container could change completely without any impact on your iterator-based code.
+
+You can think of an iterator as a pointer to a specific element of the container. Like pointers to elements in an array, iterators can move to the next element with operator++. Similarly, you can usually use operator* and operator-> on the iterator to access the actual element or field of the element. Some iterators allow comparison with operator== and operator!=, and support operator-{}- for moving to previous elements.
+
+All iterators must be copy constructible, copy assignable, and destructible. Lvalues of iterators must be swappable. Different containers provide iterators with slightly different additional capabilities. The standard defines six categories of iterators, as summarized in the following table:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{ITERATOR CATEGORY} &
+\textbf{OPERATIONS REQUIRED} &
+\textbf{COMMENTS} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\begin{tabular}[c]{@{}l@{}}Input (also\\ known as Read)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}operator++, *, -\textgreater{}, =, ==, !=\\ copy constructor\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Provides read-only access, forward\\ only (no operator-- to move\\ backward).\\ Iterators can be assigned, copied, and\\ compared for equality.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}Output (also\\ known as Write)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}operator++, *, =\\ copy constructor\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Provides write-only access,\\ forward only.\\ Iterators can be assigned, but cannot\\ be compared for equality.\\ Specific to output iterators is that you\\ can do *iter = value.\\ Note the absence of operator-\textgreater{}.\\ Provides both prefix and postfix\\ operator++.\end{tabular} \\ \hline
+Forward &
+\begin{tabular}[c]{@{}l@{}}Capabilities of input iterators,\\ plus default constructor\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Provides read access, forward only.\\ Iterators can be assigned, copied, and\\ compared for equality.\end{tabular} \\ \hline
+Bidirectional &
+\begin{tabular}[c]{@{}l@{}}Capabilities of forward\\ iterators, plus\\ operator--\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Provides everything a forward\\ iterator provides.\\ Iterators can also move backward to a\\ previous element.\\ Provides both prefix and postfix\\ operator--.\end{tabular} \\ \hline
+Random access &
+\begin{tabular}[c]{@{}l@{}}Bidirectional capability, plus\\ the following:\\ operator+, -, +=, -=, \textless{},\\ \textgreater{}, \textless{}=, \textgreater{}=, {[}{]}\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Equivalent to raw pointers: support\\ pointer arithmetic, array index syntax,\\ and all forms of comparison.\end{tabular} \\ \hline
+Contiguous &
+\begin{tabular}[c]{@{}l@{}}Random-access capability and\\ logically adjacent elements\\ of the container must be\\ physically adjacent in memory\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Examples of this are iterators\\ of std::array, vector (not\\ vector\textless{}bool\textgreater{}), string, and\\ string\_view.\end{tabular} \\ \hline
+\end{longtable}
+
+According to this table, there are six types of iterators: input, output, forward, bidirectional, random access, and contiguous. There is no formal class hierarchy of these iterators. However, one can deduce a hierarchy based on the functionality they are required to provide. Specifically, every contiguous iterator is also random access, every random-access iterator is also bidirectional, every bidirectional iterator is also forward, and every forward iterator is also input. Iterators that additionally satisfy the requirements for output iterators are called mutable iterators; otherwise, they are called constant iterators. Figure 17.1 shows such hierarchy. Dotted lines are used because the figure is not a real class hierarchy.
+
+\myGraphic{0.3}{content/part3/chapter17/images/1.png}{FIGURE 17.1}
+
+The standard technique for an algorithm to specify what kind of iterators it requires is to use names similar to the following for its iterator template type parameters: InputIterator, OutputIterator, ForwardIterator, BidirectionalIterator, RandomAccessIterator, and ContiguousIterator. These names are just names: they don’t provide binding type checking. Therefore, you could, for example, try to call an algorithm expecting a RandomAccessIterator by passing a bidirectional iterator. The template cannot do type checking, so it would allow this instantiation. However, the code in the function that uses the random-access iterator capabilities would fail to compile on the bidirectional iterator. Thus, the requirement is enforced, just not where you would expect. The error message can therefore be somewhat confusing. For example, attempting to use the generic sort() algorithm, which requires a random-access iterator, on a list, which provides only a bidirectional iterator, can result in a cryptic error. The following is the error generated by Visual C++ 2022:
+
+\begin{cpp}
+...\MSVC\14.37.32705\include\algorithm(8061,45): error C2676: binary '-': 'const
+std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<_Ty>>>' does
+not define this operator or a conversion to a type acceptable to the
+predefined operator
+    with
+    [
+    _Ty=int
+    ]
+\end{cpp}
+
+Later in this chapter, the ranges library is introduced, which comes with range-based and constrained versions of most Standard Library algorithms. These constrained algorithms have proper type constraints (see Chapter 12, “Writing Generic Code with Templates”) for their template type parameters. Hence, the compiler can provide clearer error messages if you try to execute such an algorithm on a container that provides the wrong type of iterators.
+
+\begin{myNotic}{NOTE}
+Iterators mediate between algorithms and containers. They provide a standard interface to traverse the elements of a container in sequence so that any algorithm can work on any container as long as the container provides the algorithm’s required iterator category.
+\end{myNotic}
+
+Iterators are implemented similarly to smart pointer classes in that they overload the specific desired operators. Consult Chapter 15, “Overloading C++ Operators,” for details on operator overloading.
+
+The basic iterator operations are similar to those supported by raw pointers, so a raw pointer can be a legitimate iterator for certain containers. In fact, the vector iterator could technically be implemented as a simple raw pointer. However, as a client of the containers, you need not worry about the implementation details; you can simply use the iterator abstraction.
+
+\begin{myNotic}{NOTE}
+ Iterators might, or might not, be implemented internally as pointers, so this text uses the term refers to instead of points to when discussing the elements accessible via an iterator.
+\end{myNotic}
 
 \mySubsubsection{17.1.1.}{Getting Iterators for Containers}
 
+Every data structure of the Standard Library that supports iterators provides public type aliases for its iterator types, called iterator and const\_iterator. For example, a const iterator for a vector of ints has as type std::vector<int>::const\_iterator. Containers that allow you to iterate over their elements in reverse order also provide public type aliases called reverse\_iterator and const\_reverse\_iterator. This way, clients can use the container iterators without worrying about the actual types.
 
+\begin{myNotic}{NOTE}
+const\_iterators and const\_reverse\_iterators provide read-only access to elements of a container.
+\end{myNotic}
+
+The containers also provide a member function begin() that returns an iterator referring to the first element in the container. The end() member function returns an iterator to the “past-the-end” value of the sequence of elements. That is, end() returns an iterator that is equal to the result of applying operator++ to an iterator referring to the last element in the sequence. Together, begin() and end() provide a half-open range that includes the first element but not the last. The reason for this apparent complication is to support empty ranges (containers without any elements), in which case begin() is equal to end(). The half-open range bounded by iterators begin() and end() is often written mathematically like this: [begin, end).
+
+Additionally, the following member functions are available:
+
+\begin{itemize}
+\item
+cbegin() and cend() returning const iterators
+
+\item
+rbegin() and rend() returning reverse iterators
+
+\item
+crbegin() and crend() returning const reverse iterators
+\end{itemize}
+
+\begin{myNotic}{NOTE}
+A sequence specified by two iterators is called a common range to disambiguate it from ranges defined by the ranges library, discussed later in this chapter.
+\end{myNotic}
+
+<iterator> also provides the following global nonmember functions to retrieve specific iterators for a container:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{FUNCTION NAME} &
+\textbf{FUNCTION SYNOPSIS} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\begin{tabular}[c]{@{}l@{}}begin()\\ end()\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Returns a non-const iterator to the first, and one past the last, element in\\ a sequence\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}cbegin()\\ cend()\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Returns a const iterator to the first, and one past the last, element in\\ a sequence\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}rbegin()\\ rend()\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Returns a non-const reverse iterator to the last, and one before the first,\\ element in a sequence\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}crbegin()\\ crend()\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Returns a const reverse iterator to the last, and one before the first, element\\ in a sequence\end{tabular} \\ \hline
+\end{longtable}
+
+\begin{myNotic}{NOTE}
+It’s recommended to use these nonmember functions instead of the member versions.
+\end{myNotic}
+
+These nonmember functions are defined in the std namespace; however, especially when writing generic code for class and function templates, it is recommended to use these non-member functions as follows:
+
+\begin{cpp}
+using std::begin;
+begin(...);
+\end{cpp}
+
+Note that begin() is called without any namespace qualification, as this enables argument-dependent lookups (ADL).
+
+\begin{myNotic}{NOTE}
+ADL allows you to call unqualified functions. The compiler tries to find those functions first in the namespace of the arguments passed to them. If not found there, the usual name lookup rules apply.
+\end{myNotic}
+
+When you specialize one of these nonmember functions for your own types, you can either put those specializations in the std namespace or put them in the same namespace as the type for which you are specializing them. The latter is recommended as this enables ADL. Thanks to ADL, you can then call your specialization without having to qualify it with any namespace, because the compiler is able to find the correct specialization in your namespace based on the types of arguments passed to the specialized function template.
+
+By combining ADL (calling begin(...) without any namespace qualification) with the using std::begin declaration, the compiler first looks up the right overload in the namespace of the type of its argument using ADL. If the compiler cannot find an overload using ADL, it tries to find an appropriate overload in the std namespace due to the using declaration. Just calling begin() without the using declaration would only call user-defined overloads through ADL, and just calling std::begin() would only look in the std namespace.
+
+Of course, ADL is not limited to the functions discussed in this section but can be used with any function.
+
+\begin{myNotic}{NOTE}
+Normally it is not allowed to add anything to the std namespace; however, it is legal to put specializations of Standard Library templates in the std namespace.
+\end{myNotic}
 
 \mySubsubsection{17.1.2.}{Iterator Traits}
 
+Some algorithm implementations need additional information about their iterators. For example, they might need to know the type of the elements referred to by the iterator to store temporary values, or perhaps they want to know whether the iterator is bidirectional or random access.
 
+C++ provides a class template called iterator\_traits, defined in <iterator>, that allows you to retrieve this information. You instantiate the iterator\_traits class template with the iterator type of interest, and access one of five type aliases:
+
+\begin{itemize}
+\item
+value\_type: The type of elements referred to
+
+\item
+difference\_type: A type capable of representing the distance, i.e., number of elements, between two iterators
+
+\item
+iterator\_category: The type of iterator: input\_iterator\_tag, output\_iterator\_tag, forward\_iterator\_tag, bidirectional\_iterator\_tag, random\_access\_iterator\_tag, or contiguous\_iterator\_tag
+
+\item
+pointer: The type of a pointer to an element
+
+\item
+reference: The type of a reference to an element
+\end{itemize}
+
+For example, the following function template declares a temporary variable of the type that an iterator of type IteratorType refers to. Note the use of the typename keyword in front of iterator\_traits. You must specify typename explicitly whenever you access a type based on one or more template type parameters. In this case, the template type parameter IteratorType is used to access the value\_type type of iterator\_traits.
+
+\begin{cpp}
+template <typename IteratorType>
+void iteratorTraitsTest(IteratorType it)
+{
+    typename iterator_traits<IteratorType>::value_type temp;
+    temp = *it;
+    println("{}", temp);
+}
+\end{cpp}
+
+This function can be tested with the following code:
+
+\begin{cpp}
+vector v { 5 };
+iteratorTraitsTest(cbegin(v));
+\end{cpp}
+
+With this code, the variable temp in iteratorTraitsTest() is of type int. The output is 5.
+
+Of course, the auto keyword could be used in this example to simplify the code, but that wouldn’t show you how to use iterator\_traits.
 
 \mySubsubsection{17.1.3.}{Examples}
 
+The following example simply uses a for loop and iterators to iterate over every element in a vector and prints them to standard output:
 
+\begin{cpp}
+vector values { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+for (auto iter { cbegin(values) }; iter != cend(values); ++iter) {
+    print("{} ", *iter);
+}
+\end{cpp}
+
+You might be tempted to test for the end of a common range using operator<, as in iter<cend(values). That is not recommended, however. The canonical way to test for the end of a range is to use !=, as in iter!=cend(values). The reason is that the != operator works on all types of iterators, while the < operator is not supported by bidirectional and forward iterators.
+
+A helper function can be implemented that accepts a common range of elements given as a begin and end iterator and prints all elements in that range to standard output. The input\_iterator concept is used to constrain the template type parameter to input iterators.
+
+\begin{cpp}
+template <input_iterator Iter>
+void myPrint(Iter begin, Iter end)
+{
+    for (auto iter { begin }; iter != end; ++iter) { print("{} ", *iter); }
+}
+\end{cpp}
+
+This helper function can be used as follows:
+
+\begin{cpp}
+myPrint(cbegin(values), cend(values));
+\end{cpp}
+
+A second example is a myFind() function template that finds a given value in a given common range. If the value is not found, the end iterator of the range is returned. Note the special type of the value parameter. It uses iterator\_traits to get the type of the values to which the given iterators point to.
+
+\begin{cpp}
+template <input_iterator Iter>
+auto myFind(Iter begin, Iter end,
+    const typename iterator_traits<Iter>::value_type& value)
+{
+    for (auto iter { begin }; iter != end; ++iter) {
+        if (*iter == value) { return iter; }
+    }
+    return end;
+}
+\end{cpp}
+
+This function template can be used as follows. The std::distance() function is used to compute the distance between two iterators of a container.
+
+\begin{cpp}
+vector values { 11, 22, 33, 44 };
+auto result { myFind(cbegin(values), cend(values), 22) };
+if (result != cend(values)) {
+    println("Found value at position {}", distance(cbegin(values), result));
+}
+\end{cpp}
+
+More examples of using iterators are given throughout this and subsequent chapters.
 
 \mySubsubsection{17.1.4.}{Function Dispatching Using Iterator Traits}
+
+The Standard Library provides the std::advance(iter, n) function to advance a given iterator, iter, by n positions. This function works on all types of iterators. For random-access iterators, it simply does iter += n. For other iterators, it does ++iter or -{}-iter in a loop n times, depending on whether n is positive or negative. You might wonder how such behavior is implemented. It can be implemented using function dispatching. Based on the iterator category, the request is dispatched to a specific helper function. Here’s a simplified implementation of our own myAdvance(iter, n) function demonstrating such function dispatching:
+
+\begin{cpp}
+template <typename Iter, typename Distance>
+void advanceHelper(Iter& iter, Distance n, input_iterator_tag)
+{
+    while (n > 0) { ++iter; --n; }
+}
+
+template <typename Iter, typename Distance>
+void advanceHelper(Iter& iter, Distance n, bidirectional_iterator_tag)
+{
+    while (n > 0) { ++iter; --n; }
+    while (n < 0) { --iter; ++n; }
+}
+
+template <typename Iter, typename Distance>
+void advanceHelper(Iter& iter, Distance n, random_access_iterator_tag)
+{
+    iter += n;
+}
+
+template <typename Iter, typename Distance>
+void myAdvance(Iter& iter, Distance n)
+{
+    using category = typename iterator_traits<Iter>::iterator_category;
+    advanceHelper(iter, n, category {});
+}
+\end{cpp}
+
+This implementation of myAdvance() can be used on random-access iterators from vectors, on bidirectional iterators from lists, and so on:
+
+\begin{cpp}
+template <typename Iter>
+void testAdvance(Iter iter)
+{
+    print("*iter = {} | ", *iter);
+    myAdvance(iter, 3); print("3 ahead = {} | ", *iter);
+    myAdvance(iter, -2); println("2 back = {}", *iter);
+}
+
+int main()
+{
+    vector vec { 1, 2, 3, 4, 5, 6 }; testAdvance(begin(vec));
+    list lst { 1, 2, 3, 4, 5, 6 }; testAdvance(begin(lst));
+}
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+*iter = 1 | 3 ahead = 4 | 2 back = 2
+*iter = 1 | 3 ahead = 4 | 2 back = 2
+\end{shell}
+
+With concepts (see Chapter 12), the myAdvance() implementation can be simplified. Instead of using helper functions, you can just provide myAdvance() overloads with appropriate constraints:
+
+\begin{cpp}
+template <input_iterator Iter, typename Distance>
+void myAdvance(Iter& iter, Distance n)
+{
+    while (n > 0) { ++iter; --n; }
+}
+
+template <bidirectional_iterator Iter, typename Distance>
+void myAdvance(Iter& iter, Distance n)
+{
+    while (n > 0) { ++iter; --n; }
+    while (n < 0) { --iter; ++n; }
+}
+
+template <random_access_iterator Iter, typename Distance>
+void myAdvance(Iter& iter, Distance n)
+{
+    iter += n;
+}
+\end{cpp}
+
+
+
+
+
+
+
 
 

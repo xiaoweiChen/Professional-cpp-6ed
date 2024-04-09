@@ -1,12 +1,141 @@
 
 
+The iterator support of the C++ Standard Library allows algorithms to work independently of the actual containers, as they abstract away the mechanism to navigate through the elements of a container. As you’ve seen in all iterator examples up to now, most algorithms need an iterator pair consisting of a begin iterator that refers to the first element in the sequence, and an end iterator referring to one past the last element in the sequence. This makes it possible for algorithms to work on all kinds of containers, but it’s a bit cumbersome to always have to provide two iterators to specify a sequence of elements and to make sure you don’t provide mismatching iterators. Ranges provided by the ranges library are an abstraction layer on top of iterators, eliminating mismatching iterator errors, and adding extra functionality such as allowing range adapters to lazily filter and transform underlying sequences of elements. The ranges library, defined in <ranges>, consists of the following major components:
+
+\begin{itemize}
+\item
+Ranges: A range is a concept (see Chapter 12) defining the requirements for a type that allows iteration over its elements. Any data structure that supports begin() and end() is a valid range. For example, std::array, vector, string\_view, span, fixed-size C-style arrays, and so on, are all valid ranges.
+
+\item
+Constrained algorithms: Chapters 16 and 20 discuss the available Standard Library algorithms accepting iterator pairs to perform their work. For most of these algorithms there are equivalent range-based and constrained variants that accept iterator pairs or ranges.
+
+\item
+Projection: A lot of the constrained algorithms accept a projection callback. This callback is called for each element in the range and can transform an element to some other value before it is passed to the algorithm.
+
+\item
+Views: A view can be used to transform or filter the elements of an underlying range. Views can be composed together to form pipelines of operations to be applied to a range.
+
+\item
+Factories: A range factory is used to construct a view that produces values on demand.
+\end{itemize}
+
+Iteration over the elements in a range can be done with iterators that can be retrieved with accessors such as ranges::begin(), end(), rbegin(), and so on. Ranges also support ranges::empty(), data(), cdata(), and size(). The latter returns the number of elements in a range but works only if the size can be retrieved in constant time. Otherwise, use std::distance() to calculate the number of elements between a begin and end iterator of a range. All these accessors are not member functions but stand-alone free functions, all requiring a range as argument.
+
+Additionally, std::format(), print(), and println() have full support for formatting and printing ranges, as is demonstrated by numerous examples throughout this section.
+
 \mySubsubsection{17.4.1.}{Constrained Algorithms}
+
+The std::sort() algorithm is an example of an algorithm that requires a sequence of elements specified as a begin and end iterator. Algorithms are introduced in Chapter 16 and discussed in detail in Chapter 20. The sort() algorithm is straightforward to use. For example, the following code sorts all the elements of a vector:
+
+\begin{cpp}
+vector data { 33, 11, 22 };
+sort(begin(data), end(data));
+\end{cpp}
+
+This code sorts all the elements in the data container, but you have to specify the sequence as a begin/ end iterator pair. Wouldn’t it be nicer to more accurately describe in your code what you really want to do? That’s where the range-based and constrained algorithms, simply called constrained algorithms in this book, come in. These algorithms live in the std::ranges namespace and are defined in the same header file as the corresponding unconstrained variants. With those, you can simply write the following:
+
+\begin{cpp}
+ranges::sort(data);
+\end{cpp}
+
+This code clearly describes your intent, that is, sorting all elements of the data container. Since you are not specifying iterators anymore, these constrained algorithms eliminate the possibility of accidentally supplying mismatching begin and end iterators. The constrained algorithms have proper type constraints (see Chapter 12) for their template type parameters. This allows compilers to provide clearer error messages in case you supply a container to a constrained algorithm that does not provide the type of iterator the algorithm requires. For example, calling the ranges::sort() algorithm on an std::list will result in a compiler error stating more clearly that sort() requires a randomaccess range, which list isn’t. Similar to iterators, you have input-, output-, forward-, bidirectional-, random-access-, and contiguous ranges, with corresponding concepts such as ranges::contiguous\_range, ranges::random\_access\_range, and so on.
+
+\begin{myNotic}{NOTE}
+Most Standard Library algorithms, introduced in Chapter 16 and discussed in detail in Chapter 20, have constrained equivalents in the std::ranges namespace. It’s recommended to always use these constrained algorithms, if possible, as the compiler can provide better error messages when such algorithms are used with the wrong types, thanks to their type constraints.
+\end{myNotic}
 
 \mySamllsection{Projection}
 
+A lot of the constrained algorithms have a projection parameter, a callback used to transform each element before it is handed over to the algorithm. Let’s look at an example. Suppose you have a simple class representing a person:
 
+\begin{cpp}
+class Person
+{
+    public:
+        explicit Person(string first, string last)
+            : m_firstName { move(first) }, m_lastName { move(last) } { }
+        const string& getFirstName() const { return m_firstName; }
+        const string& getLastName() const { return m_lastName; }
+    private:
+        string m_firstName;
+        string m_lastName;
+};
+\end{cpp}
+
+The following code stores a couple of Person objects in a vector:
+
+\begin{cpp}
+vector persons { Person {"John", "White"}, Person {"Chris", "Blue"} };
+\end{cpp}
+
+Since the Person class does not implement operator<, you cannot sort this vector using the normal std::sort() algorithm, as it compares elements using operator<. So, the following does not compile:
+
+\begin{cpp}
+sort(begin(persons), end(persons)); // Error: does not compile.
+\end{cpp}
+
+Switching to the constrained ranges::sort() algorithm doesn’t help much at first sight. The following still doesn’t compile as the algorithm still doesn’t know how to compare elements in the range:
+
+\begin{cpp}
+ranges::sort(persons); // Error: does not compile.
+\end{cpp}
+
+However, you can sort persons based on their first name, by specifying a projection function for the sort algorithm to project each person to their first name. The projection parameter is the third one, so we have to specify the second parameter as well, which is the comparator to use, by default std::ranges::less. In the following call, the \{\} specifies to use the default comparator, and the projection function is specified as a lambda expression, see upcoming note.
+
+\begin{cpp}
+ranges::sort(persons, {},
+    [](const Person& person) { return person.getFirstName(); });
+\end{cpp}
+
+Or even shorter:
+
+\begin{cpp}
+ranges::sort(persons, {}, &Person::getFirstName);
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+The discussion on ranges in this chapter uses a few basic lambda expressions. Lambda expressions are discussed in detail in Chapter 19, “Function Pointers, Function Objects, and Lambda Expressions,” but all those details are not important for the current discussion. For now, it’s enough to know only basic use. A lambda expression, as used in this chapter, has the following syntax:
+
+\begin{cpp}
+[](const Person& person) { return person.getFirstName(); }
+\end{cpp}
+
+The [] denotes the start of a lambda expression. Next is a comma-separated list of parameters, just as for functions. Finally, the body of the lambda expression is between a set of curly brackets.
+
+Basically, lambda expressions allow you to write small, unnamed inline functions at the place where you need them. The previous lambda expression could be replaced with the following standalone function:
+
+\begin{cpp}
+auto getFirstName(const Person& person) {
+    return person.getFirstName(); }
+\end{cpp}
+
+The type of lambda expression parameters can also be auto. Here is an example:
+
+\begin{cpp}
+[](const auto& person) { return person.getFirstName(); }
+\end{cpp}
+\end{myNotic}
 
 \mySubsubsection{17.4.2.}{Views}
+
+A view allows you to perform operations on an underlying range’s elements, such as filtering and transforming. Views can be chained/composed together to form a pipeline performing multiple operations on the elements of a range. Composing views is easy, you just combine different operations using the bitwise OR operator, operator|. For example, you can easily filter the elements of a range first and then transform the remaining elements. In contrast, if you want to do something similar, filtering followed by transforming, using the unconstrained algorithms, your code will be much less readable and possibly less performant, as you’ll have to create temporary containers to store intermediate results.
+
+A view has the following important properties:
+
+\begin{itemize}
+\item
+Lazily evaluated: Just constructing a view doesn’t perform any operations yet. The operations of a view are applied only at the moment you iterate over the elements of the view and dereference such an iterator.
+
+\item
+Nonowning[C++23 slightly modifies the definition of a view. It allows for a view to own its elements, but only if it guarantees that it’s either non-copyable, or copyable in constant time, O(1). Most views will be nonowning, so owning views are not further discussed in this text.]: A view doesn’t own any elements. As the name suggests, it’s a view over a range’s elements that could be stored in some container, and it’s that container that’s the owner of the data. A view just allows you to view that data in different ways. As such, the number of elements in a view does not influence the cost of copying, moving, or destroying a view. This is similar to std::string\_view discussed in Chapter 2, “Working with Strings and String Views,” and std::span discussed in Chapter 18, “Standard Library Containers.”
+
+\item
+Nonmutating: A view never modifies the data in the underlying range.
+\end{itemize}
+
+A view itself is also a range, but not every range is a view. A container is a range but not a view, as it owns its elements.
+
+Views can be created using range adapters. A range adapter accepts an underlying sequence of elements, and optionally some arguments, and creates a new view. The following table lists the range adapters provided by the Standard Library. If none of the Standard Library adapters suits your needs, it’s possible to write your own range adapters that properly interoperate with existing adapters. However, writing a full-fledged production-quality range adapter is not trivial and would take us a bit too far for the scope of this book. See your favorite Standard Library reference for more details.
 
 \mySamllsection{Modifying Elements Through a View}
 
