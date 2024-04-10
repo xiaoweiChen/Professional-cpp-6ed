@@ -137,15 +137,458 @@ A view itself is also a range, but not every range is a view. A container is a r
 
 Views can be created using range adapters. A range adapter accepts an underlying sequence of elements, and optionally some arguments, and creates a new view. The following table lists the range adapters provided by the Standard Library. If none of the Standard Library adapters suits your needs, it’s possible to write your own range adapters that properly interoperate with existing adapters. However, writing a full-fledged production-quality range adapter is not trivial and would take us a bit too far for the scope of this book. See your favorite Standard Library reference for more details.
 
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{RANGE ADAPTER} &
+\textbf{DESCRIPTION} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+views::all &
+Creates a view that includes all elements of a range. \\ \hline
+\begin{tabular}[c]{@{}l@{}}filter\_view\\ views::filter\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Filters the elements of an underlying sequence based on a given\\ predicate. If the predicate returns true, the element is kept, otherwise\\ it is skipped.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}transform\_view\\ views::transform\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Applies a callback to each element of an underlying sequence to\\ transform the element to some other value, possibly of a different type.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}take\_view\\ views::take\end{tabular} &
+Creates a view of the first n elements of another view. \\ \hline
+\begin{tabular}[c]{@{}l@{}}take\_while\_view\\ views::take\_while\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Creates a view of the initial elements of an underlying sequence until an\\ element is reached for which a given predicate returns false.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}drop\_view\\ views::drop\end{tabular} &
+Creates a view by dropping the first n elements of another view. \\ \hline
+\begin{tabular}[c]{@{}l@{}}drop\_while\_view\\ views::drop\_while\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Creates a view by dropping all initial elements of an underlying\\ sequence until an element is reached for which a given predicate\\ returns false.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}join\_view\\ views::join\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Flattens a view of ranges into a view. For example, flatten a\\ vector\textless{}vector\textless{}int\textgreater{}\textgreater into a vector\textless{}int\textgreater{}.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}lazy\_split\_view\\ views::lazy\_split\\ split\_view\\ views::split\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Given a delimiter, splits a given view into subranges on the delimiter.\\ The delimiter can be a single element or a view of elements.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}reverse\_view\\ views::reverse\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Creates a view that iterates over the elements of another view in\\ reverse order. The view must be a bidirectional view.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}elements\_view\\ views::elements\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Requires a view of tuple-like elements, creates a view of the nth\\ elements of the tuple-like elements.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}keys\_view\\ views::keys\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Requires a view of pair-like elements, creates a view of the first element\\ of each pair.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}values\_view\\ views::values\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Requires a view of pair-like elements, creates a view of the second\\ element of each pair.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}common\_view\\ views::common\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Depending on the type of range, begin() and end() might return\\ different types, such as a begin iterator and an end sentinel. This means\\ that you cannot, for example, pass such an iterator pair to functions\\ that expect them to be of the same type. common\_view can be used\\ to convert such a range to a common range which is a range for which\\ begin() and end() return the same type. You will use this range\\ adapter in one of the exercises.\end{tabular} \\ \hline
+\end{longtable}
+
+\CXXTwentythreeLogo{-40}{-50}
+
+C++23 adds the following range adapters:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{RANGE ADAPTER} &
+\textbf{DESCRIPTION} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\begin{tabular}[c]{@{}l@{}}as\_const\_view\\ views::as\_const\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Creates a view through which the elements of an underlying\\ sequence cannot be modified.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}as\_rvalue\_view\\ views::as\_rvalue\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Creates a view of rvalues of all elements of an\\ underlying sequence.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}enumerate\_view\\ views::enumerate\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Creates a view where each element represents the position\\ and value of all elements of an underlying sequence.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}zip\_view\\ views::zip\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Creates a view consisting of tuples of reference to\\ corresponding elements of all given views.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}zip\_transform\_view\\ views::zip\_transform\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Creates a view whose ith element is the result of applying a\\ given callable to the ith elements of all given views.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}adjacent\_view\\ views::adjacent\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}For a given n, creates a view whose $i^{th}$ element is a tuple\\ of references to the $i^{th}$ through $(i + n - 1)^{th}$ elements of a\\ given view.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}adjacent\_transform\_view\\ views::adjacent\_transform\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}For a given n, creates a view whose $i^{th}$ element is the result\\ of applying a given callable to the $i^{th}$ through $(i + n - 1)^{th}$\\ elements of a given view.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}views::pairwise\\ views::pairwise\_transform\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Helper types representing views::adjacent\textless{}2\textgreater and\\ views::adjacent\_transform\textless{}2\textgreater respectively.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}join\_with\_view\\ views::join\_with\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Given a delimiter, flattens the elements of a given view,\\ inserting every element of the delimiter in between elements\\ of the view. The delimiter can be a single element or a view\\ of elements.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}stride\_view\\ views::stride\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}For a given n, creates a view of an underlying sequence,\\ advancing over n elements at a time, instead of one by one.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}slide\_view\\ views::slide\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}For a given n, creates a view whose $i^{th}$ element is a view over\\ the $i^{th}$ through $(i + n - 1)^{th}$ elements of the original view.\\ Similar to views::adjacent, but the window size, n, is a\\ runtime parameter for slide, while it’s a template argument\\ for adjacent.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}chunk\_view\\ views::chunk\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}For a given n, creates a range of views that are n-sized non\\ overlapping successive chunks of the elements of the original\\ view, in order.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}chunk\_by\_view\\ views::chunk\_by\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Splits a given view into subranges between each pair of\\ adjacent elements for which a given predicate returns false.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}cartesian\_product\_view\\ views::cartesian\_product\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Given a number of ranges, n, creates a view of tuples\\ calculated by the n-ary cartesian product of the\\ provided ranges.\end{tabular} \\ \hline
+\end{longtable}
+
+The range adapters in the first column of both tables show both the class name in the std::ranges namespace and a corresponding range adapter object from the std::ranges::views namespace. The Standard Library provides a namespace alias called std::views equal to std::ranges::views.
+
+Each range adapter can be constructed by calling its constructor and passing any required arguments.
+The first argument is always the range on which to operate, followed by zero or more additional arguments, as follows:
+
+\begin{cpp}
+std::ranges::operation_view { range, arguments... }
+\end{cpp}
+
+Usually, you will not create these range adapters using their constructors, but instead use the range adapter objects from the std::ranges::views namespace in combination with the bitwise OR operator, |, as follows:
+
+\begin{cpp}
+range | std::ranges::views::operation(arguments...)
+\end{cpp}
+
+Let’s see some of these range adapters in action. The following example first defines an abbreviated function template called printRange() to print a message followed by all the elements in a given range. Next, the main() function starts by creating a vector of integers, 1. . .10, and subsequently applies several range adapters on it, each time calling printRange() on the result so you can follow what’s happening. Afterward, it demonstrates several of the new C++23 range adapters. The example uses the myCopy() function introduced earlier in this chapter.
+
+\begin{cpp}
+void printRange(string_view msg, auto&& range) { println("{}{:n}", msg, range); }
+int main()
+{
+    vector values { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+    printRange("Original sequence: ", values);
+
+    // Filter out all odd values, leaving only the even values.
+    auto result1 { values
+        | views::filter([](const auto& value) { return value % 2 == 0; }) };
+    printRange("Only even values: ", result1);
+
+    // Transform all values to their double value.
+    auto result2 { result1
+        | views::transform([](const auto& value) { return value * 2.0; }) };
+    printRange("Values doubled: ", result2);
+
+    // Drop the first 2 elements.
+    auto result3 { result2 | views::drop(2) };
+    printRange("First two dropped: ", result3);
+
+    // Reverse the view.
+    auto result4 { result3 | views::reverse };
+    printRange("Sequence reversed: ", result4);
+
+    // C++23: views::zip
+    vector v1 { 1, 2 };
+    vector v2 { 'a', 'b', 'c' };
+    auto result5 { views::zip(v1, v2) };
+    printRange("views::zip: ", result5);
+
+    // C++23: views::adjacent
+    vector v3 { 1, 2, 3, 4, 5 };
+    auto result6 { v3 | views::adjacent<2> };
+    printRange("views::adjacent: ", result6);
+
+    // C++23: views::chunk
+    auto result7 { v3 | views::chunk(2) };
+    printRange("views::chunk: ", result7);
+
+    // C++23: views::stride
+    auto result8 { v3 | views::stride(2) };
+    printRange("views::stride: ", result8);
+
+    // C++23: views::enumerate + views::split
+    string lorem { "Lorem ipsum dolor sit amet" };
+    for (auto [index, word] : lorem | views::split(' ') | views::enumerate) {
+        print("{}:'{}' ", index, string_view { word });
+    }
+    println("");
+
+    // C++23: views::as_rvalue
+    vector<string> words { "Lorem", "ipsum", "dolor", "sit", "amet" };
+    vector<string> movedWords;
+    auto rvalueView { words | views::as_rvalue };
+    myCopy(begin(rvalueView), end(rvalueView), back_inserter(movedWords));
+    printRange("movedWords: ", movedWords);
+
+    // C++23: Cartesian product of vector v with itself.
+    vector v { 0, 1, 2 };
+    for (auto&&[a, b] : views::cartesian_product(v, v)) {print("({},{}) ", a, b);}
+}
+\end{cpp}
+
+The output of this program is as follows:
+
+\begin{shell}
+Original sequence: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+Only even values: 2, 4, 6, 8, 10
+Values doubled: 4, 8, 12, 16, 20
+First two dropped: 12, 16, 20
+Sequence reversed: 20, 16, 12
+views::zip: (1, 'a'), (2, 'b')
+views::adjacent: (1, 2), (2, 3), (3, 4), (4, 5)
+views::chunk: (1, 2), (3, 4), (5)
+views::stride: 1, 3, 5
+0:'Lorem' 1:'ipsum' 2:'dolor' 3:'sit' 4:'amet'
+movedWords: Lorem, ipsum, dolor, sit, amet
+(0,0) (0,1) (0,2) (1,0) (1,1) (1,2) (2,0) (2,1) (2,2)
+\end{shell}
+
+It’s worth repeating that views are lazily evaluated. In this example, the construction of the result1 view does not do any actual filtering yet. The filtering happens at the time when the printRange() function iterates over the elements of result1.
+
+The code snippet uses the range adapter objects from std::ranges::views. You can also construct range adapters using their constructors. For example, the result1 view can be constructed as follows:
+
+\begin{cpp}
+auto result1 { ranges::filter_view { values,
+        [](const auto& value) { return value % 2 == 0; } } };
+\end{cpp}
+
+This example is creating several intermediate views, result1, result2, result3, and result4, to be able to output their elements to make it easier to follow what’s happening in each step. If you don’t need these intermediate views, you can chain them all together in a single pipeline as follows:
+
+\begin{cpp}
+vector values { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+printRange("Original sequence: ", values);
+auto result { values
+    | views::filter([](const auto& value) { return value % 2 == 0; })
+    | views::transform([](const auto& value) { return value * 2.0; })
+    | views::drop(2)
+    | views::reverse };
+printRange("Final sequence: ", result);
+\end{cpp}
+
+The output is as follows. The last line shows that the final sequence is the same as the earlier result4 view.
+
+\begin{shell}
+Original sequence: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+Final sequence: 20, 16, 12
+\end{shell}
+
 \mySamllsection{Modifying Elements Through a View}
+
+Some ranges are read-only. For example, the result of views::transform is a read-only view, because it creates a view with transformed elements but without transforming the actual values in the underlying range. If a range is not read-only, then you can modify the elements of that range through a view. Let’s look an example.
+
+The following example constructs a vector of ten elements. It then creates a view over the even values, drops the first two even values, and finally reverses the elements. The range-based for loop then multiplies the elements in the resulting view with 10. The last line outputs the elements in the original values vector to confirm that some elements have been changed through the view.
+
+\begin{cpp}
+vector values { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+printRange("Original sequence: ", values);
+
+// Filter out all odd values, leaving only the even values.
+auto result1 { values
+    | views::filter([](const auto& value) { return value % 2 == 0; }) };
+printRange("Only even values: ", result1);
+
+// Drop the first 2 elements.
+auto result2 { result1 | views::drop(2) };
+printRange("First two dropped: ", result2);
+
+// Reverse the view.
+auto result3 { result2 | views::reverse };
+printRange("Sequence reversed: ", result3);
+
+// Modify the elements using a range-based for loop.
+for (auto& value : result3) { value *= 10; }
+printRange("After modifying elements through a view, vector contains:\n", values);
+\end{cpp}
+
+The output of this program is as follows:
+
+\begin{shell}
+Original sequence: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+Only even values: 2, 4, 6, 8, 10
+First two dropped: 6, 8, 10
+Sequence reversed: 10, 8, 6
+After modifying elements through a view, vector contains:
+1, 2, 3, 4, 5, 60, 7, 80, 9, 100
+\end{shell}
 
 \mySamllsection{Mapping Elements}
 
+Transforming elements of a range doesn’t need to result in a range with elements of the same type. Instead, you can map elements to another type. The following example starts with a range of integers, filters out all odd elements, keeps only the first three even values, and transforms those to strings using std::format():
+
+\begin{cpp}
+vector values { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+printRange("Original sequence: ", values);
+
+auto result { values
+    | views::filter([](const auto& value) { return value % 2 == 0; })
+    | views::take(3)
+    | views::transform([](const auto& v) { return format("{}", v); }) };
+printRange("Result: ", result);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Original sequence: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+Result: "2", "4", "6"
+\end{shell}
 
 \mySubsubsection{17.4.3.}{Range Factories}
 
+The ranges library provides the following range factories to construct views that produce elements lazily on demand:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{RANGE FACTORY} & \textbf{DESCRIPTION}                        \\ \hline
+\endfirsthead
+%
+\endhead
+%
+empty\_view            & Creates an empty view.                      \\ \hline
+single\_view           & Creates a view with a single given element. \\ \hline
+iota\_view &
+\begin{tabular}[c]{@{}l@{}}Creates an infinite or a bounded view containing elements starting with\\ an initial value, and where each subsequent element has a value equal\\ to the value of the previous element incremented by one.\end{tabular} \\ \hline
+repeat\_view(C++23) &
+\begin{tabular}[c]{@{}l@{}}Creates a view that repeats a given value. The resulting view can be\\ unbounded (infinite) or bounded by a given number of values.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}basic\_istream\_view\\ istream\_view\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Creates a view containing elements retrieved by calling the extraction\\ operator, operator\textgreater{}\textgreater{}, on an underlying input stream.\end{tabular} \\ \hline
+\end{longtable}
+
+Just as with the range adapters from the previous section, the names in the range factories table are class names living in the std::ranges namespace, which you can directly create using their constructor. Alternatively, you can use the factory functions available in the std::ranges:views namespace. For example, the following two statements are equivalent and create an infinite view with elements 10, 11, 12, . . .:
+
+\begin{cpp}
+std::ranges::iota_view { 10 }
+std::ranges::views::iota(10)
+\end{cpp}
+
+Let’s look at a range factory in practice. The following example is loosely based on an earlier example, but instead of constructing a vector with 10 elements in it, this code uses the iota range factory to create a lazy infinite sequence of numbers starting at 10. It then removes all odd values, doubles the remaining elements, and finally only keeps the first ten elements that are subsequently output to the console using printRange().
+
+\begin{cpp}
+// Create an infinite sequence of the numbers 10, 11, 12, ...
+auto values { views::iota(10) };
+// Filter out all odd values, leaving only the even values.
+auto result1 { values
+    | views::filter([](const auto& value) { return value % 2 == 0; }) };
+// Transform all values to their double value.
+auto result2 { result1
+    | views::transform([](const auto& value) { return value * 2.0; }) };
+// Take only the first ten elements.
+auto result3 { result2 | views::take(10) };
+printRange("Result: ", result3);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Result: 20, 24, 28, 32, 36, 40, 44, 48, 52, 56
+\end{shell}
+
+The values range represents an infinite range, which is subsequently filtered and transformed. Working with infinite ranges is possible because all these operations are lazily evaluated only at the time when printRange() iterates over the elements of the view. This also means that in this example you cannot call printRange() to output the contents of values, result1, or result2 because that would trigger an infinite loop in printRange() as those are infinite ranges.
+
+Of course, you can get rid of those intermediate views and simply construct one big pipeline. The following produces the same output as before:
+
+\begin{cpp}
+auto result { views::iota(10)
+    | views::filter([](const auto& value) { return value % 2 == 0; })
+    | views::transform([](const auto& value) { return value * 2.0; })
+    | views::take(10) };
+printRange("Result: ", result);
+\end{cpp}
+
+Another range factory example demonstrates how to use a repeat\_view:
+
+\begin{cpp}
+printRange("Repeating view: ", views::repeat(42, 5));
+\end{cpp}
+
+This outputs the following:
+
+\begin{shell}
+Repeating view: 42, 42, 42, 42, 42
+\end{shell}
+
 \mySamllsection{Input Streams as Views}
 
+The basic\_istream\_view/istream\_view range factory can be used to construct a view over the elements read from an input stream, such as the standard input. Elements are read using operator>{}>.
+
+For example, the following code snippet keeps reading integers from standard input. For each read number that is less than 5, the number is doubled and printed on standard output. Once you enter a number 5 or higher, the loop stops.
+
+\begin{cpp}
+println("Type integers, an integer >= 5 stops the program.");
+for (auto value : ranges::istream_view<int> { cin }
+    | views::take_while([](const auto& v) { return v < 5; })
+    | views::transform([](const auto& v) { return v * 2; })) {
+    println("> {}", value);
+}
+println("Terminating...");
+\end{cpp}
+
+The following is a possible output sequence:
+
+\begin{shell}
+Type integers, an integer >= 5 stops the program.
+1 2
+> 2
+> 4
+3
+> 6
+4
+> 8
+5
+Terminating...
+\end{shell}
+
+\CXXTwentythreeLogo{-40}{-50}
 
 \mySubsubsection{17.4.4.}{Converting a Range into a Container}
+
+Before C++23, it was not easy to convert a range into a container. C++23 introduces std::ranges::to() to make such conversions straightforward. This can also be used to convert the elements of a view into a container, as a view is a range. Even more, since a container is a range as well, you can use ranges::to() to convert one container into a different container, even with different element types.
+
+The following code snippet demonstrates several uses of ranges::to(). The example also demonstrates special constructors for set and string, which accept the std::from\_range tag as the first parameter and convert a given range into a set or string. All Standard Library containers now include such constructors.
+
+\begin{cpp}
+// Convert a vector to a set with the same element type.
+vector vec { 33, 11, 22 };
+auto s1 { ranges::to<set>(vec) };
+println("{:n}", s1);
+
+// Convert a vector of integers to a set of doubles, using the pipe operator.
+auto s2 { vec | ranges::to<set<double>>() };
+println("{:n}", s2);
+
+// Convert a vector of integers to a set of doubles, using from_range constructor.
+set<double> s3 { from_range, vec };
+println("{:n}", s3);
+
+// Lazily generate the integers from 10 to 14, divide these by 2,
+// and store the result in a vector of doubles.
+auto vec2 { views::iota(10, 15)
+    | views::transform([](const auto& v) { return v / 2.0; })
+    | ranges::to<vector<double>>() };
+println("{:n}", vec2);
+
+// Use views::split() and views::transform() to create a view
+// containing individual words of a string, and then convert
+// the resulting view to a vector of strings containing all the words.
+string lorem { "Lorem ipsum dolor sit amet" };
+auto words { lorem | views::split(' ')
+    | views::transform([](const auto& v) { return string { from_range, v }; })
+    | ranges::to<vector>() };
+println("{:n:?}", words);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+11, 22, 33
+11, 22, 33
+11, 22, 33
+5, 5.5, 6, 6.5, 7
+"Lorem", "ipsum", "dolor", "sit", "amet"
+\end{shell}
+
+C++23 also introduces a number of new member functions for Standard Library containers, providing for interoperability between containers and ranges. These member functions are of the form xyz\_range(...), where xyz can be insert, append, prepend, assign, replace, push, push\_front, or push\_back. Chapter 18 discusses all Standard Library containers in detail, but consult a Standard Library reference to learn exactly which member functions are supported by which container. Here is an example demonstrating the append\_range() and insert\_range() member functions of vector:
+
+\begin{cpp}
+vector<int> vec3;
+vec3.append_range(views::iota(10, 15));
+println("{:n}", vec3);
+vec3.insert_range(begin(vec3), views::iota(10, 15) | views::reverse);
+println("{:n}", vec3);
+\end{cpp}
+
+The output is:
+
+\begin{shell}
+10, 11, 12, 13, 14
+14, 13, 12, 11, 10, 10, 11, 12, 13, 14
+\end{shell}
+
+
+
+
+
+
+
 

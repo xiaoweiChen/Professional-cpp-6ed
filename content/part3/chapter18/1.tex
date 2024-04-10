@@ -1,8 +1,176 @@
 
+Containers in the Standard Library are generic data structures that are useful for storing collections of data. You should rarely need to use a standard C-style array, write a linked list, or design a stack when you use the Standard Library. The containers are implemented as class templates, so you can instantiate them for any type that meets certain basic conditions outlined in the next section. Most of the Standard Library containers, except for array and bitset, are flexible in size and automatically grow or shrink to accommodate more or fewer elements. This is a huge benefit compared to the old, C-style arrays, which had a fixed size. Because of the fixed-size nature of C-style arrays, they are more vulnerable to overruns, which in the simplest cases merely cause the program to crash because data has been corrupted, but in the worst cases allow certain kinds of security attacks. By using Standard Library containers, you ensure that your programs will be less vulnerable to these kinds of problems.
+
+Chapter 16, “Overview of the C++ Standard Library,” gives a high-level overview of the different containers, container adapters, and sequential views provided by the Standard Library. The following table summarizes them.
+
+\begin{itemize}
+\item
+Sequential containers
+\begin{itemize}
+\item
+vector (dynamic array)
+
+\item
+deque
+
+\item
+list
+
+\item
+forward\_list
+
+\item
+array
+\end{itemize}
+
+\item
+Sequential views
+\begin{itemize}
+\item
+span
+
+\item
+mdspan
+\end{itemize}
+
+\item
+Container adapters
+\begin{itemize}
+\item
+queue
+
+\item
+priority\_queue
+
+\item
+stack
+\end{itemize}
+
+\item
+Ordered associative containers
+\begin{itemize}
+\item
+map / multimap
+
+\item
+set / multiset
+\end{itemize}
+
+\item
+Unordered associative containers or hash tables
+\begin{itemize}
+\item
+unordered\_map / unordered\_multimap
+
+\item
+unordered\_set / unordered\_multiset
+\end{itemize}
+
+\item
+Flat set and flat map associative container adapters
+\begin{itemize}
+\item
+flat\_map / flat\_multimap
+
+\item
+flat\_set / flat\_multiset
+\end{itemize}
+\end{itemize}
+
+Additionally, C++ strings and streams can also be used as Standard Library containers to a certain degree, and bitset can be used to store a fixed number of bits.
+
+Everything in the Standard Library is in the std namespace. As always, the examples in this book usually use the blanket using namespace std; directive in source files (never use this in header files!), but you can be more selective in your own programs about which symbols from std to use.
 
 \mySubsubsection{18.1.1.}{Requirements on Elements}
 
+Standard Library containers use value semantics on elements. That is, they store a copy of elements that they are given, assign to elements with the assignment operator, and destroy elements with the destructor. Thus, when you write classes that you intend to use with the Standard Library, you need to make sure they are copyable. When requesting an element from the container, a reference to the stored copy is returned.
 
+If you prefer reference semantics, you can store pointers to elements instead of the elements themselves. When the containers copy a pointer, the result still refers to the same element. An alternative is to store std::reference\_wrappers in the container. A reference\_wrapper basically exists to make references copyable and can be created using the std::ref() and cref() helper functions. The reference\_wrapper class template, and the ref() and cref() function templates are defined in <functional>. An example of this is given in the section “Storing References in a vector” later in this chapter.
+
+It is possible to store move-only types, i.e., non-copyable types, in a container, but when doing so, some operations on the container might not compile. An example of a move-only type is std::unique\_ptr.
+
+\begin{myWarning}{WARNING}
+If you need to store pointers in containers, if possible, use unique\_ptrs if the container becomes the owner of the pointed-to objects, or use shared\_ptrs if the container shares ownership with other owners. Do not use the old and removed auto\_ptr class in containers because it does not implement copying correctly.
+\end{myWarning}
+
+One of the template type parameters for Standard Library containers is an allocator. The container uses this allocator to allocate and deallocate memory for elements. The allocator type parameter has a default value, so you can almost always just ignore it. For example, the vector class template looks as follows:
+
+\begin{cpp}
+template <typename T, typename Allocator = std::allocator<T>> class vector;
+\end{cpp}
+
+Some containers, such as a map, additionally accept a comparator as one of the template type parameters. This comparator is used to order elements. It has a default value as well, so you don’t always have to specify it. This default is to compare elements using operator<. The map class template looks like this:
+
+\begin{cpp}
+template <typename Key, typename T, typename Compare = std::less<Key>,
+    typename Allocator = std::allocator<std::pair<const Key, T>>> class map;
+\end{cpp}
+
+Both the allocator and the comparator template type parameters are discussed in detail later in this chapter.
+
+The specific requirements on elements in containers using the default allocator and default comparator are shown in the following table:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{MEMBER FUNCTION} &
+\textbf{DESCRIPTION} &
+\textbf{NOTES} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+Copy Constructor &
+\begin{tabular}[c]{@{}l@{}}Creates a new element\\ that is “equal” to the old\\ one, but that can safely\\ be destructed without\\ affecting the old one.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Used every time you insert an element,\\ except when using an emplace member\\ function (discussed later).\end{tabular} \\ \hline
+Move Constructor &
+\begin{tabular}[c]{@{}l@{}}Creates a new element by\\ moving all content from\\ the source element to the\\ new element.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Used when the source element is an\\ rvalue, and will be destroyed after the\\ construction of the new element; also\\ used when a vector grows in size. The\\ move constructor should be noexcept;\\ otherwise, it won’t be used!\end{tabular} \\ \hline
+Assignment Operator &
+\begin{tabular}[c]{@{}l@{}}Replaces the contents of\\ an element with a copy of\\ the source element.\end{tabular} &
+Used every time you modify an element. \\ \hline
+\begin{tabular}[c]{@{}l@{}}Move Assignment\\ Operator\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Replaces the contents of\\ an element by moving all\\ content from the source\\ element.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Used when the source element is an\\ rvalue and will be destroyed after\\ the assignment operation. The move\\ assignment operator should be\\ noexcept; otherwise, it won’t be used!\end{tabular} \\ \hline
+Destructor &
+Cleans up an element. &
+\begin{tabular}[c]{@{}l@{}}Used every time you remove an\\ element, or when a vector grows in\\ size.\end{tabular} \\ \hline
+Default Constructor &
+\begin{tabular}[c]{@{}l@{}}Constructs an element\\ without any arguments.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Required only for certain operations,\\ such as the vector::resize()\\ member function with one argument,\\ and the map::operator{[}{]} access.\end{tabular} \\ \hline
+operator== &
+\begin{tabular}[c]{@{}l@{}}Compares two elements\\ for equality.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Required for keys in unordered\\ associative containers, and for certain\\ operations, such as operator== on two\\ containers.\end{tabular} \\ \hline
+operator\textless{} &
+\begin{tabular}[c]{@{}l@{}}Determines whether\\ one element is less than\\ another.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Required for keys in ordered associative\\ containers and flat associative container\\ adapters, and for certain operations,\\ such as operator\textless on two containers.\end{tabular} \\ \hline
+operator\textgreater{}, \textless{}=, \textgreater{}=, != &
+Compares two elements. &
+\begin{tabular}[c]{@{}l@{}}Required when comparing two\\ containers.\end{tabular} \\ \hline
+\end{longtable}
+
+
+Chapter 9, “Mastering Classes and Objects,” explains how to write these member functions.
+
+\begin{myWarning}{WARNING}
+The Standard Library containers often move or copy elements. So, for best performance, make sure the type of objects stored in a container supports move semantics, see Chapter 9. If move semantics is not possible, make sure the copy constructor and copy assignment operator are as efficient as possible.
+\end{myWarning}
 
 \mySubsubsection{18.1.2.}{Exceptions and Error Checking}
+
+The Standard Library containers provide limited error checking. Clients are expected to ensure that their uses are valid. However, some container member functions throw exceptions in certain conditions, such as out-of-bounds indexing. Of course, it is impossible to list exhaustively the exceptions that can be thrown from these member functions because they perform operations on user-specified types with unknown exception characteristics. This chapter mentions exceptions where appropriate.
+Consult a Standard Library Reference (see Appendix B, “Annotated Bibliography”) for a list of possible exceptions thrown from each member function.
+
+
+
+
+
+
+
+
+
+
+
 

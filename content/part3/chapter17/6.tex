@@ -1,0 +1,26 @@
+By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+
+\begin{itemize}
+\item
+Exercise 17-1: Write a program that lazily constructs the sequence of elements 10-100, squares each number, removes all numbers dividable by five, and transforms the remaining values to strings using std::to\_string().
+
+\item
+Exercise 17-2: Write a program that creates a vector of pairs, where each pair contains an instance of the Person class introduced earlier in this chapter, and their age. Next, use the ranges library to construct a single pipeline that extracts all ages from all persons from the vector, and removes all ages below 12 and above 65. Finally, calculate the average of the remaining ages using the sum() algorithm from earlier in this chapter. As you’ll pass a range to the sum() algorithm, you’ll have to work with a common range.
+
+\item
+Exercise 17-3: Building further on the solution for Exercise 17-2, add an implementation for operator<< for the Person class.
+
+Next, create a pipeline to extract the Person of each pair from the vector of pairs, and only keep the first four Persons. Use the myCopy() algorithm introduced earlier in this chapter to print the names of those four persons to the standard output; one name per line.
+
+Finally, create a similar pipeline but one that additionally projects all filtered Persons to their last name. This time, use a single println() statement to print the last names to the standard output.
+
+\item
+Exercise 17-4: Write a program that uses a range-based for loop and ranges::istream\_view() to read integers from the standard input until a -1 is entered. Store the read integers in a vector, and afterward, print the content of the vector to the console to verify it contains the correct values.
+
+\item
+Bonus exercise: Can you find a couple of ways to change the solution for Exercise 17-4 to not use any explicit loops? Hint: one option could be to use the std::ranges::copy() algorithm to copy a range from a source to a target. It can be called with a range as first argument and an output iterator as the second argument.
+\end{itemize}
+
+
+
+

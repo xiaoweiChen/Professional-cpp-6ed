@@ -1,10 +1,619 @@
 
+vector, deque, list, forward\_list, and array are called sequential containers because they store a sequence of elements. The best way to learn about sequential containers is to jump in with an example of the vector container, which should be your default container anyway. The next section describes the vector container in detail, followed by briefer discussions of deque, list, forward\_list, and array. Once you become familiar with the sequential containers, it’s trivial to switch between them.
 
 \mySubsubsection{18.2.1.}{vector}
 
+The Standard Library vector container is similar to a standard C-style array: the elements are stored in contiguous memory, each in its own “slot.” You can index into a vector, as well as add new elements to the back or insert them anywhere else. Inserting and deleting elements into and from a vector generally takes linear time, though these operations actually run in amortized constant time at the end of a vector, as explained in the section “The vector Memory Allocation Scheme,” later in this chapter. Random access of individual elements has a constant complexity; see Chapter 4, “Designing Professional C++ Programs,” for a discussion on algorithm complexity.
+
 \mySamllsection{vector Overview}
 
+vector is defined in <vector> as a class template with two type parameters: the element type to store and an allocator type:
+
+\begin{cpp}
+template <typename T, typename Allocator = allocator<T>> class vector;
+\end{cpp}
+
+The Allocator parameter specifies the type for a memory allocator object that the client can set in order to use custom memory allocation. This template parameter has a default value.
+
+\begin{myNotic}{NOTE}
+The default value for the Allocator template type parameter is sufficient for most applications. This chapter always uses the default allocator. Chapter 25, “Customizing and Extending the Standard Library,” provides more details in case you are interested.
+\end{myNotic}
+
+std::vector is constexpr (see Chapter 9), just as std::string. This means that vector can be used to perform operations at compile time and that it can be used in the implementation of constexpr functions and other constexpr classes.
+
+\mySamllsection{Fixed-Length vectors}
+
+One way to use a vector is as a fixed-length array. vector provides a constructor that allows you to specify the number of elements and provides an overloaded operator[] to access and modify those elements. The result of operator[] is undefined when used to access an element outside the vector bounds. This means that a compiler can decide how to behave in that case. For example, the default behavior of Microsoft Visual C++ is to give a run-time error message when your program is compiled in debug mode and to disable any bounds checking in release mode for performance reasons. You can change these default behaviors.
+
+\begin{myWarning}{WARNING}
+Like “real” array indexing, operator[] on a vector does not provide bounds checking.
+\end{myWarning}
+
+In addition to using operator[], you can access vector elements via at(), front(), and back(). The at() member function is identical to operator[], except that it performs bounds checking and throws an out\_of\_range exception if the index is out of bounds. front() and back() return references to the first and last elements of a vector, respectively. Calling front() or back() on an empty container triggers undefined behavior.
+
+\begin{myNotic}{NOTE}
+All vector element accesses have constant complexity.
+\end{myNotic}
+
+Here is a small example program to “normalize” test scores so that the highest score is set to 100, and all other scores are adjusted accordingly. The program creates a vector of ten doubles, reads in ten values from the user, divides each value by the max score (times 100), and prints out the new values. To create the vector, parentheses, (10), are used and not uniform initialization, {10}, as the latter would create a vector of just one element with the value 10. For the sake of brevity, the program forsakes error checking.
+
+\begin{cpp}
+vector<double> doubleVector(10); // Create a vector of 10 doubles.
+
+// Initialize max to smallest number.
+double max { -numeric_limits<double>::infinity() };
+
+for (size_t i { 0 }; i < doubleVector.size(); ++i) {
+    print("Enter score {}: ", i + 1);
+    cin >> doubleVector[i];
+    if (doubleVector[i] > max) {
+        max = doubleVector[i];
+    }
+}
+
+max /= 100.0;
+for (auto& element : doubleVector) {
+    element /= max;
+    print("{} ", element);
+}
+\end{cpp}
+
+As you can see from this example, you can use a vector just as you would use a standard C-style array. Note that the first for loop uses the size() member function to determine the number of elements in the container. This example also demonstrates the use of a range-based for loop with a vector. Here, the range-based for loop uses auto\& and not auto because a reference is required so that the actual elements can be modified in each iteration.
+
+\begin{myNotic}{NOTE}
+operator[] on a vector normally returns a reference to the element, which can be used on the left-hand side of assignment statements. If operator[] is called on a const vector object, it returns a reference to a const element, which cannot be used as the target of an assignment. See Chapter 15, “Overloading C++ Operators,” for details on how this trick is implemented.
+\end{myNotic}
+
+\mySamllsection{Dynamic-Length vectors}
+
+The real power of a vector lies in its ability to grow dynamically. For example, consider the test score normalization program from the previous section with the additional requirement that it should handle any number of test scores. Here is the new version:
+
+\begin{cpp}
+vector<double> doubleVector; // Create a vector with zero elements.
+
+// Initialize max to smallest number.
+double max { -numeric_limits<double>::infinity() };
+
+for (size_t i { 1 }; true; ++i) {
+    double value;
+    print("Enter score {} (-1 to stop): ", i);
+    cin >> value;
+    if (value == -1) {
+        break;
+    }
+    doubleVector.push_back(value);
+    if (value > max) {
+        max = value;
+    }
+}
+
+max /= 100.0;
+for (auto& element : doubleVector) {
+    element /= max;
+    print("{} ", element);
+}
+\end{cpp}
+
+This version of the program uses the default constructor to create a vector with zero elements. As each score is read, it’s added to the end of the vector with the push\_back() member function, which takes care of allocating space for the new element. The range-based for loop doesn’t require any changes.
+
+\CXXTwentythreeLogo{-40}{-50}
+
+\mySamllsection{Formatting and Printing Vectors}
+
+Starting with C++23, std::format() and the print() functions can be used to format and print entire containers with a single statement. This works for all Standard Library sequential containers, container adapters, and associative containers, and is introduced in Chapter 2, “Working with Strings and String Views.” Here is an example:
+
+\begin{cpp}
+vector values { 1.1, 2.2, 3.3 };
+println("{}", values); // Prints the following: [1.1, 2.2, 3.3]
+\end{cpp}
+
+You can specify the n format specifier to omit the surrounding square brackets:
+
+\begin{cpp}
+println("{:n}", values); // Prints the following: 1.1, 2.2, 3.3
+\end{cpp}
+
+If your compiler doesn’t support this feature yet, you can use a range-based for loop to iterate over the elements of a vector and to print them, for example:
+
+\begin{cpp}
+for (const auto& value : values) { std::cout << value << ", "; }
+\end{cpp}
+
+
 \mySamllsection{vector Details}
+
+Now that you’ve had a taste of vectors, it’s time to delve into their details.
+
+\mySamllsection{Constructors and Destructors}
+
+The default constructor creates a vector with zero elements.
+
+\begin{cpp}
+vector<int> intVector; // Creates a vector of ints with zero elements
+\end{cpp}
+
+You can specify a number of elements and, optionally, a value for those elements, like this:
+
+\begin{cpp}
+vector<int> intVector(10, 100); // Creates vector of 10 ints with value 100
+\end{cpp}
+
+If you omit the default value, the new objects are zero-initialized. Zero-initialization constructs objects with the default constructor and initializes primitive integer types (such as char, int, and so on) to zero, primitive floating-point types to 0.0, and pointer types to nullptr.
+
+You can create vectors of built-in classes like this:
+
+\begin{cpp}
+vector<string> stringVector(10, "hello");
+\end{cpp}
+
+User-defined classes can also be used as vector elements:
+
+\begin{cpp}
+class Element { };
+...
+vector<Element> elementVector;
+\end{cpp}
+
+A vector can be constructed with an initializer\_list containing the initial elements:
+
+\begin{cpp}
+vector<int> intVector({ 1, 2, 3, 4, 5, 6 });
+\end{cpp}
+
+Uniform initialization, as discussed in Chapter 1, “A Crash Course in C++ and the Standard Library,” works on most Standard Library containers, including vector. Here is an example:
+
+\begin{cpp}
+vector<int> intVector = { 1, 2, 3, 4, 5, 6 };
+vector<int> intVector { 1, 2, 3, 4, 5, 6 };
+\end{cpp}
+
+Thanks to class template argument deduction (CTAD), you can omit the template type parameter. Here is an example:
+
+\begin{cpp}
+vector intVector { 1, 2, 3, 4, 5, 6 };
+\end{cpp}
+
+Be cautious with uniform initialization, though; usually, when calling a constructor of an object, the uniform initialization syntax can be used. Here’s an example:
+
+\begin{cpp}
+string text { "Hello World." };
+\end{cpp}
+
+With vector you need be careful. For example, the following line of code calls a vector constructor to create a vector of 10 integers with value 100:
+
+\begin{cpp}
+vector<int> intVector(10, 100); // Creates vector of 10 ints with value 100
+\end{cpp}
+
+Using uniform initialization here instead as follows does not create a vector of 10 integers, but a vector with just two elements, initialized to 10 and 100:
+
+\begin{cpp}
+vector<int> intVector { 10, 100 }; // Creates vector with two elements: 10 and 100
+\end{cpp}
+
+You can allocate vectors on the free store as well:
+
+\begin{cpp}
+auto elementVector { make_unique<vector<Element>>(10) };
+\end{cpp}
+
+\mySamllsection{Copying and Assigning vectors}
+
+A vector stores copies of the objects, and its destructor calls the destructor for each of the objects.
+The copy constructor and assignment operator of the vector class perform deep copies of all the elements in the vector. Thus, for efficiency, you should pass vectors by reference-to-non-const or reference-to-const to functions, instead of by value.
+
+In addition to normal copying and assignment, vector provides an assign() member function that removes all the current elements and adds any number of new elements. This member function is useful if you want to reuse a vector. Here is a trivial example. intVector is created with 10 elements having the default value 0. Then assign() is used to remove all 10 elements and replace them with 5 elements with value 100:
+
+\begin{cpp}
+vector<int> intVector(10);
+println("intVector: {:n}", intVector); // 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+...
+intVector.assign(5, 100);
+println("intVector: {:n}", intVector); // 100, 100, 100, 100, 100
+\end{cpp}
+
+assign() can also accept an initializer\_list as follows. After this statement, intVector has four elements with the given values:
+
+\begin{cpp}
+intVector.assign({ 1, 2, 3, 4 });
+println("intVector: {:n}", intVector); // 1, 2, 3, 4
+\end{cpp}
+
+vector provides a swap() member function that allows you to swap the contents of two vectors in constant time. Here is a simple example:
+
+\begin{cpp}
+vector<int> vectorOne(10);
+vector<int> vectorTwo(5, 100);
+println("vectorOne: {:n}", vectorOne); // 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+println("vectorTwo: {:n}", vectorTwo); // 100, 100, 100, 100, 100
+
+vectorOne.swap(vectorTwo);
+
+println("vectorOne: {:n}", vectorOne); // 100, 100, 100, 100, 100
+println("vectorTwo: {:n}", vectorTwo); // 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+\end{cpp}
+
+\mySamllsection{Comparing vectors}
+
+The Standard Library provides the usual six overloaded comparison operators for vectors: ==, !=, <, >, <=, >=. Two vectors are equal if they have the same number of elements and all the corresponding elements in the two vectors are equal to each other. Two vectors are compared lexicographically; that is, one vector is “less than” another if all elements 0 through i–1 in the first vector are equal to elements 0 through i-1 in the second vector, but element i in the first is less than element i in the second, where i must be in the range 0...n and n must be less than the size() of the smallest of the two vectors.
+
+\begin{myNotic}{NOTE}
+Comparing two vectors with operator== or != requires the individual elements to be comparable with operator==. Comparing two vectors with operator<, >, <=, or >= requires the individual elements to be comparable with operator<. If you intend to store objects of a custom class in a vector, make sure to write those operators.
+\end{myNotic}
+
+Here is an example of a program that compares vectors of ints:
+
+\begin{cpp}
+vector<int> vectorOne(10);
+vector<int> vectorTwo(10);
+
+if (vectorOne == vectorTwo) { println("equal!"); }
+else { println("not equal!"); }
+
+vectorOne[3] = 50;
+
+if (vectorOne < vectorTwo) { println("vectorOne is less than vectorTwo"); }
+else { println("vectorOne is not less than vectorTwo"); }
+\end{cpp}
+
+The output of the program is as follows:
+
+\begin{shell}
+equal!
+vectorOne is not less than vectorTwo
+\end{shell}
+
+\mySamllsection{vector Iterators}
+
+Chapter 17, “Understanding Iterators and the Ranges Library,” explains the concepts of container iterators. The discussion can get a bit abstract, so it’s helpful to jump in and look at a code example. Here is the last for loop of the test score normalization program from earlier in this chapter:
+
+\begin{cpp}
+for (auto& element : doubleVector) {
+    element /= max;
+    print("{} ", element);
+}
+\end{cpp}
+
+This loop can be written using iterators instead of a range-based for loop as follows:
+
+\begin{cpp}
+for (vector<double>::iterator iter { begin(doubleVector) };
+iter != end(doubleVector); ++iter) {
+    *iter /= max;
+    print("{} ", *iter);
+}
+\end{cpp}
+
+First, take a look at the for loop initialization statement:
+
+\begin{cpp}
+vector<double>::iterator iter { begin(doubleVector) };
+\end{cpp}
+
+Recall that every container defines a type named iterator to represent iterators for that type of container. begin() returns an iterator of that type referring to the first element in the container. Thus, the initialization statement obtains in the variable iter an iterator referring to the first element of doubleVector. Next, look at the for loop comparison:
+
+\begin{cpp}
+iter != end(doubleVector);
+\end{cpp}
+
+This statement simply checks whether the iterator is past the end of the sequence of elements in the vector. When it reaches that point, the loop terminates. Always use operator!= in such statements and not operator< as the latter is not supported by all types of iterators; see Chapter 17 for details.
+
+The increment statement, ++iter, increments the iterator to refer to the next element in the vector.
+
+\begin{myNotic}{NOTE}
+Use pre-increment instead of post-increment when possible because preincrement is at least as efficient and usually more efficient. iter++ must return a new iterator object, while ++iter can simply return a reference to iter. See Chapter 15, “Overloading C++ Operators,” for details on implementing both versions of operator++.
+\end{myNotic}
+
+The for loop body contains these two lines:
+
+\begin{cpp}
+*iter /= max;
+print("{} ", *iter);
+\end{cpp}
+
+As you can see, your code can both access and modify the elements over which it iterates. The first line uses operator* to dereference iter to obtain the element to which it refers and assigns to that element. The second line dereferences iter again, but this time only to print the element to the standard output console.
+
+The preceding for loop using iterators can be simplified by using the auto keyword:
+
+\begin{cpp}
+for (auto iter { begin(doubleVector) };
+    iter != end(doubleVector); ++iter) {
+    *iter /= max;
+    print("{} ", *iter);
+}
+\end{cpp}
+
+With auto, the compiler automatically deduces the type of the variable iter based on the right-hand side of the initializer, which in this case is the result of the call to begin().
+
+vector supports the following member functions to get iterators:
+
+\begin{itemize}
+\item
+begin() and end() returning iterators referring to the first and one past the last element
+
+\item
+rbegin() and rend() returning reverse iterators referring to the last and one before the first element
+
+\item
+cbegin(), cend(), crbegin(), and crend() returning const iterators
+\end{itemize}
+
+\begin{myNotic}{NOTE}
+If you need to iterate over all elements in a container, it’s recommended to use a range-based for loop instead of iterators as the former is easier to read and write, as well as being less error-prone. Use iterators only when you need to iterate over a subrange or when you need an iterator in the body of the loop.
+\end{myNotic}
+
+\mySamllsection{Accessing Fields of Object Elements}
+
+If the elements of your container are objects, you can use the -> operator on iterators to call member functions or access data members of those objects. For example, the following program creates a vector of 10 strings, then iterates over all of them appending a new string to each one:
+
+\begin{cpp}
+vector<string> stringVector(10, "hello");
+for (auto it { begin(stringVector) }; it != end(stringVector); ++it) {
+    it->append(" there");
+}
+\end{cpp}
+
+Often, using a range-based for loop results in more elegant code, as in this example:
+
+\begin{cpp}
+for (auto& str : stringVector) {
+    str.append(" there");
+}
+\end{cpp}
+
+\mySamllsection{const\_iterator}
+
+The normal iterator is read/write. However, if you call begin() or end() on a const object, or you call cbegin() or cend(), you receive a const\_iterator. A const\_iterator is read-only; you cannot modify the element it refers to. An iterator can always be converted to a const\_iterator, so it’s always safe to write something like this:
+
+\begin{cpp}
+vector<type>::const_iterator it { begin(myVector) };
+\end{cpp}
+
+However, a const\_iterator cannot be converted to an iterator. If myVector is const, the following line doesn’t compile:
+
+\begin{cpp}
+vector<type>::iterator it { begin(myVector) };
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+If you do not need to modify the elements of a vector, you should use a const\_iterator. This rule makes it easier to guarantee correctness of your code and helps the compiler to perform better optimizations.
+\end{myNotic}
+
+When using the auto keyword, using const\_iterators looks a bit different. Suppose you write the following code:
+
+\begin{cpp}
+vector<string> stringVector(10, "hello");
+for (auto iter { begin(stringVector) }; iter != end(stringVector); ++iter) {
+    println("{}", *iter);
+}
+\end{cpp}
+
+Because of the auto keyword, the compiler deduces the type of the iter variable automatically and makes it a normal iterator because stringVector is not const. If you want a read-only const\_iterator in combination with using auto, then you need to use cbegin() and cend() instead of begin() and end() as follows:
+
+\begin{cpp}
+for (auto iter { cbegin(stringVector) }; iter != cend(stringVector); ++iter) {
+    println("{}", *iter);
+}
+\end{cpp}
+
+Now the compiler uses const\_iterator as type for the variable iter because that’s what cbegin() returns.
+
+A range-based for loop can also be forced to use const iterators as follows:
+
+\begin{cpp}
+for (const auto& element : stringVector) {
+    println("{}", element);
+}
+\end{cpp}
+
+\mySamllsection{Iterator Safety}
+
+Generally, iterators are about as safe as pointers—that is, extremely unsafe. For example, you can write code like this:
+
+\begin{cpp}
+vector<int> intVector;
+auto iter { end(intVector) };
+*iter = 10; // Bug! Iter doesn't refer to a valid element.
+\end{cpp}
+
+Recall that the iterator returned by end() is one element past the end of a vector, not an iterator referring to the last element! Trying to dereference it results in undefined behavior. Iterators are not required to perform any verification.
+
+Another problem can occur if you use mismatched iterators. For example, the following for loop initializes iter with an iterator from vectorTwo and tries to compare it to the end iterator of vectorOne. Needless to say, this loop will not do what you intended and may never terminate. Dereferencing the iterator in the loop will likely produce undefined results.
+
+\begin{cpp}
+vector<int> vectorOne(10);
+vector<int> vectorTwo(10);
+// BUG! Possible infinite loop.
+for (auto iter { begin(vectorTwo) }; iter != end(vectorOne); ++iter) { /* ... */ }
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Microsoft Visual C++, by default, gives an assertion error at run time for both of the preceding problems when running a debug build of your program. By default, no verification of iterators is performed for release builds. You can enable it for release builds as well, but it has a performance penalty.
+\end{myNotic}
+
+\mySamllsection{Other Iterator Operations}
+
+The vector iterator is random access, which means you can move it backward and forward, and jump around. For example, the following code eventually changes the fifth element (index 4) to the value 4:
+
+\begin{cpp}
+vector<int> intVector(10);
+auto it { begin(intVector) };
+it += 5;
+--it;
+*it = 4;
+\end{cpp}
+
+\mySamllsection{Iterators vs. Indexing}
+
+Given that you can write a for loop that uses a simple index variable and the size() member function to iterate over the elements of a vector, why should you bother using iterators? That’s a valid question, for which there are three main answers:
+
+\begin{itemize}
+\item
+Iterators allow you to insert and delete elements and sequences of elements at any point in the container. See the section “Adding and Removing Elements” later in this chapter.
+
+\item
+Iterators allow you to use the Standard Library algorithms, which are discussed in Chapter 20, “Mastering Standard Library Algorithms.”
+
+\item
+Using an iterator to access each element sequentially is often more efficient than indexing the container to retrieve each element individually. This generalization is not true for vectors, but applies to lists, maps, and sets.
+\end{itemize}
+
+\mySamllsection{Storing References in a vector}
+
+As mentioned earlier in this chapter, it is possible to store references in a container, such as a vector. To do this, you store std::reference\_wrappers in the container. The std::ref() and cref() function templates are used to create non-const and const reference\_wrapper instances. The get() member function is used to get access to the object wrapped by a reference\_wrapper. All this is defined in <functional>. Here is an example:
+
+\begin{cpp}
+string str1 { "Hello" };
+string str2 { "World" };
+
+// Create a vector of references to strings.
+vector<reference_wrapper<string>> vec { ref(str1) };
+
+vec.push_back(ref(str2)); // push_back() works as well.
+// Modify the string referred to by the second reference in the vector.
+vec[1].get() += "!";
+
+// The end result is that str2 is modified.
+println("{} {}", str1, str2);
+\end{cpp}
+
+\mySamllsection{Adding and Removing Elements}
+
+As you already know, you can append an element to a vector with the push\_back() member function. The vector provides a corresponding remove member function called pop\_back().
+
+\begin{myWarning}{WARNING}
+pop\_back() does not return the element that is removed. If you want that element, you must first retrieve it with back().
+\end{myWarning}
+
+You can also insert elements at any point in the vector with the insert() member function, which adds one or more elements to a position specified by an iterator, shifting all subsequent elements down to make room for the new ones. There are five different overloads of insert() that do the following:
+
+\begin{itemize}
+\item
+Insert a single element.
+
+\item
+Insert n copies of a single element.
+
+\item
+Insert elements from an iterator range. Recall that the iterator range is half-open, such that it includes the element referred to by the starting iterator but not the one referred to by the ending iterator.
+
+\item
+Insert a single element by moving the given element to a vector using move semantics.
+
+\item
+Insert a list of elements into a vector where the list of elements is given as an initializer\_list.
+\end{itemize}
+
+\begin{myNotic}{NOTE}
+There are overloads of push\_back() and insert() that take an lvalue or an rvalue as a parameter. Both overloads allocate memory as needed to store the new elements. The lvalue overloads store copies of the given elements, while the rvalue overloads use move semantics to move ownership of the given elements to the vector instead of copying them.
+\end{myNotic}
+
+\CXXTwentythreeLogo{-40}{-50}
+
+C++23 adds the following member functions: assign\_range() to replace all elements in a vector with the elements of a given range, insert\_range() to insert all elements of a given range into a vector at a given position, and append\_range() to append all elements of a given range to the end of a vector. Chapter 17 discusses ranges in detail.
+
+You can remove elements from any point in a vector with erase(), and you can remove all elements with clear(). There are two overloads of erase(): one accepting a single iterator to remove a single element, and one accepting two iterators specifying a range of elements to remove.
+
+Let’s look at an example program that demonstrates some of the member functions for adding and removing elements. The following code snippet demonstrates clear(), push\_back(), pop\_back(), the C++23 append\_range(), the two-argument version of erase(), and the following overloads of insert():
+
+\begin{itemize}
+\item
+insert(const\_iterator pos, const T\& x): The value x is inserted at position pos.
+
+\item
+insert(const\_iterator pos, size\_type n, const T\& x): The value x is inserted n times at position pos.
+
+\item
+insert(const\_iterator pos, InputIterator first, InputIterator last): The elements in the range [first, last) are inserted at position pos.
+\end{itemize}
+
+Here is the code snippet:
+
+\begin{cpp}
+vector vectorOne { 1, 2, 3, 5 };
+vector<int> vectorTwo;
+println("{:n}", vectorOne);
+
+// Oops, we forgot to add 4. Insert it in the correct place.
+vectorOne.insert(cbegin(vectorOne) + 3, 4);
+
+// Add elements 6 through 10 to vectorTwo.
+for (int i { 6 }; i <= 10; ++i) {
+    vectorTwo.push_back(i);
+}
+println("{:n}", vectorOne);
+println("{:n}", vectorTwo);
+
+// Add all elements from vectorTwo to the end of vectorOne.
+vectorOne.insert(cend(vectorOne), cbegin(vectorTwo), cend(vectorTwo));
+println("{:n}", vectorOne);
+
+// Add all vectorTwo elements to the end of vectorOne using C++23 append_range().
+// Note how much clearer this is compared to the previous call to insert().
+vectorOne.append_range(vectorTwo);
+println("{:n}", vectorOne);
+
+// Now erase the numbers 2 through 5 in vectorOne.
+vectorOne.erase(cbegin(vectorOne) + 1, cbegin(vectorOne) + 5);
+println("{:n}", vectorOne);
+
+// Clear vectorTwo entirely.
+vectorTwo.clear();
+
+// And add 10 copies of the value 100.
+vectorTwo.insert(cbegin(vectorTwo), 10, 100);
+println("{:n}", vectorTwo);
+
+// Decide we only want 9 elements.
+vectorTwo.pop_back();
+println("{:n}", vectorTwo);
+\end{cpp}
+
+The output of the program is as follows:
+
+\begin{shell}
+1, 2, 3, 5
+1, 2, 3, 4, 5
+6, 7, 8, 9, 10
+1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 6, 7, 8, 9, 10
+1, 6, 7, 8, 9, 10, 6, 7, 8, 9, 10
+100, 100, 100, 100, 100, 100, 100, 100, 100, 100
+100, 100, 100, 100, 100, 100, 100, 100, 100
+\end{shell}
+
+Recall that iterator pairs represent half-open ranges, and insert() adds elements before the element referred to by a given iterator position. Thus, you can insert the entire contents of vectorTwo at the end of vectorOne, like this:
+
+\begin{cpp}
+vectorOne.insert(cend(vectorOne), cbegin(vectorTwo), cend(vectorTwo));
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+Member functions such as insert() and erase() that take a common iterator range as argument assume that the beginning and ending iterators refer to elements in the same container and that the end iterator refers to an element at or past the begin iterator. The member functions will not work correctly if these preconditions are not met!
+\end{myWarning}
+
+If you want to remove all elements satisfying a condition, one solution would be to write a loop iterating over all the elements and erasing every element that matches the condition. However, this solution has quadratic complexity, which is bad for performance. This quadratic complexity can be avoided by using the remove-erase-idiom, which has a linear complexity. The remove-erase-idiom is discussed in Chapter 20.
+
+Starting with C++20, however, there is a more elegant solution in the form of the std::erase() and std::erase\_if() non-member functions, defined for all Standard Library containers. The former is demonstrated in the following code snippet:
+
+\begin{cpp}
+vector values { 1, 2, 3, 2, 1, 2, 4, 5 };
+println("{:n}", values);
+
+erase(values, 2); // Removes all values equal to 2.
+println("{:n}", values);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+1, 2, 3, 2, 1, 2, 4, 5
+1, 3, 1, 4, 5
+\end{shell}
+
+erase\_if() works similarly, but instead of passing a value as second argument, a predicate is passed that returns true for elements that should be removed, and false for elements that should be kept.
+
+The predicate can take the form of a function pointer, a function object, or a lambda expression, all of which are discussed in detail in Chapter 19, “Function Pointers, Function Objects, and Lambda Expressions.”
 
 \mySamllsection{Move Semantics}
 
