@@ -617,36 +617,747 @@ The predicate can take the form of a function pointer, a function object, or a l
 
 \mySamllsection{Move Semantics}
 
+Adding elements to a vector can make use of move semantics to improve performance in certain situations. For example, suppose you have the following vector of strings:
+
+\begin{cpp}
+vector<string> vec;
+\end{cpp}
+
+You can add an element to this vector as follows:
+
+\begin{cpp}
+string myElement(5, 'a'); // Constructs the string "aaaaa"
+vec.push_back(myElement);
+\end{cpp}
+
+However, because myElement is not a temporary object, push\_back() makes a copy of myElement and puts it into the vector.
+
+The vector class also defines a push\_back(T\&\&), which is the move equivalent of push\_back(const T\&). So, copying can be avoided if you call push\_back() as follows:
+
+\begin{cpp}
+vec.push_back(move(myElement));
+\end{cpp}
+
+This statement explicitly says that myElement should be moved into the vector. Note that after this call, myElement is in a valid but otherwise indeterminate state. You should not use myElement anymore, unless you first bring it back to a determinate state, for example by calling clear() on it! You can also call push\_back() as follows:
+
+\begin{cpp}
+vec.push_back(string(5, 'a'));
+\end{cpp}
+
+This call to push\_back() triggers a call to the move overload because the call to the string constructor results in a temporary object. The push\_back() member function moves this temporary string object into the vector, avoiding any copying.
+
+\mySamllsection{Emplace Operations}
+
+C++ supports emplace operations on most Standard Library containers, including vector. Emplace means “to put into place.” An example is the emplace\_back() member function of vector, which does not copy or move anything. Instead, it makes space in the container and constructs the object in place, as in this example:
+
+\begin{cpp}
+vec.emplace_back(5, 'a');
+\end{cpp}
+
+The emplace member functions take a variable number of arguments as a variadic template. Variadic templates are discussed in Chapter 26, “Advanced Templates,” but those details are not required to understand how to use emplace\_back(). Basically, the arguments passed to emplace\_back() are forwarded to a constructor of the type stored in the vector. The difference in performance between emplace\_back() and push\_back() using move semantics depends on how your specific compiler implements these operations. In most situations, you can pick the one based on the syntax that you prefer:
+
+\begin{cpp}
+vec.push_back(string(5, 'a'));
+// Or
+vec.emplace_back(5, 'a');
+\end{cpp}
+
+The emplace\_back() member function returns a reference to the inserted element. There is also an emplace() member function that constructs an object in place at a specific position in the vector and returns an iterator to the inserted element.
+
+\mySamllsection{Algorithmic Complexity and Iterator Invalidation}
+
+Inserting or erasing elements in a vector causes all subsequent elements to shift up or down to make room for, or fill in the holes left by, the affected elements. Thus, these operations take linear complexity. Furthermore, all iterators referring to the insertion or removal point or subsequent positions are invalid following the action. The iterators are not “magically” moved to keep up with the elements that are shifted up or down in the vector—that’s up to you.
+
+Also keep in mind that an internal vector reallocation can cause invalidation of all iterators referring to elements in the vector, not just those referring to elements past the point of insertion or deletion. See the next section for details.
+
 \mySamllsection{vector Example: A Round-Robin Class}
 
+A vector allocates memory automatically to store the elements that you insert. Recall that the vector requirements dictate that the elements must be in contiguous memory, like in standard C-style arrays. Because it’s impossible to request to add memory to the end of a current chunk of memory, every time a vector allocates more memory, it must allocate a new, larger chunk in a separate memory location and copy/move all the elements to the new chunk. This process is time-consuming, so vector implementations attempt to avoid it by allocating more space than needed when they have to perform a reallocation. That way, they can avoid reallocating memory every time you insert an element.
+
+One obvious question at this point is why you, as a client of vector, care how it manages its memory internally. You might think that the principle of abstraction should allow you to disregard the internals of the vector memory allocation scheme. Unfortunately, there are two reasons why you need to understand how it works:
+
+\begin{itemize}
+\item
+Efficiency: The vector allocation scheme can guarantee that an element insertion runs in amortized constant time: most of the time the operation is constant, but once in a while (if it requires a reallocation), it’s linear. If you are worried about efficiency, you can control when a vector performs reallocations.
+
+\item
+Iterator invalidations: A reallocation invalidates all iterators referring to elements in a vector.
+\end{itemize}
+
+Thus, the vector interface allows you to query and control the vector reallocations, both explained in the upcoming subsections.
+
+\begin{myWarning}{WARNING}
+If you don’t control the reallocations explicitly, you should assume that all insertions cause a reallocation and thus invalidate all iterators.
+\end{myWarning}
+
+\mySamllsection{Size and Capacity}
+
+vector provides two member functions for obtaining information about its size: size() and capacity(). The size() member function returns the number of elements in a vector, while capacity() returns the number of elements that it can hold without a reallocation. Thus, the number of elements that you can insert without causing a reallocation is capacity() – size().
+
+\begin{myNotic}{NOTE}
+You can query whether a vector is empty with the empty() member function. A vector can be empty but have nonzero capacity.
+\end{myNotic}
+
+There are also non-member std::size() and std::empty() global functions, which can be used with all containers. They can also be used with statically allocated C-style arrays not accessed through pointers, and with initializer\_lists. Here is an example of using them with a vector:
+
+\begin{cpp}
+vector vec { 1, 2, 3 };
+println("{}", size(vec)); // 3
+println("{}", empty(vec)); // false
+\end{cpp}
+
+Additionally, std::ssize(), a global non-member helper function, returns the size as a signed integral type. Here’s an example:
+
+\begin{cpp}
+auto s1 { size(vec) }; // Type is size_t (unsigned)
+auto s2 { ssize(vec) }; // Type is long long (signed)
+\end{cpp}
+
+\mySamllsection{Reserving Capacity}
+
+If you don’t care about efficiency or iterator invalidations, there is never a need to control the vector memory allocation explicitly. However, if you want to make your program as efficient as possible or you want to guarantee that iterators will not be invalidated, you can force a vector to preallocate enough space to hold all of its elements. Of course, you need to know how many elements it will hold, which is sometimes impossible to predict.
+
+One way to preallocate space is to call reserve(), which allocates enough memory to hold the specified number of elements. The upcoming round-robin class example shows the reserve() member function in action.
+
+\begin{myWarning}{WARNING}
+Reserving space for elements changes the capacity, but not the size. That is, it doesn’t actually create elements. Don’t access elements past a vector’s size.
+\end{myWarning}
+
+Another way to preallocate space is to specify, in the constructor, or with the resize() or assign() member function, how many elements you want a vector to store. This member function actually creates a vector of that size (and probably of that capacity).
+
+\mySamllsection{Reclaiming All Memory}
+
+A vector automatically allocates more memory if needed; however, it will never release any memory, unless the vector is destroyed. Removing elements from a vector decreases the size of the vector, but never its capacity. How then can you reclaim its memory?
+
+One option is to use the shrink\_to\_fit() member function, which requests a vector to reduce its capacity to its size. However, it’s just a request, and a Standard Library implementation is allowed to ignore this request.
+
+Reclaiming all memory of a vector can be done using the following trick: swap the vector with an empty one. The following code snippet shows how memory of a vector called values can be reclaimed with a single statement. The third line of code constructs a temporary empty defaultconstructed vector of the same type as values and swaps this with values. All memory that was allocated for values now belongs to this temporary vector, which is automatically destroyed at the end of that statement freeing all its memory. The end result is that all memory that was allocated for values is reclaimed, and values is left with a capacity of zero.
+
+\begin{cpp}
+vector<int> values;
+// Populate values ...
+vector<int>().swap(values);
+\end{cpp}
+
+\mySamllsection{Directly Accessing the Data}
+
+A vector stores its data contiguously in memory. You can get a pointer to this block of memory with the data() member function.
+
+There is also a non-member std::data() function that can be used to get a pointer to the data. It works for the array and vector containers, strings, statically allocated C-style arrays not accessed through pointers, and initializer\_lists. Here is an example for a vector:
+
+\begin{cpp}
+vector vec { 1, 2, 3 };
+int* data1 { vec.data() };
+int* data2 { data(vec) };
+\end{cpp}
+
+Another way to get access to the memory block of a vector is by taking the address of the first element, as in: \&vec[0]. You might find this kind of code in legacy code bases, but it is not safe for empty vectors; as such, I recommend not to use it and instead use data().
+
+\mySamllsection{Move Semantics}
+
+All Standard Library containers support move semantics by including a move constructor and move assignment operator. See Chapter 9 for details on move semantics. Standard Library containers can be returned from functions by value without performance penalty. Take a look at the following function:
+
+\begin{cpp}
+vector<int> createVectorOfSize(size_t size)
+{
+    vector<int> vec(size);
+    for (int contents { 0 }; auto& i : vec) { i = contents++; }
+    return vec;
+}
+...
+vector<int> myVector;
+myVector = createVectorOfSize(123);
+\end{cpp}
+
+Without move semantics, assigning the result of createVectorOfSize() to myVector might call the copy assignment operator. With the move semantics support in the Standard Library containers, copying of the vector is avoided. Instead, the assignment to myVector triggers a call to the move assignment operator.
+
+Keep in mind, though, that for move semantics to work properly with Standard Library containers, the move constructor and move assignment operator of the type stored in the container must be marked as noexcept! Why are these move member functions not allowed to throw any exceptions? Imagine that they are allowed to throw exceptions. Now, when adding, for example, new elements to a vector, it might be that the capacity of the vector is not sufficient and that it needs to allocate a bigger block of memory. Subsequently, the vector must either copy or move all the data from the original memory block to the new one. If this would be done using a move member function that can potentially throw, then it might happen that an exception gets thrown when part of the data has already been moved to the new memory block. What can we do then? Not much. To avoid these kinds of problems, Standard Library containers will only use move member functions if they guarantee not to throw any exceptions. If they are not marked noexcept, the copy member functions will be used instead to guarantee strong exception safety.
+
+When implementing your own Standard Library–like containers, there is a useful helper function available called std::move\_if\_noexcept(), defined in <utility>. This can be used to call either the move constructor or the copy constructor depending on whether the move constructor is noexcept. In itself, move\_if\_noexcept() doesn’t do much. It accepts a reference as a parameter and converts it to either an rvalue reference if the move constructor is noexcept or to a reference-toconst otherwise, but this simple trick allows you to call the correct constructor with a single call.
+
+The Standard Library does not provide a similar helper function to call the move assignment operator or copy assignment operator depending on whether the former is noexcept. Implementing one yourself is not too complicated, but requires some template metaprogramming techniques and type traits to inspect properties of types. Both topics are discussed in Chapter 26, which also gives an example of implementing your own move\_assign\_if\_noexcept().
+
+\mySamllsection{vector Example: A Round-Robin Class}
+
+A common problem in computer science is distributing requests among a finite list of resources. For example, a simple operating system could keep a list of processes and assign a time slice (such as 100ms) to each process to let the process perform some of its work. After the time slice is finished, the OS suspends the process, and the next process in the list is given a time slice to perform some of its work. One of the simplest algorithmic solutions to this problem is round-robin scheduling. When the time slice of the last process is finished, the scheduler starts over again with the first process. For example, in the case of three processes, the first-time slice would go to the first process, the second slice to the second process, the third slice to the third process, and the fourth slice back to the first process. The cycle would continue in this way indefinitely.
+
+Suppose that you decide to write a generic round-robin scheduling class that can be used with any type of resource. The class should support adding and removing resources and should support cycling through the resources to obtain the next one. You could use a vector directly, but it’s often helpful to write a wrapper class that provides more directly the functionality you need for your specific application. The following example shows a RoundRobin class template with comments explaining the code.
+
+First, here is the class definition, exported from a module called round\_robin:
+
+\begin{cpp}
+export module round_robin;
+import std;
+
+// Class template RoundRobin
+// Provides simple round-robin semantics for a list of elements.
+export template <typename T>
+class RoundRobin final
+{
+    public:
+        // Client can give a hint as to the number of expected elements for
+        // increased efficiency.
+        explicit RoundRobin(std::size_t numExpected = 0);
+        // Prevent copy construction and copy assignment
+        RoundRobin(const RoundRobin& src) = delete;
+        RoundRobin& operator=(const RoundRobin& rhs) = delete;
+        // Explicitly default a move constructor and move assignment operator
+        RoundRobin(RoundRobin&& src) noexcept = default;
+        RoundRobin& operator=(RoundRobin&& rhs) noexcept = default;
+        // Appends element to the end of the list. May be called
+        // between calls to getNext().
+        void add(const T& element);
+        // Removes the first (and only the first) element
+        // in the list that is equal (with operator==) to element.
+        // May be called between calls to getNext().
+        void remove(const T& element);
+        // Returns the next element in the list, starting with the first,
+        // and cycling back to the first when the end of the list is
+        // reached, taking into account elements that are added or removed.
+        T& getNext();
+    private:
+        std::vector<T> m_elements;
+        typename std::vector<T>::iterator m_nextElement;
+};
+\end{cpp}
+
+As you can see, the public interface is straightforward: only three member functions plus the constructor. The resources are stored in a vector called m\_elements. The iterator m\_nextElement always refers to the element that will be returned with the next call to getNext(). If getNext() hasn’t been called yet, m\_nextElement is equal to begin(m\_elements). Note the use of the typename keyword in front of the line declaring m\_nextElement. So far, you’ve only seen that keyword used to specify template type parameters, but there is another use for it. You must specify typename explicitly whenever you access a type based on one or more template parameters. In this case, the template parameter T is used to access the iterator type. Thus, you must specify typename.
+
+The class also prevents copy construction and copy assignment because of the m\_nextElement data member. To make copy construction and copy assignment work, you would have to implement an assignment operator and copy constructor and make sure m\_nextElement is valid in the destination object.
+
+The implementation of the RoundRobin class follows with comments explaining the code. Note the use of reserve() in the constructor, and the extensive use of iterators in add(), remove(), and getNext(). The trickiest aspect is handling m\_nextElement in the add() and remove() member functions.
+
+\begin{cpp}
+template <typename T> RoundRobin<T>::RoundRobin(std::size_t numExpected)
+{
+    // If the client gave a guideline, reserve that much space.
+    m_elements.reserve(numExpected);
+
+    // Initialize m_nextElement even though it isn't used until
+    // there's at least one element.
+    m_nextElement = begin(m_elements);
+}
+
+// Always add the new element at the end.
+template <typename T> void RoundRobin<T>::add(const T& element)
+{
+    // Even though we add the element at the end, the vector could
+    // reallocate and invalidate the m_nextElement iterator with
+    // the push_back() call. Take advantage of the random-access
+    // iterator features to save our spot.
+    // Note: ptrdiff_t is a type capable of storing the difference
+    //  between two random-access iterators.
+    std::ptrdiff_t pos { m_nextElement - begin(m_elements) };
+
+    // Add the element.
+    m_elements.push_back(element);
+
+    // Reset our iterator to make sure it is valid.
+    m_nextElement = begin(m_elements) + pos;
+}
+
+template <typename T> void RoundRobin<T>::remove(const T& element)
+{
+    for (auto it { begin(m_elements) }; it != end(m_elements); ++it) {
+        if (*it == element) {
+            // Removing an element invalidates the m_nextElement iterator
+            // if it refers to an element past the point of the removal.
+            // Take advantage of the random-access features of the iterator
+            // to track the position of the current element after removal.
+            std::ptrdiff_t newPos;
+
+            if (m_nextElement == end(m_elements) - 1 &&
+                m_nextElement == it) {
+                    // m_nextElement refers to the last element in the list,
+                    // and we are removing that last element, so wrap back to
+                    // the beginning.
+                    newPos = 0;
+                } else if (m_nextElement <= it) {
+                    // Otherwise, if m_nextElement is before or at the one
+                    // we're removing, the new position is the same as before.
+                    newPos = m_nextElement - begin(m_elements);
+                } else {
+                    // Otherwise, it's one less than before.
+                    newPos = m_nextElement - begin(m_elements) - 1;
+                }
+
+                // Erase the element (and ignore the return value).
+                m_elements.erase(it);
+
+                // Now reset our iterator to make sure it is valid.
+                m_nextElement = begin(m_elements) + newPos;
+
+                return;
+            }
+        }
+    }
+template <typename T> T& RoundRobin<T>::getNext()
+{
+    // First, make sure there are elements.
+    if (m_elements.empty()) {
+        throw std::out_of_range { "No elements in the list" };
+    }
+
+    // Store the current element which we need to return.
+    auto& toReturn { *m_nextElement };
+
+    // Increment the iterator modulo the number of elements.
+    ++m_nextElement;
+    if (m_nextElement == end(m_elements)) { m_nextElement = begin(m_elements); }
+
+    // Return a reference to the element.
+    return toReturn;
+}
+\end{cpp}
+
+Here’s a simple implementation of a scheduler that uses the RoundRobin class template, with comments explaining the code:
+
+\begin{cpp}
+// Basic Process class.
+class Process final
+{
+    public:
+        // Constructor accepting the name of the process.
+        explicit Process(string name) : m_name { move(name) } {}
+
+        // Lets a process perform its work for the duration of a time slice.
+        void doWorkDuringTimeSlice()
+        {
+            println("Process {} performing work during time slice.", m_name);
+            // Actual implementation omitted.
+        }
+
+        // Needed for the RoundRobin::remove() member function to work.
+        bool operator==(const Process&) const = default; // = default since C++20.
+    private:
+        string m_name;
+};
+
+// Basic round-robin based process scheduler.
+class Scheduler final
+{
+    public:
+        // Constructor takes a vector of processes.
+        explicit Scheduler(const vector<Process>& processes)
+        {
+            // Add the processes.
+            for (auto& process : processes) { m_processes.add(process); }
+        }
+
+        // Selects the next process using a round-robin scheduling algorithm
+        // and allows it to perform some work during this time slice.
+        void scheduleTimeSlice()
+        {
+            try {
+                m_processes.getNext().doWorkDuringTimeSlice();
+            } catch (const out_of_range&) {
+                println(cerr, "No more processes to schedule.");
+            }
+        }
+
+        // Removes the given process from the list of processes.
+        void removeProcess(const Process& process)
+        {
+            m_processes.remove(process);
+        }
+    private:
+        RoundRobin<Process> m_processes;
+};
+
+int main()
+{
+    vector processes { Process { "1" }, Process { "2" }, Process { "3" } };
+
+    Scheduler scheduler { processes };
+    for (size_t i { 0 }; i < 4; ++i) { scheduler.scheduleTimeSlice(); }
+
+    scheduler.removeProcess(processes[1]);
+    println("Removed second process");
+
+    for (size_t i { 0 }; i < 4; ++i) { scheduler.scheduleTimeSlice(); }
+}
+\end{cpp}
+
+The output should be as follows:
+
+\begin{shell}
+Process 1 performing work during time slice.
+Process 2 performing work during time slice.
+Process 3 performing work during time slice.
+Process 1 performing work during time slice.
+Removed second process
+Process 3 performing work during time slice.
+Process 1 performing work during time slice.
+Process 3 performing work during time slice.
+Process 1 performing work during time slice.
+\end{shell}
 
 \mySubsubsection{18.2.2.}{The vector<bool> Specialization}
 
+The C++ standard requires a partial specialization of vector for bools, with the intention that it optimizes space allocation by “packing” the Boolean values. Recall that a bool is either true or false and thus could be represented by a single bit, which can take on exactly two values. C++ does not have a native type that stores exactly one bit. Some compilers represent a Boolean value with a type the same size as a char; other compilers use an int. The vector<bool> specialization is supposed to store the “array of bools” in single bits, thus saving space.
 
+\begin{myNotic}{NOTE}
+You can think of the vector<bool> as a bit-field instead of a vector. The bitset container described later in this chapter provides a more fullfeatured bit-field implementation than does vector<bool>. However, the benefit of vector<bool> is that it can change size dynamically.
+\end{myNotic}
+
+In a half-hearted attempt to provide some bit-field routines for vector<bool>, there is one additional member function called flip() that complements bits; that is, true becomes false, and false becomes true, similar to the logical NOT operator. This member function can be called either on the container—in which case it complements all the elements in the container—or on a single reference returned from operator[] or a similar member function, in which case it complements that single element.
+
+At this point, you should be wondering how you can call a member function on a reference to bool. The answer is that you can’t. The vector<bool> specialization actually defines a class called reference that serves as a proxy for the underlying bool (or bit). When you call operator[], at(), or a similar member function, then vector<bool> returns a reference object, which is a proxy for the real bool.
+
+\begin{myWarning}{WARNING}
+The fact that references returned from vector<bool> are really proxies means that you can’t take their addresses to obtain pointers to the actual elements in the container.
+\end{myWarning}
+
+In practice, the little amount of space saved by packing bools hardly seems worth the extra effort. Even worse, accessing and modifying elements in a vector<bool> is much slower than, for example, in a vector<int>. Many C++ experts recommend avoiding vector<bool> in favor of the bitset. If you do need a dynamically sized bit field, then just use something like vector<std::int\_fast8\_t> or vector<unsigned char>. The std::int\_fast8\_t type is defined in <cstdint>. It is a signed integer type for which the compiler has to use the fastest integer type it has that is at least 8 bits.
 
 \mySubsubsection{18.2.3.}{deque}
 
+deque (abbreviation for double-ended queue) is almost identical to vector, but is used far less frequently. It is defined in <deque>. The principal differences are as follows:
 
+\begin{itemize}
+\item
+Elements are not stored contiguously in memory.
+
+\item
+A deque supports true constant-time insertion and removal of elements at both the front and the back (a vector supports amortized constant time at just the back).
+
+\item
+A deque provides the following member functions that vector omits:
+\begin{itemize}
+\item
+push\_front(): Inserts an element at the beginning.
+
+\item
+pop\_front(): Removes the first element.
+
+\item
+emplace\_front(): Creates a new element in-place at the beginning and returns a reference to the inserted element.
+
+\item
+prepend\_range(): Adds all elements of a given range to the beginning of a deque.
+Available since C++23.
+\end{itemize}
+
+\item
+A deque never moves its elements to a bigger array (as vector does) when inserting elements at the front or at the back. This also means that a deque does not invalidate any iterators in such cases.
+
+\item
+A deque does not expose its memory management scheme via reserve() or capacity().
+\end{itemize}
+
+deques are rarely used, as opposed to vectors, so they are not further discussed. Consult a Standard Library Reference for a detailed list of all supported member functions.
 
 \mySubsubsection{18.2.4.}{list}
 
+The Standard Library list class template, defined in <list>, is a standard doubly linked list. It supports constant-time insertion and deletion of elements at any point in the list but provides slow (linear) time access to individual elements. In fact, the list does not even provide random-access operations like operator[]. Only through iterators can you access individual elements.
+
+Most of the list operations are identical to those of vector, including the constructors, destructor, copying operations, assignment operations, and comparison operations. This section focuses on those member functions that differ from those of vector.
+
 \mySamllsection{Accessing Elements}
+
+The only member functions provided by a list to access elements are front() and back(), both of which run in constant time. These member functions return a reference to the first and last elements in a list. All other element access must be performed through iterators.
+
+Just as vector, list supports begin(), end(), rbegin(), rend(), cbegin(), cend(), crbegin(), and crend().
+
+\begin{myWarning}{WARNING}
+Lists do not provide random access to elements.
+\end{myWarning}
 
 \mySamllsection{Iterators}
 
+A list iterator is bidirectional, not random access like a vector iterator. That means that you cannot add and subtract list iterators from each other or perform other pointer arithmetic on them. For example, if p is a list iterator, you can traverse through the elements of the list by doing ++p or --p, but you cannot use the addition or subtraction operator; p+n and p-n do not work.
+
 \mySamllsection{Adding and Removing Elements}
+
+A list supports the same add and remove element member functions as a vector, including push\_ back(), pop\_back(), emplace(), emplace\_back(), the five forms of insert(), assign\_range(), insert\_range(), append\_range(), the two forms of erase(), and clear(). Like a deque, it also provides push\_front(), emplace\_front(), pop\_front(), and prepend\_range(). Member functions adding or removing a single element run in constant time, once you’ve found the correct position, while member functions adding or removing multiple elements run in linear time. Thus, a list could be appropriate for applications that perform many insertions and deletions from the data structure, but do not need quick index-based element access. But even then, a vector might still be faster. Use a performance profiler to make sure.
 
 \mySamllsection{list Size}
 
+Like deques, and unlike vectors, lists do not expose their underlying memory model. Consequently, they support size(), empty(), and resize(), but not reserve() or capacity(). Note that the size() member function on a list has constant complexity.
+
 \mySamllsection{Special list Operations}
+
+A list provides several special operations that exploit its quick element insertion and deletion. This section provides an overview of some of these operations with examples. Consult a Standard Library Reference for a thorough reference of all the member functions.
+
+\mySamllsection{Splicing}
+
+The linked-list characteristics of a list allow it to splice, or insert, an entire list at any position in another list in constant time. The simplest version of this member function works as follows:
+
+\begin{cpp}
+// Store the a words in the main dictionary.
+list<string> dictionary { "aardvark", "ambulance" };
+// Store the b words.
+list<string> bWords { "bathos", "balderdash" };
+// Add the c words to the main dictionary.
+dictionary.push_back("canticle");
+dictionary.push_back("consumerism");
+// Splice the b words into the main dictionary.
+if (!bWords.empty()) {
+    // Get an iterator to the last b word.
+    auto iterLastB { --(cend(bWords)) };
+    // Iterate up to the spot where we want to insert b words.
+    auto it { cbegin(dictionary) };
+    for (; it != cend(dictionary); ++it) {
+        if (*it > *iterLastB) { break; }
+    }
+    // Add in the b words. This action removes the elements from bWords.
+    dictionary.splice(it, bWords);
+}
+// Print out the dictionary.
+println("{:n:}", dictionary);
+\end{cpp}
+
+The result from running this program looks like this:
+
+\begin{shell}
+aardvark, ambulance, bathos, balderdash, canticle, consumerism
+\end{shell}
+
+There are also two other overloads of splice(): one that inserts a single element from another list and one that inserts a range from another list. Additionally, all overloads of splice() are available with either a normal reference or an rvalue reference to the source list.
+
+\begin{myWarning}{WARNING}
+Splicing is destructive to the list passed as an argument, i.e., it removes the spliced elements from one list to insert them into the other.
+\end{myWarning}
+
+\mySamllsection{More Efficient Versions of Algorithms}
+
+In addition to splice(), a list provides special implementations of several of the generic Standard Library algorithms. The generic forms are covered in Chapter 20. Here, only the specific versions provided by list are discussed.
+
+\begin{myNotic}{NOTE}
+When you have a choice, use the list-specific member functions rather than the generic Standard Library algorithms because the former are more efficient. Sometimes you don’t have a choice, and you must use the list-specific member functions; for example, the generic std::sort() algorithm requires random-access iterators, which a list does not provide.
+\end{myNotic}
+
+The following table summarizes the algorithms for which list provides special implementations as member functions. See Chapter 20 for more details on the algorithms.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{MEMBER FUNCTION} &
+\textbf{DESCRIPTION} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\begin{tabular}[c]{@{}l@{}}remove()\\ remove\_if()\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Removes all elements matching certain criteria from a list and returns the\\ number of removed elements.\end{tabular} \\ \hline
+unique() &
+\begin{tabular}[c]{@{}l@{}}Removes duplicate consecutive elements from a list, based on\\ operator== or a user-supplied binary predicate, and returns the number of\\ removed elements.\end{tabular} \\ \hline
+merge() &
+\begin{tabular}[c]{@{}l@{}}Merges two lists. Both lists must be sorted according to operator\textless or\\ a user-defined comparator. Like splice(), merge() is destructive to the\\ list passed as an argument.\end{tabular} \\ \hline
+sort() &
+Performs a stable sort on elements in a list. \\ \hline
+reverse() &
+Reverses the order of the elements in a list. \\ \hline
+\end{longtable}
 
 \mySamllsection{list Example: Determining Enrollment}
 
+Suppose that you are writing a computer registration system for a university. One feature you might provide is the ability to generate a complete list of enrolled students in the university from lists of the students in each class. For the sake of this example, assume that you must write only a single function that takes a vector of lists of student names (as strings), plus a list of students that have been dropped from their courses because they failed to pay tuition. This function should generate a complete list of all the students in all the courses, without any duplicates, and without those students who have been dropped. Note that students might be in more than one course.
+
+Here is the code for this function, with comments explaining the code. With the power of Standard Library lists, the function is practically shorter than its written description! Note that the Standard Library allows you to “nest” containers: in this case, you can use a vector of lists.
+
+\begin{cpp}
+// courseStudents is a vector of lists, one for each course. The lists
+// contain the students enrolled in those courses. They are not sorted.
+//
+// droppedStudents is a list of students who failed to pay their
+// tuition and so were dropped from their courses.
+//
+// The function returns a list of every enrolled (non-dropped) student in
+// all the courses.
+list<string> getTotalEnrollment(const vector<list<string>>& courseStudents,
+                                const list<string>& droppedStudents)
+{
+    list<string> allStudents;
+
+    // Concatenate all the course lists onto the master list
+    for (auto& lst : courseStudents) {
+        allStudents.append_range(lst);
+    }
+
+    // Sort the master list
+    allStudents.sort();
+
+    // Remove duplicate student names (those who are in multiple courses).
+    allStudents.unique();
+
+    // Remove students who are on the dropped list.
+    // Iterate through the dropped list, calling remove on the
+    // master list for each student in the dropped list.
+    for (auto& str : droppedStudents) {
+        allStudents.remove(str);
+    }
+
+    // done!
+    return allStudents;
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+This example demonstrates the use of the list-specific algorithms. As stated several times before, often a vector is faster than a list. So, the recommended solution to the student enrollment problem would be to only use vectors and to combine these with generic Standard Library algorithms, but those are discussed in Chapter 20.
+\end{myNotic}
 
 \mySubsubsection{18.2.5.}{forward\_list}
 
+A forward\_list, defined in <forward\_list>, is similar to a list except that it is a singly linked list, while list is a doubly linked list. This means that forward\_list supports only forward iteration, and because of this, ranges need to be specified differently compared to a list. If you want to modify any list, you need access to the element before the first element of interest. Because a forward\_list does not have an iterator that supports going backward, there is no easy way to get to the preceding element. For this reason, ranges that will be modified—for example, ranges supplied to erase() and splice()—must be open at the beginning. The begin() function that was discussed earlier returns an iterator to the first element and thus can only be used to construct a range that is closed at the beginning. The forward\_list class therefore provides a before\_begin() member function, which returns an iterator that points to an imaginary element before the beginning of the list. You cannot dereference this iterator as it points to invalid data. However, incrementing this iterator by 1 makes it the same as the iterator returned by begin(); as a result, it can be used to make a range that is open at the beginning.
 
+Constructors and assignment operators are similar between a list and a forward\_list. The C++ standard requires that forward\_list minimizes its memory use. That’s the reason why there is no size() member function, because by not providing it, there is no need to store the size of the list. Additionally, a list has to store a pointer to the previous and the next element in the list, while a forward\_list only needs to store a pointer to the next element, further reducing memory use. For example, each element in a list<int> on a 64-bit system requires 20 bytes (two 64-bit pointers, 16 bytes, and the int itself, 4 bytes). A forward\_list<int> requires only 12 bytes (one 64-bit pointer, 8 bytes, and the int, 4 bytes) per element.
+
+The following table sums up the differences between a list and a forward\_list. A filled box (■) means the container supports that operation, while an empty box (□) means the operation is not supported.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{OPERATION}                           & \textbf{list} & \textbf{forward\_list} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+append\_range() (C++23)                      & ■             & □                      \\ \hline
+assign()                                     & ■             & ■                      \\ \hline
+assign\_range() (C++23)                      & ■             & ■                      \\ \hline
+back()                                       & ■             & □                      \\ \hline
+before\_begin()                              & □             & ■                      \\ \hline
+begin()                                      & ■             & ■                      \\ \hline
+cbefore\_begin()                             & □             & ■                      \\ \hline
+cbegin()                                     & ■             & ■                      \\ \hline
+cend()                                       & ■             & ■                      \\ \hline
+clear()                                      & ■             & ■                      \\ \hline
+crbegin()                                    & ■             & □                      \\ \hline
+crend()                                      & ■             & □                      \\ \hline
+emplace()                                    & ■             & □                      \\ \hline
+emplace\_after()                             & □             & ■                      \\ \hline
+emplace\_back()                              & ■             & □                      \\ \hline
+emplace\_front()                             & ■             & ■                      \\ \hline
+empty()                                      & ■             & ■                      \\ \hline
+end()                                        & ■             & ■                      \\ \hline
+erase()                                      & ■             & □                      \\ \hline
+erase\_after()                               & □             & ■                      \\ \hline
+front()                                      & ■             & ■                      \\ \hline
+insert()                                     & ■             & □                      \\ \hline
+insert\_after()                              & □             & ■                      \\ \hline
+insert\_range() (C++23)                      & ■             & □                      \\ \hline
+insert\_range\_after() (C++23)               & □             & ■                      \\ \hline
+iterator / const\_iterator                   & ■             & ■                      \\ \hline
+max\_size()                                  & ■             & ■                      \\ \hline
+merge()                                      & ■             & ■                      \\ \hline
+pop\_back()                                  & ■             & □                      \\ \hline
+pop\_front()                                 & ■             & ■                      \\ \hline
+prepend\_range() (C++23)                     & ■             & ■                      \\ \hline
+push\_back()                                 & ■             & □                      \\ \hline
+push\_front()                                & ■             & ■                      \\ \hline
+rbegin()                                     & ■             & □                      \\ \hline
+remove()                                     & ■             & ■                      \\ \hline
+remove\_if()                                 & ■             & ■                      \\ \hline
+rend()                                       & ■             & □                      \\ \hline
+resize()                                     & ■             & ■                      \\ \hline
+reverse()                                    & ■             & ■                      \\ \hline
+reverse\_iterator / const\_reverse\_iterator & ■             & □                      \\ \hline
+size()                                       & ■             & □                      \\ \hline
+sort()                                       & ■             & ■                      \\ \hline
+splice()                                     & ■             & □                      \\ \hline
+splice\_after()                              & □             & ■                      \\ \hline
+swap()                                       & ■             & ■                      \\ \hline
+unique()                                     & ■             & ■                      \\ \hline
+\end{longtable}
+
+The following example demonstrates the use of forward\_lists:
+
+\begin{cpp}
+// Create 3 forward lists using an initializer_list
+// to initialize their elements (uniform initialization).
+forward_list<int> list1 { 5, 6 };
+forward_list list2 { 1, 2, 3, 4 }; // CTAD is supported.
+forward_list list3 { 7, 8, 9 };
+
+// Insert list2 at the front of list1 using splice.
+list1.splice_after(list1.before_begin(), list2);
+
+// Add number 0 at the beginning of the list1.
+list1.push_front(0);
+
+// Insert list3 at the end of list1.
+// For this, we first need an iterator to the last element.
+auto iter { list1.before_begin() };
+auto iterTemp { iter };
+while (++iterTemp != end(list1)) { ++iter; }
+list1.insert_after(iter, cbegin(list3), cend(list3));
+
+// Output the contents of list1.
+println("{:n}", list1);
+\end{cpp}
+
+To insert list3 at the end of list1, you need an iterator to the last element of list1. However, because this is a forward\_list, you cannot use --end(list1), so you need to iterate over the list from the beginning and stop at the last element. The output is as follows:
+
+\begin{shell}
+0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+\end{shell}
 
 \mySubsubsection{18.2.6.}{array}
+
+An array, defined in <array>, is similar to a vector except that it is of a fixed size; it cannot grow or shrink in size. The purpose of a fixed size is to allow an array to be allocated on the stack, rather than always demanding access to the free store as vector does.
+
+For arrays containing primitive types (integers, floating-point numbers, characters, Booleans, and so on), initialization of elements is different compared to how they are initialized for containers such as vector, list, and so on. If no initialization values are given to an array when it is created, then the array elements will be uninitialized, i.e., contain garbage. For other containers, such as vector and list, elements are always initialized, either with given values or using zero initialization. As such, arrays behave virtually identical to C-style arrays.
+
+Just like vectors, arrays support random-access iterators, and elements are stored in contiguous memory. An array has support for front(), back(), at(), and operator[]. It also supports a fill() member function to fill the array with a specific element. Because it is fixed in size, it does not support push\_back(), pop\_back(), insert(), erase(), clear(), resize(), reserve(), capacity(), or any of the range-based member functions. A disadvantage compared to a vector is that the swap() member function of an array runs in linear time, while it has constant complexity for a vector. An array can also not be moved in constant time, while a vector can. An array has a size() member function, which is a clear advantage over C-style arrays. The following example demonstrates how to use the array class. Note that the array declaration requires two template parameters: the first specifies the type of the elements, and the second specifies the fixed number of elements in the array.
+
+\begin{cpp}
+// Create an array of 3 integers and initialize them
+// with the given initializer_list using uniform initialization.
+array<int, 3> arr { 9, 8, 7 };
+// Output the size of the array.
+println("Array size = {}", arr.size()); // or std::size(arr)
+// Output the contents using C++23's support for formatting ranges.
+println("{:n}", arr);
+// Output the contents again using a range-based for loop.
+for (const auto& i : arr) { print("{} ", i); }
+println("");
+
+println("Performing arr.fill(3)...");
+// Use the fill member function to change the contents of the array.
+arr.fill(3);
+// Output the contents of the array using iterators.
+for (auto iter { cbegin(arr) }; iter != cend(arr); ++iter) {
+    print("{} ", *iter);
+}
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Array size = 3
+9, 8, 7
+9 8 7
+Performing arr.fill(3)...
+3 3 3
+\end{shell}
+
+You can use the std::get<n>() function template to retrieve an element from an std::array at the given index n. The index has to be a constant expression, so it cannot, for example, be a loop variable. The benefit of using std::get<n>() is that the compiler checks at compile time that the given index is valid; otherwise, it results in a compilation error, as in this example:
+
+\begin{cpp}
+array myArray { 11, 22, 33 }; // std::array supports CTAD.
+println("{}", std::get<1>(myArray));
+println("{}", std::get<10>(myArray)); // BUG! Compilation error!
+\end{cpp}
+
+std::to\_array(), defined in <array>, converts a given C-style array to an std::array, using copy-initialization of the elements. The function works only for one-dimensional arrays. Here is a quick example:
+
+\begin{cpp}
+auto arr1 { to_array({ 11, 22, 33 }) }; // Type is array<int, 3>
+
+double carray[] { 9, 8, 7, 6 };
+auto arr2 { to_array(carray) }; // Type is array<double, 4>
+\end{cpp}
+
+
+
+
+
+
+
 
 

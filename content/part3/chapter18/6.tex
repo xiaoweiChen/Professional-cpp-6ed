@@ -1,22 +1,332 @@
 
+There are several other features of the C++ language and the Standard Library that are somewhat related to containers, including standard C-style arrays, strings, streams, and bitset.
 
 \mySubsubsection{18.6.1.}{Standard C-Style Arrays}
 
+Recall that raw pointers are bona fide iterators because they support the required operations. This point is more than just a piece of trivia. It means that you can treat standard C-style arrays as Standard Library containers by using pointers to their elements as iterators. Standard C-style arrays, of course, don’t provide member functions like size(), empty(), insert(), and erase(), so they aren’t true Standard Library containers. Nevertheless, because they do support iterators through pointers, you can use them in the algorithms described in Chapter 20 and in some of the member functions described in this chapter.
 
+For example, you could copy all the elements of a standard C-style array into a vector using the insert() member function of a vector that takes an iterator range from any container. This insert() member function’s prototype looks like this:
+
+\begin{cpp}
+template <typename InputIterator> iterator insert(const_iterator position,
+    InputIterator first, InputIterator last);
+\end{cpp}
+
+If you want to use a standard C-style int array as the source, then the template type parameter InputIterator becomes int*. Here is a full example:
+
+\begin{cpp}
+const size_t count { 10 };
+int values[count]; // standard C-style array
+// Initialize each element of the array to the value of its index.
+for (int i { 0 }; i < count; ++i) { values[i] = i; }
+
+// Insert the contents of the array at the end of a vector.
+vector<int> vec;
+vec.insert(end(vec), values, values + count);
+
+// Print the contents of the vector.
+println("{:n} ", vec);
+\end{cpp}
+
+Note that the iterator referring to the first element of the array is the address of the first element, which is values in this case. The name of an array alone is interpreted as the address of the first element. The iterator referring to the end must be one-past-the-last element, so it’s the address of the first element plus count, or values+count.
+
+It’s easier to use std::begin() or cbegin() to get an iterator to the first element of a statically allocated C-style array not accessed through pointers, and std::end() or cend() to get an iterator to one-past-the-last element of such an array. For example, the call to insert() in the previous example can be written as follows:
+
+\begin{cpp}
+vec.insert(end(vec), cbegin(values), cend(values));
+\end{cpp}
+
+Starting with C++23, this can be written more elegantly using append\_range():
+
+\begin{cpp}
+vec.append_range(values);
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+Functions such as std::begin() and end() work only on statically allocated C-style arrays not accessed through pointers. They do not work if pointers are involved or with dynamically allocated C-style arrays.
+\end{myWarning}
 
 \mySubsubsection{18.6.2.}{Strings}
 
+You can think of a string as a sequential container of characters. Thus, it shouldn’t be surprising to learn that a C++ string is a full-fledged sequential container. It has begin() and end() member functions that return iterators into the string; and it has insert(), push\_back(), erase(), size(), and empty() member functions, and all the rest of the sequential container basics. It resembles a vector quite closely, even providing the member functions reserve() and capacity().
 
+You can use string as a Standard Library container just as you would use vector. Here is an example:
+
+\begin{cpp}
+string myString;
+myString.insert(cend(myString), 'h');
+myString.insert(cend(myString), 'e');
+myString.push_back('l');
+myString.push_back('l');
+myString.push_back('o');
+
+for (const auto& letter : myString) {
+    print("{}", letter);
+}
+println("");
+
+for (auto it { cbegin(myString) }; it != cend(myString); ++it) {
+    print("{}", *it);
+}
+println("");
+\end{cpp}
+
+In addition to the Standard Library sequential container member functions, strings provide a host of useful member functions and friend functions. The string interface is actually quite a good example of a cluttered interface, one of the design pitfalls discussed in Chapter 6, “Designing for Reuse.” The string class is discussed in detail in Chapter 2.
 
 \mySubsubsection{18.6.3.}{Streams}
 
-
+Input and output streams are not containers in the traditional sense because they do not store elements. However, they can be considered sequences of elements and as such share some characteristics with Standard Library containers. C++ streams do not provide any Standard Library–related member functions directly, but the Standard Library supplies special iterators called istream\_iterator and ostream\_iterator that allow you to “iterate” through input and output streams respectively. Chapter 17 explains how to use them.
 
 \mySubsubsection{18.6.4.}{bitset}
 
+A bitset is a fixed-length abstraction of a sequence of bits. A bit can represent only two values, 1 and 0, which can be referred to as on/off, true/false, and so on. A bitset also uses the terminology set and unset. You can toggle or flip a bit from one value to the other.
+
+A bitset is not a true Standard Library container: it’s of fixed size, it’s not parametrized on an element type, and it doesn’t support iteration. However, it’s a useful utility class, which is often lumped with the containers, so a brief introduction is provided here. Consult a Standard Library Reference for a thorough summary of the bitset operations.
+
+\CXXTwentythreeLogo{-40}{-50}
+
+\begin{myNotic}{NOTE}
+Starting with C++23, bitset is a constexpr class, and so can be used at compile time.
+\end{myNotic}
+
 \mySamllsection{bitset Basics}
+
+A bitset, defined in <bitset>, is parametrized on the number of bits it stores. The default constructor initializes all fields of a bitset to 0. An alternative constructor creates a bitset from a string of 0 and 1 characters.
+
+You can adjust the value of individual bits with the set(), reset(), and flip() member functions, and you can access and set individual fields with an overloaded operator[]. Note that operator[] on a non-const object returns a proxy object to which you can assign a Boolean value, call flip(), or complement with operator~. You can also access individual fields with the test() member function. Bits are accessed using a zero-based index. Finally, you can convert a bitset to a string of 0 and 1 characters using to\_string().
+
+Here is a small example:
+
+\begin{cpp}
+bitset<10> myBitset;
+
+myBitset.set(3);
+myBitset.set(6);
+myBitset[8] = true;
+myBitset[9] = myBitset[3];
+
+if (myBitset.test(3)) { println("Bit 3 is set!"); }
+println("{}", myBitset.to_string());
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Bit 3 is set!
+1101001000
+\end{shell}
+
+Note that the leftmost character in the output string is the highest numbered bit. This corresponds to our intuitions about binary number representations, where the low-order bit representing $2^0 = 1$ is the rightmost bit in the printed representation.
 
 \mySamllsection{Bitwise Operators}
 
+In addition to the basic bit manipulation routines, a bitset provides implementations of all the bitwise operators: \&, |, \^{}, ~, <{}<, >{}>, \&=, |=, \^{}=, <{}<=, and >{}>=. They behave just as they would on a “real” sequence of bits. Here is an example:
+
+\begin{cpp}
+auto str1 { "0011001100" };
+auto str2 { "0000111100" };
+bitset<10> bitsOne { str1 };
+bitset<10> bitsTwo { str2 };
+
+auto bitsThree { bitsOne & bitsTwo };
+println("{}", bitsThree.to_string());
+bitsThree <<= 4;
+println("{}", bitsThree.to_string());
+\end{cpp}
+
+The output of the program is as follows:
+
+\begin{shell}
+0000001100
+0011000000
+\end{shell}
+
 \mySamllsection{bitset Example: Representing Cable Channels}
+
+One possible use of bitsets is tracking channels of cable subscribers. Each subscriber could have a bitset of channels associated with their subscription, with set bits representing the channels to which they actually subscribe. This system could also support “packages” of channels, also represented as bitsets, which represent commonly subscribed combinations of channels.
+
+The following CableCompany class is a simple example of this model. It uses two maps, both mapping strings to bitsets. One stores the cable packages, while the other stores subscriber information.
+
+\begin{cpp}
+export class CableCompany final
+{
+    public:
+    // Number of supported channels.
+    static constexpr std::size_t NumChannels { 10 };
+    // Adds package with the channels specified as a bitset to the database.
+    void addPackage(const std::string& packageName,
+        const std::bitset<NumChannels>& channels);
+    // Adds package with the channels specified as a string to the database.
+    void addPackage(const std::string& packageName,
+        const std::string& channels);
+    // Removes the specified package from the database.
+    void removePackage(const std::string& packageName);
+    // Retrieves the channels of a given package.
+    // Throws out_of_range if the package name is invalid.
+    const std::bitset<NumChannels>& getPackage(
+    const std::string& packageName) const;
+    // Adds customer to database with initial channels found in package.
+    // Throws out_of_range if the package name is invalid.
+    // Throws invalid_argument if the customer is already known.
+    void newCustomer(const std::string& name, const std::string& package);
+    // Adds customer to database with given initial channels.
+    // Throws invalid_argument if the customer is already known.
+    void newCustomer(const std::string& name,
+        const std::bitset<NumChannels>& channels);
+    // Adds the channel to the customer's profile.
+    // Throws invalid_argument if the customer is unknown.
+    void addChannel(const std::string& name, int channel);
+    // Removes the channel from the customer's profile.
+    // Throws invalid_argument if the customer is unknown.
+    void removeChannel(const std::string& name, int channel);
+    // Adds the specified package to the customer's profile.
+    // Throws out_of_range if the package name is invalid.
+    // Throws invalid_argument if the customer is unknown.
+    void addPackageToCustomer(const std::string& name,
+    const std::string& package);
+    // Removes the specified customer from the database.
+    void deleteCustomer(const std::string& name);
+    // Retrieves the channels to which a customer subscribes.
+    // Throws invalid_argument if the customer is unknown.
+    const std::bitset<NumChannels>& getCustomerChannels(
+        const std::string& name) const;
+    private:
+        // Retrieves the channels for a customer. (non-const)
+        // Throws invalid_argument if the customer is unknown.
+        std::bitset<NumChannels>& getCustomerChannelsHelper(
+            const std::string& name);
+
+        using MapType = std::map<std::string, std::bitset<NumChannels>>;
+        MapType m_packages, m_customers;
+};
+\end{cpp}
+
+Here are the implementations of all member functions, with comments explaining the code:
+
+\begin{cpp}
+void CableCompany::addPackage(const string& packageName,
+    const bitset<NumChannels>& channels)
+{
+    m_packages.emplace(packageName, channels);
+}
+
+void CableCompany::addPackage(const string& packageName, const string& channels)
+{
+    addPackage(packageName, bitset<NumChannels> { channels });
+}
+
+void CableCompany::removePackage(const string& packageName)
+{
+    m_packages.erase(packageName);
+}
+
+const bitset<CableCompany::NumChannels>& CableCompany::getPackage(
+    const string& packageName) const
+{
+    // Get an iterator to the specified package.
+    if (auto it { m_packages.find(packageName) }; it != end(m_packages)) {
+        // Found package. Note that 'it' is an iterator to a name/bitset pair.
+        // The bitset is the second field.
+        return it->second;
+    }
+    throw out_of_range { format("Invalid package '{}'.", packageName) };
+}
+
+void CableCompany::newCustomer(const string& name, const string& package)
+{
+    // Get the channels for the given package.
+    auto& packageChannels { getPackage(package) };
+    // Create the account with the bitset representing that package.
+    newCustomer(name, packageChannels);
+}
+
+void CableCompany::newCustomer(const string& name,
+    const bitset<NumChannels>& channels)
+{
+    // Add customer to the customers map.
+    if (auto [iter, success] { m_customers.emplace(name, channels) }; !success) {
+        // Customer was already in the database. Nothing changed.
+        throw invalid_argument { format("Duplicate customer '{}'.", name) };
+    }
+}
+
+void CableCompany::addChannel(const string& name, int channel)
+{
+    // Get the current channels for the customer.
+    auto& customerChannels { getCustomerChannelsHelper(name) };
+    // We found the customer; set the channel.
+    customerChannels.set(channel);
+}
+
+void CableCompany::removeChannel(const string& name, int channel)
+{
+    // Get the current channels for the customer.
+    auto& customerChannels { getCustomerChannelsHelper(name) };
+    // We found this customer; remove the channel.
+    customerChannels.reset(channel);
+}
+
+void CableCompany::addPackageToCustomer(const string& name, const string& package)
+{
+    // Get the channels for the given package.
+    auto& packageChannels { getPackage(package) };
+    // Get the current channels for the customer.
+    auto& customerChannels { getCustomerChannelsHelper(name) };
+    // Or-in the package to the customer's existing channels.
+    customerChannels |= packageChannels;
+}
+
+void CableCompany::deleteCustomer(const string& name)
+{
+    m_customers.erase(name);
+}
+
+const bitset<CableCompany::NumChannels>& CableCompany::getCustomerChannels(
+    const string& name) const
+{
+    // Find an iterator to the customer.
+    if (auto it { m_customers.find(name) }; it != end(m_customers)) {
+        // Found customer. Note that 'it' is an iterator to a name/bitset pair.
+        // The bitset is the second field.
+        return it->second;
+    }
+    throw invalid_argument { format("Unknown customer '{}'.", name) };
+}
+
+bitset<CableCompany::NumChannels>& CableCompany::getCustomerChannelsHelper(
+    const string& name)
+{
+    // Forward to const getCustomerChannels() to avoid code duplication.
+    return const_cast<bitset<NumChannels>&>(getCustomerChannels(name));
+}
+\end{cpp}
+
+Finally, here is a simple program demonstrating how to use the CableCompany class:
+
+\begin{cpp}
+CableCompany myCC;
+myCC.addPackage("basic", "1111000000");
+
+myCC.addPackage("premium", "1111111111");
+myCC.addPackage("sports", "0000100111");
+
+myCC.newCustomer("Marc G.", "basic");
+myCC.addPackageToCustomer("Marc G.", "sports");
+println("{}", myCC.getCustomerChannels("Marc G.").to_string());
+
+try { println("{}", myCC.getCustomerChannels("John").to_string()); }
+catch (const exception& e) { println("Error: {}", e.what()); }
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+1111100111
+Error: Unknown customer 'John'.
+\end{shell}
+
+
+
+
+
 

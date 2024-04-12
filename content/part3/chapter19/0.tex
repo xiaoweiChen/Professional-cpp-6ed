@@ -1,0 +1,29 @@
+\noindent
+\textbf{WHAT’S IN THIS CHAPTER?}
+
+\begin{itemize}
+\item
+How to use function pointers
+
+\item
+How to use pointers to class member functions
+
+\item
+What function objects are
+
+\item
+Which standard function objects are available and how to write your own
+
+\item
+How to use polymorphic function wrappers
+
+\item
+What lambda expressions are
+\end{itemize}
+
+\noindent
+\textbf{WILEY.COM DOWNLOADS FOR THIS CHAPTER}
+
+Please note that all the code examples for this chapter are available as part of this chapter’s code download on the book’s website at \url{www.wiley.com/go/proc++6e} on the Download Code tab.
+
+Functions in C++ are first-class functions, as functions can be used in the same way as normal variables, such as passing them as arguments to other functions, returning them from other functions, and assigning them to variables. A term that often comes up in this context is a callback, representing something that can be called. It can be a function pointer or something that behaves like a function pointer, such as an object with an overloaded operator(), or an inline lambda expression. A class that overloads operator() is called a function object, or functor for short. Conveniently, the Standard Library provides a set of classes that can be used to create callback objects and to adapt existing callback objects. Lambda expressions allow you to create small inline callbacks right at the place where you need them, which improves the readability and maintainability of your code. It’s time to take a closer look at the concept of callbacks, because many of the algorithms explained in the next chapter accept such callbacks to customize their behavior.

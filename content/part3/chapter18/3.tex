@@ -1,8 +1,196 @@
 
+The C++ Standard Library provides two sequential views: std::span and std::mdspan. The latter is new in C++23. A span provides a one-dimensional, non-owning view over a contiguous sequence of data. An mdspan generalizes this concept and allows the creation of multidimensional, non-owning views over a contiguous sequence of data.
 
 \mySubsubsection{18.3.1.}{span}
 
+Suppose you have this function to print the contents of a vector:
 
+\begin{cpp}
+void print(const vector<int>& values)
+{
+    for (const auto& value : values) { print("{} ", value); }
+    println("");
+}
+\end{cpp}
+
+Suppose further that you also want to print the contents of C-style arrays. One option is to overload the print() function to accept a pointer to the first element of the array, and the number of elements to print:
+
+\begin{cpp}
+void print(const int values[], size_t count)
+{
+    for (size_t i { 0 }; i < count; ++i) { print("{} ", values[i]); }
+    println("");
+}
+\end{cpp}
+
+If you also want to print std::arrays, you could provide a third overload, but what would the function parameter type be? For an std::array, you have to specify the type and the number of elements in the array as template parameters. You see, it’s getting complicated.
+
+std::span, defined in <span>, comes to the rescue here, as it allows you to write a single function that works with vectors, C-style arrays, and std::arrays of any size. Here is a single implementation of print() using span:
+
+\begin{cpp}
+void print(span<int> values)
+{
+    for (const auto& value : values) { print("{} ", value); }
+    println("");
+}
+\end{cpp}
+
+Note that, just as with string\_view from Chapter 2, a span is cheap to copy; it basically just contains a pointer to the first element in a sequence and a number of elements. A span never copies data! As such, it is usually passed by value.
+
+There are several constructors for creating a span. For example, one can be created to include all elements of a given vector, std::array, or C-style array. A span can also be created to include only part of a container, by passing the address of the first element and the number of elements you want to include in the span.
+
+A subview can be created from an existing span using the subspan() member function. Its first argument is the offset into the span, and the second argument is the number of elements to include in the subview. There are also two additional member functions called first() and last() returning subviews of a span containing the first n elements or the last n elements respectively.
+
+A span has a couple of member functions that are similar to vector and array: begin(), end(), rbegin(), rend(), front(), back(), operator[], data(), size(), and empty().
+
+The following code snippet demonstrates a few ways to call the print(span) function:
+
+\begin{cpp}
+vector v { 11, 22, 33, 44, 55, 66 };
+// Pass the whole vector, implicitly converted to a span.
+print(v);
+// Pass an explicitly created span.
+span mySpan { v };
+print(mySpan);
+// Create a subview and pass that.
+span subspan { mySpan.subspan(2, 3) };
+print(subspan);
+// Pass a subview created in-line.
+print({ v.data() + 2, 3 });
+
+// Pass an std::array.
+array<int, 5> arr { 5, 4, 3, 2, 1 };
+print(arr);
+print({ arr.data() + 2, 3 });
+
+// Pass a C-style array.
+int carr[] { 9, 8, 7, 6, 5 };
+print(carr); // The entire C-style array.
+print({ carr + 2, 3 }); // A subview of the C-style array.
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+11 22 33 44 55 66
+11 22 33 44 55 66
+33 44 55
+33 44 55
+5 4 3 2 1
+3 2 1
+9 8 7 6 5
+7 6 5
+\end{shell}
+
+Unlike string\_view that provides a read-only view of a string, a span can provide read/write access to the underlying elements. Remember that a span just contains a pointer to the first element in a sequence and the number of elements; that is, a span never copies data! As such, modifying an element in a span actually modifies the element in the underlying sequence. If this is not desired, a span of const elements can be created. For example, the print() function has no reason to modify any of the elements in a given span. We can prevent such modifications as follows:
+
+\begin{cpp}
+void print(span<const int> values)
+{
+    for (const auto& value : values) { print("{} ", value); }
+    println("");
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+When writing a function accepting a const vector<T>\&, consider accepting a span<const T> instead, so the function can work with views and subviews of data sequences coming from vectors, arrays, C-style arrays and more. If the function accepts a vector<T>\&, consider accepting a span<T>, unless the function needs to add or remove elements from the vector.
+\end{myNotic}
+
+\CXXTwentythreeLogo{-40}{-50}
 
 \mySubsubsection{18.3.2.}{mdspan}
+
+std::mdspan, defined in <mdspan>, is similar to std::span but allows you to create multidimensional views over a contiguous sequence of data. Just as span, an mdspan doesn’t own the data, so it is cheap to copy. An mdspan has four template type parameters:
+
+\begin{itemize}
+\item
+ElementType: The type of the underlying elements.
+
+\item
+Extents: The number of dimensions and their size, a specialization of std::extents.
+
+\item
+LayoutPolicy: A policy specifying how to convert a multidimensional index to a one-dimensional index into the underlying contiguous sequence of data. You can implement whichever layout policy you need, such as tiled layout, Hilbert curve, and so on. The following standard policies are available:
+\begin{itemize}
+\item
+layout\_right: Row-major multidimensional array layout, where the rightmost extent has stride 1. This is the default policy.
+
+\item
+layout\_left: Column-major multidimensional array layout, where the leftmost extent has stride 1.
+
+\item
+layout\_stride: A layout mapping with user-defined strides.
+\end{itemize}
+
+\item
+AccessorPolicy: A policy specifying how to convert the one-dimensional index into the underlying contiguous sequence of data into a reference to the actual element at that location. The default is std::default\_accessor.
+\end{itemize}
+
+There are numerous constructors available. One of them is a constructor accepting a pointer to the contiguous sequence of data as the first parameter, followed by one or more dimension extents. Such extents passed as constructor arguments are called dynamic extents. Data can be accessed using a multidimensional operator[]. The size() member function returns the number of elements in an mdspan, and empty() returns true if an mdspan is empty. The stride(n) member function can be used to query the stride of dimension n. The size of the dimensions can be queried using the extents() member function. It returns an std::extents instance on which you can call extent(n) to query the size of dimension n. Here is an example:
+
+\begin{cpp}
+template <typename T> void print2Dmdspan(const T& mdSpan)
+{
+    for (size_t i { 0 }; i < mdSpan.extents().extent(0); ++i) {
+        for (size_t j { 0 }; j < mdSpan.extents().extent(1); ++j) {
+            print("{} ", mdSpan[i, j]);
+        }
+        println("");
+    }
+}
+
+int main()
+{
+    vector data { 1, 2, 3, 4, 5, 6, 7, 8 };
+    // View data as a 2D array of 2 rows with 4 integers each,
+    // using the default row-major layout policy.
+    mdspan data2D { data.data(), 2, 4 };
+    print2Dmdspan(data2D);
+}
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+1 2 3 4
+5 6 7 8
+\end{shell}
+
+This code uses the default row-major layout policy. The following code snippet uses the columnmajor layout policy instead. Because the layout policy is the third template type parameter, you have to specify the first and second template type parameters as well. Instead of passing the size of each dimension as an argument to the constructor, the code now passes an std::extents as the second template type parameter:
+
+\begin{cpp}
+mdspan<int, extents<int, 2, 4>, layout_left> data2D { data.data() };
+\end{cpp}
+
+The output now is as follows:
+
+\begin{shell}
+1 3 5 7
+2 4 6 8
+\end{shell}
+
+This mdspan definition specifies the extent of all dimensions as compile-time constants, i.e., static extents. It is also possible to combine static and dynamic extents. The following example specifies the first dimension as a compile-time constant, and the second as a dynamic extent. You then must pass the size of all dynamic extents as arguments to the constructor.
+
+\begin{cpp}
+mdspan<int, extents<int, 2, dynamic_extent>> data2D { data.data(), 4 };
+\end{cpp}
+
+The output is again as follows:
+
+\begin{shell}
+1 2 3 4
+5 6 7 8
+\end{shell}
+
+
+
+
+
+
+
+
+
+
+
+
 

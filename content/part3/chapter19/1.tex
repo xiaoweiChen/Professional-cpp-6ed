@@ -1,4 +1,17 @@
 
+You don’t normally think about the location of functions in memory, but each function actually lives at a particular address. In C++, you can use functions as data; that is, C++ has first-class functions. In other words, you can take the address of a function and use it like you use a variable.
+
+Function pointers are typed according to the parameter types and return type of compatible functions. Here’s an example of a definition for a variable called fun capable of pointing to functions returning a Boolean and accepting two int arguments:
+
+\begin{cpp}
+bool (*fun)(int, int);
+\end{cpp}
+
+Don’t forget the parentheses around *fun; otherwise, this statement would not be a variable but a function prototype for a function named fun, accepting two ints and returning a pointer to a bool. The fun function pointer is uninitialized. As you know, uninitialized data should be avoided. You could initialize fun to nullptr as follows:
+
+\begin{cpp}
+bool (*fun)(int, int) { nullptr };
+\end{cpp}
 
 \mySubsubsection{19.1.1.}{findMatches() Using Function Pointers}
 

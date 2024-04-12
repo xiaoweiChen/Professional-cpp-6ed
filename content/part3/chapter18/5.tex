@@ -1,34 +1,1076 @@
 
 
+The C++ Standard Library provides several different types of associative containers:
+
+\begin{itemize}
+\item
+Ordered associative containers: map, multimap, set, and multiset.
+
+\item
+Unordered associative containers: unordered\_map, unordered\_multimap, unordered\_set, and unordered\_multiset. These are also known as hash tables.
+
+\CXXTwentythreeLogo{-40}{-50}
+
+\item
+Flat associative container adapters: flat\_map, flat\_multimap, flat\_set, and flat\_multiset. These adapt sequential containers to behave as ordered associative containers.
+\end{itemize}
+
 \mySubsubsection{18.5.1.}{Ordered Associative Containers}
+
+Unlike the sequential containers, the ordered associative containers do not store elements in a linear configuration. Instead, they provide a mapping of keys to values. They generally offer insertion, deletion, and lookup times that are equivalent to each other.
+
+There are four ordered associative containers provided by the Standard Library: map, multimap, set, and multiset. Each of these containers stores its elements in a sorted, tree-like data structure.
 
 \mySamllsection{The pair Utility Class}
 
+Before delving deeper into the ordered associative containers, let’s revisit the pair class template briefly introduced in Chapter 1. It is defined in <utility> and groups together two values of possibly different types. The values are accessible through the first and second public data members. All comparison operators are supported and compare both the first and second values. Here are some examples:
+
+\begin{cpp}
+// Two-argument constructor and default constructor
+pair<string, int> myPair { "hello", 5 };
+pair<string, int> myOtherPair;
+
+// Can assign directly to first and second
+myOtherPair.first = "hello";
+myOtherPair.second = 6;
+
+// Copy constructor
+pair<string, int> myThirdPair { myOtherPair };
+
+// operator<
+if (myPair < myOtherPair) {
+    println("myPair is less than myOtherPair");
+} else {
+    println("myPair is greater than or equal to myOtherPair");
+}
+
+// operator==
+if (myOtherPair == myThirdPair) {
+    println("myOtherPair is equal to myThirdPair");
+} else {
+    println("myOtherPair is not equal to myThirdPair");
+}
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+myPair is less than myOtherPair
+myOtherPair is equal to myThirdPair
+\end{shell}
+
+With class template argument deduction, you can omit the template type arguments. Here is an example. Note the use of the standard string literal s.
+
+\begin{cpp}
+pair myPair { "hello"s, 5 }; // Type is pair<string, int>.
+\end{cpp}
+
+Before C++17 introduced support for CTAD, an std::make\_pair() utility function template could be used to construct a pair from two values. The following are three ways to construct a pair of an int and a double:
+
+\begin{cpp}
+pair<int, double> pair1 { make_pair(5, 10.10) };
+auto pair2 { make_pair(5, 10.10) };
+pair pair3 { 5, 10.10 }; // CTAD
+\end{cpp}
+
 \mySamllsection{map}
+
+A map, defined in <map>, stores key/value pairs instead of just single values. Insertion, lookup, and deletion are all based on the key; the value is just “along for the ride.” The term map comes from the conceptual understanding that the container “maps” keys to values.
+
+A map keeps elements in sorted order, based on the keys, so that insertion, deletion, and lookup all take logarithmic time. Because of the order, when you enumerate the elements, they come out in the ordering imposed by the type’s operator< or a user-defined comparator. It is usually implemented as some form of balanced tree, such as a red-black tree. However, the tree structure is not exposed to the client.
+
+You should use a map whenever you need to store and retrieve elements based on a “key” and you would like to have them in a certain order.
+
+\mySamllsection{Constructing maps}
+
+The map class template takes four types: the key type, the value type, the comparator type, and the allocator type. As always, the allocator is ignored in this chapter. The comparator is similar to the comparator for a priority\_queue described earlier. It allows you to change the default comparator. In this chapter, only the default less comparator is used. When using the default, make sure that your keys all respond to operator< appropriately. If you’re interested in further detail, Chapter 19 explains how to write your own comparators.
+
+If you ignore the comparator and allocator parameters, constructing a map is just like constructing a vector or a list, except that you specify the key and value types separately in the template instantiation. For example, the following code constructs a map that uses ints as the key and objects of the Data class as values:
+
+\begin{cpp}
+class Data final
+{
+    public:
+        explicit Data(int value = 0) : m_value { value } { }
+        int getValue() const { return m_value; }
+        void setValue(int value) { m_value = value; }
+    private:
+        int m_value;
+};
+...
+map<int, Data> dataMap;
+\end{cpp}
+
+Internally, dataMap stores a pair<int, Data> for each element in the map.
+
+A map also supports uniform initialization. The following map internally stores instances of pair<string, int>:
+
+\begin{cpp}
+map<string, int> m {
+    { "Marc G.", 12 }, { "Warren B.", 34 }, { "Peter V.W.", 56 }
+};
+\end{cpp}
+
+Class template argument deduction does not work as usual. For example, the following does not compile:
+
+\begin{cpp}
+map m {
+    { "Marc G."s, 12 }, { "Warren B."s, 34 }, { "Peter V.W."s, 56 }
+};
+\end{cpp}
+
+This does not work because the compiler cannot deduce pair<string, int> from, for example, \{"Marc G."s, 12\}. If you really want, you can write the following (note the s suffix for the string literals!):
+
+\begin{cpp}
+map m {
+    pair { "Marc G."s, 12 }, pair { "Warren B."s, 34 }, pair { "Peter V.W."s, 56 }
+};
+\end{cpp}
+
+\CXXTwentythreeLogo{-40}{-50}
+
+\mySamllsection{Formatting and Printing Maps}
+
+Just as for vectors, std::format() and the print() functions can be used to format and print entire maps with a single statement. For vectors, the output is surrounded by square brackets, and each element is separated with a comma. For maps, the output is slightly different: the output is surrounded by curly brackets, each key/value pair is separated by a comma, and a colon separates the key and the value. For example, printing the map from the previous section, m, gives the following output:
+
+\begin{cpp}
+{"Marc G.": 12, "Peter V.W.": 56, "Warren B.": 34}
+\end{cpp}
+
+\mySamllsection{Inserting Elements}
+
+Inserting an element into sequential containers such as vector and list always requires you to specify the position at which the element is to be added. A map, along with the other ordered associative containers, is different. The map’s internal implementation determines the position in which to store the new element; you need only to supply the key and the value.
+
+\begin{myNotic}{NOTE}
+map and the other ordered associative containers do provide a version of insert() that takes an iterator position. However, that position is only a “hint” to the container as to the correct position. The container is not required to insert the element at that position.
+\end{myNotic}
+
+When inserting elements, it is important to keep in mind that maps require unique keys: every element in the map must have a different key. If you want to support multiple elements with the same key, you have two options: either you can use a map and store another container such as a vector as the value for a key or you can use multimaps, described later.
+
+\mySamllsection{The insert() Member Function}
+
+The insert() member function can be used to add elements to a map and has the advantage of allowing you to detect whether a key already exists. You must specify the key/value pair as a pair object or as an initializer\_list. The return type of the basic form of insert() is a pair of an iterator and a bool. The reason for the complicated return type is that insert() does not overwrite a value if one already exists with the specified key. The bool element of the returned pair specifies whether the insert() actually inserted the new key/value pair. The iterator refers to the element in the map with the specified key (with a new or old value, depending on whether the insert succeeded or failed). map iterators are discussed in more detail in the next section. Continuing the map example from the previous section, you can use insert() as follows:
+
+\begin{cpp}
+map<int, Data> dataMap;
+
+auto ret { dataMap.insert({ 1, Data { 4 } }) }; // Using an initializer_list
+if (ret.second) { println("Insert succeeded!"); }
+else { println("Insert failed!"); }
+
+ret = dataMap.insert(make_pair(1, Data { 6 })); // Using a pair object
+if (ret.second) { println("Insert succeeded!"); }
+else { println("Insert failed!"); }
+\end{cpp}
+
+The type of the ret variable is a pair as follows:
+
+\begin{cpp}
+pair<map<int, Data>::iterator, bool> ret;
+\end{cpp}
+
+The first element of the pair is a map iterator for a map with keys of type int and values of type Data. The second element of the pair is a Boolean value.
+
+The output of the program is as follows:
+
+\begin{shell}
+Insert succeeded!
+Insert failed!
+\end{shell}
+
+With if statement initializers, inserting the data into the map and checking the result can be done with a single statement as follows:
+
+\begin{cpp}
+if (auto result { dataMap.insert({ 1, Data { 4 } }) }; result.second) {
+    println("Insert succeeded!");
+} else {
+    println("Insert failed!");
+}
+\end{cpp}
+
+This can further be combined with structured bindings:
+
+\begin{cpp}
+if (auto [iter, success] { dataMap.insert({ 1, Data { 4 } }) }; success) {
+    println("Insert succeeded!");
+} else {
+    println("Insert failed!");
+}
+\end{cpp}
+
+\mySamllsection{The insert\_or\_assign() Member Function}
+
+insert\_or\_assign() has a similar return type as insert(). However, if an element with the given key already exists, insert\_or\_assign() overwrites the old value with the new value, while insert() does not overwrite the old value in that case. Another difference with insert() is that insert\_or\_assign() has two separate parameters: the key and the value. Here is an example:
+
+\begin{cpp}
+auto ret { dataMap.insert_or_assign(1, Data { 7 }) };
+if (ret.second) { println("Inserted."); }
+else { println("Overwritten."); }
+\end{cpp}
+
+\CXXTwentythreeLogo{-40}{-50}
+
+\mySamllsection{The insert\_range() Member Function}
+
+C++23 adds insert\_range() for map, which can be used to insert all elements of a given range to the map, and returns an iterator to the first element that was added. Here is an example:
+
+\begin{cpp}
+vector<pair<int, Data>> moreData { {2, Data{22}}, {3, Data{33}}, {4, Data{44}} };
+dataMap.insert_range(moreData);
+\end{cpp}
+
+\mySamllsection{operator[]}
+
+Another member function to insert elements into a map is through the overloaded operator[]. The difference is mainly in the syntax: you specify the key and value separately. Additionally, operator[] always succeeds. If no value with the given key exists, it creates a new element with that key and value. If an element with the key already exists, operator[] replaces the value with the newly specified value. Here is part of the previous example using operator[] instead of insert():
+
+\begin{cpp}
+map<int, Data> dataMap;
+dataMap[1] = Data { 4 };
+dataMap[1] = Data { 6 }; // Replaces the element with key 1
+\end{cpp}
+
+There is, however, one major caveat to operator[]: it always constructs a new value object, even if it doesn’t need to use it. Thus, it requires a default constructor for the element values and can be less efficient than insert().
+
+The fact that operator[] creates a new element in a map if the requested element does not already exist means that this operator is not marked as const. This sounds obvious, but might sometimes look counterintuitive. For example, suppose you have the following function:
+
+\begin{cpp}
+void func(const map<int, int>& m)
+{
+    println("{}", m[1]); // Error
+}
+\end{cpp}
+
+This fails to compile, even though you appear to be just reading the value m[1]. It fails because the parameter m is a reference-to-const to a map, and operator[] is not marked as const. In such cases, you should instead use the find() or at() member function described in the section “Looking Up Elements.”
+
+\mySamllsection{Emplace Member Functions}
+
+A map supports emplace() and emplace\_hint() to construct elements in-place, similar to the emplace member functions of a vector. There is also a try\_emplace() member function that inserts an element in-place if the given key does not exist yet, or does nothing if the key already exists in the map.
+
+\mySamllsection{map Iterators}
+
+map iterators work similarly to the iterators on the sequential containers. The major difference is that the iterators refer to key/value pairs instead of just the values. To access the value, you must retrieve the second field of the pair object. map iterators are bidirectional, meaning you can traverse them in both directions. Here is how you can iterate through the map from the previous example:
+
+\begin{cpp}
+for (auto iter { cbegin(dataMap) }; iter != cend(dataMap); ++iter) {
+    println("{}", iter->second.getValue());
+}
+\end{cpp}
+
+Take another look at the expression used to access the value:
+
+\begin{cpp}
+iter->second.getValue()
+\end{cpp}
+
+iter refers to a key/value pair, so you can use the -> operator to access the second field of that pair, which is a Data object. You can then call the getValue() member function on that Data object.
+
+Note that the following code is functionally equivalent:
+
+\begin{cpp}
+(*iter).second.getValue()
+\end{cpp}
+
+Using a range-based for loop, the loop can be written more readable and less error prone as follows:
+
+\begin{cpp}
+for (const auto& p : dataMap) {
+    println("{}", p.second.getValue());
+}
+\end{cpp}
+
+It can be implemented even more elegantly using a combination of a range-based for loop and structured bindings:
+
+\begin{cpp}
+for (const auto& [key, data] : dataMap) {
+    println("{}", data.getValue());
+}
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+You can modify element values through non-const iterators, but the compiler will generate an error if you try to modify the key of an element, even through a non-const iterator, because it would destroy the sorted order of the elements in the map.
+\end{myWarning}
+
+\mySamllsection{Looking Up Elements}
+
+A map provides logarithmic lookup of elements based on a supplied key. If you already know that an element with a given key is in a map, the simplest way to look it up is through operator[] as long as you call it on a non-const map or a reference-to-non-const map. The nice thing about operator[] is that it returns a reference to the value that you can use and modify directly, without worrying about pulling the value out of a pair object. Here is an extension of the previous example to call the setValue() member function on the Data object value with key 1:
+
+\begin{cpp}
+map<int, Data> dataMap;
+dataMap[1] = Data { 4 };
+dataMap[1] = Data { 6 };
+dataMap[1].setValue(100);
+\end{cpp}
+
+As an alternative, map provides a find() member function that returns an iterator referring to the key/value pair with the requested key, if it exists, or the end() iterator if the key is not found in the map. This can be useful in the following cases:
+
+\begin{itemize}
+\item
+If you don’t know whether the element exists, you may not want to use operator[], because it will insert a new element with that key if it doesn’t find one already.
+
+\item
+If you have a const or a reference-to-const map, in which case you cannot use operator[].
+\end{itemize}
+
+Here is an example using find() to perform the same modification to the Data object with key 1:
+
+\begin{cpp}
+auto it { dataMap.find(1) };
+if (it != end(dataMap)) {
+    it->second.setValue(100);
+}
+\end{cpp}
+
+As you can see, using find() is a bit clumsier, but it’s sometimes necessary.
+
+Alternatively, you can use the at() member function, which, just as operator[], returns a reference to the value in the map with the requested key, if it exists. It throws an out\_of\_range exception if the requested key isn’t found in the map. The at() member function works fine on a const or a reference-to-const map. For example:
+
+\begin{cpp}
+dataMap.at(1).setValue(200);
+\end{cpp}
+
+If you only want to know whether an element with a certain key is in a map, you can use the count() member function. It returns the number of elements in a map with a given key. For maps, the result will always be 0 or 1 because there can be no elements with duplicate keys.
+
+Additionally, all associative containers (ordered, unordered, and flat) have a member function called contains(). It returns true if a given key exists in a container, false otherwise. With this, it’s no longer necessary to use count() to figure out whether a certain key is in an associative container. Here is an example:
+
+\begin{cpp}
+auto isKeyInMap { dataMap.contains(1) };
+\end{cpp}
+
+\mySamllsection{Removing Elements}
+
+A map allows you to remove an element at a specific iterator position or to remove all elements in a given iterator range, in amortized constant and logarithmic time, respectively. From the client perspective, these two erase() member functions are equivalent to those in the sequential containers. A great feature of a map, however, is that it also provides a version of erase() to remove an element matching a key. Here is an example:
+
+\begin{cpp}
+map<int, Data> dataMap;
+dataMap[1] = Data { 4 };
+println("There are {} elements with key 1.", dataMap.count(1));
+dataMap.erase(1);
+println("There are {} elements with key 1.", dataMap.count(1));
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+There are 1 elements with key 1.
+There are 0 elements with key 1.
+\end{shell}
+
+\mySamllsection{Nodes}
+
+All the ordered and unordered associative containers are node-based data structures. The Standard Library provides direct access to nodes in the form of node handles. The exact type is unspecified, but each container has a type alias called node\_type that specifies the type of a node handle for that container. A node handle can only be moved and is the owner of the element stored in a node. It provides read/write access to both the key and the value.
+
+Nodes can be extracted from an associative container as a node handle using the extract() member function, based either on a given iterator position or on a given key. Extracting a node from a container removes it from the container, because the returned node handle is the sole owner of the extracted element.
+
+New insert() overloads are provided that allow you to insert a node handle into a container.
+
+By using extract() to extract node handles and using insert() to insert node handles, you can effectively transfer data from one associative container to another one without any copying or moving involved. You can even transfer nodes from a map to a multimap and from a set to a multiset. Continuing with the example from the previous section, the following code snippet transfers the node with key 1 from dataMap to a second map called dataMap2:
+
+\begin{cpp}
+map<int, Data> dataMap2;
+auto extractedNode { dataMap.extract(1) };
+dataMap2.insert(move(extractedNode));
+\end{cpp}
+
+The last two lines can be combined into one:
+
+\begin{cpp}
+dataMap2.insert(dataMap.extract(1));
+\end{cpp}
+
+One additional operation is available to move all nodes from one associative container to another one: merge(). Nodes that cannot be moved because they would cause, for example, duplicates in a target container that does not allow duplicates, are left in the source container. Here is an example:
+
+\begin{cpp}
+map<int, int> src { {1, 11}, {2, 22} };
+map<int, int> dst { {2, 22}, {3, 33}, {4, 44}, {5, 55} };
+dst.merge(src);
+println("src = {}", src); // src = {2: 22}
+println("dst = {}", dst); // dst = {1: 11, 2: 22, 3: 33, 4: 44, 5: 55}
+\end{cpp}
+
+After the merge operation, src still contains one element, \{2: 22\}, because the destination already contains such an element, so it cannot be moved.
+
+\mySamllsection{map Example: Bank Account}
+
+You can implement a simple bank account database using a map. A common pattern is for the key to be one field of a class or struct that is stored in a map. In this case, the key is the account number. Here are simple BankAccount and BankDB classes:
+
+\begin{cpp}
+export class BankAccount final
+{
+    public:
+        explicit BankAccount(int accountNumber, std::string name)
+            : m_accountNumber { accountNumber }, m_clientName { std::move(name) }{}
+        void setAccountNumber(int accountNumber) {
+            m_accountNumber = accountNumber; }
+        int getAccountNumber() const { return m_accountNumber; }
+
+        void setClientName(std::string name) { m_clientName = std::move(name); }
+        const std::string& getClientName() const { return m_clientName; }
+    private:
+        int m_accountNumber;
+        std::string m_clientName;
+};
+export class BankDB final
+{
+    public:
+        // Adds account to the bank database. If an account exists already
+        // with that account number, the new account is not added. Returns true
+        // if the account is added, false if it's not.
+        bool addAccount(const BankAccount& account);
+
+        // Removes the account with accountNumber from the database.
+        void deleteAccount(int accountNumber);
+
+        // Returns a reference to the account represented
+        // by its account number or the client name.
+        // Throws out_of_range if the account is not found.
+        BankAccount& findAccount(int accountNumber);
+        BankAccount& findAccount(std::string_view name);
+
+        // Adds all the accounts from db to this database.
+        // Deletes all the accounts from db.
+        void mergeDatabase(BankDB& db);
+    private:
+        std::map<int, BankAccount> m_accounts;
+};
+\end{cpp}
+
+Here are the implementations of the BankDB member functions, with comments explaining the code:
+
+\begin{cpp}
+bool BankDB::addAccount(const BankAccount& account)
+{
+    // Do the actual insert, using the account number as the key.
+    auto res { m_accounts.emplace(account.getAccountNumber(), account) };
+    // or: auto res { m_accounts.insert(
+        // pair { account.getAccountNumber(), account }) };
+    // Return the bool field of the pair specifying success or failure.
+    return res.second;
+}
+
+void BankDB::deleteAccount(int accountNumber)
+{
+    m_accounts.erase(accountNumber);
+}
+
+BankAccount& BankDB::findAccount(int accountNumber)
+{
+    // Finding an element via its key can be done with find().
+    auto it { m_accounts.find(accountNumber) };
+    if (it == end(m_accounts)) {
+        throw out_of_range { format("No account with number {}.", accountNumber) };
+    }
+    // Remember that iterators into maps refer to pairs of key/value.
+    return it->second;
+}
+
+BankAccount& BankDB::findAccount(string_view name)
+{
+    // Finding an element by a non-key attribute requires a linear
+    // search through the elements. The following uses structured bindings.
+    for (auto& [accountNumber, account] : m_accounts) {
+        if (account.getClientName() == name) {
+            return account; // found it!
+        }
+    }
+    throw out_of_range { format("No account with name '{}'.", name) };
+}
+
+void BankDB::mergeDatabase(BankDB& db)
+{
+    // Use merge().
+    m_accounts.merge(db.m_accounts);
+    // Or: m_accounts.insert(begin(db.m_accounts), end(db.m_accounts));
+
+    // Now clear the source database.
+    db.m_accounts.clear();
+}
+\end{cpp}
+
+You can test the BankDB class with the following code:
+
+\begin{cpp}
+BankDB db;
+db.addAccount(BankAccount { 100, "Nicholas Solter" });
+db.addAccount(BankAccount { 200, "Scott Kleper" });
+
+try {
+    auto& account { db.findAccount(100) };
+    println("Found account 100");
+    account.setClientName("Nicholas A Solter");
+
+    auto& account2 { db.findAccount("Scott Kleper") };
+    println("Found account of Scott Kleper");
+
+    auto& account3 { db.findAccount(1000) };
+} catch (const out_of_range& caughtException) {
+    println("Unable to find account: {}", caughtException.what());
+}
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Found account 100
+Found account of Scott Kleper
+Unable to find account: No account with number 1000.
+\end{shell}
 
 \mySamllsection{multimap}
 
+A multimap is a map that allows multiple elements with the same key. Like maps, multimaps support uniform initialization. The interface is almost identical to the map interface, with the following differences:
+
+\begin{itemize}
+\item
+multimaps do not provide operator[] and at(). The semantics of these do not make sense if there can be multiple elements with a single key.
+
+\item
+Inserts on multimaps always succeed. Thus, the multimap::insert() member function that adds a single element returns just an iterator instead of a pair.
+
+\item
+The insert\_or\_assign() and try\_emplace() member functions supported by map are not supported by multimap.
+\end{itemize}
+
+\begin{myNotic}{NOTE}
+multimaps allow you to insert identical key/value pairs. If you want to avoid this redundancy, you must check explicitly before inserting a new element.
+\end{myNotic}
+
+The trickiest aspect of multimaps is looking up elements. You can’t use operator[], because it is not provided. find() isn’t very useful because it returns an iterator referring to any one of the elements with a given key (not necessarily the first element with that key).
+
+However, multimaps store all elements with the same key together and provide member functions to obtain iterators for this subrange of elements with the same key in the container. The lower\_bound() and upper\_bound() member functions each return a single iterator referring to the first and one-past-the-last elements matching a given key. If there are no elements matching that key, the iterators returned by lower\_bound() and upper\_bound() will be equal to each other.
+
+If you need to obtain both iterators bounding the elements with a given key, it’s more efficient to use equal\_range() instead of calling lower\_bound() followed by calling upper\_bound(). The equal\_range() member function returns a pair of the two iterators that would be returned by lower\_bound() and upper\_bound().
+
+\begin{myNotic}{NOTE}
+The lower\_bound(), upper\_bound(), and equal\_range() member functions exist for maps as well, but their usefulness is limited because a map cannot have multiple elements with the same key.
+\end{myNotic}
+
+\mySamllsection{multimap Example: Buddy Lists}
+
+Most of the numerous online chat programs allow users to have a “buddy list” or list of friends. The chat program confers special privileges on users in the buddy list, such as allowing them to send unsolicited messages to the user.
+
+One way to implement the buddy lists for an online chat program is to store the information in a multimap. One multimap could store the buddy lists for every user. Each entry in the container stores one buddy for a user. The key is the user, and the value is the buddy. For example, if Harry Potter and Ron Weasley had each other on their individual buddy lists, there would be two entries of the form “Harry Potter” maps to “Ron Weasley” and “Ron Weasley” maps to “Harry Potter.” A multimap allows multiple values for the same key, so the same user is allowed multiple buddies. Here is the BuddyList class definition:
+
+\begin{cpp}
+export class BuddyList final
+{
+    public:
+        // Adds buddy as a friend of name.
+        void addBuddy(const std::string& name, const std::string& buddy);
+        // Removes buddy as a friend of name.
+        void removeBuddy(const std::string& name, const std::string& buddy);
+        // Returns true if buddy is a friend of name, false otherwise.
+        bool isBuddy(const std::string& name, const std::string& buddy) const;
+        // Retrieves a list of all the friends of name.
+        std::vector<std::string> getBuddies(const std::string& name) const;
+    private:
+        std::multimap<std::string, std::string> m_buddies;
+};
+\end{cpp}
+
+Here are the implementations, with comments explaining the code. It demonstrates the use of lower\_bound(), upper\_bound(), and equal\_range().
+
+\begin{cpp}
+void BuddyList::addBuddy(const string& name, const string& buddy)
+{
+    // Make sure this buddy isn't already there. We don't want
+    // to insert an identical copy of the key/value pair.
+    if (!isBuddy(name, buddy)) {
+        m_buddies.insert({ name, buddy }); // Using initializer_list
+    }
+}
+
+void BuddyList::removeBuddy(const string& name, const string& buddy)
+{
+    // Obtain the beginning and end of the range of elements with
+    // key 'name'. Use both lower_bound() and upper_bound() to demonstrate
+    // their use. Otherwise, it's more efficient to call equal_range().
+    auto begin { m_buddies.lower_bound(name) }; // Start of the range
+    auto end { m_buddies.upper_bound(name) }; // End of the range
+
+    // Iterate through the elements with key 'name' looking
+    // for a value 'buddy'. If there are no elements with key 'name',
+    // begin equals end, so the loop body doesn't execute.
+    for (auto iter { begin }; iter != end; ++iter) {
+        if (iter->second == buddy) {
+            // We found a match! Remove it from the map.
+            m_buddies.erase(iter);
+            break;
+        }
+    }
+}
+
+bool BuddyList::isBuddy(const string& name, const string& buddy) const
+{
+    // Obtain the beginning and end of the range of elements with
+    // key 'name' using equal_range(), and structured bindings.
+    auto [begin, end] { m_buddies.equal_range(name) };
+
+    // Iterate through the elements with key 'name' looking
+    // for a value 'buddy'.
+    for (auto iter { begin }; iter != end; ++iter) {
+        if (iter->second == buddy) {
+            // We found a match!
+            return true;
+        }
+    }
+    // No matches
+    return false;
+}
+
+vector<string> BuddyList::getBuddies(const string& name) const
+{
+    // Obtain the beginning and end of the range of elements with
+    // key 'name' using equal_range(), and structured bindings.
+    auto [begin, end] { m_buddies.equal_range(name) };
+
+    // Create a vector with all names in the range (all buddies of name).
+    vector<string> buddies;
+    for (auto iter { begin }; iter != end; ++iter) {
+        buddies.push_back(iter->second);
+    }
+    return buddies;
+}
+\end{cpp}
+
+Note that removeBuddy() can’t simply use the version of erase() that erases all elements with a given key, because it should erase only one element with the key, not all of them. Note also that getBuddies() can’t use insert() on the vector to insert the elements in the range returned by equal\_range(), because the elements referred to by the multimap iterators are key/value pairs, not strings. The getBuddies() member function must iterate explicitly through the range extracting the string from each key/value pair and pushing that onto the new vector to be returned.
+
+Alternatively, with the C++23 ranges functionality discussed in Chapter 17, getBuddies() can be implemented as follows without any explicit loops:
+
+\begin{cpp}
+vector<string> BuddyList::getBuddies(const string& name) const
+{
+    auto [begin, end] { m_buddies.equal_range(name) };
+    return ranges::subrange { begin, end } | views::values | ranges::to<vector>();
+}
+\end{cpp}
+
+Here is a test of the BuddyList:
+
+\begin{cpp}
+BuddyList buddies;
+buddies.addBuddy("Harry Potter", "Ron Weasley");
+buddies.addBuddy("Harry Potter", "Hermione Granger");
+buddies.addBuddy("Harry Potter", "Hagrid");
+buddies.addBuddy("Harry Potter", "Draco Malfoy");
+// That's not right! Remove Draco.
+buddies.removeBuddy("Harry Potter", "Draco Malfoy");
+buddies.addBuddy("Hagrid", "Harry Potter");
+buddies.addBuddy("Hagrid", "Ron Weasley");
+buddies.addBuddy("Hagrid", "Hermione Granger");
+
+auto harrysFriends { buddies.getBuddies("Harry Potter") };
+
+println("Harry's friends: ");
+for (const auto& name : harrysFriends) {
+    println("\t{}", name);
+}
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Harry's friends:
+        Ron Weasley
+        Hermione Granger
+        Hagrid
+\end{shell}
+
 \mySamllsection{set}
+
+A set, defined in <set>, is similar to a map. The difference is that instead of storing key/value pairs, in sets the value is the key. sets are useful for storing information in which there is no explicit key, but which you want to have in sorted order without any duplicates, with quick insertion, lookup, and deletion.
+
+The interface supplied by set is almost identical to that of map. The main difference is that set doesn’t provide operator[], insert\_or\_assign(), and try\_emplace().
+
+You cannot change the value of elements in a set because modifying elements of a set while they are in the container would destroy the order.
+
+\mySamllsection{set Example: Access Control List}
+
+One way to implement basic security on a computer system is through access control lists. Each entity on the system, such as a file or a device, has a list of users with permissions to access that entity. Users can generally be added to and removed from the permissions list for an entity only by users with special privileges. Internally, a set provides a nice way to represent the access control list. You could use one set for each entity, containing all the usernames that are allowed to access the entity. Here is a class definition for a simple access control list:
+
+\begin{cpp}
+export class AccessList final
+{
+    public:
+        // Default constructor
+        AccessList() = default;
+        // Constructor to support uniform initialization.
+        AccessList(std::initializer_list<std::string_view> users)
+        {
+            m_allowed.insert(begin(users), end(users));
+        }
+        // Adds the user to the permissions list.
+        void addUser(std::string user)
+        {
+            m_allowed.emplace(std::move(user));
+        }
+        // Removes the user from the permissions list.
+        void removeUser(const std::string& user)
+        {
+            m_allowed.erase(user);
+        }
+        // Returns true if the user is in the permissions list.
+        bool isAllowed(const std::string& user) const
+        {
+            return m_allowed.contains(user);
+        }
+        // Returns all the users who have permissions.
+        const std::set<std::string>& getAllUsers() const
+        {
+            return m_allowed;
+        }
+        // Returns a vector of all the users who have permissions.
+        std::vector<std::string> getAllUsersAsVector() const
+        {
+            return { begin(m_allowed), end(m_allowed) };
+        }
+    private:
+        std::set<std::string> m_allowed;
+};
+\end{cpp}
+
+Take a look at the interesting one-line implementation of getAllUsersAsVector(). That one line constructs a vector<string> to return, by passing a begin and end iterator of m\_allowed to the vector constructor. If you want, you can split this over two lines:
+
+\begin{cpp}
+std::vector<std::string> users { begin(m_allowed), end(m_allowed) };
+return users;
+\end{cpp}
+
+Finally, here is a simple test program:
+
+\begin{cpp}
+AccessList fileX { "mgregoire", "baduser" };
+fileX.addUser("pvw");
+fileX.removeUser("baduser");
+
+if (fileX.isAllowed("mgregoire")) { println("mgregoire has permissions"); }
+if (fileX.isAllowed("baduser")) { println("baduser has permissions"); }
+
+// C++23 supports formatting/printing of ranges, see Chapter 2.
+println("Users with access: {:n:}", fileX.getAllUsers());
+
+// Iterating over the elements of a set.
+print("Users with access: ");
+for (const auto& user : fileX.getAllUsers()) { print("{} ", user); }
+println("");
+
+// Iterating over the elements of a vector.
+print("Users with access: ");
+for (const auto& user : fileX.getAllUsersAsVector()) { print("{} ", user); }
+println("");
+\end{cpp}
+
+One of the constructors for AccessList uses an initializer\_list as a parameter so that you can use the uniform initialization syntax, as demonstrated in the test program for initializing fileX.
+
+The output of this program is as follows:
+
+\begin{shell}
+mgregoire has permissions
+Users with access: mgregoire, pvw
+Users with access: mgregoire pvw
+Users with access: mgregoire pvw
+\end{shell}
+
+Note that the m\_allowed data member needs to be a set of std::strings, and not of string\_views. Changing it to a set of string\_views will introduce problems with dangling pointers. For example, suppose you have the following code:
+
+\begin{cpp}
+AccessList fileX;
+{
+    string user { "someuser" };
+    fileX.addUser(user);
+}
+\end{cpp}
+
+This code snippet creates a string called user and then adds that to the fileX access control list. However, the string and the call to addUser() are inside a set of curly brackets; that is, the string has a shorter lifetime than fileX. At the closing curly bracket, the string goes out of scope and is destroyed. This would leave the fileX access control list with a string\_view pointing to a destroyed string, i.e., a dangling pointer! This problem is avoided by using a set of strings.
 
 \mySamllsection{multiset}
 
-
+A multiset is to a set what a multimap is to a map. A multiset supports all the operations of a set, but it allows multiple elements that are equal to each other to be stored in the container simultaneously. An example of a multiset is not shown because it’s so similar to set and multimap.
 
 \mySubsubsection{18.5.2.}{Unordered Associative Containers Or Hash Tables}
 
+The Standard Library has support for unordered associative containers or hash tables. There are four of them: unordered\_map, unordered\_multimap, unordered\_set, and unordered\_multiset. The map, multimap, set, and multiset containers discussed earlier sort their elements, while these unordered variants do not sort their elements.
+
 \mySamllsection{Hash Functions}
+
+The unordered associative containers are hash tables. That is because the implementation makes use of hash functions. The implementation usually consists of some kind of array where each element in the array is called a bucket. Each bucket has a specific numerical index like 0, 1, 2, up until the last bucket. A hash function transforms a key into a hash value, which is then transformed into a bucket index. The value associated with that key is then stored in that bucket.
+
+The result of a hash function is not always unique. The situation in which two or more keys hash to the same bucket index is called a collision. A collision can occur when different keys result in the same hash value or when different hash values transform to the same bucket index. There are many approaches to handling collisions, including quadratic re-hashing and linear chaining, among others. If you are interested, consult one of the references in the “Algorithms and Data Structures” section in Appendix B. The Standard Library does not specify which collision-handling algorithm is required, but most current implementations have chosen to resolve collisions by linear chaining. With linear chaining, buckets do not directly contain the data values associated with the keys but contain a pointer to a linked list. This linked list contains all the data values for that specific bucket. Figure 18.1 shows how this works.
+
+\myGraphic{0.7}{content/part3/chapter18/images/1.png}{FIGURE 18.1}
+
+In Figure 18.1, there are two collisions. The first collision is because applying the hash function to the keys “Marc G.” and “John D.” results in the same hash value that maps to bucket index 128. This bucket then points to a linked list containing the keys “Marc G.” and “John D.” together with their associated data values. The second collision is caused by the hash values for “Scott K.” and “Johan G.” mapping to the same bucket index 129.
+
+From Figure 18.1, it is also clear how lookups based on keys work and what the complexity is.
+A lookup involves a single hash function call to calculate the hash value. This hash value is then transformed to a bucket index. Once the bucket index is known, one or more equality operations are required to find the right key in the linked list. This shows that lookups can be much faster compared to lookups with normal maps, but it all depends on how many collisions there are.
+
+The choice of the hash function is important. A hash function that creates no collisions is known as a perfect hash. A perfect hash has a lookup time that is constant; a regular hash has a lookup time that is, on average, close to 1, independent of the number of elements. As the number of collisions increases, the lookup time increases, reducing performance. Collisions can be reduced by increasing the basic hash table size, but you need to take cache sizes into account.
+
+The C++ standard provides hash functions for pointers and all primitive data types such as bool, char, int, float, double, and so on. Hash functions are also provided for several Standard Library classes, such as optional, bitset, unique\_ptr, shared\_ptr, string, string\_view, vector<bool>, and more. If there is no standard hash function available for the type of keys you want to use, then you have to implement your own hash function. Creating a perfect hash is a nontrivial exercise, even when the set of keys is fixed and known. It requires deep mathematical analysis. Even creating a nonperfect one, but one that is good enough and has decent performance, is still challenging. It’s outside the scope of this book to explain the mathematics behind hash functions in detail. Instead, only an example of a simple hash function is given.
+
+The following code demonstrates how to write a custom hash function. The code defines a class IntWrapper that just wraps a single integer. An operator== is provided because that’s a requirement for keys used in unordered associative containers.
+
+\begin{cpp}
+class IntWrapper
+{
+    public:
+        explicit IntWrapper(int i) : m_wrappedInt { i } {}
+        int getValue() const { return m_wrappedInt; }
+        bool operator==(const IntWrapper&) const = default;// = default since C++20
+    private:
+        int m_wrappedInt;
+};
+\end{cpp}
+
+To write the actual hash function for IntWrapper, you write a specialization of the std::hash class template for IntWrapper. The std::hash class template is defined in <functional>. This specialization needs an implementation of the function call operator that calculates and returns the hash of a given IntWrapper instance. For this example, the request is simply forwarded to the standard hash function for integers:
+
+\begin{cpp}
+namespace std
+{
+    template<> struct hash<IntWrapper>
+    {
+        size_t operator()(const IntWrapper& x) const {
+            return std::hash<int>{}(x.getValue());
+        }
+    };
+}
+\end{cpp}
+
+Note that you normally are not allowed to put anything in the std namespace; however, std class template specializations are an exception to this rule. The implementation of the function call operator is just one line. It creates an instance of the standard hash function for integers——std::hash<int>\{\}—and then calls the function call operator on it with x.getValue() as argument. Note that this forwarding works in this example because IntWrapper contains just one data member, an integer. If the class contained multiple data members, then a hash value would need to be calculated taking all those data members into account; however, those details fall outside the scope of this book.
 
 \mySamllsection{unordered\_map}
 
+unordered\_map is defined in <unordered\_map> as a class template:
+
+\begin{cpp}
+template <typename Key,
+          typename T,
+          typename Hash = hash<Key>,
+          typename Pred = std::equal_to<Key>,
+          typename Alloc = std::allocator<std::pair<const Key, T>>>
+    class unordered_map;
+\end{cpp}
+
+There are five template type parameters: the key type, the value type, the hash type, the equality comparator type, and the allocator type. The last three parameters have default values. The most important parameters are the first two. As with maps, uniform initialization can be used to initialize an unordered\_map. Iterating over the elements is also similar to maps, as shown in the following example.
+
+\begin{cpp}
+unordered_map<int, string> m {
+    {1, "Item 1"}, {2, "Item 2"}, {3, "Item 3"}, {4, "Item 4"}
+};
+// Using C++23 support for formatting/printing ranges.
+println("{}", m);
+// Using structured bindings.
+for (const auto& [key, value] : m) { print("{} = {}, ", key, value); }
+println("");
+// Without structured bindings.
+for (const auto& p : m) { print("{} = {}, ", p.first, p.second); }
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+{4: "Item 4", 3: "Item 3", 2: "Item 2", 1: "Item 1"}
+4 = Item 4, 3 = Item 3, 2 = Item 2, 1 = Item 1,
+4 = Item 4, 3 = Item 3, 2 = Item 2, 1 = Item 1,
+\end{shell}
+
+The following table summarizes the differences between map and unordered\_map. A filled box (■) means the container supports that operation, while an empty box (□) means the operation is not supported.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{OPERATION}                           & \textbf{map} & \textbf{unordered\_map} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+at()                                         & ■            & ■                       \\ \hline
+begin()                                      & ■            & ■                       \\ \hline
+begin(n)                                     & □            & ■                       \\ \hline
+bucket()                                     & □            & ■                       \\ \hline
+bucket\_count()                              & □            & ■                       \\ \hline
+bucket\_size()                               & □            & ■                       \\ \hline
+cbegin()                                     & ■            & ■                       \\ \hline
+cbegin(n)                                    & □            & ■                       \\ \hline
+cend()                                       & ■            & ■                       \\ \hline
+cend(n)                                      & □            & ■                       \\ \hline
+clear()                                      & ■            & ■                       \\ \hline
+contains()                                   & ■            & ■                       \\ \hline
+count()                                      & ■            & ■                       \\ \hline
+crbegin()                                    & ■            & □                       \\ \hline
+crend()                                      & ■            & □                       \\ \hline
+emplace()                                    & ■            & ■                       \\ \hline
+emplace\_hint()                              & ■            & ■                       \\ \hline
+empty()                                      & ■            & ■                       \\ \hline
+end()                                        & ■            & ■                       \\ \hline
+end(n)                                       & □            & ■                       \\ \hline
+equal\_range()                               & ■            & ■                       \\ \hline
+erase()                                      & ■            & ■                       \\ \hline
+extract()                                    & ■            & ■                       \\ \hline
+find()                                       & ■            & ■                       \\ \hline
+insert()                                     & ■            & ■                       \\ \hline
+insert\_or\_assign()                         & ■            & ■                       \\ \hline
+insert\_range() (C++23)                      & ■            & ■                       \\ \hline
+iterator / const\_iterator                   & ■            & ■                       \\ \hline
+load\_factor()                               & □            & ■                       \\ \hline
+local\_iterator / const\_local\_iterator     & □            & ■                       \\ \hline
+lower\_bound()                               & ■            & □                       \\ \hline
+max\_bucket\_count()                         & □            & ■                       \\ \hline
+max\_load\_factor()                          & □            & ■                       \\ \hline
+max\_size()                                  & ■            & ■                       \\ \hline
+merge()                                      & ■            & ■                       \\ \hline
+operator{[}{]}                               & ■            & ■                       \\ \hline
+rbegin()                                     & ■            & □                       \\ \hline
+rehash()                                     & □            & ■                       \\ \hline
+rend()                                       & ■            & □                       \\ \hline
+reserve()                                    & □            & ■                       \\ \hline
+reverse\_iterator / const\_reverse\_iterator & ■            & □                       \\ \hline
+size()                                       & ■            & ■                       \\ \hline
+swap()                                       & ■            & ■                       \\ \hline
+try\_emplace()                               & ■            & ■                       \\ \hline
+upper\_bound()                               & ■            & □                       \\ \hline
+\end{longtable}
+
+As with map, all keys in an unordered\_map must be unique. The preceding table includes a number of hash-specific member functions. For example, load\_factor() returns the average number of elements per bucket to give you an indication of the number of collisions. The bucket\_count() member function returns the number of buckets in the container. It also provides a local\_iterator and const\_local\_iterator, allowing you to iterate over the elements in a single bucket; however, these may not be used to iterate across buckets. The bucket(key) member function returns the index of the bucket that contains the given key; begin(n) returns a local\_iterator referring to the first element in the bucket with index n, and end(n) returns a local\_iterator referring to one-past-the-last element in the bucket with index n. The example in the next section demonstrates how to use some of these member functions.
+
+\mySamllsection{unordered\_map Example: Phone Book}
+
+The following example uses an unordered\_map to represent a phone book. The name of a person is the key, while the phone number is the value associated with that key.
+
+\begin{cpp}
+void printMap(const auto& m) // Abbreviated function template
+{
+    for (auto& [key, value] : m) {
+        println("{} (Phone: {})", key, value);
+    }
+    println("-------");
+}
+
+int main()
+{
+    // Create a hash table.
+    unordered_map<string, string> phoneBook {
+        { "Marc G.", "123-456789" },
+        { "Scott K.", "654-987321" } };
+    printMap(phoneBook);
+
+    // Add/remove some phone numbers.
+    phoneBook.insert(make_pair("John D.", "321-987654"));
+    phoneBook["Johan G."] = "963-258147";
+    phoneBook["Freddy K."] = "999-256256";
+    phoneBook.erase("Freddy K.");
+    printMap(phoneBook);
+
+    // Find the bucket index for a specific key.
+    const size_t bucket { phoneBook.bucket("Marc G.") };
+    println("Marc G. is in bucket {} containing the following {} names:",
+        bucket, phoneBook.bucket_size(bucket));
+    // Get begin and end iterators for the elements in this bucket.
+    // 'auto' is used here. The compiler deduces the type of
+    // both as unordered_map<string, string>::const_local_iterator
+    auto localBegin { phoneBook.cbegin(bucket) };
+    auto localEnd { phoneBook.cend(bucket) };
+    for (auto iter { localBegin }; iter != localEnd; ++iter) {
+        println("\t{} (Phone: {})", iter->first, iter->second);
+    }
+    println("-------");
+
+    // Print some statistics about the hash table
+    println("There are {} buckets.", phoneBook.bucket_count());
+    println("Average number of elements in a bucket is {}.",
+    phoneBook.load_factor());
+}
+\end{cpp}
+
+A possible output is as follows. Note that the output can be different on different systems, because it depends on the implementation of both the hash function and the unordered\_map itself being used.
+
+\begin{shell}
+Scott K. (Phone: 654-987321)
+Marc G. (Phone: 123-456789)
+-------
+Scott K. (Phone: 654-987321)
+Marc G. (Phone: 123-456789)
+Johan G. (Phone: 963-258147)
+John D. (Phone: 321-987654)
+-------
+Marc G. is in bucket 1 containing the following 2 names:
+        Scott K. (Phone: 654-987321)
+        Marc G. (Phone: 123-456789)
+-------
+There are 8 buckets.
+Average number of elements in a bucket is 0.5
+\end{shell}
+
 \mySamllsection{unordered\_multimap}
+
+An unordered\_multimap is an unordered\_map that allows multiple elements with the same key. Their interfaces are almost identical, with the following differences:
+
+\begin{itemize}
+\item
+unordered\_multimaps do not provide operator[] and at(). The semantics of these do not make sense if there can be multiple elements with a single key.
+
+\item
+Inserts on unordered\_multimaps always succeed. Thus, the unordered\_multimap::insert() member function that adds a single element returns just an iterator instead of a pair.
+
+\item
+The insert\_or\_assign() and try\_emplace() member functions supported by unordered\_map are not supported by an unordered\_multimap.
+\end{itemize}
+
+\begin{myNotic}{NOTE}
+unordered\_multimaps allow you to insert identical key/value pairs. If you want to avoid this redundancy, you must check explicitly before inserting a new element.
+\end{myNotic}
+
+As discussed earlier with multimaps, looking up elements in unordered\_multimaps cannot be done using operator[] because it is not provided. You can use find(), but it returns an iterator referring to any one of the elements with a given key (not necessarily the first element with that key). Instead, it’s best to use the equal\_range() member function, which returns a pair of iterators: one referring to the first element matching a given key, and one referring to one-past-the-last element matching that key. The use of equal\_range() is the same as discussed for multimaps, so you can look at the example given for multimaps to see how it works.
 
 \mySamllsection{unordered\_set/unordered\_multiset}
 
+<unordered\_set> defines unordered\_set and unordered\_multiset, which are similar to set and multiset, respectively, except that they do not sort their keys but use a hash function. The differences between unordered\_set and unordered\_map are similar to the differences between set and map as discussed earlier in this chapter, so they are not discussed in detail here. Consult a Standard Library Reference for a thorough summary of unordered\_set and unordered\_multiset operations.
 
+\CXXTwentythreeLogo{-40}{-50}
 
 \mySubsubsection{18.5.3.}{Flat Set and Flat Map Associative Container Adapters}
 
+C++23 introduces the following new container adapters:
 
+\begin{itemize}
+\item
+std::flat\_set and flat\_multiset defined in <flat\_set>
+
+\item
+std::flat\_map and flat\_multimap defined in <flat\_map>
+\end{itemize}
+
+These are adapters providing an associative container interface on top of sequential containers.
+flat\_set and flat\_map require unique keys, just as set and map, while flat\_multiset and flat\_multimap support duplicate keys, just as multiset and multimap. They all store their data sorted on the keys using std::less as the default comparator. flat\_set and flat\_multiset provide for fast retrieval of a key, while flat\_map and flat\_multimap provide for fast retrieval of a value based on a key. A flat\_set and a flat\_multiset require one underlying sequential container to store their keys. A flat\_map and a flat\_multimap require two underlying containers, one to store the keys and another one to store the values. The underlying container must support random-access iterators, such as vector and deque. By default, vector is used.
+
+All flat associative container adapters have an interface similar to their ordered counterparts, except that the flat container adapters are not node-based data structures and thus don’t have any concept of node handles as discussed earlier in this chapter in the context of the ordered associative containers. Another difference is that the flat variants provide random-access iterators, while the ordered counterparts provide only bidirectional iterators.
+
+With the addition of these flat container adapters, the Standard Library now provides three variants of each associative container type; e.g., there are now three map containers: map, unordered\_map, and flat\_map. All three basically work in a similar fashion, but they store their data in drastically different data structures and thus have different time- and space-efficiency. Because the flat associative container adapters store their data sorted in sequential containers, they all have linear time complexity for adding and removing elements, which can potentially be slower than adding and removing elements from ordered and unordered containers. Lookups have logarithmic complexity, just as the ordered associative containers. However, for the flat variants, lookups and especially iteration over the elements are more efficient than for the ordered ones because the former store their data in sequential containers and thus have a much more efficient and cache-friendly memory layout. They also need less memory per element compared to the ordered or unordered variants. Which one of the three flavors per type to choose for a specific use case depends on the exact requirements of your use case. If performance is important, then I recommend profiling all three of them to find out which one is best suited for a specific use. Profiling is explained in Chapter 29, “Writing Efficient C++.”
+
+The flat associative container adapters are often just drop-in replacements for their ordered counterparts. For example, the access control list example from earlier has a data member called m\_allowed of type set<string>, an ordered associative container. The code can easily be changed to use a flat\_set instead. Two changes are necessary. First, the type of m\_allowed is changed to the following:
+
+\begin{cpp}
+std::flat_set<std::string> m_allowed;
+\end{cpp}
+
+Second, the return type of getAllUsers() is changed to a flat\_set:
+
+\begin{cpp}
+const std::flat_set<std::string>& getAllUsers() const { return m_allowed; }
+\end{cpp}
+
+Everything else remains the same.
 
 \mySubsubsection{18.5.4.}{Performance of Associative Containers}
+
+As is clear from this section, the C++ Standard Library contains several different associative containers. How do you know which one to use for a certain task? If iterating over the contents of an associative container is important for your use case, then the flat associative container adapters have the best performance, because of the way they store their data in continuous memory. If other operations are more important for you, then the unordered associative containers are usually faster compared to the ordered ones. However, if performance is really important, then the only way to decide on the correct container is by benchmarking all of them for your specific use case. Usually, though, you can just pick the one that is easier to work with. To use the ordered versions with your own class types, you must implement comparison operations for your class, while for the unordered versions, you need to write a hash function. The latter is usually harder to implement.
+
+
+
+
+
+
+
+
 
