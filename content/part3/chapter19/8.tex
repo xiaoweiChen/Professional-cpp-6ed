@@ -1,0 +1,21 @@
+By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+
+\begin{itemize}
+\item
+Exercise 19-1: Rewrite the IsLargerThan function object example from this chapter using a lambda expression. You can find the code in the downloadable source code archive in Ch19\verb|\|03\_FunctionObjects\verb|\|01\_IsLargerThan.cpp.
+
+\item
+Exercise 19-2: Rewrite the example given for bind() using lambda expressions instead. You can find the code in the downloadable source code archive in Ch19\verb|\|03\_FunctionObjects\verb|\|07\_bind.cpp.
+
+\item
+Exercise 19-3: Rewrite the example given for binding the class member function Handler::handleMatch() using lambda expressions instead. You can find the code in the downloadable source code archive in Ch19\verb|\|03\_FunctionObjects\verb|\|10\_FindMatchesWithMemberFunctionPointer.cpp.
+
+\item
+Exercise 19-4: Chapter 18 introduces the std::erase\_if() function to remove elements from a container for which a certain predicate returns true. Now that you know everything about callbacks, write a small program that creates a vector of integers, and then uses erase\_if() to remove all odd values from the vector. The predicate you need to pass to erase\_if() should accept a single value and return a Boolean.
+
+\item
+Exercise 19-5: Implement a class called Processor. The constructor should accept a callback accepting a single integer and returning an integer. Store this callback in a data member of the class. Next, add an overload for the function call operator accepting an integer and returning an integer. The implementation simply forwards the work to the stored callback. Test your class with different callbacks.
+
+\item
+Exercise 19-6: Write a recursive lambda expression to calculate the power of a number. For example, 4 to the power 3, written as 4\^{}3, equals 4×4×4. Make sure it works with negative exponents. To help you, 4\^{}-3 equals 1/(4\^{}3). Any number to the power 0 equals 1. Test your lambda expression by generating all powers of two with exponents between -10 and 10.
+\end{itemize}

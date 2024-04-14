@@ -1,16 +1,242 @@
 
+The “magic” behind the unconstrained algorithms is that they work on iterator intermediaries instead of on the containers themselves. In that way, they are not tied to specific container implementations. All the Standard Library algorithms are implemented as function templates, where the template type parameters are usually iterator types. The iterators themselves are specified as arguments to the function. Function templates can usually deduce the template types from the function arguments, so you can generally call the algorithms as if they were normal functions, not templates.
+
+Most algorithms require a source sequence on which to apply the algorithm. For the unconstrained algorithms, a source sequence is specified as an iterator pair, a begin and end iterator, which is called a common range. As Chapter 17 explains, common ranges are half-open for most containers such that they include the first element in the range but exclude the last. The end iterator is really a “pastthe-end” marker.
+
+Algorithms pose certain requirements on iterators passed to them. For instance, copy\_backward(), which copies elements from one sequence to another, starting with the last element, is an example of an algorithm that requires a bidirectional iterator. Similarly, stable\_sort(), which sorts elements in place while preserving the order of duplicate elements, is an example of an algorithm requiring random access iterators. This means that such algorithms cannot work on containers that do not provide the necessary iterators. forward\_list is an example of a container supporting only forward iterators, no bidirectional or random-access iterators; thus, copy\_backward() and stable\_sort() cannot work on forward\_list.
+
+The majority of the algorithms are defined in <algorithm>, with some numerical algorithms defined in <numeric>. All of them are in the std namespace.
+
+Most algorithms are constexpr, which means they can be used in the implementation of constexpr functions. Consult a Standard Library Reference (see Appendix B, “Annotated Bibliography”) to discover exactly which algorithms are constexpr.
+
+The best way to understand the algorithms is to look at some examples in detail first. After you’ve seen how a few of them work, it’s easy to pick up the others. This section describes the find(), find\_if(), and accumulate() algorithms in detail. The subsequent sections discuss each of the classes of algorithms with representative samples.
 
 \mySubsubsection{20.1.1.}{The find and find\_if Algorithms}
 
+find() looks for a specific element in a common range. You can use it on elements in any container type. It returns an iterator referring to the element found or the end iterator of the range in case the element is not found. Note that the range specified in the call to find() need not be the entire range of elements in a container; it could be a subset.
+
+\begin{myWarning}{WARNING}
+If find() fails to find an element, it returns an iterator equal to the end iterator specified in the function call, not the end iterator of the underlying container.
+\end{myWarning}
+
+Before looking at find(), let’s define a function template to populate a container with integers. This function template is used throughout this chapter. It’s a function template parameterized on the type of container. A constraint enforces that the given container type supports push\_back(int).
+
+\begin{cpp}
+template <typename Container>
+    requires requires(Container& c, int i) { c.push_back(i); }
+void populateContainer(Container& cont)
+{
+    while (true) {
+        print("Enter a number (0 to stop): ");
+        int value;
+        cin >> value;
+        if (value == 0) { break; }
+        cont.push_back(value);
+    }
+}
+\end{cpp}
+
+Now we can look at how to use std::find(). This example and the populateContainer() function template assume that the user plays nice and enters valid numbers; it does not perform any error checking on the user input. Performing error checking on stream input is discussed in Chapter 13, “Demystifying C++ I/O.”
+
+\begin{cpp}
+vector<int> myVector;
+populateContainer(myVector);
+
+while (true) {
+    print("Enter a number to lookup (0 to stop): ");
+    int number;
+    cin >> number;
+    if (number == 0) { break; }
+    auto endIt { cend(myVector) };
+    auto it { find(cbegin(myVector), endIt, number) };
+    if (it == endIt) {
+        println("Could not find {}", number);
+    } else {
+        println("Found {}", *it);
+    }
+}
+\end{cpp}
+
+To search all the elements of the vector, find() is called with cbegin(myVector) and endIt as iterator arguments, where endIt is defined as cend(myVector). If you want to search in a subrange, you can change these two iterators.
+
+Here is a sample run of the program:
+
+\begin{shell}
+Enter a number (0 to stop): 3
+Enter a number (0 to stop): 4
+Enter a number (0 to stop): 5
+Enter a number (0 to stop): 6
+Enter a number (0 to stop): 0
+Enter a number to lookup (0 to stop): 5
+Found 5
+Enter a number to lookup (0 to stop): 8
+Could not find 8
+Enter a number to lookup (0 to stop): 0
+\end{shell}
+
+With initializers for if statements, the call to find() and checking the result can be done with one statement as follows:
+
+\begin{cpp}
+if (auto it { find(cbegin(myVector), endIt, number) }; it == endIt) {
+    println("Could not find {}", number);
+} else {
+    println("Found {}", *it);
+}
+\end{cpp}
+
+Some containers, such as map and set, provide their own versions of find() as class member functions, as demonstrated with examples during the discussion of those containers in Chapter 18.
+
+\begin{myWarning}{WARNING}
+If a container provides a member function with the same functionality as a generic algorithm, you should use the member function instead, because it’s faster. For example, the generic find() algorithm runs in linear time, even on a map, while the find() member function on a map runs in logarithmic time.
+\end{myWarning}
+
+find\_if() is similar to find(), except that it accepts a predicate function callback returning true or false, instead of a simple element to match. The find\_if() algorithm calls the predicate on each element in the range until the predicate returns true, in which case find\_if() returns an iterator referring to that element. The following program reads test scores from the user, then checks whether any of the scores are “perfect.” A perfect score is a score of 100 or higher. The program is similar to the previous example. Only the major differences are highlighted:
+
+\begin{cpp}
+bool perfectScore(int num) { return num >= 100; }
+int main()
+{
+    vector<int> myVector;
+    populateContainer(myVector);
+
+    auto endIt { cend(myVector) };
+    auto it { find_if(cbegin(myVector), endIt, perfectScore) };
+    if (it == endIt) {
+        println("No perfect scores");
+    } else {
+        println("Found a \"perfect\" score of {}", *it);
+    }
+}
+\end{cpp}
+
+This program passes a pointer to the perfectScore() function to find\_if(), which the algorithm then calls on each element until it returns true.
+
+\CXXTwentythreeLogo{-40}{-50}
+
+Instead of passing a function pointer to find\_if(), you can also pass a functor. Chapter 15, “Overloading C++ Operators,” explains that, starting with C++23, the function call operator of a functor can be marked as static if it doesn’t need access to any non-static data members and member functions of the functor class. The perfectScore() function could be changed to a PerfectScore functor with a static function call operator as follows:
+
+\begin{cpp}
+class PerfectScore
+{
+    public:
+        static bool operator()(int num) { return num >= 100; }
+};
+\end{cpp}
+
+The call to find\_if() then needs to change as follows:
+
+\begin{cpp}
+auto it { find_if(cbegin(myVector), endIt, &PerfectScore::operator()) };
+\end{cpp}
+
+Finally, instead of a perfectScore() function or a PerfectScore functor, you can use a lambda expression, discussed in Chapter 19.
+
+\begin{cpp}
+auto it { find_if(cbegin(myVector), endIt, [](int i){ return i >= 100; }) };
+\end{cpp}
 
 
 \mySubsubsection{20.1.2.}{The accumulate Algorithm}
 
+It’s often useful to calculate the sum, or some other arithmetic quantity, of elements in a container. The accumulate() function—defined in <numeric>, not in <algorithm>—does just that. In its most basic form, it calculates the sum of the elements in a specified range. For example, the following function calculates the arithmetic mean of a sequence of integers given as a span. The arithmetic mean is simply the sum of all the elements divided by the number of elements:
 
+\begin{cpp}
+double arithmeticMean(span<const int> values)
+{
+    double sum { accumulate(cbegin(values), cend(values), 0.0) };
+    return sum / values.size();
+}
+\end{cpp}
+
+The accumulate() algorithm takes as its third parameter an initial value for the sum, which in this case should be 0.0 (the identity for addition) to start a fresh sum.
+
+A second overload of accumulate() allows the caller to specify an operation to perform instead of the default addition. This operation takes the form of a binary callback. Suppose that you want to calculate the geometric mean, which is the product of all the numbers in the sequence to the power of the inverse of the size. In that case, you would want to use accumulate() to calculate the product instead of the sum. You could write it like this:
+
+\begin{cpp}
+int product(int value1, int value2) { return value1 * value2; }
+
+double geometricMean(span<const int> values)
+{
+    int mult { accumulate(cbegin(values), cend(values), 1, product) };
+    return pow(mult, 1.0 / values.size()); // pow() is defined in <cmath>
+}
+\end{cpp}
+
+Note that the product() function is passed as a callback to accumulate() and that the initial value for the accumulation is 1 (the identity for multiplication).
+
+Instead of a separate product() function, you could use a lambda expression:
+
+\begin{cpp}
+double geometricMeanLambda(span<const int> values)
+{
+    int mult { accumulate(cbegin(values), cend(values), 1,
+        [](int value1, int value2) { return value1 * value2; }) };
+    return pow(mult, 1.0 / values.size());
+}
+\end{cpp}
+
+You could also use the transparent multiplies<> function object, discussed in Chapter 19, to implement the geometricMean() function:
+
+\begin{cpp}
+double geometricMeanFunctor(span<const int> values)
+{
+    int mult { accumulate(cbegin(values), cend(values), 1, multiplies<>{}) };
+    return pow(mult, 1.0 / values.size());
+}
+\end{cpp}
 
 \mySubsubsection{20.1.3.}{Move Semantics with Algorithms}
 
-
+Just like Standard Library containers, Standard Library algorithms are also optimized to use move semantics at appropriate times; that is, they can move objects instead of performing potential expensive copy operations. This can greatly speed up certain algorithms, for example, remove(), discussed in detail later in this chapter. For this reason, it is highly recommended that you implement move semantics in your custom element classes that you want to store in containers. Move semantics can be added to any class by implementing a move constructor and a move assignment operator. As discussed in Chapter 18, both should be marked as noexcept, otherwise they won’t be used by Standard Library containers and algorithms. Consult the “Implementing Move Semantics” section in Chapter 9, “Mastering Classes and Objects,” for details on how to add move semantics to your classes.
 
 \mySubsubsection{20.1.4.}{Algorithm Callbacks}
+
+\begin{myWarning}{WARNING}
+The algorithms are allowed to make multiple copies of given callbacks, such as functors and lambda expressions, and call different copies for different elements.
+\end{myWarning}
+
+The fact that multiple copies of a callback can be made places strong restrictions on the side effects of such callbacks. Basically, the callbacks must be stateless. For functors, this means that the function call operator needs to be const; thus, you cannot write functors such that they count on any internal state of the object being consistent between calls. Similar for lambda expressions, they cannot be marked as mutable.
+
+There are some exceptions. The generate() and generate\_n() algorithms can accept stateful callbacks, but even these make one copy of the callback. On top of that, they don’t return that copy, so you don’t have access to the changes made to the state once the algorithm is finished. The only exception is for\_each(). It copies the given predicate once into the for\_each() algorithm and returns that copy when finished. You can access the changed state through this returned value.
+
+To prevent callbacks from getting copied by algorithms, you can use the std::ref() helper function to pass a callback reference to the algorithm instead. This ensures that the algorithm always uses the same callback. For example, the following code snippet is based on an earlier example in this chapter but uses a lambda expression stored in a variable named isPerfectScore. The lambda expression counts how often it gets called and writes that to standard output. isPerfectScore is passed to the find\_if() algorithm, not yet using ref(). The last statement of the snippet explicitly calls isPerfectScore one additional time.
+
+\begin{cpp}
+auto isPerfectScore { [tally = 0] (int i) mutable {
+        println("{}", ++tally); return i >= 100; } };
+
+auto endIt { cend(myVector) };
+auto it { find_if(cbegin(myVector), endIt, isPerfectScore) };
+if (it != endIt) { println("Found a \"perfect\" score of {}", *it); }
+println("---");
+isPerfectScore(1);
+\end{cpp}
+
+The output can be as followed:
+
+\begin{shell}
+Enter a number (0 to stop): 11
+Enter a number (0 to stop): 22
+Enter a number (0 to stop): 33
+Enter a number (0 to stop): 0
+1
+2
+3
+---
+1
+\end{shell}
+
+The output shows that the find\_if() algorithm calls isPerfectScore three times producing the output 1, 2, 3. The last line shows that the explicit call to isPerfectScore occurs on a different instance of isPerfectScore as it starts again at 1.
+
+Now, change the call to find\_if() as follows:
+
+\begin{cpp}
+auto it { find_if(cbegin(myVector), endIt, ref(isPerfectScore)) };
+\end{cpp}
+
+The output now will be 1, 2, 3, 4, showing that no copies of isPerfectScore are made.
+
+
+
+
 

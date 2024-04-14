@@ -1,69 +1,1128 @@
 
+Chapter 16 lists all available Standard Library algorithms, divided into different categories. Most of the algorithms are defined in <algorithm>, but a few are located in <numeric>. They are all in the std namespace.
+
+The goal of this chapter is not to provide a reference-style overview of all available algorithms. Instead, I have picked a number of categories and provided examples for them. Once you know how to use these algorithms, you should have no problems with other algorithms. Consult a Standard Library Reference (see Appendix B) for a full reference of all the algorithms.
 
 \mySubsubsection{20.2.1.}{Non-modifying Sequence Algorithms}
 
+Non-modifying sequence algorithms are algorithms that do not modify the sequence of elements they operate on. These include algorithms for searching elements in a range and for comparing two ranges to each other; they also include a number of counting algorithms.
+
+
 \mySamllsection{Search Algorithms}
+
+You’ve already seen examples of two search algorithms earlier in this chapter: find() and find\_if(). The Standard Library provides several other variations of the basic find() algorithm that work on sequences of elements. The section “Search Algorithms” in Chapter 16 describes the different search algorithms that are available, including their complexity.
+
+All the algorithms use operator== or < as the default comparison operator, but also provide overloaded versions that allow you to specify a different comparison callback.
+
+Here are examples of some of the search algorithms in action:
+
+\begin{cpp}
+// The list of elements to be searched.
+vector myVector { 5, 6, 9, 8, 8, 3 };
+auto beginIter { cbegin(myVector) };
+auto endIter { cend(myVector) };
+
+// Find the first element that does not satisfy the given lambda expression.
+auto it { find_if_not(beginIter, endIter, [](int i){ return i < 8; }) };
+if (it != endIter) {
+    println("First element not < 8 is {}", *it);
+}
+
+// Find the first pair of matching consecutive elements.
+it = adjacent_find(beginIter, endIter);
+if (it != endIter) {
+    println("Found two consecutive equal elements with value {}", *it);
+}
+
+// Find the first of two values.
+vector targets { 8, 9 };
+it = find_first_of(beginIter, endIter, cbegin(targets), cend(targets));
+if (it != endIter) {
+    println("Found one of 8 or 9: {}", *it);
+}
+
+// Find the first subsequence.
+vector sub { 8, 3 };
+it = search(beginIter, endIter, cbegin(sub), cend(sub));
+if (it != endIter) {
+    println("Found subsequence {{8,3}}");
+} else {
+    println("Unable to find subsequence {{8,3}}");
+}
+
+// Find the last subsequence (which is the same as the first in this example).
+auto it2 { find_end(beginIter, endIter, cbegin(sub), cend(sub)) };
+if (it != it2) {
+    println("Error: search and find_end found different subsequences "
+        "even though there is only one match.");
+}
+
+// Find the first subsequence of two consecutive 8s.
+it = search_n(beginIter, endIter, 2, 8);
+if (it != endIter) {
+    println("Found two consecutive 8s");
+} else {
+    println("Unable to find two consecutive 8s");
+}
+\end{cpp}
+
+Here is the output:
+
+\begin{shell}
+First element not < 8 is 9
+Found two consecutive equal elements with value 8
+Found one of 8 or 9: 9
+Found subsequence {8,3}
+Found two consecutive 8s
+\end{shell}
+
+\begin{myNotic}{NOTE}
+Remember that some of the containers have member functions equivalent to generic algorithms. If that’s the case, it’s recommended to use those member functions instead of the generic algorithms, because the member functions are more efficient. An example is the find() member function of std::set and std::map.
+\end{myNotic}
 
 \mySamllsection{Specialized Searchers}
 
+An optional parameter to the search() algorithm allows you to specify which search algorithm to use. You have three options—default\_searcher, boyer\_moore\_searcher, or boyer\_moore\_horspool\_searcher—all defined in <functional>. The last two options implement the well-known Boyer-Moore and Boyer-Moore-Horspool search algorithms. These are more efficient than the default searcher and can be used to find a substring in a larger piece of text. The complexity of the BoyerMoore searchers is as follows (N is the size of the sequence to search in, the haystack, and M is the size of the pattern to find, the needle):
+
+\begin{itemize}
+\item
+If the pattern is not found, the worst-case complexity is O(N+M).
+
+\item
+If the pattern is found, the worst-case complexity is O(N*M).
+\end{itemize}
+
+These are the theoretical worst-case complexities. In practice, these specialized searchers are sublinear, better than O(N), which means they are much faster than the default one! They are sublinear because they are able to skip characters instead of looking at each single character in the haystack. They also have an interesting property that the longer the needle is, the faster they work, as they will be able to skip more characters in the haystack. The difference between the Boyer-Moore and the Boyer-MooreHorspool algorithm is that the latter has less constant overhead for its initialization and in each loop iteration of its algorithm; however, its worst-case complexity can be significantly higher than for the Boyer-Moore algorithm. So, which one to choose depends on your specific use case.
+
+Here is an example of using a Boyer-Moore searcher:
+
+\begin{cpp}
+string text { "This is the haystack to search a needle in." };
+string toSearchFor { "needle" };
+boyer_moore_searcher searcher { cbegin(toSearchFor), cend(toSearchFor) };
+auto result { search(cbegin(text), cend(text), searcher) };
+if (result != cend(text)) {
+    println("Found the needle.");
+} else {
+    println("Needle not found.");
+}
+\end{cpp}
+
 \mySamllsection{Comparison Algorithms}
+
+You can compare entire ranges of elements in several different ways: equal(), mismatch(), lexicographical\_compare(), and lexicographical\_compare\_three\_way(). These algorithms have the advantage that you can compare sequences from different containers. For example, you can compare the contents of a vector with the contents of a list. In general, these algorithms work best with sequential containers. They work by comparing the values in corresponding positions of the two collections to each other. The following list describes how each algorithm works:
+
+\begin{itemize}
+\item
+equal() returns true if all corresponding elements are equal. Originally, equal() accepted three iterators: begin and end iterators for the first range, and a begin iterator for the second range. This version required both ranges to have the same number of elements. Since C++14, there is an overload accepting four iterators: begin and end iterators for the first range, and begin and end iterators for the second range. This version can cope with ranges of different sizes. It’s recommended to always use the four-iterator version because it’s safer!
+
+\item
+mismatch() returns iterators, one iterator for each range, to indicate where in the range the corresponding elements mismatch. There are three-iterator and four-iterator versions available, just as with equal(). It’s again recommended to use the four-iterator version, because of safety!
+
+\item
+lexicographical\_compare() compares the elements that have the same position in both supplied ranges against each other (sequentially). It returns true if the first unequal element in the first range is less than its corresponding element in the second range, or if the first range has fewer elements than the second and all elements in the first range are equal to their corresponding initial subsequence in the second set. lexicographical\_compare() gets its name because it resembles the rules for comparing strings in dictionaries, but extends this set of rules to deal with objects of any type.
+
+\item
+lexicographical\_compare\_three\_way() is similar to lexicographical\_compare() except that it performs a three-way comparison and returns a comparison category type (strong\_ordering, weak\_ordering, or partial\_ordering, discussed in Chapter 1, “A Crash Course in C++ and the Standard Library”) instead of a Boolean.
+\end{itemize}
+
+\begin{myNotic}{NOTE}
+If you want to compare all elements of two containers of the same type, you can just use operators such as operator== or operator< instead of one of these algorithms. The algorithms are useful for comparing subranges, C-style arrays, sequences of elements from different container types, and so on.
+\end{myNotic}
+
+Here are some examples of these algorithms in action:
+
+\begin{cpp}
+vector<int> myVector;
+list<int> myList;
+
+println("Populate the vector:");
+populateContainer(myVector);
+println("Populate the list:");
+populateContainer(myList);
+
+// Compare the two containers
+if (equal(cbegin(myVector), cend(myVector),
+          cbegin(myList), cend(myList))) {
+    println("The two containers have equal elements");
+} else {
+    // If the containers were not equal, find out why not
+    auto miss { mismatch(cbegin(myVector), cend(myVector),
+        cbegin(myList), cend(myList)) };
+    println("The following initial elements are the same in "
+        "the vector and the list:");
+    for (auto iter { cbegin(myVector) }; iter != miss.first; ++iter) {
+        print("{}\t", *iter);
+    }
+    println("");
+}
+
+// Now order them.
+if (lexicographical_compare(cbegin(myVector), cend(myVector),
+cbegin(myList), cend(myList))) {
+    println("The vector is lexicographically first.");
+} else {
+    println("The list is lexicographically first.");
+}
+\end{cpp}
+
+Here is a sample run of the program:
+
+\begin{shell}
+Populate the vector:
+Enter a number (0 to stop): 5
+Enter a number (0 to stop): 6
+Enter a number (0 to stop): 7
+Enter a number (0 to stop): 0
+Populate the list:
+Enter a number (0 to stop): 5
+Enter a number (0 to stop): 6
+Enter a number (0 to stop): 9
+Enter a number (0 to stop): 8
+Enter a number (0 to stop): 0
+The following initial elements are the same in the vector and the list:
+5 6
+The vector is lexicographically first.
+\end{shell}
+
+Additionally, the following comparison algorithms work on a single range: all\_of(), any\_of(), and none\_of(). Here are some examples:
+
+\begin{cpp}
+// all_of()
+vector vec2 { 1, 1, 1, 1 };
+if (all_of(cbegin(vec2), cend(vec2), [](int i){ return i == 1; })) {
+    println("All elements are == 1");
+} else {
+    println("Not all elements are == 1");
+}
+
+// any_of()
+vector vec3 { 0, 0, 1, 0 };
+if (any_of(cbegin(vec3), cend(vec3), [](int i){ return i == 1; })) {
+    println("At least one element == 1");
+} else {
+    println("No elements are == 1");
+}
+
+// none_of()
+vector vec4 { 0, 0, 0, 0 };
+if (none_of(cbegin(vec4), cend(vec4), [](int i){ return i == 1; })) {
+    println("All elements are != 1");
+} else {
+    println("Some elements are == 1");
+}
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+All elements are == 1
+At least one element == 1
+All elements are != 1
+\end{shell}
 
 \mySamllsection{Counting Algorithms}
 
+The non-modifying counting algorithms are count() and count\_if(). The following example uses the count\_if() algorithm to count the number of elements in a vector that satisfy a certain condition. The condition is given in the form of a lambda expression, which captures the value variable from its enclosing scope by value:
+
+\begin{cpp}
+vector values { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+int value { 3 };
+auto tally { count_if(cbegin(values), cend(values),
+    [value](int i){ return i > value; }) };
+println("Found {} values > {}.", tally, value);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Found 6 values > 3
+\end{shell}
+
+The example can be extended to demonstrate capturing variables by reference. The following lambda expression counts the number of times it is called by incrementing a variable in the enclosing scope that is captured by reference:
+
+\begin{cpp}
+vector values { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+int value { 3 };
+int callCounter { 0 };
+auto tally { count_if(cbegin(values), cend(values),
+    [value, &callCounter](int i){ ++callCounter; return i > value; }) };
+println("The lambda expression was called {} times.", callCounter);
+println("Found {} values > {}.", tally, value);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+The lambda expression was called 9 times.
+Found 6 values > 3
+\end{shell}
 
 \mySubsubsection{20.2.2.}{Modifying Sequence Algorithms}
 
+The Standard Library provides a variety of modifying sequence algorithms that perform tasks such as copying elements from one range to another, removing elements, or reversing the order of elements in a range.
+
+Some modifying algorithms use the concept of a source and a destination range. The elements are read from the source range and modified in the destination range. An example of such an algorithm is copy().
+
+Other algorithms perform their work in-place; that is, they require only one range, for example the generate() algorithm.
+
+\begin{myWarning}{WARNING}
+The modifying algorithms cannot insert elements into a destination. They can only overwrite/modify whatever elements are in the destination already. Chapter 17 describes how iterator adapters can be used to really insert elements into a destination.
+\end{myWarning}
+
+\begin{myNotic}{NOTE}
+Ranges from maps and multimaps cannot be used as destinations of modifying algorithms. These algorithms overwrite entire elements, which in a map consist of key/value pairs. However, maps and multimaps mark the key as const, so it cannot be assigned to. The same holds for set and multiset. Your alternative is to use an insert iterator, described in Chapter 17.
+\end{myNotic}
+
+The section “Modifying Sequence Algorithms” in Chapter 16 lists all available modifying algorithms with a description of each one. This section provides code examples for a selection of those algorithms. If you understand how to use the algorithms explained in this section, you should not have any problems using the other algorithms for which no examples are given.
+
 \mySamllsection{generate}
+
+The generate() algorithm requires a common range and replaces the values in that range with the values returned from the function callback given as third argument. The following example uses the generate() algorithm together with a lambda expression to put the numbers 2, 4, 8, 16, and so on, in a vector:
+
+\begin{cpp}
+vector<int> values(10); // Create a vector of 10 elements.
+int value { 1 };
+generate(begin(values), end(values), [&value]{ value *= 2; return value; });
+println("{:n}", values);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+2, 4, 8, 16, 32, 64, 128, 256, 512, 1024
+\end{shell}
 
 \mySamllsection{transform}
 
+There are multiple overloads of the transform() algorithm. One overload applies a callback to each element in a range and expects the callback to generate a new element, which it stores in the specified destination range. The source and destination ranges can be the same if you want transform() to work in-place. The parameters are a begin and end iterator of the source sequence, a begin iterator of the destination sequence, and the callback. For example, the following code snippet adds 100 to each element in a vector. The populateContainer() function is the same as defined earlier in this chapter.
+
+\begin{cpp}
+vector<int> myVector;
+populateContainer(myVector);
+println("The vector contains: {:n}", myVector);
+transform(begin(myVector), end(myVector), begin(myVector),
+    [](int i){ return i + 100;});
+println("The vector contains: {:n}", myVector);
+\end{cpp}
+
+A possible output is as follows:
+
+\begin{shell}
+Enter a number (0 to stop): 1
+Enter a number (0 to stop): 11
+Enter a number (0 to stop): 0
+The vector contains: 1, 11
+The vector contains: 101, 111
+\end{shell}
+
+Another overload of transform() calls a binary function on pairs of elements from two ranges. It requires a begin and end iterator of the first range, a begin iterator of the second range, and a begin iterator of the destination range. The following example creates two vectors and uses transform() to calculate the sum of pairs of elements and to store the result back in the first vector:
+
+\begin{cpp}
+vector<int> vec1, vec2;
+println("Vector1:"); populateContainer(vec1);
+println("Vector2:"); populateContainer(vec2);
+if (vec2.size() < vec1.size())
+{
+    println("Vector2 should be at least the same size as vector1.");
+    return 1;
+}
+
+println("Vector1: {:n}", vec1);
+println("Vector2: {:n}", vec2);
+transform(begin(vec1), end(vec1), begin(vec2), begin(vec1),
+    [](int a, int b){ return a + b; });
+println("Vector1: {:n}", vec1);
+println("Vector2: {:n}", vec2);
+\end{cpp}
+
+The output could look like this:
+
+\begin{shell}
+Vector1:
+Enter a number (0 to stop): 1
+Enter a number (0 to stop): 2
+Enter a number (0 to stop): 0
+Vector2:
+Enter a number (0 to stop): 11
+Enter a number (0 to stop): 22
+Enter a number (0 to stop): 33
+Enter a number (0 to stop): 0
+Vector1: 1, 2
+Vector2: 11, 22, 33
+Vector1: 12, 24
+Vector2: 11, 22, 33
+\end{shell}
+
+\begin{myNotic}{NOTE}
+transform() and the other modifying algorithms often return an iterator referring to the past-the-end value of the destination range. The examples in this book usually ignore that return value.
+\end{myNotic}
+
 \mySamllsection{copy}
+
+The copy() algorithm allows you to copy elements from one range to another, starting with the first element and proceeding to the last element in the range. The source and destination ranges must be different, but, with restrictions, they can overlap. The restrictions are as follows: for copy(b,e,d), overlapping is fine if d is before b; however, if d is within [b,e), then the behavior is undefined. As with all modifying algorithms, copy() cannot insert elements into the destination. It just overwrites whatever elements are there already. Chapter 17 describes how to use iterator adapters to insert elements into a container or stream with copy().
+
+Here is a simple example of copy() that uses the resize() member function on a vector to ensure that there is enough space in the destination container. It copies all elements from vec1 to vec2.
+
+\begin{cpp}
+vector<int> vec1, vec2;
+populateContainer(vec1);
+vec2.resize(size(vec1));
+copy(cbegin(vec1), cend(vec1), begin(vec2));
+println("{:n}", vec2);
+\end{cpp}
+
+There is also a copy\_backward() algorithm, which copies the elements from the source backward to the destination. In other words, it starts with the last element of the source, puts it in the last position in the destination range, and then moves backward after each copy. Also for copy\_backward(), the source and destination ranges must be different, but, with restrictions, they can again overlap. The restrictions this time are as follows: for copy\_backward(b,e,d), overlapping is fine if d is after e, however, if d is within (b,e], then the behavior is undefined. The preceding example can be modified to use copy\_backward() instead of copy(), as follows. Note that you need to specify end(vec2) as the third argument instead of begin(vec2). The output is the same as the version using copy().
+
+\begin{cpp}
+copy_backward(cbegin(vec1), cend(vec1), end(vec2));
+\end{cpp}
+
+copy\_if() works by having an input range specified by two iterators, an output destination specified by one iterator, and a predicate (for example, a function or lambda expression). The algorithm copies all elements that satisfy the given predicate to the destination. Remember, copy does not create or extend containers; it merely replaces existing elements, so the destination should be big enough to hold all elements to be copied. Of course, after copying the elements, it might be desirable to remove the space “beyond” where the last element was copied to. To facilitate this, copy\_if() returns an iterator to the one-past-the-last-copied element in the destination range. This can be used to determine how many elements should be removed from the destination container. The following example demonstrates this by copying only the even numbers to vec2:
+
+\begin{cpp}
+vector<int> vec1, vec2;
+populateContainer(vec1);
+vec2.resize(size(vec1));
+auto endIterator { copy_if(cbegin(vec1), cend(vec1),
+    begin(vec2), [](int i){ return i % 2 == 0; }) };
+vec2.erase(endIterator, end(vec2));
+println("{:n}", vec2);
+\end{cpp}
+
+copy\_n() copies n elements from the source to the destination. The first parameter of copy\_n() is the start iterator. The second parameter is an integer specifying the number of elements to copy, and the third parameter is the destination iterator. The copy\_n() algorithm does not perform any bounds checking, so you must make sure that the start iterator, incremented by the number of elements to copy, does not exceed the end() of the source collection or your program will have undefined behavior. Here is an example:
+
+\begin{cpp}
+vector<int> vec1, vec2;
+populateContainer(vec1);
+size_t tally { 0 };
+print("Enter number of elements you want to copy: ");
+cin >> tally;
+tally = min(tally, size(vec1));
+vec2.resize(tally);
+copy_n(cbegin(vec1), tally, begin(vec2));
+println("{:n}", vec2);
+\end{cpp}
 
 \mySamllsection{move}
 
+There are two move-related algorithms: move() and move\_backward(). They both use move semantics, discussed in Chapter 9. You have to provide a move assignment operator in your element classes if you want to use these algorithms on containers with elements of your own types, as demonstrated in the following example. The main() function creates a vector with three MyClass objects and then moves those elements from vecSrc to vecDst. Note that the code includes two different uses of move(). The move() function accepting a single argument converts an lvalue into an rvalue and is defined in <utility>, while move() accepting three arguments is the Standard Library move() algorithm to move elements between containers. Consult Chapter 9 for details on implementing move assignment operators and the use of the single parameter version of std::move().
+
+\begin{cpp}
+class MyClass
+{
+    public:
+        MyClass() = default;
+        MyClass(const MyClass& src) = default;
+        explicit MyClass(string str) : m_str { move(str) } {}
+        virtual ~MyClass() = default;
+
+        // Move assignment operator
+        MyClass& operator=(MyClass&& rhs) noexcept {
+            if (this == &rhs) { return *this; }
+            m_str = move(rhs.m_str);
+            println("Move operator= (m_str={})", m_str);
+            return *this;
+        }
+
+        void setString(string str) { m_str = move(str); }
+        const string& getString() const { return m_str; }
+    private:
+        string m_str;
+};
+
+int main()
+{
+    vector<MyClass> vecSrc { MyClass { "a" }, MyClass { "b" }, MyClass { "c" } };
+    vector<MyClass> vecDst(vecSrc.size());
+    move(begin(vecSrc), end(vecSrc), begin(vecDst));
+    for (const auto& c : vecDst) { print("{} ", c.getString()); }
+}
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Move operator= (m_str=a)
+Move operator= (m_str=b)
+Move operator= (m_str=c)
+a b c
+\end{shell}
+
+\begin{myNotic}{NOTE}
+Chapter 9 explains that source objects in a move operation are left in some valid but otherwise indeterminate state. For the previous example, this means you should not use the elements from vecSrc anymore after the move operation, unless you bring them back to a determinate state, for example by calling a member function on them without any preconditions, such as setString().
+\end{myNotic}
+
+move\_backward() uses the same move mechanism as move(), but it moves the elements starting from the last to the first element. For both move() and move\_backward(), the source and destination ranges are allowed to overlap with the same restrictions as for copy() and copy\_backward().
+
 \mySamllsection{replace}
+
+The replace() and replace\_if() algorithms replace elements in a range matching a value or predicate, respectively, with a new value. Take replace\_if() as an example. Its first and second parameters specify the range of elements to process. The third parameter is a callback that returns true or false. If it returns true, the value in the container is replaced with the value given for the fourth parameter; if it returns false, it leaves the original value.
+
+For example, you might want to replace all odd values in a container with the value zero:
+
+\begin{cpp}
+vector<int> values;
+populateContainer(values);
+replace_if(begin(values), end(values), [](int i){ return i % 2 != 0; }, 0);
+println("{:n}", values);
+\end{cpp}
+
+There are also variants of replace() and replace\_if() called replace\_copy() and replace\_copy\_if() that copy the results to a different destination range. They are similar to copy(), in that the destination range must already be large enough to hold the copied elements.
 
 \mySamllsection{erase}
 
+As introduced in Chapter 18, std::erase() and std::erase\_if() support almost all Standard Library containers. Officially, these operations are called uniform container erasure. The erase() function deletes all elements matching a given value from a container, while erase\_if() deletes all elements matching a given predicate. These algorithms require a reference to a container, instead of a common range, and are the preferred way to erase elements from containers.
+
+For example, the following code snippet removes all empty strings from a vector of strings and uses erase\_if() to do all the work:
+
+\begin{cpp}
+vector<string> values {"", "one", "", "two", "three", "four"};
+println("{:n}", values);
+erase_if(values, [](const string& str){ return str.empty(); });
+println("{:n}", values);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+"", "one", "", "two", "three", "four"
+"one", "two", "three", "four"
+\end{shell}
+
+\begin{myNotic}{NOTE}
+std::erase() does not work with ordered and unordered associative containers, because these containers have a member function called erase(key), which is much more performant and should be used instead. On the other hand, the erase\_if() function works with all containers.
+\end{myNotic}
+
 \mySamllsection{remove}
+
+The erase() and erase\_if() algorithms discussed in the previous section have been available since C++20. Still, let’s look at your options before C++20, as you will encounter them in legacy code. A first solution that you might think of is to check the documentation to see whether your container has an erase() member function and then iterate over all the elements and call erase() for each element that matches the condition. The vector is an example of a container that has such an erase() member function. However, if applied to the vector container, this solution is extremely inefficient as it will cause a lot of memory operations to keep the vector contiguous in memory, resulting in a quadratic complexity. This solution is also error-prone, because you need to be careful that you keep your iterators valid after a call to erase(). For example, here is a function that removes empty strings from a vector of strings without using algorithms. Note how iter is carefully manipulated inside the for loop.
+
+\begin{cpp}
+void removeEmptyStringsWithoutAlgorithms(vector<string>& strings)
+{
+    for (auto iter { begin(strings) }; iter != end(strings); ) {
+        if (iter->empty()) {
+            iter = strings.erase(iter);
+        } else {
+            ++iter;
+        }
+    }
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Quadratic complexity means that the running time is a function of the square of the input size, $O(n^2)$.
+\end{myNotic}
+
+This solution is inefficient and not recommended. A much better solution for this problem is the remove-erase-idiom, which runs in linear time and is explained next.
+
+The remove algorithms have access only to the iterator abstraction, not to the container. Thus, they cannot really remove elements from the underlying container. Instead, the algorithms work by replacing the elements that match a given value or predicate with the next element that does not match the given value or predicate. It does so using move assignments. The result is that all elements to be kept are moved toward the beginning of the range. The range becomes partitioned into two sets: the elements to be kept and the elements to be erased. An iterator is returned that points to the first element of the range of elements to be erased. Take care not to use any of the elements in that range, as they might have been moved. The only thing you must do with the returned iterator is to actually erase these elements from the container. So you first use the remove() or remove\_if() algorithm, and then you must call erase() on the container to erase all the elements from the returned iterator up to the end of the range. This process is called the remove-erase-idiom. Here is an implementation of a removeEmptyStrings() function using this idiom:
+
+\begin{cpp}
+void removeEmptyStrings(vector<string>& strings)
+{
+    auto it { remove_if(begin(strings), end(strings),
+        [](const string& str){ return str.empty(); }) };
+    // Erase the removed elements.
+    strings.erase(it, end(strings));
+}
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+When using the remove-erase-idiom, make sure not to forget the second argument to erase()! If you forget this second argument, erase() will erase only a single element from the container, that is, the element referred to by the iterator passed as the first argument.
+\end{myWarning}
+
+The remove\_copy() and remove\_copy\_if() variations of remove() and remove\_if() do not change the source range. Instead, they copy all kept elements to a different destination range. They are similar to copy(), in that the destination range must already be large enough to hold the new elements.
+
+\begin{myNotic}{NOTE}
+The remove() family of functions are stable; i.e., they maintain the order of elements remaining in the container even while moving the retained elements toward the beginning.
+\end{myNotic}
+
+\begin{myNotic}{NOTE}
+It’s recommended to use the std::erase\_if() and std::erase() algorithms (or the erase(key) member function for associative containers) over the remove-erase-idiom, and definitely over handwritten loops.
+\end{myNotic}
 
 \mySamllsection{unique}
 
+The unique() algorithm is a special case of remove() that removes all duplicate contiguous elements. The list container provides its own unique() member function that implements the same semantics. You should generally use unique() on sorted sequences, but nothing prevents you from running it on unsorted sequences.
+
+unique() works in a similar way as remove(): it moves all elements to be kept to the front of the range and returns an iterator that points to the first element of the range of elements to be erased. As with the remove-erase-idiom, calling unique() must be followed by a call to erase().
+
+The basic form of unique() runs in place, but there is also a variant of the algorithm called unique\_ copy() that copies its results to a new destination range.
+
+Chapter 18 shows an example of the list::unique() algorithm in the section “list Example: Determining Enrollment,” so an example of the general form is omitted here.
+
 \mySamllsection{shuffle}
+
+shuffle() rearranges the elements of a range in a random order with a linear complexity. It’s useful for implementing tasks like shuffling a deck of cards. shuffle() requires a start and end iterator for the range that you want to shuffle and a uniform random number generator object that specifies how random numbers should be generated. Here is an example (details on how to use random number generation engines and how to “seed” them are explained in Chapter 23, “Random Number Facilities”):
+
+\begin{cpp}
+vector values { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+random_device seeder;
+default_random_engine generator { seeder() };
+for (int i { 0 }; i < 6; ++i) {
+    shuffle(begin(values), end(values), generator);
+    println("{:n}", values);
+}
+\end{cpp}
+
+Here is some possible output:
+
+\begin{shell}
+8, 6, 7, 5, 4, 1, 2, 9, 3
+4, 1, 6, 2, 3, 7, 5, 9, 8
+1, 4, 2, 5, 6, 8, 7, 3, 9
+8, 4, 2, 7, 5, 9, 1, 6, 3
+8, 9, 1, 7, 4, 5, 2, 6, 3
+1, 7, 8, 5, 4, 3, 9, 6, 2
+\end{shell}
+
 
 \mySamllsection{sample}
 
+The sample() algorithm returns a selection of n randomly chosen elements from a given source range and stores them in a destination range. It requires five parameters:
+
+\begin{itemize}
+\item
+A begin and end iterator of the range to sample
+
+\item
+A begin iterator of the destination range where to store the randomly selected elements
+
+\item
+The number of elements to select
+
+\item
+A random number generation engine
+\end{itemize}
+
+Here is an example (details on how to use random number generation engines and how to “seed” them are explained in Chapter 23):
+
+\begin{cpp}
+vector values { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+const size_t numberOfSamples { 5 };
+vector<int> samples(numberOfSamples);
+
+random_device seeder;
+default_random_engine generator { seeder() };
+
+for (int i { 0 }; i < 6; ++i) {
+    sample(cbegin(values), cend(values), begin(samples),
+        numberOfSamples, generator);
+    println("{:n}", samples);
+}
+\end{cpp}
+
+Here is some possible output:
+
+\begin{shell}
+1, 4, 7, 8, 9
+1, 3, 4, 7, 9
+2, 3, 4, 5, 7
+3, 5, 6, 7, 9
+1, 2, 3, 6, 7
+1, 2, 4, 5, 8
+\end{shell}
+
 \mySamllsection{reverse}
+
+The reverse() algorithm reverses the order of the elements in a range. The first element in the range is swapped with the last, the second with the second-to-last, and so on.
+
+The basic form of reverse() runs in place and requires two arguments: a start and end iterator for the range. There is also a variant of the algorithm called reverse\_copy() that copies its results to a new destination range and requires three arguments: a start and end iterator for the source range, and a start iterator for the destination range. The destination range must already be large enough to hold the new elements.
+
+Here is an example using reverse():
+
+\begin{cpp}
+vector<int> values;
+populateContainer(values);
+reverse(begin(values), end(values));
+println("{:n}", values);
+\end{cpp}
 
 \mySamllsection{Shifting Elements}
 
+The shift\_left() and shift\_right() algorithms shift elements in a given range by moving them to their new position. shift\_left() returns an iterator to the end of the new range, while shift\_right() returns an iterator to the beginning of the new range. After calling either algorithm, you must use the returned iterator in a call to erase() to delete elements that fell off either end of the range. Here is an example:
+
+\begin{cpp}
+vector values { 11, 22, 33, 44, 55 };
+println("{:n}", values);
+
+// Shift elements to the left by 2 positions.
+auto newEnd { shift_left(begin(values), end(values), 2) };
+// Resize the vector to its proper size.
+values.erase(newEnd, end(values));
+println("{:n}", values);
+
+// Shift elements to the right by 2 positions.
+auto newBegin { shift_right(begin(values), end(values), 2) };
+// Resize the vector to its proper size.
+values.erase(begin(values), newBegin);
+println("{:n}", values);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+11, 22, 33, 44, 55
+33, 44, 55
+33
+\end{shell}
 
 \mySubsubsection{20.2.3.}{Operational Algorithms}
 
+There are only two algorithms in this category: for\_each() and for\_each\_n(). They execute a callback on each element of a range, for\_each(), or on the first n elements of a range, for\_each\_n(). The callback can modify elements in the range if the given iterator type is non-const. The algorithms are mentioned here so you know they exist; however, it’s often easier and more readable to use a simple range-based for loop instead.
+
 \mySamllsection{for\_each}
+
+The following is an example using a generic lambda expression, printing the elements from a map:
+
+\begin{cpp}
+map<int, int> myMap { { 4, 40 }, { 5, 50 }, { 6, 60 } };
+for_each(cbegin(myMap), cend(myMap), [](const auto& p)
+    { println("{} -> {}", p.first, p.second); });
+\end{cpp}
+
+The type of p is const pair<int, int>\&. The output is as follows:
+
+\begin{shell}
+4 -> 40
+5 -> 50
+6 -> 60
+\end{shell}
+
+The following example shows how to use the for\_each() algorithm and a lambda expression to calculate the sum and the product of a range of elements at the same time. The lambda expression explicitly captures only those variables it needs. It captures them by reference; otherwise, changes made to sum and product in the lambda expression would not be visible outside the lambda.
+
+\begin{cpp}
+vector<int> myVector;
+populateContainer(myVector);
+
+int sum { 0 };
+int product { 1 };
+for_each(cbegin(myVector), cend(myVector),
+[&sum, &product](int i){
+    sum += i;
+    product *= i;
+});
+println("The sum is {}", sum);
+println("The product is {}", product);
+\end{cpp}
+
+This example can also be written with a functor in which you accumulate information that you can retrieve after for\_each() has finished processing all the elements. For example, you can calculate both the sum and product of the elements in one pass by writing a functor SumAndProduct that tracks both at the same time:
+
+\begin{cpp}
+class SumAndProduct
+{
+    public:
+        void operator()(int value)
+        {
+            m_sum += value;
+            m_product *= value;
+        }
+        int getSum() const { return m_sum; }
+        int getProduct() const { return m_product; }
+    private:
+        int m_sum { 0 };
+        int m_product { 1 };
+};
+int main()
+{
+    vector<int> myVector;
+    populateContainer(myVector);
+    SumAndProduct calculator;
+    calculator = for_each(cbegin(myVector), cend(myVector), calculator);
+    println("The sum is {}", calculator.getSum());
+    println("The product is {}", calculator.getProduct());
+}
+\end{cpp}
+
+You might be tempted to ignore the return value of for\_each() yet still try to read information from calculator after the algorithm is finished. However, that doesn’t work because for\_each() copies the functor, and at the end, this copy is returned from the call. You must capture the return value to ensure correct behavior.
+
+Another option is to pass calculator by reference using std::ref(), see earlier in this chapter:
+
+\begin{cpp}
+for_each(cbegin(myVector), cend(myVector), ref(calculator));
+\end{cpp}
+
+A final point about for\_each() (that also applies to for\_each\_n() discussed in the next section) is that the callback is allowed to have a reference-to-non-const as parameter and modify it. That has the effect of changing values in the actual range. Here is an example:
+
+\begin{cpp}
+vector values { 11, 22, 33, 44 };
+// Double each element in the values vector.
+for_each(begin(values), end(values), [](auto& value) { value *= 2; });
+println("{:n}", values);
+\end{cpp}
 
 \mySamllsection{for\_each\_n}
 
+The for\_each\_n() algorithm requires a begin iterator of the range, the number of elements to iterate over, n, and a callback. It returns an iterator equal to begin + n. As usual, it does not perform any bounds checking. Here is an example that only iterates over the first two elements of a map:
+
+\begin{cpp}
+map<int, int> myMap { { 4, 40 }, { 5, 50 }, { 6, 60 } };
+for_each_n(cbegin(myMap), 2, [](const auto& p)
+    { println("{} -> {}", p.first, p.second); });
+\end{cpp}
 
 \mySubsubsection{20.2.4.}{Partition Algorithms}
 
+partition\_copy() copies elements from a source to two different destinations. The destination for each element is selected based on the result of a predicate, either true or false. The value returned by partition\_copy() is a pair of iterators: iterators referring to one-past-the-last-copied element in the first and second destination range. These returned iterators can be used in combination with erase() to remove excess elements from the two destination ranges, just as in the earlier copy\_if() example. The following code snippet asks the user to enter a number of integers, which are then partitioned into two destination vectors: one for the even numbers and one for the odd numbers:
 
+\begin{cpp}
+vector<int> values, vecOdd, vecEven;
+populateContainer(values);
+vecOdd.resize(size(values));
+vecEven.resize(size(values));
+
+auto pairIters { partition_copy(cbegin(values), cend(values),
+    begin(vecEven), begin(vecOdd),
+    [](int i){ return i % 2 == 0; }) };
+
+vecEven.erase(pairIters.first, end(vecEven));
+vecOdd.erase(pairIters.second, end(vecOdd));
+
+println("Even numbers: {:n}", vecEven);
+println("Odd numbers: {:n}", vecOdd);
+\end{cpp}
+
+The output can be as follows:
+
+\begin{shell}
+Enter a number (0 to stop): 11
+Enter a number (0 to stop): 22
+Enter a number (0 to stop): 33
+Enter a number (0 to stop): 44
+Enter a number (0 to stop): 0
+Even numbers: 22, 44
+Odd numbers: 11, 33
+\end{shell}
+
+The partition() algorithm sorts a sequence such that all elements for which a predicate returns true are before all elements for which it returns false, without preserving the original order of the elements within each partition. The following example demonstrates how to partition a vector into all even numbers followed by all odd numbers:
+
+\begin{cpp}
+vector<int> values;
+populateContainer(values);
+partition(begin(values), end(values), [](int i){ return i % 2 == 0; });
+println("Partitioned result: {:n}", values);
+\end{cpp}
+
+The output can be as follows:
+
+\begin{shell}
+Enter a number (0 to stop): 55
+Enter a number (0 to stop): 44
+Enter a number (0 to stop): 33
+Enter a number (0 to stop): 22
+Enter a number (0 to stop): 11
+Enter a number (0 to stop): 0
+Partitioned result: 22, 44, 33, 55, 11
+\end{shell}
+
+A few more partition algorithms are available as well. See Chapter 16 for a list.
 
 \mySubsubsection{20.2.5.}{Sorting Algorithms}
 
+The Standard Library provides several variations of sorting algorithms. A sorting algorithm reorders the contents of a container such that an ordering is maintained between sequential elements of the collection. Thus, it applies only to sequential collections. Sorting is not relevant for ordered associative containers because they already maintain elements in a sorted order. Sorting is not relevant for the unordered associative containers either, because they have no concept of ordering. Some containers, such as list and forward\_list, provide their own sorting member functions, because these member functions can be implemented more efficiently than a generic sorting mechanism. Consequently, the generic sorting algorithms are most useful for vectors, deques, arrays, and C-style arrays.
 
+The sort() algorithm sorts a range of elements in O(N log N) time in general. Following the application of sort() to a range, the elements in the range are in nondecreasing order (lowest to highest), according to operator<. If you don’t like that order, you can specify a different comparator, such as greater.
+
+A variant of sort(), called stable\_sort(), maintains the relative order of equal elements in a range, but it is less efficient than sort().
+
+Here is an example of sort() using a transparent greater<> comparator:
+
+\begin{cpp}
+vector<int> values;
+populateContainer(values);
+sort(begin(values), end(values), greater<>{});
+\end{cpp}
+
+There is also is\_sorted(), returning true if a given range is sorted, and is\_sorted\_until(), returning an iterator such that everything before this iterator is sorted.
+
+nth\_element() is a powerful selection algorithm. Given a range of elements and an iterator to the $n^{th}$ element in that range, the algorithm rearranges the elements in the range such that the element in the position pointed to by $n^{th}$ is the element that would be in that position if the whole range were sorted. Additionally, it rearranges all elements such that all elements preceding the nth element are less than the new $n^{th}$ element, and the ones following it are greater than the new nth element. The interesting thing about this algorithm is that it does all this in linear time, O(n). Instead of using nth\_element(), you could also just sort the whole range and then retrieve the data you are interested in, but that would result in a complexity that is linear logarithmic, O(n log n).
+
+All this sounds complicated, so let’s see this algorithm in action. A first example is to find the third largest element in a given range. It assumes the user enters at least three values.
+
+\begin{cpp}
+vector<int> values;
+populateContainer(values);
+// Find the third largest value.
+nth_element(begin(values), begin(values) + 2, end(values), greater<>{});
+println("3rd largest value: {}", values[2]);
+\end{cpp}
+
+Another example is to get the five largest elements from a range in sorted order. It assumes the user enters at least five values.
+
+\begin{cpp}
+vector<int> values;
+populateContainer(values);
+// Get the 5 largest elements in sorted order.
+nth_element(begin(values), begin(values) + 4, end(values), greater<>{});
+// nth_element() has partitioned the elements, now sort the first subrange.
+sort(begin(values), begin(values) + 5);
+// And finally, output the sorted subrange.
+for_each_n(begin(values), 5, [](const auto& element) { print("{} ", element); });
+\end{cpp}
 
 \mySubsubsection{20.2.6.}{Binary Search Algorithms}
 
+There are several search algorithms that work only on sequences that are sorted or that are at least partitioned on the element that is searched for. These algorithms are binary\_search(), lower\_bound(), upper\_bound(), and equal\_range(). Note that the associative containers, such as map and set, have equivalent member functions that you should use instead. See Chapter 18 for an example on how to use these member functions on such containers.
 
+The lower\_bound() algorithm finds the first element in a sorted range not less than (greater or equal to) a given value. It is often used to find at which position in a sorted vector a new value should be inserted so that the vector remains sorted. Here is an example:
+
+\begin{cpp}
+vector<int> values;
+populateContainer(values);
+
+// Sort the container
+sort(begin(values), end(values));
+println("Sorted vector: {:n}", values);
+
+while (true) {
+    int number;
+    print("Enter a number to insert (0 to stop): ");
+    cin >> number;
+    if (number == 0) { break; }
+    auto iter { lower_bound(begin(values), end(values), number) };
+    values.insert(iter, number);
+    println("New vector: {:n}", values);
+}
+\end{cpp}
+
+The binary\_search() algorithm finds a matching element in logarithmic time instead of linear time. It requires a start and end iterator specifying the range to search in, a value to search, and optionally a comparator callback. It returns true if the value is found in the specified range, false otherwise. Binary search requires the range to be sorted and works by first comparing the middle element of the range. Depending on whether that middle element is greater than or less than the value to search, it continues by comparing the middle element of the left or right half of the range, respectively. This continues until the element is found. Basically, on each iteration, the range is halved, hence the logarithmic complexity. The following example demonstrates this algorithm:
+
+\begin{cpp}
+vector<int> values;
+populateContainer(values);
+
+// Sort the container
+sort(begin(values), end(values));
+
+while (true) {
+    print("Enter a number to find (0 to stop): ");
+    int number;
+    cin >> number;
+    if (number == 0) { break; }
+    if (binary_search(cbegin(values), cend(values), number)) {
+        println("That number is in the vector.");
+    } else {
+        println("That number is not in the vector.");
+    }
+}
+\end{cpp}
 
 \mySubsubsection{20.2.7.}{Set Algorithms}
 
+The set algorithms work on any sorted range. The includes() algorithm implements standard subset determination, checking whether all the elements of one sorted range are included in another sorted range, in any order.
 
+The set\_union(), set\_intersection(), set\_difference(), and set\_symmetric\_difference() algorithms implement the standard semantics of those operations. In set theory, the result of a union is all the elements in either set. The result of an intersection is all the elements that are in both sets. The result of a difference is all the elements in the first set but not the second. The result of a symmetric difference is the “exclusive or” of sets: all the elements in one, but not both, sets.
+
+\begin{myWarning}{WARNING}
+Make sure that your result range is large enough to hold the result of the operations. For set\_union() and set\_symmetric\_difference(), the result is at most the sum of the sizes of the two input ranges. For set\_intersection(), the result is at most the size of the smallest input range, and for set\_difference() it’s at most the size of the first range.
+\end{myWarning}
+
+\begin{myWarning}{WARNING}
+You can’t use common ranges from associative containers, including sets, to store the results because they don’t allow changes to their keys.
+\end{myWarning}
+
+Let’s look at these set algorithms in action. First, a constrained DumpRange() function template is defined to write elements of a given range to the standard output stream; it is implemented as follows. ranges::subrange() converts a common range, given as a pair of iterators, to a range, which can then be passed to println().
+
+\begin{cpp}
+template <forward_iterator Iterator>
+void DumpRange(string_view message, Iterator begin, Iterator end)
+{
+    println("{}{:n}", message, ranges::subrange(begin, end));
+}
+\end{cpp}
+
+With this helper function defined, here are examples on using the set algorithms:
+
+\begin{cpp}
+vector<int> vec1, vec2, result;
+println("Enter elements for set 1:");
+populateContainer(vec1);
+println("Enter elements for set 2:");
+populateContainer(vec2);
+
+// set algorithms require sorted ranges
+sort(begin(vec1), end(vec1));
+sort(begin(vec2), end(vec2));
+
+println("Set 1: {:n}", vec1);
+println("Set 2: {:n}", vec2);
+
+if (includes(cbegin(vec1), cend(vec1), cbegin(vec2), cend(vec2))) {
+    println("The second set is a subset of the first.");
+}
+if (includes(cbegin(vec2), cend(vec2), cbegin(vec1), cend(vec1))) {
+    println("The first set is a subset of the second");
+}
+
+result.resize(size(vec1) + size(vec2));
+auto newEnd { set_union(cbegin(vec1), cend(vec1), cbegin(vec2),
+    cend(vec2), begin(result)) };
+DumpRange("The union is: ", begin(result), newEnd);
+
+newEnd = set_intersection(cbegin(vec1), cend(vec1), cbegin(vec2),
+cend(vec2), begin(result));
+DumpRange("The intersection is: ", begin(result), newEnd);
+
+newEnd = set_difference(cbegin(vec1), cend(vec1), cbegin(vec2),
+cend(vec2), begin(result));
+DumpRange("The difference between set 1 and 2 is: ", begin(result), newEnd);
+
+newEnd = set_symmetric_difference(cbegin(vec1), cend(vec1),
+cbegin(vec2), cend(vec2), begin(result));
+DumpRange("The symmetric difference is: ", begin(result), newEnd);
+\end{cpp}
+
+Here is a sample run of the program:
+
+\begin{shell}
+Enter elements for set 1:
+Enter a number (0 to stop): 5
+Enter a number (0 to stop): 6
+Enter a number (0 to stop): 7
+Enter a number (0 to stop): 8
+Enter a number (0 to stop): 0
+Enter elements for set 2:
+Enter a number (0 to stop): 8
+Enter a number (0 to stop): 9
+Enter a number (0 to stop): 10
+Enter a number (0 to stop): 0
+Set 1: 5, 6, 7, 8
+Set 2: 8, 9, 10
+The union is: 5, 6, 7, 8, 9, 10
+The intersection is: 8
+The difference between set 1 and set 2 is: 5, 6, 7
+The symmetric difference is: 5, 6, 7, 9, 10
+\end{shell}
+
+The merge() algorithm allows you to merge two sorted ranges together, while maintaining the sorted order. The result is a sorted range containing all the elements of both source ranges. It works in linear time. The following parameters are required:
+
+\begin{itemize}
+\item
+Start and end iterator of the first source range
+
+\item
+Start and end iterator of the second source range
+
+\item
+Start iterator of the destination range
+
+\item
+Optionally, a comparator callback
+\end{itemize}
+
+Without merge(), you could still achieve the same effect by concatenating the two ranges and applying sort() to the result, but that would be less efficient, O(N log N) instead of the linear complexity of merge().
+
+\begin{myWarning}{WARNING}
+Always ensure that you supply a big enough destination range to store the result of the merge!
+\end{myWarning}
+
+The following example demonstrates merge():
+
+\begin{cpp}
+vector<int> vectorOne, vectorTwo, vectorMerged;
+println("Enter values for first vector:");
+populateContainer(vectorOne);
+println("Enter values for second vector:");
+populateContainer(vectorTwo);
+
+// Sort both containers
+sort(begin(vectorOne), end(vectorOne));
+sort(begin(vectorTwo), end(vectorTwo));
+
+// Make sure the destination vector is large enough to hold the values
+// from both source vectors.
+vectorMerged.resize(size(vectorOne) + size(vectorTwo));
+
+merge(cbegin(vectorOne), cend(vectorOne),
+      cbegin(vectorTwo), cend(vectorTwo), begin(vectorMerged));
+
+println("Merged vector: {:n}", vectorMerged);
+\end{cpp}
 
 \mySubsubsection{20.2.8.}{Minimum/Maximum Algorithms}
 
+The min() and max() algorithms compare two or more elements of any type using operator< or a user-supplied binary predicate, returning a reference-to-const to the smallest or largest element, respectively. The minmax() algorithm returns a pair containing the minimum and maximum of two or more elements. These algorithms do not work with common ranges or ranges.
 
+The min\_element() and max\_element() algorithms work with common ranges and return an iterator to the smallest or largest element in a range, respectively. The minmax\_element() algorithm also works with a common range and returns a pair containing iterators to the smallest and largest element in a range.
+
+The following program gives some examples:
+
+\begin{cpp}
+int x { 4 }, y { 5 };
+println("x is {} and y is {}", x, y);
+println("Max is {}", max(x, y));
+println("Min is {}", min(x, y));
+
+// Using max() and min() on more than two values.
+int x1 { 2 }, x2 { 9 }, x3 { 3 }, x4 { 12 };
+println("Max of 4 elements is {}", max({ x1, x2, x3, x4 }));
+println("Min of 4 elements is {}", min({ x1, x2, x3, x4 }));
+
+// Using minmax().
+auto p2 { minmax({ x1, x2, x3, x4 }) }; // p2 is of type pair<int, int>.
+println("Minmax of 4 elements is <{},{}>", p2.first, p2.second);
+
+// Using minmax() + structured bindings.
+auto [min1, max1] { minmax({ x1, x2, x3, x4 }) };
+println("Minmax of 4 elements is <{},{}>", min1, max1);
+
+// Using minmax_element() + structured bindings.
+vector values { 11, 33, 22 };
+auto [min2, max2] { minmax_element(cbegin(values), cend(values)) };
+println("minmax_element() result: <{},{}>", *min2, *max2);
+\end{cpp}
+
+Here is the program output:
+
+\begin{shell}
+x is 4 and y is 5
+Max is 5
+Min is 4
+Max of 4 elements is 12
+Min of 4 elements is 2
+Minmax of 4 elements is <2,12>
+Minmax of 4 elements is <2,12>
+minmax_element() result: <11,33>
+\end{shell}
+
+\begin{myNotic}{NOTE}
+Sometimes you might encounter non-standard macros to find the minimum and maximum. For example, the GNU C Library (glibc) has macros MIN() and MAX(), while the Windows.h header file defines min() and max() macros. Because these are macros, they have the potential to evaluate one of their arguments twice, whereas std::min() and std::max() evaluate each argument exactly once. Make sure you always use the C++ versions, std::min() and std::max().
+
+Even worse, such min() and max() macros might interfere with using std::min() and std::max(). In that case, there are three workarounds:
+
+\begin{itemize}
+\item
+Use \#undef min and \#undef max after having included the problematic header, e.g., Windows.h.
+
+\item
+Add a \#define NOMINMAX before you include Windows.h.
+
+\item
+Use an extra set of parentheses for std::min() and std::max(), as follows:
+
+\begin{cpp}
+auto maxValue { (std::max)(1, 2) };
+\end{cpp}
+\end{itemize}
+\end{myNotic}
+
+std::clamp() is a little helper function, defined in <algorithm>, that you can use to make sure that a value (v) is between a given minimum (lo) and maximum (hi). It returns a reference to lo if v < lo, returns a reference to hi if v > hi, and otherwise returns a reference to v. Here is an example:
+
+\begin{cpp}
+println("{}", clamp(-3, 1, 10));
+println("{}", clamp(3, 1, 10));
+println("{}", clamp(22, 1, 10));
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+1
+3
+10
+\end{shell}
 
 \mySubsubsection{20.2.9.}{Parallel Algorithms}
 

@@ -1,18 +1,414 @@
 
+You can overload the function call operator in a class such that objects of the class can be used in place of function pointers. These objects are called function objects, or functors for short. The benefits of using a function object instead of a simple function is that a function object can keep state between calls to it.
 
 \mySubsubsection{19.3.1.}{Writing Your First Function Object}
 
+As Chapter 15, “Overloading C++ Operators,” explains, to make any class a function object, you just have to provide an overload for the function call operator. Here is a quick reminder:
 
+\begin{cpp}
+class IsLargerThan
+{
+    public:
+        explicit IsLargerThan(int value) : m_value { value } {}
+        bool operator()(int value1, int value2) const {
+            return value1 > m_value && value2 > m_value;
+        }
+    private:
+        int m_value;
+};
+
+int main()
+{
+    vector values1 { 2, 500, 6, 9, 10, 101, 1 };
+    vector values2 { 4, 4, 2, 9, 0, 300, 1 };
+
+    findMatches(values1, values2, IsLargerThan { 100 }, printMatch);
+}
+\end{cpp}
+
+Note that the overloaded function call operator of the IsLargerThan class is marked as const. This is not strictly necessary in this example, but as the next chapter explains, for most Standard Library algorithms, the function call operator of predicates must be const.
+
+\CXXTwentythreeLogo{-40}{-50}
+
+Remember also from Chapter 15 that, starting with C++23, an overloaded operator() can be marked as static if it doesn’t require access to any non-static data members and member functions of the functor. Doing so allows the compiler to better optimize the code.
 
 \mySubsubsection{19.3.2.}{Function Objects in the Standard Library}
 
+Many of the Standard Library algorithms discussed in the next chapter, such as find\_if(), accumulate(), and so on, accept callbacks, for example function pointers and functors, as parameters to customize the algorithm’s behavior. C++ provides several predefined functor classes, defined in <functional>, that perform the most commonly used callback operations. This section gives an overview of these predefined functors.
+
+Your <functional> might also contain functions like bind1st(), bind2nd(), mem\_fun(), mem\_fun\_ref(), and ptr\_fun(). These functions have officially been removed since the C++17 standard and thus are not further discussed in this book. You should avoid using them.
 
 \mySamllsection{Arithmetic Function Objects}
 
+C++ provides functor class templates for the five binary arithmetic operators: plus, minus, multiplies, divides, and modulus. Additionally, unary negate is supplied. These classes are parametrized on the type of the operands and are wrappers for the actual operators. They take one or two parameters of the template type, perform the operation, and return the result. Here is an example using the plus class template:
+
+\begin{cpp}
+plus<int> myPlus;
+int res { myPlus(4, 5) };
+println("{}", res);
+\end{cpp}
+
+This example is of course silly, because there’s no reason to use the plus class template when you could just use operator+ directly. The benefit of the arithmetic function objects is that you can pass them as callbacks to other functions, which you cannot do directly with the arithmetic operators. For example, the following code snippet defines a constrained accumulateData() function template accepting an Operation as its last parameter. The implementation of geometricMean() calls accumulateData() with an instance of the predefined multiplies function object:
+
+\begin{cpp}
+template <input_iterator Iter, copy_constructible StartValue,
+          invocable<const StartValue&, const StartValue&> Operation>
+auto accumulateData(Iter begin, Iter end,
+    const StartValue& startValue, Operation op)
+{
+    auto accumulated { startValue };
+    for (Iter iter { begin }; iter != end; ++iter) {
+        accumulated = op(accumulated, *iter);
+    }
+    return accumulated;
+}
+
+double geometricMean(span<const int> values)
+{
+    auto mult {accumulateData(cbegin(values), cend(values), 1, multiplies<int>{})};
+    return pow(mult, 1.0 / values.size()); // pow() is defined in <cmath>
+}
+\end{cpp}
+
+The expression multiplies<int>\{\} creates a new object of the multiplies functor class template, instantiating it with type int.
+
+The other arithmetic function objects behave similarly.
+
+\begin{myWarning}{WARNING}
+The arithmetic function objects are just wrappers around the arithmetic operators. To use them on objects of a certain type, you have to make sure that those types implement the appropriate operations, such as operator* or operator+.
+\end{myWarning}
+
+\mySamllsection{Transparent Operator Functors}
+
+C++ supports transparent operator functors, which allow you to omit the template type argument. For example, you can just specify multiplies<>{}, short for multiplies<void>\{\}, instead of multiplies<int>\{\}:
+
+\begin{cpp}
+double geometricMeanTransparent(span<const int> values)
+{
+    auto mult { accumulateData(cbegin(values), cend(values), 1, multiplies<>{}) };
+    return pow(mult, 1.0 / values.size());
+}
+\end{cpp}
+
+An important feature of these transparent operators is that they are heterogeneous. That is, they are not only more concise than the non-transparent functors, but they also have real functional advantages. For instance, the following code uses a transparent operator functor, multiplies<>\{\}, and uses 1.1, a double, as the start value, while the vector contains integers. accumulateData() calculates the result as a double, and result will be 6.6.
+
+\begin{cpp}
+vector<int> values { 1, 2, 3 };
+double result {accumulateData(cbegin(values), cend(values), 1.1, multiplies<>{})};
+\end{cpp}
+
+If this code uses a non-transparent operator functor, multiplies<int>\{\}, then accumulateData() calculates the result as an integer, and result will be 6. When you compile this code, the compiler will give you warnings about possible loss of data.
+
+\begin{cpp}
+vector<int> values { 1, 2, 3 };
+double result {
+    accumulateData(cbegin(values), cend(values), 1.1, multiplies<int>{}) };
+\end{cpp}
+
+Finally, using transparent operators instead of the non-transparent ones can improve performance, as shown with an example in the next section.
+
+\begin{myNotic}{NOTE}
+It’s recommended to always use the transparent operator functors.
+\end{myNotic}
+
 \mySamllsection{Comparison Function Objects}
+
+In addition to the arithmetic function object classes, all standard comparison operations are also available as functors: equal\_to, not\_equal\_to, less, greater, less\_equal, and greater\_equal. You’ve already seen less in Chapter 18, “Standard Library Containers,” as the default comparator for elements in the priority\_queue, the ordered associative containers, and the flat associative container adapters. Now you can learn how to change that criterion. Here’s an example of a priority\_queue using the default comparator, std::less:
+
+\begin{cpp}
+priority_queue<int> myQueue;
+myQueue.push(3);
+myQueue.push(4);
+myQueue.push(2);
+myQueue.push(1);
+while (!myQueue.empty()) {
+    print("{} ", myQueue.top());
+    myQueue.pop();
+}
+\end{cpp}
+
+Here is the output from the program:
+
+\begin{shell}
+4 3 2 1
+\end{shell}
+
+As you can see, the elements of the queue are removed in descending order, according to the less comparator. You can change the comparator to greater by specifying it as the comparator template type argument. The priority\_queue template definition looks like this:
+
+\begin{cpp}
+template <typename T, typename Container = vector<T>, typename Compare = less<T>>;
+\end{cpp}
+
+Unfortunately, the Compare type parameter is last, which means that to specify it, you must also specify the container type. If you want to use a priority\_queue that sorts the elements in ascending order using greater, then you need to change the definition of the priority\_queue in the previous example to the following:
+
+\begin{cpp}
+priority_queue<int, vector<int>, greater<>> myQueue;
+\end{cpp}
+
+The output now is as follows:
+
+\begin{shell}
+1 2 3 4
+\end{shell}
+
+Note that myQueue is defined with a transparent operator, greater<>. In fact, it’s recommended to always use a transparent operator for Standard Library containers that accept a comparator type. Using a transparent comparator can be more performant compared to using a non-transparent operator. For example, if a set<string> uses a non-transparent comparator (which is the default), performing a query for a key given as a string literal causes an unwanted copy to be created, because a string instance has to be constructed from the string literal:
+
+\begin{cpp}
+set<string> mySet;
+auto i1 { mySet.find("Key") }; // string constructed, allocates memory!
+//auto i2 { mySet.find("Key"sv) }; // Compilation error!
+\end{cpp}
+
+When using a transparent comparator, this copying is avoided. This is called heterogeneous lookups. Here’s an example:
+
+\begin{cpp}
+set<string, less<>> mySet;
+auto i1 { mySet.find("Key") }; // No string constructed, no memory allocated.
+auto i2 { mySet.find("Key"sv) }; // No string constructed, no memory allocated.
+\end{cpp}
+
+Similarly, C++23 adds support for heterogeneous erasure and extraction using erase() and extract().
+
+Unordered associative containers, such as unordered\_map and unordered\_set, also support transparent operators. Using a transparent operator with unordered associative containers is a bit more involved compared to using them for ordered associative containers. Basically, a custom hash functor needs to be implemented, containing an is\_transparent type alias defined as void:
+
+\begin{cpp}
+class Hasher
+{
+    public:
+        using is_transparent = void;
+        size_t operator()(string_view sv) const { return hash<string_view>{}(sv); }
+};
+\end{cpp}
+
+When using this custom hasher, you also need to specify the transparent equal\_to<> functor as the type for the key equality template type parameter. Here is an example:
+
+\begin{cpp}
+unordered_set<string, Hasher, equal_to<>> mySet;
+auto i1 { mySet.find("Key") }; // No string constructed, no memory allocated.
+auto i2 { mySet.find("Key"sv) }; // No string constructed, no memory allocated.
+\end{cpp}
 
 \mySamllsection{Logical Function Objects}
 
+For the three logical operations, operator!, \&\&, and ||, C++ provides the following function object classes: logical\_not, logical\_and, and logical\_or. These logical operations deal only with the values true and false. Bitwise function objects are covered in the next section.
+
+Logical functors can, for example, be used to implement an allTrue() function that checks whether all the Boolean flags in a container are true:
+
+\begin{cpp}
+bool allTrue(const vector<bool>& flags)
+{
+    return accumulateData(begin(flags), end(flags), true, logical_and<>{});
+}
+\end{cpp}
+
+Similarly, the logical\_or functor can be used to implement an anyTrue() function that returns true if there is at least one Boolean flag in a container true:
+
+\begin{cpp}
+bool anyTrue(const vector<bool>& flags)
+{
+    return accumulateData(begin(flags), end(flags), false, logical_or<>{});
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+The allTrue() and anyTrue() functions are just given as examples. In fact, the Standard Library provides the std::all\_of() and any\_of() algorithms (see Chapter 20) that perform the same operations but that have the benefit of short-circuiting (see Chapter 1), so they are more performant.
+\end{myNotic}
+
 \mySamllsection{Bitwise Function Objects}
 
+C++ has function objects bit\_and, bit\_or, bit\_xor, and bit\_not, corresponding to the bitwise operations operator\&, |, \^{}, and ~. These bitwise functors can, for example, be used together with the transform() algorithm (discussed in Chapter 20) to perform bitwise operations on all elements in a container.
+
 \mySamllsection{Adapter Function Objects}
+
+When you try to use the basic function objects provided by the standard, it often feels as if you’re trying to put a square peg into a round hole. If you want to use one of the standard function objects, but the signature doesn’t quite match your requirements, then you can use adapter function objects to attempt to rectify the signature mismatch. They allow you to adapt function objects, function pointers, basically any callable. The adapters provide a modicum of support for functional composition, that is, to combine functions together to create the exact behavior you need.
+
+\mySamllsection{Binders}
+
+Binders can be used to bind parameters of callables to certain values. A first binder is std::bind(), defined in <functional>, which allows you to bind parameters of a callable in a flexible way. You can bind parameters to fixed values, and you can even rearrange parameters in a different order.
+
+It is best explained with an example. Suppose you have a function called func() accepting two arguments:
+
+\begin{cpp}
+void func(int num, string_view str)
+{
+    println("func({}, {})", num, str);
+}
+\end{cpp}
+
+The following code demonstrates how you can use bind() to bind the second argument of func() to a fixed value, myString. The result is stored in f1(). The auto keyword is used because the return type of bind() is unspecified by the C++ standard and thus is implementation specific. Arguments that are not bound to specific values should be specified as \_1, \_2, \_3, and so on. These are defined in the std::placeholders namespace. In the definition of f1(), the \_1 specifies where the first argument to f1() needs to go when func() is called. The result: f1() can be called with just a single integer argument:
+
+\begin{cpp}
+string myString { "abc" };
+auto f1 { bind(func, placeholders::_1, myString) };
+f1(16);
+\end{cpp}
+
+Here is the output:
+
+\begin{shell}
+func(16, abc)
+\end{shell}
+
+bind() can also be used to rearrange the arguments, as shown in the following code. The \_2 specifies where the second argument to f2() needs to go when func() is called. In other words, the f2() binding means that the first argument to f2() will become the second argument to func(), and the second argument to f2() will become the first argument to func():
+
+\begin{cpp}
+auto f2 { bind(func, placeholders::_2, placeholders::_1) };
+f2("Test", 32);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+func(32, Test)
+\end{shell}
+
+As discussed in Chapter 18, <functional> defines the std::ref() and cref() helper function templates. These can be used to bind references-to-non-const and references-to-const, respectively. For example, suppose you have the following function:
+
+\begin{cpp}
+void increment(int& value) { ++value; }
+\end{cpp}
+
+If you call this function as follows, then the value of index becomes 1:
+
+\begin{cpp}
+int index { 0 };
+increment(index);
+\end{cpp}
+
+If you use bind() to call it as follows, then the value of index is not incremented because a copy of index is made, and a reference to this copy is bound to the first parameter of the increment() function:
+
+\begin{cpp}
+auto incr { bind(increment, index) };
+incr();
+\end{cpp}
+
+Using std::ref() to pass a proper reference correctly increments index:
+
+\begin{cpp}
+auto incr { bind(increment, ref(index)) };
+incr();
+\end{cpp}
+
+There is a small issue with binding parameters in combination with overloaded functions. Suppose you have the following two overloaded() functions. One accepts an integer, and the other accepts a floating-point number:
+
+\begin{cpp}
+void overloaded(int num) {}
+void overloaded(float f) {}
+\end{cpp}
+
+If you want to use bind() with these overloaded functions, you need to explicitly specify which of the two overloads you want to bind. The following will not compile:
+
+\begin{cpp}
+auto f3 { bind(overloaded, placeholders::_1) }; // ERROR
+\end{cpp}
+
+If you want to bind the parameters of the overloaded function accepting a floating-point argument, you need the following syntax:
+
+\begin{cpp}
+auto f4 { bind((void(*)(float))overloaded, placeholders::_1) }; // OK
+\end{cpp}
+
+Another example of bind() is to use findMatches() (defined earlier in this chapter) with a member function of a class as MatchHandler. For example, suppose you have the following Handler class:
+
+\begin{cpp}
+class Handler
+{
+    public:
+        void handleMatch(size_t position, int value1, int value2)
+        {
+            println("Match found at position {} ({}, {})",
+                position, value1, value2);
+        }
+};
+\end{cpp}
+
+How to pass the handleMatch() member function as the last argument to findMatches()? The problem here is that a member function must always be called in the context of an object. Technically, every member function of a class has an implicit first parameter, containing a pointer to an object instance and accessible in the member function’s body with the name this. So, there is a signature mismatch, as our MatchHandler type accepts only three arguments: a size\_t and two ints. The solution is to bind this implicit first parameter as follows:
+
+\begin{cpp}
+Handler handler;
+findMatches(values1, values2, intEqual, bind(&Handler::handleMatch, &handler,
+            placeholders::_1, placeholders::_2, placeholders::_3));
+\end{cpp}
+
+You can also use bind() to bind parameters of standard function objects. For example, you can bind the second parameter of greater\_equal to always compare with a fixed value:
+
+\begin{cpp}
+auto greaterEqualTo100 { bind(greater_equal<>{}, placeholders::_1, 100) };;
+\end{cpp}
+
+The Standard Library provides two more binder function objects: std::bind\_front() and bind\_back(). The latter is introduced with C++23. They both wrap a callable f. When calling a bind\_front() wrapper, the first n number of arguments for f are bound to a given set of values. For bind\_back(), the last n number of arguments for f are bound. Here are two examples:
+
+\begin{cpp}
+auto f5 { bind_front(func, 42) };
+f5("Hello");
+
+auto f6 { bind_back(func, "Hello")};
+f6(42);
+\end{cpp}
+
+This generates the following output:
+
+\begin{shell}
+func(42, Hello)
+func(42, Hello)
+\end{shell}
+
+\begin{myNotic}{NOTE}
+Before C++11 there was bind2nd() and bind1st(). Both are removed since the C++17 standard. Use lambda expressions, discussed later in this chapter, or bind(), bind\_front(), or bind\_back() instead.
+\end{myNotic}
+
+\mySamllsection{Negator}
+
+not\_fn() is a negator, similar to a binder, but it complements the result of a callable. For example, if you want to use findMatches() to find pairs of non-equal values, you can apply the not\_fn() negator adapter to the result of intEqual() like this:
+
+\begin{cpp}
+findMatches(values1, values2, not_fn(intEqual), printMatch);
+\end{cpp}
+
+The not\_fn() functor complements the result of every call to the callable it takes as a parameter.
+
+
+\begin{myNotic}{NOTE}
+The std::not\_fn() adapter is available since C++17. Before C++17 you could use the std::not1() and not2() adapters. However, both not1() and not2() have been deprecated since C++17 and removed from C++20. As such, they are not further discussed, and you should avoid using them.
+\end{myNotic}
+
+\mySamllsection{Calling Member Functions}
+
+You might want to pass a pointer to a class member function as the callback to an algorithm. For example, suppose you have the following algorithm that prints strings from a container that match a certain condition. The Matcher template type parameter is constrained with predicate<const string\&> to make sure the user supplies a callback that can be called with a string parameter and returns a Boolean.
+
+\begin{cpp}
+template <predicate<const string&> Matcher>
+void printMatchingStrings(const vector<string>& strings, Matcher matcher)
+{
+    for (const auto& string : strings) {
+        if (matcher(string)) { print("'{}' ", string); }
+    }
+}
+\end{cpp}
+
+You could use this algorithm to print all non-empty strings by using the empty() member function of string. However, if you just pass a pointer to string::empty() as the second argument to printMatchingStrings(), the algorithm has no way of knowing that it received a pointer to a member function instead of a normal function pointer or functor. The code to call a member function pointer is different from that of calling a normal function pointer, because the former must be called in the context of an object.
+
+C++ provides a conversion function called mem\_fn() that you can call with a member function pointer before passing it to an algorithm. The following example demonstrates this and combines it with not\_fn() to invert the result of mem\_fn(). Note that you have to specify the member function pointer as \&string::empty. The \&string:: part is not optional.
+
+\begin{cpp}
+vector<string> values { "Hello", "", "", "World", "!" };
+printMatchingStrings(values, not_fn(mem_fn(&string::empty)));
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+'Hello' 'World' '!'
+\end{shell}
+
+not\_fn(mem\_fn()) generates a function object that serves as the callback for printMatchingStrings(). Each time it is called, it calls the empty() member function on its argument and inverts the result.
+
+\begin{myNotic}{NOTE}
+mem\_fn() is not the most intuitive way to implement the desired behavior. I recommend using lambda expressions, discussed later in this chapter, to implement it in a more elegant and more readable way.
+\end{myNotic}
+
+
+
+
+
+

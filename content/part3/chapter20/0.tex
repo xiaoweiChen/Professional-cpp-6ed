@@ -1,0 +1,27 @@
+\noindent
+\textbf{WHAT’S IN THIS CHAPTER?}
+
+\begin{itemize}
+\item
+What Standard Library algorithms are and what principles they are built on
+
+\item
+Details of the algorithms provided by the Standard Library
+
+\item
+How to execute algorithms in parallel to improve performance
+
+\item
+What constrained algorithms are
+\end{itemize}
+
+\noindent
+\textbf{WILEY.COM DOWNLOADS FOR THIS CHAPTER}
+
+Please note that all the code examples for this chapter are available as part of this chapter’s code download on the book’s website at \url{www.wiley.com/go/proc++6e} on the Download Code tab.
+
+As Chapter 18, “Standard Library Containers,” shows, the Standard Library provides an impressive collection of generic data structures. Most libraries stop there. The Standard Library, however, contains an additional assortment of generic algorithms that can, with some exceptions, be applied to elements from any container. Using these algorithms, you can find, sort, and process elements in containers and perform a host of other operations. The beauty of the algorithms is that they are independent not only of the types of the underlying elements, but also of the types of the containers on which they operate. Algorithms perform their work using only the iterator or ranges interfaces, discussed in Chapter 17, “Understanding Iterators and the Ranges Library.”
+
+The Standard Library comes with a large set of unconstrained algorithms, all working solely with iterators. These algorithms don’t have any constraints in the form of concepts; see Chapter 12, “Writing Generic Code with Templates,” attached to them. The Standard Library additionally has a large collection of constrained algorithms, sometimes called range-based algorithms. These are able to work with iterators and ranges and are properly constrained, so the compiler can produce more readable error messages when an algorithm is used wrongly. This chapter focuses first on the unconstrained algorithms, as these are the ones used in most existing and legacy code bases; hence, you need to know how they work. Once you know how they work, it will be refreshing to see how the constrained algorithms make things easier.
+
+Chapter 16, “Overview of the C++ Standard Library,” gives a high-level overview of all the Standard Library algorithms, but without any coding details. Combined with the knowledge of Chapter 19, “Function Pointers, Function Objects, and Lambda Expressions,” now it’s time to look at how those algorithms can be used in practice and discover their true power.

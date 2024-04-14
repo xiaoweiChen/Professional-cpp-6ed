@@ -1,0 +1,44 @@
+
+std::invoke(), defined in <functional>, can be used to call any callable with a set of arguments. The following example uses invoke() three times: once to invoke a normal function, once to invoke a lambda expression, and once to invoke a member function on a string instance:
+
+\begin{cpp}
+int main()
+{
+    invoke(printMessage, "Hello invoke.");
+    invoke([](const auto& msg) { println("{}", msg); }, "Hello invoke.");
+    string msg { "Hello invoke." };
+    println("{}", invoke(&string::size, msg));
+}
+\end{cpp}
+
+The output of this code is as follows:
+
+\begin{shell}
+Hello invoke.
+Hello invoke.
+13
+\end{shell}
+
+\CXXTwentythreeLogo{-40}{-50}
+
+C++23 adds std::invoke\_r(), also defined in <functional>, allowing you to specify the return type. Here is an example:
+
+\begin{cpp}
+int sum(int a, int b) { return a + b; }
+
+int main()
+{
+    auto res1 { invoke(sum, 11, 22) }; // Type of res1 is int.
+    auto res2 { invoke_r<double>(sum, 11, 22) }; // Type of res2 is double.
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+By themselves, invoke() and invoke\_r() are not that useful because you might as well just call the function or the lambda expression directly. However, they can be very useful when writing generic templated code where you need to invoke some arbitrary callable.
+\end{myNotic}
+
+
+
+
+
+

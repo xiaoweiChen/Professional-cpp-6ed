@@ -15,11 +15,178 @@ bool (*fun)(int, int) { nullptr };
 
 \mySubsubsection{19.1.1.}{findMatches() Using Function Pointers}
 
+Another way to work with function pointers is to use type aliases. A type alias allows you to assign a type name to the family of functions that have the given characteristics. For example, the following defines a type called Matcher representing a pointer to any function that has two int parameters and returns a bool:
 
+\begin{cpp}
+using Matcher = bool(*)(int, int);
+\end{cpp}
+
+The following type alias defines a type called MatchHandler for functions accepting a size\_t and two ints and returning nothing:
+
+\begin{cpp}
+using MatchHandler = void(*)(size_t, int, int);
+\end{cpp}
+
+Now that these types are defined, you can write a function that takes two callbacks as parameters: a Matcher and a MatchHandler. Functions that accept other functions as parameters, or functions that return a function are called higher-order functions. For example, the following function accepts two spans of integers, as well as a Matcher and MatchHandler. It iterates through the spans in parallel and calls the Matcher on corresponding elements of both spans. If the Matcher returns true, the MatchHandler is called with as first argument the position of the match, and as second and third arguments the values that caused the Matcher to return true. Notice that even though the Matcher and MatchHandler are passed in as variables, they can be called just like regular functions:
+
+
+\begin{cpp}
+void findMatches(span<const int> values1, span<const int> values2,
+Matcher matcher, MatchHandler handler)
+{
+    if (values1.size() != values2.size()) { return; } // Must be same size.
+    for (size_t i { 0 }; i < values1.size(); ++i) {
+        if (matcher(values1[i], values2[i])) {
+            handler(i, values1[i], values2[i]);
+        }
+    }
+}
+\end{cpp}
+
+Note that this implementation requires that both spans have the same number of elements. To call the findMatches() function, all you need is any function that adheres to the defined Matcher type— that is, any function that takes in two ints and returns a bool—and a function that adheres to the MatchHandler type. Here is an example of a possible Matcher, returning true if the two parameters are equal:
+
+\begin{cpp}
+bool intEqual(int value1, int value2) { return value1 == value2; }
+\end{cpp}
+
+The following is an example of a MatchHandler that simply prints out the match:
+
+\begin{cpp}
+void printMatch(size_t position, int value1, int value2)
+{
+    println("Match found at position {} ({}, {})", position, value1, value2);
+}
+\end{cpp}
+
+The intEqual() and printMatch() functions can be passed as arguments to findMatches(), as follows:
+
+\begin{cpp}
+vector values1 { 2, 5, 6, 9, 10, 1, 1 };
+vector values2 { 4, 4, 2, 9, 0, 3, 1 };
+println("Calling findMatches() using intEqual():");
+findMatches(values1, values2, &intEqual, &printMatch);
+\end{cpp}
+
+The callback functions are passed to findMatches() by taking their addresses. Technically, the \& is optional—if you omit it and only put the function name, the compiler will know that you mean to take its address. The output is as follows:
+
+\begin{shell}
+Calling findMatches() using intEqual():
+Match found at position 3 (9, 9)
+Match found at position 6 (1, 1)
+\end{shell}
+
+The benefit of function pointers lies in the fact that findMatches() is a generic function that compares parallel values in two vectors. As it is used in the previous example, it compares values based on equality. However, because it takes a function pointer, it could compare values based on other criteria. For example, the following function also adheres to the definition of Matcher:
+
+\begin{cpp}
+bool bothOdd(int value1, int value2) { return value1 % 2 == 1 && value2 % 2 == 1; }
+\end{cpp}
+
+The following code snippet shows that bothOdd() can also be used in a call to findMatches():
+
+\begin{cpp}
+println("Calling findMatches() using bothOdd():");
+findMatches(values1, values2, bothOdd, printMatch);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Calling findMatches() using bothOdd():
+Match found at position 3 (9, 9)
+Match found at position 5 (1, 3)
+Match found at position 6 (1, 1)
+\end{shell}
+
+By using function pointers, a single function, findMatches(), can be customized to different uses based on functions/callbacks passed in as arguments.
 
 \mySubsubsection{19.1.2.}{findMatches() As a Function Template}
 
+You don’t need to use explicit function pointer parameters for findMatches() to accept callback parameters. Instead, you can convert findMatches() to a function template. The only changes needed are to remove the Matcher and MatchHandler type aliases and to make findMatches() a function template. The changes are highlighted:
 
+\begin{cpp}
+template <typename Matcher, typename MatchHandler>
+void findMatches(span<const int> values1, span<const int> values2,
+    Matcher matcher, MatchHandler handler)
+{ /* ... */ }
+\end{cpp}
+
+Better yet is the following constrained function template. The Matcher template type parameter is constrained (see Chapter 12, “Writing Generic Code with Templates”) with predicate<int,int> to make sure the user supplies a callback that can be called with two int arguments and returns a Boolean. Similarly, the MatchHandler template type parameter is constrained to callbacks that can be called with one size\_t argument and two int arguments and returns nothing.
+
+\begin{cpp}
+template <predicate<int, int> Matcher, invocable<size_t, int, int> MatchHandler>
+void findMatches(span<const int> values1, span<const int> values2,
+    Matcher matcher, MatchHandler handler)
+{ /* ... */ }
+\end{cpp}
+
+Both these implementations of findMatches() require two template type parameters, the type of the Matcher and MatchHandler callbacks, but thanks to function template argument deduction, calling them is the same as calling the earlier versions.
+
+Using the abbreviated function template syntax, the findMatches() function template can be written even more elegantly as follows. Notice there is no longer an explicit template header, template<...>.
+
+\begin{cpp}
+void findMatches(span<const int> values1, span<const int> values2,
+    auto matcher, auto handler)
+{ /* ... */ }
+\end{cpp}
+
+The matcher and handler parameters can again be constrained:
+
+\begin{cpp}
+void findMatches(span<const int> values1, span<const int> values2,
+    predicate<int, int> auto matcher, invocable<size_t, int, int> auto handler)
+{ /* ... */ }
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+The findMatches() function template or abbreviated function template is actually the recommended way to implement the function, instead of using explicit function pointer parameters.
+\end{myNotic}
+
+It should be clear by now that callbacks allow you to write very generic and configurable code. It’s exactly such use of callbacks that make many Standard Library algorithms (discussed in Chapter 20, “Mastering Standard Library Algorithms”) so powerful.
 
 \mySubsubsection{19.1.3.}{Windows DLLs and Function Pointers}
+
+One common use case for using function pointers is to obtain a pointer to a function in a dynamic link library. The following example obtains a pointer to a function in a Microsoft Windows Dynamic Link Library (DLL). A DLL is basically a library consisting of code and data that can be used by any program. An example of a specific Windows DLL is the User32 DLL, which provides, among a lot of other functionality, a function to show a message box on the screen. Details of Windows DLLs are outside the scope of this book on platform-independent C++, but it is so important to Windows programmers that it is worth discussing briefly, and it is a good example of function pointers in general.
+
+One function in User32.dll to show a message box is called MessageBoxA(). Suppose you would like to load this library only if you need to show a message box. Loading the library at run time can be done with the Windows LoadLibraryA() function (requires <Windows.h>):
+
+\begin{cpp}
+HMODULE lib { ::LoadLibraryA("User32.dll") };
+\end{cpp}
+
+The result of this call is a library handle and will be NULL if there is an error. Before you can load the function from the library, you need to know the prototype for the function. The prototype for MessageBoxA() is as follows:
+
+\begin{cpp}
+int MessageBoxA(HWND, LPCSTR, LPCSTR, UINT);
+\end{cpp}
+
+The first parameter is the window that owns the message box (can be NULL), the second is the string to show as the message, the third is the title of the window, and the fourth is the configuration flags for the message box, such as which buttons and which icon to show.
+
+You can now define a type alias MessageBoxFunction for a pointer to a function with the required prototype:
+
+\begin{cpp}
+using MessageBoxFunction = int(*)(HWND, LPCSTR, LPCSTR, UINT);
+\end{cpp}
+
+Having successfully loaded the library and defined a type alias for the function pointer, you can get a pointer to the function in the library as follows:
+
+\begin{cpp}
+MessageBoxFunction messageBox {
+    (MessageBoxFunction)::GetProcAddress(lib, "MessageBoxA") };
+\end{cpp}
+
+If this fails, messageBox will be nullptr. If it succeeds, you can call the loaded function as follows. MB\_OK is a flag to show only a single OK button in the message box.
+
+\begin{cpp}
+messageBox(NULL, "Hello World!", "ProC++", MB_OK);
+\end{cpp}
+
+
+
+
+
+
+
+
+
+
 

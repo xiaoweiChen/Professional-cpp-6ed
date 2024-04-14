@@ -1,37 +1,531 @@
 
+The clumsiness of having to create a function or functor class, give it a name that does not conflict with other names, and then use this name is considerable overhead for what is fundamentally a simple concept. In these cases, using anonymous (unnamed) functions represented by lambda expressions is a big convenience. Lambda expressions allow you to write anonymous functions inline. Their syntax is easier and can make your code more compact and easier to read. Lambda expressions are useful to define small callbacks passed to other functions inline, instead of having to define a full function object somewhere else with the callback logic implemented in its overloaded function call operator. This way, all the logic remains in a single place, and it is easier to understand and maintain. Lambda expressions can accept parameters, return values, be templated, access variables from its enclosing scope either by value or by reference, and more. There is a lot of flexibility. Let’s start with building up the syntax of lambda expressions step-by-step.
 
 \mySubsubsection{19.5.1.}{Syntax}
 
+Let’s start with a simple lambda expression. The following example defines a lambda expression that just writes a string to the console. A lambda expression starts with square brackets, [], called the lambda introducer, followed by curly braces, \{\}, which contain the body of the lambda expression. The lambda expression is assigned to the basicLambda auto-typed variable. The second line executes the lambda expression using normal function-call syntax.
 
+\begin{cpp}
+auto basicLambda { []{ println("Hello from Lambda"); } };
+basicLambda();
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Hello from Lambda
+\end{shell}
+
+The compiler automatically transforms any lambda expression to a function object, also called lambda closure, with a unique, compiler-generated name. For the previous example, the lambda expression is translated to a function object that behaves like the following function object. Note that the function call operator is a const member function and has an auto return type to let the compiler automatically deduce the return type based on the body of the member function.
+
+\begin{cpp}
+class CompilerGeneratedName
+{
+    public:
+        auto operator()() const { println("Hello from Lambda"); }
+};
+\end{cpp}
+
+The compiler-generated name of a lambda closure can be something exotic like \_\_Lambda\_17Za. There is no way for you to figure out this name, but luckily, you don’t need to know its name.
+
+A lambda expression can accept parameters. Parameters are specified between parentheses and multiple parameters are separated by commas, just as with normal functions. Here is an example using one parameter called value:
+
+\begin{cpp}
+auto parametersLambda { [](int value){ println("The value is {}", value); } };
+parametersLambda(42);
+\end{cpp}
+
+If a lambda expression does not accept any parameters, you can either specify empty parentheses or simply omit them.
+
+In the compiler-generated function object for this lambda expression, the parameters are simply translated to parameters for the overloaded function call operator:
+
+\begin{cpp}
+class CompilerGeneratedName
+{
+    public:
+        auto operator()(int value) const { println("The value is {}", value); }
+};
+\end{cpp}
+
+A lambda expression can return a value. The return type is specified following an arrow, called a trailing return type. The following example defines a lambda expression accepting two parameters and returning their sum:
+
+\begin{cpp}
+auto sumLambda { [](int a, int b) -> int { return a + b; } };
+int sum { sumLambda(11, 22) };
+\end{cpp}
+
+The return type can be omitted, in which case the compiler deduces the return type of the lambda expression according to the same rules as for function return type deduction (see Chapter 1). In the previous example, the return type can be omitted as follows:
+
+\begin{cpp}
+auto sumLambda { [](int a, int b){ return a + b; } };
+int sum { sumLambda(11, 22) };
+\end{cpp}
+
+The closure for this lambda expression behaves as follows:
+
+\begin{cpp}
+class CompilerGeneratedName
+{
+    public:
+        auto operator()(int a, int b) const { return a + b; }
+};
+\end{cpp}
+
+The return type deduction strips any reference and const qualifiers. For example, suppose you have the following Person class:
+
+\begin{cpp}
+class Person
+{
+    public:
+        explicit Person(std::string name) : m_name { std::move(name) } { }
+        const std::string& getName() const { return m_name; }
+    private:
+        std::string m_name;
+};
+\end{cpp}
+
+The type of name1 in the following code snippet is deduced as string; hence, a copy of the person’s name is made, even though getName() returns a const string\&. See Chapter 12 for a discussion of decltype(auto).
+
+\begin{cpp}
+Person p { "John Doe" };
+decltype(auto) name1 { [] (const Person& person) { return person.getName(); }(p) };
+\end{cpp}
+
+You can use a trailing return type in combination with decltype(auto) to make it so that the deduced type matches the return type of getName(), that is a const string\&:
+
+\begin{cpp}
+decltype(auto) name2 { [](const Person& person) -> decltype(auto) {
+        return person.getName(); }(p) };
+\end{cpp}
+
+The lambda expressions up to now in this section are called stateless because they don’t capture anything from the enclosing scope. A lambda expression can be stateful by capturing variables from its enclosing scope. For example, the following lambda expression captures the variable data so that it can be used in its body:
+
+\begin{cpp}
+double data { 1.23 };
+auto capturingLambda { [data]{ println("Data = {}", data); } };
+\end{cpp}
+
+The square brackets part serves as a capture block. Capturing a variable means that the variable becomes available inside the body of the lambda expression. Specifying an empty capture block, [], means that no variables from the enclosing scope are captured. When you just write the name of a variable in the capture block as in the preceding example, then you are capturing that variable by value.
+
+Captured variables become data members of the lambda closure. Variables captured by value are copied into data members of the functor. These data members have the same constness as the captured variables. In the preceding capturingLambda example, the functor gets a non-const data member called data, because the captured variable, data, is non-const. The compiler-generated functor behaves as follows:
+
+\begin{cpp}
+class CompilerGeneratedName
+{
+    public:
+        CompilerGeneratedName(const double& d) : data { d } {}
+        auto operator()() const { println("Data = {}", data); }
+    private:
+        double data;
+};
+\end{cpp}
+
+In the following example, the functor gets a const data member called data, because the captured variable is const:
+
+\begin{cpp}
+const double data { 1.23 };
+auto capturingLambda { [data]{ println("Data = {}", data); } };
+\end{cpp}
+
+As mentioned earlier, a lambda closure has an overloaded function call operator that is marked as const by default. That means that even if you capture a non-const variable by value in a lambda expression, the lambda expression is not able to modify this copy. You can mark the function call operator as non-const by specifying the lambda expression as mutable, as follows:
+
+\begin{cpp}
+double data { 1.23 };
+auto capturingLambda {
+    [data] () mutable { data *= 2; println("Data = {}", data); } };
+\end{cpp}
+
+In this example, the non-const variable data is captured by value; thus, the functor gets a non-const data member that is a copy of data. Because of the mutable keyword, the function call operator is marked as non-const, and so the body of the lambda expression can modify its copy of data.
+
+You can prefix the name of a variable with \& to capture it by reference. The following example captures the variable data by reference so that the lambda expression can directly change data in the enclosing scope:
+
+\begin{cpp}
+double data { 1.23 };
+auto capturingLambda { [&data]{ data *= 2; } };
+\end{cpp}
+
+With this lambda expression, the compiler-generated functor contains a data member called data of type reference-to-double. When you capture a variable by reference, you have to make sure that the reference is still valid at the time the lambda expression is executed.
+
+There are two ways to capture all variables from the enclosing scope, called capture defaults:
+
+\begin{itemize}
+\item
+{}[=] captures all variables by value.
+
+\item
+{}[\&] captures all variables by reference.
+\end{itemize}
+
+\begin{myNotic}{NOTE}
+When using a capture default, only those variables that are really used in the body of the lambda expression are captured, either by value (=) or by reference (\&). Unused variables are not captured.
+\end{myNotic}
+
+It is also possible to selectively decide which variables to capture and how, by specifying a capture list with an optional capture default. Variables prefixed with \& are captured by reference. Variables without a prefix are captured by value. If present, the capture default must be the first element in the capture list and be either \& or =. Here are some capture block examples:
+
+\begin{itemize}
+\item
+{}[\&x] captures only x by reference and nothing else.
+
+\item
+{}[x] captures only x by value and nothing else.
+
+\item
+{}[=,\&x,\&y] captures by value by default, except variables x and y, which are captured by reference.
+
+\item
+{}[\&,x] captures by reference by default, except variable x, which is captured by value.
+
+\item
+{}[\&x,\&x] is illegal because identifiers cannot be repeated.
+\end{itemize}
+
+When a lambda expression is created in the scope of an object, e.g., inside a member function of a class, then it’s possible to capture this in several ways:
+
+\begin{itemize}
+\item
+{}[this] captures the current object. In the body of the lambda expression you can access this object, even without using this->. You need to make sure that the object pointed to stays alive until the last time the lambda expression has been executed.
+
+\item
+{}[*this] captures a copy of the current object. This can be useful in cases where the original object will no longer be alive when the lambda expression is executed.
+
+\item
+{}[=,this] captures everything by value and explicitly captures the this pointer. Before C++20, [=] would implicitly capture the this pointer. In C++20, this has been deprecated, and you need to explicitly capture this if you need it.
+\end{itemize}
+
+Here are a few notes on capture blocks:
+
+\begin{itemize}
+\item
+If a by-value (=) or by-reference (\&) capture default is specified, then it is not allowed to additionally capture specific variables by value or by reference respectively. For example, [=,x] and [\&,\&x] are both invalid.
+
+\item
+Data members of an object cannot be captured, unless by using a lambda capture expression discussed later in this chapter.
+
+\item
+When capturing this, either by copying the this pointer, [this], or by copying the current object, [*this], the lambda expression has access to all public, protected, and private data members and member functions of the captured object.
+\end{itemize}
+
+\begin{myWarning}{WARNING}
+It is not recommended to use a capture default, even though a capture default only captures those variables that are really used in the body of the lambda expression. By using a = capture default, you might accidentally cause an expensive copy. By using an \& capture default, you might accidentally modify a variable in the enclosing scope. I recommend you explicitly specify which variables you want to capture and how.
+\end{myWarning}
+
+\begin{myWarning}{WARNING}
+Global variables are always captured by reference, even if asked to capture by value! For example, in the following code snippet, a capture default is used to capture everything by value. Yet, the global variable, global, is captured by reference, and its value is changed after executing the lambda.
+
+\begin{cpp}
+int global { 42 };
+int main()
+{
+    auto lambda { [=] { global = 2; } };
+    lambda();
+    // global now has the value 2!
+}
+\end{cpp}
+
+Additionally, capturing a global variable explicitly as follows is not allowed and results in a compilation error:
+
+\begin{cpp}
+auto lambda { [global] { global = 2; } };
+\end{cpp}
+
+Even besides these problems, global variables are never recommended anyway.
+\end{myWarning}
+
+The complete syntax of a lambda expression is as follows:
+
+\begin{cpp}
+[capture_block] attributes1 (parameters) specifiers noexcept_specifier attributes2
+    -> return_type requires1 {body}
+\end{cpp}
+
+or
+
+\begin{cpp}
+[capture_block] <template_params> requires1 attributes1 (parameters) specifiers
+    noexcept_specifier attributes2 -> return_type requires2 {body}
+\end{cpp}
+
+Everything is optional except the capture block and the body:
+
+\begin{itemize}
+\item
+Capture block: Called the lambda introducer and specifies how variables from the enclosing scope are captured and made available in the body of the lambda.
+
+\item
+Template parameters: Allows you to write parametrized lambda expressions, discussed later in this chapter.
+
+\item
+Parameters: A list of parameters for the lambda expression. If the lambda expression does not require any parameters, you can omit the set of parentheses or specify an empty set, ().[Prior to C++23, you could only omit the empty set of parentheses if you did not need any parameters and you did not specify mutable, constexpr, consteval, a noexcept specifier, attributes, a return type, or a requires clause.] The parameter list is similar to the parameter list for normal functions.
+
+\item
+Specifiers: The following specifiers are available:
+\begin{itemize}
+\item
+mutable: Marks the function call operator of the lambda closure as mutable; see earlier examples.
+
+\item
+constexpr: Marks the function call operator of the lambda closure as constexpr, so it can be evaluated at compile time. Even if omitted, the function call operator will be constexpr implicitly if it satisfies all restrictions for constexpr functions.
+
+\item
+consteval: Marks the function call operator of the lambda closure as consteval, so it becomes an immediate function that must be evaluated at compile time; see Chapter 9, “Mastering Classes and Objects.” constexpr and consteval cannot be combined.
+
+\CXXTwentythreeLogo{-40}{-50}
+
+\item
+static (C++23): Marks the function call operator of the lambda closure as static. This can be specified only for stateless lambda expression, i.e., lambda expressions with an empty capture block! Adding this specifier allows the compiler to better optimize the generated code, especially if such stateless lambda expressions are stored inside an std::function or move\_only\_function wrapper.
+\end{itemize}
+
+\item
+noexcept specifier: Specifies noexcept clauses for the function call operator of the lambda closure, similar to noexcept clauses for normal functions.
+
+\CXXTwentythreeLogo{-40}{-50}
+
+\item
+Attributes 1 (C++23): Specifies attributes for the function call operator of the lambda closure, e.g., [[nodiscard]]. Attributes are discussed in Chapter 1.
+
+\item
+Attributes 2: Specifies attributes for the lambda closure itself.
+
+\item
+Return type: The type of the returned value. If omitted, the compiler deduces the return type according to the same rules as for function return type deduction; see Chapter 1.
+
+\item
+Requires clause 1 and 2: Specifies template type constraints for the function call operator of the lambda closure. Chapter 12, “Writing Generic Code with Templates,” explains how such constraints can be specified.
+\end{itemize}
+
+\begin{myNotic}{NOTE}
+For lambda expressions that do not capture anything, the compiler automatically provides a conversion operator that converts the lambda expression to a function pointer. Such lambda expressions can then, for example, be used to pass to functions that accept a function pointer as one of their arguments.
+\end{myNotic}
 
 \mySubsubsection{19.5.2.}{Lambda Expressions as Parameters}
 
+Lambda expressions can be passed as arguments to functions in two ways. One option is to have a function parameter of type std::function that matches the signature of the lambda expression. Another option is to use a template type parameter.
 
+For example, a lambda expression can be passed to the findMatches() function from earlier in this chapter:
+
+\begin{cpp}
+vector values1 { 2, 5, 6, 9, 10, 1, 1 };
+vector values2 { 4, 4, 2, 9, 0, 3, 1 };
+findMatches(values1, values2,
+    [](int value1, int value2) { return value1 == value2; },
+    printMatch);
+\end{cpp}
 
 \mySubsubsection{19.5.3.}{Generic Lambda Expressions}
 
+It is possible to use auto type deduction for parameters of lambda expressions instead of explicitly specifying concrete types for them. To specify auto-type deduction for a parameter, the type is simply specified as auto, auto\&, or auto*. The type deduction rules are the same as for template argument deduction.
 
+The following example defines a generic lambda expression called areEqual. This lambda expression is used as callback for the findMatches() function from earlier in this chapter:
+
+\begin{cpp}
+// Define a generic lambda expression to find equal values.
+auto areEqual { [](const auto& value1, const auto& value2) {
+        return value1 == value2; } };
+// Use the generic lambda expression in a call to findMatches().
+vector values1 { 2, 5, 6, 9, 10, 1, 1 };
+vector values2 { 4, 4, 2, 9, 0, 3, 1 };
+findMatches(values1, values2, areEqual, printMatch);
+\end{cpp}
+
+The compiler-generated functor for this generic lambda expression behaves like this:
+
+\begin{cpp}
+class CompilerGeneratedName
+{
+    public:
+        template <typename T1, typename T2>
+        auto operator()(const T1& value1, const T2& value2) const {
+            return value1 == value2; }
+};
+\end{cpp}
+
+If the findMatches() function is modified to support not only spans of ints, but also other types, then the areEqual generic lambda expression can still be used without requiring any changes to it.
 
 \mySubsubsection{19.5.4.}{Lambda Capture Expressions}
 
+Lambda capture expressions allow you to initialize capture variables with any expression. It can be used to introduce variables in the lambda expression that are not captured from the enclosing scope. For example, the following code creates a lambda expression with two variables in its capture block: one called myCapture, initialized with the string “Pi: ” using a lambda capture expression, and one called pi, which is captured by value from the enclosing scope. Note that non-reference capture variables such as myCapture that are initialized with a capture initializer are copy constructed, which means that const qualifiers are stripped.
+
+\begin{cpp}
+double pi { 3.1415 };
+auto myLambda { [myCapture = "Pi: ", pi]{ println("{}{}", myCapture, pi); } };
+\end{cpp}
+
+A lambda capture variable can be initialized with any expression and thus also with std::move(). This is important for objects that cannot be copied, only moved, such as unique\_ptr. By default, capturing by value uses copy semantics, so it’s impossible to capture a unique\_ptr by value in a lambda expression. Using a lambda capture expression, it is possible to capture it by moving, as in this example:
+
+\begin{cpp}
+auto myPtr { make_unique<double>(3.1415) };
+auto myLambda { [p = move(myPtr)]{ println("{}", *p); } };
+\end{cpp}
+
+It is allowed, though not recommended, to have the same name for the capture variable as the name in the enclosing scope. The previous example can be written as follows:
+
+\begin{cpp}
+auto myPtr { make_unique<double>(3.1415) };
+auto myLambda { [myPtr = move(myPtr)]{ println("{}", *myPtr); } };
+\end{cpp}
 
 
 \mySubsubsection{19.5.5.}{Templated Lambda Expressions}
 
+Templated lambda expressions allow you to get easier access to type information of parameters of generic lambda expressions. For example, suppose you have a lambda expression that requires a vector to be passed as an argument. However, the type of elements in the vector can be anything; hence, it’s a generic lambda expression using auto for its parameter. The body of the lambda expression wants to figure out what the type of the elements in the vector is. Without templated lambda expressions, this could be done using decltype() and the std::decay\_t type trait. Type traits are explained in Chapter 26, “Advanced Templates,” but those details are not important to grasp the benefits of templated lambda expressions. It suffices to know that decay\_t removes, among other things, any const and reference qualifications from a type. Here is the generic lambda expression:
 
+\begin{cpp}
+auto lambda { [](const auto& values) {
+        using V = decay_t<decltype(values)>; // The real type of the vector.
+        using T = typename V::value_type; // The type of the elements of the vector.
+        T someValue { };
+} };
+\end{cpp}
+
+You can call this lambda expression as follows:
+
+\begin{cpp}
+vector values { 1, 2, 100, 5, 6 };
+lambda(values);
+\end{cpp}
+
+Using decltype() and decay\_t is rather convoluted. A templated lambda expression makes this much easier. The following lambda expression forces its parameter to be a vector but still uses a template type parameter for the vector’s element type:
+
+\begin{cpp}
+auto lambda { [] <typename T> (const vector<T> & values) {
+        T someValue { };
+} };
+\end{cpp}
+
+Another use of templated lambda expressions is if you want to put certain restrictions on generic lambda expressions. For example, suppose you have the following generic lambda expression:
+
+\begin{cpp}
+[](const auto& value1, const auto& value2) { /* ... */ }
+\end{cpp}
+
+This lambda expression accepts two parameters, and the compiler deduces the type of each parameter automatically. Since the type of both parameters is deduced separately, the type of value1 and value2 could be different. If you want to restrict this and want both parameters to have the same type, you can turn this into a templated lambda expression:
+
+\begin{cpp}
+[] <typename T> (const T& value1, const T& value2) { /* ... */ }
+\end{cpp}
+
+You can also put constraints on the template types by adding a requires clause, discussed in Chapter 12. Here’s an example:
+
+\begin{cpp}
+[] <typename T> (const T& value1, const T& value2) requires integral<T> {/* ... */}
+\end{cpp}
 
 \mySubsubsection{19.5.6.}{Lambda Expressions as Return Type}
 
+By using std::function, discussed earlier in this chapter, lambda expressions can be returned from functions. Take a look at the following definition:
 
+\begin{cpp}
+function<int(void)> multiplyBy2Lambda(int x)
+{
+    return [x]{ return 2 * x; };
+}
+\end{cpp}
+
+The body of this function creates a lambda expression that captures the variable x from the enclosing scope by value and returns an integer that is two times the value passed to multiplyBy2Lambda(). The return type of the multiplyBy2Lambda() function is function<int(void)>, which is a function accepting no arguments and returning an integer. The lambda expression defined in the body of the function exactly matches this prototype. The variable x is captured by value, and thus a copy of the value of x is bound to the x in the lambda expression before the lambda is returned from the function. The function can be called as follows:
+
+\begin{cpp}
+function<int(void)> fn { multiplyBy2Lambda(5) };
+println("{}", fn());
+\end{cpp}
+
+You can use the auto keyword to make this easier:
+
+\begin{cpp}
+auto fn { multiplyBy2Lambda(5) };
+println("{}", fn());
+\end{cpp}
+
+The output is 10.
+
+Function return type deduction (see Chapter 1) allows you to write the multiplyBy2Lambda() function more elegantly, as follows:
+
+\begin{cpp}
+auto multiplyBy2Lambda(int x)
+{
+    return [x]{ return 2 * x; };
+}
+\end{cpp}
+
+The multiplyBy2Lambda() function captures the variable x by value, [x]. Suppose the function is rewritten to capture the variable by reference, [\&x], as follows. This will not work because the lambda expression will be executed later in the program, no longer in the scope of the multiplyBy2Lambda() function, at which point the reference to x is not valid anymore.
+
+\begin{cpp}
+auto multiplyBy2Lambda(int x)
+{
+    return [&x]{ return 2 * x; }; // BUG!
+}
+\end{cpp}
 
 \mySubsubsection{19.5.7.}{Lambda Expressions in Unevaluated Contexts}
 
+Lambda expressions can be used in unevaluated contexts. For instance, the argument passed to decltype() is used only at compile time and never evaluated. Here is an example of using decltype() with a lambda expression:
 
+\begin{cpp}
+using LambdaType = decltype([](int a, int b) { return a + b; });
+\end{cpp}
 
 \mySubsubsection{19.5.8.}{Default Construction, Copying, and Assigning}
 
+Stateless lambda expressions can be default constructed, copied, and assigned to. Here is a quick example:
 
+\begin{cpp}
+auto lambda { [](int a, int b) { return a + b; } }; // A stateless lambda
+decltype(lambda) lambda2; // Default construction.
+auto copy { lambda }; // Copy construction.
+copy = lambda2; // Copy assignment.
+\end{cpp}
+
+Combined with using lambda expressions in unevaluated contexts, the following kind of code is valid:
+
+\begin{cpp}
+using LambdaType = decltype([](int a, int b) { return a + b; }); // Unevaluated.
+LambdaType getLambda() { return LambdaType{}; /* Default construction. */ }
+\end{cpp}
+
+You can test this function as follows:
+
+\begin{cpp}
+println("{}", getLambda()(1, 2));
+\end{cpp}
+
+\CXXTwentythreeLogo{-40}{-50}
 
 \mySubsubsection{19.5.9.}{Recursive Lambda Expressions}
+
+For a normal lambda expression, it is not trivial for it to call itself from within its body, even when you give a name to the lambda expression. For example, the following lambda expression given the name fibonacci tries to call itself twice in the second return statement. This lambda expression will not compile.
+
+\begin{cpp}
+auto fibonacci = [](int n) {
+    if (n < 2) { return n; }
+    return fibonacci(n - 1) + fibonacci(n - 2); // Error: does not compile!
+};
+\end{cpp}
+
+With C++23’s explicit object parameters feature, introduced in Chapter 8, “Gaining Proficiency with Classes and Objects,” it is possible to do exactly that. This allows you to write recursive lambda expressions. The following demonstrates such a recursive lambda expression. It uses the explicit object parameter named self and calls itself recursively twice in the second return statement.
+
+\begin{cpp}
+auto fibonacci = [](this auto& self, int n) {
+    if (n < 2) { return n; }
+    return self(n - 1) + self(n - 2);
+};
+\end{cpp}
+
+This recursive lambda expression can be tested as follows:
+
+\begin{cpp}
+println("First 20 Fibonacci numbers:");
+for (int i { 0 }; i < 20; ++i) { print("{} ", fibonacci(i)); }
+\end{cpp}
+
+The output is as expected:
+
+\begin{shell}
+First 20 Fibonacci numbers:
+0 1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987 1597 2584 4181
+\end{shell}
+
+
+
+
+
 
 

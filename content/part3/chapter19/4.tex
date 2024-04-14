@@ -1,9 +1,117 @@
 
+The C++ Standard Library provides std::function and move\_only\_function. Both are polymorphic function wrappers, which are function objects capable of wrapping anything that is callable such as a function, a function object, or a lambda expression; the latter is discussed later in this chapter.
 
 \mySubsubsection{19.4.1.}{std::function}
 
+The std::function functor is defined in <functional>. An instance of std::function can be used as a function pointer, or as a parameter for a function to implement callbacks, and can be stored, copied, moved, and, of course, executed. The template parameters for the function template look a bit different than most template parameters. The syntax is as follows:
 
+\begin{cpp}
+std::function<R(ArgTypes...)>
+\end{cpp}
+
+R is the return type of the function, and ArgTypes is a comma-separated list of parameter types for the function.
+
+The following example demonstrates how to use std::function to implement a function pointer. It creates a function pointer f1 to point to the function func(). Once f1 is defined, you can use it to call func():
+
+\begin{cpp}
+void func(int num, string_view str) { println("func({}, {})", num, str); }
+
+int main()
+{
+    function<void(int, string_view)> f1 { func };
+    f1(1, "test");
+}
+\end{cpp}
+
+A function<R(ArgTypes...)> can store a function that has a parameter list exactly matching ArgTypes and a return type exactly of type R. It can also store any other function that has a parameter list allowing it to be called with a set of ArgTypes arguments and returning a type that can be converted to R. For example, the func() function in the previous example could accept its first parameter by const int\&, while nothing in main() needs to change:
+
+\begin{cpp}
+void func(const int& num, string_view str) { println("func({}, {})", num, str); }
+\end{cpp}
+
+Thanks to class template argument deduction, you can simplify the creation of f1 as follows:
+
+\begin{cpp}
+function f1 { func };
+\end{cpp}
+
+Of course, in the preceding example, it is possible to just use the auto keyword, which removes the need to specify the type of f1. The following definition for f1 works the same and is much shorter, but the compiler-deduced type of f1 is a function pointer, that is, void (*f1)(int, string\_view) instead of an std::function:
+
+\begin{cpp}
+auto f1 { func };
+\end{cpp}
+
+Because std::function types behave as function pointers, they can be passed to functions accepting callbacks. The original findMatches() implementation from earlier in this chapter defines two type aliases as function pointers. Those type aliases can be rewritten to use std::function, while everything else from that example remains the same:
+
+\begin{cpp}
+// A type alias for a function accepting two integer values,
+// returning true if both values are matching, false otherwise.
+using Matcher = function<bool(int, int)>;
+
+// A type alias for a function to handle a match. The first
+// parameter is the position of the match,
+// the second and third are the values that matched.
+using MatchHandler = function<void(size_t, int, int)>;
+\end{cpp}
+
+Still, as mentioned earlier in this chapter, the recommended implementation for findMatches() uses a function template, instead of function pointers or std::function.
+
+So, with all these examples, it looks like std::function is not really that useful; however, std::function really shines when you need to store a callback as a data member of a class. That’s the topic of one of the exercises at the end of this chapter.
+
+\CXXTwentythreeLogo{-40}{-60}
 
 \mySubsubsection{19.4.2.}{std::move\_only\_function}
+
+std::function requires that the callable stored in it is copyable. To alleviate this, C++23 introduces the move-only std::move\_only\_function wrapper, also defined in <functional>, that can be used to wrap a move-only callable. Additionally, the move\_only\_function functor allows you to explicitly mark its function call operator as const and/or noexcept. This is not possible with std::function, as its function call operator is always const.
+
+The following code snippet demonstrates move\_only\_function. Assume the BigData class stores a lot of data. The BigDataProcessor functor processes the data in an instance of BigData. To avoid copying, this functor stores a unique\_ptr to a BigData instance, which it gets through its constructor. The function call operator is marked as const for demonstration purposes and simply prints out some text. The main() function first creates a unique\_ptr of a BigData instance, creates a const processor, and finally calls the function call operator on processor. Using function instead of move\_only\_function in this example would not work because BigDataProcessor is a move-only type.
+
+\begin{cpp}
+class BigData {};
+class BigDataProcessor
+{
+    public:
+        explicit BigDataProcessor(unique_ptr<BigData> data)
+            : m_data { move(data) } { }
+        void operator()() const { println("Processing BigData data..."); }
+    private:
+     unique_ptr<BigData> m_data;
+};
+
+int main()
+{
+    auto data { make_unique<BigData>() };
+    const move_only_function<void() const> processor {
+        BigDataProcessor { move(data) } };
+    processor();
+}
+\end{cpp}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

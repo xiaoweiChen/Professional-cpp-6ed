@@ -1,0 +1,60 @@
+As the previous section explains, you can create and use pointers to stand-alone functions. You also know that you can work with pointers to stand-alone variables. Now, consider pointers to class data members and member functions. It’s perfectly legitimate in C++ to take the addresses of class data members and member functions in order to obtain pointers to them. However, you can’t access a non-static data member or call a non-static member function without an object. The whole point of class data members and member functions is that they exist on a per-object basis. Thus, when you want to call member functions or access data members via a pointer, you must dereference the pointer in the context of an object. Here is an example using the Employee class introduced in Chapter 1, “A Crash Course in C++ and the Standard Library”:
+
+\begin{cpp}
+int (Employee::*functionPtr) () const { &Employee::getSalary };
+Employee employee { "John", "Doe" };
+println("{}", (employee.*functionPtr)());
+\end{cpp}
+
+Don’t panic at the syntax. The first line declares a variable called functionPtr of type pointer to a non-static const member function of Employee that takes no arguments and returns an int. At the same time, it initializes this variable to point to the getSalary() member function of the Employee class. This syntax is quite similar to declaring a simple function pointer, except for the addition of Employee:: before the *functionPtr. Note also that the \& is required in this case.
+
+The third line calls the getSalary() member function (via the functionPtr pointer) on the employee object. Note the use of parentheses surrounding employee.*functionPtr. They are needed because operator() has higher precedence than .*.
+
+If you have a pointer to an object, you can use ->* instead of .*, as the following code snippet demonstrates:
+
+\begin{cpp}
+int (Employee::*functionPtr) () const { &Employee::getSalary };
+Employee johnD { "John", "Doe" };
+Employee* employee { &johnD };
+println("{}", (employee->*functionPtr)());
+\end{cpp}
+
+The definition of functionPtr can be made easier to read with a type alias:
+
+\begin{cpp}
+using PtrToGet = int (Employee::*) () const;
+PtrToGet functionPtr { &Employee::getSalary };
+Employee employee { "John", "Doe" };
+println("{}", (employee.*functionPtr)());
+\end{cpp}
+
+Finally, it can be simplified even further using auto:
+
+\begin{cpp}
+auto functionPtr { &Employee::getSalary };
+Employee employee { "John", "Doe" };
+println("{}", (employee.*functionPtr)());
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+You can get rid of the .* or ->* syntax by using std::mem\_fn(), explained later in this chapter in the context of function objects.
+\end{myNotic}
+
+Pointers to member functions and data members won’t come up often during your day-to-day programming. However, it’s important to keep in mind that you cannot dereference a pointer to a non-static member function or data member without an object. Every so often, you may want to try something like passing a pointer to a non-static member function to a function such as qsort() that requires a function pointer, which simply won’t work.
+
+\begin{myNotic}{NOTE}
+C++ does permit you to dereference a pointer to a static data member or static member function without an object.
+\end{myNotic}
+
+
+
+
+
+
+
+
+
+
+
+
+
