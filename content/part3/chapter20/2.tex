@@ -1126,24 +1126,286 @@ The output is as follows:
 
 \mySubsubsection{20.2.9.}{Parallel Algorithms}
 
+C++ supports executing more than 60 Standard Library iterator-based algorithms in parallel to improve their performance. Examples include std::for\_each(), all\_of(), copy(), count\_if(), find(), replace(), search(), sort(), transform(), and many more.
 
+Algorithms that support parallel execution have an optional execution policy as their first parameter. The execution policy allows you to specify whether an algorithm is allowed to be vectorized and/or executed in parallel. When a compiler vectorizes code, it replaces several CPU instructions with a single vector CPU instruction. A vector instruction performs some operation on multiple pieces of data with a single hardware instruction. These are also known as single instruction multiple data (SIMD) instructions. There are four standard execution policy types, and corresponding global instances of those types, all defined in <execution> in the std::execution namespace:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{EXECUTION POLICY TYPE} &
+\textbf{GLOBAL INSTANCE} &
+\textbf{DESCRIPTION} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+sequenced\_policy &
+seq &
+\begin{tabular}[c]{@{}l@{}}The algorithm is not allowed to\\ parallelize or vectorize its execution.\end{tabular} \\ \hline
+parallel\_policy &
+par &
+\begin{tabular}[c]{@{}l@{}}The algorithm is allowed to parallelize\\ but not vectorize its execution.\end{tabular} \\ \hline
+parallel\_unsequenced\_policy &
+par\_unseq &
+\begin{tabular}[c]{@{}l@{}}The algorithm is allowed to parallelize\\ and vectorize its execution. It’s also\\ allowed to migrate its execution\\ across threads.\end{tabular} \\ \hline
+unsequenced\_policy &
+unseq &
+\begin{tabular}[c]{@{}l@{}}The algorithm is allowed to vectorize\\ but not parallelize its execution.\end{tabular} \\ \hline
+\end{longtable}
+
+A Standard Library implementation is free to add additional execution policies.
+
+Let’s look at how you can specify an execution policy for an algorithm. Here is an example of sorting the contents of a vector using a parallel policy:
+
+\begin{cpp}
+sort(execution::par, begin(values), end(values));
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+Callbacks passed to parallel algorithms are not allowed to throw any uncaught exceptions. Doing so will trigger a call to std::terminate() which terminates the application.
+\end{myWarning}
+
+For algorithms executing with parallel\_unsequenced\_policy or unsequenced\_policy, function calls to callbacks are allowed to get interleaved; that is, they are unsequenced. This helps the compiler to vectorize the code. However, this also means there are a lot of restrictions on what a function callback can do. For example, it cannot allocate/deallocate memory, acquire mutexes, use non-lock-free std::atomics (see Chapter 27, “Multithreaded Programming with C++”), and more. For the other standard policies, the function calls are sequenced, but in an indeterminate sequence. Such policies do not impose restrictions on what the function callbacks can do.
+
+Parallel algorithms do not take any measures to prevent data races and deadlocks, so it is your responsibility to avoid them when executing an algorithm in parallel. Data race and deadlock prevention are discussed in detail in Chapter 27 in the context of multithreaded programming.
+
+Parallel overloads of algorithms are not constexpr, even if the non-parallel overloads are.
+
+The return type of some of the parallel overloads of algorithms can be slightly different compared to the non-parallel overloads. For example, the non-parallel overload of for\_each() returns the supplied callback, while the parallel overload does not return anything. Consult your favorite Standard Library Reference for a complete overview of all algorithms, including their parameter and return types, for both the parallel and non-parallel overloads.
+
+\begin{myNotic}{NOTE}
+When working with large datasets or when you have to perform a large amount of work on each individual element in a dataset, use the parallel overloads of algorithms to increase performance.
+\end{myNotic}
+
+Keep in mind, though, that using a parallel overload of an algorithm does not guarantee that its execution will be faster compared to a non-parallel overload. For example, when processing a small number of elements, a parallel overload might actually be slower due to the overhead that parallelization brings with it. Another example is when your container does not support random access iterators. To decide whether to use a parallel or a sequential overload for a specific use case, you must profile both and pick the most performant one. Chapter 29, “Writing Efficient C++,” discusses profiling.
 
 \mySubsubsection{20.2.10.}{Numerical Processing Algorithms}
 
+You’ve already seen an example of one numerical processing algorithm: accumulate(). The following sections give examples of some more numerical algorithms.
+
 \mySamllsection{iota}
+
+The iota() algorithm, defined in <numeric>, generates a sequence of values in a specified range starting with a specified value and applying operator++ to generate each successive value. The following example shows how to use this algorithm on a vector of integers, but it works on any element type that implements operator++:
+
+\begin{cpp}
+vector<int> values(10);
+iota(begin(values), end(values), 5);
+println("{:n}", values);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+5, 6, 7, 8, 9, 10, 11, 12, 13, 14
+\end{shell}
 
 \mySamllsection{Reduce Algorithms}
 
+The Standard Library has four reduce algorithms: accumulate(), reduce(), inner\_product(), and transform\_reduce(), all defined in <numeric>. The accumulate() algorithm is discussed earlier in this chapter. All reduce algorithms repeatedly apply an operator to combine two elements of a given range or two given ranges, until only one value remains. These are also called accumulate, aggregate, compress, inject, or fold algorithms.
+
+\mySamllsection{reduce}
+
+std::accumulate() is one of the few algorithms that does not support parallel execution. Instead, you need to use std::reduce() to calculate a generalized sum with the option to execute it in parallel.
+
+For example, the following code calculates the same sum twice, once with accumulate() and once with reduce(). The latter runs a parallel and vectorized version and thus can be much faster on big input ranges. They both require a begin and end iterator of the range, and an initial value, 0 in this example.
+
+\begin{cpp}
+vector values { 1, 3, 6, 4, 6, 9 };
+int result1 { accumulate(cbegin(values), cend(values), 0) };
+int result2 { reduce(execution::par_unseq, cbegin(values), cend(values), 0) };
+\end{cpp}
+
+In general, both accumulate() and reduce() calculate the following sum for a range of elements [$x_0$, $x_{n}$), with a given initial value Init, and a given binary operator Ѳ:
+
+Init Ѳ $x_0$ Ѳ $x_1$ Ѳ . . . Ѳ $x_{n−1}$
+
+By default, the binary operator for accumulate() is operator+, and for reduce() it is std::plus.
+
+\mySamllsection{inner\_product}
+
+inner\_product() calculates the inner product of two sequences. For example, the inner product in the following example is calculated as (1*9)+(2*8)+(3*7)+(4*6), which is 70:
+
+\begin{cpp}
+vector v1 { 1, 2, 3, 4 };
+vector v2 { 9, 8, 7, 6 };
+println("{}", inner_product(cbegin(v1), cend(v1), cbegin(v2), 0));
+\end{cpp}
+
+inner\_product() can accept two additional parameters, which are the two binary operators used in the calculation, by default operator+ and operator*.
+
+inner\_product() is another algorithm that does not support parallel execution. If parallel execution is required, use transform\_reduce(), discussed next.
+
+\mySamllsection{transform\_reduce}
+
+transform\_reduce() supports parallel execution and can be executed on a single range of elements or on two ranges. In its first version, it calculates the following sum for a range of elements [$x_0$, $x_n$), with a given initial value Init, a given unary function f, and a given binary operator Ѳ, std::plus by default:
+
+Init Ѳ $f(x_0)$ Ѳ $f(x_1)$ Ѳ . . . Ѳ $f(x_{n−1})$
+
+When executing on two ranges, it behaves the same as inner\_product(), except by default it uses the binary operators std::plus and std::multiplies, respectively, instead of operator+ and operator*.
+
 \mySamllsection{Scan Algorithms}
 
+Scan algorithms are also called prefix sum, cumulative sum, or partial sum algorithms. The result of such an algorithm applied to a range is another range containing sums of the elements of the source range.
+
+There are five scan algorithms: exclusive\_scan(), inclusive\_scan()/partial\_sum(), transform\_exclusive\_scan(), and transform\_inclusive\_scan(), all defined in <numeric>.
+
+The following table shows which sums [$y_0$, $y_n$) are calculated by exclusive\_scan() and by inclusive\_scan()/partial\_sum() for a range of elements [$x_0$, $x_n$), with a given initial value Init (0 for partial\_sum()), and a given binary operator Ѳ:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{EXCLUSIVE\_SCAN()} &
+\textbf{INCLUSIVE\_SCAN()/PARTIAL\_SUM()} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\begin{tabular}[c]{@{}l@{}}$y_0$ = Init\\ $y_1$ = Init Ѳ $x_0$\\ $y_2$ = Init Ѳ $x_0$ Ѳ $x_1$\\ . . .\\ $y_{n-1}$ = Init Ѳ $x_0$ Ѳ $x_1$ Ѳ . . . Ѳ $x_{n-2}$\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}$y_0$ = Init Ѳ $x_0$\\ $y_1$ = Init Ѳ $x_0$ Ѳ $x_1$\\ . . .\\ $y_{n-1}$ = Init Ѳ $x_0$ Ѳ $x_1$ Ѳ . . . Ѳ $x_{n-1}$\end{tabular} \\ \hline
+\end{longtable}
+
+transform\_exclusive\_scan() and transform\_inclusive\_scan() both first apply a unary function to the elements before calculating the generalized sum, similar to how transform\_reduce() applies a unary function to the elements before reducing.
+
+Note that these scan algorithms, except partial\_sum(), can accept an optional execution policy to parallelize their execution. The order of evaluation is non-deterministic, while it is guaranteed left to right for partial\_sum() and accumulate(). That’s also the reason why partial\_sum() and accumulate() cannot be parallelized.
 
 \mySubsubsection{20.2.11.}{Constrained Algorithms}
 
+Most of the algorithms have constrained variants in the std::ranges namespace. Consult your favorite Standard Library reference to find out exactly which constrained algorithms are available.
+These algorithms are also defined in <algorithm> and <numeric>, but unlike the equivalent unconstrained algorithms in the std namespace, the constrained variants use concepts (see Chapter 12) to constrain their template type parameters. This means you get better error messages from your compiler if you pass invalid arguments. For example, the sort() algorithm requires random-access iterators. Passing a pair of std::list iterators as arguments to std::sort() can result in a bunch of cryptic errors from your compiler. With the constrained ranges::sort() algorithm, the compiler tells you that the passed iterators are not random access.
+
+Another benefit of these constrained algorithms is that they work on a sequence of elements given as either a begin and end iterator pair, or as a range. Additionally, they can support projections. Ranges and projections are discussed in Chapter 17.
+
+\begin{myNotic}{NOTE}
+Constrained algorithms do not support parallel execution yet, so they do not accept a parallel execution policy as an argument.
+\end{myNotic}
+
+Let’s look at a few of these constrained algorithms in action.
+
 \mySamllsection{Constrained find}
+
+As with all constrained algorithms, the std::ranges::find() constrained algorithm can be called with a pair of iterators or with a range as argument. Calling it with an iterator pair works the same way as the unconstrained std::find():
+
+\begin{cpp}
+vector values {1, 2, 3};
+auto result { ranges::find(cbegin(values), cend(values), 2) };
+if (result != cend(values)) { println("{}", *result); }
+\end{cpp}
+
+However, if you want to apply an algorithm on all elements of a container, as is often the case, it’s rather tedious to always have to specify a begin/end iterator pair to define your sequence. With ranges support, you can just specify a range with a single argument. The previous call to find() can be written more readable and less error prone as follows:
+
+\begin{cpp}
+auto result { ranges::find(values, 2) };
+\end{cpp}
 
 \mySamllsection{Constrained generate}
 
+Here is another example, this time using the constrained std::ranges::generate() algorithm. The code first creates a lambda expression that simply returns a next number. Then it creates a vector of 10 integers and uses the generate() algorithm together with the nextNumber lambda expression to fill the vector with increasing integers. The contents of the vector are printed to the console, followed by four more invocations of the nextNumber lambda expression.
+
+\begin{cpp}
+auto nextNumber { [counter = 0] () mutable { return ++counter; } };
+vector<int> values(10);
+ranges::generate(values, nextNumber);
+println("Vector contains {:n}", values);
+print("Four more next numbers: ");
+for (unsigned i { 0 }; i < 4; ++i) { print("{}, ", nextNumber()); }
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Vector contains 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+Four more next numbers: 1, 2, 3, 4,
+\end{shell}
+
+As the output demonstrates, generate() makes a copy of the lambda expression. This can be avoided using std::ref(), as explained earlier in this chapter, to pass a reference to the lambda expression instead of making a copy:
+
+\begin{cpp}
+ranges::generate(values, ref(nextNumber));
+\end{cpp}
+
+The output now is:
+
+\begin{shell}
+Vector contains 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+Four more next numbers: 11, 12, 13, 14,
+\end{shell}
+
 \mySamllsection{Constrained for\_each}
 
+The following example demonstrates using the std::ranges::for\_each() algorithm on a filtered view created with std::ranges::views::filter (defined in <ranges>). Only the even values from the vector are kept in the view. This filtered view is subsequently passed to for\_each(), which multiplies the values by 10. Outputting the contents of the vector confirms that only the even values in the vector have been multiplied.
+
+\begin{cpp}
+vector values { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+println("Before: {:n}", values);
+ranges::for_each(values | views::filter([](int value) { return value % 2 == 0; }),
+    [](int& value) { value *= 10; });
+println("After: {:n}", values);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Before: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+After: 1, 20, 3, 40, 5, 60, 7, 80, 9, 100
+\end{shell}
+
+\CXXTwentythreeLogo{-40}{-50}
+
 \mySamllsection{Constrained-Only Algorithms}
+
+C++23 introduces new algorithms that are available only as constrained algorithms. They are all defined in the std::ranges namespace. These include the non-modifying sequence algorithms contains(), contains\_subrange(), starts\_with(), ends\_with(), find\_last(), find\_last\_if(), and find\_last\_if\_not(), and the fold algorithms fold\_left(), fold\_left\_first(), fold\_right(), fold\_right\_last(), fold\_left\_with\_iter(), and fold\_left\_first\_with\_iter().
+
+Here is an example of some of the non-modifying sequence algorithms:
+
+\begin{cpp}
+vector values { 11, 22, 33, 44, 55 };
+vector v { 11, 22 };
+println("{} contains 33 = {}", values, ranges::contains(values, 33));
+println("{} contains {} = {}", values, v, ranges::contains_subrange(values, v));
+println("{} starts with {} = {}", values, v, ranges::starts_with(values, v));
+\end{cpp}
+
+This produces the following output:
+
+\begin{shell}
+[11, 22, 33, 44, 55] contains 33 = true
+[11, 22, 33, 44, 55] contains [11, 22] = true
+[11, 22, 33, 44, 55] starts with [11, 22] = true
+\end{shell}
+
+The following is an example of two of the folding algorithms. fold\_left() and fold\_right() accept an initial value as one of their arguments, while fold\_left\_first() uses the first element in a given range as the starting value, and fold\_right\_last() uses the last element in a given range as the starting value. The example demonstrates the difference between a left and a right fold. The fold\_left\_first() and fold\_right\_last() algorithms return an optional, so value\_or() is used to handle an empty result.
+
+\begin{cpp}
+vector values { 500.0, 10.0, 2.0 };
+auto foldedLeft { ranges::fold_left_first(values, divides<>{}) };
+auto foldedRight { ranges::fold_right_last(values, divides<>{}) };
+println("foldedLeft = {}", foldedLeft.value_or(0.0));
+println("foldedRight = {}", foldedRight.value_or(0.0));
+\end{cpp}
+
+The output is:
+
+\begin{shell}
+foldedLeft = 25
+foldedRight = 100
+\end{shell}
+
+The left fold operation calculates ((500.0 / 10.0) / 2.0), while the right fold operation calculates (500.0 / (10.0 / 2.0)).
+
+See your favorite Standard Library reference for more details on all these constrained algorithms.
+
+
+
+
+
+
+
+
+
+
 
