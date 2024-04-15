@@ -1,30 +1,451 @@
 
+When you’re learning how to program in C or C++, it’s useful to think of a character as equivalent to a byte and to treat all characters as members of the American Standard Code for Information Interchange (ASCII) character set. ASCII is a 7-bit set usually stored in an 8-bit char type. In reality, experienced C++ programmers recognize that successful programs are used throughout the world. Even if you don’t initially write your program with international audiences in mind, you shouldn’t prevent yourself from localizing, or making the software locale aware, at a later date.
+
+\begin{myNotic}{NOTE}
+This chapter gives you an introduction to localization, different character encodings, and string code portability. It is outside the scope of this book to discuss all these topics in detail, because they warrant an entire book on their own.
+\end{myNotic}
 
 \mySubsubsection{21.1.1.}{Wide Characters}
 
+The problem with viewing a character as a byte is that not all languages, or character sets, can be fully represented in 8 bits, or 1 byte. C++ has a built-in type called wchar\_t that holds a wide character. Languages with non-ASCII (US) characters, such as Japanese and Arabic, can be represented in C++ with wchar\_t. However, the C++ standard does not define the size for wchar\_t. Some compilers use 16 bits, while others use 32 bits. Most of the time, it matches the size of the native Unicode character type on the underlying operating system. To write cross-platform code, it is not safe to assume that wchar\_t is of a particular size.
 
+If there is any chance that your program will be used in a non-Western character set context (hint: there is!), you should use wide characters from the beginning. When working with wchar\_t, string and character literals are prefixed with the letter L to indicate that a wide-character encoding should be used. For example, to initialize a wchar\_t character to the letter m, you write it like this:
+
+\begin{cpp}
+wchar_t myWideCharacter { L'm' };
+\end{cpp}
+
+There are wide-character versions of most of your favorite types and classes. The wide string class is wstring. The “prefix letter w” pattern applies to streams as well. Wide-character file output streams are handled with wofstream, and input is handled with wifstream. The joy of pronouncing these class names (woof-stream? whiff-stream?) is reason enough to make your programs locale aware! Streams are discussed in detail in Chapter 13, “Demystifying C++ I/O.”
+
+There are also wide-versions of cout, cin, cerr, and clog available, called wcout, wcin, wcerr, and wclog. Using them is no different than using the non-wide versions:
+
+
+\begin{cpp}
+wcout << L"I am a wide-character string literal." << endl;
+\end{cpp}
+
+print() and println() don’t support wchar\_t string literals, but they do support UTF-8 string literals, discussed later in this chapter. On the other hand, format() does support wide-character strings:
+
+\begin{cpp}
+wcout << format(L"myWideCharacter is {}", myWideCharacter) << endl;
+\end{cpp}
 
 \mySubsubsection{21.1.2.}{Non-Western Character Sets}
 
+Wide characters are a great step forward because they increase the amount of space available to define a single character. The next step is to figure out how that space is used. In wide character sets, just like in ASCII, characters are represented by numbers, now called code points. The only difference is that each number does not fit in 8 bits. The map of characters to code points is quite a bit larger because it handles many different character sets in addition to the characters that English-speaking programmers are familiar with.
 
+The Universal Character Set (UCS)—defined by the International Standard ISO 10646—and Unicode are both standardized sets of characters. They both identify characters by an unambiguous name and a code point. The same characters with the same numbers exist in both standards. At the time of this writing, the latest version of Unicode was version 15, which defines 149,186 characters. Both UCS and Unicode have specific encodings that you can use to represent specific code points. This is important: a code point is just a number; an encoding specifies how to represent that number as one or more bytes. For example, UTF-8 is an example of a Unicode encoding where Unicode characters are encoded using one to four 8-bit bytes. UTF-16 encodes Unicode characters as one or two 16-bit values, and UTF-32 encodes Unicode characters as exactly 32 bits.
+
+Different applications can use different encodings. Unfortunately, as mentioned earlier in this chapter, the C++ standard does not specify a size for wide characters (wchar\_t). On Windows it is 16 bits, while on other platforms it could be 32 bits. You need to be aware of this when using wide characters for character encoding in cross-platform code. To help solve this issue, there are other character types: char8\_t, char16\_t, and char32\_t. The following list gives an overview of the available character types:
+
+\begin{itemize}
+\item
+char: Stores 8 bits. This type can be used to store ASCII characters or as a basic building block for storing UTF-8 encoded Unicode characters, where one Unicode character is encoded with up to four chars.
+
+\item
+charx\_t: Stores at least x bits where x can be 8, 16, or 32. This type can be used as the basic building block for UTF-x encoded Unicode characters, encoding one Unicode character with up to four char8\_ts, up to two char16\_ts, or one char32\_t.
+
+\item
+wchar\_t: Stores a wide character of a compiler-specific size and encoding.
+\end{itemize}
+
+The benefits of using the charx\_t types instead of wchar\_t is that the standard guarantees minimum sizes for the charx\_t types, independent of the compiler. There is no minimum size guaranteed for wchar\_t.
+
+String literals can have a string prefix to turn them into a specific type. The complete set of supported string prefixes is as follows:
+
+\begin{itemize}
+\item
+u8: A char8\_t string literal with UTF-8 encoding
+
+\item
+u: A char16\_t string literal with UTF-16 encoding
+
+\item
+U: A char32\_t string literal with UTF-32 encoding
+
+\item
+L: A wchar\_t string literal with a compiler-dependent encoding
+\end{itemize}
+
+All of these string literals can be combined with the raw string literal prefix, R, discussed in Chapter 2, “Working with Strings and String Views.” Here are some examples:
+
+\begin{cpp}
+const char8_t* s1 { u8R"(Raw UTF-8 string literal)" };
+const wchar_t* s2 { LR"(Raw wide string literal)" };
+const char16_t* s3 { uR"(Raw UTF-16 string literal)" };
+const char32_t* s4 { UR"(Raw UTF-32 string literal)" };
+\end{cpp}
+
+You can insert specific Unicode code points in non-raw string literals using several different escape sequences. The following table gives an overview of your options. The last column shows the encoding of the superscript two, $^2$, character.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{ESCAPE SEQUENCE}          & \textbf{DESCRIPTION}                   & \textbf{EXAMPLE:  $^2$}                                  \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\textbackslash{}nnn               & 1 to 3 octal digits                    & \textbackslash{}262                                  \\ \hline
+\textbackslash{}o\{n...\} (C++23) & Arbitrary number of octal digits       & \textbackslash{}o\{262\}                             \\ \hline
+\textbackslash{}xn...             & Arbitrary number of hexadecimal digits & \textbackslash{}xB2 or \textbackslash{}x00B2         \\ \hline
+\textbackslash{}x\{n...\} (C++23) & Arbitrary number of hexadecimal digits & \textbackslash{}x\{B2\} or \textbackslash{}x\{00B2\} \\ \hline
+\textbackslash{}unnnn             & 4 hexadecimal digits                   & \textbackslash{}u00B2                                \\ \hline
+\textbackslash{}u\{n...\} (C++23) & Arbitrary number of hexadecimal digits & \textbackslash{}u\{B2\} or \textbackslash{}u\{00B2\} \\ \hline
+\textbackslash{}Unnnnnnnn         & 8 hexadecimal digits                   & \textbackslash{}U000000B2                            \\ \hline
+\textbackslash{}N\{name\} (C++23) & Universal character name               & \textbackslash{}N\{SUPERSCRIPT TWO\}                 \\ \hline
+\end{longtable}
+
+The \verb|\|o\{n...\}, \verb|\|x\{n...\}, and \verb|\|u\{n...\} notations introduced with C++23 are useful to avoid problems when the next character in a string literal happens to be a valid octal or hexadecimal digit. For the \verb|\|N\{name\} notation, the name must be the official Unicode name of the character, which you can look up in any Unicode character reference.
+
+Here are some more examples representing the formula π$r^2$. The π character has code 3C0, and the superscript two character has code B2.
+
+\begin{cpp}
+const char8_t* formula1 { u8"\x3C0 r\xB2" };
+const char8_t* formula2 { u8"\u03C0 r\u00B2" };
+const char8_t* formula3 { u8"\N{GREEK SMALL LETTER PI} r\N{SUPERSCRIPT TWO}" };
+\end{cpp}
+
+Besides string literals, character literals can also have a prefix to turn them into specific types. The prefixes u8, u, U, and L are supported, for example: u'a', U'a', L'a', and u8'a'.
+
+In addition to the std::string class, there is also support for wstring, u8string, u16string, and u32string. They are defined as follows:
+
+\begin{itemize}
+\item
+\begin{cpp}
+using string = basic_string<char>;
+\end{cpp}
+
+\item
+\begin{cpp}
+using wstring = basic_string<wchar_t>;
+\end{cpp}
+
+\item
+\begin{cpp}
+using u8string = basic_string<char8_t>;
+\end{cpp}
+
+\item
+\begin{cpp}
+using u16string = basic_string<char16_t>;
+\end{cpp}
+
+\item
+\begin{cpp}
+using u32string = basic_string<char32_t>;
+\end{cpp}
+\end{itemize}
+
+Similarly, the Standard Library provides std::string\_view, wstring\_view, u8string\_view, u16string\_view, and u32string\_view, all based on basic\_string\_view.
+
+Multibyte strings are strings with characters composed of one or more bytes using a locale-dependent encoding. Locales are discussed later in this chapter. A multibyte string could use Unicode encoding, or any other kind of encoding such as Shift-JIS, EUC-JP, and so on. Conversion functions are available to convert between char8\_t/char16\_t/char32\_t and multibyte strings, and vice versa: mbrtoc8() and c8rtomb(), and mbrtoc16(), c16rtomb(), mbrtoc32(), and c32rtomb().
+
+Unfortunately, the support for char8\_t, char16\_t, and char32\_t doesn’t go much further. There are some conversion classes available (see later in this chapter), but, for example, there is nothing like a version of cout, cin, println(), format(), and so on, that supports these character types; this makes it difficult to print such strings to a console or to read them from user input. If you want to do more with such strings, you need to resort to third-party libraries. International Components for Unicode (ICU) is one well-known library that provides Unicode and globalization support for your applications. (See \url{icu-project.org}.)
+
+\CXXTwentythreeLogo{-40}{-60}
+
+C++23 improves things slightly. It allows a u8 UTF-8 string literal to initialize an array of type const char or const unsigned char, and functions like std::format() and print() do support const char[]. For example, the following initializes a const char[] array with a UTF-8 string literal and then prints it using println(). If your environment is set up to handle Japanese characters, then the output is “Hello world” in Japanese.
+
+\begin{cpp}
+const char hello[] { u8"こんにちは世界" };
+println("{}", hello);
+\end{cpp}
+
+If you would use char8\_t[] instead of char[] as follows, you will get a compilation error as println() doesn’t understand the char8\_t type.
+
+\begin{cpp}
+const char8_t hello[] { u8"こんにちは世界" };
+println("{}", hello); // Error: doesn't compile!
+\end{cpp}
 
 \mySubsubsection{21.1.3.}{Localizing String Literals}
 
+A critical aspect of localization is that you should never put any native-language string literals in your source code, except maybe for debug strings targeted at the developer. In Microsoft Windows applications, this is accomplished by putting all strings for an application in STRINGTABLE resources. Most other platforms offer similar capabilities. If you need to translate your application to another language, translating those resources should be all you need to do, without requiring any source changes.
+There are tools available that will help you with this translation process.
 
+To make your source code localizable, you should not compose sentences out of string literals, even if the individual literals can be localized. Here is an example:
+
+\begin{cpp}
+unsigned n { 5 };
+wstring filename { L"file1.txt" };
+wcout << n << L" bytes read from " << filename << endl;
+\end{cpp}
+
+This statement cannot be localized to, for example, German because it requires a reordering of the words. The German translation is as follows:
+
+\begin{cpp}
+wcout << n << L" Bytes aus " << filename << L" gelezen" << endl;
+\end{cpp}
+
+To make sure you can properly localize such strings, you could implement it as follows:
+
+\begin{cpp}
+vprint_unicode(loadResource(IDS_TRANSFERRED), make_format_args(n, filename));
+\end{cpp}
+
+IDS\_TRANSFERRED is the name of an entry in a string resource table. For the English version, IDS\_TRANSFERRED could be defined as “\{0\} bytes read from \{1\}”, while the German version of the resource could be defined as “\{0\} Bytes aus \{1\} gelezen”. The loadResource() function loads the string resource with the given name, and vprint\_unicode() (see Chapter 2) substitutes \{0\} with the value of n and \{1\} with the value of filename.
 
 \mySubsubsection{21.1.4.}{Locales and Facets}
 
+Character sets are only one of the differences in data representation between countries. Even countries that use similar character sets, such as Great Britain and the United States, still differ in how they represent certain data, such as dates and monetary values.
+
+The standard C++ mechanism that groups specific data about a particular set of cultural parameters is called a locale. An individual component of a locale, such as date format, time format, number format, and so on, is called a facet. An example of a locale is US English. An example of a facet is the format used to display a date. Several built-in facets are common to all locales. C++ also provides a way to customize or add facets.
+
+There are third-party libraries available that make it easier to work with locales. One example is boost.locale (boost.org), which is able to use ICU as its backend, supporting collations and conversions, converting strings to uppercase (instead of converting character by character to uppercase), and so on.
+
 \mySamllsection{Locales}
+
+When using I/O streams, data is formatted according to a particular locale. Locales are objects that can be attached to a stream, and they are defined in <locale>. Locale names are implementation specific. The POSIX standard is to separate a language and an area into two-letter sections with an optional encoding. For example, the locale for the English language as spoken in the United States is en\_US, while the locale for the English language as spoken in Great Britain is en\_GB. The locale for Japanese spoken in Japan with Japanese Industrial Standard encoding is ja\_JP.jis.
+
+Locale names on Windows can have two formats. The preferred format is similar to the POSIX format but uses a dash instead of an underscore. The second, old format looks as follows where everything between square brackets is optional:
+
+\begin{cpp}
+lang[_country_region[.code_page]]
+\end{cpp}
+
+The following table shows some examples of the POSIX, preferred Windows, and old Windows locale formats:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|l|}
+\hline
+\textbf{LANGUAGE}     & \textbf{POSIX} & \textbf{WINDOWS} & \textbf{WINDOWS OLD}   \\ \hline
+\endfirsthead
+%
+\endhead
+%
+US English            & en\_US         & en-US            & English\_United States \\ \hline
+Great Britain English & en\_GB         & en-GB            & English\_Great Britain \\ \hline
+\end{longtable}
+
+Most operating systems have a mechanism to determine the locale as defined by the user. In C++, you can pass an empty string to the std::locale constructor to create a locale from the user’s environment. Once this object is created, you can use it to query the locale, possibly making programmatic decisions based on it.
 
 \mySamllsection{Global Locale}
 
+The std::locale::global() function can be used to replace the global C++ locale in your application with a given locale. The default constructor of std::locale returns a copy of this global locale. Keep in mind, though, that the C++ Standard Library objects that use locales, for example streams such as cout, store a copy of the global locale at construction time. Changing the global locale afterward does not impact objects that were already created before. If needed, you can use the imbue() member function on streams (see the next section) to change their locale after construction.
+
+Here is an example outputting a number with the default locale, changing the global locale to US English and outputting the same number again:
+
+\begin{cpp}
+void print()
+{
+    stringstream stream;
+    stream << 32767;
+    println("{}", stream.str());
+}
+
+int main()
+{
+    print();
+    locale::global(locale { "en-US" }); // "en_US" for POSIX
+    print();
+}
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+32767
+32,767
+\end{shell}
+
 \mySamllsection{Using Locales}
+
+The following code demonstrates how to use the user’s locale for a stream by calling the imbue() member function on the stream. The result is that everything that is sent to cout is formatted according to the formatting rules of the user’s environment:
+
+\begin{cpp}
+cout.imbue(locale { "" });
+cout << "User's locale: " << 32767 << endl;
+\end{cpp}
+
+This means that if your system locale is English United States and you output the number 32767, the number is displayed as 32,767; however, if your system locale is Dutch Belgium, the same number is displayed as 32.767.
+
+The default locale is the classic/neutral locale, and not the user’s locale. The classic locale uses ANSI C conventions and has the name C. The classic C locale is similar to US English, but there are slight differences. For example, numbers are handled without any punctuation.
+
+\begin{cpp}
+cout.imbue(locale { "C" });
+cout << "C locale: " << 32767 << endl;
+\end{cpp}
+
+The output of this code is as follows:
+
+\begin{shell}
+C locale: 32767
+\end{shell}
+
+The following code manually sets the US English locale, so the number 32767 is formatted with US English punctuation, independent of your system locale:
+
+\begin{cpp}
+cout.imbue(locale { "en-US" }); // "en_US" for POSIX
+cout << "en-US locale: " << 32767 << endl;
+\end{cpp}
+
+The output of this code is as follows:
+
+\begin{shell}
+en-US locale: 32,767
+\end{shell}
+
+By default, std::print() and println() use the C locale. For example, the following prints 32767:
+
+\begin{cpp}
+println("println(): {}", 32767);
+\end{cpp}
+
+You can specify the L format specifier, in which case the global locale is used.
+
+\begin{cpp}
+println("println() using global locale: {:L}", 32767);
+\end{cpp}
+
+std::format() also supports locales by using the L format specifier and optionally accepts a locale as first argument. When the L format specifier is used and a locale is passed to format(), that locale is used for formatting. If the L format specifier is used without passing a locale to format(), the global locale is used. For example, the following prints 32,767 according to English formatting rules:
+
+\begin{cpp}
+cout << format(locale { "en-US" }, "format() with en-US locale: {:L}", 32767);
+\end{cpp}
+
+A locale object allows you to query information about the locale. For example, the following program creates a locale matching the user’s environment. The name() member function is used to get a C++ string that describes the locale. Then, the find() member function is used on the string object to find a given substring, which returns string::npos when the given substring is not found. The code checks for the Windows name and the POSIX name. One of two messages is printed, depending on whether the locale appears to be US English.
+
+\begin{cpp}
+locale loc { "" };
+if (loc.name().find("en_US") == string::npos &&
+    loc.name().find("en-US") == string::npos) {
+    println("Welcome non-US English speaker!");
+} else {
+    println("Welcome US English speaker!");
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+When you have to write data to a file that is supposed to be read back by a program, it’s recommended to write it using the neutral "C" locale; otherwise, parsing will be difficult. On the other hand, when displaying data in a user interface, it’s recommended to format the data according to the user locale, "".
+\end{myNotic}
 
 \mySamllsection{Character Classification}
 
+<locale> contains the following character classification functions: std::isspace(), isblank(), iscntrl(), isupper(), islower(), isalpha(), isdigit(), ispunct(), isxdigit(), isalnum(), isprint(), and isgraph(). They all accept two parameters: the character to classify and the locale to use for the classification. The exact meaning of the different character classes is discussed later in this chapter in the context of regular expressions. Here is an example of using isupper() with a French locale to verify whether a letter is uppercase or not:
+
+\begin{cpp}
+println("É {}", isupper(L'É', locale{ "fr-FR" }));
+println("é {}", isupper(L'é', locale{ "fr-FR" }));
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+É true
+é false
+\end{shell}
+
 \mySamllsection{Character Conversion}
+
+<locale> also defines two character conversion functions: std::toupper() and tolower(). They accept two parameters: the character to convert and the locale to use for the conversion. Here is an example:
+
+\begin{cpp}
+auto upper { toupper(L'é', locale { "fr-FR" }) }; // É
+\end{cpp}
 
 \mySamllsection{Using Facets}
 
+You can use the std::use\_facet() function template to obtain a particular facet for a particular locale. The template type argument specifies the facet to retrieve, while the function argument specifies the locale from which to retrieve the facet. For example, the following expression retrieves the standard monetary punctuation facet of the British English locale using the POSIX locale name:
+
+\begin{cpp}
+use_facet<moneypunct<wchar_t>>(locale { "en_GB" })
+\end{cpp}
+
+Note that the innermost template type determines the character type to use. The result is an object that contains all the information you want to know about British monetary punctuation. The data available in the standard facets is defined in <locale>. The following table lists the facet categories defined by the standard. Consult a Standard Library reference (see Appendix B, “Annotated Bibliography”) for details about the individual facets.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{FACET} & \textbf{DESCRIPTION}                             \\ \hline
+\endfirsthead
+%
+\endhead
+%
+ctype          & Character classification facets                  \\ \hline
+codecvt        & Conversion facets; see next section              \\ \hline
+collate        & Comparing strings lexicographically              \\ \hline
+time\_get      & Parsing dates and times                          \\ \hline
+time\_put      & Formatting dates and times                       \\ \hline
+num\_get       & Parsing numeric values                           \\ \hline
+num\_put       & Formatting numeric values                        \\ \hline
+numpunct       & Defines the formatting rules for numeric values  \\ \hline
+money\_get     & Parsing monetary values                          \\ \hline
+money\_put     & Formatting monetary values                       \\ \hline
+moneypunct     & Defines the formatting rules for monetary values \\ \hline
+\end{longtable}
+
+The following code snippet brings together locales and facets by printing out the currency symbol in both US English and British English. Note that, depending on your environment, the British currency symbol may appear as a question mark, a box, or not at all. If your environment is set up to handle it, you may actually get the British pound symbol.
+
+\begin{cpp}
+locale locUSEng { "en-US" }; // "en_US" for POSIX
+locale locBritEng { "en-GB" }; // "en_GB" for POSIX
+
+wstring dollars { use_facet<moneypunct<wchar_t>>(locUSEng).curr_symbol() };
+wstring pounds { use_facet<moneypunct<wchar_t>>(locBritEng).curr_symbol() };
+
+wcout << L"In the US, the currency symbol is " << dollars << endl;
+wcout << L"In Great Britain, the currency symbol is " << pounds << endl;
+\end{cpp}
+
 \mySamllsection{Conversions}
+
+The C++ standard provides the codecvt class template to help with converting between different character encodings. <locale> defines the following four encoding conversion classes:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{CLASS} &
+\textbf{DESCRIPTION} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+codecvt\textless{}char,char,mbstate\_t\textgreater{} &
+Identity conversion, that is, no conversion \\ \hline
+\begin{tabular}[c]{@{}l@{}}codecvt\textless{}char16\_t,char,mbstate\_t\textgreater\\ codecvt\textless{}char16\_t,char8\_t,mbstate\_t\textgreater{}\end{tabular} &
+Conversion between UTF-16 and UTF-8 \\ \hline
+\begin{tabular}[c]{@{}l@{}}codecvt\textless{}char32\_t,char,mbstate\_t\textgreater\\ codecvt\textless{}char32\_t,char8\_t,mbstate\_t\textgreater{}\end{tabular} &
+Conversion between UTF-32 and UTF-8 \\ \hline
+codecvt\textless{}wchar\_t,char,mbstate\_t\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Conversion between wide (implementation\\ specific) and narrow character encodings\end{tabular} \\ \hline
+\end{longtable}
+
+Unfortunately, these facets are rather complicated to use. As an example, the following code snippet converts a narrow string to a wide string:
+
+\begin{cpp}
+auto& facet { use_facet<codecvt<wchar_t, char, mbstate_t>>(locale { }) };
+string narrowString { "Hello" };
+mbstate_t mb { };
+wstring wideString(narrowString.size(), '\0');
+const char* fromNext { nullptr };
+wchar_t* toNext { nullptr };
+facet.in(mb,
+    narrowString.data(), narrowString.data() + narrowString.size(), fromNext,
+    wideString.data(), wideString.data() + wideString.size(), toNext);
+wideString.resize(toNext - wideString.data());
+wcout << wideString << endl;
+\end{cpp}
+
+Before C++17, the following three code conversion facets were defined in <codecvt>: codecvt\_utf8, codecvt\_utf16, and codecvt\_utf8\_utf16. These could be used with two convenience conversion interfaces: wstring\_convert and wbuffer\_convert. However, C++17 has deprecated those three conversion facets (the entirety of <codecvt>) and the two convenience interfaces, so they are not further discussed in this book. The C++ Standards Committee decided to deprecate this functionality because it does not handle errors very well. Ill-formed Unicode strings are a security risk, and in fact can be and have been used as an attack vector to compromise the security of systems. Also, the API is too obscure and too hard to understand. I recommend using third-party libraries, such as ICU, to work correctly with Unicode strings until the Standards Committee comes up with a suitable, safe, and easier-to-use replacement for the deprecated functionality.
+
+
+
+
+
+
+
+
+
+
+
+
 

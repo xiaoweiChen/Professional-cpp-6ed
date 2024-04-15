@@ -1,0 +1,119 @@
+The Ratio library allows you to exactly represent any finite rational number that you can use at compile time. Everything is defined in <ratio> and is in the std namespace. The numerator and denominator of a rational number are represented as compile-time constants of type std::intmax\_t, which is a signed integer type with the maximum width supported by a compiler. Because of the compiletime nature of these rational numbers, using them might look a bit different than what you are used to. You cannot define a ratio object the same way as you define normal objects, and you cannot call member functions on it. Instead, ratio is a class template, and a specific instantiation of the ratio class template represents one specific rational number. To name such specific instantiations, you can use type aliases. For example, the following defines a compile-time rational number representing the fraction 1/60:
+
+\begin{cpp}
+using r1 = ratio<1, 60>;
+\end{cpp}
+
+The numerator (num) and denominator (den) of the r1 rational number are compile-time constants and can be accessed as follows:
+
+\begin{cpp}
+intmax_t num { r1::num };
+intmax_t den { r1::den };
+\end{cpp}
+
+Remember that a ratio represents a compile-time rational number, which means that the numerator and denominator need to be known at compile time. The following generates a compilation error:
+
+\begin{cpp}
+intmax_t n { 1 }; // Numerator
+intmax_t d { 60 }; // Denominator
+using r1 = ratio<n, d>; // Error
+\end{cpp}
+
+Making n and d constants works fine:
+
+\begin{cpp}
+const intmax_t n { 1 }; // Numerator
+const intmax_t d { 60 }; // Denominator
+using r1 = ratio<n, d>; // Ok
+\end{cpp}
+
+Rational numbers are always normalized. For a rational number ratio<n, d>, the greatest common divisor, gcd, is calculated, and the numerator, num, and denominator, den, are then defined as follows:
+
+\begin{cpp}
+num = sign(n)*sign(d)*abs(n)/gcd
+\end{cpp}
+
+\begin{cpp}
+den = abs(d)/gcd
+\end{cpp}
+
+The library supports adding, subtracting, multiplying, and dividing rational numbers. However, you cannot use the standard arithmetic operators because all these operations are again not happening on objects but on types, i.e., instantiations of the ratio class template, at compile time. Instead, you need to use specific arithmetic ratio class templates. The following arithmetic class templates are available: ratio\_add, ratio\_subtract, ratio\_multiply, and ratio\_divide, which perform addition, subtraction, multiplication, and division, respectively. These templates calculate the result as a new ratio type. This type can be accessed with the embedded type alias called type. For example, the following code first defines two ratios, one representing 1/60 and the other representing 1/30.
+
+The ratio\_add template adds those two rational numbers together to produce the result rational number, which, after normalization, is 1/20:
+
+\begin{cpp}
+using r1 = ratio<1, 60>;
+using r2 = ratio<1, 30>;
+using result = ratio_add<r1, r2>::type;
+\end{cpp}
+
+The standard also defines a number of ratio comparison class templates: ratio\_equal, ratio\_not\_equal, ratio\_less, ratio\_less\_equal, ratio\_greater, and ratio\_greater\_equal. Just like the arithmetic ratio class templates, the ratio comparison class templates are all evaluated at compile time, again not on objects but on ratio types. These comparison templates define a new type that is an std::bool\_constant, representing the result. bool\_constant is an std::integral\_constant, a struct template that stores a type and a compile-time constant value. For example, integral\_constant<int, 15> stores an integer with value 15. bool\_constant is an integral\_constant with type bool. For instance, bool\_constant<true> is integral\_constant<bool, true>, which stores a Boolean with value true. The result of the ratio comparison templates is either bool\_constant<true> or bool\_constant<false>. The value associated with a bool\_constant or an integral\_constant can be accessed using the value data member. The following example demonstrates the use of ratio\_less:
+
+\begin{cpp}
+using r1 = ratio<1, 60>;
+using r2 = ratio<1, 30>;
+using res = ratio_less<r2, r1>;
+println("{}", res::value); // false
+\end{cpp}
+
+The following code snippet combines everything just covered. Because ratios are not objects but types, you cannot do something like println("\{\}", r1); you need to get the numerator and denominator and print them separately.
+
+\begin{cpp}
+// Define a compile-time rational number.
+using r1 = ratio<1, 60>;
+
+// Get numerator and denominator.
+intmax_t num { r1::num };
+intmax_t den { r1::den };
+println("1) r1 = {}/{}", num, den);
+
+// Add two rational numbers.
+using r2 = ratio<1, 30>;
+println("2) r2 = {}/{}", r2::num, r2::den);
+using result = ratio_add<r1, r2>::type;
+println("3) sum = {}/{}", result::num, result::den);
+
+// Compare two rational numbers.
+using res = ratio_less<r2, r1>;
+println("4) r2 < r1: {}", res::value);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+1) r1 = 1/60
+2) r2 = 1/30
+3) sum = 1/20
+4) r2 < r1: false
+\end{shell}
+
+The library provides a number of SI (Système International) type aliases for your convenience. They are as follows:
+
+\begin{cpp}
+using yocto = ratio<1, 1'000'000'000'000'000'000'000'000>; // *
+using zepto = ratio<1, 1'000'000'000'000'000'000'000>; // *
+using atto = ratio<1, 1'000'000'000'000'000'000>;
+using femto = ratio<1, 1'000'000'000'000'000>;
+using pico = ratio<1, 1'000'000'000'000>;
+using nano = ratio<1, 1'000'000'000>;
+using micro = ratio<1, 1'000'000>;
+using milli = ratio<1, 1'000>;
+using centi = ratio<1, 100>;
+using deci = ratio<1, 10>;
+using deca = ratio<10, 1>;
+using hecto = ratio<100, 1>;
+using kilo = ratio<1'000, 1>;
+using mega = ratio<1'000'000, 1>;
+using giga = ratio<1'000'000'000, 1>;
+using tera = ratio<1'000'000'000'000, 1>;
+using peta = ratio<1'000'000'000'000'000, 1>;
+using exa = ratio<1'000'000'000'000'000'000, 1>;
+using zetta = ratio<1'000'000'000'000'000'000'000, 1>; // *
+using yotta = ratio<1'000'000'000'000'000'000'000'000, 1>; // *
+\end{cpp}
+
+The SI units with an asterisk at the end are defined only if your compiler can represent the constant numerator and denominator values for those type aliases as an intmax\_t. An example of how to use these predefined SI units is given during the discussion of durations in the next section.
+
+
+
+

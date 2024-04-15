@@ -1,58 +1,973 @@
 
+Regular expressions, defined in <regex>, are a powerful string-related feature of the Standard Library. They support a special mini-language for string processing and might seem complicated at first, but once you get to know them, they make working with strings easier. Regular expressions can be used for several string operations:
+
+\begin{itemize}
+\item
+Validation: Check if an input string is well formed. For example, is the input string a wellformed phone number?
+
+\item
+Decision: Check what kind of string an input represents. For example, is the input string the name of a JPEG or a PNG file?
+
+\item
+Parsing: Extract information from an input string. For example, extract the year, month, and day from a date.
+
+\item
+Transformation: Search substrings and replace them with a new formatted substring. For example, search all occurrences of “C++23” and replace them with “C++”.
+
+\item
+Iteration: Search all occurrences of a substring. For example, extract all phone numbers from an input string.
+
+\item
+Tokenization: Split a string into substrings based on a set of delimiters. For example, split a string on whitespace, commas, periods, and so on, to extract the individual words.
+\end{itemize}
+
+Of course, you could write your own code to perform any of these operations on strings, but I recommend using the regular expressions functionality, because writing correct and safe code to process strings is tricky.
+
+Before going into more detail on regular expressions, there is some important terminology you need to know. The following terms are used throughout the discussion:
+
+\begin{itemize}
+\item
+Pattern: The actual regular expression is a pattern represented by a string.
+
+\item
+Match: Determines whether there is a match between a given regular expression and all of the characters in a given sequence [first, last).
+
+\item
+Search: Determines whether there is some substring within a given sequence [first, last) that matches a given regular expression.
+
+\item
+Replace: Identifies substrings in a given sequence and replaces them with a corresponding new substring computed from another pattern, called a substitution pattern.
+\end{itemize}
+
+There are several different grammars for regular expressions. C++ includes support for the following grammars:
+
+\begin{itemize}
+\item
+ECMAScript: The grammar based on the ECMAScript standard. ECMAScript is a scripting language standardized by ECMA-262. The core of JavaScript, ActionScript, Jscript, and so on, all use the ECMAScript language standard.
+
+\item
+basic: The basic POSIX grammar.
+
+\item
+extended: The extended POSIX grammar.
+
+\item
+awk: The grammar used by the POSIX awk utility.
+
+\item
+grep: The grammar used by the POSIX grep utility.
+
+\item
+egrep: The grammar used by the POSIX grep utility with the -E parameter.
+\end{itemize}
+
+If you already know any of these regular expression grammars, you can use it straightaway in C++ by instructing the regular expression library to use that specific syntax (syntax\_option\_type). The default grammar in C++ is ECMAScript, whose syntax is explained in detail in the following section. It is also the most powerful grammar. Explaining the other regular expression grammars falls outside the scope of this book.
+
+\begin{myNotic}{NOTE}
+If this is the first time you’re hearing about regular expressions, just use the default ECMAScript syntax.
+\end{myNotic}
 
 \mySubsubsection{21.2.1.}{ECMAScript Syntax}
 
+A regular expression pattern is a sequence of characters representing what you want to match. Any character in the regular expression matches itself except, for the following special characters:
+
+\begin{shell}
+^ $ \ . * + ? ( ) [ ] { } |
+\end{shell}
+
+These special characters are explained throughout the following discussion. If you need to match one of these special characters, you need to escape it using the \verb|\| character, as in this example:
+
+\begin{shell}
+\[ or \. or \* or \\
+\end{shell}
+
 \mySamllsection{Anchor}
+
+The special characters \^{} and \$ are called anchors. The \^{} character matches the position immediately following a line termination character, and \$ matches the position of a line termination character. By default, \^{} and \$ also match the beginning and ending of a string, respectively, but this behavior can be disabled.
+
+For example, \^{}test\$ matches only the string test, and not strings that contain test somewhere in the line, such as 1test, test2, test abc, and so on.
 
 \mySamllsection{Wildcard}
 
+The wildcard character . can be used to match any single character except a newline character. For example, the regular expression a.c will match abc, and a5c, but will not match ab5c, ac, and so on.
+
 \mySamllsection{Alternation}
+
+The | character can be used to specify the “or” relationship. For example, a|b matches a or b.
 
 \mySamllsection{Grouping}
 
+Parentheses, (), are used to mark subexpressions, also called capture groups. Capture groups can be used for several purposes:
+
+\begin{itemize}
+\item
+Capture groups can be used to identify individual subsequences of the original string; each marked subexpression (capture group) is returned in the result. For example, the regular expression (.)(ab|cd)(.) has three marked subexpressions. Performing a search operation with this regular expression on 1cd4 results in a match with four entries. The first entry is the entire match, 1cd4, followed by three entries for the three marked subexpressions. These three entries are 1, cd, and 4.
+
+\item
+Capture groups can be used during matching for a purpose called back references (explained later).
+
+\item
+Capture groups can be used to identify components during replace operations (explained later).
+\end{itemize}
+
 \mySamllsection{Quantifier}
+
+Parts of a regular expression can be repeated by using one of four quantifiers:
+
+\begin{itemize}
+\item
+* matches the preceding part zero or more times. For example, a*b matches b, ab, aab, aaaab, and so on.
+
+\item
++ matches the preceding part one or more times. For example, a+b matches ab, aab, aaaab, and so on, but not b.
+
+\item
+? matches the preceding part zero or one time. For example, a?b matches b and ab, but nothing else.
+
+\item
+\{...\} represents a bounded quantifier. b\{n\} matches b repeated exactly n times; b\{n,\} matches b repeated n times or more; and b\{n,m\} matches b repeated between n and m times inclusive. For example, b\{3,4\} matches bbb and bbbb but not b, bb, bbbbb, and so on.
+\end{itemize}
+
+These quantifiers are called greedy because they find the longest match while still matching the remainder of the regular expression. To make them non-greedy, a ? can be added behind the quantifier, as in *?, +?, ??, and \{...\}?. A non-greedy quantifier repeats its pattern as few times as possible while still matching the remainder of the regular expression.
+
+For example, the following table shows the difference between a greedy and a non-greedy regular expression, and the resulting submatches when running them on the input sequence aaabbb:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{REGULAR EXPRESSION} & \textbf{SUBMATCHES} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+Greedy: (a+)(ab)*(b+)       & "aaa" "" "bbb"      \\ \hline
+Non-greedy: (a+?)(ab)*(b+)  & "aa" "ab" "bb"      \\ \hline
+\end{longtable}
 
 \mySamllsection{Precedence}
 
+Just as with mathematical formulas, it’s important to know the precedence of regular expression elements. Precedence is as follows:
+
+\begin{itemize}
+\item
+Elements like b are the basic building blocks of a regular expression.
+
+\item
+Quantifiers like +, *, ?, and \{...\} bind tightly to the element on the left; for example, b+.
+
+\item
+Concatenation like ab+c binds after quantifiers.
+
+\item
+Alternation like | binds last.
+\end{itemize}
+
+For example, the regular expression ab+c|d matches abc, abbc, abbbc, and so on, and also d. Parentheses can be used to change these precedence rules. For example, ab+(c|d) matches abc, abbc, abbbc, . . ., abd, abbd, abbbd, and so on. However, by using parentheses, you also mark it as a subexpression or capture group. It is possible to change the precedence rules without creating new capture groups by using (?:. . .). For example, ab+(?:c|d) matches the same as the earlier ab+(c|d) but does not create an additional capture group.
+
 \mySamllsection{Character Set Matches}
+
+Instead of writing (a|b|c|. . .|z), which is clumsy and introduces a capture group, a special syntax for specifying sets of characters or ranges of characters is available. In addition, a “not” form of the match is also available. A character set is specified between square brackets and allows you to write [$c_1$ $c_2$. . .$c_n$], which matches any of the characters $c_1$, $c_2$ , . . ., or $c_n$. For example, [abc] matches any character a, b, or c. If the first character is \^{}, it means “any but”:
+
+\begin{itemize}
+\item
+ab[cde] matches abc, abd, and abe.
+
+\item
+ab[\^{}cde] matches abf, abp, and so on, but not abc, abd, and abe.
+\end{itemize}
+
+If you need to match the \^{}, [, or ] characters themselves, you need to escape them; for example, [ \verb|\|[ \verb|\|\^{}\verb|\|]] matches the characters [, \^{}, or ].
+
+If you want to specify all letters, you could use a character set like [abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ]; however, this is clumsy, and doing this several times is awkward, especially if you make a typo and omit one of the letters accidentally. There are two solutions to this.
+
+One solution is to use the range specification in square brackets; this allows you to write [a-zA-Z], which recognizes all the letters in the range a to z and A to Z. If you need to match a hyphen, you need to escape it; for example, [a-zA-Z\verb|\|-]+ matches any word including a hyphenated word.
+
+Another solution is to use one of the character classes. These are used to denote specific types of characters and are represented as [:name:]. Which character classes are available depends on the locale, but the names listed in the following table are always recognized. The exact meaning of these character classes is also dependent on the locale. This table assumes the standard C locale:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{CHARACTER CLASS NAME} &
+\textbf{DESCRIPTION} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+digit &
+Digits, which are 0, 1, 2, 3, 4, 5, 6, 7, 8, 9. \\ \hline
+d &
+Same as digit. \\ \hline
+xdigit &
+\begin{tabular}[c]{@{}l@{}}Digits (digit) and the following letters used in hexadecimal numbers:\\ a, b, c, d, e, f, A, B, C, D, E, F.\end{tabular} \\ \hline
+alpha &
+\begin{tabular}[c]{@{}l@{}}Alphabetic characters. For the C locale, these are all lowercase and\\ uppercase letters.\end{tabular} \\ \hline
+alnum &
+A combination of the alpha class and the digit class. \\ \hline
+w &
+Same as alnum. \\ \hline
+lower &
+Lowercase letters, if applicable to the locale. \\ \hline
+upper &
+Uppercase letters, if applicable to the locale. \\ \hline
+blank &
+\begin{tabular}[c]{@{}l@{}}Blank characters, which are whitespace characters used to separate\\ words within a line of text. For the C locale, these are space\\ and \textbackslash{}t (tab).\end{tabular} \\ \hline
+space &
+\begin{tabular}[c]{@{}l@{}}Whitespace characters. For the C locale, these are space, \textbackslash{}t, \textbackslash{}n, \textbackslash{}r,\\ \textbackslash{}v, and \textbackslash{}f.\end{tabular} \\ \hline
+s &
+Same as space. \\ \hline
+print &
+\begin{tabular}[c]{@{}l@{}}Printable characters. These occupy a printing position—for example,\\ on a display—and are the opposite of control characters (cntrl).\\ Examples are lowercase letters, uppercase letters, digits, punctuation\\ characters, and space characters.\end{tabular} \\ \hline
+cntrl &
+\begin{tabular}[c]{@{}l@{}}Control characters. These are the opposite of printable characters\\ (print), and don’t occupy a printing position, for example, on a\\ display. Some examples for the C locale are \textbackslash{}f, \textbackslash{}n, and \textbackslash{}r.\end{tabular} \\ \hline
+graph &
+\begin{tabular}[c]{@{}l@{}}Characters with a graphical representation. These are all characters\\ that are printable (print), except the space character ' '.\end{tabular} \\ \hline
+punct &
+\begin{tabular}[c]{@{}l@{}}Punctuation characters. For the C locale, these are all graphical\\ characters (graph) that are not alphanumeric (alnum). Some examples\\ are !, \#, @, \}, and so on.\end{tabular} \\ \hline
+\end{longtable}
+
+Character classes are used within character sets; for example, [[:alpha:]]* in English means the same as [a-zA-Z]*.
+
+Because certain character classes are so common, e.g., digits, there are shorthand patterns for them. For example, [:digit:] and [:d:] have the same meaning as [0-9]. Some classes have an even shorter pattern using the escape notation. For example, \verb|\|d means [:digit:]. Therefore, to recognize a sequence of one or more numbers, you can write any of the following patterns:
+
+\begin{itemize}
+\item
+{}[0-9]+
+
+\item
+{}[[:digit:]]+
+
+\item
+{}[[:d:]]+
+
+\item
+\verb|\|d+
+\end{itemize}
+
+The following table lists the available escape notations for character classes:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{ESCAPE NOTATION} & \textbf{EQUIVALENT TO}              \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\textbackslash{}d        & {[}{[}:d:{]}{]}                     \\ \hline
+\textbackslash{}D        & {[}\textasciicircum{}{[}:d:{]}{]}   \\ \hline
+\textbackslash{}s        & {[}{[}:s:{]}{]}                     \\ \hline
+\textbackslash{}S        & {[}\textasciicircum{}{[}:s:{]}{]}   \\ \hline
+\textbackslash{}w        & {[}\_{[}:w:{]}{]}                   \\ \hline
+\textbackslash{}W        & {[}\textasciicircum{}\_{[}:w:{]}{]} \\ \hline
+\end{longtable}
+
+Here are some examples:
+
+\begin{itemize}
+\item
+Test[5-8] matches Test5, Test6, Test7, and Test8.
+
+\item
+{}[[:lower:]] matches a, b, and so on, but not A, B, and so on.
+
+\item
+{}[\^{}[:lower:]] matches any character except lowercase letters like a, b, and so on.
+
+\item
+{}[[:lower:]5-7] matches any lowercase letter like a, b, and so on, and the numbers 5, 6, and 7.
+\end{itemize}
 
 \mySamllsection{Word Boundary}
 
+A word boundary can mean the following:
+
+\begin{itemize}
+\item
+The first character of a word, which is one of the word characters, while the preceding character is not a word character. A word character is a letter, digit, or an underscore. For the standard C locale, this is equal to [A-Za-z0-9\_].
+
+\item
+The end of a word, which is a non-word character, while the preceding character is a word character.
+
+\item
+The beginning of the source string if the first character of the source string is one of the word characters. Matching the beginning of the source string is enabled by default, but you can disable it with regex\_constants::match\_not\_bow, where bow stands for beginning-of-word.
+
+\item
+The end of the source string if the last character of the source string is one of the word characters. Matching the end of the source string is enabled by default, but you can disable it with regex\_constants::match\_not\_eow, where eow stands for end-of-word.
+\end{itemize}
+
+You can use \b to match a word boundary, and you can use  \verb|\|B to match anything except a word boundary.
+
 \mySamllsection{Back Reference}
+
+A back reference allows you to reference a captured group inside the regular expression itself: \verb|\|n refers to the n-th captured group, with n > 0. For example, the regular expression (\verb|\|d+)-.*-\verb|\|1 matches a string that has the following format:
+
+\begin{itemize}
+\item
+One or more digits captured in a capture group (\verb|\|d+)
+
+\item
+Followed by a dash -
+
+\item
+Followed by zero or more characters .*
+
+\item
+Followed by another dash -
+
+\item
+Followed by the same digits captured by the first capture group \verb|\|1
+\end{itemize}
+
+This regular expression matches 123-abc-123, 1234-a-1234, and so on, but does not match 123-abc-1234, 123-abc-321, and so on.
 
 \mySamllsection{Lookahead}
 
+Regular expressions support positive lookahead (which uses ?=pattern) and negative lookahead (which uses ?!pattern). The characters following the lookahead must match (positive) or not match (negative) the lookahead pattern, but those characters are not yet consumed.
+
+For example, the pattern a(?!b) contains a negative lookahead to match a letter a not followed by a b. The pattern a(?=b) contains a positive lookahead to match a letter a followed by a b, but b is not consumed so it does not become part of the match.
+
+The following is a more realistic example. The regular expression matches an input sequence that consists of at least one lowercase letter, at least one uppercase letter, at least one punctuation character, and is at least eight characters long. Such a regular expression can, for example, be used to enforce that passwords satisfy certain criteria.
+
+\begin{cpp}
+(?=.*[[:lower:]])(?=.*[[:upper:]])(?=.*[[:punct:]]).{8,}
+\end{cpp}
+
+In one of the exercises at the end of this chapter, you’ll experiment with this password-validation regular expression.
+
 \mySamllsection{Regular Expressions and Raw String Literals}
+
+As seen in the preceding sections, regular expressions often use special characters that must be escaped in normal C++ string literals. For example, if you write \verb|\|d in a regular expression, it matches any digit. However, because \ is a special character in C++, you need to escape it in a regular expression string literal as \\d; otherwise, your C++ compiler tries to interpret the \verb|\|d. It gets more complicated if you want a regular expression to match a single backslash character, \verb|\|. Because \verb|\| is a special character in the regular expression syntax itself, you need to escape it as \verb|\|\verb|\|. The \verb|\| character is also a special character in C++ string literals, so you need to escape it, resulting in \verb|\|\verb|\|\verb|\|\verb|\|.
+
+You can use raw string literals to make complicated regular expressions easier to read in C++ source code. (Raw string literals are discussed in Chapter 2.) For example, take the following regular expression:
+
+\begin{cpp}
+"( |\\n|\\r|\\\\)"
+\end{cpp}
+
+This regular expression matches spaces, newlines, carriage returns, and backslashes. It requires a lot of escape characters. Using raw string literals, this can be replaced with the following more readable regular expression:
+
+\begin{cpp}
+R"(( |\n|\r|\\))"
+\end{cpp}
+
+The raw string literal starts with R"( and ends with )". Everything in between is the regular expression. Of course, you still need a double backslash at the end because the backslash needs to be escaped in the regular expression itself.
 
 \mySamllsection{Common Regular Expressions}
 
+Writing correct regular expressions is not always trivial. For common patterns such as validating passwords, phone numbers, Social Security numbers, IP addresses, email addresses, credit card numbers, dates, and so on, you don’t have to. When you use your favorite Internet search engine and search for regular expressions online, you’ll find several websites with collections of predefined patterns, such as regexr.com, regex101.com, regextester.com, and many more. Quite a few of these sites allow you to test patterns online, so you can easily verify whether they are correct before using them in your code.
+
+This concludes a brief description of the ECMAScript grammar. The following sections explain how to actually use regular expressions in C++ code.
 
 \mySubsubsection{21.2.2.}{The regex Library}
 
+Everything for the regular expression library is defined in <regex> and in the std namespace. The basic template types defined by the regular expression library are:
 
+\begin{itemize}
+\item
+basic\_regex: An object representing a specific regular expression.
+
+\item
+match\_results: A substring that matched a regular expression, including all the captured groups. It is a collection of sub\_matches.
+
+\item
+sub\_match: An object containing a pair of iterators into the input sequence. These iterators represent a matched capture group. The pair is an iterator pointing to the first character of a matched capture group and an iterator pointing to one-past-the-last character of the matched capture group. It has an str() member function that returns the matched capture group as a string.
+\end{itemize}
+
+The library provides three key algorithms: regex\_match(), regex\_search(), and regex\_replace(). All of these algorithms have different overloads that allow you to specify the source string as a string, a C-style string, or as a begin/end iterator pair. The iterators can be any of the following:
+
+\begin{itemize}
+\item
+const char* or const wchar\_t*
+
+\item
+string::const\_iterator or wstring::const\_iterator
+\end{itemize}
+
+In fact, any iterator that behaves as a bidirectional iterator can be used. See Chapters 17, “Understanding Iterators and the Ranges Library,” for details on iterators.
+
+The library also defines the following two regular expression iterators, which play an important role in finding all occurrences of a pattern in a source string:
+
+\begin{itemize}
+\item
+regex\_iterator: Iterates over all the occurrences of a pattern in a source string.
+
+\item
+regex\_token\_iterator: Iterates over all the capture groups of all occurrences of a pattern in a source string.
+\end{itemize}
+
+To make the library easier to use, the standard defines a number of type aliases for the preceding templates:
+
+\begin{cpp}
+using regex = basic_regex<char>;
+using wregex = basic_regex<wchar_t>;
+
+using csub_match = sub_match<const char*>;
+using wcsub_match = sub_match<const wchar_t*>;
+using ssub_match = sub_match<string::const_iterator>;
+using wssub_match = sub_match<wstring::const_iterator>;
+
+using cmatch = match_results<const char*>;
+using wcmatch = match_results<const wchar_t*>;
+using smatch = match_results<string::const_iterator>;
+using wsmatch = match_results<wstring::const_iterator>;
+
+using cregex_iterator = regex_iterator<const char*>;
+using wcregex_iterator = regex_iterator<const wchar_t*>;
+using sregex_iterator = regex_iterator<string::const_iterator>;
+using wsregex_iterator = regex_iterator<wstring::const_iterator>;
+
+using cregex_token_iterator = regex_token_iterator<const char*>;
+using wcregex_token_iterator = regex_token_iterator<const wchar_t*>;
+using sregex_token_iterator = regex_token_iterator<string::const_iterator>;
+using wsregex_token_iterator = regex_token_iterator<wstring::const_iterator>;
+\end{cpp}
+
+The following sections explain the regex\_match(), regex\_search(), and regex\_replace() algorithms, and the regex\_iterator and regex\_token\_iterator classes.
 
 \mySubsubsection{21.2.3.}{regex\_match()}
 
+The regex\_match() algorithm can be used to compare a given source string with a regular expression pattern. It returns true if the pattern matches the entire source string, and false otherwise.
+
+There are seven overloads of the regex\_match() algorithm accepting different kinds of arguments.
+They all have the following form:
+
+\begin{cpp}
+template<...>
+bool regex_match(InputSequence[, MatchResults], RegEx[, Flags]);
+\end{cpp}
+
+The InputSequence can be represented as follows:
+
+\begin{itemize}
+\item
+A start and end iterator into a source string
+
+\item
+An std::string
+
+\item
+A C-style string
+\end{itemize}
+
+The optional MatchResults parameter is a reference to a match\_results and receives the match. If regex\_match() returns false, you are only allowed to call match\_results::empty() or match\_results::size(); anything else is undefined. If regex\_match() returns true, a match is found, and you can inspect the match\_results object for what exactly got matched. This is explained with examples in the following subsections.
+
+The RegEx parameter is the regular expression that needs to be matched. The optional Flags parameter specifies options for the matching algorithm. In most cases, you can keep the default. For more details, consult a Standard Library Reference.
+
 \mySamllsection{regex\_match() Examples}
 
+The following program asks the user to enter a date in the format year/month/day, where year is four digits, month is a number between 1 and 12, and day is a number between 1 and 31. A regular expression together with the regex\_match() algorithm is used to validate the user input. The details of the regular expression are explained after the code.
+
+\begin{cpp}
+regex r { "\\d{4}/(?:0?[1-9]|1[0-2])/(?:0?[1-9]|[1-2][0-9]|3[0-1])" };
+while (true) {
+    print("Enter a date (year/month/day) (q=quit): ");
+    string str;
+    if (!getline(cin, str) || str == "q") { break; }
+
+    if (regex_match(str, r)) { println(" Valid date."); }
+    else { println(" Invalid date!"); }
+}
+\end{cpp}
+
+The first line creates the regular expression. The expression consists of three parts separated by a forward slash (/) character: one part for year, one for month, and one for day. The following list explains these parts:
+
+\begin{itemize}
+\item
+\verb|\|d{4}: Matches any combination of four digits; for example, 1234, 2024, and so on.
+
+\item
+(?:0?[1-9]|1[0-2]): This subpart of the regular expression is wrapped inside parentheses to make sure the precedence is correct. We don’t need a capture group, so (?:. . .) is used. The inner expression consists of an alternation of two parts separated by the | character.
+\begin{itemize}
+\item
+0?[1-9]: Matches any number from 1 to 9 with an optional 0 in front of it. For example, it matches 1, 2, 9, 03, 04, and so on. It does not match 0, 10, 11, and so on.
+
+\item
+1[0-2]: Matches 10, 11, or 12, and nothing else.
+
+\item
+(?:0?[1-9]|[1-2][0-9]|3[0-1]): This subpart is also wrapped inside a non-capture group and consists of an alternation of three parts.
+\begin{itemize}
+\item
+0?[1-9]: Again matches any number from 1 to 9 with an optional 0 in front of it.
+
+\item
+{}[1-2][0-9]: Matches any number between 10 and 29 inclusive and nothing else.
+
+\item
+3[0-1]: Matches 30 or 31 and nothing else
+\end{itemize}
+
+\end{itemize}
+
+\end{itemize}
+
+The example then enters an infinite loop to ask the user to enter a date. Each date entered is given to the regex\_match() algorithm. When regex\_match() returns true, the user has entered a date that matches the date regular expression pattern.
+
+This example can be extended by asking the regex\_match() algorithm to return captured subexpressions in a results object. You first have to understand what a capture group does. By specifying a match\_results object like smatch in a call to regex\_match(), the elements of the match\_results object are filled in when the regular expression matches the input string. To be able to extract these substrings, you must create capture groups using parentheses.
+
+The first element, [0], in a match\_results object contains the string that matched the entire pattern. When using regex\_match() and a match is found, this is the entire source sequence. When using regex\_search(), discussed in the next section, this can be a substring in the source sequence that matches the regular expression. Element [1] is the substring matched by the first capture group, [2] by the second capture group, and so on. To get a string representation of the ith capture group from a match\_results object m, you can use m[i] as in the following code, or m[i].str().
+
+The following code extracts the year, month, and day digits into three separate integer variables. The regular expression in the revised example has a few small changes. The first part matching the year is wrapped in a capture group, while the month and day parts are now also capture groups instead of non-capture groups. The call to regex\_match() includes a smatch parameter, which receives the matched capture groups. Here is the adapted example:
+
+\begin{cpp}
+regex r { "(\\d{4})/(0?[1-9]|1[0-2])/(0?[1-9]|[1-2][0-9]|3[0-1])" };
+while (true) {
+    print("Enter a date (year/month/day) (q=quit): ");
+    string str;
+    if (!getline(cin, str) || str == "q") { break; }
+
+    if (smatch m; regex_match(str, m, r)) {
+        int year { stoi(m[1]) };
+        int month { stoi(m[2]) };
+        int day { stoi(m[3]) };
+        println(" Valid date: Year={}, month={}, day={}", year, month, day);
+    } else {
+        println(" Invalid date!");
+    }
+}
+\end{cpp}
+
+In this example, there are four elements in the smatch results objects:
+
+\begin{itemize}
+\item
+[0]: The string matching the full regular expression, which in this example is the full date
+
+\item
+[1]: The year
+
+\item
+[2]: The month
+
+\item
+[3]: The day
+\end{itemize}
+
+When you execute this example, you can get the following output:
+
+\begin{shell}
+Enter a date (year/month/day) (q=quit): 2024/12/01
+    Valid date: Year=2024, month=12, day=1
+Enter a date (year/month/day) (q=quit): 24/12/01
+    Invalid date!
+\end{shell}
+
+\begin{myNotic}{NOTE}
+These date-matching examples check only if the date consists of a year (four digits), a month (1–12), and a day (1–31). They do not perform any validation for the number of days in a month, leap years, and so on. If you need that, you have to write code to validate the year, month, and day values that are extracted by regex\_match(). If you implement such validation, then the regular expression could be simplified to just match 4 digits for the year, 1 or 2 digits for the month, and 1 or 2 digits for the day.
+
+\begin{cpp}
+regex r { "(\\d{4})/(\\d{1,2})/(\\d{1,2})" };
+\end{cpp}
+\end{myNotic}
 
 \mySubsubsection{21.2.4.}{regex\_search()}
 
+The regex\_match() algorithm discussed in the previous section returns true if the entire source string matches the regular expression and false otherwise. If you want to search for a matching substring, you need to use regex\_search(). There are seven overloads of regex\_search(), and they all have the following form:
+
+\begin{cpp}
+template<...>
+bool regex_search(InputSequence[, MatchResults], RegEx[, Flags]);
+\end{cpp}
+
+All overloads return true when a match is found somewhere in the input sequence and false otherwise. The parameters are similar to the parameters for regex\_match().
+
+Two overloads of regex\_search() accept a begin and end iterator as the input sequence that you want to process. You might be tempted to use this version of regex\_search() in a loop to find all occurrences of a pattern in a source string by manipulating these begin and end iterators for each regex\_search() call. Never do this! It can cause problems when your regular expression uses anchors (\^{} or \$), word boundaries, and so on. It can also cause an infinite loop due to empty matches. Use a regex\_iterator or regex\_token\_iterator as explained later in this chapter to extract all occurrences of a pattern from a source string.
+
+\begin{myWarning}{WARNING}
+Never use regex\_search() in a loop to find all occurrences of a pattern in a source string. Instead, use a regex\_iterator or regex\_token\_iterator.
+\end{myWarning}
+
 \mySamllsection{regex\_search() Examples}
 
+The regex\_search() algorithm can be used to extract a matching substring from an input sequence. For example, the following program extracts code comments from a string. The regular expression searches for a substring that starts with // followed by optional whitespace, \verb|\|s*, followed by one or more characters captured in a capture group, (.+). This capture group captures only the comment substring. The smatch object m receives the search results. If successful, m[1] contains the comment that was found. You can check the m[1].first and m[1].second iterators to see where exactly the comment was found in the source string.
+
+\begin{cpp}
+regex r { "//\\s*(.+)$" };
+while (true) {
+    print("Enter a string with optional code comments (q=quit):\n> ");
+    string str;
+    if (!getline(cin, str) || str == "q") { break; }
+
+    if (smatch m; regex_search(str, m, r)) {
+        println(" Found comment '{}'", m[1].str());
+    } else {
+        println(" No comment found!");
+    }
+}
+\end{cpp}
+
+The output of this program can look as follows:
+
+\begin{shell}
+Enter a string with optional code comments (q=quit):
+> std::string str; // Our source string
+  Found comment 'Our source string'
+Enter a string with optional code comments (q=quit):
+> int a; // A comment with // in the middle
+  Found comment 'A comment with // in the middle'
+Enter a string with optional code comments (q=quit):
+> std::vector values { 1, 2, 3 };
+  No comment found!
+\end{shell}
+
+The match\_results object also has a prefix() and suffix() member function, which return the string preceding or following the match, respectively.
 
 \mySubsubsection{21.2.5.}{regex\_iterator}
 
+As explained in the previous section, you should never use regex\_search() in a loop to extract all occurrences of a pattern from a source sequence. Instead, you should use a regex\_iterator or regex\_token\_iterator. They work similarly to iterators for Standard Library containers.
+
 \mySamllsection{regex\_iterator Examples}
+
+The following example asks the user to enter a source string, extracts every word from the string, and prints all words between quotes. The regular expression in this case is [\verb|\|w]+, which searches for one or more word-letters. This example uses std::string as a source, so it uses sregex\_iterator for the iterators. A standard iterator loop is used, but in this case, the end iterator is done slightly differently from the end iterators of Standard Library containers. Normally, you specify an end iterator for a particular container, but for regex\_iterator, there is only one “end” iterator. You get this end iterator by default constructing a regex\_iterator.
+
+The for loop creates a start iterator called iter, which accepts a begin and end iterator into the source string and a regular expression. The loop body is called for every match found, which is every word in this example. The sregex\_iterator iterates over all the matches. By dereferencing a sregex\_iterator, you get a smatch object. Accessing the first element of this smatch object, [0], gives you the matched substring:
+
+\begin{cpp}
+regex reg { "[\\w]+" };
+while (true) {
+    print("Enter a string to split (q=quit): ");
+    string str;
+    if (!getline(cin, str) || str == "q") { break; }
+
+    const sregex_iterator end;
+    for (sregex_iterator iter { cbegin(str), cend(str), reg };
+    iter != end; ++iter) {
+        println("\"{}\"", (*iter)[0].str());
+    }
+}
+\end{cpp}
+
+The output of this program can look as follows:
+
+\begin{shell}
+Enter a string to split (q=quit): This, is a test.
+"This"
+"is"
+"a"
+"test"
+\end{shell}
+
+As this example demonstrates, even simple regular expressions can perform some powerful string operations!
+
+Note that both regex\_iterator, and regex\_token\_iterator discussed in the next section, internally store a pointer to the given regular expression. Hence, they both explicitly delete any constructors accepting rvalue reference regular expressions to prevent you from constructing them with temporary regex objects. For example, the following does not compile:
+
+\begin{cpp}
+for (sregex_iterator iter { cbegin(str), cend(str), regex { "[\\w]+" } };
+    iter != end; ++iter) { ... }
+\end{cpp}
 
 \mySubsubsection{21.2.6.}{regex\_token\_iterator}
 
+The previous section describes regex\_iterator, which iterates through every match. On each iteration, you get a match\_results object, which you can use to extract subexpressions for a match that are captured by capture groups.
 
+A regex\_token\_iterator can be used to automatically iterate over all or selected capture groups across all matches. There are four constructors with the following format:
+
+\begin{cpp}
+regex_token_iterator(BidirectionalIterator a,
+                     BidirectionalIterator b,
+                     const regex_type& re
+                     [, SubMatches
+                     [, Flags]]);
+\end{cpp}
+
+All of them require a begin and end iterator as input sequence, and a regular expression. The optional SubMatches parameter is used to specify which capture groups should be iterated over. SubMatches can be specified in four ways:
+
+\begin{itemize}
+\item
+As a single integer representing the index of the capture group that you want to iterate over
+
+\item
+As a vector with integers representing the indices of the capture groups that you want to iterate over
+
+\item
+As an initializer\_list with capture group indices
+
+\item
+As a C-style array with capture group indices
+\end{itemize}
+
+When you omit SubMatches or when you specify a 0 for SubMatches, you get an iterator that iterates over all capture groups with index 0, which are the substrings matching the full regular expression. The optional Flags parameter specifies options for the matching algorithm. In most cases, you can keep the default. Consult a Standard Library Reference for more details.
 
 \mySubsubsection{21.2.7.}{regex\_token\_iterator Examples}
 
+gex\_token\_iterator Examples The earlier regex\_iterator example can be rewritten using a regex\_token\_iterator as follows. Instead of using (*iter)[0].str() in the loop body, you simply use iter->str() because a token iterator with 0 (= default) submatch index automatically iterates over all capture groups with index 0. The output of this code is the same as the output generated by the earlier regex\_iterator example.
 
+\begin{cpp}
+regex reg { "[\\w]+" };
+while (true) {
+    print("Enter a string to split (q=quit): ");
+    string str;
+    if (!getline(cin, str) || str == "q") { break; }
+
+    const sregex_token_iterator end;
+    for (sregex_token_iterator iter { cbegin(str), cend(str), reg };
+    iter != end; ++iter) {
+        println("\"{}\"", iter->str());
+    }
+}
+\end{cpp}
+
+The following example asks the user to enter a date and then uses a regex\_token\_iterator to iterate over the second and third capture groups (month and day), which are specified as a vector of integers. The regular expression used for dates is explained earlier in this chapter. The only difference is that \^{} and \$ anchors are added since we want to match the entire source sequence. Earlier, that was not necessary, because regex\_match() automatically matches the entire input string.
+
+\begin{cpp}
+regex reg { "^(\\d{4})/(0?[1-9]|1[0-2])/(0?[1-9]|[1-2][0-9]|3[0-1])$" };
+while (true) {
+    print("Enter a date (year/month/day) (q=quit): ");
+    string str;
+    if (!getline(cin, str) || str == "q") { break; }
+
+    vector indices { 2, 3 };
+    const sregex_token_iterator end;
+    for (sregex_token_iterator iter { cbegin(str), cend(str), reg, indices };
+    iter != end; ++iter) {
+        println("\"{}\"", iter->str());
+    }
+}
+\end{cpp}
+
+This code prints only the month and day of valid dates. Output generated by this example can look like this:
+
+\begin{shell}
+Enter a date (year/month/day) (q=quit): 2024/1/13
+"1"
+"13"
+Enter a date (year/month/day) (q=quit): 2024/1/32
+Enter a date (year/month/day) (q=quit): 2024/12/5
+"12"
+"5"
+\end{shell}
+
+The regex\_token\_iterator can also be used to perform a field splitting or tokenization. It is a much safer and more flexible alternative compared to using the old, and not further discussed, strtok() function from C. Tokenization is enabled in the regex\_token\_iterator constructor by specifying -1 as the capture group index to iterate over. In tokenization mode, the iterator iterates over all substrings of the input sequence that do not match the regular expression. The following code demonstrates this by tokenizing a string on the delimiters , and ; with zero or more whitespace characters before or after a delimiter. The code demonstrates the tokenization in two ways: first by iterating over the tokens directly and then by creating a new vector containing all the tokens followed by printing the contents of the vector:
+
+\begin{cpp}
+regex reg { R"(\s*[,;]\s*)" };
+while (true) {
+    print("Enter a string to split on ',' and ';' (q=quit): ");
+    string str;
+    if (!getline(cin, str) || str == "q") { break; }
+
+    // Iterate over the tokens.
+    const sregex_token_iterator end;
+    for (sregex_token_iterator iter { cbegin(str), cend(str), reg, -1 };
+    iter != end; ++iter) {
+        print("\"{}\", ", iter->str());
+    }
+    println("");
+
+    // Store all tokens in a vector.
+    vector<string> tokens {
+        sregex_token_iterator { cbegin(str), cend(str), reg, -1 },
+        sregex_token_iterator {} };
+    // Print the contents of the tokens vector.
+    println("{:n}", tokens);
+}
+\end{cpp}
+
+The regular expression in this example is specified as a raw string literal and searches for patterns that match the following:
+
+\begin{itemize}
+\item
+Zero or more whitespace characters
+
+\item
+Followed by a , or ; character
+
+\item
+Followed by zero or more whitespace characters
+\end{itemize}
+
+The output can be as follows:
+
+\begin{shell}
+Enter a string to split on ',' and ';' (q=quit): This is, a; test string.
+"This is", "a", "test string.",
+"This is", "a", "test string."
+\end{shell}
+
+As you can see from this output, the string is split on , and ;. All whitespace characters around the , and ; are removed because the tokenization iterator iterates over all substrings that do not match the regular expression and because the regular expression matches , and ; with whitespace around them.
 
 \mySubsubsection{21.2.8.}{regex\_replace()}
 
+The regex\_replace() algorithm requires a regular expression and a formatting string that is used to replace matching substrings. This formatting string can reference parts of the matched substrings by using the escape sequences in the following table.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{ESCAPE SEQUENCE} &
+\textbf{REPLACED WITH} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\$n &
+\begin{tabular}[c]{@{}l@{}}The string matching the$ n^{th}$ capture group; for example, \$1 for the first\\ capture group, \$2 for the second, and so on. n must be greater than 0.\end{tabular} \\ \hline
+\$\& &
+The string matching the entire regular expression. \\ \hline
+\$` &
+\begin{tabular}[c]{@{}l@{}}The part of the input sequence that appears to the left of the substring\\ matching the regular expression.\end{tabular} \\ \hline
+\$´ &
+\begin{tabular}[c]{@{}l@{}}The part of the input sequence that appears to the right of the substring\\ matching the regular expression.\end{tabular} \\ \hline
+\$\$ &
+A single dollar sign. \\ \hline
+\end{longtable}
+
+There are six overloads of regex\_replace(). The difference between them is in the type of parameters. Four of them have the following format:
+
+\begin{cpp}
+template<...>
+string regex_replace(InputSequence, RegEx, FormatString[, Flags]);
+\end{cpp}
+
+These four overloads return the resulting string after performing the replacement. Both the InputSequence and the FormatString can be an std::string or a C-style string. The RegEx parameter is the regular expression that needs to be matched. The optional Flags parameter specifies options for the replace algorithm.
+
+Two overloads of regex\_replace() have the following format:
+
+\begin{cpp}
+OutputIterator regex_replace(OutputIterator,
+                             BidirectionalIterator first,
+                             BidirectionalIterator last,
+                             RegEx, FormatString[, Flags]);
+\end{cpp}
+
+These two overloads write the resulting string to the given output iterator and return this output iterator. The input sequence is given as a begin and end iterator. The other parameters are identical to the other four overloads of regex\_replace().
+
 \mySamllsection{regex\_replace() Examples}
+
+As a first example, take the following HTML source string:
+
+\begin{shell}
+<body><h1>Header</h1><p>Some text</p></body>
+\end{shell}
+
+and the following regular expression:
+
+\begin{cpp}
+<h1>(.*)</h1><p>(.*)</p>
+\end{cpp}
+
+The following table shows the different escape sequences and what they will be replaced with:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{ESCAPE SEQUENCE} & \textbf{REPLACED WITH}         \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\$1                      & Header                         \\ \hline
+\$2                      & Some text                      \\ \hline
+\$\& & \textless{}h1\textgreater{}Header\textless{}/h1\textgreater{}\textless{}p\textgreater{}Some text\textless{}/p\textgreater{} \\ \hline
+\$`                      & \textless{}body\textgreater{}  \\ \hline
+\$´                      & \textless{}/body\textgreater{} \\ \hline
+\end{longtable}
+
+The following code demonstrates the use of regex\_replace():
+
+\begin{cpp}
+const string str { "<body><h1>Header</h1><p>Some text</p></body>" };
+regex r { "<h1>(.*)</h1><p>(.*)</p>" };
+
+const string replacement { "H1=$1 and P=$2" }; // See earlier table.
+string result { regex_replace(str, r, replacement) };
+
+println("Original string: '{}'", str);
+println("New string : '{}'", result);
+\end{cpp}
+
+The output of this program is as follows:
+
+\begin{shell}
+Original string: '<body><h1>Header</h1><p>Some text</p></body>'
+New string     : '<body>H1=Header and P=Some text</body>'
+\end{shell}
+
+The regex\_replace() algorithm accepts a number of flags to change its behavior. The most important flags are given in the following table:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{FLAG}       & \textbf{DESCRIPTION}                               \\ \hline
+\endfirsthead
+%
+\endhead
+%
+format\_default &
+\begin{tabular}[c]{@{}l@{}}The default is to replace all occurrences of the pattern and to also copy\\ everything to the output that does not match the pattern.\end{tabular} \\ \hline
+format\_no\_copy &
+\begin{tabular}[c]{@{}l@{}}Replaces all occurrences of the pattern but does not copy anything to\\ the output that does not match the pattern.\end{tabular} \\ \hline
+format\_first\_only & Replaces only the first occurrence of the pattern. \\ \hline
+\end{longtable}
+
+The call to regex\_replace() in the previous code snippet can be modified to use the format\_no\_copy flag:
+
+\begin{cpp}
+string result { regex_replace(str, r, replacement,
+    regex_constants::format_no_copy) };
+\end{cpp}
+
+The output now is as follows:
+
+\begin{shell}
+Original string: '<body><h1>Header</h1><p>Some text</p></body>'
+New string     : 'H1=Header and P=Some text
+\end{shell}
+
+Another example using regex\_replace() is to replace each word boundary in a string with a newline character so that the output contains only one word per line. The following code snippet demonstrates this without using any loops to process a given input string. The code first creates a regular expression that matches individual words. When a match is found with regex\_replace(), it is substituted with \$1\verb|\|n where \$1 is replaced with the matched word. Note also the use of the format\_no\_copy flag to prevent copying whitespace and other non-word characters from the source string to the output.
+
+\begin{cpp}
+regex reg { "([\\w]+)" };
+const string replacement { "$1\n" };
+while (true) {
+    print("Enter a string to split over multiple lines (q=quit): ");
+    string str;
+    if (!getline(cin, str) || str == "q") { break; }
+
+    println("{}", regex_replace(str, reg, replacement,
+        regex_constants::format_no_copy));
+}
+\end{cpp}
+
+The output of this program can be as follows:
+
+\begin{shell}
+Enter a string to split over multiple lines (q=quit): This is a test.
+This
+is
+a
+test
+\end{shell}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

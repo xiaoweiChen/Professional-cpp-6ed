@@ -1,0 +1,34 @@
+By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+
+
+\begin{itemize}
+\item
+Exercise 21-1: Use an appropriate facet to figure out the decimal separator for formatting numbers according to the user’s environment. Consult a Standard Library reference to learn about the exact member functions of your chosen facet.
+
+\item
+Exercise 21-2: Write an application that asks the user to enter a phone number as formatted in the United States. Here’s an example: 202-555-0108. Use a regular expression to validate the format of the phone number, that is, three digits, followed by a dash, three more digits, another dash, and a final four digits. If it’s a valid phone number, print out the three parts on separate lines. For example, for the earlier phone number, the result must be as follows:
+
+\begin{shell}
+202
+555
+0108
+\end{shell}
+
+\item
+Exercise 21-3: Write an application that asks the user for a piece of source code that can span multiple lines and that can contain // style comments. To signal the end of the input, use a sentinel character, for example @. You can use std::getline() with '@' as delimiter to read in multiple lines of text from the standard input console. Finally, use a regular expression to remove comments from all lines of the code snippet. Make sure your code properly works on a snippet such as the following:
+
+\begin{cpp}
+string str; // A comment // Some more comments.
+str = "Hello"; // Hello.
+\end{cpp}
+
+The result for this input must be as follows:
+
+\begin{shell}
+string str;
+str = "Hello";
+\end{shell}
+
+\item
+Exercise 21-4: The section “Lookahead” earlier in this chapter mentioned a password-validation regular expression. Write a program to test this regular expression. Ask the user to enter a password and validate it. Once you’ve verified that the regular expression works, add one more validation rule to it: a password must also consist of at least two digits.
+\end{itemize}
