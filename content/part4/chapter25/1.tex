@@ -1,0 +1,56 @@
+Every Standard Library container takes an Allocator type as a template type parameter, for which the default usually suffices. For example, the vector template definition looks like this:
+
+\begin{cpp}
+template <class T, class Allocator = allocator<T>> class vector;
+\end{cpp}
+
+The container constructors then allow you to pass in an object of type Allocator. This permits you to customize the way the containers allocate memory. Every memory allocation performed by a container is made with a call to the allocate() member function of the Allocator object. Conversely, every deallocation is performed with a call to the deallocate() member function of the Allocator object. When a Standard Library container takes an Allocator parameter, that parameter always defaults to std::allocator<T> if not provided. The allocate() and deallocate() member functions of std::allocator<T> are simple wrappers around new and delete.
+
+Keep in mind that allocate() simply allocates a big-enough block of uninitialized memory and does not call any object constructor. Similarly, deallocate() simply frees the memory block and does not call any destructor. Once a memory block has been allocated, a placement new operator (see Chapter 15) can be used to construct an object in place. The following code snippet shows a contrived example. Chapter 29, “Writing Efficient C++,” shows a more realistic use of an allocator for the implementation of an object pool.
+
+\begin{cpp}
+class MyClass {};
+int main()
+{
+    // Create an allocator to use.
+    std::allocator<MyClass> alloc;
+    // Allocate an uninitialized memory block for 1 instance of MyClass.
+    auto* memory { alloc.allocate(1) };
+    // Use placement new operator to construct a MyClass in place.
+    ::new (memory) MyClass{};
+    // Destroy MyClass instance.
+    std::destroy_at(memory);
+    // Deallocate memory block.
+    alloc.deallocate(memory, 1);
+    memory = nullptr;
+}
+\end{cpp}
+
+If you want containers in your program to use a custom memory allocation and deallocation scheme, you can write your own Allocator class. There are several reasons for using custom allocators. For example, if the underlying allocator has unacceptable performance, there are alternatives. When OS-specific capabilities, such as shared memory segments, must be allocated, using custom allocators allows the use of Standard Library containers in those shared memory segments. The use of custom allocators is complex, and there are many potential problems if you are not careful, so this should not be approached lightly.
+
+Any class that provides allocate(), deallocate(), and several other required member functions and type aliases can be used in place of the default allocator class.
+
+Additionally, the Standard Library has the concept of polymorphic memory allocators. Basically, the problem with the allocator for a container being specified as a template type parameter is that two containers that are similar but have different allocator types are completely different types. For example, vector<int, A1> and vector<int, A2> are different and so cannot, e.g., be assigned to one another.
+
+The polymorphic memory allocators, defined in <memory\_resource> in the std::pmr namespace, help to solve this problem. The class std::pmr::polymorphic\_allocator is a proper Allocator class because it satisfies all the allocator requirements, such as having allocate() and deallocate() member functions. The allocation behavior of a polymorphic\_allocator depends on the memory\_resource it’s given during construction, and not on any template type parameters. As such, different polymorphic\_allocators can behave in completely different ways when allocating and deallocating memory, even though they all have the same type, that is, polymorphic\_allocator. The standard provides some built-in memory resources that you can use to initialize a polymorphic memory allocator: synchronized\_pool\_resource, unsynchronized\_pool\_resource, and monotonic\_buffer\_resource. The Standard Library also provides template type aliases such as std::pmr::vector<T> for std::vector<T, std::pmr::polymorphic\_allocator<T>>. An std::pmr::vector<T> is still a different type from std::vector<T> and cannot be assigned from std::vector<T>. But an std::pmr::vector<T> affiliated with one memory resource is the same type as, and can be assigned from, a second std::pmr::vector<T> object affiliated with a different memory resource.
+
+However, in my experience, both custom allocators and polymorphic memory allocators are rather advanced and rarely used features in day-to-day coding. I’ve never used them myself, so a detailed discussion falls outside the scope of this book. For more information, consult one of the books listed in Appendix B, “Annotated Bibliography,” that specifically covers the C++ Standard Library.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

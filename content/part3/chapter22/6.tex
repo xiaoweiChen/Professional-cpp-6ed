@@ -1,0 +1,57 @@
+To facilitate working with time zones, the C++ Standard Library contains a copy of the Internet Assigned Numbers Authority (IANA) time zone database (\url{www.iana.org/time-zones}). You can get access to this database by calling std::chrono::get\_tzdb(), which returns a reference-to-const to a single existing instance of type std::chrono::tzdb. This database gives access to all known time zones through a public vector called zones. Each entry in this vector is a time\_zone, which has a name, accessible with name(), and member functions to\_sys() and to\_local() to convert a local\_time to a sys\_time, and vice versa. Due to daylight saving time, it could be that a conversion from local\_time to sys\_time is either ambiguous or nonexistent. In such cases, the conversion throws an exception of type ambiguous\_local\_time or nonexistent\_local\_time, respectively.
+
+Here is a code snippet listing all available time zones:
+
+\begin{cpp}
+const auto& database { get_tzdb() };
+for (const auto& timezone : database.zones) {
+    println("{}", timezone.name());
+}
+\end{cpp}
+
+The std::chrono::locate\_zone() function can be used to retrieve a time\_zone based on its name and throws a runtime\_error exception if the requested time zone cannot be found in the database. The current\_zone() function can be used to get the current time zone. For example:
+
+\begin{cpp}
+auto* brussels { locate_zone("Europe/Brussels") };
+auto* gmt { locate_zone("GMT") };
+auto* current { current_zone() };
+\end{cpp}
+
+time\_zone instances can be used to convert times between different zones:
+
+\begin{cpp}
+// Convert current time (UTC), to time in Brussels, and time in current zone.
+auto nowUTC { system_clock::now() }; // In UTC.
+auto nowInBrussels { brussels->to_local(nowUTC) }; // In Brussels' time zone.
+auto nowInCurrentZone { current->to_local(nowUTC) }; // In current time zone.
+println("Now UTC: {:L%c}", nowUTC);
+println("Now Brussels: {:L%c}", nowInBrussels);
+println("Now in current: {:L%c}", nowInCurrentZone);
+
+// Construct a UTC time. (2020-06-22 09:35:10 UTC)
+auto t { sys_days { 2020y / June / 22d } + 9h + 35min + 10s };
+// Convert UTC time to Brussels' local time.
+auto converted { brussels->to_local(t) };
+println("Converted: {:L}", converted);
+\end{cpp}
+
+The zoned\_time class is used to represent a time\_point in a specific time\_zone. The following snippet constructs a specific time in the Brussels’ time zone and then converts it to New York time:
+
+\begin{cpp}
+// Construct a local time in the Brussels' time zone.
+zoned_time<hours> brusselsTime{ brussels, local_days { 2020y / June / 22d } + 9h };
+// Convert to New York time.
+zoned_time<hours> newYorkTime { "America/New_York", brusselsTime };
+println("Brussels: {:L}", brusselsTime.get_local_time());
+println("New York: {:L}", newYorkTime.get_local_time());
+\end{cpp}
+
+
+
+
+
+
+
+
+
+

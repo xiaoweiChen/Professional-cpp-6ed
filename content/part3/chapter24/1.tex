@@ -1,0 +1,129 @@
+std::variant, defined in <variant>, can hold a single value of one of a given set of types. When you define a variant, you must specify the types it can potentially contain. For example, the following code defines a variant that can contain an integer, a string, or a floating-point value, but only one at a time:
+
+\begin{cpp}
+variant<int, string, float> v;
+\end{cpp}
+
+The template type arguments for a variant must be unique; for example, variant<int,int> is invalid. A default-constructed variant contains a default-constructed value of its first type, int in the case of the variant v. If you want to be able to default construct a variant, you must make sure that the first type of the variant is default constructible. For example, the following does not compile because Foo is not default constructible:
+
+\begin{cpp}
+class Foo { public: Foo() = delete; Foo(int) {} };
+class Bar { public: Bar() = delete; Bar(int) {} };
+...
+variant<Foo, Bar> v;
+\end{cpp}
+
+In fact, neither Foo nor Bar is default constructible. If you still want to be able to default construct such a variant, then you can use std::monostate, a well-behaved empty alternative, as the first type of the variant:
+
+\begin{cpp}
+variant<monostate, Foo, Bar> v;
+\end{cpp}
+
+You can use the assignment operator to store something in a variant:
+
+\begin{cpp}
+variant<int, string, float> v;
+v = 12;
+v = 12.5f;
+v = "An std::string"s;
+\end{cpp}
+
+A variant can contain only one value at any given time. So, with these three assignment statements, first the integer 12 is stored in the variant, then the variant is modified to contain a single floatingpoint value, and lastly, the variant is modified again to contain a single string value.
+
+You can use the index() member function to get the zero-based index of the value’s type that is currently stored in the variant, and you can use the std::holds\_alternative() function template to figure out whether a variant currently contains a value of a certain type:
+
+\begin{cpp}
+println("Type index: {}", v.index());
+println("Contains an int: {}", holds_alternative<int>(v));
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Type index: 1
+Contains an int: false
+\end{shell}
+
+Use std::get<index>() or get<T>() to retrieve the value from a variant, where index is the zerobased index of the type you want to retrieve, and T is the type you want to retrieve. These functions throw a bad\_variant\_access exception if you are using the index of a type, or a type, that does not match the current value in the variant:
+
+\begin{cpp}
+println("{}", get<string>(v));
+try {
+    println("{}", get<0>(v));
+} catch (const bad_variant_access& ex) {
+    println("Exception: {}", ex.what());
+}
+\end{cpp}
+
+This is the output:
+
+\begin{shell}
+An std::string
+Exception: bad variant access
+\end{shell}
+
+To avoid exceptions, use the std::get\_if<index>() or get\_if<T>() helper function. These functions accept a pointer to a variant and return a pointer to the requested value, or nullptr on error:
+
+\begin{cpp}
+string* theString { get_if<string>(&v) };
+int* theInt { get_if<int>(&v) };
+println("Retrieved string: {}", (theString ? *theString : "n/a"));
+println("Retrieved int: {}", (theInt ? to_string(*theInt) : "n/a"));
+\end{cpp}
+
+Here is the output:
+
+\begin{shell}
+Retrieved string: An std::string
+Retrieved int: n/a
+\end{shell}
+
+An std::visit() helper function is available that you can use to apply the visitor pattern to a variant. A visitor has to be a callable, e.g., a function, a lambda expression, or a function object, that can accept any type that may be stored in the variant. A first example just uses a generic lambda, which can accept any type, as the callable passed as the first argument to visit():
+
+\begin{cpp}
+visit([](auto&& value) { println("Value = {}", value); }, v);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Value = An std::string
+\end{shell}
+
+If you want to handle each type stored in the variant in a different way, then you can write your own visitor class. Suppose you have the following visitor class that defines a number of overloaded function call operators, one for each possible type in the variant. This implementation marks all its function call operators as static (possible since C++23), as they don’t require access to any non-static member functions or data members of MyVisitor.
+
+\begin{cpp}
+class MyVisitor
+{
+    public:
+        static void operator()(int i) { println("int: {}", i); }
+        static void operator()(const string& s) { println("string: {}", s); }
+        static void operator()(float f) { println("float: {}", f); }
+};
+\end{cpp}
+
+You can use this with std::visit() as follows:
+
+\begin{cpp}
+visit(MyVisitor{}, v);
+\end{cpp}
+
+The result is that the appropriate overloaded function call operator is called based on the current value stored in the variant. The output for this example is as follows:
+
+\begin{shell}
+string: An std::string
+\end{shell}
+
+A variant cannot store an array, and as with optional introduced in Chapter 1, “A Crash Course in C++ and the Standard Library,” it cannot store references. You can store either pointers or instances of reference\_wrapper<T> or reference\_wrapper<const T> (see Chapter 18, “Standard Library Containers”).
+
+\CXXTwentythreeLogo{-40}{-50}
+
+\begin{myNotic}{NOTE}
+Starting with C++23, variant is a constexpr class, so it can be used at compile time. See Chapter 9, “Mastering Classes and Objects,” for more on constexpr classes.
+\end{myNotic}
+
+
+
+
+
+

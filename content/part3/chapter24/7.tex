@@ -1,0 +1,20 @@
+By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+
+\begin{itemize}
+\item
+Exercise 24-1: Chapter 14, “Handling Errors,” explains error handling in C++ and explains that there are basically two major options: either you work with error codes or you work with exceptions. I recommend using exceptions for error handling, but for this exercise, you’ll use error codes. Write a simple Error class that just stores a single message, has a constructor to set the message, and has a getter to retrieve the message. Next, write a getData() function with a single Boolean parameter called fail. If fail is false, the function returns a vector of some data; otherwise, it returns an instance of Error. You are not allowed to use reference-to-non-const output parameters. Try to come up with a solution that doesn’t use the C++23 std::expected class template yet. Test your implementation in your main() function.
+
+\item
+Exercise 24-2: Modify your solution to Exercise 24-1 to use the C++23 std::expected class template and discover how it makes the solution much easier to read and understand.
+
+\item
+Exercise 24-3: Most command-line applications accept command-line parameters. In most, if not all, of the sample code in this book the main function is simply main(). However, main() can also accept parameters: main(int argc, char** argv) where argc is the number of command-line parameters, and argv is an array of strings, one string for each parameter. Assume for this exercise that a command-line parameter is of the form name=value. Write a function that can parse a single parameter and that returns a pair containing the name of the parameter and a variant containing the value as a Boolean if the value can be parsed as a Boolean (true or false), an integer if the value can be parsed as an integer, or a string otherwise. To split the name=value string, you can use a regular expression (see Chapter 21, “String Localization and Regular Expressions”). To parse integers, you can use one of the functions explained in Chapter 2, “Working with Strings and String Views.” In your main() function, loop over all command-line parameters, parse them, and output the parsed results to the standard output using holds\_alternative().
+
+\item
+Exercise 24-4: Modify your solution to Exercise 24-3. Instead of using holds\_alternative(), use a visitor to output the parsed results to the standard output.
+
+\item
+Exercise 24-5: Modify your solution to Exercise 24-4 to use tuples instead of pairs.
+\end{itemize}
+
+

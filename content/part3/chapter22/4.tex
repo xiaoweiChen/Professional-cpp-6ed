@@ -1,0 +1,93 @@
+A point in time is represented by the time\_point class and stored as a duration relative to an epoch, representing the beginning of time. A time\_point is always associated with a certain clock, and the epoch is the origin of this associated clock. For example, the epoch for the classic Unix/Linux time is January 1, 1970, and durations are measured in seconds. The epoch for Windows is January 1, 1601, and durations are measured in 100-nanosecond units. Other operating systems have different epoch dates and duration units.
+
+The time\_point class has a function called time\_since\_epoch(), which returns a duration representing the time between the epoch of the associated clock and the stored point in time.
+
+Arithmetic operations of time\_points and durations that make sense are supported. The following table lists those operations. tp is a time\_point, and d is a duration:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+tp + d = tp & tp – d = tp \\ \hline
+\endfirsthead
+%
+\endhead
+%
+d + tp = tp & tp – tp = d \\ \hline
+tp += d     & tp -= d     \\ \hline
+\end{longtable}
+
+An example of an operation that is not supported is tp+tp.
+
+Comparison operators == and <=> to compare two time points are supported. Two static member functions are provided: min() and max() returning the smallest and largest possible point in time, respectively.
+
+The time\_point class has three constructors:
+
+\begin{itemize}
+\item
+time\_point(): Constructs a time\_point initialized with duration::zero(). The resulting time\_point represents the epoch of the associated clock.
+
+\item
+time\_point(const duration\& d): Constructs a time\_point initialized with the given duration. The resulting time\_point represents epoch + d.
+
+\item
+template<class Duration2> time\_point(const time\_point<clock, Duration2>\& t): Constructs a time\_point initialized with t.time\_since\_epoch().
+\end{itemize}
+
+Each time\_point is associated with a clock. To create a time\_point, you specify the clock as the template parameter:
+
+\begin{cpp}
+time_point<steady_clock> tp1;
+\end{cpp}
+
+Each clock also knows its time\_point type, so you can also write it as follows:
+
+\begin{cpp}
+steady_clock::time_point tp1;
+\end{cpp}
+
+The following code snippet demonstrates some operations with time\_points:
+
+\begin{cpp}
+// Create a time_point representing the epoch of the associated steady clock.
+time_point<steady_clock> tp1;
+// Add 10 minutes to the time_point.
+tp1 += minutes { 10 };
+// Store the duration between epoch and time_point.
+auto d1 { tp1.time_since_epoch() };
+// Convert the duration to seconds and output to the console.
+duration<double> d2 { d1 };
+println("{}", d2);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+600s
+\end{shell}
+
+Converting time\_points can be done implicitly or explicitly, similar to duration conversions. Here is an example of an implicit conversion. The output is 42000ms:
+
+\begin{cpp}
+time_point<steady_clock, seconds> tpSeconds { 42s };
+// Convert seconds to milliseconds implicitly.
+time_point<steady_clock, milliseconds> tpMilliseconds { tpSeconds };
+println("{}", tpMilliseconds.time_since_epoch());
+\end{cpp}
+
+If the implicit conversion can result in a loss of data, then you need an explicit conversion using time\_point\_cast(), similar to using duration\_cast() for explicit duration casts as discussed earlier in this chapter. The following example outputs 42000ms, even though you start from 42,424ms:
+
+\begin{cpp}
+time_point<steady_clock, milliseconds> tpMilliseconds { 42'424ms };
+// Convert milliseconds to seconds explicitly.
+time_point<steady_clock, seconds> tpSeconds {
+    time_point_cast<seconds>(tpMilliseconds) };
+// Or:
+// auto tpSeconds { time_point_cast<seconds>(tpMilliseconds) };
+// Convert seconds back to milliseconds and output the result.
+milliseconds ms { tpSeconds.time_since_epoch() };
+println("{}", ms);
+\end{cpp}
+
+The library supports floor(), ceil(), and round() operations for time\_points that behave just as they behave with numerical data.

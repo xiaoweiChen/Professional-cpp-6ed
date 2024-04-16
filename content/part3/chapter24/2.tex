@@ -1,0 +1,59 @@
+std::any, defined in <any>, is a class that can contain a single value of any type. You can create an instance with an any constructor or with the std::make\_any() helper function. Once it is constructed, you can ask an any instance whether it contains a value and what the type of the contained value is. To get access to the contained value, you need to use any\_cast(), which throws an exception of type bad\_any\_cast in the case of failure. Here is an example:
+
+\begin{cpp}
+any empty;
+any anInt { 3 };
+any aString { "An std::string."s };
+
+println("empty.has_value = {}", empty.has_value());
+println("anInt.has_value = {}\n", anInt.has_value());
+
+println("anInt wrapped type = {}", anInt.type().name());
+println("aString wrapped type = {}\n", aString.type().name());
+
+int theInt { any_cast<int>(anInt) };
+println("{}", theInt);
+try {
+    int test { any_cast<int>(aString) };
+    println("{}", test);
+} catch (const bad_any_cast& ex) {
+    println("Exception: {}", ex.what());
+}
+\end{cpp}
+
+The output is as follows. Note that the wrapped type of aString is compiler dependent.
+
+\begin{shell}
+empty.has_value = false
+anInt.has_value = true
+
+anInt wrapped type = int
+aString wrapped type = class std::basic_string<char,struct std::char_
+traits<char>,class std::allocator<char>>
+
+3
+Exception: Bad any_cast
+\end{shell}
+
+You can assign a new value to an any instance and even assign a new value of a different type:
+
+\begin{cpp}
+any something { 3 }; // Now it contains an integer.
+something = "An std::string"s; // Now the same instance contains a string.
+\end{cpp}
+
+Instances of any can be stored in Standard Library containers. This allows you to have heterogeneous data in a single container. The only downside is that you have to perform explicit any\_casts to retrieve specific values, as the following example demonstrates:
+
+\begin{cpp}
+vector<any> v;
+v.push_back(42);
+v.push_back("An std::string"s);
+
+println("{}", any_cast<string>(v[1]));
+\end{cpp}
+
+As with optional and variant, you cannot store references in an any instance. You can again store either pointers or instances of reference\_wrapper<T> or reference\_wrapper<const T>.
+
+
+
+

@@ -1,9 +1,137 @@
 
+A clock is a class consisting of a time\_point and a duration. The time\_point type is discussed in detail in the next section, but those details are not required to understand how clocks work. However, time\_points themselves depend on clocks, so it’s important to know the details of clocks first.
+
+The standard defines several clocks, which are described in the following table. The epoch of a clock is the time at which the clock starts counting.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{CLOCK} &
+\textbf{DESCRIPTION} &
+\textbf{EPOCH} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+system\_clock &
+\begin{tabular}[c]{@{}l@{}}Represents the UTC wall clock time\\ from the system-wide real-time clock.\end{tabular} &
+1970-01-01 00:00:00 \\ \hline
+steady\_clock &
+\begin{tabular}[c]{@{}l@{}}Guarantees its time\_point never\\ decreases, which is not guaranteed for\\ system\_clock because the system\\ clock can be adjusted at any time.\\ In fact, this clock is not required to\\ be related to wall clock time; e.g., it\\ could be the time since the start of the\\ operating system.\end{tabular} &
+Unspecified \\ \hline
+high\_resolution\_clock &
+\begin{tabular}[c]{@{}l@{}}Has the shortest possible tick period.\\ Depending on your compiler, it is\\ possible for this clock to be a synonym\\ for steady\_clock or system\_clock.\end{tabular} &
+Unspecified \\ \hline
+utc\_clock &
+\begin{tabular}[c]{@{}l@{}}Represents the Coordinated Universal\\ Time (UTC) wall clock time.\end{tabular} &
+1970-01-01 00:00:00 \\ \hline
+tai\_clock &
+\begin{tabular}[c]{@{}l@{}}Represents International Atomic Time\\ (TAI), using a weighted average of\\ several atomic clocks.\end{tabular} &
+1958-01-01 00:00:00 \\ \hline
+gps\_clock &
+\begin{tabular}[c]{@{}l@{}}Represents Global Position System\\ (GPS) time, i.e., the time maintained by\\ the atomic clocks of GPS satellites.\end{tabular} &
+1980-01-06 00:00:00 \\ \hline
+file\_clock &
+\begin{tabular}[c]{@{}l@{}}Represents file time. It’s an alias for\\ std::filesystem::file\_time\_type.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Unspecified, but\\ typically 1970-01-01\\ on Unix, and 1601-01-\\ 01 on Windows.\end{tabular} \\ \hline
+\end{longtable}
+
+The utc\_clock is the only clock that tracks leap seconds, which are seconds that are occasionally added to or subtracted from UTC time to correct for any mismatch between UTC time and true solar time. The other clocks don’t track leap seconds, while for file\_clock it’s unspecified.
+
+\begin{myNotic}{NOTE}
+The use of the high\_resolution\_clock is discouraged because its implementation is not consistent between different compilers. For some compilers, it might be an alias for steady\_clock, while for others it might be an alias for system\_clock. Hence, for some compilers, the high\_resolution\_clock can go backwards, and for others it doesn’t.
+
+Instead, it’s recommended to use system\_clock to work with wall clock time and steady\_clock to measure durations.
+\end{myNotic}
+
+Every clock has a static now() member function to get the current time as a time\_point, and an is\_steady() member function returning true if the clock is steady, i.e., never goes backwards, false otherwise.
+
+The system\_clock also defines two static helper member functions for converting time\_points to and from the time\_t C-style time representation. The first one is called to\_time\_t(), and it converts a given time\_point to a time\_t; the second one, from\_time\_t(), performs the opposite conversion. The time\_t type is defined in <ctime>.
 
 \mySubsubsection{22.3.1.}{Printing Current Time}
 
+The following example demonstrates how to get the current UTC time and print it to the console in a human-readable format:
 
+\begin{cpp}
+// Set the global locale to the user's local (see Chapter 21).
+locale::global(locale { "" });
+// Print the current UTC time.
+println("UTC: {:L}", system_clock::now());
+println("UTC: {:L%c}", system_clock::now());
+\end{cpp}
+
+This code snippet first sets the global locale to the user’s locale; see Chapter 21, “String Localization and Regular Expressions.” This makes sure everything is printed according to the user’s preferences. The println() statements use the L format specifier to format the date and time according to the configured global locale. The effect of the \%c format specifier is also demonstrated. There are many more format specifiers supported. Consult a Standard Library reference to learn more about them. Here is sample output from the previous code snippet:
+
+\begin{shell}
+UTC: 2023-07-19 11:38:44,5521944
+UTC: 2023-07-19 11:38:44
+\end{shell}
 
 \mySubsubsection{22.3.2.}{Execution Timing}
+
+To time how long it takes for a piece of code to execute, you want to use a clock that is guaranteed not to go backwards. Hence, you should use a steady\_clock. The following code snippet gives an example. The actual type of the variables start and end is steady\_clock::time\_point, and the actual type of diff is a duration.
+
+\begin{cpp}
+// Get the start time.
+auto start { steady_clock::now() };
+// Execute code that you want to time.
+const int numberOfIterations { 10'000'000 };
+double d { 0 };
+for (int i { 0 }; i < numberOfIterations; ++i) { d += sqrt(abs(sin(i) * cos(i))); }
+// Get the end time and calculate the difference.
+auto end { steady_clock::now() };
+auto diff { end - start };
+// Use the calculated result, otherwise the compiler might
+// optimize away the entire loop!
+println("d = {}", d);
+// Convert the difference into milliseconds and output to the console.
+println("Total: {}", duration<double, milli> { diff });
+// Use duration_cast() if you don't need fractional milliseconds.
+println("Total: {}", duration_cast<milliseconds>(diff));
+// Print the time per iteration in nanoseconds.
+println("{} per iteration", duration<double, nano> { diff / numberOfIterations });
+\end{cpp}
+
+Here is the output running on my test system:
+
+\begin{shell}
+d = 5393526.082683575
+Total: 78.7931ms
+Total: 78ms
+7ns per iteration
+\end{shell}
+
+The loop in this example is performing some arithmetic operations with sqrt(), abs(), sin(), and cos() to make sure the loop doesn’t end too fast. If you get really small values for the difference in milliseconds on your system, those values will not be accurate, and you should increase the number of iterations of the loop to make it last longer. Small timings will not be accurate because while timers often have a resolution in milliseconds, on most operating systems, this timer is updated infrequently, for example, every 10 ms or 15 ms. This induces a phenomenon called gating error, where any event that occurs in less than one timer tick appears to take place in zero units of time, and any event between one and two timer ticks appears to take place in one timer unit. For example, on a system with a 15 ms timer update, a loop that takes 44 ms will appear to take only 30 ms. When using such timers to time computations, it is important to make sure that the entire computation takes place across a fairly large number of basic timer tick units so that these errors are minimized.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

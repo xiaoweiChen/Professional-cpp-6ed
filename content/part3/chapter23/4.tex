@@ -1,0 +1,44 @@
+As mentioned earlier, it is not recommended to specify your own parameters for pseudorandom number engines and engine adapters, but instead to use one of the standard ones. The C++ Standard Library defines the following predefined generators, all in <random>. They all have complicated template arguments, but it is not necessary to understand those arguments to be able to use them.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{PREDEFINED GENERATOR} & \textbf{CLASS TEMPLATE}       \\ \hline
+\endfirsthead
+%
+\endhead
+%
+minstd\_rand0                 & linear\_congruential\_engine  \\ \hline
+minstd\_rand                  & linear\_congruential\_engine  \\ \hline
+mt19937                       & mersenne\_twister\_engine     \\ \hline
+mt19937\_64                   & mersenne\_twister\_engine     \\ \hline
+ranlux24\_base                & subtract\_with\_carry\_engine \\ \hline
+ranlux48\_base                & subtract\_with\_carry\_engine \\ \hline
+ranlux24                      & discard\_block\_engine        \\ \hline
+ranlux48                      & discard\_block\_engine        \\ \hline
+knuth\_b                      & shuffle\_order\_engine        \\ \hline
+default\_random\_engine       & Implementation-defined        \\ \hline
+\end{longtable}
+
+The default\_random\_engine is compiler dependent.
+
+The following section gives an example of how to use these predefined engines.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

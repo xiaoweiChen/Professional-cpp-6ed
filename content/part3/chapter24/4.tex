@@ -1,0 +1,59 @@
+
+\CXXTwentythreeLogo{-40}{5}
+
+Chapter 1 introduces the basics of std::optional. C++23 adds three new member functions to optional, collectively called monadic operations. These allow you to chain operations on an optional without having to check whether the optional has a value before applying each operation.
+
+The following monadic operations are available:
+
+\begin{itemize}
+\item
+transform(F): Returns an optional containing the result of invoking F with the value of *this as argument if *this has a value; otherwise, returns an empty optional
+
+\item
+and\_then(F): Returns the result (which must be an optional) of invoking F with the value of *this as argument if *this has a value; otherwise, returns an empty optional
+
+\item
+or\_else(F): Returns *this if *this has a value; otherwise, returns the result (which must be an optional) of invoking F
+\end{itemize}
+
+Let’s look at an example. The following function parses a given string for an integer and returns the result as an optional. If the string cannot be parsed as an integer, an empty optional is returned.
+
+\begin{cpp}
+optional<int> Parse(const string& str)
+{
+    try { return stoi(str); }
+    catch (...) { return {}; }
+}
+\end{cpp}
+
+The following loop repeatedly asks the user to give some input. Parse() is called to parse the user’s input. If the input is successfully parsed as an integer, the integer is doubled with and\_then() and converted back to a string with transform(). If the input cannot be parsed, or\_else() is used to return the string “No Integer.” Thanks to monadic operations, there is no need to check whether the optionals returned from Parse() and and\_then() contain a value before applying the next operation on them. The error handling is taken care of for you. The different operations can simply be chained together.
+
+\begin{cpp}
+while (true) {
+    print("Enter an integer (q to stop): ");
+    string str;
+    if (!getline(cin, str) || str == "q") { break; }
+
+    auto result { Parse(str)
+        .and_then([](int value) -> optional<int> { return value * 2; })
+        .transform([](int value) { return to_string(value); })
+        .or_else([] { return optional<string> { "No Integer" }; }) };
+    println(" > Result: {}", *result);
+}
+\end{cpp}
+
+Here is some sample output:
+
+\begin{shell}
+Enter an integer (q to stop): 21
+    > Result: 42
+Enter an integer (q to stop): Test
+    > Result: No Integer
+\end{shell}
+
+\CXXTwentythreeLogo{-40}{-20}
+
+\begin{myNotic}{NOTE}
+Starting with C++23, optional is a constexpr class (see Chapter 9) and so can be used at compile time.
+\end{myNotic}
+

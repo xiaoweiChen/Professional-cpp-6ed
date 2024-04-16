@@ -1,0 +1,46 @@
+Before C++11, you could generate random numbers using the C-style srand() and rand() functions. The srand() function had to be called once in your application and was used to initialize the random number generator, also called seeding. Usually, the current system time would be used as a seed.
+
+\begin{myWarning}{WARNING}
+You need to make sure that you use a good-quality seed for your software-based random number generator. If you initialize the random number generator with the same seed every time, you will create the same sequence of random numbers every time. This is why the seed is usually the current system time.
+\end{myWarning}
+
+Once the generator is initialized, random numbers could be generated with rand(). The following example shows how to use srand() and rand(). The time() function, defined in <ctime>, returns the system time, usually encoded as the number of seconds since the system’s epoch. The epoch represents the beginning of time.
+
+\begin{cpp}
+srand(static_cast<unsigned int>(time(nullptr)));
+println("{}", rand());
+\end{cpp}
+
+A random number within a certain range could be generated with the following function:
+
+\begin{cpp}
+int getRandom(int min, int max)
+{
+    return static_cast<int>(rand() % (max + 1UL - min)) + min;
+}
+\end{cpp}
+
+The old C-style rand() function generates random numbers in the range 0 to RAND\_MAX, which is defined by the standard to be at least 32,767. You cannot generate random numbers larger than RAND\_MAX. On some systems, for example GCC, RAND\_MAX is 2,147,483,647, which equals the maximum value of a signed integer. To prevent arithmetic overflow on such systems, the formula in getRandom() uses unsigned long calculations, due to the use of 1UL instead of just 1.
+
+Additionally, the low-order bits of rand() are often not very random, which means that using the previous getRandom() function to generate a random number in a small range, such as 1 to 6, will not result in good randomness.
+
+\begin{myNotic}{NOTE}
+Software-based random number generators can never generate truly random numbers. They are therefore called pseudorandom number generators (PRNGs) because they rely on mathematical formulas to give the impression of randomness.
+\end{myNotic}
+
+Besides generating bad-quality random numbers, the old srand() and rand() functions don’t offer much in terms of flexibility either. You cannot, for example, change the distribution of the generated random numbers. In conclusion, it’s highly recommended to stop using srand() and rand() and start using the classes from <random> explained in the upcoming sections.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

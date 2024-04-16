@@ -1,17 +1,242 @@
 
+A duration is an interval between two points in time. It is represented by the duration class template, which stores a number of ticks and a tick period. The tick period is the time in seconds between two ticks and is represented as a compile-time ratio constant, which means it could be a fraction of a second. Ratios are discussed in the previous section. The duration template accepts two template type parameters and is defined as follows:
+
+\begin{cpp}
+template <class Rep, class Period = ratio<1>> class duration {...}
+\end{cpp}
+
+The first template parameter, Rep, is the type of variable storing the number of ticks and should be an arithmetic type, for example long, double, and so on. The second template parameter, Period, is the rational constant representing the period of a tick. If you don’t specify the tick period, the default value ratio<1> is used, which represents a tick period of one second.
+
+Three constructors are provided: the default constructor; one that accepts a single value, the number of ticks; and one that accepts another duration. The latter constructor can be used to convert from one duration to another duration, for example, from minutes to seconds. An example is given later in this section.
+
+Durations support arithmetic operations such as +, -, *, /, \%, ++, -{}-, +=, -=, *=, /=, and \%=, and they support the comparison operators == and <=>. The class also contains the member functions shown in the following table:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{MEMBER FUNCTION} & \textbf{DESCRIPTION}                                         \\ \hline
+\endfirsthead
+%
+\endhead
+%
+Rep count() const &
+\begin{tabular}[c]{@{}l@{}}Returns the duration value as the number of ticks. The return\\ type is the type specified as the first template type parameter for\\ the duration template.\end{tabular} \\ \hline
+static duration zero()   & Returns a duration with a duration value equivalent to zero. \\ \hline
+\begin{tabular}[c]{@{}l@{}}static duration min()\\ static duration max()\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Returns a duration with the minimum/maximum possible\\ duration value representable by the type specified as the first\\ template type parameter for the duration template.\end{tabular} \\ \hline
+\end{longtable}
+
+The library supports floor(), ceil(), round(), and abs() operations on durations that behave just as they behave with numerical data.
+
+Let’s now see how durations can be defined. A duration where each tick is one second can be defined as follows:
+
+\begin{cpp}
+duration<long> d1;
+\end{cpp}
+
+Because ratio<1> is the default tick period, this is the same as writing:
+
+\begin{cpp}
+duration<long, ratio<1>> d1;
+\end{cpp}
+
+The next statement defines a duration in minutes (tick period = 60 seconds):
+
+\begin{cpp}
+duration<long, ratio<60>> d2;
+\end{cpp}
+
+Here is a duration where each tick period is a sixtieth of a second:
+
+\begin{cpp}
+duration<double, ratio<1, 60>> d3;
+\end{cpp}
+
+As you saw earlier in this chapter, <ratio> defines a number of SI rational constants. These predefined constants come in handy for defining tick periods. For example, the next statement defines a duration where each tick period is one millisecond:
+
+\begin{cpp}
+duration<long long, milli> d4;
+\end{cpp}
 
 \mySubsubsection{22.2.1.}{Examples and Converting Durations}
 
+Let’s see durations in action. The following example demonstrates several aspects of durations. It shows you how to define them, how to perform arithmetic operations on them, how to print them to the screen, and how to convert one duration to another duration with a different tick period:
 
+\begin{cpp}
+// Specify a duration where each tick is 60 seconds.
+duration<long, ratio<60>> d1 { 123 };
+println("{} ({})", d1, d1.count());
+
+// Specify a duration represented by a double with each tick
+// equal to 1 second and assign the largest possible duration to it.
+auto d2 { duration<double>::max() };
+println("{}", d2);
+
+// Define 2 durations:
+// For the first duration, each tick is 1 minute.
+// For the second duration, each tick is 1 second.
+duration<long, ratio<60>> d3 { 10 }; // = 10 minutes
+duration<long, ratio<1>> d4 { 14 }; // = 14 seconds
+
+// Compare both durations.
+if (d3 > d4) { println("d3 > d4"); }
+else { println("d3 <= d4"); }
+
+// Increment d4 with 1 resulting in 15 seconds.
+++d4;
+
+// Multiply d4 by 2 resulting in 30 seconds.
+d4 *= 2;
+
+// Add both durations and store as minutes.
+duration<double, ratio<60>> d5 { d3 + d4 };
+
+// Add both durations and store as seconds.
+duration<long, ratio<1>> d6 { d3 + d4 };
+println("{} + {} = {} or {}", d3, d4, d5, d6);
+
+// Create a duration of 30 seconds.
+duration<long> d7 { 30 };
+
+// Convert the seconds of d7 to minutes.
+duration<double, ratio<60>> d8 { d7 };
+println("{} = {}", d7, d8);
+println("{} seconds = {} minutes", d7.count(), d8.count());
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+123min (123)
+1.79769e+308s
+d3 > d4
+10min + 30s = 10.5min or 630s
+30s = 0.5min
+30 seconds = 0.5 minutes
+\end{shell}
+
+\begin{myNotic}{NOTE}
+The second line in the output represents the largest possible duration with type double. The exact value might be different depending on your compiler.
+\end{myNotic}
+
+Pay special attention to the following two lines of code:
+
+\begin{cpp}
+duration<double, ratio<60>> d5 { d3 + d4 };
+duration<long, ratio<1>> d6 { d3 + d4 };
+\end{cpp}
+
+They both calculate d3+d4, with d3 given in minutes and d4 in seconds, but the first statement stores it as a floating-point value representing minutes, while the second statement stores the result as an integral value representing seconds. Conversion from minutes to seconds, or vice versa, happens automatically.
+
+The following two lines from the example demonstrate how to explicitly convert between different units of time:
+
+\begin{cpp}
+duration<long> d7 { 30 }; // seconds
+duration<double, ratio<60>> d8 { d7 }; // minutes
+\end{cpp}
+
+The first statement defines a duration representing 30 seconds. The second statement converts these 30 seconds into minutes, resulting in 0.5 minutes. Converting in this direction can result in a nonintegral value and thus requires you to use a duration represented by a floating-point type; otherwise, you will get some cryptic compilation errors. The following statements, for example, do not compile because d8 is using long instead of a floating-point type:
+
+\begin{cpp}
+duration<long> d7 { 30 }; // seconds
+duration<long, ratio<60>> d8 { d7 }; // minutes // Error!
+\end{cpp}
+
+You can, however, force this conversion by using duration\_cast():
+
+\begin{cpp}
+duration<long> d7 { 30 }; // seconds
+auto d8 { duration_cast<duration<long, ratio<60>>>(d7) }; // minutes
+\end{cpp}
+
+In this case, d8 will be 0 minutes, because integer division is used to convert 30 seconds to minutes.
+
+Converting in the other direction does not require floating-point types if the source is an integral type, because the result is always an integral value if you started with an integral value. For example, the following statements convert ten minutes into seconds, both represented by the integral type long:
+
+\begin{cpp}
+duration<long, ratio<60>> d9 { 10 }; // minutes
+duration<long> d10 { d9 }; // seconds
+\end{cpp}
 
 \mySubsubsection{22.2.2.}{Predefined Durations}
 
+The library provides the following standard duration types in the std::chrono namespace:
 
+\begin{cpp}
+using nanoseconds = duration<X 64 bits, nano>;
+using microseconds = duration<X 55 bits, micro>;
+using milliseconds = duration<X 45 bits, milli>;
+using seconds = duration<X 35 bits>;
+using minutes = duration<X 29 bits, ratio<60>>;
+using hours = duration<X 23 bits, ratio<3'600>>;
+using days = duration<X 25 bits, ratio_multiply<ratio<24>, hours::period>>;
+using weeks = duration<X 22 bits, ratio_multiply<ratio<7>, days::period>>;
+using years = duration<X 17 bits,
+              ratio_multiply<ratio<146'097, 400>, days::period>>;
+using months = duration<X 20 bits, ratio_divide<years::period, ratio<12>>>;
+\end{cpp}
+
+The exact type of X depends on your compiler, but the C++ standard requires it to be a signed integer type of at least the specified size. The preceding type aliases make use of the predefined SI ratio type aliases that are described earlier in this chapter. With these predefined types, instead of writing this:
+
+\begin{cpp}
+duration<long, ratio<60>> d9 { 10 }; // minutes
+\end{cpp}
+
+you can simply write this:
+
+\begin{cpp}
+minutes d9 { 10 }; // minutes
+\end{cpp}
+
+The following code is another example of how to use these predefined durations. The code first defines a variable t, which is the result of 1 hour + 23 minutes + 45 seconds. The auto keyword is used to let the compiler automatically figure out the exact type of t. The second statement uses the constructor of the predefined seconds duration to convert the value of t to seconds and writes the result to the console:
+
+\begin{cpp}
+auto t { hours { 1 } + minutes { 23 } + seconds { 45 } };
+println("{}", seconds { t });
+\end{cpp}
+
+Because the standard requires that the predefined durations use integer types, there can be compilation errors if a conversion could end up with a non-integral value. While integer division normally truncates, in the case of durations, which are implemented with ratio types, the compiler declares any computation that could result in a non-zero remainder as a compile-time error. For example, the following code does not compile because converting 90 seconds to minutes results in 1.5 minutes:
+
+\begin{cpp}
+seconds s { 90 };
+minutes m { s };
+\end{cpp}
+
+However, the following code does not compile either, even though 60 seconds is exactly 1 minute. It is flagged as a compile-time error because converting from seconds to minutes could result in nonintegral values:
+
+\begin{cpp}
+seconds s { 60 };
+minutes m { s };
+\end{cpp}
+
+Converting in the other direction works perfectly fine because the minutes duration uses an integral type, and converting it to seconds always results in an integral value:
+
+\begin{cpp}
+minutes m { 2 };
+seconds s { m };
+\end{cpp}
 
 \mySubsubsection{22.2.3.}{Standard Literals}
 
+You can use the standard literals h, min, s, ms, us, and ns for creating durations. Technically, these are defined in the std::literals::chrono\_literals namespace, but just as for the standard string literals discussed in Chapter 2, “Working with Strings and String Views,” the chrono\_literals namespace is an inline namespace. So, you can make the chrono literals available with any of the following using directives:
 
+\begin{cpp}
+using namespace std;
+using namespace std::literals;
+using namespace std::chrono_literals;
+using namespace std::literals::chrono_literals;
+\end{cpp}
+
+Additionally, the literals are also made available in the std::chrono namespace. Here is an example:
+
+\begin{cpp}
+using namespace std::chrono;
+// ...
+auto myDuration { 42min }; // 42 minutes
+\end{cpp}
 
 \mySubsubsection{22.2.4.}{hh\_mm\_ss}
 
-
+The chrono library provides the hh\_mm\_ss class template, which accepts a Duration and splits the given duration into hours, minutes, seconds, and subseconds. It has getters hours(), minutes(), seconds(), and subseconds() to retrieve the data, always returning non-negative values. The is\_negative() member function returns true if the duration is a negative duration, false otherwise. You’ll use the hh\_mm\_ss class template in one of the exercises at the end of this chapter.

@@ -1,5 +1,146 @@
+\CXXTwentythreeLogo{-40}{5}
 
+As Chapter 14, “Handling Errors,” explains, a function in C++ can return only a single type. If a function can fail, it should inform the caller about the failure. In the past, you had a couple of options to do so. You could throw an exception with details of the error. Or you could try to come up with a special value of the return type to signal an error.
+For example, if a function returns a pointer, the function could return nullptr in case of an error.
+
+If a function returns only positive integers for its normal operation, you could return negative values to signal different errors, and so on. But coming up with such a special value is not always possible. If the return type of a function is int and the valid range of returned values is the entire range of integers, then you don’t have any integers left to use as special error values. In such cases, you could use the std::optional vocabulary type. It’s a type that can either contain a value of a certain type or be empty. A function could then return an empty optional to signal an error.
+
+That’s all fine, but when a caller of the function receives an empty optional, it has no way of knowing what exactly went wrong; i.e., the function cannot return the real reason of the error. These problems are solved with std::expected, defined in <expected>, and introduced with C++23. It’s a class template accepting two template type parameters:
+
+\begin{itemize}
+\item
+T: The type of the expected value
+
+\item
+E: The type of an error value, also known as an unexpected value
+\end{itemize}
+
+An expected is never empty; it always contains either a value of type T or a value of type E. That’s the biggest difference compared to optional, which can be empty, leaving you with no clue as to why it’s empty. Thus, a function returning an expected should either return a value of the expected type or return a value of the error type to signal the exact reason of the failure. The error type can be whatever you want. It can be a simple integer or a complex class. Often, it’s best to encode errors in a class capable of representing as many details about an error as possible, for example, the filename, line number, and column number where parsing of some data file failed.
+
+An instance of expected<T,E> can be created implicitly from a value of type T, just as an optional<T>. To create an instance of expected<T,E> containing a value of the error type E, you must use std::unexpected<E>. A default constructed expected<T,E> contains a default constructed value of the expected type, T. This is different compared to optional. A default constructed optional is empty! In other words, a default constructed expected represents success, while a default constructed optional represents an error.
+
+Let’s look at an example. The following is a function receiving a string and trying to parse the string as an integer. The stoi() function throws invalid\_argument if the string doesn’t represent an integer and throws out\_of\_range if the parsed integer is larger than what can be represented as an int. Suppose you don’t want parseInteger() to throw such exceptions but instead return an expected. The function catches the two exceptions and transforms them to a string, the error type of the returned expected.
+
+\begin{cpp}
+expected<int, string> parseInteger(const string& str)
+{
+    try { return stoi(str); }
+    catch (const invalid_argument& e) { return unexpected { e.what() }; }
+    catch (const out_of_range& e) { return unexpected { e.what() }; }
+}
+\end{cpp}
+
+expected has the following member functions. All of them, except error(), are analogous to the similarly named member functions for optional.
+
+\begin{itemize}
+\item
+has\_value() and operator bool: Returns true if the expected has a value of type T, false otherwise.
+
+\item
+value(): Returns the value of type T. Throws std::bad\_expected\_access if called on an expected containing a value of type E.
+
+\item
+operator* and ->: Accesses the value of type T. The behavior is undefined if the expected doesn’t contain a value of type T.
+
+\item
+error(): Returns the error of type E. The behavior is undefined if the expected doesn’t contain a value of type E.
+
+\item
+value\_or(): Returns the value of type T, or another given value if the expected doesn’t contain such a value.
+\end{itemize}
+
+The following example demonstrates most of these member functions:
+
+\begin{cpp}
+auto result1 { parseInteger("123456789") };
+if (result1.has_value()) { println("result1 = {}", result1.value()); }
+if (result1) { println("result1 = {}", *result1); }
+
+println("result1 = {}", result1.value_or(0));
+
+auto result2 { parseInteger("123456789123456") };
+if (!result2) { println("result2 contains an error: {}", result2.error()); }
+
+auto result3 { parseInteger("abc") };
+if (!result3) { println("result3 contains an error: {}", result3.error()); }
+\end{cpp}
+
+Here is the output:
+
+\begin{shell}
+result1 = 123456789
+result1 = 123456789
+result1 = 123456789
+result2 contains an error: stoi argument out of range
+result3 contains an error: invalid stoi argument
+\end{shell}
+
+Additionally, expected supports monadic operations: and\_then(), transform(), or\_else(), and transform\_error(). The first three are analogous to the monadic operations supported by optional.
+
+\begin{itemize}
+\item
+transform(F): Returns an expected containing the result of invoking F with the expected value as argument if *this has an expected value; otherwise, just returns the expected as is
+
+\item
+and\_then(F): Returns the result (which must be an expected) of invoking F with the expected value as argument if *this has an expected value; otherwise, just returns the expected as is
+
+\item
+or\_else(F): Returns *this if *this has an expected value; otherwise, returns the result (which must be an expected) of invoking F with the unexpected value as argument
+
+\item
+transform\_error(F): Returns *this if *this has an expected value; otherwise, returns an expected containing the unexpected value transformed by invoking F with the unexpected value as argument
+\end{itemize}
+
+Here is an example of using and\_then() on an expected. Just as for monadic operations on optionals, there is no need to explicitly check whether the result of calling parseInteger() contains an expected value before applying the operation. The error handling is taken care of for you.
+
+\begin{cpp}
+auto transformedResult { parseInteger("123456789")
+    .and_then([](int value) -> expected<int, string> { return value * 2; }) };
+\end{cpp}
+
+The error type of expected can be any type you want. Returning multiple error types is also possible by using the variant vocabulary type discussed earlier in this chapter. For example, instead of returning a simple string, the parseInteger() function can return two different error types for the two error cases. The following version returns errors of two custom types OutOfRange and InvalidArgument:
+
+\begin{cpp}
+expected<int, variant<OutOfRange, InvalidArgument>>
+    parseInteger(const string& str) { ... }
+\end{cpp}
+
+To conclude, it’s clear that optional and expected are somewhat related. Use the following rule to decide which one to use in certain use cases.
+
+\begin{myNotic}{NOTE}
+Use expected when an error is unexpected, in which case the expected should represent the exact reason for the error, so the caller can handle the error appropriately.
+
+Use optional if it’s acceptable that there is no value and without requiring any reason for a missing value. For example, use for functions accepting optional input parameters or return types of functions for which it is not unexpected that there is no value, such as find-related functions.
+\end{myNotic}
 
 \mySubsubsection{24.5.1.}{Exceptions, Error Return Codes, and expected}
 
+There are three major options to handle errors in a function. The function can throw an exception, discussed in detail in Chapter 14; return an error code; or return an expected. They all have their own merits. The following table, based on the official proposal paper for std::expected, P0323R12, summarizes them:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|l|}
+\hline
+&
+\textbf{EXCEPTION} &
+\textbf{ERROR RETURN CODE} &
+\textbf{EXPECTED} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\textbf{VISIBILITY} &
+\begin{tabular}[c]{@{}l@{}}Not visible, unless\\ you read the function\\ documentation or\\ analyze the code.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Immediately visible\\ from the function\\ prototype. But\\ easy to ignore the\\ return value.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Immediately visible\\ from the function\\ prototype. Cannot\\ be ignored as it\\ contains the result of\\ the function.\end{tabular} \\ \hline
+\textbf{DETAILS} &
+\begin{tabular}[c]{@{}l@{}}Contains as many\\ details about the error\\ as possible.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Often just a\\ simple integer.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Contains as many\\ details about the error\\ as possible.\end{tabular} \\ \hline
+\textbf{CODE NOISE} &
+\begin{tabular}[c]{@{}l@{}}Allows for writing clean\\ code with separate\\ error handling.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Error handling is\\ intertwined with the\\ normal flow, making\\ code harder to read\\ and maintain.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Allows for clean\\ code. Thanks to\\ monadic operations,\\ error handling is\\ not intertwined with\\ normal flow.\end{tabular} \\ \hline
+\end{longtable}
 

@@ -1,0 +1,33 @@
+\noindent
+\textbf{WHAT’S IN THIS CHAPTER?}
+
+\begin{itemize}
+\item
+The concepts of random number engines and engine adapters
+
+\item
+How to generate random numbers
+
+\item
+How to change the distribution of random numbers
+\end{itemize}
+
+\noindent
+\textbf{WILEY.COM DOWNLOADS FOR THIS CHAPTER}
+
+Please note that all the code examples for this chapter are available as part of this chapter’s code download on the book’s website at \url{www.wiley.com/go/proc++6e} on the Download Code tab.
+
+This chapter discusses how to generate random numbers in C++. Generating good random numbers in software is a complex topic. This chapter does not discuss the complex mathematical formulas involved in generating the actual random numbers; however, it does explain how to generate random numbers using the functionality provided by the Standard Library.
+
+The C++ random number generation library can generate random numbers by using different algorithms and distributions. The library is defined by <random> in the std namespace. It has three big components: engines, engine adapters, and distributions. A random number engine is responsible for generating the actual random numbers and storing the state for generating subsequent random numbers. The distribution determines the range of the generated random numbers and how they are mathematically distributed within that range. A random number engine adapter modifies the results of a random number engine you associate it with.
+
+Before delving into this C++ random number generation library, the old C-style mechanism of generating random numbers and its problems are briefly explained.
+
+
+
+
+
+
+
+
+

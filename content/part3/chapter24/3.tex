@@ -1,23 +1,293 @@
 
+The std::pair class, defined in <utility> and introduced in Chapter 1, can store exactly two values, each with a specific type. The type of each value must be known at compile time. Here is a short reminder:
+
+\begin{cpp}
+pair<int, string> p1 { 16, "Hello World" };
+pair p2 { true, 0.123f }; // Using CTAD.
+println("p1 = ({}, {})", p1.first, p1.second);
+println("p2 = ({}, {})", p2.first, p2.second);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+p1 = (16, Hello World)
+p2 = (true, 0.123)
+\end{shell}
+
+Starting with C++23, std::format() and the print() functions have full support for pairs. For example, the two println() statements in the previous code snippet can be written as follows:
+
+\begin{cpp}
+println("p1 = {}", p1);
+println("p2 = {}", p2);
+\end{cpp}
+
+The output is as follows, with strings surrounded by double quotes:
+
+\begin{shell}
+p1 = (16, "Hello World")
+p2 = (true, 0.123)
+\end{shell}
+
+An std::tuple, defined in <tuple>, is a generalization of a pair. It allows you to store any number of values, each with its own specific type. Just like a pair, a tuple has a fixed size and fixed value types, which are determined at compile time.
+
+A tuple can be created with a tuple constructor, specifying both the template types and the actual values. For example, the following code creates a tuple where the first element is an integer, the second element is a string, and the last element is a Boolean:
+
+\begin{cpp}
+using MyTuple = tuple<int, string, bool>;
+MyTuple t1 { 16, "Test", true };
+\end{cpp}
+
+Just as for pair, starting with C++23, std::format() and the print() functions fully support tuples:
+
+\begin{cpp}
+println("t1 = {}", t1);
+// Outputs: t1 = (16, "Test", true)
+\end{cpp}
+
+std::get<i>() is used to get the ith element from a tuple, where i is a zero-based index; that is, <0> is the first element of the tuple, <1> is the second element of the tuple, and so on. The value returned has the correct type for that index in the tuple:
+
+\begin{cpp}
+println("t1 = ({}, {}, {})", get<0>(t1), get<1>(t1), get<2>(t1));
+// Outputs: t1 = (16, Test, true)
+\end{cpp}
+
+You can check that get<i>() returns the correct type by using typeid(), from <typeinfo>. The output of the following code confirms that the value returned by get<1>(t1) is indeed an std::string (as mentioned before, the exact string returned by typeid().name() is compiler dependent):
+
+\begin{cpp}
+println("Type of get<1>(t1) = {}", typeid(get<1>(t1)).name());
+// Outputs: Type of get<1>(t1) = class std::basic_string<char,
+// struct std::char_traits<char>,class std::allocator<char> >
+\end{cpp}
+
+You can use the std::tuple\_element class template to get the type of an element based on the element’s index at compile time. tuple\_element requires you to specify the type of the tuple (MyTuple in this case) and not an actual tuple instance like t1. Here is an example:
+
+\begin{cpp}
+println("Type of element with index 2 = {}",
+    typeid(tuple_element<2, MyTuple>::type).name());
+// Outputs: Type of element with index 2 = bool
+\end{cpp}
+
+You can also retrieve an element from a tuple based on its type with std::get<T>(), where T is the type of the element you want to retrieve instead of the index. The compiler generates an error if the tuple has several elements with the requested type. For example, you can retrieve the string element from t1 as follows:
+
+\begin{cpp}
+println("String = {}", get<string>(t1));
+// Outputs: String = Test
+\end{cpp}
+
+Iterating over the values of a tuple is unfortunately not straightforward. You cannot write a simple loop and call something like get<i>(mytuple) because the value of i must be known at compile time. A possible solution is to use template metaprogramming, which is discussed in detail in Chapter 26, “Advanced Templates,” together with an example on how to print tuple values.
+
+The size of a tuple can be queried with the std::tuple\_size class template. As with tuple\_ element, tuple\_size requires you to specify the type of the tuple, not an actual tuple:
+
+\begin{cpp}
+println("Tuple Size = {}", tuple_size<MyTuple>::value);
+// Outputs: Tuple Size = 3
+\end{cpp}
+
+If you don’t know a tuple’s exact type, you can always use decltype() to query for its type as follows:
+
+\begin{cpp}
+println("Tuple Size = {}", tuple_size<decltype(t1)>::value);
+// Outputs: Tuple Size = 3
+\end{cpp}
+
+With class template argument deduction (CTAD) you can omit the template type parameters when constructing a tuple and let the compiler deduce them automatically based on the types of the arguments passed to the constructor. For example, the following defines the same t1 tuple consisting of an integer, a string, and a Boolean. Note that you now have to specify "Test"s using the s string literal to make sure it’s an std::string:
+
+\begin{cpp}
+tuple t1 { 16, "Test"s, true };
+\end{cpp}
+
+With CTAD, you do not explicitly specify the types stored in a tuple and so you cannot use \& to specify references. If you want to use CTAD to generate a tuple containing a reference-to-non-const or a reference-to-const, then you need to use ref() or cref(), respectively, both defined in <functional>. These create instances of reference\_wrapper<T> or reference\_wrapper<const T>. For example, the following statements result in a tuple of type tuple<int, double\&, const double\&, string\&>:
+
+\begin{cpp}
+double d { 3.14 };
+string str1 { "Test" };
+tuple t2 { 16, ref(d), cref(d), ref(str1) };
+\end{cpp}
+
+To test the double reference stored in t2, the following code first writes the value of the double variable to the console. The call to get<1>(t2) returns a reference to d because ref(d) is used for the second (index 1) tuple element. The second statement changes the value of the variable referenced, and the last statement shows that the value of d is indeed changed through the reference stored in the tuple. Note that the third line fails to compile because cref(d) is used for the third tuple element; that is, it is a reference-to-const to d:
+
+\begin{cpp}
+println("d = {}", d);
+get<1>(t2) *= 2;
+//get<2>(t2) *= 2; // ERROR because of cref().
+println("d = {}", d);
+// Outputs: d = 3.14
+// d = 6.28
+\end{cpp}
+
+Without class template argument deduction, you can use the std::make\_tuple() function template to create a tuple. Since it is a function template, it supports function template argument deduction and hence also allows you to create a tuple by only specifying the actual values. The types are deduced automatically at compile time. Here’s an example:
+
+\begin{cpp}
+auto t2 { make_tuple(16, ref(d), cref(d), ref(str1)) };
+\end{cpp}
 
 \mySubsubsection{24.3.1.}{Decompose Tuples}
 
+There are two ways in which you can decompose a tuple into its individual elements: structured bindings and std::tie().
+
 \mySamllsection{Structured Bindings}
+
+Structured bindings, available since C++17, make it easy to decompose a tuple into separate variables. For example, the following code defines a tuple consisting of an integer, a string, and a Boolean value, and then uses a structured binding to decompose it into three distinct variables:
+
+\begin{cpp}
+tuple t1 { 16, "Test"s, true };
+auto [i, str, b] { t1 };
+println("Decomposed: i = {}, str = \"{}\", b = {}", i, str, b);
+\end{cpp}
+
+You can also decompose a tuple into references, allowing you to modify the contents of the tuple through those references. Here’s an example:
+
+\begin{cpp}
+auto& [i2, str2, b2] { t1 };
+i2 *= 2;
+str2 = "Hello World";
+b2 = !b2;
+\end{cpp}
+
+With structured bindings, you cannot ignore specific elements while decomposing a tuple. If your tuple has three elements, then your structured binding needs three variables.
 
 \mySamllsection{tie}
 
+If you want to decompose a tuple without structured bindings, you can use the std::tie() utility function, which generates a tuple of references. The following example first creates a tuple consisting of an integer, a string, and a Boolean value. It then creates three variables—an integer, a string, and a Boolean—and writes the values of those variables to the console. The tie(i, str, b) call creates a tuple containing a reference to i, a reference to str, and a reference to b. The assignment operator is used to assign tuple t1 to the result of tie(). Because the result of tie() is a tuple of references, the assignment actually changes the values in the three separate variables, as is shown by the output of the values after the assignment:
+
+\begin{cpp}
+tuple t1 { 16, "Test"s, true };
+int i { 0 };
+string str;
+bool b { false };
+println("Before: i = {}, str = \"{}\", b = {}", i, str, b);
+tie(i, str, b) = t1;
+println("After: i = {}, str = \"{}\", b = {}", i, str, b);
+\end{cpp}
+
+The result is as follows:
+
+\begin{shell}
+Before: i = 0, str = "", b = false
+After: i = 16, str = "Test", b = true
+\end{shell}
+
+With tie() you can ignore certain elements that you do not want to be decomposed. Instead of a variable name for the decomposed element, you use the special std::ignore value. For example, the string element of the t1 tuple can be ignored by replacing the tie() statement from the previous example with the following:
+
+\begin{cpp}
+tie(i, ignore, b) = t1;
+\end{cpp}
 
 \mySubsubsection{24.3.2.}{Concatenation}
 
+You can use std::tuple\_cat() to concatenate two tuples into one. In the following example, the type of t3 is tuple<int, string, bool, double, string>:
 
+\begin{cpp}
+tuple t1 { 16, "Test"s, true };
+tuple t2 { 3.14, "string 2"s };
+auto t3 { tuple_cat(t1, t2) };
+println("t3 = {}", t3);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+t3 = (16, "Test", true, 3.14, "string 2")
+\end{shell}
 
 \mySubsubsection{24.3.3.}{Comparisons}
 
+Tuples support all comparison operators. For the comparison operators to work, the element types stored in the tuple should support them as well. Here is an example:
 
+\begin{cpp}
+tuple t1 { 123, "def"s };
+tuple t2 { 123, "abc"s };
+if (t1 < t2) { println("t1 < t2"); }
+else { println("t1 >= t2"); }
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+t1 >= t2
+\end{shell}
+
+Tuple comparisons can be used to easily implement lexicographical comparison operators for custom types that have several data members. For example, suppose you have the following class with three data members:
+
+\begin{cpp}
+class Foo
+{
+    public:
+        explicit Foo(int i, string s, bool b)
+            : m_int { i }, m_str { move(s) }, m_bool { b } { }
+    private:
+        int m_int;
+        string m_str;
+        bool m_bool;
+};
+\end{cpp}
+
+Correctly implementing a full set of comparison operators that compare all data members of Foo is trivial by explicitly defaulting operator<=> as follows:
+
+\begin{cpp}
+auto operator<=>(const Foo& rhs) const = default;
+\end{cpp}
+
+This automatically compares all data members. However, if the semantics of a class are such that a comparison between two instances should take only a subset of the data members into account, then correctly implementing a full set of comparison operators for such a class is not trivial! But, with std::tie() and the three-way comparison operator (operator<=>), it does become easy, a simple one-liner. The following is an implementation of operator<=> for Foo comparing only the m\_int and m\_str data members and ignoring m\_bool:
+
+\begin{cpp}
+auto operator<=>(const Foo& rhs) const
+{
+    return tie(m_int, m_str) <=> tie(rhs.m_int, rhs.m_str);
+}
+\end{cpp}
+
+Here is an example of its use:
+
+\begin{cpp}
+Foo f1 { 42, "Hello", false };
+Foo f2 { 42, "World", false };
+println("{}", (f1 < f2)); // Outputs true
+println("{}", (f2 > f1)); // Outputs true
+\end{cpp}
 
 \mySubsubsection{24.3.4.}{make\_from\_tuple}
 
+std::make\_from\_tuple<T>() constructs an object of a given type T, passing the elements of a given tuple as arguments to the constructor of T. For example, suppose you have the following class:
 
+\begin{cpp}
+class Foo
+{
+    public:
+        explicit Foo(string str, int i) : m_str { move(str) }, m_int { i } { }
+    private:
+        string m_str;
+        int m_int;
+};
+\end{cpp}
+
+You can use make\_from\_tuple() as follows:
+
+\begin{cpp}
+tuple myTuple { "Hello world.", 42 };
+auto foo { make_from_tuple<Foo>(myTuple) };
+\end{cpp}
+
+Technically, the argument to make\_from\_tuple() does not have to be a tuple, but it has to be something that supports std::get<>() and tuple\_size. Both std::array and pair satisfy these requirements as well.
+
+This function is not that practical for everyday use, but it comes in handy when writing generic code using templates and template metaprogramming.
 
 \mySubsubsection{24.3.5.}{apply}
+
+std::apply() calls a given callable, passing the elements of a given tuple as arguments. Here is an example:
+
+\begin{cpp}
+int add(int a, int b) { return a + b; }
+...
+println("{}", apply(add, tuple { 39, 3 }));
+\end{cpp}
+
+As with make\_from\_tuple(), this function is also more useful when writing generic code using templates and template metaprogramming than for everyday use.
+
+
+
+
+
+
 

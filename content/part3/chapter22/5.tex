@@ -1,12 +1,234 @@
 
+The Standard Library supports working with calendar dates. At this moment, only the Gregorian calendar is supported, but if need be, you can always implement your own calendars that can interoperate with the rest of the <chrono> functionality, such as Coptic and Julian calendars.
+
+The Standard Library provides quite a few classes and functions to work with dates (and time zones discussed in a later section). This text discusses the most important classes and functions. Consult a Standard Library reference (see Appendix B, “Annotated Bibliography”) to get a complete overview of everything that’s available.
 
 \mySubsubsection{22.5.1.}{Creating Dates}
 
+The following calendrical classes are available to create dates, all defined in std::chrono:
 
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{CLASS} &
+\textbf{DESCRIPTION} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+year &
+\begin{tabular}[c]{@{}l@{}}Represents a year in the range {[}-32767, 32767{]}. A year has a\\ member function called is\_leap() returning true if a given year\\ is a leap year, false otherwise. min() and max() static member\\ functions return the minimum and maximum year, respectively.\end{tabular} \\ \hline
+month &
+\begin{tabular}[c]{@{}l@{}}Represents a month in the range {[}1, 12{]}. Additionally, there are\\ 12 named constants provided for the 12 months, for example:\\ std::chrono::January.\end{tabular} \\ \hline
+day &
+Represents a day in the range {[}1, 31{]}. \\ \hline
+weekday &
+\begin{tabular}[c]{@{}l@{}}Represents a day of the week in the range {[}0, 6{]}, where 0 means\\ Sunday. Additionally, there are seven named constants provided\\ for the seven weekdays, for example: std::chrono::Sunday.\end{tabular} \\ \hline
+weekday\_indexed &
+\begin{tabular}[c]{@{}l@{}}Represents the first, second, third, fourth, or fifth weekday of a\\ month. Can easily be constructed from a weekday, for example:\\ Monday{[}2{]} is the second Monday of a month.\end{tabular} \\ \hline
+weekday\_last &
+Represents the last weekday of some month. \\ \hline
+month\_day &
+Represents a specific month and day. \\ \hline
+month\_day\_last &
+Represents the last day of a specific month. \\ \hline
+month\_weekday &
+Represents the $n^{th}$ weekday of a specific month. \\ \hline
+month\_weekday\_last &
+Represents the last weekday of a specific month. \\ \hline
+year\_month &
+Represents a specific year and month. \\ \hline
+year\_month\_day &
+Represents a specific year, month, and day. \\ \hline
+year\_month\_day\_last &
+Represents the last day of a specific year and month. \\ \hline
+year\_month\_weekday &
+Represents the $n^{th}$ weekday of a specific year and month. \\ \hline
+year\_month\_weekday\_last &
+Represents the last weekday of a specific year and month. \\ \hline
+\end{longtable}
+
+All of these classes have a member function called ok() that returns true if the given object is in a valid range, false otherwise. Two additional standard literals are provided in std::literals::chrono\_literals: y to create years, and d to create days. Complete dates can be constructed using operator/ to specify year, month, and day, in three orders: Y/M/D, M/D/Y, D/M/Y. Here are some examples to create dates:
+
+\begin{cpp}
+year y1 { 2020 };
+auto y2 { 2020y };
+
+month m1 { 6 };
+auto m2 { June };
+
+day d1 { 22 };
+auto d2 { 22d };
+
+// Create a date for 2020-06-22.
+year_month_day fulldate1 { 2020y, June, 22d };
+auto fulldate2 { 2020y / June / 22d };
+auto fulldate3 { 22d / June / 2020y };
+
+// Create a date for the 3rd Monday of June 2020.
+year_month_day fulldate4 { Monday[3] / June / 2020 };
+
+// Create a month_day for June 22 of an unspecified year.
+auto june22 { June / 22d };
+
+// Create a year_month_day for June 22, 2020.
+auto june22_2020 { 2020y / june22 };
+
+// Create a month_day_last for the last day of a June of an unspecified year.
+auto lastDayOfAJune { June / last };
+
+// Create a year_month_day_last for the last day of June for the year 2020.
+auto lastDayOfJune2020 { 2020y / lastDayOfAJune };
+
+// Create a year_month_weekday_last for the last Monday of June 2020.
+auto lastMondayOfJune2020 { 2020y / June / Monday[last] };
+\end{cpp}
+
+sys\_time is a type alias for a time\_point of a system\_clock with a certain duration. It’s defined as follows:
+
+\begin{cpp}
+template <typename Duration>
+using sys_time = std::chrono::time_point<std::chrono::system_clock, Duration>;
+\end{cpp}
+
+Based on the sys\_time type alias, two additional type aliases are defined to represent a sys\_time with a precision of seconds, and one with a precision of days:
+
+\begin{cpp}
+using sys_seconds = sys_time<std::chrono::seconds>;
+using sys_days = sys_time<std::chrono::days>;
+\end{cpp}
+
+sys\_days, for example, represents the number of days since the system\_clock epoch, and hence, it’s a serial-based type; that is, it just contains a single number (days since epoch). On the other hand, year\_month\_day, for example, is a field-based type, it stores a year, a month, and a day in separate fields. When doing a lot of arithmetic with dates, a serial-based type will be more performant than a field-based type.
+
+Similar type aliases exist to work with local time: local\_time, local\_seconds, and local\_days. These are demonstrated in a later section on time zones.
+
+You can create a sys\_days representing today as follows. floor() is used to truncate a time\_point to a precision of days:
+
+\begin{cpp}
+auto today { floor<days>(system_clock::now()) };
+\end{cpp}
+
+sys\_days can be used to convert a year\_month\_day to a time\_point, for example:
+
+\begin{cpp}
+system_clock::time_point t1 { sys_days { 2020y / June / 22d } };
+\end{cpp}
+
+The opposite conversion, converting a time\_point to a year\_month\_day, can be done with a year\_month\_day constructor. The following code snippet gives two examples:
+
+\begin{cpp}
+year_month_day yearmonthday { floor<days>(t1) };
+year_month_day today2 { floor<days>(system_clock::now()) };
+\end{cpp}
+
+A complete date including a time can be build up as well. Here’s an example:
+
+\begin{cpp}
+// Full date with time: 2020-06-22 09:35:10 UTC.
+auto t2 { sys_days { 2020y / June / 22d } + 9h + 35min + 10s };
+\end{cpp}
 
 \mySubsubsection{22.5.2.}{Printing Dates}
 
+Dates can be written to streams using the familiar insertion operator:
 
+\begin{cpp}
+cout << yearmonthday << endl;
+\end{cpp}
+
+Printing and formatting dates are also supported. The L format specifier formats the output according to the current global locale.
+
+\begin{cpp}
+println("{:L}", yearmonthday);
+\end{cpp}
+
+Keep in mind that the output might sometimes be unexpected. For example, lastMondayOfJune2020 is defined earlier as follows:
+
+\begin{cpp}
+// Create a year_month_weekday_last for the last Monday of June 2020.
+auto lastMondayOfJune2020 { 2020y / June / Monday[last] };
+\end{cpp}
+
+When you print this, the output is “2020/Jun/Mon[last]”:
+
+\begin{cpp}
+println("{:L}", lastMondayOfJune2020); // 2020/Jun/Mon[last]
+\end{cpp}
+
+If you want to output the exact date, “2020-06-29,” then you need to convert the year\_month\_weekday\_last to a year\_month\_day and then output the result:
+
+\begin{cpp}
+year_month_day lastMondayOfJune2020YMD { sys_days { lastMondayOfJune2020 } };
+println("{:L}", lastMondayOfJune2020YMD); // 2020-06-29
+\end{cpp}
+
+If a date is invalid, printing will insert an error. For example, the string “is not a valid date” is appended to an invalid year\_month\_day.
+
+Using the L format specifier, names of days and months are correctly localized according to the current global locale. For example, the following code snippet first sets the global locale to Dutch, nl-NL, and then uses the L format specifier to print Monday in Dutch. The \%A format specifier causes the full name to be printed instead of the abbreviated name. Consult your favorite Standard Library reference for a full list of all supported date format specifiers.
+
+\begin{cpp}
+locale::global(locale { "nl-NL" });
+println("Monday in Dutch is {:L%A}", Monday);
+\end{cpp}
+
+The output is:
+
+\begin{shell}
+Monday in Dutch is maandag
+\end{shell}
 
 \mySubsubsection{22.5.3.}{Arithmetic with Dates}
+
+You can perform arithmetic with dates. Here’s an example:
+
+\begin{cpp}
+// Full date with time: 2020-06-22 09:35:10 UTC.
+auto t2 { sys_days { 2020y / June / 22d } + 9h + 35min + 10s };
+auto t3 { t2 + days { 5 } }; // Add 5 days to t2.
+auto t4 { t3 + years { 1 } }; // Add 1 year to t3.
+\end{cpp}
+
+Be careful, though, as the result might not always be as expected. For example:
+
+\begin{cpp}
+auto t5 { sys_days { 2020y / June / 22d } + 9h + 35min + 10s };
+auto t6 { t5 + years { 1 } }; // Add 1 year to t5
+println("t5 = {:L}", t5);
+println("t6 = {:L}", t6);
+\end{cpp}
+
+The result is as follows:
+
+\begin{shell}
+t5 = 2020-06-22 09:35:10
+t6 = 2021-06-22 15:24:22
+\end{shell}
+
+In looking at the results, you can see that the year is updated, but you can also see that the time has changed. The issue here is that we are working with a serial type: sys\_days is a time\_point, which is a serial type. Adding 1 year to such a serial type does not add 86,400 * 365 = 31,536,000 seconds. Instead, the standard mandates that adding 1 year must add 1 average year to keep leap years into account, and hence, it must add 86,400 * ((365 * 400) + 97) / 400 = 31,556,952 seconds.
+
+If you need to add exactly 1 year, then it’s best to use a field-based type instead, for example:
+
+\begin{cpp}
+// Split t5 into days and remaining seconds.
+sys_days t5_days { time_point_cast<days>(t5) };
+seconds t5_seconds { t5 - t5_days };
+// Convert the t5_days serial type to field-based type.
+year_month_day t5_ymd { t5_days };
+// Add 1 year.
+year_month_day t7_ymd { t5_ymd + years { 1 } };
+// Convert back to a serial type.
+auto t7 { sys_days { t7_ymd } + t5_seconds };
+println("t7 = {:L}", t7);
+\end{cpp}
+
+This results in:
+
+\begin{shell}
+t7 = 2021-06-22 09:35:10
+\end{shell}
+
+
+
 

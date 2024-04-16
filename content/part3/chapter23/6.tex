@@ -1,0 +1,143 @@
+A distribution is a mathematical formula describing how numbers are distributed within a certain range. The random number generator library comes with the following distributions that can be used with pseudorandom number engines to define the distribution of the generated random numbers. It’s a compacted representation. The first line of each distribution is the name and class template parameters, if any. The next lines are a constructor for the distribution. Only one constructor for each distribution is shown to give you an idea of the class. Consult a Standard Library Reference (see Appendix B) for a detailed list of all constructors and member functions of each distribution.
+
+These are the available uniform distributions:
+
+\begin{cpp}
+template<class IntType = int> class uniform_int_distribution
+    uniform_int_distribution(IntType a = 0,
+                             IntType b = numeric_limits<IntType>::max());
+template<class RealType = double> class uniform_real_distribution
+    uniform_real_distribution(RealType a = 0.0, RealType b = 1.0);
+\end{cpp}
+
+These are the available Bernoulli distributions (the first one generates random Boolean values, while the last three generate random non-negative integer values, all of them according to the discrete probability distribution):
+
+\begin{cpp}
+class bernoulli_distribution
+    bernoulli_distribution(double p = 0.5);
+template<class IntType = int> class binomial_distribution
+    binomial_distribution(IntType t = 1, double p = 0.5);
+template<class IntType = int> class geometric_distribution
+    geometric_distribution(double p = 0.5);
+template<class IntType = int> class negative_binomial_distribution
+    negative_binomial_distribution(IntType k = 1, double p = 0.5);
+\end{cpp}
+
+These are the available Poisson distributions (generate random non-negative integer values according to the discrete probability distribution):
+
+\begin{cpp}
+template<class IntType = int> class poisson_distribution
+    poisson_distribution(double mean = 1.0);
+template<class RealType = double> class exponential_distribution
+    exponential_distribution(RealType lambda = 1.0);
+template<class RealType = double> class gamma_distribution
+    gamma_distribution(RealType alpha = 1.0, RealType beta = 1.0);
+template<class RealType = double> class weibull_distribution
+    weibull_distribution(RealType a = 1.0, RealType b = 1.0);
+template<class RealType = double> class extreme_value_distribution
+    extreme_value_distribution(RealType a = 0.0, RealType b = 1.0);
+\end{cpp}
+
+These are the available normal distributions:
+
+\begin{cpp}
+template<class RealType = double> class normal_distribution
+    normal_distribution(RealType mean = 0.0, RealType stddev = 1.0);
+template<class RealType = double> class lognormal_distribution
+    lognormal_distribution(RealType m = 0.0, RealType s = 1.0);
+template<class RealType = double> class chi_squared_distribution
+    chi_squared_distribution(RealType n = 1);
+template<class RealType = double> class cauchy_distribution
+    cauchy_distribution(RealType a = 0.0, RealType b = 1.0);
+template<class RealType = double> class fisher_f_distribution
+    fisher_f_distribution(RealType m = 1, RealType n = 1);
+template<class RealType = double> class student_t_distribution
+    student_t_distribution(RealType n = 1);
+\end{cpp}
+
+These are the available sampling distributions:
+
+\begin{cpp}
+template<class IntType = int> class discrete_distribution
+    discrete_distribution(initializer_list<double> wl);
+template<class RealType = double> class piecewise_constant_distribution
+    template<class UnaryOperation>
+        piecewise_constant_distribution(initializer_list<RealType> bl,
+            UnaryOperation fw);
+template<class RealType = double> class piecewise_linear_distribution
+    template<class UnaryOperation>
+        piecewise_linear_distribution(initializer_list<RealType> bl,
+            UnaryOperation fw);
+\end{cpp}
+
+Each distribution requires a set of parameters. As before, explaining all these mathematical parameters is outside the scope of this book. The rest of this section includes a couple of examples to explain the impact of a distribution on the generated random numbers.
+
+Distributions are easiest to understand when you look at a graphical representation of them. The following code generates one million random numbers between 1 and 99 and keeps track of how many times a certain number is randomly generated in a histogram. The counters are stored in a map where the key is a number between 1 and 99, and the value associated with a key is the number of times that that key has been selected randomly. After the loop, the results are written to a semicolonseparated values file (CSV), which can be opened in a spreadsheet application.
+
+
+\begin{cpp}
+const unsigned int Start { 1 };
+const unsigned int End { 99 };
+const unsigned int Iterations { 1'000'000 };
+
+// Uniform distributed Mersenne Twister.
+random_device seeder;
+mt19937 engine { seeder() };
+uniform_int_distribution<int> distribution { Start, End };
+auto generator { bind(distribution, engine) };
+map<int, int> histogram;
+for (unsigned int i { 0 }; i < Iterations; ++i) {
+    int randomNumber { generator() };
+    // Search map for a key=randomNumber. If found, add 1 to the value associated
+    // with that key. If not found, add the key to the map with value 1.
+    ++(histogram[randomNumber]);
+}
+
+// Write to a CSV file.
+ofstream of { "res.csv" };
+for (unsigned int i { Start }; i <= End; ++i) {
+    of << i << ";" << histogram[i] << endl;
+}
+\end{cpp}
+
+The resulting data can then be used to generate a graphical representation. Figure 23.1 shows a graph of the generated histogram.
+
+The horizontal axis represents the range in which random numbers are generated. The graph clearly shows that all numbers in the range 1 to 99 are randomly chosen around 10,000 times and that the distribution of the generated random numbers is uniform across the entire range.
+
+\myGraphic{0.7}{content/part3/chapter23/images/1.png}{FIGURE 23.1}
+
+The example can be modified to generate random numbers according to a normal distribution instead of a uniform distribution. Only two small changes are required. First, you need to modify the creation of the distribution as follows:
+
+\begin{cpp}
+normal_distribution<double> distribution { 50, 10 };
+\end{cpp}
+
+Because normal distributions use doubles instead of integers, you also need to modify the call to generator():
+
+\begin{cpp}
+int randomNumber { static_cast<int>(generator()) };
+\end{cpp}
+
+Figure 23.2 shows a graphical representation of the random numbers generated according to this normal distribution.
+
+\myGraphic{0.7}{content/part3/chapter23/images/2.png}{FIGURE 23.2}
+
+The graph clearly shows that most of the generated random numbers are around the center of the range. In this example, the value 50 is randomly chosen around 40,000 times, while values like 20 and 80 are chosen only around 500 times.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
