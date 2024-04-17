@@ -1,12 +1,183 @@
 
+There are three kinds of template parameters: template type parameters, non-type template parameters, and template template parameters. So far, you’ve seen examples of type and non-type parameters (in Chapter 12), but not template template parameters. There are also some tricky aspects to both type and non-type parameters that are not covered in Chapter 12. This section goes deeper into all three types of template parameters.
 
 \mySubsubsection{26.1.1.}{More About Template Type Parameters}
 
+Template type parameters are the main purpose of templates. You can declare as many type parameters as you want. For example, you could add to the grid template from Chapter 12 a second type parameter specifying a container on which to build the grid. The Standard Library defines several parametrized container classes, including vector and deque. The original Grid class uses a vector to store the elements of a grid. A user of the Grid class might want to use a deque instead. With another template type parameter, you can allow the user to specify whether they want the underlying container to be a vector or a deque. The Grid implementation requires the underlying container to support random access. It also uses the resize() member function of the container and the container’s value\_type type alias. A concept (see Chapter 12) is used to enforce that the provided container type supports these operations. Here is the concept and the class template definition with the additional template type parameter. Changes are highlighted.
 
+\begin{cpp}
+template <typename Container>
+concept GridContainerType =
+    std::ranges::random_access_range<Container> &&
+    requires(Container c) {
+        typename Container::value_type;
+        c.resize(1);
+    };
+
+export template <typename T, GridContainerType Container>
+class Grid
+{
+    public:
+        explicit Grid(std::size_t width = DefaultWidth,
+            std::size_t height = DefaultHeight);
+        virtual ˜Grid() = default;
+
+        // Explicitly default a copy constructor and assignment operator.
+        Grid(const Grid& src) = default;
+        Grid& operator=(const Grid& rhs) = default;
+
+        // Explicitly default a move constructor and assignment operator.
+        Grid(Grid&& src) = default;
+        Grid& operator=(Grid&& rhs) = default;
+
+        typename Container::value_type& at(std::size_t x, std::size_t y);
+        const typename Container::value_type& at(
+            std::size_t x, std::size_t y) const;
+
+        std::size_t getHeight() const { return m_height; }
+        std::size_t getWidth() const { return m_width; }
+
+        static constexpr std::size_t DefaultWidth { 10 };
+        static constexpr std::size_t DefaultHeight { 10 };
+
+    private:
+        void verifyCoordinate(std::size_t x, std::size_t y) const;
+
+        Container m_cells;
+        std::size_t m_width { 0 }, m_height { 0 };
+};
+\end{cpp}
+
+This template now has two parameters: T and Container. Thus, wherever you previously referred to Grid<T>, you must now refer to Grid<T, Container>.
+
+\begin{myNotic}{NOTE}
+Technically, in this implementation of the Grid class template, you could remove the T template type parameter because the implementation doesn’t need it; it only uses the Container parameter. However, please bear with me, as the next section builds further on this example to make it more user friendly.
+\end{myNotic}
+
+The m\_cells data member is now of type Container instead of vector<optional<T>{}>. Each Container type has a type alias called value\_type. This is verified with the GridContainerType concept. Inside the Grid class template definition and its member function definitions, you get access to this value\_type type name using the scope resolution operator: Container::value\_type. However, since Container is a template type parameter, Container::value\_type is a dependent type name. Usually, a compiler won’t treat dependent names as names of types, and this can lead to some rather cryptic compiler error messages. To make sure the compiler does interpret it as the name of a type, you need to prefix it with the typename keyword, as in typename Container::value\_type. This is what is done for the return type of the at() member functions; their return type is the type of the elements that is stored inside the given container type, which is typename Container::value\_type.
+
+Here is the constructor definition:
+
+\begin{cpp}
+template <typename T, GridContainerType Container>
+Grid<T, Container>::Grid(std::size_t width, std::size_t height)
+    : m_width { width }, m_height { height }
+{
+    m_cells.resize(m_width * m_height);
+}
+\end{cpp}
+
+Here are the implementations of the remaining member functions:
+
+\begin{cpp}
+template <typename T, GridContainerType Container>
+void Grid<T, Container>::verifyCoordinate(std::size_t x, std::size_t y) const
+{
+    if (x >= m_width) {
+        throw std::out_of_range {
+            std::format("x ({}) must be less than width ({}).", x, m_width) };
+    }
+    if (y >= m_height) {
+        throw std::out_of_range {
+            std::format("y ({}) must be less than height ({}).", y, m_height) };
+    }
+}
+
+template <typename T, GridContainerType Container>
+const typename Container::value_type&
+    Grid<T, Container>::at(std::size_t x, std::size_t y) const
+{
+    verifyCoordinate(x, y);
+    return m_cells[x + y * m_width];
+}
+
+template <typename T, GridContainerType Container>
+typename Container::value_type&
+    Grid<T, Container>::at(std::size_t x, std::size_t y)
+{
+    return const_cast<typename Container::value_type&>(
+        std::as_const(*this).at(x, y));
+}
+\end{cpp}
+
+Now you can instantiate and use Grid objects like this:
+
+\begin{cpp}
+Grid<int, vector<optional<int>>> myIntVectorGrid;
+Grid<int, deque<optional<int>>> myIntDequeGrid;
+
+myIntVectorGrid.at(3, 4) = 5;
+println("{}", myIntVectorGrid.at(3, 4).value_or(0));
+
+myIntDequeGrid.at(1, 2) = 3;
+println("{}", myIntDequeGrid.at(1, 2).value_or(0));
+
+Grid<int, vector<optional<int>>> grid2 { myIntVectorGrid };
+grid2 = myIntVectorGrid;
+\end{cpp}
+
+You could try to instantiate the Grid class template with double for the Container template type parameter:
+
+\begin{cpp}
+Grid<int, double> test; // WILL NOT COMPILE.
+\end{cpp}
+
+This line does not compile. The compiler complains that the type double does not satisfy the constraints of the concept associated with the Container template type parameter.
+
+Just as with function parameters, you can give template parameters default values. For example, you might want to say that the default container for a Grid is a vector. The class template definition then looks like this:
+
+\begin{cpp}
+export template <typename T,
+    GridContainerType Container = std::vector<std::optional<T>>>
+class Grid
+{
+    // Everything else is the same as before.
+};
+\end{cpp}
+
+You can use the type T from the first template type parameter as the argument to the optional template in the default value for the second template type parameter. The C++ syntax requires that you do not repeat the default value in the template header line for member function definitions. With this default argument, clients can now instantiate a Grid and optionally specify an underlying container. Here are some examples:
+
+\begin{cpp}
+Grid<int, deque<optional<int>>> myDequeGrid;
+Grid<int, vector<optional<int>>> myVectorGrid;
+Grid<int> myVectorGrid2 { myVectorGrid };
+\end{cpp}
+
+This approach is used by the Standard Library. The stack, queue, priority\_queue, flat\_(multi)set, and flat\_(multi)map class templates all take a Container template type parameter, with a default value, specifying the underlying container.
 
 \mySubsubsection{26.1.2.}{Introducing Template Template Parameters}
 
+There is one problem with the Container parameter in the previous section. When you instantiate the class template, you write something like this:
 
+\begin{cpp}
+Grid<int, vector<optional<int>>> myIntGrid;
+\end{cpp}
+
+Note the repetition of the int type. You must specify that it’s the element type both of the Grid and of the optional inside the vector. What if you wrote this instead:
+
+\begin{cpp}
+Grid<int, vector<optional<SpreadsheetCell>>> myIntGrid;
+\end{cpp}
+
+that wouldn’t work very well. It would be nice to be able to write the following, so that you couldn’t make that mistake:
+
+\begin{cpp}
+Grid<int, vector> myIntGrid;
+\end{cpp}
+
+The Grid class template should be able to figure out that it wants a vector of optionals of ints.
+The compiler won’t allow you to pass that argument to a normal type parameter, though, because vector by itself is not a type but a template.
+
+If you want to take a template as a template type parameter, you must use a special kind of parameter called a template template parameter. Specifying a template template parameter is sort of like specifying a function pointer parameter in a normal function. Function pointer types include the return type and parameter types of a function. Similarly, when you specify a template template parameter, the full specification of the template template parameter includes the parameters to that template.
+
+For example, containers such as vector and deque have a template parameter list that looks something like the following. The E parameter is the element type. The Allocator parameter is covered in Chapter 25, “Customizing and Extending the Standard Library.”
+
+\begin{cpp}
+template <typename E, typename Allocator = std::allocator<E>>
+class vector { /* Vector definition */ };
+\end{cpp}
+
+To pass such a container as a template template parameter, all you have to do is copy and paste the declaration of the class template (in this example, template <typename E, typename Allocator = std::allocator<E>{}> class vector) and replace the class name (vector) with your parameter name (Container). Given the preceding template specification, here is the class template definition for Grid that takes a container template as its second template parameter:
 
 \mySubsubsection{26.1.3.}{More About Non-type Template Parameters}
 

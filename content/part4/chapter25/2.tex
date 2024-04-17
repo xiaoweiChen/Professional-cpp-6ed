@@ -997,8 +997,505 @@ typename directed_graph<T>::const_iterator
 
 \mySamllsection{Modifying Other Member Functions to Use Iterators}
 
+Now that directed\_graph supports iterators, other member functions can be slightly modified to work with iterators so that they follow the Standard Library guidelines. Let’s look at the insert() member function first. In the earlier basic implementation, it is defined as follows:
+
+\begin{cpp}
+// For an insert to be successful, the value shall not be in the graph yet.
+// Returns true if a new node with given value has been added to // the graph, and false if there was already a node with the given value.
+bool insert(T node_value);
+\end{cpp}
+
+To follow more closely the spirit of the Standard Library, this can be modified to return an std::pair<iterator, bool> where the Boolean is true if the element was added to the graph, and false if the element was already in the graph. The iterator of the pair refers to the newly added element or the element that was already in the graph.
+
+\begin{cpp}
+std::pair<iterator, bool> insert(T node_value);
+\end{cpp}
+
+The implementation is as follows. The changes compared to the version returning a simple bool are highlighted.
+
+\begin{cpp}
+template <typename T>
+std::pair<typename directed_graph<T>::iterator, bool>
+    directed_graph<T>::insert(T node_value)
+{
+    auto iter { find_node(node_value) };
+    if (iter != std::end(m_nodes)) {
+        // Value is already in the graph.
+        return { iterator { iter }, false };
+    }
+    m_nodes.emplace_back(this, std::move(node_value));
+    // Value successfully added to the graph.
+    return { iterator { std::prev(std::end(m_nodes)) }, true };
+}
+\end{cpp}
+
+Additionally, an overload of insert() is provided that accepts an iterator hint. This hint is useless for a directed\_graph, but it is provided for symmetry with other Standard Library containers, such as std::vector. The hint is ignored, and it merely calls the overload of insert() without the hint.
+
+\begin{cpp}
+template <typename T>
+typename directed_graph<T>::iterator
+    directed_graph<T>::insert(const_iterator hint, T node_value)
+{
+    // Ignore the hint, just forward to another insert().
+    return insert(std::move(node_value)).first;
+}
+\end{cpp}
+
+A last overload of insert() accepts an iterator range. This overload is a member function template so that it can take an iterator range from any container, not just other directed\_graphs. The actual implementation uses an insert\_iterator, described Chapter 17.
+
+\begin{cpp}
+template <typename T>
+template <std::input_iterator Iter>
+void directed_graph<T>::insert(Iter first, Iter last)
+{
+    // Copy each element in the range by using an insert_iterator adapter.
+    // Give end() as a dummy position -- insert ignores it anyway.
+    std::copy(first, last, std::insert_iterator { *this, end() });
+}
+\end{cpp}
+
+The erase() member functions should be modified to work with iterators. The earlier definition has a node value as parameter and returns a bool:
+
+\begin{cpp}
+// Returns true if the given node value was erased, false otherwise.
+bool erase(const T& node_value);
+\end{cpp}
+
+To follow Standard Library principles, directed\_graph is modified to provide two erase() member functions: one erasing a node to which an iterator refers and another one erasing a range of nodes given as an iterator range. Both return an iterator to the node after the last deleted node:
+
+\begin{cpp}
+// Returns an iterator to the element after the last deleted element.
+iterator erase(const_iterator pos);
+iterator erase(const_iterator first, const_iterator last);
+\end{cpp}
+
+Here are the implementations:
+
+\begin{cpp}
+template <typename T>
+typename directed_graph<T>::iterator
+    directed_graph<T>::erase(const_iterator pos)
+{
+    if (pos.m_nodeIterator == std::end(m_nodes)) {
+        return end();
+    }
+    remove_all_links_to(pos.m_nodeIterator);
+    return iterator { m_nodes.erase(pos.m_nodeIterator) };
+}
+
+template <typename T>
+typename directed_graph<T>::iterator
+    directed_graph<T>::erase(const_iterator first, const_iterator last)
+{
+    for (auto iter { first }; iter != last; ++iter) {
+        remove_all_links_to(iter.m_nodeIterator);
+    }
+    return iterator { m_nodes.erase(first.m_nodeIterator, last.m_nodeIterator) };
+}
+\end{cpp}
+
+Finally, the following public find() member function can be implemented returning an iterator. The implementation is left as an exercise at the end of this chapter.
+
+\begin{cpp}
+const_iterator find(const T& node_value) const;
+\end{cpp}
+
+\mySamllsection{Using the directed\_graph Iterators}
+
+Now that directed\_graph supports iterators, you can iterate over its elements just as you would with any other Standard Library container, and you can pass the iterators to member functions and functions. Here are some examples:
+
+\begin{cpp}
+directed_graph<int> graph;
+// Populate the graph, omitted (see downloadable source code archive) ...
+
+// Try to insert a duplicate, and use structured bindings for the result.
+auto [iter22, inserted] { graph.insert(22) };
+if (!inserted) { println("Duplicate element."); }
+
+// Print nodes using a for loop and iterators.
+for (auto iter { graph.cbegin() }; iter != graph.cend(); ++iter) {
+    print("{} ", *iter);
+}
+println("");
+
+// Print nodes using a for loop and iterators retrieved with the non-member
+// functions cbegin() and cend().
+for (auto iter { cbegin(graph) }; iter != cend(graph); ++iter) {
+    print("{} ", *iter);
+}
+println("");
+
+// Print nodes using a range-based for loop.
+for (auto& node : graph) { print("{} ", node); }
+println("");
+
+// Search a node using the find() Standard Library algorithm.
+auto result { find(begin(graph), end(graph), 22) };
+if (result != end(graph)) { println("Node 22 found.");}
+else { println("Node 22 NOT found."); }
+
+// Count all nodes with values > 22.
+auto count { count_if(begin(graph), end(graph),
+    [](const auto& node) { return node > 22; }) };
+println("{} nodes > 22", count);
+
+// Use the iterator-based erase() member function in combination with find().
+graph.erase(find(begin(graph), end(graph), 44));
+\end{cpp}
+
+This code snippet also shows that, thanks to the support for iterators, Standard Library algorithms can be used with a directed\_graph. However, since directed\_graph supports only const iterators, only non-modifying Standard Library algorithms are supported, just as with std::set. For example, the following code snippet using the remove-erase idiom does not compile:
+
+\begin{cpp}
+graph.erase(remove_if(begin(graph), end(graph),
+    [](const auto& node) { return node > 22; }), end(graph));
+\end{cpp}
+
+\mySamllsection{Adding Support for Reverse Iterators}
+
+If your container supplies bidirectional iterators, it is considered reversible. Reversible containers should have two additional type aliases:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{TYPE NAME}       & \textbf{TYPE NAME}                                                                                                                           \\ \hline
+\endfirsthead
+%
+\endhead
+%
+reverse\_iterator        & \begin{tabular}[c]{@{}l@{}}The type for iterating over elements of the container in\\ reverse order\end{tabular}                             \\ \hline
+const\_reverse\_iterator & \begin{tabular}[c]{@{}l@{}}A version of reverse\_iterator for iterating over const\\ elements of the container in reverse order\end{tabular} \\ \hline
+\end{longtable}
+
+Additionally, the container should provide rbegin() and rend(), which are symmetric with begin() and end(); and it should provide crbegin() and crend(), which are symmetric with cbegin() and cend().
+
+The directed\_graph iterators are bidirectional, which means they should support reverse iteration. The following code snippet highlights the necessary changes. The two new type aliases use the std::reverse\_iterator adapter provided by the Standard Library and described in Chapter 17 to convert the directed\_graph iterators to behave as reverse iterators.
+
+\begin{cpp}
+export template <typename T>
+class directed_graph
+{
+    public:
+    // Other type aliases omitted for brevity.
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    // Reverse iterator member functions.
+    reverse_iterator rbegin() noexcept;
+    reverse_iterator rend() noexcept;
+    const_reverse_iterator rbegin() const noexcept;
+    const_reverse_iterator rend() const noexcept;
+    const_reverse_iterator crbegin() const noexcept;
+    const_reverse_iterator crend() const noexcept;
+    // Remainder of class definition omitted for brevity.
+};
+\end{cpp}
+
+The implementations of the reverse iterator member functions are as follows.
+
+\begin{cpp}
+template <typename T>
+typename directed_graph<T>::reverse_iterator
+    directed_graph<T>::rbegin() noexcept { return reverse_iterator { end() }; }
+
+template <typename T>
+typename directed_graph<T>::reverse_iterator
+    directed_graph<T>::rend() noexcept { return reverse_iterator { begin() }; }
+
+template <typename T>
+typename directed_graph<T>::const_reverse_iterator
+    directed_graph<T>::rbegin() const noexcept
+{ return const_reverse_iterator { end() }; }
+
+template <typename T>
+typename directed_graph<T>::const_reverse_iterator
+    directed_graph<T>::rend() const noexcept
+{ return const_reverse_iterator { begin() }; }
+
+template <typename T>
+typename directed_graph<T>::const_reverse_iterator
+    directed_graph<T>::crbegin() const noexcept { return rbegin(); }
+
+template <typename T>
+typename directed_graph<T>::const_reverse_iterator
+    directed_graph<T>::crend() const noexcept { return rend(); }
+\end{cpp}
+
+The following code snippet shows how to print all the nodes of a graph in reverse order:
+
+\begin{cpp}
+for (auto iter { graph.rbegin() }; iter != graph.rend(); ++iter) {
+    print("{} ", *iter);
+}
+\end{cpp}
+
+\mySamllsection{Iterating over Adjacent Nodes}
+
+A directed\_graph keeps a vector of nodes, where each node contains the node’s value and a list of adjacent nodes. Let’s improve the directed\_graph interface to support iteration over the adjacent nodes of a given node without copying those nodes into another container as it is done in the earlier implementation of get\_adjacent\_nodes\_values(). The first thing to add is a const\_adjacent\_nodes\_iterator\_impl class template following the same principles as const\_directed\_graph\_iterator\_impl so the code is not shown. Consult the downloadable source code archive to see the full code.
+
+The next step is to augment the directed\_graph interface with a new type alias, a helper structure to represent adjacent nodes as a range, and a member function to get access to the adjacent nodes of a given node value. The nodes\_adjacent\_to() member function returns an empty optional when the given node value cannot be found.
+
+\begin{cpp}
+export template <typename T>
+class directed_graph
+{
+    public:
+        // Other type aliases omitted for brevity.
+        using const_adjacent_nodes_iterator =
+            const_adjacent_nodes_iterator_impl<directed_graph>;
+
+        // Helper structure to represent a range of adjacent nodes.
+        struct nodes_adjacent_to_result
+        {
+            const_adjacent_nodes_iterator m_begin;
+            const_adjacent_nodes_iterator m_end;
+            const_adjacent_nodes_iterator begin() const noexcept{ return m_begin; }
+            const_adjacent_nodes_iterator end() const noexcept { return m_end; }
+        };
+
+        // Returns a range with the adjacent nodes for the given node value.
+        std::optional<nodes_adjacent_to_result> nodes_adjacent_to(
+            const T& node_value) const noexcept;
+        // Remainder of class definition omitted for brevity.
+};
+\end{cpp}
+
+Here is the implementation of the nodes\_adjacent\_to() member function:
+
+\begin{cpp}
+template <typename T>
+std::optional<typename directed_graph<T>::nodes_adjacent_to_result>
+    directed_graph<T>::nodes_adjacent_to(const T& node_value) const noexcept
+{
+    auto iter { find_node(node_value) };
+    if (iter == std::end(m_nodes)) { return {}; }
+    return nodes_adjacent_to_result {
+        const_adjacent_nodes_iterator {
+            std::cbegin(iter->get_adjacent_nodes_indices()), this },
+        const_adjacent_nodes_iterator {
+            std::cend(iter->get_adjacent_nodes_indices()), this }
+    };
+}
+\end{cpp}
+
+With nodes\_adjacent\_to(), accessing all adjacent nodes of a given node becomes trivial. Here is an example to print all adjacent nodes of the node with value 22.
+
+\begin{cpp}
+print("Adjacency list for node 22: ");
+auto nodesAdjacentTo22 { graph.nodes_adjacent_to(22) };
+if (!nodesAdjacentTo22.has_value()) {
+    println("Value 22 not found.");
+} else {
+    for (const auto& node : *nodesAdjacentTo22) { print("{} ", node); }
+}
+\end{cpp}
+
+\mySamllsection{Printing Graphs}
+
+Now that directed\_graph supports nodes\_adjacent\_to(), the to\_dot() helper function template to print a graph can be simplified:
+
+\begin{cpp}
+export template <typename T>
+std::string to_dot(const directed_graph<T>& graph, std::string_view graph_name)
+{
+    std::ostringstream output;
+    std::println(output, "digraph {} {{", graph_name);
+    for (auto&& node : graph) {
+        auto adjacent_nodes { graph.nodes_adjacent_to(node) };
+        if (adjacent_nodes->begin() == adjacent_nodes->end()) {
+            std::println(output, "{}", node);
+        } else {
+            for (const auto& adjacent_node : *adjacent_nodes) {
+                std::println(output, "{} -> {}", node, adjacent_node);
+            }
+        }
+    }
+    std::println(output, "}}");
+    return std::move(output).str();
+}
+\end{cpp}
+
+\mySamllsection{Additional Standard Library–Like Functionality}
+
+A few more Standard Library–like features can be added to the directed\_graph class template. First, let’s add assign() member functions like vector has. The assign() member function accepting an iterator range is again a member function template, just like the iterator-based insert() discussed earlier in this chapter:
+
+\begin{cpp}
+template <std::input_iterator Iter>
+void assign(Iter first, Iter last);
+
+void assign(std::initializer_list<T> il);
+\end{cpp}
+
+These allow you to assign all elements of a given iterator range or an initializer\_list, discussed in Chapter 1, to a directed graph. Assignment means that the current graph is cleared, and new nodes are inserted. Despite the syntax, the implementations are easy:
+
+\begin{cpp}
+template <typename T>
+template <std::input_iterator Iter>
+void directed_graph<T>::assign(Iter first, Iter last)
+{
+    clear();
+    for (auto iter { first }; iter != last; ++iter) { insert(*iter); }
+}
+
+template <typename T>
+void directed_graph<T>::assign(std::initializer_list<T> il)
+{
+    assign(std::begin(il), std::end(il));
+}
+\end{cpp}
+
+An initializer\_list overload of insert() is provided as well:
+
+\begin{cpp}
+template <typename T>
+void directed_graph<T>::insert(std::initializer_list<T> il)
+{
+    insert(std::begin(il), std::end(il));
+}
+\end{cpp}
+
+With this overload of insert(), nodes can be added as follows:
+
+\begin{cpp}
+graph.insert({ 66, 77, 88 });
+\end{cpp}
+
+Next, an initializer\_list constructor and assignment operator can be added. As this is the first explicit directed\_graph constructor and assignment operator, the default, copy, and move constructors, and the copy and move assignment operators need to be explicitly defaulted as well.
+
+\begin{cpp}
+// Default, copy, and move constructors.
+directed_graph() = default;
+directed_graph(const directed_graph&) = default;
+directed_graph(directed_graph&&) noexcept = default;
+
+// initializer_list constructor.
+directed_graph(std::initializer_list<T> il);
+
+// Copy and move assignment operators.
+directed_graph& operator=(const directed_graph&) = default;
+directed_graph& operator=(directed_graph&&) noexcept = default;
+
+// initializer_list assignment operator.
+directed_graph& operator=(std::initializer_list<T> il);
+\end{cpp}
+
+Here are the implementations of the initializer\_list constructor and assignment operator:
+
+\begin{cpp}
+template <typename T>
+directed_graph<T>::directed_graph(std::initializer_list<T> il)
+{
+    assign(std::begin(il), std::end(il));
+}
+
+template <typename T>
+directed_graph<T>& directed_graph<T>::operator=(
+    std::initializer_list<T> il)
+{
+    // Use a copy-and-swap-like algorithm to guarantee strong exception safety.
+    // Do all the work in a temporary instance.
+    directed_graph new_graph { il };
+    swap(new_graph); // Commit the work with only non-throwing operations.
+    return *this;
+}
+\end{cpp}
+
+With these in place, a directed\_graph can be constructed using uniform initialization, as follows:
+
+\begin{cpp}
+directed_graph<int> graph { 11, 22, 33 };
+\end{cpp}
+
+instead of the following:
+
+\begin{cpp}
+directed_graph<int> graph;
+graph.insert(11);
+graph.insert(22);
+graph.insert(33);
+\end{cpp}
+
+And you can assign to a graph as follows:
+
+\begin{cpp}
+graph = { 66, 77, 88 };
+\end{cpp}
+
+Thanks to the initializer\_list constructor and class template argument deduction (CTAD), you can even drop the element type when constructing a directed\_graph, just as with vector:
+
+\begin{cpp}
+directed_graph graph { 11, 22, 33 };
+\end{cpp}
+
+A constructor accepting an iterator range of elements can be added as well. This is again a member function template, similar to assign() accepting an iterator range. The implementation simply forwards the work to assign():
+
+\begin{cpp}
+template <typename T>
+template <std::input_iterator Iter>
+directed_graph<T>::directed_graph(Iter first, Iter last)
+{
+    assign(first, last);
+}
+\end{cpp}
+
+C++23 adds an insert\_range() member function to most Standard Library containers, which can be added to directed\_graph as well. This implementation uses the std::ranges::input\_range concept to constrain the Range template type parameter.
+
+\begin{cpp}
+template <typename T>
+template <std::ranges::input_range Range>
+void directed_graph<T>::insert_range(Range&& range)
+{
+    insert(std::ranges::begin(range), std::ranges::end(range));
+}
+\end{cpp}
+
+With insert\_range() you can easily insert elements from any range, for example, from a vector:
+
+\begin{cpp}
+vector moreNodes { 66, 77 };
+graph.insert_range(moreNodes);
+\end{cpp}
+
+Finally, an extra overload of erase() accepting a node value can be added. Similar to std::set, it returns the number of nodes erased, which is always 0 or 1 for directed\_graph.
+
+\begin{cpp}
+template <typename T>
+typename directed_graph<T>::size_type directed_graph<T>::erase(
+    const T& node_value)
+{
+    const auto iter { find_node(node_value) };
+    if (iter != std::end(m_nodes)) {
+        remove_all_links_to(iter);
+        m_nodes.erase(iter);
+        return 1;
+    }
+    return 0;
+}
+\end{cpp}
+
 \mySamllsection{Further Improvements}
 
+There are several improvements that can be made to the directed\_graph class template. Here are a few:
+
+\begin{itemize}
+\item
+The current implementation does not check for cycles in the graph. Such a check could be added to make the graph a directed acyclic graph.
+
+\item
+Instead of supporting bidirectional iterators, support for random-access iterators could be implemented.
+
+\item
+The Standard Library associative containers support node-related functionality, see Chapter 18. The directed\_graph class template could be improved to include a node\_type type alias and member functions such as extract().
+
+\item
+A more complicated improvement might be to add support for custom allocators, just as all Standard Library containers have. This would require using Standard Library functionality from std::allocator\_traits<A>, such as construct(), destroy(), propagate\_on\_container\_move\_assignment, propagate\_on\_container\_copy\_assignment, propagate\_on\_container\_swap, and more.
+\end{itemize}
+
 \mySamllsection{Other Container Types}
+
+The directed\_graph class template is basically a sequential container, but due to the nature of graphs, it does implement certain functionality from associative containers, such as the return types of the insert() member functions.
+
+You could also write a pure sequential container, unordered associative container, or ordered associative container. In that case, you would need to follow a specific set of requirements mandated by the Standard Library. Instead of listing them here, it’s easier to point out that the deque container follows the prescribed sequential container requirements almost exactly. The only difference is that it provides an extra resize() member function (not required by the standard). An example of an ordered associative container is map, on which you can model your own ordered associative containers. And unordered\_map is an example of an unordered associative container.
 
 
