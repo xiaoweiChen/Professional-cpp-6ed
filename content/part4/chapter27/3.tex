@@ -1,20 +1,341 @@
 
+Atomic types allow atomic access, which means that concurrent reading and writing without additional synchronization is allowed. Without atomic operations, incrementing a variable is not threadsafe because the compiler first loads the value from memory into a register, increments it, and then stores the result back in memory. Another thread might touch the same memory during this increment operation, which is a data race. For example, the following code is not thread-safe and contains a data race. This type of data race is discussed in the beginning of this chapter.
+
+\begin{cpp}
+int counter { 0 }; // Global variable
+...
+++counter; // Executed in multiple threads
+\end{cpp}
+
+You can use the std::atomic class template, defined in <atomic>, to make this thread-safe without explicitly using any synchronization mechanism. Here is the same code using an atomic integer:
+
+\begin{cpp}
+atomic<int> counter { 0 } ; // Global variable
+...
+++counter; // Executed in multiple threads
+\end{cpp}
+
+<atomic> also defines named integral atomic types for all primitive types. The following table lists just a few:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{NAMED ATOMIC TYPE} & \textbf{EQUIVALENT STD::ATOMIC TYPE}              \\ \hline
+\endfirsthead
+%
+\endhead
+%
+atomic\_bool               & atomic\textless{}bool\textgreater{}               \\ \hline
+atomic\_char               & atomic\textless{}char\textgreater{}               \\ \hline
+atomic\_uchar              & atomic\textless{}unsigned char\textgreater{}      \\ \hline
+atomic\_int                & atomic\textless{}int\textgreater{}                \\ \hline
+atomic\_uint               & atomic\textless{}unsigned int\textgreater{}       \\ \hline
+atomic\_long               & atomic\textless{}long\textgreater{}               \\ \hline
+atomic\_ulong              & atomic\textless{}unsigned long\textgreater{}      \\ \hline
+atomic\_llong              & atomic\textless{}long long\textgreater{}          \\ \hline
+atomic\_ullong             & atomic\textless{}unsigned long long\textgreater{} \\ \hline
+atomic\_wchar\_t           & atomic\textless{}wchar\_t\textgreater{}           \\ \hline
+atomic\_flag               & (none)                                            \\ \hline
+\end{longtable}
+
+You can use atomic types without explicitly using any synchronization mechanism. However, underneath, operations on atomics of a certain type might use a synchronization mechanism such as a mutex. This might happen, for example, when the hardware you are targeting lacks the necessary instructions to perform an operation atomically. You can use the is\_lock\_free() member function on an atomic type to query whether it supports lock-free operations, that is, whether all of its operations run without any explicit synchronization mechanism underneath. There is also a static constant called atomic<T>::is\_always\_lock\_free, which is true if the atomic<T> is always lock free, and false otherwise.
+
+The std::atomic class template can be used with all kinds of types, not only integral types. For example, you can create an atomic<double>, or an atomic<MyType>, but only if MyType is trivially copyable. Depending on the size of the specified type, underneath these might require explicit synchronization mechanisms. In the following example, both Foo and Bar are trivially copyable, that is, std::is\_trivially\_copyable\_v is true for both. However, due to the size of Foo, atomic<Foo> is not lock-free, while atomic<Bar> is.
+
+\begin{cpp}
+struct Foo { int m_array[123]; };
+struct Bar { int m_int; };
+
+int main()
+{
+    atomic<Foo> f;
+    println("{} {}", is_trivially_copyable_v<Foo>, f.is_lock_free()); // true false
+
+    atomic<Bar> b;
+    println("{} {}", is_trivially_copyable_v<Bar>, b.is_lock_free()); // true true
+}
+\end{cpp}
+
+When accessing a piece of data from multiple threads, atomics also solve issues with memory ordering, compiler optimizations, and so on. Basically, it’s virtually never safe to read and write to the same piece of data from multiple threads without using atomics or explicit synchronization mechanisms!
+
+\begin{myNotic}{NOTE}
+Memory ordering is the order in which memory is accessed. In the absence of any atomics and other synchronization mechanisms, compilers and hardware are allowed to reorder memory accesses as long as this does not affect the outcome. This is known as the as-if rule, but can cause problems in multithreaded environments.
+\end{myNotic}
+
+atomic\_flag is an atomic Boolean, always lock-free, guaranteed by the C++ standard. It differs from atomic<bool> in that it does not provide an assignment operator; instead, it provides named member functions clear(), test(), and test\_and\_set(). An example of using atomic\_flag is given in the mutual exclusion section for the implementation of a spinlock later in this chapter.
 
 \mySubsubsection{27.3.1.}{Atomic Operations}
 
+The C++ standard defines a number of special operations on atomic<T>. This section describes a few of those operations. For a full list, consult a Standard Library Reference (see Appendix B).
 
+Our first example of an atomic operation is the following:
+
+\begin{cpp}
+bool atomic<T>::compare_exchange_strong(T& expected, T desired);
+\end{cpp}
+
+The logic implemented atomically by this operation is as follows, in pseudo-code:
+
+\begin{cpp}
+if (*this == expected) {
+    *this = desired;
+    return true;
+} else {
+    expected = *this;
+    return false;
+}
+\end{cpp}
+
+Although this logic might seem fairly strange on first sight, this operation is a key building block for doing any complicated operation on atomics. Here is an example that atomically multiplies an atomic<int> with a given number:
+
+\begin{cpp}
+void atomicallyMultiply(atomic<int>& a, int n)
+{
+    int expected { a.load() };
+    int desired { n * expected };
+    while (!a.compare_exchange_strong(expected, desired)) {
+        desired = n * expected;
+    }
+}
+
+int main()
+{
+    atomic<int> value { 10 };
+    println("Value = {}", value.load());
+    atomicallyMultiply(value, 3);
+    println("Result = {}", value.load());
+}
+\end{cpp}
+
+A second example is atomic<T>::fetch\_add(). It fetches the current value of the atomic type, adds the given increment to the atomic value, and returns the original non-incremented value. Here is an example:
+
+\begin{cpp}
+atomic<int> value { 10 };
+println("Value = {}", value.load());
+int fetched { value.fetch_add(4) };
+println("Fetched = {}", fetched);
+println("Value = {}", value.load());
+\end{cpp}
+
+If no other threads are touching the contents of the fetched and value variables, the output is as follows:
+
+\begin{shell}
+Value = 10
+Fetched = 10
+Value = 14
+\end{shell}
+
+Atomic integral types support the following atomic operations: fetch\_add(), fetch\_sub(), fetch\_and(), fetch\_or(), fetch\_xor(), ++, -{}-, +=, -=, \&=, \^{}=, and |=. Atomic pointer types support fetch\_add(), fetch\_sub(), ++, --, +=, and -=. Atomic floating-point types support fetch\_add() and fetch\_sub().
+
+Most of the atomic operations can accept an extra parameter specifying the memory ordering that you would like. Here is an example:
+
+\begin{cpp}
+T atomic<T>::fetch_add(T value, memory_order = memory_order_seq_cst);
+\end{cpp}
+
+You can change the default memory\_order. The C++ standard provides memory\_order\_relaxed, memory\_order\_consume, memory\_order\_acquire, memory\_order\_release, memory\_order\_acq\_rel, and memory\_order\_seq\_cst, all of which are defined in the std namespace. However, you will rarely want to use them instead of the default, unless you’re an expert in this domain. While another memory order may perform better than the default according to some metrics, if you use them in a slightly incorrect way, you will again introduce data races or other difficult-to-debug threadingrelated problems. If you do want to know more about memory orderings, consult one of the multithreading references in Appendix B.
 
 \mySubsubsection{27.3.2.}{Atomic Smart Pointers}
 
-
+atomic<std::shared\_ptr<T>> is supported. The control block of a shared\_ptr, which stores the reference count, among other things, has always been thread-safe, which guarantees that the pointedto object is deleted exactly once. However, anything else from a shared\_ptr is not thread-safe. Using the same shared\_ptr instance concurrently from multiple threads causes data races if non-const member functions are called on that shared\_ptr instance, such as calling reset(), assignment, swap(), and so on. On the other hand, when using the same atomic<shared\_ptr<T>{}> instance from multiple threads, even calling non-const shared\_ptr member functions is thread-safe. Note that calling non-const member functions on the object pointed to by the shared\_ptr is still not threadsafe and requires manual synchronization.
 
 \mySubsubsection{27.3.3.}{Atomic References}
 
+std::atomic\_ref is basically the same as std::atomic, even with the same interface, but it works with references, while atomic always makes a copy of the value it is provided with. An atomic\_ref instance itself should have a shorter lifetime than the object it references. An atomic\_ref is copyable, and you can create as many atomic\_ref instances as you want referring to the same object. Loads and stores done through instances of atomic\_ref will be atomic and do not race with each other. Loads and stores done concurrently without going through atomic\_ref can still race with those atomic accesses. The atomic\_ref<T> class template can be used with any trivially copyable type T, just as std::atomic can. Additionally, the Standard Library provides the following:
 
+\begin{itemize}
+\item
+Partial specializations for pointer types, supporting fetch\_add() and fetch\_sub()
+
+\item
+Full specializations for integral types, supporting fetch\_add(), fetch\_sub(), fetch\_and(), fetch\_or(), and fetch\_xor()
+
+\item
+Full specializations for floating-point types, supporting fetch\_add() and fetch\_sub()
+\end{itemize}
+
+The following section gives an example of how to use an atomic\_ref.
 
 \mySubsubsection{27.3.4.}{Using Atomic Types}
 
+This section explains in more detail why you should use atomic types. Suppose you have the following function called increment() that increments an integer reference parameter in a loop.
 
+\begin{cpp}
+void increment(int& counter)
+{
+    for (int i { 0 }; i < 100; ++i) {
+        ++counter;
+        this_thread::sleep_for(1ms);
+    }
+}
+\end{cpp}
+
+Now, you would like to run several threads in parallel, all executing this increment() function on a shared counter variable. By implementing this naively without atomic types or without any kind of thread synchronization, you introduce data races. The following code launches 10 increment() threads, after which it waits for all threads to finish by calling join() on each thread, and then prints the result:
+
+\begin{cpp}
+int main()
+{
+    int counter { 0 };
+    vector<jthread> threads;
+    for (int i { 0 }; i < 10; ++i) {
+        threads.emplace_back(increment, ref(counter));
+    }
+    for (auto& t : threads) { t.join(); }
+    println("Result = {}", counter);
+}
+\end{cpp}
+
+Because increment() increments its counter parameter 100 times, and 10 threads are launched, each of which executes increment() on the same shared counter, you might expect the final result to be 1,000. If you execute this program several times, you might get the following output but with different values:
+
+\begin{shell}
+Result = 982
+Result = 977
+Result = 984
+\end{shell}
+
+This code is clearly showing a data race: counter is written concurrently from multiple threads without any synchronization. In this example, you can use an atomic type to fix the code. The following code highlights the required changes:
+
+\begin{cpp}
+void increment(atomic<int>& counter)
+{
+    for (int i { 0 }; i < 100; ++i) {
+        ++counter;
+        this_thread::sleep_for(1ms);
+    }
+}
+
+int main()
+{
+    atomic<int> counter { 0 };
+    vector<jthread> threads;
+    for (int i { 0 }; i < 10; ++i) {
+        threads.emplace_back(increment, ref(counter));
+    }
+    for (auto& t : threads) { t.join(); }
+    println("Result = {}", counter);
+}
+\end{cpp}
+
+The only modification is changing the type of the shared counter to std::atomic<int> instead of int. When you run this modified version, you always get 1,000 as the result:
+
+\begin{shell}
+Result = 1000
+Result = 1000
+Result = 1000
+\end{shell}
+
+Without explicitly adding any synchronization mechanism to the code, it is now thread safe and data race free because the ++counter operation on an atomic type loads, increments, and stores the value in one atomic transaction, which cannot be interrupted.
+
+With atomic\_ref, you can solve the data race as follows:
+
+\begin{cpp}
+void increment(int& counter)
+{
+    atomic_ref<int> atomicCounter { counter };
+    for (int i { 0 }; i < 100; ++i) {
+        ++atomicCounter;
+        this_thread::sleep_for(1ms);
+    }
+}
+
+int main()
+{
+    int counter { 0 };
+    vector<jthread> threads;
+    for (int i { 0 }; i < 10; ++i) {
+        threads.emplace_back(increment, ref(counter));
+    }
+    for (auto& t : threads) { t.join(); }
+    println("Result = {}", counter);
+}
+\end{cpp}
+
+However, there is a new problem with both of these modified implementations: a performance problem. You should try to minimize the amount of synchronization, either atomic or explicit synchronization, because it lowers performance. For this simple example, the best and recommended solution is to let increment() calculate its result in a local variable and only after the loop add it to the counter reference. Even then, it is still required to use an atomic or atomic\_ref type, because you are still writing to counter from multiple threads.
+
+\begin{cpp}
+void increment(atomic<int>& counter)
+{
+    int result { 0 };
+    for (int i { 0 }; i < 100; ++i) {
+        ++result;
+        this_thread::sleep_for(1ms);
+    }
+    counter += result;
+}
+\end{cpp}
 
 \mySubsubsection{27.3.5.}{Waiting on Atomic Variables}
+
+The following wait-related member functions are available for std::atomic and atomic\_ref to efficiently wait until an atomic variable is modified:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{MEMBER FUNCTION} & \textbf{DESCRIPTION}                                   \\ \hline
+\endfirsthead
+%
+\endhead
+%
+wait(oldValue) &
+\begin{tabular}[c]{@{}l@{}}Blocks the thread until another thread calls notify\_one() or notify\_\\ all(), and the value of the atomic variable has changed, that is, is not\\ equal to oldValue anymore. If the current value is already unequal to\\ oldValue, then the function doesn’t block at all.\end{tabular} \\ \hline
+notify\_one()            & Wakes up one thread that is blocking on a wait() call. \\ \hline
+notify\_all()            & Wakes up all threads blocking on a wait() call.        \\ \hline
+\end{longtable}
+
+Here is an example:
+
+\begin{cpp}
+atomic<int> value { 0 };
+
+jthread job { [&value] {
+    println("Thread starts waiting.");
+    value.wait(0);
+    println("Thread wakes up, value = {}", value.load());
+} };
+
+this_thread::sleep_for(2s);
+
+println("Main thread is going to change value to 1.");
+value = 1;
+value.notify_all();
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Thread starts waiting.
+Main thread is going to change value to 1.
+Thread wakes up, value = 1
+\end{shell}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

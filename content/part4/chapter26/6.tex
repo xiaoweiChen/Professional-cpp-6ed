@@ -1,38 +1,1056 @@
 
+This section touches on template metaprogramming. It is a complicated and broad subject, and there are books written about it explaining all the little details. This book doesn’t have the space to go into all of these details. Instead, this section explains the most important concepts, with the aid of a couple of examples.
+
+The goal of template metaprogramming is to perform some computation at compile time instead of at run time. It is basically a programming language on top of another programming language. The following section starts the discussion with a simple example that calculates the factorial of a number at compile time and makes the result available as a simple constant at run time.
 
 \mySubsubsection{26.6.1.}{Factorial at Compile Time}
 
+Template metaprogramming allows you to perform calculations at compile time instead of at run time. The following code is an example that calculates the factorial of a number at compile time. The code uses template recursion, explained earlier in this chapter, which requires a recursive template and a base template to stop the recursion. By mathematical definition, the factorial of 0 is 1, so that is used as the base case.
 
+\begin{cpp}
+template <int f>
+class Factorial
+{
+    public:
+    static constexpr unsigned long long value { f * Factorial<f - 1>::value };
+};
+
+template <>
+class Factorial<0>
+{
+    public:
+    static constexpr unsigned long long value { 1 };
+};
+
+int main()
+{
+    println("{}", Factorial<6>::value);
+}
+\end{cpp}
+
+This calculates the factorial of 6, mathematically written as 6!, which is 1×2×3×4×5×6 or 720.
+
+\begin{myNotic}{NOTE}
+It is important to keep in mind that the factorial calculation is happening at compile time. At run time, you simply access the compile-time calculated value through the value data member, which is just a static constant value.
+\end{myNotic}
+
+For this specific example of calculating the factorial of a number at compile time, you don’t need to use template metaprogramming. You can implement it as a consteval immediate function as follows, without any templates, though the template implementation still serves as a good example on how to implement recursive templates.
+
+\begin{cpp}
+consteval unsigned long long factorial(int f)
+{
+    if (f == 0) { return 1; }
+    else { return f * factorial(f - 1); }
+}
+\end{cpp}
+
+You can call factorial() just as you would call any other function, with the difference that the consteval function is guaranteed to be executed at compile time. For example:
+
+\begin{cpp}
+println("{}", factorial(6));
+\end{cpp}
 
 \mySubsubsection{26.6.2.}{Loop Unrolling}
 
+A second example of template metaprogramming is to unroll loops at compile time instead of executing the loop at run time. Note that loop unrolling should be done only when you really need it, for example in performance critical code. The compiler is usually smart enough to unroll loops that can be unrolled for you.
 
+This example again uses template recursion because it needs to do something in a loop at compile time. On each recursion, the Loop class template instantiates itself with i-1. When it hits 0, the recursion stops.
+
+\begin{cpp}
+template <int i>
+class Loop
+{
+    public:
+        template <typename FuncType>
+        static void run(FuncType func) {
+            Loop<i - 1>::run(func);
+            func(i);
+        }
+};
+
+template <>
+class Loop<0>
+{
+    public:
+        template <typename FuncType>
+        static void run(FuncType /* func */) { }
+};
+\end{cpp}
+
+The Loop template can be used as follows:
+
+\begin{cpp}
+void doWork(int i) { println("doWork({})", i); }
+
+int main()
+{
+    Loop<3>::run(doWork);
+}
+\end{cpp}
+
+This code causes the compiler to unroll the loop and to call the function doWork() three times in a row. The output of the program is as follows:
+
+\begin{shell}
+doWork(1)
+doWork(2)
+doWork(3)
+\end{shell}
 
 \mySubsubsection{26.6.3.}{Printing Tuples}
 
+This example uses template metaprogramming to print the individual elements of an std::tuple. Tuples are explained in Chapter 24, “Additional Vocabulary Types.” They allow you to store any number of values, each with its own specific type. A tuple has a fixed size and fixed value types, determined at compile time. However, tuples don’t have any built-in mechanism to iterate over their elements. The following example shows how you can use template metaprogramming to iterate over the elements of a tuple at compile time.
+
+As is often the case with template metaprogramming, this example is again using template recursion. The TuplePrint class template has two template parameters: the tuple type, and an integer, initialized with the size of the tuple. It then recursively instantiates itself in the constructor and decrements the integer on every call. A partial specialization of TuplePrint stops the recursion when this integer hits 0. The main() function shows how this TuplePrint class template can be used.
+
+\begin{cpp}
+template <typename TupleType, int N>
+class TuplePrint
+{
+    public:
+        explicit TuplePrint(const TupleType& t) {
+            TuplePrint<TupleType, N − 1> tp { t };
+            println("{}", get<N − 1>(t));
+        }
+};
+
+template <typename TupleType>
+class TuplePrint<TupleType, 0>
+{
+    public:
+        explicit TuplePrint(const TupleType&) { }
+};
+
+int main()
+{
+    using MyTuple = tuple<int, string, bool>;
+    MyTuple t1 { 16, "Test", true };
+    TuplePrint<MyTuple, tuple_size<MyTuple>::value> tp { t1 };
+}
+\end{cpp}
+
+The TuplePrint statement in main() looks a bit complicated because it requires the exact type and size of the tuple as template arguments. This can be simplified by introducing a helper function template that automatically deduces the template parameters. The simplified implementation is as follows:
+
+\begin{cpp}
+template <typename TupleType, int N>
+class TuplePrintHelper
+{
+    public:
+        explicit TuplePrintHelper(const TupleType& t) {
+            TuplePrintHelper<TupleType, N − 1> tp { t };
+            println("{}", get<N − 1>(t));
+        }
+};
+
+template <typename TupleType>
+class TuplePrintHelper<TupleType, 0>
+{
+    public:
+        explicit TuplePrintHelper(const TupleType&) { }
+};
+
+template <typename T>
+void tuplePrint(const T& t)
+{
+    TuplePrintHelper<T, tuple_size<T>::value> tph { t };
+}
+
+int main()
+{
+    tuple t1 { 16, "Test"s, true };
+    tuplePrint(t1);
+}
+\end{cpp}
+
+The first change made here is renaming the original TuplePrint class template to TuplePrintHelper. The code then implements a small function template called tuplePrint(). It accepts the tuple’s type as a template type parameter and accepts a reference to the tuple itself as a function parameter. The body of that function instantiates the TuplePrintHelper class template. The main() function shows how to use this simplified version. You don’t need to specify the function template parameter because the compiler can deduce this automatically from the supplied argument.
+
+\mySamllsection{constexpr if}
+
+constexpr if, introduced earlier in this chapter, can be used to simplify a lot of template metaprogramming techniques. For example, you can simplify the previous code for printing elements of a tuple using constexpr if, as follows. The template recursion base case is not needed anymore, because the recursion is stopped with the constexpr if statement.
+
+\begin{cpp}
+template <typename TupleType, int N>
+class TuplePrintHelper
+{
+    public:
+        explicit TuplePrintHelper(const TupleType& t) {
+            if constexpr (N > 1) {
+                TuplePrintHelper<TupleType, N − 1> tp { t };
+            }
+            println("{}", get<N − 1>(t));
+        }
+};
+
+template <typename T>
+void tuplePrint(const T& t)
+{
+    TuplePrintHelper<T, tuple_size<T>::value> tph { t };
+}
+\end{cpp}
+
+Now we can even get rid of the class template itself and replace it with a simple function template called tuplePrintHelper():
+
+\begin{cpp}
+template <typename TupleType, int N>
+void tuplePrintHelper(const TupleType& t)
+{
+    if constexpr (N > 1) {
+        tuplePrintHelper<TupleType, N − 1>(t);
+    }
+    println("{}", get<N − 1>(t));
+}
+
+template <typename T>
+void tuplePrint(const T& t)
+{
+    tuplePrintHelper<T, tuple_size<T>::value>(t);
+}
+\end{cpp}
+
+This can be simplified even more. Both function templates can be combined into one, as follows:
+
+\begin{cpp}
+template <typename TupleType, int N = tuple_size<TupleType>::value>
+void tuplePrint(const TupleType& t)
+{
+    if constexpr (N > 1) {
+        tuplePrint<TupleType, N − 1>(t);
+    }
+    println("{}", get<N − 1>(t));
+}
+\end{cpp}
+
+It can still be called the same as before:
+
+\begin{cpp}
+tuple t1 { 16, "Test"s, true };
+tuplePrint(t1);
+\end{cpp}
+
+\mySamllsection{Using a Compile-Time Integer Sequence with Folding}
+
+C++ supports compile-time integer sequences using std::integer\_sequence, defined in <utility>. dA common use case with template metaprogramming is to generate a compile-time sequence of indices, that is, an integer sequence of type size\_t. For this, a helper std::index\_sequence is available. You can use std::make\_index\_sequence to generate an index sequence of the same length as the length of a given parameter pack.
+
+The tuple printer can be implemented using variadic templates, compile-time index sequences, and fold expressions as follows:
+
+\begin{cpp}
+template <typename Tuple, size_t... Indices>
+void tuplePrintHelper(const Tuple& t, index_sequence<Indices...>)
+{
+    (println("{}", get<Indices>(t)) , ...);
+}
+
+template <typename... Args>
+void tuplePrint(const tuple<Args...>& t)
+{
+    tuplePrintHelper(t, make_index_sequence<sizeof...(Args)>{});
+}
+\end{cpp}
+
+It can be called in the same way as before:
+
+\begin{cpp}
+tuple t1 { 16, "Test"s, true };
+tuplePrint(t1);
+\end{cpp}
+
+With this call, the unary right fold expression in the tuplePrintHelper() function template expands to the following:
+
+\begin{cpp}
+((println("{}", get<0>(t)) ,
+ (println("{}", get<1>(t)) ,
+  println("{}", get<2>(t)))));
+\end{cpp}
 
 
 \mySubsubsection{26.6.4.}{Type Traits}
 
-\mySamllsection{constexpr if}
+Type traits allow you to make decisions based on types at compile time. For example, you can verify that a type is derived from another type, is convertible to another type, is integral, and so on. The C++ Standard Library comes with a large selection of type traits. All type traits-related functionality is defined in <type\_traits>. Type traits are divided into separate categories. The following list gives a couple of examples of the available type traits in each category. Consult a Standard Library reference (see Appendix B, “Annotated Bibliography”) for a complete list.
 
-\mySamllsection{Using a Compile-Time Integer Sequence with Folding}
+\begin{itemize}
+\item
+Primary type categories
+\begin{itemize}
+\item
+is\_void
 
+\item
+is\_integral
 
-\mySubsubsection{26.6.5.}{Metaprogramming Conclusion}
+\item
+is\_floating\_point
+
+\item
+is\_pointer
+
+\item
+is\_function
+
+\item
+...
+\end{itemize}
+
+\item
+Type properties
+\begin{itemize}
+\item
+is\_const
+
+\item
+is\_polymorphic
+
+\item
+is\_unsigned
+
+\item
+is\_constructible
+
+\item
+is\_copy\_constructible
+
+\item
+is\_move\_constructible
+
+\item
+is\_assignable
+
+\item
+is\_trivially\_copyable
+
+\item
+is\_swappable
+
+\item
+is\_nothrow\_swappable
+
+\item
+has\_virtual\_destructor
+
+\item
+has\_unique\_object\_representations
+
+\item
+is\_scoped\_enum*
+
+\item
+is\_implicit\_lifetime*
+
+\item
+...
+\end{itemize}
+
+\item
+Property queries
+\begin{itemize}
+\item
+alignment\_of
+
+\item
+rank
+
+\item
+extent
+\end{itemize}
+
+\item
+Composite type categories
+\begin{itemize}
+\item
+is\_arithmetic
+
+\item
+is\_reference
+
+\item
+is\_object
+
+\item
+is\_scalar
+
+\item
+...
+\end{itemize}
+
+\item
+Type relationships
+
+\begin{itemize}
+\item
+is\_same
+
+\item
+is\_base\_of
+
+\item
+is\_convertible
+
+\item
+is\_invocable
+
+\item
+is\_nothrow\_invocable
+
+\item
+...
+\end{itemize}
+
+\item
+const-volatile modifications
+
+\begin{itemize}
+\item
+remove\_const
+
+\item
+add\_const
+
+\item
+...
+\end{itemize}
+
+\item
+Sign modifications
+
+\begin{itemize}
+\item
+make\_signed
+
+\item
+make\_unsigned
+\end{itemize}
+
+\item
+Array modifications
+
+\begin{itemize}
+\item
+remove\_extent
+
+\item
+remove\_all\_extents
+\end{itemize}
+
+\item
+Logical operator traits
+
+\begin{itemize}
+\item
+conjunction
+
+\item
+disjunction
+
+\item
+negation
+\end{itemize}
+
+\item
+Reference modifications
+
+\begin{itemize}
+\item
+remove\_reference
+
+\item
+add\_lvalue\_reference
+
+\item
+add\_rvalue\_reference
+\end{itemize}
+
+\item
+Pointer modifications
+
+\begin{itemize}
+\item
+remove\_pointer
+
+\item
+add\_pointer
+\end{itemize}
+
+\item
+Constant evaluation context
+
+\begin{itemize}
+\item
+is\_constant\_evaluated
+\end{itemize}
+
+\item
+Other transformations
+
+\begin{itemize}
+\item
+enable\_if
+
+\item
+conditional
+
+\item
+invoke\_result
+
+\item
+type\_identity
+
+\item
+remove\_cvref
+
+\item
+common\_reference
+
+\item
+decay
+
+\item
+...
+\end{itemize}
+\end{itemize}
+
+The type traits marked with an asterisk (*) are available only since C++23.
+
+Type traits are a rather advanced C++ feature. By just looking at the preceding list, which is already a shortened version of the list from the C++ standard, it is clear that this book cannot explain all details about all type traits. This section explains just a couple of use cases to show you how type traits can be used.
 
 \mySamllsection{Using Type Categories}
 
+Before an example can be given for a template using type traits, you first need to know a bit more on how classes like is\_integral work. The C++ standard defines an integral\_constant class that looks like this:
+
+\begin{cpp}
+template <class T, T v>
+struct integral_constant {
+    static constexpr T value = v;
+    using value_type = T;
+    using type = integral_constant<T, v>;
+    constexpr operator value_type() const noexcept { return value; }
+    constexpr value_type operator()() const noexcept { return value; }
+};
+\end{cpp}
+
+It also defines bool\_constant, true\_type, and false\_type type aliases:
+
+\begin{cpp}
+template <bool B>
+using bool_constant = integral_constant<bool, B>;
+
+using true_type = bool_constant<true>;
+using false_type = bool_constant<false>;
+\end{cpp}
+
+When you access true\_type::value, you get the value true, and when you access false\_type::value, you get the value false. You can also access true\_type::type, which results in the type of true\_type. The same holds for false\_type. Classes like is\_integral, which checks whether a type is an integral type, and is\_class, which checks whether a type is a class, inherit from either true\_type or false\_type. For example, the Standard Library specializes is\_integral for type bool as follows:
+
+\begin{cpp}
+template <> struct is_integral<bool> : public true_type { };
+\end{cpp}
+
+This allows you to write is\_integral<bool>::value, which results in the value true. Note that you don’t need to write these specializations yourself; they are part of the Standard Library.
+
+The following code shows the simplest example of how type categories can be used:
+
+\begin{cpp}
+if (is_integral<int>::value) { println("int is integral"); }
+else { println("int is not integral"); }
+
+if (is_class<string>::value) { println("string is a class"); }
+else { println("string is not a class"); }
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+int is integral
+string is a class
+\end{shell}
+
+For each trait that has a value member, the Standard Library adds a variable template that has the same name as the trait followed by \_v. Instead of writing some\_trait<T>::value, you can write some\_trait\_v<T>—for example, is\_integral\_v<T>, is\_const\_v<T>, and so on. Here is an example of how the is\_integral\_v<T> variable template is defined in the Standard Library:
+
+\begin{cpp}
+template <class T>
+inline constexpr bool is_integral_v = is_integral<T>::value;
+\end{cpp}
+
+Using these variable templates, the previous example can be written as follows:
+
+\begin{cpp}
+if (is_integral_v<int>) { println("int is integral"); }
+else { println("int is not integral"); }
+
+if (is_class_v<string>) { println("string is a class"); }
+else { println("string is not a class"); }
+\end{cpp}
+
+In fact, because the value of is\_integral\_v<T> is a compile-time constant, you could use a constexpr if instead of a normal if.
+
+Of course, you will likely never use type traits in this way. They become more useful in combination with templates to generate code based on some properties of a type. The following function templates demonstrate this. The code defines two overloaded processHelper() function templates that accept a type as template parameter. The first parameter to these functions is a value, and the second is an instance of either true\_type or false\_type. The process() function template accepts a single parameter and calls processHelper().
+
+\begin{cpp}
+template <typename T>
+void processHelper(const T& t, true_type)
+{
+    println("{} is an integral type.", t);
+}
+
+template <typename T>
+void processHelper(const T& t, false_type)
+{
+    println("{} is a non-integral type.", t);
+}
+
+template <typename T>
+void process(const T& t)
+{
+    processHelper(t, is_integral<T>{});
+}
+\end{cpp}
+
+The second argument in the call to processHelper() is is\_integral<T>{}. This argument uses is\_integral<T> to figure out if T is an integral type. is\_integral<T> derives from either true\_type or false\_type. The processHelper() function needs an instance of a true\_type or a false\_type as a second parameter, so that is the reason for the empty set of braces \{\}. The two overloaded processHelper() functions don’t bother to name the parameters of type true\_type and false\_type. They are nameless because they don’t use those parameters inside their function body. These parameters are used only for function overload resolution.
+
+The code can be tested as follows:
+
+\begin{cpp}
+process(123);
+process(2.2);
+process("Test"s);
+\end{cpp}
+
+Here is the output:
+
+\begin{shell}
+123 is an integral type.
+2.2 is a non-integral type.
+Test is a non-integral type.
+\end{shell}
+
+The previous example can be written as a single function template as follows. However, that doesn’t demonstrate how to use type traits to select different overloads based on a type.
+
+\begin{cpp}
+template <typename T>
+void process(const T& t)
+{
+    if constexpr (is_integral_v<T>) {
+        println("{} is an integral type.", t);
+    } else {
+        println("{} is a non-integral type.", t);
+    }
+}
+\end{cpp}
+
+
 \mySamllsection{Using Type Relationships}
+
+Some examples of type relationships are is\_same, is\_base\_of, and is\_convertible. This section gives an example of how to use is\_same; the other type relationships work similarly.
+
+The following same() function template uses the is\_same type trait to figure out whether two given arguments are of the same type and outputs an appropriate message:
+
+\begin{cpp}
+template <typename T1, typename T2>
+void same(const T1& t1, const T2& t2)
+{
+    bool areTypesTheSame { is_same_v<T1, T2> };
+    println("'{}' and '{}' are {} types.", t1, t2,
+    (areTypesTheSame ? "the same" : "different"));
+}
+
+int main()
+{
+    same(1, 32);
+    same(1, 3.01);
+    same(3.01, "Test"s);
+}
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+'1' and '32' are the same types.
+'1' and '3.01' are different types
+'3.01' and 'Test' are different types
+\end{shell}
+
+Alternatively, you can implement this example without using any type traits, but using an overload set of two function templates instead:
+
+\begin{cpp}
+template <typename T1, typename T2>
+void same(const T1& t1, const T2& t2)
+{
+    println("'{}' and '{}' are different types.", t1, t2);
+}
+template <typename T>
+void same(const T& t1, const T& t2)
+{
+    println("'{}' and '{}' are the same type.", t1, t2);
+}
+\end{cpp}
+
+The second function template is more specialized than the first, so it will be preferred by overload resolution whenever it is viable, that is, whenever both arguments are of the same type T.
 
 \mySamllsection{Using the conditional Type Trait}
 
+Chapter 18, “Standard Library Containers,” explains the Standard Library helper function template std::move\_if\_noexcept(), which can be used to conditionally call either the move constructor or the copy constructor depending on whether the former is marked noexcept. The Standard Library does not provide a similar helper function template to easily call the move assignment operator or copy assignment operator depending on whether the former is noexcept. Now that you know about template metaprogramming and type traits, let’s take a look at how to implement a move\_assign\_if\_noexcept() ourselves.
+
+Remember from Chapter 18 that move\_if\_noexcept() just converts a given reference to an rvalue reference if the move constructor is marked noexcept and to a reference-to-const otherwise.
+
+move\_assign\_if\_noexcept() needs to do something similar, convert a given reference to an rvalue reference if the move assignment operator is marked noexcept, and to a reference-to-const otherwise.
+
+The std::conditional type trait can be used to implement the condition. This type trait has three template parameters: a Boolean, a type for when the Boolean is true, and a type for when it is false. The implementation of the conditional type trait looks as follows:
+
+
+\begin{cpp}
+template <bool B, class T, class F>
+struct conditional { using type = T; };
+
+template <class T, class F>
+struct conditional<false, T, F> { using type = F; };
+\end{cpp}
+
+The is\_nothrow\_move\_assignable type trait can be used to figure out whether a certain type can be move assigned without throwing exceptions. For class types, this means to check if the type has a move assignment operator that is marked with noexcept. Here is the entire implementation of move\_assign\_if\_noexcept():
+
+\begin{cpp}
+template <typename T>
+constexpr conditional<is_nothrow_move_assignable_v<T>, T&&, const T&>::type
+    move_assign_if_noexcept(T& t) noexcept
+{
+    return move(t);
+}
+\end{cpp}
+
+The Standard Library defines alias templates for traits that have a type member, such as conditional. These have the same name as the trait, but are appended with \_t. For example, the conditional\_t<B,T,F> alias template for conditional<B,T,F>::type is defined by the Standard Library as follows:
+
+\begin{cpp}
+template <bool B, class T, class F>
+using conditional_t = typename conditional<B,T,F>::type;
+\end{cpp}
+
+So, instead of writing this:
+
+\begin{cpp}
+conditional<is_nothrow_move_assignable_v<T>, T&&, const T&>::type
+\end{cpp}
+
+you can write this:
+
+\begin{cpp}
+conditional_t<is_nothrow_move_assignable_v<T>, T&&, const T&>
+\end{cpp}
+
+The move\_assign\_if\_noexcept() function template can be tested as follows:
+
+\begin{cpp}
+class MoveAssignable
+{
+    public:
+        MoveAssignable& operator=(const MoveAssignable&) {
+            println("copy assign"); return *this; }
+        MoveAssignable& operator=(MoveAssignable&&) {
+            println("move assign"); return *this; }
+};
+
+class MoveAssignableNoexcept
+{
+    public:
+        MoveAssignableNoexcept& operator=(const MoveAssignableNoexcept&) {
+            println("copy assign"); return *this; }
+        MoveAssignableNoexcept& operator=(MoveAssignableNoexcept&&) noexcept {
+            println("move assign"); return *this; }
+};
+
+int main()
+{
+    MoveAssignable a, b;
+    a = move_assign_if_noexcept(b);
+    MoveAssignableNoexcept c, d;
+    c = move_assign_if_noexcept(d);
+}
+\end{cpp}
+
+This outputs the following:
+
+\begin{shell}
+copy assign
+move assign
+\end{shell}
+
 \mySamllsection{Using Type Modification Type Traits}
+
+A number of type traits modify a given type. For example, the add\_const type trait adds const to a given type, the remove\_pointer type trait removes the pointer from a type, and so on. Here’s an example:
+
+\begin{cpp}
+println("{}", is_same_v<string, remove_pointer_t<string*>>);
+\end{cpp}
+
+The output is true.
+
+Implementing such type modification traits yourself is not that hard. Here is an implementation of a my\_remove\_pointer type trait (slightly simplified):
+
+\begin{cpp}
+// my_remove_pointer class template.
+template <typename T> struct my_remove_pointer { using type = T; };
+// Partial specialization for pointer types.
+template <typename T> struct my_remove_pointer<T*> { using type = T; };
+// Partial specialization for const pointer types.
+template <typename T> struct my_remove_pointer<T* const> { using type = T; };
+// Alias template for ease of use.
+template <typename T>
+using my_remove_pointer_t = typename my_remove_pointer<T>::type;
+
+int main()
+{
+    println("{}", is_same_v<string, my_remove_pointer_t<string*>>);
+}
+\end{cpp}
 
 \mySamllsection{Using enable\_if}
 
+The use of enable\_if is based on a principle called substitution failure is not an error (SFINAE), an advanced feature of C++. That principle states that a failure to specialize a function template for a given set of template parameters should not be seen as a compilation error. Instead, such specializations should just be removed from the function overload set. This section explains only the basics of SFINAE.
+
+If you have a set of overloaded functions, you can use enable\_if to selectively disable certain overloads based on some type traits. The enable\_if trait is often used on the return types of your set of overloads, or with unnamed non-type template parameters. enable\_if accepts two template parameters. The first is a Boolean, and the second is a type. If the Boolean is true, then the enable\_if class template has a type alias that you can access using ::type. The type of this type alias is the type given as the second template parameter. If the Boolean is false, then there is no such type alias. Here is the implementation of this type trait:
+
+\begin{cpp}
+template <bool B, class T = void>
+struct enable_if {};
+
+template <class T>
+struct enable_if<true, T> { typedef T type; };
+\end{cpp}
+
+The same() function template from an earlier section can be rewritten into overloaded checkType() function templates by using enable\_if as follows. In this implementation, the checkType() functions return true or false depending on whether the types of the given values are the same. If you don’t want to return anything from checkType(), you can remove the return statements and remove the second template argument for enable\_if.
+
+\begin{cpp}
+template <typename T1, typename T2>
+enable_if_t<is_same_v<T1, T2>, bool>
+checkType(const T1& t1, const T2& t2)
+{
+    println("'{}' and '{}' are the same types.", t1, t2);
+    return true;
+}
+
+template <typename T1, typename T2>
+enable_if_t<!is_same_v<T1, T2>, bool>
+checkType(const T1& t1, const T2& t2)
+{
+    println("'{}' and '{}' are different types.", t1, t2);
+    return false;
+}
+
+int main()
+{
+    checkType(1, 32);
+    checkType(1, 3.01);
+    checkType(3.01, "Test"s);
+}
+\end{cpp}
+
+The output is the same as before:
+
+\begin{shell}
+'1' and '32' are the same types.
+'1' and '3.01' are different types.
+'3.01' and 'Test' are different types.
+\end{shell}
+
+The code defines two overloads for checkType(). It uses is\_same\_v to check whether two types are the same. The result is given to enable\_if\_t. When the first argument to enable\_if\_t is true, enable\_if\_t has type bool; otherwise, there is no type. This is where SFINAE comes into play.
+
+When the compiler starts to compile the first statement in main(), it tries to find a function checkType() that accepts two integer values. It finds the first checkType() function template overload and deduces that it can use an instance of this function template by making T1 and T2 both integers. It then tries to figure out the return type. Because both arguments are integers and thus the same types, is\_same\_v<T1, T2> is true, which causes enable\_if\_t<true, bool> to be type bool. With this instantiation, everything is fine, and thus the compiler adds this overload to the set of candidates. When it sees the second overload of checkType(), it again deduces that it can use an instance of this function template by making T1 and T2 both integers. However, when trying to figure out the return type, it finds out that !is\_same\_v<T1, T2> is false. Because of this, enable\_if\_t<false, bool> does not represent a type, leaving that overload of checkType() without a return type. The compiler notices this error but does not yet generate a real compilation error because of SFINAE. It simply does not add this overload to the set of candidates. Thus, with the first statement in main(), the overload set contains one candidate checkType() function, so it’s clear which one the compiler will use.
+
+When the compiler tries to compile the second statement in main(), it again tries to find a suitable checkType() function. It starts with the first checkType() and decides it can use that overload by setting T1 to type int and T2 to type double. It then tries to figure out the return type. This time, T1 and T2 are different types, which means that is\_same\_v<T1, T2> is false. Because of this, enable\_if\_t<false, bool> does not represent a type, leaving the function checkType() without a return type. The compiler notices this error but does not yet generate a real compilation error because of SFINAE. Instead, the compiler simply does not add this overload to the set of candidates. When the compiler sees the second checkType() function, it figures out that that one works out fine because T1 and T2 are of different types, so !is\_same\_v<T1, T2> is true, and thus enable\_if\_t<true, bool> is type bool. In the end, the overload set for the second statement in main() again contains only one overload, so it’s clear which one the compiler will use.
+
+If you don’t want to clutter your return types with enable\_if, then another option is to use enable\_if with extra non-type template parameters. This actually makes the code easier to read. For example:
+
+\begin{cpp}
+template <typename T1, typename T2, enable_if_t<is_same_v<T1, T2>>* = nullptr>
+bool checkType(const T1& t1, const T2& t2)
+{
+    println("'{}' and '{}' are the same types.", t1, t2);
+    return true;
+}
+
+template <typename T1, typename T2, enable_if_t<!is_same_v<T1, T2>>* = nullptr>
+bool checkType(const T1& t1, const T2& t2)
+{
+    println("'{}' and '{}' are different types.", t1, t2);
+    return false;
+}
+\end{cpp}
+
+If you want to use enable\_if on a set of constructors, you can’t use it with the return type because constructors don’t have a return type. In that case, you must use it with non-type template parameters, as shown earlier.
+
+The enable\_if syntax explained in this section was the state of the art prior to C++20. Since C++20, you should prefer to use concepts, discussed in Chapter 12. Notice the syntactic similarity between the earlier enable\_if code and the following example using concepts. However, it’s clear that the version using concepts is more readable.
+
+\begin{cpp}
+template <typename T1, typename T2> requires is_same_v<T1, T2>
+bool checkType(const T1& t1, const T2& t2)
+{
+    println("'{}' and '{}' are the same types.", t1, t2);
+    return true;
+}
+
+template <typename T1, typename T2> requires !is_same_v<T1, T2>
+bool checkType(const T1& t1, const T2& t2)
+{
+    println("'{}' and '{}' are different types.", t1, t2);
+    return false;
+}
+\end{cpp}
+
+It is recommended to use SFINAE judiciously. Use it only when you need to resolve overload ambiguities that you cannot possibly resolve using any other technique, such as specializations, concepts, and so on. For example, if you just want compilation to fail when you use a template with the wrong types, use concepts or use static\_assert(), explained later in this chapter, instead of SFINAE. Of course, there are legitimate use cases for SFINAE, but keep the following in mind.
+
+\begin{myNotic}{NOTE}
+Relying on SFINAE is tricky and complicated. If your use of SFINAE and enable\_if selectively disables the wrong overloads in your overload set, you will get cryptic compiler errors, which will be hard to track down.
+\end{myNotic}
+
 \mySamllsection{Using constexpr if to Simplify enable\_if Constructs}
+
+As you can see from earlier examples, using enable\_if can become quite complicated. The constexpr if feature helps to dramatically simplify certain use cases of enable\_if.
+
+For example, suppose you have the following two classes:
+
+\begin{cpp}
+class IsDoable
+{
+    public:
+        virtual void doit() const { println("IsDoable::doit()"); }
+};
+
+class Derived : public IsDoable { };
+\end{cpp}
+
+You can write a function template, callDoit(), that calls the doit() member function if the member function is available; otherwise, prints an error message. You can do this with enable\_if by checking whether the given type is derived from IsDoable:
+
+\begin{cpp}
+template <typename T>
+enable_if_t<is_base_of_v<IsDoable, T>, void> callDoit(const T& t)
+{
+    t.doit();
+}
+
+template <typename T>
+enable_if_t<!is_base_of_v<IsDoable, T>, void> callDoit(const T&)
+{
+    println("Cannot call doit()!");
+}
+\end{cpp}
+
+The following code tests this implementation:
+
+\begin{cpp}
+Derived d;
+callDoit(d);
+callDoit(123);
+\end{cpp}
+
+Here is the output:
+
+\begin{shell}
+IsDoable::doit()
+Cannot call doit()!
+\end{shell}
+
+You can simplify this enable\_if implementation a lot by using constexpr if:
+
+\begin{cpp}
+template <typename T>
+void callDoit(const T& t)
+{
+    if constexpr (is_base_of_v<IsDoable, T>) {
+        t.doit();
+    } else {
+        println("Cannot call doit()!");
+    }
+}
+\end{cpp}
+
+You cannot accomplish this using a normal if statement. With a normal if statement, both branches need to be compiled, and this will fail if you supply a type T that is not derived from IsDoable. In that case, the statement t.doit() will fail to compile. However, with the constexpr if statement, if a type is supplied that is not derived from IsDoable, then the statement t.doit() won’t even be compiled.
+
+Instead of using the is\_base\_of type trait, you can also use a requires expression; see Chapter 12. Here is an implementation of callDoit() using a requires expression to check whether the doit() member function can be called on object t.
+
+\begin{cpp}
+template <typename T>
+void callDoit(const T& t)
+{
+    if constexpr (requires { t.doit(); }) {
+        t.doit();
+    } else {
+        println("Cannot call doit()!");
+    }
+}
+\end{cpp}
 
 \mySamllsection{Logical Operator Traits}
 
+There are three logical operator traits: conjunction, disjunction, and negation. Variable templates, ending with \_v, are available as well. These traits accept a variable number of template type arguments and can be used to perform logical operations on type traits, as in this example:
+
+\begin{cpp}
+print("{} ", conjunction_v<is_integral<int>, is_integral<short>>);
+print("{} ", conjunction_v<is_integral<int>, is_integral<double>>);
+
+print("{} ", disjunction_v<is_integral<int>, is_integral<double>,
+                        is_integral<short>>);
+
+print("{} ", negation_v<is_integral<int>>);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+true false true false
+\end{shell}
+
 \mySamllsection{Static Assertions}
+
+static\_assert() allows certain conditions to be asserted at compile time. An assertion is something that needs to be true. If an assertion is false, the compiler issues an error. A call to static\_assert() accepts two parameters: an expression to evaluate at compile time and (optionally) a string. When the expression evaluates to false, the compiler issues an error that contains the given string. An example is to check that you are compiling with a 64-bit compiler:
+
+\begin{cpp}
+static_assert(sizeof(void*) == 8, "Requires 64-bit compilation.");
+\end{cpp}
+
+If you compile this with a 32-bit compiler where a pointer is four bytes, the compiler issues an error that can look like this:
+
+\begin{shell}
+test.cpp(3): error C2338: Requires 64-bit compilation.
+\end{shell}
+
+The string parameter is optional, as in this example:
+
+\begin{cpp}
+static_assert(sizeof(void*) == 8);
+\end{cpp}
+
+In this case, if the expression evaluates to false, you get a compiler-dependent error message. For example, Microsoft Visual C++ gives the following error:
+
+\begin{shell}
+test.cpp(3): error C2607: static assertion failed
+\end{shell}
+
+static\_assert() can be combined with type traits. Here is an example:
+
+\begin{cpp}
+template <typename T>
+void foo(const T& t)
+{
+    static_assert(is_integral_v<T>, "T must be an integral type.");
+}
+\end{cpp}
+
+\mySubsubsection{26.6.5.}{Metaprogramming Conclusion}
+
+As you have seen in this section, template metaprogramming can be a powerful tool, but it can also get quite complicated. One problem with template metaprogramming, not mentioned before, is that everything happens at compile time so you cannot use a debugger to pinpoint a problem. If you decide to use template metaprogramming in your code, make sure you write good comments to explain exactly what is going on and why you are doing something a certain way. If you don’t properly document your template metaprogramming code, it might be difficult for someone else to understand your code, and it might even make it difficult for you to understand your own code in the future.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

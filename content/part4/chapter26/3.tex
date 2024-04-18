@@ -1,0 +1,122 @@
+The C++ standard does not permit partial template specialization of function templates. Instead, you can overload the function template with another function template. As an example, let’s look again at the Find() algorithm from Chapter 12. It consists of a generic Find() function template and a nontemplate overload for const char*s. Here is a reminder:
+
+\begin{cpp}
+template <typename T>
+optional<size_t> Find(const T& value, const T* arr, size_t size)
+{
+    for (size_t i { 0 }; i < size; ++i) {
+        if (arr[i] == value) {
+            return i; // found it; return the index.
+        }
+    }
+    return {}; // failed to find it; return empty optional.
+}
+
+optional<size_t> Find(const char* value, const char** arr, size_t size)
+{
+    for (size_t i { 0 }; i < size; ++i) {
+        if (strcmp(arr[i], value) == 0) {
+            return i; // found it; return the index.
+        }
+    }
+    return {}; // failed to find it; return empty optional.
+}
+\end{cpp}
+
+Suppose that you want to customize Find() so that it dereferences pointers to use operator== directly on the objects pointed to. The correct way to implement this behavior is to overload the Find() function template with another, more specialized, function template:
+
+\begin{cpp}
+template <typename T>
+optional<size_t> Find(T* value, T* const* arr, size_t size)
+{
+    for (size_t i { 0 }; i < size; ++i) {
+        if (*arr[i] == *value) {
+            return i; // Found it; return the index.
+        }
+    }
+    return {}; // failed to find it; return empty optional.
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+ Between all overloads, the compiler always chooses the “most specific” one to call. If a non-template overload is just as specific as a function template instantiation, then the compiler prefers the non-template overload.
+\end{myNotic}
+
+The following code calls Find() several times. The comments say which overload of Find() is called.
+
+\begin{cpp}
+optional<size_t> res;
+
+int myInt { 3 }, intArray[] { 1, 2, 3, 4 };
+size_t sizeArray { size(intArray) };
+res = Find(myInt, intArray, sizeArray); // calls Find<int> by deduction
+res = Find<int>(myInt, intArray, sizeArray); // calls Find<int> explicitly
+
+double myDouble { 5.6 }, doubleArray[] { 1.2, 3.4, 5.7, 7.5 };
+sizeArray = size(doubleArray);
+// calls Find<double> by deduction
+res = Find(myDouble, doubleArray, sizeArray);
+// calls Find<double> explicitly
+res = Find<double>(myDouble, doubleArray, sizeArray);
+
+const char* word { "two" };
+const char* words[] { "one", "two", "three", "four" };
+sizeArray = size(words);
+
+// calls Find<const char*> explicitly
+res = Find<const char*>(word, words, sizeArray);
+// calls overloaded Find for const char*s
+res = Find(word, words, sizeArray);
+
+int *intPointer { &myInt }, *pointerArray[] { &myInt, &myInt };
+sizeArray = size(pointerArray);
+// calls the overloaded Find for pointers
+res = Find(intPointer, pointerArray, sizeArray);
+
+SpreadsheetCell cell1 { 10 };
+SpreadsheetCell cellArray[] { SpreadsheetCell { 4 }, SpreadsheetCell { 10 } };
+sizeArray = size(cellArray);
+// calls Find<SpreadsheetCell> by deduction
+res = Find(cell1, cellArray, sizeArray);
+// calls Find<SpreadsheetCell> explicitly
+res = Find<SpreadsheetCell>(cell1, cellArray, sizeArray);
+
+SpreadsheetCell *cellPointer { &cell1 };
+SpreadsheetCell *cellPointerArray[] { &cell1, &cell1 };
+sizeArray = size(cellPointerArray);
+// Calls the overloaded Find for pointers
+res = Find(cellPointer, cellPointerArray, sizeArray);
+\end{cpp}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

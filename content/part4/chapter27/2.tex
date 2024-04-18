@@ -1,37 +1,458 @@
 
+The C++ threading library, defined in <thread>, makes it easy to launch new threads. You can specify what needs to be executed in the new thread in several ways. You can let the new thread execute a global function, the operator() of a function object, a lambda expression, or even a member function of an instance of some class. The following sections give small examples of all these techniques.
 
 \mySubsubsection{27.2.1.}{Thread with Function Pointer}
 
+Functions such as CreateThread(), \_beginthread(), and so on, on Windows, and pthread\_create() with the pthreads library, require that the thread function has only one parameter. On the other hand, a function that you want to use with the standard C++ std::thread class can have as many parameters as you want.
 
+Suppose you have a counter() function accepting two integers: the first representing an ID and the second representing the number of iterations that the function should loop. The body of the function is a single loop that loops the given number of iterations. On each iteration, a message is printed to standard output.
+
+\begin{cpp}
+void counter(int id, int numIterations)
+{
+    for (int i { 0 }; i < numIterations; ++i) {
+        println("Counter {} has value {}", id, i);
+    }
+}
+\end{cpp}
+
+You can launch multiple threads executing this function using std::thread. You can create a thread t1, executing counter() with arguments 1 and 6 as follows:
+
+\begin{cpp}
+thread t1 { counter, 1, 6 };
+\end{cpp}
+
+The constructor of the thread class is a variadic template, which means that it accepts any number of arguments. Variadic templates are discussed in detail in Chapter 26, “Advanced Templates.” The first argument is a callable object (such as a function pointer—in this example, a pointer to the function counter()) to execute in the new thread. Any subsequent arguments are passed to this callable when execution of the thread starts.
+
+A thread object is said to be joinable if it represents or represented an active thread in the system.
+Even when the thread has finished executing, a thread object remains in the joinable state. A defaultconstructed thread object is unjoinable. Before a joinable thread object is destroyed, you need to make sure to call either join() or detach() on it. A call to join() is a blocking call: it waits until the thread has finished its work. A call to detach() detaches a thread object from its underlying OS thread, in which case the OS thread keeps running independently. Both member functions cause the thread to become unjoinable. If a thread object that is still joinable is destroyed, the destructor calls std::terminate(), which abruptly terminates all threads and the application itself. The reason for this behavior is that destroying a thread without joining it is almost certainly a bug, and terminating the program is the best available way for the library to indicate the problem.
+
+The following code launches two threads executing the counter() function. After launching the threads, join() is called on both threads.
+
+\begin{cpp}
+thread t1 { counter, 1, 6 };
+thread t2 { counter, 2, 4 };
+t1.join();
+t2.join();
+\end{cpp}
+
+A possible output of this example looks as follows:
+
+\begin{shell}
+Counter 2 has value 0
+Counter 1 has value 0
+Counter 1 has value 1
+Counter 1 has value 2
+Counter 1 has value 3
+Counter 1 has value 4
+Counter 1 has value 5
+Counter 2 has value 1
+Counter 2 has value 2
+Counter 2 has value 3
+\end{shell}
+
+The output on your system will be different, and it will most likely be different every time you run it. This is because two threads are executing the counter() function at the same time, so the output depends on the number of processing cores in your machine and on the thread scheduling of the operating system.
+
+Calling print() or println() from different threads is thread-safe and doesn’t cause any data races. However, if you change the single println() statement in counter() to the following:
+
+\begin{cpp}
+print("Counter {} has value {}", id, i);
+println("");
+\end{cpp}
+
+Or:
+
+\begin{cpp}
+cout << format("Counter {} has value {}", id, i) << endl;
+\end{cpp}
+
+Or:
+
+\begin{cpp}
+cout << format("Counter {} has value {}", id, i);
+cout << endl;
+\end{cpp}
+
+Then, even though there are still no data races, output from different threads can be interleaved! This means that the output can be mixed together as follows:
+
+\begin{shell}
+Counter 1 has value 0Counter 2 has value 0
+
+Counter 2 has value 1
+Counter 2 has value 2Counter 1 has value 1
+...
+\end{shell}
+
+This can be fixed using synchronization mechanisms, which are discussed later in this chapter.
+
+\begin{myNotic}{NOTE}
+Thread function arguments are always copied into some internal storage for the thread. Use std::ref() or std::cref() from <functional> to pass them by reference.
+\end{myNotic}
 
 \mySubsubsection{27.2.2.}{Thread with Function Object}
 
+Instead of using function pointers, you can also use a function object to execute in a thread. With the function pointer technique of the previous section, the only way to pass information to the thread is by passing arguments to the function. With function objects, you can add data members to your function object class, which you can initialize and use however you want. The following example first defines a class called Counter, which has two data members: an ID and the number of iterations for the loop. Both variables are initialized with the constructor. To make the Counter class a function object, you need to implement operator(), as discussed in Chapter 19, “Function Pointers, Function Objects, and Lambda Expressions.” The implementation of operator() is the same as the counter() function from the previous section. Here is the code:
 
+\begin{cpp}
+class Counter
+{
+    public:
+        explicit Counter(int id, int numIterations)
+            : m_id { id }, m_numIterations { numIterations } { }
+
+        void operator()() const
+        {
+            for (int i { 0 }; i < m_numIterations; ++i) {
+                println("Counter {} has value {}", m_id, i);
+            }
+        }
+    private:
+        int m_id { 0 };
+        int m_numIterations { 0 };
+};
+\end{cpp}
+
+Two techniques for initializing threads with a function object are demonstrated in the following code snippet. The first technique uses the uniform initialization syntax. You create an instance of Counter with its constructor arguments and give it to the thread constructor between curly braces. The second technique defines a named instance of Counter and gives this named instance to the constructor of the thread class.
+
+\begin{cpp}
+// Using uniform initialization syntax.
+thread t1 { Counter { 1, 20 } };
+
+// Using named variable.
+Counter c { 2, 12 };
+thread t2 { c };
+
+// Wait for threads to finish.
+t1.join();
+t2.join();
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Function objects are always copied into some internal storage for the thread. If you want to execute operator() on a specific instance of your function object instead of on a copy, you should use one of the std::ref() or std::cref() helper functions from <functional> to pass your instance by reference, for example:
+
+\begin{cpp}
+Counter c { 2, 12 };
+thread t2 { ref(c) };
+\end{cpp}
+
+However, since t2 now has a reference to c, it will be a data race (and thus undefined behavior) to read or write the contents of c from the main thread before t2 has finished and been joined.
+\end{myNotic}
 
 \mySubsubsection{27.2.3.}{Thread with Lambda}
 
+Lambda expressions fit nicely with the standard C++ threading library. Here is an example that launches a thread to execute a given lambda expression:
 
+\begin{cpp}
+int id { 1 };
+int numIterations { 5 };
+thread t1 { [id, numIterations] {
+        for (int i { 0 }; i < numIterations; ++i) {
+            println("Counter {} has value {}", id, i);
+        }
+} };
+t1.join();
+\end{cpp}
 
 \mySubsubsection{27.2.4.}{Thread with Member Function Pointer}
 
+You can specify a member function of a class to be executed in a thread. The following example defines a basic Request class with a process() member function. The main() function creates an instance of the Request class and launches a new thread, which executes the process() member function of the Request instance req.
 
+\begin{cpp}
+class Request
+{
+    public:
+        explicit Request(int id) : m_id { id } { }
+        void process() { println("Processing request {}", m_id); }
+    private:
+        int m_id { 0 };
+};
+
+int main()
+{
+    Request req { 100 };
+    thread t { &Request::process, &req };
+    t.join();
+}
+\end{cpp}
+
+With this technique, you are executing a member function on a specific object in a separate thread. If other threads are accessing the same object, you need to make sure this happens in a thread-safe way to avoid data races. Mutual exclusion, discussed later in this chapter, can be used as a synchronization mechanism to make it thread-safe.
 
 \mySubsubsection{27.2.5.}{Thread-Local Storage}
 
+The C++ standard supports thread-local storage. With a keyword called thread\_local, you can mark any variable as thread-local, which means that each thread will have its own unique copy of the variable, and it will last for the entire duration of the thread. For each thread, the variable is initialized exactly once. For example, the following code defines two global variables, k and n. Every thread shares one—and only one—copy of k, while each thread has its own unique copy of n.
 
+\begin{cpp}
+int k;
+thread_local int n;
+\end{cpp}
+
+The following code snippet verifies this. threadFunction() prints the current values for k and n, and then increments them both. The main() function launches a first thread, waits for it to finish, and then launches a second thread.
+
+\begin{cpp}
+void threadFunction(int id)
+{
+    println("Thread {}: k={}, n={}", id, k, n);
+    ++n;
+    ++k;
+}
+
+int main()
+{
+    thread t1 { threadFunction, 1 }; t1.join();
+    thread t2 { threadFunction, 2 }; t2.join();
+}
+\end{cpp}
+
+From the following output, it’s clear that there is only a single instance of k shared across all threads, while each thread has its own copy of n.
+
+\begin{shell}
+Thread 1: k=0, n=0
+Thread 2: k=1, n=0
+\end{shell}
+
+The previous paragraphs show how thread\_local works for global variables. It also works for static data members of classes and static local variables of functions. Inside a function, and only inside a function, declaring a variable as thread\_local implies static, but it’s recommended to be explicit about this. Here are some examples:
+
+\begin{cpp}
+static thread_local int x1; // OK, internal linkage (See Chapter 11)
+thread_local int x2; // OK, external linkage (See Chapter 11)
+
+class Foo
+{
+    static thread_local int x3; // OK
+    thread_local int x4; // Error!
+};
+
+void f()
+{
+    static thread_local int x5; // OK
+    thread_local int x6; // OK, implicitly static!
+}
+\end{cpp}
 
 \mySubsubsection{27.2.6.}{Canceling Threads}
 
-
+The C++ standard does not include any mechanism for canceling a running thread from another thread. One (partial) solution is to use the jthread class, discussed in the next section. If that’s not an option, then the best way to achieve this is to provide some communication mechanism that the two threads agree upon. The simplest mechanism is to have a shared variable, which the target thread checks periodically to determine if it should terminate. Other threads can set this shared variable to indirectly instruct the thread to shut down. You have to be careful here, because this shared variable is being accessed by multiple threads, of which at least one is writing to the shared variable. To make this thread safe, it’s recommended to use atomic variables or condition variables, both discussed later in this chapter.
 
 \mySubsubsection{27.2.7.}{Automatically Joining Threads}
 
+As discussed earlier, if a thread instance is destroyed that is still joinable, the C++ runtime calls std::terminate() to terminate the application. <thread> also defines std::jthread, which is virtually identical to thread, except:
+
+\begin{itemize}
+\item
+It automatically joins in its destructor.
+
+\item
+ It supports cooperative cancellation.
+\end{itemize}
+
 \mySamllsection{Cooperative Cancellation}
 
+The cancellation support of jthread is called cooperative cancellation because a thread that supports cancellation needs to periodically check if it needs to cancel itself. Before an example can be given, two important classes need to be introduced, both defined in <stop\_token>:
+
+\begin{itemize}
+\item
+std::stop\_token: Supports actively checking for a cancellation request. A cancellable thread needs to periodically call stop\_requested() on a stop\_token to find out if it needs to stop its work. A stop\_token can be used with a condition\_variable\_any so a thread can wake up when it needs to stop.
+
+\item
+std::stop\_source: Used to request a thread to cancel its execution. This is done by calling the request\_stop() member function on a stop\_source. If a stop\_source is used to request a cancellation, that stop request is visible to all associated stop\_sources and stop\_tokens. The stop\_requested() member function can be used to check whether a stop has already been requested.
+\end{itemize}
+
+If you have a jthread instance, you can get access to its stop\_token and stop\_source by using the get\_stop\_token() and get\_stop\_source() member functions. Additionally, the callable passed to a constructor of jthread can have a stop\_token as its first parameter.
+
+Let’s look at an example. The following code defines a threadFunction() callable that accepts a stop\_token as its first parameter. Because this is cooperative cancellation, the body of this thread function uses that stop\_token to check whether it needs to cancel itself. This code uses std::this\_thread::sleep\_for() to introduce a small delay in each loop. The argument to sleep\_for() is an std::chrono::duration; see Chapter 22, “Date and Time Utilities.”
+
+\begin{cpp}
+void threadFunction(stop_token token, int id)
+{
+    while (!token.stop_requested()) {
+        println("Thread {} doing some work.", id);
+        this_thread::sleep_for(500ms);
+    }
+    println("Stop requested for thread {}.", id);
+}
+\end{cpp}
+
+The following main() function creates two jthread instances to execute threadFunction(), sleeps for two seconds, writes a message that it’s ending, and asks both threads to stop:
+
+\begin{cpp}
+int main()
+{
+    jthread job1 { threadFunction, 1 };
+    jthread job2 { threadFunction, 2 };
+
+    this_thread::sleep_for(2s);
+    println("main() is ending.");
+
+    job1.request_stop();
+    job2.request_stop();
+}
+\end{cpp}
+
+The following is a possible output of this program:
+
+\begin{shell}
+Thread 2 doing some work.
+Thread 1 doing some work.
+Thread 2 doing some work.
+Thread 1 doing some work.
+Thread 2 doing some work.
+Thread 1 doing some work.
+Thread 2 doing some work.
+Thread 1 doing some work.
+main() is ending.
+Stop requested for thread 2.
+Stop requested for thread 1.
+\end{shell}
+
+The destructor of jthread automatically requests its thread to stop executing before joining it, so the previous main() function can be simplified slightly by omitting the two calls to request\_stop().
 
 \mySubsubsection{27.2.8.}{Retrieving Results from Threads}
 
+As you saw in the previous examples, launching a new thread is pretty easy. However, in most cases you are probably interested in results produced by the thread. For example, if your thread performs some mathematical calculations, you really would like to get the results out of the thread once the thread is finished. One way is to pass a pointer or reference to a result variable to the thread in which the thread stores the results. Another technique is to store the results inside class data members of a function object, which you can retrieve later once the thread has finished executing. This works only if you use std::ref() to pass your function object by reference to the jthread constructor. Here is an example:
 
+\begin{cpp}
+class Calculator
+{
+    public:
+        explicit Calculator(int a, int b) : m_a { a }, m_b { b } {}
+        void operator()() { result = m_a * m_b; }
+        int getResult() const { return result; }
+    private:
+        int m_a { 0 };
+        int m_b { 0 };
+        int result { 0 };
+};
+
+int main()
+{
+    Calculator calculator { 21, 2 };
+    jthread job { ref(calculator) };
+    job.join();
+    println("21*2 = {}", calculator.getResult());
+}
+\end{cpp}
+
+This correctly outputs:
+
+\begin{shell}
+21*2 = 42
+\end{shell}
+
+If you don’t use ref() and initialize job as follows, then the output will be 21*2 = 0:
+
+\begin{cpp}
+jthread job { calculator };
+\end{cpp}
+
+However, there is another easier mechanism to obtain a result from threads: futures. Futures also make it easier to handle errors that occur inside your threads. They are discussed later in this chapter.
 
 \mySubsubsection{27.2.9.}{Copying and Rethrowing Exceptions}
+
+The whole exception mechanism in C++ works perfectly fine, as long as it stays within one single thread. Every thread can throw its own exceptions, but they need to be caught within their own thread. If a thread throws an exception and it is not caught inside the thread, the C++ runtime calls std::terminate(), which terminates the whole application. Exceptions thrown in one thread cannot be caught in another thread. This introduces quite a few problems when you would like to use exception handling in combination with multithreaded programming.
+
+Without the standard threading library, it’s difficult if not impossible to gracefully handle exceptions across threads. The standard threading library solves this issue with the following exception-related functions. These functions work not only with std::exceptions, but also with other kinds of exceptions, ints, strings, custom exceptions, and so on:
+
+\begin{itemize}
+\item
+\begin{cpp}
+exception_ptr current_exception() noexcept;
+\end{cpp}
+
+Intended to be called from inside a catch block. Returns an exception\_ptr object that refers to the exception currently being handled, or a copy of the currently handled exception. A null exception\_ptr object is returned if no exception is being handled. This referenced exception object is reference counted, similar to std::shared\_ptr, and remains valid for as long as there is an object of type exception\_ptr that is referencing it.
+
+\item
+\begin{cpp}
+[[noreturn]] void rethrow_exception(exception_ptr p);
+\end{cpp}
+
+Rethrows the exception referenced by the exception\_ptr parameter (which must not be null). Rethrowing the referenced exception does not have to be done in the same thread that generated the referenced exception in the first place, which makes this feature perfectly suited for handling exceptions across different threads. The [[noreturn]] attribute makes it clear that this function never returns normally.
+
+\item
+\begin{cpp}
+template<class E> exception_ptr make_exception_ptr(E e) noexcept;
+\end{cpp}
+
+Creates an exception\_ptr object that refers to a copy of the given exception object. This is basically a shorthand notation for the following code:
+
+\begin{cpp}
+try { throw e; }
+catch(...) { return current_exception(); }
+\end{cpp}
+\end{itemize}
+
+Let’s see how handling exceptions across different threads can be implemented using these functions. The following code defines a function that does some work and throws an exception. This function will ultimately be running in a separate thread.
+
+\begin{cpp}
+void doSomeWork()
+{
+    for (int i { 0 }; i < 5; ++i) { println("{}", i); }
+    println("Thread throwing a runtime_error exception...");
+    throw runtime_error { "Exception from thread" };
+}
+\end{cpp}
+
+The following threadFunc() function wraps the call to the preceding function in a try/catch block, catching all exceptions that doSomeWork() might throw. A single argument is supplied to threadFunc(), which is of type exception\_ptr\&. Once an exception is caught, the function current\_exception() is used to get a reference to the exception being handled, which is then assigned to the exception\_ptr parameter. After that, the thread exits normally.
+
+\begin{cpp}
+void threadFunc(exception_ptr& err)
+{
+    try {
+        doSomeWork();
+    } catch (...) {
+        println("Thread caught exception, returning exception...");
+        err = current_exception();
+    }
+}
+\end{cpp}
+
+The following doWorkInThread() function is called from within the main thread. Its responsibility is to create a new thread and start executing threadFunc() in it. A reference to an object of type exception\_ptr is given as an argument to threadFunc(). Once the thread is created, the doWorkInThread() function waits for the thread to finish by using the join() member function, after which the error object is examined. Because exception\_ptr is of type NullablePointer, you can easily check it using an if statement. If it’s a non-null value, the exception is rethrown in the current thread, which is the main thread in this example. Because you are rethrowing the exception in the main thread, the exception has been transferred from one thread to another thread.
+
+\begin{cpp}
+void doWorkInThread()
+{
+    exception_ptr error;
+    // Launch thread.
+    jthread t { threadFunc, ref(error) };
+    // Wait for thread to finish.
+    t.join();
+    // See if thread has thrown any exception.
+    if (error) {
+        println("Main thread received exception, rethrowing it...");
+        rethrow_exception(error);
+    } else {
+        println("Main thread did not receive any exception.");
+    }
+}
+\end{cpp}
+
+The main() function is pretty straightforward. It calls doWorkInThread() and wraps the call in a try/catch block to catch exceptions thrown by the thread spawned by doWorkInThread().
+
+\begin{cpp}
+int main()
+{
+    try {
+        doWorkInThread();
+    } catch (const exception& e) {
+        println("Main function caught: '{}'", e.what());
+    }
+}
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+0
+1
+2
+3
+4
+Thread throwing a runtime_error exception...
+Thread caught exception, returning exception...
+Main thread received exception, rethrowing it...
+Main function caught: 'Exception from thread'
+\end{shell}
+
+To keep the examples in this chapter compact and to the point, their main() functions usually use join(), either explicitly or implicitly with jthread, to block the main thread and to wait until threads have finished. Of course, in real-world applications you do not want to block your main thread. For example, in a GUI application, blocking your main thread means that the UI becomes unresponsive. In that case, you can use a messaging paradigm to communicate between threads. For example, the earlier threadFunc() function could send a message to the UI thread with as argument a copy of the result of current\_exception().
+
+
 

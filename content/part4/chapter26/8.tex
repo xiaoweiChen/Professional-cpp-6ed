@@ -1,0 +1,43 @@
+By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+
+\begin{itemize}
+\item
+Exercise 26-1: In Exercise 12-2, you wrote a full specialization of a KeyValuePair class template for const char* keys and values. Replace that full specialization with a partial specialization where the values are of type const char* but the keys can be of any type.
+
+\item
+Exercise 26-2: Calculate the nth number in the Fibonacci series at compile time using template recursion. The Fibonacci series starts with 0 and 1, and any subsequent value is the sum of the two previous values, so: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, and so on.
+
+Can you also provide a variable template to make your recursive Fibonacci template easier to use?
+
+\item
+Exercise 26-3: Take your solution for Exercise 26-2 and modify it so that the calculation still happens at compile time, but without the use of any template or function recursion.
+
+\item
+Exercise 26-4: Write a variadic function template called push\_back\_values() accepting a reference to a vector and a variable number of values. The function should use a fold expression to push all the values into the given vector. Then, write an insert\_values() function template doing the same thing but in terms of vector::insert(initializer\_list<value\_type>). What’s the difference with the push\_back\_values() implementation?
+
+\item
+Exercise 26-5: Write a multiply() non-abbreviated function template accepting two template type parameters T1 and T2. Use a type trait to verify that both types are arithmetic. If they are, perform the multiplication and return the result. If they are not, throw an exception containing the names of both types.
+
+\item
+Exercise 26-6: Advanced. Transform your solution for Exercise 26-5 to use an abbreviated function template.
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

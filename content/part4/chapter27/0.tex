@@ -1,0 +1,53 @@
+\noindent
+\textbf{WHAT’S IN THIS CHAPTER?}
+
+\begin{itemize}
+\item
+What multithreaded programming is
+
+\item
+How to launch multiple threads
+
+\item
+How to (sort of) cancel threads
+
+\item
+How to retrieve results from threads
+
+\item
+What deadlocks and race conditions are, and how to use mutual exclusion to prevent them
+
+\item
+How to use atomic types and atomic operations
+
+\item
+What condition variables are
+
+\item
+How to use semaphores, latches, and barriers
+
+\item
+How to use futures and promises for inter-thread communication
+
+\item
+What thread pools are
+
+\item
+What resumable functions, or coroutines, are
+\end{itemize}
+
+\noindent
+\textbf{WILEY.COM DOWNLOADS FOR THIS CHAPTER}
+
+Please note that all the code examples for this chapter are available as part of this chapter’s code download on the book’s website at \url{www.wiley.com/go/proc++6e} on the Download Code tab.
+
+Multithreaded programming is important on computer systems with multiple processor units. It allows you to write a program to use all those processor units in parallel. There are multiple ways for a system to have multiple processor units. The system can have multiple discrete processor chips, each one an independent central processing unit (CPU). Or, the system can have a single discrete processor chip that internally consists of multiple independent CPUs, also called cores. These kinds of processors are called multicore processors. A system can also have a combination of both. Systems with multiple processor units have existed for a long time; however, they were rarely used in consumer systems. Today, all CPU vendors are selling multicore processors, which are being used in everything from servers to consumer computers to smartphones. Because of this proliferation of multicore processors, it is important to know how to write multithreaded applications. A professional C++ programmer needs to know how to write correct multithreaded code to take full advantage of all the available processor units. Writing multithreaded applications used to rely on platform- and operating system–specific APIs. This made it difficult to write platform-independent multithreaded code. C++11 addressed this problem by including a standard threading library.
+
+Multithreaded programming is a complicated subject. This chapter introduces multithreaded programming using the standard threading library, but it cannot go into all of the details due to space constraints. Entire books have been written about developing multithreaded programs. If you are interested in more details, consult one of the references in the multithreading section of Appendix B, “Annotated Bibliography.”
+
+There are also third-party C++ libraries that try to make multithreaded programming more platform independent, such as pthreads and the boost::thread library. However, because these libraries are not part of the C++ standard, they are not discussed in this book.
+
+
+
+
+

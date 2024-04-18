@@ -1,0 +1,224 @@
+The const char* class specialization of the Grid class template shown in Chapter 12 is called a full class template specialization because it specializes the Grid template for every template parameter. There are no template parameters left in the specialization. That’s not the only way you can specialize a class; you can also write a partial class template specialization, in which you specialize some template parameters but not others. For example, recall the basic version of the Grid template with width and height non-type parameters:
+
+\begin{cpp}
+export template <typename T, std::size_t WIDTH, std::size_t HEIGHT>
+class Grid
+{
+    public:
+        Grid() = default;
+        virtual ˜Grid() = default;
+
+        // Explicitly default a copy constructor and assignment operator.
+        Grid(const Grid& src) = default;
+        Grid& operator=(const Grid& rhs) = default;
+
+        // Explicitly default a move constructor and assignment operator.
+        Grid(Grid&& src) = default;
+        Grid& operator=(Grid&& rhs) = default;
+
+        std::optional<T>& at(std::size_t x, std::size_t y);
+        const std::optional<T>& at(std::size_t x, std::size_t y) const;
+
+        std::size_t getHeight() const { return HEIGHT; }
+        std::size_t getWidth() const { return WIDTH; }
+    private:
+        void verifyCoordinate(std::size_t x, std::size_t y) const;
+        std::optional<T> m_cells[WIDTH][HEIGHT];
+};.
+\end{cpp}
+
+You can specialize this class template for const char* C-style strings like this:
+
+\begin{cpp}
+export template <std::size_t WIDTH, std::size_t HEIGHT>
+class Grid<const char*, WIDTH, HEIGHT>
+{
+    public:
+        Grid() = default;
+        virtual ˜Grid() = default;
+
+        // Explicitly default a copy constructor and assignment operator.
+        Grid(const Grid& src) = default;
+        Grid& operator=(const Grid& rhs) = default;
+
+        // Explicitly default a move constructor and assignment operator.
+        Grid(Grid&& src) = default;
+        Grid& operator=(Grid&& rhs) = default;
+
+        std::optional<std::string>& at(std::size_t x, std::size_t y);
+        const std::optional<std::string>& at(std::size_t x, std::size_t y) const;
+
+        std::size_t getHeight() const { return HEIGHT; }
+        std::size_t getWidth() const { return WIDTH; }
+    private:
+        void verifyCoordinate(std::size_t x, std::size_t y) const;
+
+        std::optional<std::string> m_cells[WIDTH][HEIGHT];
+};
+\end{cpp}
+
+In this case, you are not specializing all the template parameters. Therefore, your template header looks like this:
+
+\begin{cpp}
+export template <std::size_t WIDTH, std::size_t HEIGHT>
+class Grid<const char*, WIDTH, HEIGHT>
+\end{cpp}
+
+This class template has only two parameters: WIDTH and HEIGHT. However, you’re writing a Grid class for three arguments: T, WIDTH, and HEIGHT. Thus, your template parameter list contains two parameters, and the explicit Grid<const char*, WIDTH, HEIGHT> contains three arguments. When you instantiate the template, you must still specify three parameters. You can’t instantiate the template with only height and width.
+
+\begin{cpp}
+Grid<int, 2, 2> myIntGrid; // Uses the original Grid
+Grid<const char*, 2, 2> myStringGrid; // Uses the partial specialization
+Grid<2, 3> test; // DOES NOT COMPILE! No type specified.
+\end{cpp}
+
+Yes, the syntax might be confusing. Additionally, in partial specializations, unlike in full specializations, you must include the template header in front of every member function definition, as in the following example:
+
+\begin{cpp}
+template <std::size_t WIDTH, std::size_t HEIGHT>
+const std::optional<std::string>&
+    Grid<const char*, WIDTH, HEIGHT>::at(std::size_t x, std::size_t y) const
+{
+    verifyCoordinate(x, y);
+    return m_cells[x][y];
+}
+\end{cpp}
+
+You need this template header with two parameters to show that this member function is parameterized on those two parameters. Note that wherever you refer to the full class name, you must use Grid<const char*, WIDTH, HEIGHT>.
+
+The previous example does not show the true power of partial specialization. You can write specialized implementations for a subset of possible types without specializing individual types. For example, you can write a specialization of the Grid class template for all pointer types. The copy constructor and assignment operator of this specialization perform deep copies of objects to which pointers point, instead of shallow copies.
+
+The following is the class definition, assuming that you’re specializing the initial version of Grid with only one template parameter. In this implementation, Grid becomes the owner of supplied data, so it automatically frees the memory when necessary. Copy/move constructors and copy/move assignment operators are required. As usual, the copy assignment operator uses the copy-and-swap idiom, and the move assignment operator uses the move-and-swap idiom, as discussed in Chapter 9, “Mastering Classes and Objects,” which requires a noexcept swap() member function.
+
+\begin{cpp}
+export template <typename U>
+class Grid<U*>
+{
+    public:
+        explicit Grid(std::size_t width = DefaultWidth,
+            std::size_t height = DefaultHeight);
+        virtual ˜Grid() = default;
+
+        // Copy constructor and copy assignment operator.
+        Grid(const Grid& src);
+        Grid& operator=(const Grid& rhs);
+
+        // Move constructor and move assignment operator.
+        Grid(Grid&& src) noexcept;
+        Grid& operator=(Grid&& rhs) noexcept;
+
+        void swap(Grid& other) noexcept;
+
+        std::unique_ptr<U>& at(std::size_t x, std::size_t y);
+        const std::unique_ptr<U>& at(std::size_t x, std::size_t y) const;
+
+        std::size_t getHeight() const { return m_height; }
+        std::size_t getWidth() const { return m_width; }
+
+        static constexpr std::size_t DefaultWidth { 10 };
+        static constexpr std::size_t DefaultHeight { 10 };
+    private:
+        void verifyCoordinate(std::size_t x, std::size_t y) const;
+
+        std::vector<std::unique_ptr<U>> m_cells;
+        std::size_t m_width { 0 }, m_height { 0 };
+};
+\end{cpp}
+
+As usual, these two lines are the crux of the matter:
+
+\begin{cpp}
+export template <typename U>
+class Grid<U*>
+\end{cpp}
+
+This syntax states that this class template is a specialization of the Grid class template for all pointer types. Important to know, when you have an instantiation such as Grid<int*>, then U is int, not int*. That might be a bit unintuitive, but that’s the way it works.
+
+Here is an example of using this partial specialization:
+
+\begin{cpp}
+Grid<int> myIntGrid; // Uses the non-specialized grid.
+Grid<int*> psGrid { 2, 2 }; // Uses the partial specialization for pointer types.
+
+psGrid.at(0, 0) = make_unique<int>(1);
+psGrid.at(0, 1) = make_unique<int>(2);
+psGrid.at(1, 0) = make_unique<int>(3);
+
+Grid<int*> psGrid2 { psGrid };
+Grid<int*> psGrid3;
+psGrid3 = psGrid2;
+
+auto& element { psGrid2.at(1, 0) };
+if (element != nullptr) {
+    println("{}", *element);
+    *element = 6;
+}
+println("{}", *psGrid.at(1, 0)); // psGrid is not modified.
+println("{}", *psGrid2.at(1, 0)); // psGrid2 is modified.
+\end{cpp}
+
+Here is the output:
+
+\begin{shell}
+3
+3
+6
+\end{shell}
+
+The implementations of the member functions are rather straightforward, except for the copy constructor, which uses the copy constructor of individual elements to make a deep copy of them:
+
+\begin{cpp}
+template <typename U>
+Grid<U*>::Grid(const Grid& src)
+    : Grid { src.m_width, src.m_height }
+{
+    // The ctor-initializer of this constructor delegates first to the
+    // non-copy constructor to allocate the proper amount of memory.
+
+    // The next step is to copy the data.
+    for (std::size_t i { 0 }; i < m_cells.size(); ++i) {
+        // Make a deep copy of the element by using its copy constructor.
+        if (src.m_cells[i] != nullptr) {
+            m_cells[i] = std::make_unique<U>(*src.m_cells[i]);
+        }
+    }
+}
+\end{cpp}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

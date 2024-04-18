@@ -179,5 +179,135 @@ class vector { /* Vector definition */ };
 
 To pass such a container as a template template parameter, all you have to do is copy and paste the declaration of the class template (in this example, template <typename E, typename Allocator = std::allocator<E>{}> class vector) and replace the class name (vector) with your parameter name (Container). Given the preceding template specification, here is the class template definition for Grid that takes a container template as its second template parameter:
 
+\begin{cpp}
+export template <typename T,
+    template <typename E, typename Allocator = std::allocator<E>> class Container
+        = std::vector>
+class Grid
+{
+    public:
+        // Omitted code that is the same as before.
+        std::optional<T>& at(std::size_t x, std::size_t y);
+        const std::optional<T>& at(std::size_t x, std::size_t y) const;
+        // Omitted code that is the same as before.
+    private:
+        void verifyCoordinate(std::size_t x, std::size_t y) const;
+        Container<std::optional<T>> m_cells;
+        std::size_t m_width { 0 }, m_height { 0 };
+};
+\end{cpp}
+
+What is going on here? The first template parameter is the same as before: the element type T. The second template parameter is now a template itself for a container such as vector or deque. As you saw earlier, this “template type” must take two parameters: an element type E and an allocator type. The name of this parameter in the Grid template is Container (as before). The default value is now vector, instead of vector<T>, because the Container parameter is now a template instead of an actual type.
+
+The syntax rule for a template template parameter, more generically, is this:
+
+\begin{cpp}
+template <..., template <TemplateTypeParams> class ParameterName, ...>
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+You can also use the typename keyword instead of class, as in the following example:
+
+\begin{cpp}
+template <..., template <Params> typename ParameterName, ...>
+\end{cpp}
+\end{myNotic}
+
+Instead of using Container by itself in the code, you must specify Container<std::optional<T>{}> as the container type. For example, the declaration of m\_cells is now as follows:
+
+\begin{cpp}
+Container<std::optional<T>> m_cells;
+\end{cpp}
+
+The member function definitions don’t need to change, except that you must change the template headers, for example:
+
+\begin{cpp}
+template <typename T,
+    template <typename E, typename Allocator = std::allocator<E>> class Container>
+void Grid<T, Container>::verifyCoordinate(std::size_t x, std::size_t y) const
+{
+    // Same implementation as before...
+}
+\end{cpp}
+
+This Grid class template can be used as follows:
+
+\begin{cpp}
+Grid<int, vector> myGrid;
+myGrid.at(1, 2) = 3;
+println("{}", myGrid.at(1, 2).value_or(0));
+Grid<int, vector> myGrid2 { myGrid };
+Grid<int, deque> myDequeGrid;
+\end{cpp}
+
+This section demonstrated that you can pass templates as type parameters to other templates. However, the syntax looks a bit convoluted, and it is. I recommend avoiding template template parameters. In fact, the Standard Library itself never uses template template parameters.
+
+
 \mySubsubsection{26.1.3.}{More About Non-type Template Parameters}
+
+You might want to allow the user to specify a default element used to initialize each cell in the grid. Here is a perfectly reasonable approach to implement this goal. It uses the zero-initialization syntax, T\{\}, as the default value for the second template parameter.
+
+\begin{cpp}
+export template <typename T, T DEFAULT = T{}>
+class Grid { /* Identical as before. */ };
+\end{cpp}
+
+This definition is legal. You can use the type T from the first parameter as the type for the second parameter. You can use this initial value for T to initialize each cell in the grid:
+
+\begin{cpp}
+template <typename T, T DEFAULT>
+Grid<T, DEFAULT>::Grid(std::size_t width, std::size_t height)
+    : m_width { width }, m_height { height }
+{
+    m_cells.resize(m_width * m_height, DEFAULT);
+}
+\end{cpp}
+
+The other member function definitions stay the same, except that you must add the second template parameter to the template headers, and all the instances of Grid<T> become Grid<T, DEFAULT>. After making those changes, you can instantiate grids with an initial value for all the elements:
+
+\begin{cpp}
+Grid<int> myIntGrid; // Initial value is int{}, i.e., 0
+Grid<int, 10> myIntGrid2; // Initial value is 10
+\end{cpp}
+
+The initial value can be any integer you want. However, suppose that you try to create a Grid for SpreadsheetCells as follows:
+
+\begin{cpp}
+SpreadsheetCell defaultCell;
+Grid<SpreadsheetCell, defaultCell> mySpreadsheet; // WILL NOT COMPILE
+\end{cpp}
+
+The second line leads to a compilation error because the value of the template parameter DEFAULT must be known at compile time; the value of defaultCell can’t be known until run time, so it is not an acceptable value for DEFAULT.
+
+\begin{myNotic}{NOTE}
+Up until C++20, non-type template parameters cannot be objects, or even doubles or floats. They are restricted to integral types, enums, pointers, and references. Since C++20, these restrictions are relaxed a bit and it is now allowed to have non-type template parameters of floating-point types, and even certain class types. However, such class types have a lot of restrictions, not further discussed in this book. Suffice to say, the SpreadsheetCell class does not adhere to those restrictions.
+\end{myNotic}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -1,16 +1,180 @@
 
 
+There are three major styles of executing multiple tasks:
+
+\begin{itemize}
+\item
+Sequential execution: Each task is executed one after the other.
+
+\item
+Concurrent execution: Multiple tasks can be executing seemingly at the same time, but this can be because the operating system is giving a task a tiny amount of time, known as a time slice, to do some work, then giving another task a time slice to do its work, and so on. This task switching keeps ongoing until tasks are finished.
+
+\item
+Parallel execution: Multiple tasks are truly executing at the same time for example, on multiple processor units.
+\end{itemize}
+
+Multithreaded programming allows you to execute multiple tasks concurrently (perhaps even in parallel). As a result, you can take advantage of the multiple processor units inside virtually all systems today. Two decades ago, the processor market was racing for the highest frequency, which is perfect for single-threaded applications. Around 2005, this race stopped due to a combination of power and heat management problems. Since then, the processor market is racing toward the most cores on a single processor chip. Quad- and octa-core processors are common, but processors with up to 128 and more cores are available.
+
+Similarly, if you look at the processors on graphics cards, called graphical processing units (GPUs), you’ll see that they are massively parallel processors. Today, high-end graphics cards have more than 16,000 cores, a number that keeps increasing rapidly! These graphics cards are used not only for gaming, but also to perform computationally intensive tasks, such as artificial intelligence, machine learning, image and video manipulation, protein folding (useful for discovering new drugs), processing signals as part of the Search for Extraterrestrial Intelligence (SETI) project, and so on.
+
+C++98/03 did not have support for multithreaded programming, and you had to resort to third-party libraries or to the multithreading APIs of your target operating system. Since C++11 introduced a standard multithreading library, it became easier to write cross-platform multithreaded applications.
+However, the current C++ standard targets only CPUs and not GPUs. This might change in the future.
+
+There are two reasons to start writing multithreaded code. First, if you have a computational problem and you manage to separate it into small pieces that can be run in parallel independently from each other, you can expect a huge performance boost when running it on multiple processor units. Second, you can modularize computations along orthogonal axes. For example, you can do long computations in a worker thread instead of blocking the UI thread, so the user interface remains responsive while a long computation occurs in the background.
+
+Figure 27.1 shows a situation that is perfectly suited for running in parallel. An example could be the processing of pixels of an image by an algorithm that does not require information about neighboring pixels. The algorithm could split the image into four parts. On a single-core processor, each part would be processed sequentially; on a dual-core processor, two parts would be processed in parallel; and on a quad-core processor, four parts would be processed in parallel, resulting in an almost linear scaling of the performance with the number of cores.
+
+\myGraphic{0.7}{content/part4/chapter27/images/1.png}{FIGURE 27.1}
+
+Of course, it’s not always possible to split the problem into parts that can be executed independently of each other in parallel. However, it can often be made parallel, at least partially, resulting in a performance increase. A difficult part of multithreaded programming is making your algorithm parallel, which is highly dependent on the type of the algorithm. Other difficulties are race conditions, deadlocks, tearing, and false sharing. These are discussed in the following sections. Options for making code thread-safe include:
+
+\begin{itemize}
+\item
+Immutable data: Constant data is inherently safe to be accessed by multiple threads.
+
+\item
+Atomic operations: These are low-level types that automatically provide thread-safe operations.
+
+\item
+Mutual exclusion and other synchronization mechanisms: These are used to coordinate access to shared data from multiple threads.
+
+\item
+Thread-local storage: Variables that are marked as thread\_local are local to a thread; other threads don’t have access to them (at least not by default), so they are generally thread-safe.
+\end{itemize}
+
+All these topics are touched upon in this chapter.
+
+\begin{myNotic}{NOTE}
+To prevent multithreading problems, try to design your programs so that multiple threads need not read and write to shared memory. Or, use a synchronization mechanism (as described in the section “Mutual Exclusion”) or atomic operations (as described in the section “Atomic Operations Library”).
+\end{myNotic}
+
 \mySubsubsection{27.1.1.}{Race Conditions}
 
+Race conditions can occur when multiple threads want to access any kind of shared resources. Race conditions in the context of memory shared by multiple threads are called data races. A data race can occur when multiple threads access the same variable, and at least one of those threads writes to it.
+For example, suppose you have a shared variable and one thread increments this value while another thread decrements it. Incrementing and decrementing the value means that the current value needs to be retrieved from memory, incremented or decremented, and stored back in memory. Most processors have INC and DEC instructions to do these operations. On modern x86 processors, these instructions are not atomic, meaning that other instructions can be executed in the middle of the operation, which might cause the code to retrieve a wrong value.
 
+The following table shows the result when the increment is finished before the decrement starts and assumes that the initial value is 1:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{THREAD 1 (INCREMENT)} & \textbf{THREAD 2 (DECREMENT)} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+load value (value = 1)        &                               \\ \hline
+increment value (value = 2)   &                               \\ \hline
+store value (value = 2)       &                               \\ \hline
+& load value (value = 2)        \\ \hline
+& decrement value (value = 1)   \\ \hline
+& store value (value = 1)       \\ \hline
+\end{longtable}
+
+The final value stored in memory is 1. When the decrement thread is finished before the increment thread starts, the final value is also 1, as shown in the following table:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{THREAD 1 (INCREMENT)} & \textbf{THREAD 2 (DECREMENT)} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+& load value (value = 1)        \\ \hline
+& decrement value (value = 0)   \\ \hline
+& store value (value = 0)       \\ \hline
+load value (value = 0)        &                               \\ \hline
+increment value (value = 1)   &                               \\ \hline
+store value (value = 1)       &                               \\ \hline
+\end{longtable}
+
+However, when the instructions are interleaved, the result is different, as shown in the following table:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{THREAD 1 (INCREMENT)} & \textbf{THREAD 2 (DECREMENT)} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+oad value (value = 1)         &                               \\ \hline
+increment value (value = 2)   &                               \\ \hline
+& load value (value = 1)        \\ \hline
+& decrement value (value = 0)   \\ \hline
+store value (value = 2)       &                               \\ \hline
+& store value (value = 0)       \\ \hline
+\end{longtable}
+
+The final result in this case is 0. In other words, the effect of the increment operation is lost. This is a data race.
 
 \mySubsubsection{27.1.2.}{Tearing}
 
-
+Tearing is a specific case or consequence of a data race. There are two kinds of tearing: torn read and torn write. If a thread has written part of your data to memory, while another part hasn’t been written yet, any other thread reading that data at that exact moment sees inconsistent data: a torn read. If two threads are writing to the data at the same time, one thread might have written part of the data, while another thread might have written another part of the data. The final result will be inconsistent: a torn write.
 
 \mySubsubsection{27.1.3.}{Deadlocks}
 
+If you opt to solve a race condition by using a synchronization mechanism, such as mutual exclusion, you might run into another common problem with multithreaded programming: deadlocks. Two threads are deadlocked if they are both waiting for the other thread to do something. This can be extended to more than two threads. For example, if two threads want to acquire access to a shared resource, they need to ask for permission to access this resource. If one of the threads currently holds the permission to access the resource, but is blocked indefinitely for some other reason, then the other thread will block indefinitely as well when trying to acquire permission for the same resource.
 
+One mechanism to acquire permission for a shared resource is called a mutual exclusion object, or mutex for short, discussed in detail later in this chapter. For example, suppose you have two threads and two resources protected with two mutexes, A and B. Both threads acquire permission for both resources, but they acquire the permission in different order. The following table shows this situation in pseudo-code:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{THREAD 1} &
+\textbf{THREAD 2} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\begin{tabular}[c]{@{}l@{}}Acquire A\\ Acquire B\\ // . . . compute\\ Release B\\ Release A\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Acquire B\\ Acquire A\\ // . . . compute\\ Release A\\ Release B\end{tabular} \\ \hline
+\end{longtable}
+
+Now, imagine that the code in the two threads is executed in the following order:
+
+\begin{itemize}
+\item
+Thread 1: Acquire A (succeeds)
+
+\item
+Thread 2: Acquire B (succeeds)
+
+\item
+Thread 1: Acquire B (waits/blocks, because B is held by thread 2)
+
+\item
+Thread 2: Acquire A (waits/blocks, because A is held by thread 1)
+\end{itemize}
+
+Both threads are now waiting indefinitely in a deadlock situation. Figure 27.2 shows a graphical representation of the deadlock. Thread 1 has acquired permission for resource A and is waiting to acquire permission for resource B. Thread 2 has acquired permission for resource B and is waiting to acquire permission for resource A. In this graphical representation, you see a cycle that depicts the deadlock. Both threads will wait indefinitely.
+
+\myGraphic{0.7}{content/part4/chapter27/images/2.png}{FIGURE 27.2}
+
+It’s best to always acquire permissions in the same order to avoid these kinds of deadlocks. You could also include mechanisms in your program to break these deadlocks. One possible solution is to try for a certain time to acquire permission for a resource. If the permission cannot be obtained within a certain time interval, the thread can stop waiting and possibly release other permissions it is currently holding. The thread can then sleep for a little bit and try again later to acquire all the resources it needs. This mechanism gives other threads the opportunity to acquire necessary permissions and continue their execution. Whether this mechanism works or not depends heavily on your specific deadlock case.
+
+The previous paragraph describes workarounds to avoid deadlocks. These exact workarounds are implemented in the Standard Library by std::lock(), described later in the section “Mutual Exclusion.” This function obtains permission for several resources with one call, without the risk of deadlocks. You should use std::lock() instead of reinventing the same workarounds. However, it’s even better not to get into such a situation in the first place by avoiding having to take multiple locks at once. Ideally, try to avoid patterns that require locking at all.
 
 \mySubsubsection{27.1.4.}{False Sharing}
+
+Most caches work with cache lines. For modern CPUs, cache lines are usually 64 bytes. If something needs to be written to a cache line, the entire line needs to be locked. This can bring a serious performance penalty for multithreaded code if your data structure is not properly designed. For example, if two threads are using two different pieces of data, but that data shares a cache line, then when one thread writes something, the other thread is blocked because the entire cache line is locked. Figure 27.3 graphically shows the situation where two threads clearly write to two different blocks of memory while sharing a cache line.
+
+\myGraphic{0.7}{content/part4/chapter27/images/3.png}{FIGURE 27.3}
+
+You can optimize your data structures by using explicit memory alignments to make sure data that is worked on by multiple threads does not share any cache lines. To do this in a portable manner, a constant called hardware\_destructive\_interference\_size, defined in <new>, can be used, which returns you the minimum recommended offset between two concurrently accessed objects to avoid cache line sharing. You can use that value in combination with the alignas keyword to properly align your data.
+
+
+
+
+
+
 
