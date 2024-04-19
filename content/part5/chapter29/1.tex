@@ -1,12 +1,39 @@
 
+Before delving further into the details, it’s helpful to define the terms performance and efficiency, as used in this book. The performance of a program can refer to several areas, such as speed, memory usage, disk access, and network use. This chapter focuses on speed performance. The term efficiency, when applied to programs, means running without wasted effort. An efficient program completes its tasks as quickly as possible within the given circumstances. A program can be efficient without being fast, if the application domain is inherently prohibitive to quick execution.
+
+\begin{myNotic}{NOTE}
+An efficient, or high-performance, program runs as fast as possible for its particular task.
+\end{myNotic}
+
+Note that the title of this chapter, “Writing Efficient C++,” means writing programs that run efficiently, not efficiently writing programs. That is, the time you learn to save by reading this chapter will be your users’, not your own!
 
 \mySubsubsection{29.1.1.}{Two Approaches to Efficiency}
 
-
+Language-level efficiency involves using the language as efficiently as possible; for example, passing objects by reference instead of by value. However, this will only get you so far. Much more important is design-level efficiency, which includes choosing efficient algorithms, avoiding unnecessary steps and computations, and selecting appropriate design optimizations. More often than not, optimizing existing code involves replacing a bad algorithm or data structure with a better, more efficient one.
 
 \mySubsubsection{29.1.2.}{Two Kinds of Programs}
 
-
+As I’ve noted, efficiency is important for all application domains. Additionally, there is a small subset of programs, such as system-level software, embedded systems, intensive computational applications, and real-time games, that require extremely high levels of efficiency. Most programs don’t. Unless you write those types of high-performance applications, you probably don’t need to worry about squeezing every ounce of speed out of your C++ code. Think of it as the difference between building normal family cars and building race cars. Every car must be reasonably efficient, but sports cars require extremely high performance. You wouldn’t want to waste your time optimizing family cars for speed when they’ll never go faster than 70 miles per hour.
 
 \mySubsubsection{29.1.3.}{Is C++ an Inefficient Language?}
+
+C programmers often resist using C++ for high-performance applications. They claim that the language is inherently less efficient than C or a similar procedural language because C++ includes highlevel concepts, such as exceptions and virtual member functions. However, there are problems with this argument.
+
+When discussing the efficiency of a language, you cannot ignore the effect of compilers. Recall that the C or C++ code you write is not the code that the computer executes. A compiler first translates that code into machine language, applying optimizations in the process. This means that you can’t simply run benchmarks of C and C++ programs and compare the results. You’re really comparing the compiler optimizations of the languages, not the languages themselves. C++ compilers can optimize away many of the high-level constructs in the language to generate machine code similar to, or even better than, the machine code generated from a comparable C program. These days, much more research and development is poured into C++ compilers than into C compilers, so C++ code might actually get better optimized and might run faster than C code.
+
+Critics, however, still maintain that some features of C++ cannot be optimized away. For example, as Chapter 10, “Discovering Inheritance Techniques,” explains, virtual member functions require the existence of a vtable, also known as virtual table, and an additional level of indirection at run time, possibly making them slower than regular nonvirtual function calls. However, when you really think about it, this argument is unconvincing. Virtual member function calls provide more than just a function call: they also give you a run-time choice of which function to call. A comparable non-virtual function call would need a conditional statement to decide which function to call. If you don’t need those extra semantics, you can use a non-virtual function. A general design rule in the C++ language is that “if you don’t use a feature, you don’t need to pay for it.” If you don’t use virtual member functions, you pay no performance penalty for the fact that you could use them. Thus, non-virtual function calls in C++ are identical to function calls in C in terms of performance.
+
+Far more important, the high-level constructs of C++ enable you to write cleaner programs that are more efficient at the design level, are more readable, are more easily maintained, and avoid accumulating unnecessary and dead code.
+
+I believe that you will be better served in your development, performance, and code maintenance by choosing C++ instead of a procedural language such as C.
+
+There are also other higher-level object-oriented languages such as C\# and Java, both of which run on top of a virtual machine. C++ code is executed directly by a CPU; there is no such thing as a virtual machine to run your code. C++ is closer to the hardware, which means that in most cases it runs faster than languages such as C\# and Java.
+
+
+
+
+
+
+
+
 

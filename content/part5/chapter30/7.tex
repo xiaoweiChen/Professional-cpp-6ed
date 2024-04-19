@@ -1,0 +1,35 @@
+By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+
+\begin{itemize}
+\item
+Exercise 30-1: What are the three types of testing?
+
+\item
+Exercise 30-2: Make a list of unit tests that you can think of for the following piece of code:
+
+\begin{cpp}
+export class Foo
+{
+    public:
+        // Constructs a Foo. Throws invalid_argument if a >= b.
+        explicit Foo(int a, int b) : m_a { a }, m_b { b }
+        {
+            if (a >= b) {
+                throw std::invalid_argument { "a should be less than b." };
+            }
+        }
+        int getA() const { return m_a; }
+        int getB() const { return m_b; }
+    private:
+        int m_a { 0 };
+        int m_b { 0 };
+};
+\end{cpp}
+
+\item
+Exercise 30-3: If you are using Visual C++, implement the unit tests that you’ve listed in Exercise 30-2 using the Visual C++ Testing Framework.
+
+\item
+Exercise 30-4: Suppose you have written a function to calculate the factorial of a number.
+The factorial of a number n, written as n!, is the product of all numbers 1 to n. For example, 3! equals 1×2×3. You decide to follow the advice given in this chapter and to write unit tests for your code. You run the code to calculate 10!; it produces 36288000. You write a unit test that verifies that the code produces 36288000 when asked to calculate the factorial of 10. What do you think of such a unit test?
+\end{itemize}

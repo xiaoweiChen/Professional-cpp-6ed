@@ -1,17 +1,422 @@
 
+It is good to think about efficiency as you design and code. There is no point in writing obviously inefficient programs if this can be avoided with some common sense or experience-based intuition. However, I urge you not to get too obsessed with performance during the design and coding phases. It’s best to first make a clean, well-structured design and implementation, then use a profiler, and only optimize parts that are flagged by the profiler as being performance bottlenecks. Remember the “90/10” rule, introduced in Chapter 4, which states that 90 percent of the running time of most programs is spent in only 10 percent of the code (Hennessy and Patterson, Computer Architecture, A Quantitative Approach, Fourth Edition, [Morgan Kaufmann, 2006]). This means you could optimize 90 percent of your code, but still only improve the running time of the program by 10 percent. Obviously, you want to optimize the parts of the code that are exercised the most for the specific workload that you expect the program to run.
+
+Consequently, it is often helpful to profile your program to determine which parts of the code require optimization. There are many profiling tools available that analyze programs as they run to generate data about their performance. Most profiling tools provide analysis at the function level by specifying the amount of time (or percent of total execution time) spent in each function in the program. After running a profiler on your program, you can usually tell immediately which parts of the program need optimization. Profiling before and after optimizing is essential to prove that your optimizations had an effect.
+
+If you are using Microsoft Visual C++, you already have a great built-in profiler, which is discussed later in this chapter. If you are not yet using Visual C++, Microsoft has a community edition available (\url{visualstudio.microsoft.com}) that is free of charge for students, open-source developers, and individual developers to create both free and paid applications. It’s also free of charge for up to five users in small organizations. Another great profiling tool is Rational PurifyPlus from IBM (\url{www.almtoolbox.com/purify.php}). There are also a number of smaller free profiling tools available: Very Sleepy (\url{www.codersnotes.com/sleepy}) and Luke Stackwalker (lukestackwalker .sourceforge.net) are popular profilers for Windows, Valgrind (valgrind.org) and gprof (GNU profiler, \url{sourceware.org/binutils/docs/gprof}) are well-known profilers for Unix/Linux systems, and there are plenty of other choices. This section demonstrates two profilers: gprof for Linux, and the profiler that comes with Visual C++ 2022.
 
 \mySubsubsection{29.4.1.}{Profiling Example with gprof}
 
+The power of profiling can best be seen with a real coding example. As a disclaimer, the performance bugs in the first implementation shown are not subtle! Real efficiency issues would probably be more complex, but a program long enough to demonstrate them would be too lengthy for this book.
+
+Suppose that you work for the US Social Security Administration. Every year the administration puts up a website that allows users to look up the popularity of new baby names from the previous year. Your job is to write the backend program that looks up names for users. Your input is a file containing the name of every new baby. This file will obviously contain duplicate names. For example, in the file for boys for 2003, the name Jacob was the most popular, showing up 29,195 times. Your program must read the file to construct an in-memory database. A user may then request the absolute number of babies with a given name or the rank of that name among all the babies.
+
 \mySamllsection{First Design Attempt}
+
+A logical design for this program consists of a NameDB class with the following public member functions:
+
+\begin{cpp}
+export class NameDB
+{
+    public:
+        // Reads list of baby names in nameFile to populate the database.
+        // Throws invalid_argument if nameFile cannot be opened or read.
+
+        explicit NameDB(const std::string& nameFile);
+        // Returns the rank of the name (1st, 2nd, etc).
+        // Returns –1 if the name is not found.
+
+        int getNameRank(const std::string& name) const;
+        // Returns the number of babies with a given name.
+        // Returns –1 if the name is not found.
+        int getAbsoluteNumber(const std::string& name) const;
+
+        // Private members not shown yet ...
+};
+\end{cpp}
+
+The hard part is choosing a good data structure for the in-memory database. A first attempt is a vector of name/count pairs. Remember, pair is a utility class that combines two values of possibly different types. Each entry in the vector stores one of the names, along with a count of the number of times that name shows up in the raw data file. Here is the complete class definition with this design:
+
+\begin{cpp}
+export class NameDB
+{
+    public:
+        explicit NameDB(const std::string& nameFile);
+        int getNameRank(const std::string& name) const;
+        int getAbsoluteNumber(const std::string& name) const;
+    private:
+        std::vector<std::pair<std::string, int>> m_names;
+
+        // Helper member functions
+        bool nameExists(const std::string& name) const;
+        void incrementNameCount(const std::string& name);
+        void addNewName(const std::string& name);
+};
+\end{cpp}
+
+Here are the implementations of the constructor and the helper member functions nameExists(), incrementNameCount(), and addNewName(). The loops in nameExists() and incrementNameCount() iterate over all the elements of the vector.
+
+\begin{cpp}
+// Reads the names from the file and populates the database.
+// The database is a vector of name/count pairs, storing the
+// number of times each name shows up in the raw data.
+NameDB::NameDB(const string& nameFile)
+{
+    // Open the file and check for errors.
+    ifstream inputFile { nameFile };
+    if (!inputFile) {
+        throw invalid_argument { "Unable to open file" };
+    }
+
+    // Read the names one at a time.
+    string name;
+    while (inputFile >> name) {
+        // Look up the name in the database so far.
+        if (nameExists(name)) {
+            // If the name exists in the database, just increment the count.
+            incrementNameCount(name);
+        } else {
+            // If the name doesn't yet exist, add it with a count of 1.
+            addNewName(name);
+        }
+    }
+}
+
+// Returns true if the name exists in the database, false otherwise.
+bool NameDB::nameExists(const string& name) const
+{
+    // Iterate through the vector of names looking for the name.
+    for (auto& entry : m_names) {
+        if (entry.first == name) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Precondition: name exists in the vector of names.
+// Postcondition: the count associated with name is incremented.
+void NameDB::incrementNameCount(const string& name)
+{
+    for (auto& entry : m_names) {
+        if (entry.first == name) {
+            entry.second += 1;
+            return;
+        }
+    }
+}
+// Adds a new name to the database.
+void NameDB::addNewName(const string& name)
+{
+    m_names.emplace_back(name, 1);
+}
+\end{cpp}
+
+Note that you could use an algorithm like std::find\_if(), discussed in Chapter 20, “Mastering Standard Library Algorithms,” to accomplish the same thing as the loops in nameExists() and incrementNameCount(). The loops are shown explicitly to emphasize the performance problems.
+
+You might have noticed some performance problems already. What if there are hundreds of thousands of names? The many linear searches involved in populating the database will become slow.
+
+To complete the example, here are the implementations of the two public member functions:
+
+\begin{cpp}
+// Returns the rank of the name.
+// First looks up the name to obtain the number of babies with that name.
+// Then iterates through all the names, counting all the names with a higher
+// count than the specified name. Returns that count as the rank.
+int NameDB::getNameRank(const string& name) const
+{
+    // Make use of the getAbsoluteNumber() member function.
+    int num { getAbsoluteNumber(name) };
+    // Check if we found the name.
+    if (num == -1) {
+        return -1;
+    }
+
+    // Now count all the names in the vector that have a
+    // count higher than this one. If no name has a higher count,
+    // this name is rank number 1. Every name with a higher count
+    // decreases the rank of this name by 1.
+    int rank { 1 };
+    for (auto& entry : m_names) {
+        if (entry.second > num) {
+            ++rank;
+        }
+    }
+    return rank;
+}
+
+// Returns the count associated with the given name.
+int NameDB::getAbsoluteNumber(const string& name) const
+{
+    for (auto& entry : m_names) {
+        if (entry.first == name) {
+            return entry.second;
+        }
+    }
+    return -1;
+}
+\end{cpp}
 
 \mySamllsection{Profiling the First Design Attempt}
 
+To test the program, you need a main() function:
+
+\begin{cpp}
+import name_db;
+import std;
+using namespace std;
+
+int main()
+{
+    NameDB boys { "boys_long.txt" };
+    println("{}", boys.getNameRank("Daniel"));
+    println("{}", boys.getNameRank("Jacob"));
+    println("{}", boys.getNameRank("William"));
+}
+\end{cpp}
+
+This main() function creates one NameDB database called boys, telling it to populate itself with the file boys\_long.txt, which contains 500,500 names.
+
+There are three steps to using gprof:
+
+\begin{enumerate}
+\item
+After having compiled the name\_db module, you should compile the main program with a special flag that causes it to log raw execution information when it is run. When using GCC as your compiler, the flag is -pg, as in this example:
+
+\begin{shell}
+> gcc -lstdc++ -std=c++2b -pg -fmodules-ts -o namedb NameDB.cpp NameDBTest.cpp
+\end{shell}
+
+\begin{myNotic}{NOTE}
+At the time of this writing, GCC does not yet have full support for C++ modules. Once GCC fully supports modules, check its documentation to learn how to compile and work with modules.
+
+Additionally, at this moment, you have to specify -std=c++2b to enable C++23 features. This will change in the future to -std=c++23. Check the documentation.
+\end{myNotic}
+
+\item
+Run your program. This should generate a file called gmon.out in the working directory. Be patient when you run the program because this first version is slow.
+
+\item
+Run the gprof command. This final step enables you to analyze the gmon.out profiling information and produce a (somewhat) readable report. gprof outputs to standard out, so you should redirect the output to a file:
+
+\begin{shell}
+> gprof namedb gmon.out > gprof_analysis.out
+\end{shell}
+\end{enumerate}
+
+Now you can analyze the data. Unfortunately, the output file is somewhat cryptic and intimidating, so it takes a little while to learn how to interpret it. gprof provides two separate sets of information. The first set summarizes the amount of time spent executing each function in the program. The second and more useful set summarizes the amount of time spent executing each function and its descendants; this set is also called a call graph. Here is some of the output from the gprof\_analysis.out file, edited to make it more readable. Note that the numbers will be different on your machine.
+
+\begin{shell}
+index   %time   self    children    called    name
+[1]     100.0   0.00     14.06                main [1]
+                0.00     14.00       1/1          NameDB::NameDB [2]
+                0.00      0.04       3/3          NameDB::getNameRank [25]
+                0.00      0.01       1/1          NameDB::~NameDB [28]
+\end{shell}
+
+The following list explains the different columns:
+
+\begin{itemize}
+\item
+index: An index to be able to refer to this entry in the call graph.
+
+\item
+\%time: The percentage of the total execution time of the program required by this function and its descendants.
+
+\item
+self: How many seconds the function itself was executing.
+
+\item
+children: How many seconds the descendants of this function were executing.
+
+\item
+called: How often this function was called.
+
+\item
+name: The name of the function. If the name of the function is followed by a number between square brackets, that number refers to another index in the call graph.
+\end{itemize}
+
+The preceding extract tells you that main() and its descendants took 100 percent of the total execution time of the program, for a total of 14.06 seconds. The second line shows that the NameDB constructor took 14.00 seconds of the total 14.06 seconds. So, it’s immediately clear where the performance issue is situated. To track down which part of the constructor is taking that long, you need to jump to the call graph entry with index 2, because that’s the index in square brackets behind the name in the last column. The call graph entry with index 2 is as follows on my test system:
+
+\begin{shell}
+[2] 99.6   0.00   14.00         1            NameDB::NameDB [2]
+           1.20    6.14    500500/500500         NameDB::nameExists [3]
+           1.24    5.24    499500/499500         NameDB::incrementNameCount [4]
+           0.00    0.18      1000/1000           NameDB::addNewName [19]
+           0.00    0.00         1/1              vector::vector [69]
+\end{shell}
+
+The nested entries below NameDB::NameDB show which of its descendants took the most time. Here you can see that nameExists() took 6.14 seconds, and incrementNameCount()took 5.24 seconds. These times are the sums of all the calls to the functions. The fourth column in those lines shows the number of calls to the function (500,500 to nameExists() and 499,500 to incrementNameCount()). No other function took a significant amount of time.
+
+Without going any further in this analysis, two things should jump out at you:
+
+\begin{itemize}
+\item
+Taking 14 seconds to populate the database of approximately 500,000 names is slow. Perhaps you need a better data structure.
+
+\item
+nameExists() and incrementNameCount() take an almost identical amount of time and are called almost the same number of times. If you think about the application domain, that makes sense: most names in the input text file are duplicates, so the vast majority of the calls to nameExists() are followed by a call to incrementNameCount(). If you look back at the code, you can see that these functions are almost identical; they could probably be combined. In addition, most of what they are doing is searching the vector. It would probably be better to use a sorted data structure to reduce the searching time.
+\end{itemize}
+
 \mySamllsection{Second Design Attempt}
+
+With these two observations from the gprof output, it’s time to redesign the program. The new design uses a map instead of a vector. Chapter 18 explains that the Standard Library map keeps the entries sorted and provides O(log n) lookup instead of the O(n) searches in a vector. A good exercise for you to try would be to use an std::unordered\_map, which has an expected O(1) for lookups, and to use a profiler to see if that is faster than std::map for this application.
+
+The new version of the program also combines nameExists() and incrementNameCount() into one incrementIfExists().
+
+Here is the new class definition:
+
+\begin{cpp}
+export class NameDB
+{
+    public:
+        explicit NameDB(const std::string& nameFile);
+        int getNameRank(const std::string& name) const;
+        int getAbsoluteNumber(const std::string& name) const;
+    private:
+        std::map<std::string, int> m_names;
+        bool incrementIfExists(const std::string& name);
+        void addNewName(const std::string& name);
+};
+\end{cpp}
+
+Here are the new member function implementations:
+
+\begin{cpp}
+// Reads the names from the file and populates the database.
+// The database is a map associating names with their frequency.
+NameDB::NameDB(const string& nameFile)
+{
+    // Open the file and check for errors.
+    ifstream inputFile { nameFile };
+    if (!inputFile) {
+        throw invalid_argument { "Unable to open file" };
+    }
+
+    // Read the names one at a time.
+    string name;
+    while (inputFile >> name) {
+        // Look up the name in the database so far.
+        if (!incrementIfExists(name)) {
+            // If the name exists in the database, the
+            // member function incremented it, so we just continue.
+            // We get here if it didn't exist, in which case
+            // we add it with a count of 1.
+            addNewName(name);
+        }
+    }
+}
+
+// Returns true if the name exists in the database, false
+// otherwise. If it finds it, it increments it.
+bool NameDB::incrementIfExists(const string& name)
+{
+    // Find the name in the map.
+    auto res { m_names.find(name) };
+    if (res != end(m_names)) {
+        res->second += 1;
+        return true;
+    }
+    return false;
+}
+
+// Adds a new name to the database.
+void NameDB::addNewName(const string& name)
+{
+    m_names[name] = 1;
+}
+
+int NameDB::getNameRank(const string& name) const { /* Omitted, same as before */ }
+
+// Returns the count associated with the given name.
+int NameDB::getAbsoluteNumber(const string& name) const
+{
+    auto res { m_names.find(name) };
+    if (res != end(m_names)) {
+        return res->second;
+    }
+    return -1;
+}
+\end{cpp}
 
 \mySamllsection{Profiling the Second Design Attempt}
 
+By following the same steps shown earlier, you can obtain the gprof performance data on the new version of the program. The data is quite encouraging:
 
+
+\begin{shell}
+index   %time   self   children    called     name
+[1]     100.0   0.00     0.21                 main [1]
+                0.02     0.18      1/1        NameDB::NameDB [2]
+                0.00     0.01      1/1        NameDB::~NameDB [13]
+                0.00     0.00      3/3        NameDB::getNameRank [28]
+[2]      95.2   0.02     0.18      1          NameDB::NameDB [2]
+                0.02     0.16 500500/500500   NameDB::incrementIfExists
+[3]             0.00     0.00   1000/1000     NameDB::addNewName [24]
+                0.00     0.00      1/1        map::map [87]
+\end{shell}
+
+If you run this on your machine, the output will be different. It’s even possible that you will not see any data for NameDB member functions in your output. Because of the efficiency of this second attempt, the timings are getting so small that you might see more map member functions in the output than NameDB member functions.
+
+On my test system, main() now takes only 0.21 seconds—a 67-fold improvement! There are certainly further improvements that you could make to this program. For example, the current constructor performs a lookup to see if the name is already in the map, and if not, adds it to the map. You could combine these two operations simply with the following single line:
+
+\begin{cpp}
+m_names[name] += 1;
+\end{cpp}
+
+If the name is already in the map, this statement just increments its counter. If the name is not yet in the map, this statement first adds an entry to the map with the given name as key and a zero-initialized value, and then increments the value, resulting in a counter of 1.
+
+With this improvement, you can remove the incrementIfExists() and addNewName() member functions and change the constructor as follows:
+
+\begin{cpp}
+NameDB::NameDB(const string& nameFile)
+{
+    // Open the file and check for errors.
+    ifstream inputFile { nameFile };
+    if (!inputFile) {
+        throw invalid_argument { "Unable to open file" };
+    }
+
+    // Read the names one at a time.
+    string name;
+    while (inputFile >> name) {
+        m_names[name] += 1;
+    }
+}
+\end{cpp}
+
+getNameRank() still uses a loop that iterates over all elements in the map. A good exercise for you to try is to come up with another data structure so that the linear iteration in getNameRank() can be avoided.
 
 \mySubsubsection{29.4.2.}{Profiling Example with Visual C++ 2022}
+
+Most editions of Microsoft Visual C++ 2022 come with a great built-in profiler, which is briefly discussed in this section. The VC++ profiler has a complete graphical user interface. This book does not recommend one profiler over another, but it is always good to have an idea of what a command line– based profiler like gprof can provide in comparison with a GUI-based profiler like the one included with VC++.
+
+To start profiling an application in Visual C++ 2022, you first need to open the project in Visual Studio. This example uses the same NameDB code as in the first inefficient design attempt from the previous sections. That code is not repeated here. Once your project is opened in Visual Studio, make sure the configuration is set to Release instead of Debug, then click the Debug menu, and choose Performance Profiler. A new window appears, similar to the one shown in Fig
+
+\myGraphic{0.7}{content/part5/chapter29/images/1.png}{FIGURE 29.1}
+
+Depending on your version of VC++, there will be a number of different analysis tools available from this window. The following non-exhaustive list explains two of them:
+
+\begin{itemize}
+\item
+CPU Usage: Used to monitor applications with low overhead. This means that the act of profiling the application will not have a big performance impact on the target application.
+
+\item
+Instrumentation: Adds extra code to the application to be able to accurately count the number of function calls and to time individual function calls. However, this tool has a much bigger performance impact on the application. It is recommended to use the CPU Usage tool first to get an idea about the bottlenecks in your application. If that tool does not give you enough information, you can try the Instrumentation tool.
+\end{itemize}
+
+For this profiling example, enable only the CPU Usage tool and click the Start button. This executes your program and analyzes its CPU usage. When the program execution is finished, Visual Studio automatically opens the profiling report. Figure 29.2 shows how this report might look like when profiling the first attempt of the NameDB application.
+
+From this report, you can immediately see the hot path. Just like with gprof, it shows that the NameDB constructor takes up most of the running time of the program. The Visual Studio profiling report is interactive. For example, you can drill down the NameDB::NameDB constructor by clicking on it in the hot path tree in Figure 29.2. This results in a drill-down report for that function, as show in Figure 29.3.
+
+\myGraphic{0.7}{content/part5/chapter29/images/2.png}{FIGURE 29.2}
+
+This drill-down view shows the hot path at the top and the actual code of the member function at the bottom. The code view shows the percentage of the running time that a line of code needed. The lines using up most of the time are shown in shades of red. This view instantly makes it clear that incrementNameCount() and nameExists() both roughly take the same time.
+
+At the top of this report, there is a drop-down called Current View, which you can use to get different views of the profiling data.
+
+\myGraphic{0.7}{content/part5/chapter29/images/3.png}{FIGURE 29.3}
+
+
 
 

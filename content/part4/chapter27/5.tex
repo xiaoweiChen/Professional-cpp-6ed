@@ -3,9 +3,115 @@ Condition variables allow a thread to block until a certain condition is set by 
 
 <condition\_variable> provides two condition variables:
 
+\begin{itemize}
+\item
+std::condition\_variable: A condition variable that can wait only on a unique\_lock<mutex>, which, according to the C++ standard, allows for maximum efficiency on certain platforms.
+
+\item
+std::condition\_variable\_any: A condition variable that can wait on any kind of object, including custom lock types.
+\end{itemize}
+
+A condition\_variable supports the following member functions:
+
+\begin{cpp}
+notify_one();
+\end{cpp}
+
+Wakes up one of the threads waiting on a condition variable. This is similar to an auto-reset event in Windows.
+
+\begin{cpp}
+notify_all();
+\end{cpp}
+
+Wakes up all threads waiting on a condition variable.
+
+\begin{cpp}
+wait(unique_lock<mutex>& lk);
+\end{cpp}
+
+The thread calling wait() should already have acquired a lock on lk. The effect of calling wait() is that it atomically calls lk.unlock() and blocks the thread, waiting for a notification. When the thread is unblocked by a notify\_one() or notify\_all() call in another thread, the function calls lk.lock() again, possibly blocking until the lock has been acquired, and then returns.
+
+\begin{cpp}
+wait_for(unique_lock<mutex>& lk, const chrono::duration<Rep, Period>& rel_time);
+\end{cpp}
+
+Similar to wait(), except that the thread is unblocked by a notify\_one() call, a notify\_all() call, or when the given timeout has expired.
+
+\begin{cpp}
+wait_until(unique_lock<mutex>& lk, const chrono::time_point<Clock, Duration>& abs_time);
+\end{cpp}
+
+Similar to wait(), except that the thread is unblocked by a notify\_one() call, a notify\_all() call, or when the system time passes the given absolute time.
+
+There are also overloads of wait(), wait\_for(), and wait\_until() that accept an extra predicate parameter. For instance, the overload of wait() accepting an extra predicate is equivalent to the following:
+
+\begin{cpp}
+while (!predicate())
+    wait(lk);
+\end{cpp}
+
+The condition\_variable\_any class supports the same member functions as condition\_variable, except that it accepts any kind of lock class instead of only a unique\_lock<mutex>. The used lock class must have a lock() and unlock() member function.
+
 \mySubsubsection{27.5.1.}{Spurious Wake-Ups}
 
-
+Threads waiting on a condition variable can wake up when another thread calls notify\_one() or notify\_all(), or after a relative timeout, or when the system time reaches a certain time. However, they can also wake up spuriously. This means that a thread can wake up even if no other thread has called any notify member function and no timeouts have been reached yet. Thus, when a thread waits on a condition variable and wakes up, it needs to check why it woke up. One way to check for this is by using one of the versions of wait() accepting a predicate, as demonstrated in the following section.
 
 \mySubsubsection{27.5.2.}{Using Condition Variables}
+
+As an example, condition variables can be used for background threads processing items from a queue. You can define a queue in which you insert items to be processed. A background thread waits until there are items in the queue. When an item is inserted into the queue, the thread wakes up, processes the item, and goes back to sleep, waiting for the next item. Suppose you have the following queue:
+
+\begin{cpp}
+queue<string> m_queue;
+\end{cpp}
+
+To make sure that only one thread is modifying this queue at any given time, we add a mutex:
+
+\begin{cpp}
+mutex m_mutex;
+\end{cpp}
+
+To be able to notify a background thread when an item is added, we also add a condition variable:
+
+\begin{cpp}
+condition_variable m_condVar;
+\end{cpp}
+
+A thread that wants to add an item to the queue first acquires a lock on the mutex, then adds the item to the queue, and notifies the background thread. Calling notify\_one() or notify\_all() can be done whether you currently have the lock or not; both work.
+
+\begin{cpp}
+// Lock mutex and add entry to the queue.
+lock_guard lock { m_mutex };
+m_queue.push(entry);
+// Notify condition variable to wake up thread.
+m_condVar.notify_all();
+\end{cpp}
+
+The background thread waits for notifications in an infinite loop, as follows. Note the use of wait() accepting a predicate to correctly handle spurious wake-ups. The predicate checks if there really is something in the queue. When the call to wait() returns, you are sure there is something in the queue.
+
+\begin{cpp}
+unique_lock lock { m_mutex };
+while (true) {
+    // Wait for a notification.
+    m_condVar.wait(lock, [this]{ return !m_queue.empty(); });
+    // Whenever we reach this line, the mutex is locked and the queue is non-empty.
+    // Process queue item...
+    m_queue.pop();
+}
+\end{cpp}
+
+The “Example: Multithreaded Logger Class” section toward the end of this chapter, provides a complete example on how to use condition variables to send notifications to other threads.
+
+The C++ standard also defines a helper function called std::notify\_all\_at\_thread\_exit(cond, lk) where cond is a condition variable and lk is a unique\_lock<mutex> instance. A thread calling this function should already have acquired the lock lk. When the thread exits, it automatically executes the following:
+
+\begin{cpp}
+lk.unlock();
+cond.notify_all();
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+The lock lk stays locked until the thread exits. So, you need to make sure that this does not cause any deadlocks in your code, for example, due to wrong lock ordering.
+\end{myNotic}
+
+
+
 

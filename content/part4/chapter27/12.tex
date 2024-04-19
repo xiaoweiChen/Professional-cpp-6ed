@@ -1,0 +1,93 @@
+A coroutine is a function that can be suspended in the middle of its execution and resumed at a later point in time. Any function with one of the following keywords in its body is a coroutine:
+
+\begin{itemize}
+\item
+co\_await: Suspends the execution of a coroutine while waiting for a computation to finish. Execution is resumed when the computation is finished.
+
+\item
+co\_return: Returns from a coroutine (just return is not allowed in a coroutine). The coroutine cannot be resumed after this.
+
+\item
+co\_yield: Returns a value from a coroutine back to the caller and suspends the coroutine. Subsequently calling the coroutine again will continue its execution at the point where it was suspended.
+\end{itemize}
+
+In general, there are two types of coroutines: stackful and stackless. A stackful coroutine can be suspended from anywhere deep inside a nested call. On the other hand, a stackless coroutine can only be suspended from the top stack frame. When a stackless coroutine is suspended, only the variables and temporaries with automatic storage duration in the body of the function are saved; the call stack is not saved. Hence, memory usage for stackless coroutines is minimal, allowing for millions or even billions of coroutines to be running concurrently. C++ only supports the stackless variant.
+
+To be fair, coroutines don’t necessarily have anything to do with multithreading; instead, they just provide a way for a function to be suspended and resumed at a later time. Of course, if needed, coroutines can be used in a multithreaded environment just as well.
+
+Coroutines can be used to implement asynchronous operations using a synchronous programming style. Use cases include the following:
+
+\begin{itemize}
+\item
+Generators
+
+\item
+Asynchronous I/O
+
+\item
+Lazy computations
+
+\item
+Event-driven applications
+
+\item
+State machines
+\end{itemize}
+
+\CXXTwentythreeLogo{-40}{-50}
+
+Unfortunately, while all the low-level language building blocks are available to write your own coroutines, there’s not much in terms of high-level coroutine facilities. The C++23 Standard Library introduces one standardized high-level coroutine facility, the generator std::generator. A generator provides a mechanism to have a single thread switch back and forth between generating results and handling those results, without involving multiple threads.
+
+The following code demonstrates the use of the std::generator class template, defined in <generator>:
+
+\begin{cpp}
+generator<int> getSequenceGenerator(int startValue, int numberOfValues)
+{
+    for (int i { startValue }; i < startValue + numberOfValues; ++i) {
+        // Print the local time to standard out, see Chapter 22.
+        auto currentTime { system_clock::now() };
+        auto localTime { current_zone()->to_local(currentTime) };
+        print("{:%H:%M:%OS}: ", localTime);
+        // Yield a value to the caller, and suspend the coroutine.
+        co_yield i;
+    }
+}
+
+int main()
+{
+    auto gen { getSequenceGenerator(10, 5) };
+    for (const auto& value : gen) {
+        print("{} (Press enter for next value)", value);
+        cin.ignore();
+    }
+}
+\end{cpp}
+
+When you run the application, you’ll get the following output:
+
+\begin{shell}
+16:35:42: 10 (Press enter for next value)
+\end{shell}
+
+Pressing Enter adds another line:
+
+\begin{shell}
+16:35:42: 10 (Press enter for next value)
+16:36:03: 11 (Press enter for next value)
+\end{shell}
+
+Pressing Enter again adds yet another line:
+
+\begin{shell}
+16:35:42: 10 (Press enter for next value)
+16:36:03: 11 (Press enter for next value)
+16:36:21: 12 (Press enter for next value)
+\end{shell}
+
+Every time after hitting Enter, a new value is requested from the generator. This causes the coroutine to resume, which executes the next iteration of the for loop in getSequenceGenerator() printing the local time, and returning the next value. Returning a value is done with co\_yield, which returns the value and then suspends the coroutine. The value itself is printed in the main() function, followed by the question to press Enter for the next value. The output clearly shows that the coroutine is suspended and resumed multiple times.
+
+Unfortunately, that’s pretty much all there is to say about coroutines in the scope of this book. Writing coroutines yourself, such as std::generator, is complicated and way too advanced to discuss in this book. I recommend using existing coroutines, written by experts. If you need other coroutine facilities besides the generator provided by the Standard Library, there are third-party libraries available, such as \href{https://github.com/lewissbaker/cppcoro}{cppcoro1} and \href{https://github.com/David-Haim/concurrencpp}{concurrencpp}, that provide a collection of high-level coroutines. The goal of this section was to introduce the idea so that you know it exists. Maybe a future C++ standard will introduce more high-level standardized coroutine facilities.
+
+
+
+

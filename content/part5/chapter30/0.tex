@@ -1,0 +1,32 @@
+\noindent
+\textbf{WHAT’S IN THIS CHAPTER?}
+
+\begin{itemize}
+\item
+What software quality control is and how to track bugs
+
+\item
+What unit testing means
+
+\item
+Unit testing in practice using the Visual C++ Testing Framework
+
+\item
+What fuzz testing or fuzzing means
+
+\item
+What integration, system, and regression testing means
+\end{itemize}
+
+\noindent
+\textbf{WILEY.COM DOWNLOADS FOR THIS CHAPTER}
+
+Please note that all the code examples for this chapter are available as part of this chapter’s code download on the book’s website at \url{www.wiley.com/go/proc++6e} on the Download Code tab.
+
+A programmer has overcome a major hurdle in her career when she realizes that testing is part of the software development process. Bugs are not an occasional occurrence. They are found in every project of significant size. A good quality assurance (QA) team is invaluable, but the full burden of testing cannot be placed on QA alone. Your responsibility as a programmer is to write code that works and to write tests to prove its correctness.
+
+A distinction is often made between white-box testing, in which the tester is aware of the inner workings of the program, and black-box testing, which tests the program’s functionality without any knowledge of its implementation. Both forms of testing are important to professionalquality projects. Black-box testing is the most fundamental approach because it typically models the behavior of a user. For example, a black-box test can examine interface components such as buttons. If the tester clicks the button and nothing happens, there is obviously a bug in the program.
+
+Black-box testing cannot cover everything. Modern programs are too large to employ a simulation of clicking every button, providing every kind of input, and performing all combinations of commands. White-box testing is necessary, because when you know the code—when tests are written to exercise a specific object or subsystem—then it is easier to make sure all code paths in the code are exercised by tests. This helps to ensure test coverage. White-box tests are often easier to write and automate than black-box tests. This chapter focuses on topics that would generally be considered white-box testing techniques because the programmer can use these techniques during the development.
+
+This chapter begins with a high-level discussion of quality control, including some approaches to viewing and tracking bugs. A section on unit testing, one of the simplest and most useful types of testing, follows this introduction. You then read about the theory and practice of unit testing, as well as several examples of unit tests in action, and what fuzz testing is. Next, higher-level tests are covered, including integration tests, system tests, and regression tests. Finally, this chapter ends with a list of tips for successful testing.

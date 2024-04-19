@@ -1,0 +1,28 @@
+By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+
+\begin{itemize}
+\item
+Exercise 27-1: Write an application that beeps every three seconds indefinitely. The threesecond delay must be passed as an argument to your thread function. Tip: You can make your computer beep by printing \a to the standard output.
+
+\item
+Exercise 27-2: Modify your solution to Exercise 27-1 so that the application can be stopped when the user presses the enter key.
+
+\item
+Exercise 27-3: Modify your solution to Exercise 27-1 so that the beeping continues until the user presses the Enter key. Once the Enter key is pressed, beeping should be paused, until the user presses the Enter key again. The user can pause and resume the beeping as many times as she wants.
+
+\item
+Exercise 27-4: Write an application that can calculate a number of Fibonacci numbers concurrently. For example, your code should be able to calculate the $4^{th}$, $9^{th}$, $14^{th}$, and $17^{th}$ number in the Fibonacci series in parallel. The Fibonacci series starts with 0 and 1, and any subsequent value is the sum of the two previous values, so: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, and so on. Once all results are available, output them to the standard output. Finally, calculate their sum using a constrained Standard Library algorithm.
+
+\item
+Exercise 27-5: Improve the robot example from earlier in this chapter. You can find that code in the downloadable source code archive in Ch27\verb|\|05\_barrier\verb|\|barrier.cpp. Improve it so that the main thread starts all the robot threads, waits for all the robots to have started, prepares the first iteration, and then instructs all waiting robots to start working.
+
+\item
+Exercise 27-6: Use compare\_exchange\_strong() to implement a function atomicMin(a, b) that sets a to min(a, b) atomically, and where a is an atomic<int> and b an int.
+\end{itemize}
+
+
+
+
+
+
+

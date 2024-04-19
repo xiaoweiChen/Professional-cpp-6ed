@@ -1,0 +1,44 @@
+Semaphores are lightweight synchronization primitives that can be used as building blocks for other synchronization mechanisms such as mutexes, latches, and barriers. Basically, a semaphore consists of a counter representing a number of slots. The counter is initialized in the constructor. If you acquire a slot, the counter is decremented, while releasing a slot increments the counter. There are two semaphore classes defined in <semaphore>: std::counting\_semaphore and binary\_semaphore.
+
+The former models a non-negative resource count. The latter has only one slot; hence, the slot is either free or not free, perfectly suitable as building block for a mutex. Both provide the following member functions:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{MEMBER FUNCTION} &
+\textbf{DESCRIPTION} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+acquire() &
+\begin{tabular}[c]{@{}l@{}}Decrements the counter. When the counter is zero, blocks until it\\ is able to decrement the counter, and then does so.\end{tabular} \\ \hline
+try\_acquire() &
+\begin{tabular}[c]{@{}l@{}}Tries to decrement the counter but does not block if the counter is\\ already zero. Returns true if the counter could be decremented,\\ false otherwise.\end{tabular} \\ \hline
+try\_acquire\_for() &
+Same as try\_acquire() but tries for a given duration. \\ \hline
+try\_acquire\_until() &
+\begin{tabular}[c]{@{}l@{}}Same as try\_acquire() but tries until the system time reaches a\\ given time.\end{tabular} \\ \hline
+release() &
+\begin{tabular}[c]{@{}l@{}}Increments the counter by a given number and unblocks threads\\ that are blocking in their acquire() call.\end{tabular} \\ \hline
+\end{longtable}
+
+A counting semaphore allows you to control exactly how many threads you want to allow to run concurrently. For example, the following code snippet allows a maximum of four threads to run in parallel. From the output, you clearly see that only four threads manage to acquire the semaphore concurrently.
+
+\begin{cpp}
+counting_semaphore semaphore { 4 };
+vector<jthread> threads;
+for (int i { 0 }; i < 10; ++i) {
+    threads.emplace_back([&semaphore] {
+        semaphore.acquire();
+        // ... Slot acquired ... (at most 4 threads concurrently)
+        print("{}", i);
+        this_thread::sleep_for(5s);
+        semaphore.release();
+    });
+}
+\end{cpp}
+
+Another use case for semaphores is to implement a notification mechanism for threads, instead of condition variables. For example, you could initialize the counter of a semaphore to 0 in its constructor. Any thread that calls acquire() will block until some other thread calls release() on the semaphore.

@@ -1,22 +1,106 @@
 
+Complexity in software isn’t new. The need for a formalized process was recognized decades ago. Several approaches to modeling the software life cycle have attempted to bring some order to the chaos of software development by defining the software process in terms of steps from the initial idea to the final product. These models, refined over the years, guide much of software development today.
 
 \mySubsubsection{28.2.1.}{The Waterfall Model}
 
+A classic life cycle model for software is the waterfall model. This model is based on the idea that software can be built almost like following a recipe. There is a set of steps that, if followed correctly, will yield a mighty fine chocolate cake — or program, as the case may be. Each stage must be completed before the next stage can begin, as shown in Figure 28.1. You can compare this process to a waterfall, as you can only go downward to the next phase.
+
+\myGraphic{0.2}{content/part5/chapter28/images/1.png}{FIGURE 28.1}
+
+The process starts with formal planning, which includes gathering an exhaustive list of requirements. This list defines feature completeness for the product. The more specific the requirements are, the more likely it is that the project will succeed. Next, the software is designed and fully specified. The design step, like the requirements step, needs to be as specific as possible to maximize the chance of success. All design decisions are made at this time, often including pseudo-code and the definition of specific subsystems that will need to be written. Subsystem owners work out how their code will interact, and the team agrees on the specifics of the architecture. Implementation of the design occurs next. Because the design has been fully specified, the code needs to adhere closely to the design or else the pieces won’t fit together. The final four stages are reserved for unit testing, subsystem testing, integration testing, and evaluation.
+
+The main problem with the waterfall model is that, in practice, it is nearly impossible to complete one stage without at least exploring the next stage. A design cannot be set in stone without writing at least some code. Furthermore, if testing reveals bugs, you’ll have to go “back up” the waterfall and do some more coding whether your model formally accounted for that or not.
+
+Various incarnations have refined the process in different ways. For example, some plans include a “feasibility” step where experiments are performed before formal requirements are even gathered.
+
 \mySamllsection{Benefits of the Waterfall Model}
+
+The value of the waterfall model lies in its simplicity. You, or your manager, may have followed this approach in past projects without formalizing it or recognizing it by name. The underlying assumption behind the waterfall model is that as long as each step is accomplished as completely and accurately as possible, subsequent steps will go smoothly. As long as all of the requirements are carefully specified in the first step, and all the design decisions and problems are hashed out in the second step, implementation in the third step should be a simple matter of translating the designs into code.
+
+The simplicity of the waterfall model makes project plans based on this system organized and easy to manage. Every project is started the same way: by exhaustively listing all the features that are necessary. For example, managers using this approach can require that by the end of the design phase, all engineers in charge of a subsystem must submit their design as a formal design document or a functional subsystem specification. The benefit for the manager is that by having engineers specify requirements and designs up front, risks are (in theory) minimized.
+
+From the engineer’s point of view, the waterfall model forces resolution of major issues up front. All engineers will need to understand their project and design their subsystem before writing a significant amount of code. Ideally, this means that code can be written once instead of being hacked together or rewritten when the pieces don’t fit.
+
+For small projects with very specific requirements, the waterfall model can work quite well. Particularly for consulting arrangements, it has the advantage of specifying clearly defined metrics for success at the start of the project. Formalizing requirements helps the consultant to produce exactly what the client wants and forces the client to be specific about the goals for the project.
 
 \mySamllsection{Drawbacks of the Waterfall Model}
 
+In many organizations, and almost all modern software engineering texts, the waterfall model has fallen out of favor. Critics disparage its fundamental premise that software development tasks happen in discrete, linear steps. The waterfall model generally does not allow backward movement. Unfortunately, in many projects today, new requirements are introduced throughout the development of the product. Often, a potential customer will request a feature that is necessary for the sale, or a competitor’s product will have a new feature that requires parity.
+
+\begin{myNotic}{NOTE}
+The up-front specification of all requirements makes the waterfall model unusable for many organizations because it is not dynamic enough.
+\end{myNotic}
+
+Another drawback is that in an effort to minimize risk by making decisions as formally and early as possible, the waterfall model may actually be hiding risk. For example, a major design issue might be undiscovered, glossed over, forgotten, or purposely avoided during the design phase. When integration testing finally reveals the mismatch, the team has to go “back up” the waterfall to fix the issues.
+
+A mistake anywhere in the waterfall process will likely lead to delays at the end of the process. Early detection is difficult and occurs rarely.
+
+If you do use the waterfall model, it is often necessary to make it more flexible by taking cues from other approaches.
 
 \mySubsubsection{28.2.2.}{Sashimi Model}
 
+A number of refinements to the waterfall model have been formalized. One such refinement is called the sashimi model. The main advancement that the sashimi model brought was the concept of overlap between stages. The name, sashimi model, comes from a Japanese fish dish, called sashimi, in which different pieces of fish are overlapping each other. While the model still stresses a rigorous process of planning, designing, coding, and testing, successive stages can partially overlap. Figure 28.2 shows an example of the sashimi model, illustrating the overlapping of stages. Overlap permits activities in two phases to occur simultaneously. This recognizes the fact that one stage can often not be finished completely without at least partially looking at the next stage.
 
+\myGraphic{0.2}{content/part5/chapter28/images/2.png}{FIGURE 28.2}
 
 \mySubsubsection{28.2.3.}{Spiral-like Models}
 
+The spiral model was proposed by Barry W. Boehm in 1986 as a risk-driven software development process. Several derivatives have been formulated, which are called spiral-like models. The model discussed in this section is part of a family of techniques known as iterative processes. The fundamental idea is that it’s okay if something goes wrong because you’ll fix it in the next iteration. Figure 28.3 shows a single spin through this spiral-like model.
+
+The phases of this model are similar to the steps of the waterfall model. The discovery phase involves discovering requirements, determining objectives, determining alternatives (design alternatives, reuse, buying third-party libraries, and so on), and determining any constraints. During the evaluation phase, implementation alternatives are evaluated, risks are analyzed, and prototype options are considered. In a spiral-like model, particular attention is paid to evaluating and resolving risks in the evaluation phase. The tasks deemed riskiest are the ones that are implemented in the current cycle of the spiral. The tasks in the development phase are determined by the risks identified in the evaluation phase. For example, if evaluation reveals a risky algorithm that may be impossible to implement, the main task for development in the current cycle will be modeling, building, and testing that algorithm. The fourth phase is reserved for analysis and planning. Based on the results of the current cycle, a plan for the subsequent cycle is formed.
+
+\myGraphic{0.2}{content/part5/chapter28/images/3.png}{FIGURE 28.3}
+
+Figure 28.4 shows an example of three cycles through the spiral in the development of an operating system. The first cycle yields a plan containing the major requirements for the product. The second cycle results in a prototype showing the user experience. The third cycle builds a component that is determined to be a high risk.
+
+\myGraphic{0.2}{content/part5/chapter28/images/4.png}{FIGURE 28.4}
+
 \mySamllsection{Benefits of a Spiral-like Model}
+
+A spiral-like model can be viewed as the application of an iterative approach to the best that the waterfall model has to offer. Figure 28.5 shows a spiral-like model as a waterfall process that has been modified to allow iteration. Hidden risks and a linear development path, the main drawbacks of the waterfall model, are resolved through iterative cycles.
+
+\myGraphic{0.2}{content/part5/chapter28/images/5.png}{FIGURE 28.5}
+
+Performing the riskiest tasks first is another benefit. By bringing risk to the forefront and acknowledging that new conditions can arise at any time, a spiral-like model avoids the hidden time bombs that can occur with the waterfall model. When unexpected problems arise, they can be dealt with by using the same four-stage approach that works for the rest of the process.
+
+This iterative approach also allows to incorporate feedback from testers. For example, an early version of the product can be released for internal or even external evaluation. Testers could, for instance, say that a certain feature is missing or that an existing feature is not working as expected. A spiral-like model has a built-in mechanism to react to such input.
+
+Finally, by repeatedly analyzing after each cycle and building new designs, the practical difficulties with the design-then-implement approach are virtually eliminated. With each cycle, there is more knowledge of the system that can influence the design.
 
 \mySamllsection{Drawbacks of a Spiral-like Model}
 
+The main drawback of a spiral-like model is that it can be difficult to scope each iteration small enough to gain real benefit. In a worst-case scenario, a spiral-like model can degenerate into a waterfall model because the iterations are too long. Unfortunately, a spiral-like model only models the software life cycle; it cannot prescribe a specific way to break down a project into single-cycle iterations because that division varies from project to project.
+
+Other possible drawbacks are the overhead of repeating all four phases for each cycle and the difficulty of coordinating cycles. Logistically, it may be difficult to assemble all the group members for design discussions at the right time. If different teams are working on different parts of the product simultaneously, they are probably operating in parallel cycles, which can get out of sync. For example, during the development of an operating system, the user interface group could be ready to start the discovery phase of the Window Manager cycle, but the core OS group could still be in the development phase of the memory subsystem.
+
+Yet another problem is overall time planning for the project. If you continuously keep repeating the four phases, how do you break the cycle to stop the project? Often it will be up to management to decide on an endpoint condition and provide justification for it.
 
 \mySubsubsection{28.2.4.}{Agile}
+
+To address the shortcomings of the waterfall model, the agile model was introduced in 2001 in the form of an Agile Manifesto.
+
+\begin{myTip}{MANIFESTO FOR AGILE SOFTWARE DEVELOPMENT}
+The entire manifesto, taken from \url{http://agilemanifesto.org}, is as follows:
+
+We are uncovering better ways of developing software by doing it and helping others do it. Through this work we have come to value:
+
+\begin{itemize}
+\item
+Individuals and interactions over processes and tools
+
+\item
+Working software over comprehensive documentation
+
+\item
+Customer collaboration over contract negotiation
+
+\item
+Responding to change over following a plan
+\end{itemize}
+
+That is, while there is value in the items on the right, we value the items on the left more.
+\end{myTip}
+
+As can be understood from this manifesto, the term agile is only a high-level description. Basically, it tells you to make the process flexible so that customers’ changes can easily be incorporated into the project during development. Scrum is one of the most frequently used agile software development methodologies and is discussed in the next section.
+
 

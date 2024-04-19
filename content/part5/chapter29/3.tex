@@ -1,11 +1,279 @@
 
+The design choices in your program affect its performance far more than do language details such as pass-by-reference. For example, if you choose an algorithm for a fundamental task in your application that runs in O(n2) time instead of a simpler one that runs in O(n) time, you could potentially perform the square of the number of operations that you really need. To put numbers on that, a task that uses an O(n2) algorithm and performs 1 million operations would perform only 1,000 with an O(n) algorithm. Even if that operation is optimized beyond recognition at the language level, the simple fact that you perform 1 million operations when a better algorithm would use only 1,000 will make your program very inefficient. Always choose your algorithms carefully. Refer to Part II, specifically Chapter 4, “Designing Professional C++ Programs,” of this book for a detailed discussion of algorithm design choices and big-O notation.
+
+In addition to your choice of algorithms, design-level efficiency includes specific tips and tricks. Instead of writing your own data structures and algorithms, you should use existing ones, such as those from the C++ Standard Library, the Boost libraries (boost.org), or other libraries, as much as possible because they are written by experts. These libraries have been, and are being, used a lot, so you can expect most bugs to have been discovered and fixed. You should also think about incorporating multithreading in your design to take full advantage of all the processing power available on a machine. See Chapter 27, “Multithreaded Programming with C++,” for more details. The remainder of this section presents two more design techniques for optimizing your program: caching and using object pools.
 
 \mySubsubsection{29.3.1.}{Cache Where Necessary}
 
+Caching means storing items for future use to avoid retrieving or recalculating them. You might be familiar with the principle from its use in computer hardware. Modern computer processors are built with memory caches that store recently and frequently accessed memory values in a location that is quicker to access than main memory. Most memory locations that are accessed at all are accessed more than once in a short time period, so caching at the hardware level can significantly speed up computations.
 
+Caching in software follows the same approach. If a task or computation is particularly slow, you should make sure that you are not performing it more than necessary. Store the results in memory the first time you perform the task so that they are available for future needs. Here is a list of tasks that are usually slow:
+
+\begin{itemize}
+\item
+Disk access: You should avoid opening and reading the same file more than once in your program. If memory is available, save the file contents in RAM if you need to access it frequently.
+
+\item
+Network communication: Whenever you need to communicate over a network, your program is subject to the vagaries of the network. Treat network accesses like file accesses, and cache as much static information as possible.
+
+\item
+Mathematical computations: If you need the result of a complex computation in more than one place, perform the calculation once and share the result. However, if it’s not very complex, then it’s probably faster to just calculate it instead of retrieving it from a cache. Use a profiler to be sure.
+
+\item
+Object allocation: If you need to create and use a large number of short-lived objects in your program, consider using an object pool, described later in this chapter.
+
+\item
+Thread creation: Creating threads is slow. You can “cache” threads in a thread pool, similar to caching objects in an object pool.
+\end{itemize}
+
+One common problem with caching is that the data you store often comprises only copies of the underlying information. The original data might change during the lifetime of the cache. For example, you might want to cache the values in a configuration file so that you don’t need to read it repeatedly. However, the user might be allowed to change the configuration file while your program is running, which would make your cached version of the information obsolete. In cases like this, you need a mechanism for cache invalidation: when the underlying data changes, you must either stop using your cached information or repopulate your cache.
+
+One technique for cache invalidation is to request that the entity managing the underlying data notifies your program of every change. It could do this through a callback that your program registers with the manager. Alternatively, your program could poll for certain events that would trigger it to repopulate the cache automatically. Regardless of your specific cache invalidation technique, make sure that you think about these issues before relying on a cache in your program.
+
+When adding caching to a data structure, make sure your design hides any details of this caching from the public interface. Client code should not be aware that the underlying implementation uses any kind of caching. This also allows you to change the caching mechanism without affecting the public interface.
+
+\begin{myNotic}{NOTE}
+Always keep in mind that maintaining caches takes code, memory, and processing time. On top of that, caches can be a source of subtle bugs. You should only add caching to a particular area when a profiler clearly shows that that area is a performance bottleneck. First write clean and correct code, then profile it, and only then optimize parts of it.
+\end{myNotic}
 
 \mySubsubsection{29.3.2.}{Use Object Pools}
 
+There are different kinds of object pools. This section discusses one kind of object pool where it allocates a large chunk of memory at once, in which the pool creates smaller objects in-place. These objects can be handed out to clients and reused when clients are done with them, without incurring any additional calls to the memory manager to allocate or deallocate memory for individual objects.
+
+Where the following object pool implementation shines, as will be demonstrated with benchmarks, is for objects with big data members. Whether or not an object pool is the right solution for a specific use case can only be decided by profiling your code.
+
 \mySamllsection{An Object Pool Implementation}
 
+This section provides an implementation of an object pool class template that you can use in your programs. The implementation keeps a vector of chunks of objects of type T. Additionally, it also keeps track of free objects in a vector that contains pointers to all free objects. The pool hands out objects via the acquireObject() member function. If acquireObject() is called but there are no free objects anymore, then the pool allocates another chunk of objects. acquireObject() returns a shared\_ptr.
+
+This implementation is using the vector Standard Library container without any synchronization. As such, this version is not thread-safe. See Chapter 27 for a discussion on how you can make the implementation thread-safe.
+
+Here is the class definition with comments explaining the details. The class template is parameterized on the type that is to be stored in the pool and on the type of allocator to use for allocating and deallocating chunks of memory.
+
+\begin{cpp}
+// Provides an object pool that can be used with any class.
+//
+// acquireObject() returns an object from the list of free objects. If
+// there are no more free objects, acquireObject() creates a new chunk
+// of objects.
+// The pool only grows: objects are never removed from the pool, until
+// the pool is destroyed.
+// acquireObject() returns an std::shared_ptr with a custom deleter that
+// automatically puts the object back into the object pool when the
+// shared_ptr is destroyed and its reference count reaches 0.
+export
+template <typename T, typename Allocator = std::allocator<T>>
+class ObjectPool final
+{
+    public:
+        ObjectPool() = default;
+        explicit ObjectPool(const Allocator& allocator);
+        ~ObjectPool();
+
+        // Prevent move construction and move assignment.
+        ObjectPool(ObjectPool&&) = delete;
+        ObjectPool& operator=(ObjectPool&&) = delete;
+
+        // Prevent copy construction and copy assignment.
+        ObjectPool(const ObjectPool&) = delete;
+        ObjectPool& operator=(const ObjectPool&) = delete;
+
+        // Reserves and returns an object from the pool. Arguments can be
+        // provided which are perfectly forwarded to a constructor of T.
+        template <typename... Args>
+        std::shared_ptr<T> acquireObject(Args&&... args);
+    private:
+        // Creates a new block of uninitialized memory, big enough to hold
+        // m_newChunkSize instances of T.
+        void addChunk();
+        // Contains chunks of memory in which instances of T will be created.
+        // For each chunk, the pointer to its first object is stored.
+        std::vector<T*> m_pool;
+        // Contains pointers to all free instances of T that
+        // are available in the pool.
+        std::vector<T*> m_freeObjects;
+        // The number of T instances that should fit in the first allocated chunk.
+        static constexpr std::size_t ms_initialChunkSize { 5 };
+        // The number of T instances that should fit in a newly allocated chunk.
+        // This value is doubled after each newly created chunk.
+        std::size_t m_newChunkSize { ms_initialChunkSize };
+        // The allocator to use for allocating and deallocating chunks.
+        Allocator m_allocator;
+};
+\end{cpp}
+
+When using this object pool, you have to make sure that the object pool itself outlives all the objects handed out by the pool.
+
+The constructor is trivial and just stores the given allocator in a data member:
+
+\begin{cpp}
+template <typename T, typename Allocator>
+ObjectPool<T, Allocator>::ObjectPool(const Allocator& allocator)
+    : m_allocator { allocator }
+{}
+\end{cpp}
+
+The addChunk() member function to allocate a new chunk is implemented as follows. The first part of addChunk() does the actual allocation of a new chunk. A “chunk” is just a block of uninitialized memory, allocated using an allocator and big enough to hold m\_newChunkSize instances of T. By adding a chunk of objects, no objects are actually constructed yet; i.e., no object constructors are called. That is done later in acquireObject() when instances are handed out. The second part of addChunk() creates pointers to the new instances of T. It uses the iota() algorithm, defined in <numeric>. To refresh your memory, iota() fills a range given by its first two arguments with values. The values start with the value of the third argument and are incremented by one for each subsequent value. Since we are working with T* pointers, incrementing a T* pointer by one jumps ahead to the next T in the memory block. Finally, the m\_newChunkSize value is doubled so that the next block that will be added is double the size of the currently added block. This is done for performance reasons and follows the principle of std::vector. Here is the implementation:
+
+\begin{cpp}
+template <typename T, typename Allocator>
+void ObjectPool<T, Allocator>::addChunk()
+{
+    std::println("Allocating new chunk...");
+    // Allocate a new chunk of uninitialized memory big enough to hold
+    // m_newChunkSize instances of T, and add the chunk to the pool.
+    // Care is taken that everything is cleaned up in the event of an exception.
+    m_pool.push_back(nullptr);
+    try {
+        m_pool.back() = m_allocator.allocate(m_newChunkSize);
+    } catch (...) {
+        m_pool.pop_back();
+        throw;
+    }
+
+    // Create pointers to each individual object in the new chunk
+    // and store them in the list of free objects.
+    auto oldFreeObjectsSize { m_freeObjects.size() };
+    m_freeObjects.resize(oldFreeObjectsSize + m_newChunkSize);
+    std::iota(begin(m_freeObjects) + oldFreeObjectsSize, end(m_freeObjects),
+        m_pool.back());
+    // Double the chunk size for next time.
+    m_newChunkSize *= 2;
+}
+\end{cpp}
+
+acquireObject(), a variadic member function template, returns a free object from the pool, allocating a new chunk if there are no more free objects available. As explained earlier, adding a new chunk just allocates a block of uninitialized memory. It is the responsibility of acquireObject() to properly construct a new instance of T at the right place in memory. This is done using a placement new operator. Any arguments passed to acquireObject() are perfectly forwarded to a constructor of type T.
+
+acquireObject() uses a placement new operator to construct a new instance of an object of type T at an explicitly specified memory location. If type T contains any const or reference members, accessing the newly constructed object through the original pointer triggers undefined behavior. To turn this into defined behavior, you need to launder the memory using std::launder(), defined in <new>.[C++23 introduces a slightly related function called std::start\_lifetime\_as(). The difference with launder() is that launder() doesn’t create a new object, it just launders a pointer to an already constructed object. On the other hand, start\_lifetime\_as() actually creates a new object but without running any constructor code. This can be useful if you have a block of memory that you know represents an object, maybe received over the network, and that you want to turn into an object, e.g., start\_lifetime\_as<MyObjectType>(networkBuffer).]
+
+Finally, the laundered T* pointer is wrapped in a shared\_ptr with a custom deleter. This deleter does not deallocate any memory; instead, it manually calls the destructor by using std::destroy\_at() and then puts the pointer back on the list of available objects.
+
+\begin{cpp}
+template <typename T, typename Allocator>
+template <typename... Args>
+std::shared_ptr<T> ObjectPool<T, Allocator>::acquireObject(Args&&... args)
+{
+    // If there are no free objects, allocate a new chunk.
+    if (m_freeObjects.empty()) { addChunk(); }
+
+    // Get a free object.
+    T* object { m_freeObjects.back() };
+
+    // Initialize, i.e. construct, an instance of T in an
+    // uninitialized block of memory using placement new, and
+    // perfectly forward any provided arguments to the constructor.
+    ::new(object) T { std::forward<Args>(args)... };
+
+    // Launder the object pointer.
+    T* constructedObject { std::launder(object) };
+
+    // Remove the object from the list of free objects.
+    m_freeObjects.pop_back();
+
+    // Wrap the constructed object and return it.
+    return std::shared_ptr<T> { constructedObject, [this](T* object) {
+        // Destroy object.
+        std::destroy_at(object);
+        // Put the object back in the list of free objects.
+        m_freeObjects.push_back(object);
+    } };
+}
+\end{cpp}
+
+Finally, the destructor of the pool must deallocate any allocated memory using the given allocator:
+
+\begin{cpp}
+template <typename T, typename Allocator>
+ObjectPool<T, Allocator>::~ObjectPool()
+{
+    // Note: this implementation assumes that all objects handed out by this
+    //       pool have been returned to the pool before the pool is destroyed.
+    //       The following statement asserts if that is not the case.
+    assert(m_freeObjects.size() ==
+        ms_initialChunkSize * (std::pow(2, m_pool.size()) - 1));
+
+    // Deallocate all allocated memory.
+    std::size_t chunkSize { ms_initialChunkSize };
+    for (auto* chunk : m_pool) {
+        m_allocator.deallocate(chunk, chunkSize);
+        chunkSize *= 2;
+    }
+    m_pool.clear();
+}
+\end{cpp}
+
+assert() is a macro defined in <cassert>. It takes a Boolean expression and, if the expression evaluates to false, prints an error message and terminates the program. Chapter 31, “Conquering Debugging,” gives more details. The formula used in the assert() statement is based on the fact that each allocated chunk is double in size compared to the previous chunk.
+
 \mySamllsection{Using the Object Pool}
+
+Consider an application that uses a lot of short-lived objects with big data members and hence are expensive to allocate. Let’s assume we have an ExpensiveObject class definition that looks as follows:
+
+\begin{cpp}
+class ExpensiveObject
+{
+    public:
+        ExpensiveObject() { /* ... */ }
+        virtual ~ExpensiveObject() = default;
+        // Member functions to populate the object with specific information.
+        // Member functions to retrieve the object data.
+        // (not shown)
+    private:
+        // An expensive data member.
+        array<double, 4 * 1024 * 1024> m_data;
+        // Other data members (not shown)
+};
+\end{cpp}
+
+Instead of allocating and deallocating large numbers of such objects throughout the lifetime of your program, you can use the object pool developed in the previous section. We can benchmark the pool using the chrono library (see Chapter 22, “Date and Time Utilities”) as follows:
+
+\begin{cpp}
+using MyPool = ObjectPool<ExpensiveObject>;
+
+shared_ptr<ExpensiveObject> getExpensiveObject(MyPool& pool)
+{
+    // Obtain an ExpensiveObject object from the pool.
+    auto object { pool.acquireObject() };
+    // Populate the object. (not shown)
+    return object;
+}
+
+void processExpensiveObject(ExpensiveObject& object) { /* ... */ }
+
+int main()
+{
+    const size_t NumberOfIterations { 500'000 };
+    println("Starting loop using pool...");
+    MyPool requestPool;
+    auto start1 { chrono::steady_clock::now() };
+    for (size_t i { 0 }; i < NumberOfIterations; ++i) {
+        auto object { getExpensiveObject(requestPool) };
+        processExpensiveObject(*object.get());
+    }
+    auto end1 { chrono::steady_clock::now() };
+    auto diff1 { end1 - start1 };
+    println("{}", chrono::duration<double, milli>(diff1));
+
+
+    println("Starting loop using new/delete...");
+    auto start2 { chrono::steady_clock::now() };
+    for (size_t i { 0 }; i < NumberOfIterations; ++i) {
+        auto object { std::make_unique<ExpensiveObject>() };
+        processExpensiveObject(*object);
+    }
+    auto end2 { chrono::steady_clock::now() };
+    auto diff2 { end2 - start2 };
+    println("{}", chrono::duration<double, milli>(diff2));
+}
+\end{cpp}
+
+The main() function contains a small benchmark of the pool’s performance. It asks for 500,000 objects in a loop and times how long it takes. The loop is done twice, once using our pool and once using the standard new/delete operators. The results on a test machine with a release build of the code are as follows:
+
+\begin{shell}
+Starting loop using pool...
+Allocating new chunk...
+54.526ms
+Starting loop using new/delete...
+9463.2393ms
+\end{shell}
+
+In this example, using the object pool is around 170 times faster. Keep in mind, though, that this object pool is tailored to work with objects with big data members. This is the case for the ExpensiveObject class used in the example, which contains a 32MB array as one of its data members.

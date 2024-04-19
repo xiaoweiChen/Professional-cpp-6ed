@@ -1,0 +1,87 @@
+A barrier is a reusable thread coordination mechanism consisting of a sequence of phases. A number of threads block at the barrier point. Each time a given number of threads reach the barrier, a phase completion callback is executed, all blocking threads are unblocked, the thread counter is reset, and the next phase starts. During each phase, the number of expected threads for the next phase can be adjusted. Barriers are great to perform synchronization between loops. For example, suppose you have a number of threads running concurrently and performing some calculations in a loop. Suppose further that once those calculations are finished, you need to do something with the results before the threads can start a new iteration of their loop. For such a scenario, barriers are perfect. When a thread is done with its work, it blocks at the barrier. When they all arrive at the barrier, the phase completion callback processes the results of the threads and then unblocks all the threads to start their next iteration.
+
+A barrier is implemented by the class template std::barrier, defined in <barrier>. The most important member function of a barrier is arrive\_and\_wait(), which decrements the counter and then blocks the thread until the current phase is finished. Consult a Standard Library reference for a full description of other available member functions.
+
+The following code snippet demonstrates the use of a barrier. It’s a simulation of a production environment using robots. For each iteration, all robots need to do some work. When a robot is finished, it waits until all the other robots are finished. Once all robots are done, the next iteration is prepared, and the robots are instructed to start again. The barrier-specific operations are highlighted.
+
+\begin{cpp}
+constexpr unsigned numberOfRobots { 2 };
+constexpr unsigned numberOfIterations { 3 };
+unsigned iterationCount { 1 };
+vector<jthread> robots;
+
+auto completionCallback { [&] () noexcept {
+    if (iterationCount == numberOfIterations) {
+        println("Finished {} iterations, stopping robots.", numberOfIterations);
+        for (auto& robot : robots) { robot.request_stop(); }
+    } else {
+        ++iterationCount;
+        println("All robots finished. Preparing iteration {}.", iterationCount);
+        this_thread::sleep_for(1s);
+        println("Iteration {} ready to start. Waking up robots.", iterationCount);
+    }
+} };
+
+barrier robotSynchronization { numberOfRobots, completionCallback };
+
+auto robotThreadFunction { [&](stop_token token, string_view name) {
+        println(" Thread for robot {} started.", name);
+        while (!token.stop_requested()) {
+            this_thread::sleep_for(1s);
+            println(" {} finished.", name);
+            robotSynchronization.arrive_and_wait();
+        }
+        println(" {} shutting down.", name);
+} };
+
+println("Preparing first iteration. Creating {} robot threads.", numberOfRobots);
+
+for (unsigned i { 0 }; i < numberOfRobots; ++i) {
+    robots.emplace_back(robotThreadFunction, format("Robot_{}", i));
+}
+
+for (auto& robot : robots) { robot.join(); }
+println("Done with all work.");
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Preparing first iteration. Creating 2 robot threads.
+    Thread for robot Robot_0 started.
+    Thread for robot Robot_1 started.
+    Robot_1 finished.
+    Robot_0 finished.
+All robots finished. Preparing iteration 2.
+Iteration 2 ready to start. Waking up robots.
+    Robot_1 finished.
+    Robot_0 finished.
+All robots finished. Preparing iteration 3.
+Iteration 3 ready to start. Waking up robots.
+    Robot_1 finished.
+    Robot_0 finished.
+Finished 3 iterations, stopping robots.
+    Robot_0 shutting down.
+    Robot_1 shutting down.
+Done with all work.
+\end{shell}
+
+In one of the exercises at the end of this chapter, you will improve this robot simulation so that the main thread starts all the robot threads, waits for all the robots to have started, prepares the first iteration, and instructs all waiting robots to start working.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

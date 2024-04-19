@@ -1,26 +1,200 @@
 
+Many books, articles, and programmers spend a lot of time trying to convince you to apply languagelevel optimizations to your code. These tips and tricks are important and can speed up your programs in some cases. However, they are far less important than the overall design and algorithm choices in your program. You can pass-by-reference all you want, but it won’t make your program fast if you perform twice as many disk writes as you need to. It’s easy to get bogged down in references and pointers and forget about the big picture.
+
+Furthermore, some of these language-level tricks can be performed automatically by good optimizing compilers. A rule of thumb is that you should never spend time optimizing a particular area, unless a profiler, discussed later in this chapter, tells you that that particular area is a bottleneck.
+
+That being said, using certain language-level optimizations, such as pass-by-reference, is just considered good coding style.
+
+In this book, I’ve tried to present a balance of strategies. So, I’ve included here what I feel are the most useful language-level optimizations. This list is not comprehensive but is a good start to write optimized code. However, make sure to read, and practice, the design-level efficiency advice that I offer later in this chapter as well.
+
+\begin{myWarning}{WARNING}
+Apply language-level optimizations thoughtfully. I recommend making a clean, well-structured design and implementation first. Then use a profiler, and only invest time optimizing those parts that are flagged by a profiler as being a performance bottleneck.
+\end{myWarning}
 
 \mySubsubsection{29.2.1.}{Handle Objects Efficiently}
 
+C++ does a lot of work for you behind the scenes, particularly with regard to objects. You should always be aware of the performance impact of the code you write. If you follow a few simple guidelines, your code will become more efficient. Note that these guidelines are only relevant for objects, and not for primitive types such as bool, int, float, and so on.
+
 \mySamllsection{Pass-by-Value or Pass-by-Reference}
+
+Chapters 1, “A Crash Course in C++ and the Standard Library,” and 9, “Mastering Classes and Objects,” present a rule to decide between pass-by-value and pass-by-reference. The rule is worth repeating here.
+
+\begin{myWarning}{WARNING}
+Prefer pass-by-value parameters for parameters that a function inherently would copy, but only if the parameter is of a type that supports move semantics. Otherwise, use reference-to-const parameters.
+\end{myWarning}
+
+With pass-by-value parameters, you have to keep a few things in mind. When you pass an object of a derived class by value as an argument for a function parameter that has one of the base classes as its type, then the derived object is “sliced” to fit into the base class type. This causes information to be lost; see Chapter 10 for details. Pass-by-value could also incur copying costs that are avoided with pass-by-reference.
+
+However, in certain cases, pass-by-value is actually the optimal way to pass an argument to a function. Consider a class to represent a person that looks as follows:
+
+\begin{cpp}
+class Person
+{
+    public:
+        Person() = default;
+        explicit Person(string firstName, string lastName, int age)
+            : m_firstName { move(firstName) }, m_lastName { move(lastName) }
+            , m_age { age } { }
+        virtual ~Person() = default;
+        const string& getFirstName() const { return m_firstName; }
+        const string& getLastName() const { return m_lastName; }
+        int getAge() const { return m_age; }
+
+    private:
+        string m_firstName, m_lastName;
+        int m_age { 0 };
+};
+\end{cpp}
+
+As the rule recommends, the Person constructor accepts firstName and lastName by value and then moves them to m\_firstName and m\_lastName, respectively, because it would make a copy of those anyway. See Chapter 9 for an explanation of this idiom.
+
+Now, take a look at the following function accepting a Person object by value:
+
+\begin{cpp}
+void processPerson(Person p) { /* Process the person. */ }
+\end{cpp}
+
+You can call this function like this:
+
+\begin{cpp}
+Person me { "Marc", "Gregoire", 42 };
+processPerson(me);
+\end{cpp}
+
+This doesn’t look like there’s more code than if you write the function like this instead:
+
+\begin{cpp}
+void processPerson(const Person& p) { /* Process the person. */ }
+\end{cpp}
+
+The call to the function remains the same. However, consider what happens when you pass-by-value in the first version of the function. To initialize the p parameter of processPerson(), me must be copied with a call to its copy constructor. Even though you didn’t write a copy constructor for the Person class, the compiler generates one that copies each of the data members. That still doesn’t look so bad: there are only three data members. However, two of them are strings, which are themselves objects with copy constructors. So, each of their copy constructors will be called as well. The version of processPerson() that takes p by reference incurs no such copying costs. Thus, pass-by-reference in this example avoids a lot of overhead when the code enters the function.
+
+And you’re still not done. Remember that p in the first version of processPerson() is a local variable to the processPerson() function, and so must be destroyed when the function exits. This destruction requires a call to the Person destructor, which will call the destructor of all the data members. strings have destructors, so exiting this function (if you passed by value) incurs calls to three destructors. None of those calls are needed if the Person object is passed by reference.
+
+\begin{myNotic}{NOTE}
+If a function must modify an object, pass the object by reference-tonon-const. If the function should not modify the object, pass it by value or by reference-to-const, as in the preceding example.
+\end{myNotic}
+
+\begin{myWarning}{WARNING}
+Avoid using pass-by-pointer, which is a relatively obsolete technique for pass-by-reference. It is a throwback to the C language and thus rarely suitable in C++ (unless passing nullptr has meaning in your design).
+\end{myWarning}
 
 \mySamllsection{Return-by-Value or Return-by-Reference}
 
+You could return objects by reference from functions to avoid copying the objects unnecessarily. Unfortunately, it is sometimes impossible to return objects by reference, such as when you write overloaded operator+ and other similar operators. And, you should never return a reference or a pointer to a local object that will be destroyed when the function exits!
+
+However, returning objects by value from functions is usually fine. This is due to mandatory and nonmandatory elision of copy/move operations and move semantics, both of which optimize returning objects by value, and both are discussed Chapter 9.
+
 \mySamllsection{Catch Exceptions by Reference}
+
+As noted in Chapter 14, “Handling Errors,” you should catch exceptions by reference to avoid slicing and unnecessary copying. Throwing exceptions is heavy in terms of performance, so any little thing you can do to improve their efficiency will help.
 
 \mySamllsection{Use Move Semantics}
 
+You should make sure your classes support move semantics (see Chapter 9), either through the compiler-generated move constructor and move assignment operator or by implementing them yourself. According to the rule of zero (see Chapter 9), you should try to design your classes such that the compiler-generated copy and move constructors and copy and move assignment operators are sufficient. If the compiler cannot implicitly define these for a class, try to explicitly default them if that works for your class. If that is also not an option, you should implement them yourself. With move semantics for your objects, lots of operations will be more efficient, especially in combination with Standard Library containers and algorithms.
+
 \mySamllsection{Avoid Creating Temporary Objects}
 
+The compiler creates temporary, unnamed objects in several circumstances. Chapter 9 explains that after writing a global operator+ for a class, you can add objects of that class to other types, as long as those types can be converted to objects of that class. For example, the SpreadsheetCell class definition from Chapter 9, which includes support for the arithmetic operators, looks in part like this:
 
+\begin{cpp}
+export class SpreadsheetCell
+{
+    public:
+        // Other constructors omitted for brevity.
+        SpreadsheetCell(double initialValue);
+        // Remainder omitted for brevity.
+};
+
+export SpreadsheetCell operator+(const SpreadsheetCell& lhs,
+    const SpreadsheetCell& rhs);
+\end{cpp}
+
+The non-explicit constructor that takes a double allows you to write code like this:
+
+\begin{cpp}
+SpreadsheetCell myCell { 4 }, aThirdCell;
+aThirdCell = myCell + 5.6;
+aThirdCell = myCell + 4;
+\end{cpp}
+
+The second statement constructs a temporary SpreadsheetCell object from the 5.6 argument; it then calls the operator+ with myCell and this temporary object as arguments. The result is stored in aThirdCell. The third statement does the same thing, except that 4 must be coerced to a double to call the double constructor of the SpreadsheetCell.
+
+The important point in this example is that the compiler generates code to create an extra, unnamed SpreadsheetCell object for both addition operations in this example. That object must be constructed and destructed with calls to its constructor and destructor. If you’re still skeptical, try inserting print() statements in your constructor and destructor, and watch the printout.
+
+In general, the compiler constructs a temporary object whenever your code converts a variable of one type to another type for use in a larger expression. This rule applies mostly to function calls. For example, suppose that you write a function with the following prototype:
+
+\begin{cpp}
+void doSomething(const SpreadsheetCell& s);
+\end{cpp}
+
+You can call this function like this:
+
+\begin{cpp}
+doSomething(5.56);
+\end{cpp}
+
+The compiler constructs a temporary SpreadsheetCell object from 5.56 using the double constructor. This temporary object is then passed to doSomething(). Note that if you remove the const from the s parameter, you can no longer call doSomething() with a constant; you must pass an lvalue.
+
+You should generally attempt to avoid cases in which the compiler is forced to construct temporary objects. Although it is impossible to avoid in some situations, you should at least be aware of the existence of this “feature” so you aren’t surprised by performance and profiling results.
+
+Move semantics is used by the compiler to make working with temporary objects more efficient. That’s another reason to make sure your classes support move semantics. See Chapter 9 for details.
 
 \mySubsubsection{29.2.2.}{Pre-allocate Memory}
 
+One of the main advantages of using containers such as those from the C++ Standard Library discussed in Chapter 18, “Standard Library Containers,” is that they handle all memory management for you. The containers grow automatically when you add more elements to them. However, sometimes this causes a performance penalty. For example, an std::vector container stores its elements contiguously in memory. If it needs to grow in size, it needs to allocate a new block of memory and then move (or copy) all elements to this new memory. This has serious performance implications, for example, if you use push\_back() in a loop to add millions of elements to a vector.
 
+If you know in advance how many elements you are going to add to a vector or if you have a rough estimate, you should pre-allocate enough memory before starting to add your elements. A vector has a capacity, that is, the number of elements that can be added without reallocation, and a size, that is, the actual number of elements in the container. You can pre-allocate memory by changing the capacity using the reserve() member function or by resizing the vector using resize(). See Chapter 18 for details.
 
 \mySubsubsection{29.2.3.}{Use Inline Functions}
 
+Some compilers use the inline keyword as a hint to the optimizer to more aggressively optimize a marked function (especially at low optimization levels). If you notice that a particular small function is a performance bottleneck, try marking it inline. Do not overuse this feature, because it throws away a fundamental design principle stating that the interface and the implementation should be separated such that the implementation can evolve without changes to the interface.
 
+\CXXTwentythreeLogo{-40}{-50}
 
 \mySubsubsection{29.2.4.}{Mark Unreachable Code}
+
+The C++ Standard Library includes std::unreachable, defined in <utility>, to mark source code locations as being unreachable. Doing so helps the compiler to better optimize the final executable code. For example[This example comes from the official proposal paper of std::unreachable(), P0627R6.], the following function accepts an integer parameter, and the programmer of this function knows for a fact that this parameter can only ever have the values 0, 1, 2, or 3, nothing else.
+
+\begin{cpp}
+void doSomething(int number_that_is_only_0_1_2_or_3)
+{
+    switch (number_that_is_only_0_1_2_or_3) {
+        case 0:
+        case 2:
+            handle0Or2(); break;
+        case 1:
+            handle1(); break;
+        case 3:
+            handle3(); break;
+    }
+}
+\end{cpp}
+
+However, all the compiler sees is an int parameter, so it doesn’t know that the value can be only 0, 1, 2, or 3. The switch statement in the function handles all possible values of the parameter. However, the compiler does not know this and thus must generate executable code to check that the value is 0, 1, 2, or 3, before it executes the jump to the correct case block; for any other value, it has to jump to the first statement after the switch statement.
+
+By adding a default case to the switch statement and specifying to the compiler that this default case will never be reached, the compiler can omit the executable code to check that the parameter value is 0, 1, 2, or 3, and just immediately jump to the correct case block. In certain cases, for example in tight loops, this can improve the performance of the final executable code.
+
+\begin{cpp}
+void doSomething(int number_that_is_only_0_1_2_or_3)
+{
+    switch (number_that_is_only_0_1_2_or_3) {
+        // Same cases for 0, 1, 2, and 3 as before, omitted for brevity...
+        default:
+            unreachable();
+    }
+}
+\end{cpp}
+
+If a call to unreachable() is ever reached at run time, the result is undefined behavior. For example, calling doSomething() with argument 8 triggers undefined behavior, and a compiler is free to choose what to do in such a case.
+
+
+
+
+
+
+
+
+
+
 

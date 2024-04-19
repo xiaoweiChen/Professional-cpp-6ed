@@ -1,0 +1,68 @@
+A latch is a single-use thread coordination point. A number of threads block at a latch point. Once a given number of threads reach the latch point, all threads are unblocked and allowed to continue execution. Basically, it’s a counter that’s counting down as each thread arrives at the latch point. Once the counter hits zero, the latch remains “open” indefinitely, all blocking threads are unblocked, and any threads subsequently arriving at the latch point are immediately allowed to continue.
+
+A latch is implemented by std::latch, defined in <latch>. The constructor accepts the required number of threads that need to reach the latch point. A thread arriving at the latch point can call arrive\_and\_wait(), which decrements the latch counter and blocks until the latch is signaled. Threads can also block on a latch point without decrementing the counter by calling wait(). The try\_wait() member function can be used to check if the counter has reached zero. Finally, if needed, the counter can also be decremented without blocking by calling count\_down().
+
+A first example demonstrates a use case for a latch point where data is processed in parallel. The following code snippet launches a number of worker threads, each doing some of the work. Once a worker thread is finished with its work, it calls count\_down() on the latch to signal that its work is done. The main thread calls wait() on the latch to wait until the latch counter reaches zero, signaling that all worker threads have finished.
+
+\begin{cpp}
+// Launch a number of threads to do some work.
+constexpr unsigned numberOfWorkerThreads { 10 };
+latch latch { numberOfWorkerThreads };
+vector<jthread> threads;
+for (unsigned i { 0 }; i < numberOfWorkerThreads; ++i) {
+    threads.emplace_back([&latch, i] {
+        // Do some work...
+        print("{} ", i);
+        this_thread::sleep_for(1s);
+        print("{} ", i);
+        // When work is done, decrease the latch counter.
+        latch.count_down();
+    });
+}
+// Wait for all worker threads to finish.
+latch.wait();
+println("\nAll worker threads are finished.");
+\end{cpp}
+
+A second example demonstrates another use case for a latch point in which some data needs to be loaded into memory (I/O bound) that is subsequently processed in parallel in multiple threads. Suppose further that the threads need to perform some CPU-bound initialization when starting up and before they can start processing data. By launching the threads first and letting them do their CPUbound initialization, and loading the data (I/O bound) in parallel, performance is increased. The code initializes a latch object with counter 1 and launches 10 threads that all do some initialization and then block on the latch until the latch counter reaches zero. After starting the 10 threads, the code loads some data, for example from disk, that is, an I/O-bound step. Once all data has been loaded, the latch counter is decremented to 0 which unblocks all 10 waiting threads.
+
+\begin{cpp}
+latch startLatch { 1 };
+vector<jthread> threads;
+for (int i { 0 }; i < 10; ++i) {
+  threads.emplace_back([&startLatch] {
+     // Do some initialization... (CPU bound)
+     // Wait until the latch counter reaches zero.
+     startLatch.wait();
+     // Process data...
+  });
+}
+// Load data... (I/O bound)
+
+// Once all data has been loaded, decrement the latch counter
+// which then reaches zero and unblocks all waiting threads.
+startLatch.count_down();
+\end{cpp}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

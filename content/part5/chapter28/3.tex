@@ -1,36 +1,265 @@
 
+Software life cycle models provide a formal way of answering the question, “What do we do next?” but are rarely able to contribute an answer to the logical follow-up question, “How do we do it?” To provide some answers to the how question, a number of software engineering methodologies have been developed that provide practical rules of thumb for professional software development. Books and articles on software methodologies abound, but a few of these methodologies deserve particular attention: Scrum, Unified Process, Rational Unified Process, Extreme Programming, and Software Triage.
 
 \mySubsubsection{28.3.1.}{Scrum}
 
+The agile model is just a high-level foundation; it does not specify exactly how the model should be implemented in real life. That’s where Scrum comes into play; it’s an agile methodology with precise descriptions of how to use it on a daily basis. It’s one of the most frequently used software engineering methodologies in the industry.
+
+Scrum is an iterative process. It is popular as a means to manage software development projects. In Scrum, each iteration is called a sprint cycle. The sprint cycle is the central part of the Scrum process.
+
+The length of sprints, which should be decided at the beginning of the project, is typically between two and four weeks. Before a sprint is started, the team decides on the sprint goals. The team makes a commitment to deliver these goals at the end of the sprint. At the end of each sprint, the aim is to have a version of the software available that is fully working and tested and that represents a subset of the customers’ requirements. Scrum recognizes that customers will often change their minds during development, so it allows the result of each sprint to be shipped to the customer. This gives customers the opportunity to see iterative versions of the software and allows them to give feedback to the development team about potential issues.
+
 \mySamllsection{Roles}
+
+There are three roles in Scrum. The first role, product owner, is the connection to the customer and to other people. The product owner writes high-level user stories based on input from the customer, gives each user story a priority, and puts the stories on the Scrum product backlog. Actually, everyone on the team is allowed to write high-level user stories for the product backlog, but the product owner decides which user stories are kept and which are removed.
+
+The second role, Scrum master, is responsible for keeping the process running and can be part of the team but isn’t considered the leader of the team, because with Scrum the team leads itself. The Scrum master is the contact person for the team so that the rest of the team members can concentrate on their tasks. The Scrum master ensures that the Scrum process is followed correctly by the team, for example, by organizing the daily Scrum meetings, discussed in the next section. The Scrum master and product owner should be two different people.
+
+The third and final role in the Scrum process is the team itself. Teams develop the software and should be kept small, preferably fewer than 10 members.
 
 \mySamllsection{The Process}
 
+Before the start of each sprint cycle, there is a sprint planning meeting in which team members must decide which product features they will implement in the new sprint. This is formalized in a sprint backlog. The features are selected from the product backlog containing prioritized user stories, which are high-level requirements of new features. User stories from the product backlog are broken down into smaller tasks with an effort estimation and are put on the sprint backlog. The duration of the sprint planning meeting depends on the length of the sprints and the size of the team; typically, there will be two to four hours of sprint planning for each two weeks of a sprint. The sprint planning meeting is usually split into two parts: a meeting with the product owner and the team to discuss the priority of product backlog items and a meeting with only the team to complete the sprint backlog.
+
+In a Scrum team you will sometimes find a physical board, the Scrum board or sprint board, with three columns: To Do, In Progress, and Done. Every task for the sprint is written on a small piece of paper and stuck on the board in the correct column. Tasks are not assigned to people during a meeting; instead, every team member can go to the board, pick one of the To Do tasks, and move that paper to the In Progress column. When the team member is finished with that task, the paper is moved to the Done column. This method makes it easy for team members to get an overview of the work that still needs to be done and what tasks are in progress or finished. Instead of a physical Scrum board, you can also use software to work with a virtual Scrum board.
+
+The three columns, To Do, In Progress, and Done, are not set in stone. Your team can add any additional columns to include other steps. For example, a Scrum board could contain the following columns:
+
+\begin{itemize}
+\item
+To Do: The tasks planned for the current sprint that have not been started yet
+
+\item
+In Progress: The tasks that are currently being worked on by developers in a development branch (see the “Version Control” section later in this chapter)
+
+\item
+In Review: The tasks that have been implemented and that are currently waiting to be reviewed by another team member, also known as code review
+
+\item
+In Testing: The tasks that have been implemented and code reviewed and that are waiting to be tested by the quality assurance (QA) team for approval
+
+\item
+In Integration: The tasks for which the code changes have been validated by a code review and approved by QA and for which the code from the development branch can be integrated into the main code base, but only if all tests are successful on that branch
+
+\item
+Done: The tasks that have been fully implemented, reviewed, tested, and integrated
+\end{itemize}
+
+It’s recommended to keep individual tasks small. This results in short-lived development branches.
+
+Sometimes, a burn-down chart is also created every day that displays the days of the sprint on the horizontal axis and the remaining development hours on the vertical axis. This gives a quick overview of the progress made and can be used to determine whether all planned tasks are likely to be completed during the sprint.
+
+The Scrum process enforces a daily meeting called the daily replanning, daily Scrum, or daily standup. In this meeting, all team members stand together with the Scrum master. This meeting should start every day at the same time and location but should be no longer than 15 minutes. The sprint board should be visible for all team members during this meeting. In this meeting, the team looks at the current progress toward the sprint goal. Any blocking points or delays are discussed. If need be, the team can remove or add tasks to the current sprint to make sure the sprint goal can be reached at the end of the sprint.
+
+This daily meeting usually includes the following three questions for all team members to answer:
+
+\begin{itemize}
+\item
+What did you do yesterday to help the team reach the sprint goal?
+
+\item
+What will you do today to help the team reach the sprint goal?
+
+\item
+Do you see any obstacles that hamper you or the team to reach the sprint goal?
+\end{itemize}
+
+Once a sprint cycle is finished, there are two meetings: the sprint review and the sprint retrospective. The duration of the sprint review meeting again depends on the length of the sprints and the size of the team, typically two hours per two weeks of a sprint. During the sprint review meeting, a demo is given to demonstrate the sprint results and the current state of the software to all interested stakeholders, such as product managers, support engineers, and so on. The sprint review meeting also includes a discussion of the results of the sprint cycle, including what tasks were completed, what tasks were not completed, and why. The sprint retrospective typically takes around one-and-a-half hours for each two weeks of a sprint and allows the team to think about how the last sprint cycle was executed. For example, the team can identify shortcomings in the process and adapt the process for the next sprint. Questions like “What went well?” and “What could be improved?” and “What do we want to start, continue, or stop doing?” are answered. This is called continuous improvement; that is, after every sprint, the process itself is examined and improved.
+
 \mySamllsection{Benefits of Scrum}
+
+Scrum is resilient to unforeseen problems that come up during the development stage. When a problem pops up, it can be handled in one of the following sprints. The team is involved in every step of the project. They discuss user stories from the product backlog with the product owner and convert these user stories into smaller tasks for inclusion in a sprint backlog. The team autonomously assigns work to its members with the aid of the Scrum task board. This board makes it easy to see which team member is working on which task, and the daily Scrum meetings ensure that everyone knows what is happening to reach the sprint goals.
+
+A huge benefit to the stakeholders is the demo that follows each sprint, which demonstrates the new iterative version of the project. Stakeholders quickly gets a sense of how the project is progressing and can make changes to the requirements, which usually can be incorporated into a future sprint.
 
 \mySamllsection{Drawbacks of Scrum}
 
+Some companies might find it difficult to accept that the team itself decides who is doing what. Tasks are not assigned to team members by a manager or a team leader. All members pick their own tasks from the Scrum task board.
+
+The Scrum master is a key person to make sure the team stays on track. It is important that the Scrum master trusts the team. Having too much control over the team members will cause the Scrum process to fail.
+
+A possible problem with Scrum is called feature creep. Scrum allows new user stories to be added to the product backlog during development. There is a danger that project managers will keep adding new features to the product backlog. This problem is best solved by deciding early on a final release date or the end date of the final sprint.
 
 \mySubsubsection{28.3.2.}{The Unified Process}
 
+The Unified Process (UP) is an iterative and incremental software development process. The UP is not set in stone; it’s a framework that you should customize to the specific needs of your project. According to the Unified Process, a project can be split into four phases:
 
+\begin{itemize}
+\item
+Inception: This phase is usually very short. It includes a feasibility study, writing of a business case, deciding whether the project should be developed in-house or bought from a third-party vendor, defining a rough estimate of the cost and timeline, and defining the scope.
+
+\item
+Elaboration: Most of the requirements are documented. Risk factors are addressed, and the system architecture is validated. To validate the architecture, the most important parts of the core of the architecture are built as an executable delivery. This should demonstrate that the developed architecture will be able to support the entire system.
+
+\item
+Construction: All requirements are implemented on top of the executable architecture delivery from the elaboration phase.
+
+\item
+Transition: The product is delivered to the customer. Feedback from the customer is addressed in subsequent transition iterations.
+\end{itemize}
+
+All phases are split into time-boxed iterations, each having a tangible result. In each iteration, the teams are working on several disciplines of the project at the same time: business modeling, requirements, analysis and design, implementation, testing, and deployment. The amount of work done in each discipline changes with each iteration. Figure 28.6 shows this iterative and overlapping development approach. In this example, the inception phase is done in one iteration, the elaboration phase in two, the construction phase in four, and the transition phase in two iterations.
+
+\myGraphic{0.9}{content/part5/chapter28/images/6.png}{FIGURE 28.6}
 
 \mySubsubsection{28.3.3.}{The Rational Unified Process}
 
+The Rational Unified Process (RUP) is one of the best-known refinements of the Unified Process. It is a disciplined and formal approach to managing the software development process. The most important characteristic of the RUP is that, unlike the spiral model or the waterfall model, RUP is more than just a theoretical process model. RUP is actually a software product that is sold by Rational Software, a division of IBM. Treating the process itself as software brings about some interesting advantages:
+
+\begin{itemize}
+\item
+The process itself can be updated and refined, just as software products periodically have updates.
+
+\item
+Rather than simply suggesting a development framework, RUP includes a set of software tools for working with that framework.
+
+\item
+As a product, RUP can be rolled out to the entire engineering team so that all members are using the exact same processes and tools.
+
+\item
+Like many software products, RUP can be customized to the needs of its users.
+\end{itemize}
+
 \mySamllsection{RUP as a Product}
+
+As a product, RUP takes the form of a suite of software applications that guide developers through the software development process. The product also offers specific guidance for other Rational products, such as the Rational Rose visual modeling tool and the Rational ClearCase configuration management tool. Extensive groupware communication tools are included as part of the “marketplace of ideas” that allows developers to share knowledge.
+
+One of the basic principles behind RUP is that each iteration on a development cycle should have a tangible result. During the Rational Unified Process, users will create numerous designs, requirement documents, reports, and plans. The RUP software provides visualization and development tools for the creation of these artifacts.
 
 \mySamllsection{RUP as a Process}
 
+Defining an accurate model is the central principle of RUP. Models, according to RUP, help explain the complicated structures and relationships in the software development process. In RUP, models are often expressed in Unified Modeling Language (UML) format; see Appendix D, “Introduction to UML.”
+
+RUP defines each part of the process as an individual workflow (called discipline in the earlier discussion of the Unified Process). Workflows represent each step of a process in terms of who is responsible for the step, what tasks are being performed, the artifacts or results of these tasks, and the sequence of events that drives the tasks. Almost everything about RUP is customizable, but several core process workflows are defined “out of the box” by RUP.
+
+The core process workflows bear some resemblance to the stages of the waterfall model, but each one is iterative and more specific in definition. The business modeling workflow models business processes, usually with the goal of driving software requirements forward. The requirements workflow creates the requirements definition by analyzing the problems in the system and iterating on its assumptions. The analysis and design workflow deals with system architecture and subsystem design. The implementation workflow covers the modeling, coding, and integration of software subsystems. The testing workflow models the planning, implementation, and evaluation of software quality tests. The deployment workflow is a high-level view of overall planning, releasing, supporting, and testing workflows. The configuration management workflow goes from new project conception to iteration and end-of-product scenarios. Finally, the environment workflow supports the engineering organization through the creation and maintenance of development tools.
+
 \mySamllsection{RUP in Practice}
 
+RUP is aimed mainly at larger organizations and offers several advantages over the adoption of traditional life cycle models. Once the team has gotten over the learning curve of using the software, all members will be using a common platform for designing, communicating, and implementing their ideas. The process can be customized to the needs of the team, and each stage reveals a wealth of valuable artifacts that document each phase of the development.
 
+A product like RUP can be too heavyweight for some organizations. Teams with diverse development environments or tight engineering budgets might not want to, or be able to, standardize on a software-based development system. The learning curve can also be a factor; new engineers who aren’t familiar with the process software will have to learn how to use it, while at the same time getting up to speed on the product and the existing code base.
 
 \mySubsubsection{28.3.4.}{Extreme Programming}
 
+When a friend of mine arrived home from work years ago and told his wife that his company had adopted some of the principles of Extreme Programming, she joked, “I hope you wear a safety harness for that.” Despite the somewhat hokey name, Extreme Programming (XP) effectively bundles up the best of other software development guidelines and adds some new material.
+
+XP, popularized by Kent Beck in Extreme Programming Explained (Addison-Wesley, 1999), claims to take the best practices of good software development and turn them up a notch. For example, most programmers would agree that testing is a good thing. In XP, testing is deemed so good that you’re supposed to write the tests before you write the code.
+
 \mySamllsection{XP in Theory}
 
+The XP methodology is made up of twelve guiding principles, grouped into four categories. These principles are manifested throughout all phases of the software development process and have a direct impact on the daily tasks of engineers.
+
+\mySamllsection{Category 1: Fine-Scale Feedback}
+
+XP provides four fine-grained guidelines related to coding, planning, and testing.
+
+\mySamllsection{Code in Pairs}
+
+XP suggests that all production code should be written by two people working side-by-side, a technique called pair programming. Obviously, only one person can actually be in control of the keyboard. The other person reviews the code his peer is writing and takes a high-level approach, thinking about issues such as testing, necessary refactoring, and the overall model of the project.
+
+As an example, if you are in charge of writing the user interface for a particular feature of your application, you might want to ask the original author of the feature to sit down with you. He can advise you about the correct use of the feature, warn you about any “gotchas” you should watch out for, and help oversee your efforts at a high level. Even if you can’t acquire the help of the original author, just grabbing another member of the team can help. The theory is that working in pairs builds shared knowledge, ensures proper design, and puts an informal system of checks and balances in place.
+
+\mySamllsection{Planning Game}
+
+In the waterfall model, planning happens once, at the beginning of the process. Under the spiral model, planning is the first phase of each iteration. Under XP, planning is more than just a step—it’s a never-ending task. XP teams start with a rough plan that captures the major points of the product being developed. During each iteration of the process, there is a planning game meeting. Throughout the development process, the plan is refined and modified as necessary. The theory is that conditions are constantly changing and new information is obtained all the time. There are two major parts in the planning process:
+
+\begin{itemize}
+\item
+Release planning: This happens with the developers and the customers, and its goal is to determine which requirements need to be included in which upcoming releases.
+
+\item
+Iteration planning: This happens only with the developers, and it plans the actual tasks for the developers.
+\end{itemize}
+
+Under XP, estimates for a given feature are always made by the person who will be implementing that particular feature. This helps to avoid situations where the implementer is forced to adhere to an unrealistic and artificial schedule. Initially, estimates are very rough, perhaps on the order of weeks for a feature. As the time horizon shortens, the estimates become more granular. Features are broken down into tasks taking no more than five days.
+
+\mySamllsection{Test Constantly}
+
+According to Extreme Programming Explained, “Any program feature without an automated test simply doesn’t exist.” XP is zealous about testing. Part of your responsibility as an XP engineer is to write the unit tests that accompany your code. A unit test is generally a small piece of code that makes sure that an individual piece of functionality works. For example, individual unit tests for a file-based object store may include testSaveObject, testLoadObject, and testDeleteObject.
+
+XP takes unit testing one step further by suggesting that unit tests should be written before the actual code is written. Of course, the tests won’t pass because the code hasn’t been written yet. In theory, if your tests are thorough, you should know when your code is complete because all the tests will run successfully. However, it’s hard to know if your tests are thorough enough. You have to think about different kinds of bugs that you might introduce when implementing the code and whether your tests would catch those bugs. Writing good tests can be significantly harder than writing good code. The process of writing unit tests before the actual code is called test-driven development (TDD). I told you it was “extreme.
+
+\mySamllsection{Have a Customer On-Site}
+
+Because an XP-savvy engineering group constantly refines its product plan and builds only what is currently necessary, having a customer contribute to the process is valuable. Although it is not always possible to convince a customer to be physically present during development, the idea that there should be communication between engineering and the end user is clearly a valuable notion. In addition to assisting with the design of individual features, customers can help prioritize tasks by conveying their individual needs.
+
+\mySamllsection{Category 2: Continuous Process}
+
+XP advocates that you should continuously integrate subsystems so that mismatches between subsystems can be detected early. You should also refactor code whenever necessary and aim to build and deploy small incremental releases.
+
+\mySamllsection{Integrate Continuously}
+
+All programmers are familiar with the dreaded chore of integrating code. This task becomes a nightmare when you discover that your view of a subsystem is a complete mismatch with the way it was actually written. When subsystems come together, problems are exposed. XP recognizes this phenomenon and advocates integrating code into the project frequently as it is being developed.
+
+During development, engineers should run all tests before checking code into the repository. Additionally, a designated machine continually runs automated tests. When the automated tests fail, the team receives an e-mail indicating the problem and listing the most recent check-ins.
+
+With development branches, it is recommended to set up your processes in such a way that a development branch can be merged back into the main code base only if all tests ran successfully on that branch.
+
+\mySamllsection{Refactor When Necessary}
+
+Most programmers refactor their code from time to time. Refactoring is the process of redesigning existing working code to take into account new knowledge, new upstream APIs, or alternate uses that have been discovered since the code was written. Refactoring is difficult to build into a traditional software engineering schedule because its results are not as tangible as implementing a new feature. Good managers, however, recognize its importance for long-term code maintainability.
+
+The extreme way of refactoring is to recognize situations during development when refactoring is useful and to do the refactoring at that time. Instead of deciding at the start of a release which existing parts of the product need design work, XP programmers learn to recognize the signs of code that is ready to be refactored. While this practice will almost certainly result in unexpected and unscheduled tasks, restructuring the code when appropriate should make future development easier.
+
+\mySamllsection{Build Small Releases}
+
+One of the theories of XP is that software projects grow risky and unwieldy when they try to accomplish too much at one time. Instead of massive software releases that involve core changes and several pages of release notes, XP advocates smaller releases with a timeframe closer to two months than eighteen months. With such a short release cycle, only the most important features can make it into the product. This forces engineering and marketing to agree on what features are truly important.
+
+\mySamllsection{Category 3: Shared Understanding}
+
+Software is developed by a team. Any code written is not owned by individuals but by the team as a whole. XP gives a couple of guidelines to make sure sharing the code and ideas is possible.
+
+\mySamllsection{Share Common Coding Standards}
+
+Because of the collective ownership guideline and the practice of pair programming, coding in an extreme environment can be difficult if each engineer has their own naming and indenting conventions. XP doesn’t advocate any particular style but recommends that if you can look at a piece of code and immediately identify the author, your group probably needs a better definition of its coding standards.
+
+For additional information on various approaches to coding style, see Chapter 3, “Coding with Style.”
+
+\mySamllsection{Share the Code}
+
+In many traditional development environments, code ownership is strongly defined and often enforced. A friend of mine once worked in an environment where the manager explicitly forbade checking in changes to code written by any other member of the team. XP takes the extreme opposite approach by declaring that the code is collectively owned by everybody.
+
+Collective ownership is practical for a number of reasons. From a management point of view, it is less detrimental when a single engineer leaves suddenly because there are others who understand that part of the code. This increases the bus factor or bus number, which represents the minimal number of engineers that need to be hit by a bus to make the project stall. From an engineer’s point of view, collective ownership builds a common view of how the system works. This helps with design tasks and frees the individual programmer to make any changes that will add value to the overall project.
+
+One important note about collective ownership is that it is not necessary for every programmer to be familiar with every single line of code. It is more of a mindset that the project is a team effort, and there is no reason for any one person to hoard knowledge.
+
+\mySamllsection{Simplify Your Designs}
+
+A mantra frequently sung by XP-savvy engineers is “avoid speculative generality,” also known as KISS, or “Keep It Simple, Stupid.” This goes against the natural inclinations of many programmers. If you are given the task of designing a file-based object store, you may start down the path of creating the be-all, end-all solution to all file-based storage problems. Your design might quickly evolve to cover multiple languages and any type of object. XP says you should lean toward the other end of the generality–specificity continuum. Instead of making the ideal object store that will win awards and be celebrated by your peers, design the simplest possible object store that gets the job done. You should understand the current requirements and write your code to those specifications to avoid overly complex code.
+
+It may be hard to get used to simplicity in design. Depending on the type of work you do, your code may need to exist for years and be used by other parts of the code that you haven’t even dreamed of. As discussed in Chapter 6, “Designing for Reuse,” the problem with building in functionality that may be useful in the future is that you don’t know what those hypothetical use cases are, and there is no way to craft a good design that is purely speculative. In fact, designing up front for one of these use cases (which might never come to pass) might actually prevent you from being able to accommodate a different use case (which actually could have been useful) unless you refactor the entire design. XP says you should build something that is useful today and leave open the opportunity to modify it later.
+
+\mySamllsection{Share a Common Metaphor}
+
+XP uses the term metaphor for the idea that all members of the team (including customers and managers) should share a common high-level view of the system. This does not refer to the specifics of how objects will communicate or the exact APIs that will be written. Rather, the metaphor is the mental model and naming model for the components of the system. Each component should be given a descriptive name so that each member of the team can guess its functionality simply based on its name. Team members should use the metaphor to drive shared terminology when discussing the project.
+
+\mySamllsection{Category 4: Programmer Welfare}
+
+The final guideline of XP is about the welfare of developers.
+
+\mySamllsection{Work Sane Hours}
+
+XP has a thing or two to say about the hours you’ve been putting in. The claim is that a well-rested programmer is a happy and productive programmer. XP advocates a workweek of approximately 40 hours and warns against putting in overtime for more than two consecutive weeks.
+
+Of course, different people need different amounts of rest. The main idea, though, is that if you sit down to write code without a clear head, you’re going to write poor code and abandon many of the XP principles.
+
 \mySamllsection{XP in Practice}
+
+XP purists claim that the twelve tenets of Extreme Programming are so intertwined that adopting some of them without others would largely ruin the methodology. For example, pair programming is vital to testing because if you can’t determine how to test a particular piece of code, your partner can help. Also, if you’re tired one day and decide to skip the testing, your partner will be there to promote feelings of guilt.
+
+Some of the XP guidelines, however, can prove difficult to implement. To some engineers, the idea of writing tests before code is too abstract. For those engineers, it may be sufficient to design the tests without actually writing them until there is code to test. Many of the XP principles are rigidly defined, but if you understand the theory behind them, you may be able to find ways to adapt the guidelines to the needs of your project.
+
+The collaborative aspects of XP can be challenging as well. Pair programming has measurable benefits, but it may be difficult for a manager to rationalize having half as many people actually writing code each day. Some members of the team may even feel uncomfortable with such close collaboration, perhaps finding it difficult to type while others are watching. XP suits some personality types better than others; introverts in particular might dislike pair programming. Pair programming also has obvious challenges if the team is geographically spread out or if members tend to telecommute regularly.
+
+For some organizations, Extreme Programming may be too radical. Large, established companies with formal policies in place for engineering may be slow to adopt approaches like XP. However, even if your company is resistant to the implementation of XP, you can still improve your own productivity by understanding the theory behind it.
 
 
 \mySubsubsection{28.3.5.}{Software Triage}
 
+In the pessimistically named book Death March (Prentice Hall, 1997), Edward Yourdon describes the frequent and scary phenomenon of software that is behind schedule, short on staff, over-budget, or poorly designed. Yourdon’s theory is that when software projects get into this state, even the best modern software development methodologies will no longer apply. As you have learned in this chapter, many approaches to software development are built around formalized documents or taking a user-centered approach to design. In a project that’s already in “death march” mode, there simply isn’t time for these approaches.
+The idea behind Software Triage is that when a project is already in a bad state, resources are scarce.
+
+Time is scarce, engineers are scarce, and money may be scarce. The main mental obstacle that managers and developers need to overcome when a project is way behind schedule is that it will be impossible to satisfy the original requirements in the allotted time. The task then becomes organizing remaining functionality into must-have, should-have, and nice-to-have lists.
+
+Software Triage is a daunting and delicate process. It often requires the leadership of an outside veteran of “death march” projects to make the tough decisions. For the engineer, the most important point is that in certain conditions, it may be necessary to throw familiar processes (and perhaps some existing code) out the window to finish a project on time.

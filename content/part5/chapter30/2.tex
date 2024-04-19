@@ -1,36 +1,535 @@
 
+The only way to find bugs is through testing. One of the most important types of tests from a developer’s point of view is the unit test. Unit tests are pieces of code that exercise specific functionality of a class or subsystem. These are the finest-grained tests that you could possibly write. Ideally, one or more unit tests should exist for every low-level task that your code can perform. For example, imagine that you are writing a math library that can perform addition and multiplication. Your suite of unit tests might contain the following tests:
+
+\begin{itemize}
+\item
+Test a simple addition like 1+2
+
+\item
+Test addition of large numbers
+
+\item
+Test addition of negative numbers
+
+\item
+Test addition of zero to a number
+
+\item
+Test the commutative property of addition
+
+\item
+Test a simple multiplication
+
+\item
+Test multiplication of large numbers
+
+\item
+Test multiplication of negative numbers
+
+\item
+Test multiplication with zero
+
+\item
+Test the commutative property of multiplication
+\end{itemize}
+
+Well-written unit tests protect you in many ways:
+
+\begin{itemize}
+\item
+They prove that a piece of functionality actually works. Until you have some code that actually makes use of your class, its behavior is a major unknown.
+
+\item
+They provide a first alert when a recently introduced change breaks something. This specific usage, called a regression test, is covered later in this chapter.
+
+\item
+When used as part of the development process, they force the developer to fix problems from the start. If you are prevented from checking in your code with failed unit tests, then you’re forced to address problems right away.
+
+\item
+Unit tests let you try code before other code is in place. When you first started programming, you could write an entire program and then run it for the first time. Professional programs are too big for that approach, so you need to be able to test components in isolation.
+
+\item
+Last, but certainly not least, they provide an example of usage. Almost as a side effect, unit tests make great reference code for other programmers. If a co-worker wants to know how to perform matrix multiplication by using your math library, you can point her to the appropriate test.
+\end{itemize}
 
 \mySubsubsection{30.2.1.}{Approaches to Unit Testing}
 
+It’s hard to go wrong with unit tests, unless you don’t write them or you write them poorly. In general, the more tests you have, the more coverage you have. The more coverage you have, the less likely it is for bugs to fall through the cracks and for you to have to tell your boss, or worse, your customer, “Oh, we never tested that.”
 
+There are several methodologies for writing unit tests most effectively. The Extreme Programming methodology, explained in Chapter 28, “Maximizing Software Engineering Methods,” instructs its followers to write unit tests before writing code.
+
+Writing tests first helps you to solidify the requirements for the component and to provide a metric that can be used to determine when coding is done. However, writing tests first can be tricky and requires diligence on the part of the programmer. For some programmers, it simply doesn’t mesh well with their coding style. A less rigid approach is to design the tests before coding but implement them later in the process. This way, the programmer is still forced to understand the requirements of the module but doesn’t have to write code that makes use of nonexistent classes.
+
+In some groups, the author of a particular subsystem doesn’t write the unit tests for that subsystem. The idea is that if you write the tests for your own code, you might subconsciously work around problems that you know about or only cover certain cases that you know your code handles well. In addition, it’s sometimes difficult to get excited about finding bugs in code you just wrote, so you might only put in a half-hearted effort. Having one developer write unit tests for another developer’s code requires a lot of extra overhead and coordination. When such coordination is accomplished, however, this approach helps guarantee more effective tests.
+
+Code coverage is a metric to measure how much of the code is covered by unit tests. Such a metric allows you to maximize code coverage when writing unit tests. You can use a code coverage tool, such as gcov (gcc.gnu.org/onlinedocs/gcc/Gcov.html), that tells you what percentage of the code is called by unit tests. The idea is that a properly tested piece of code has unit tests to test all possible code paths that can be taken through that piece of code and thus reaches 100 percent unittest code coverage. Different code coverage tools have different definitions of code coverage. Does the tool consider a line to be covered if it’s an if statement written on a single line and the body was never executed? How does the tool define coverage for templates? Does the tool support branch coverage to make sure each possible direction of a branch is covered? Always do some research on any tool you intend to use.
 
 \mySubsubsection{30.2.2.}{The Unit Testing Process}
 
+The process of providing unit tests for your code starts from the beginning, long before any code is written. Keeping unit testability in mind during the design phase can influence the design decisions you make for your software. Even if you do not subscribe to the methodology of writing unit tests before you write code, you should at least take the time to consider what sorts of tests you will provide, even while still in the design phase. This way, you can break the task up into well-defined chunks, each of which has its own test-validated criteria. For example, if your task is to write a database access class, you might first write the functionality that inserts data into the database. Once that is fully tested with a suite of unit tests, you can continue to write the code to support updates, deletes, and selects, testing each piece as you go.
+
+The following list of steps is a suggested approach for designing and implementing unit tests. As with any programming methodology, the best process is the one that yields the best results. I suggest that you experiment with different ways of using unit tests to discover what works best for you.
+
 \mySamllsection{Define the Granularity of Your Tests}
+
+Writing unit tests takes time; there is no way around this. Software developers are often crunched for time. To reach deadlines, developers tend to skip writing unit tests, because they think they will finish faster that way. Unfortunately, this thinking does not take the whole picture into account. Omitting unit tests will backfire in the long run. The earlier a bug is detected in the software development process, the less it costs. If a developer finds a bug during unit testing, it can be fixed immediately, before anyone else encounters it. However, if the bug is discovered by QA, then it becomes a much costlier bug. The bug can cause an extra development cycle, requiring bug management; it has to go back to the development team for a fix and then back to QA to verify the fix. If a bug slips through the QA process and finds its way to the customer, then it becomes even more expensive.
+
+The granularity of tests refers to their scope. As the following table illustrates, you can initially unit test a database class with just a few test functions and then gradually add more tests to ensure that everything works as it should:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{LARGE-GRAINED TESTS} &
+\textbf{MEDIUM-GRAINED TESTS} &
+\textbf{FINE-GRAINED TESTS} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\begin{tabular}[c]{@{}l@{}}testConnection()\\ testInsert()\\ testUpdate()\\ testDelete()\\ testSelect()\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}testConnectionDropped()\\ testInsertBadData()\\ testInsertStrings()\\ testInsertIntegers()\\ testUpdateStrings()\\ testUpdateIntegers()\\ testDeleteNonexistentRow()\\ testSelectComplicated()\\ testSelectMalformed()\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}testConnectionThroughHTTP()\\ testConnectionLocal()\\ testConnectionErrorBadHost()\\ testConnectionErrorServerBusy()\\ testInsertWideCharacters()\\ testInsertLargeData()\\ testInsertMalformed()\\ testUpdateWideCharacters()\\ testUpdateLargeData()\\ testUpdateMalformed()\\ testDeleteWithoutPermissions()\\ testDeleteThenUpdate()\\ testSelectNested()\\ testSelectWideCharacters()\\ testSelectLargeData()\end{tabular} \\ \hline
+\end{longtable}
+
+As you can see, each successive column brings in more-specific tests. As you move from large-grained tests to more finely grained tests, you start to consider error conditions, different input data sets, and different modes of operation.
+
+Of course, the decisions you make initially when choosing the granularity of your tests are not set in stone. Perhaps the database class is just being written as a proof of concept and might not even be used. A few simple tests may be adequate now, and you can always add more later. Or perhaps the use cases will change at a later date. For example, the database class might not initially have been written with international characters in mind. Once such features are added, they should be tested with specific targeted unit tests.
+
+Consider the unit tests to be part of the actual implementation of a feature. When you make a modification, don’t just modify the tests so that they continue to work (although of course you should do this too). Write new tests and re-evaluate the existing ones. When bugs are uncovered and fixed, add new unit tests that specifically test those fixes, called regression tests.
+
+\begin{myWarning}{WARNING}
+Unit tests are part of the subsystem that they are testing. As you enhance and refine the subsystem, enhance and refine the tests.
+\end{myWarning}
 
 \mySamllsection{Brainstorm the Individual Tests}
 
+Over time, you will gain an intuition for which aspects of a piece of code should turn into a unit test. Certain functions or inputs will just feel like they should be tested. This intuition is gained through trial and error and by looking at unit tests that other people in your group have written. It should be pretty easy to pick out which programmers are the best unit testers. Their tests tend to be organized and frequently modified.
+
+Until unit test creation becomes second nature, approach the task of figuring out which tests to write by brainstorming. To get some ideas flowing, consider the following questions:
+
+\begin{itemize}
+\item
+What are the things that this piece of code was written to do?
+
+\item
+What are the typical ways each function would be called?
+
+\item
+What preconditions of the functions could be violated by the caller?
+
+\item
+How could each function be misused?
+
+\item
+What kinds of data are you expecting as input?
+
+\item
+What kinds of data are you not expecting as input?
+
+\item
+What are the edge cases or exceptional conditions?
+\end{itemize}
+
+You don’t need to write formal answers to those questions (unless your manager is a particularly fervent devotee of this book or of certain testing methodologies), but they should help you generate some ideas for unit tests. The table of tests for the database class contained test functions, each of which arose from one of these questions.
+
+Once you have generated ideas for some of the tests you would like to use, consider how you might organize them into categories; the breakdown of tests will fall into place. In the database class example, the tests could be split into the following categories:
+
+\begin{itemize}
+\item
+Basic tests
+
+\item
+Error tests
+
+\item
+Localization tests
+
+\item
+Bad input tests
+
+\item
+Complicated tests
+\end{itemize}
+
+Splitting your tests into categories makes them easier to identify and augment. It might also make it easier to realize which aspects of the code are well tested and which could use a few more unit tests.
+
+\begin{myWarning}{WARNING}
+It’s easy to write a massive number of simple tests, but don’t forget about the more complicated cases!
+\end{myWarning}
+
 \mySamllsection{Create Sample Data and Results}
+
+The most common trap to fall into when writing unit tests is to match the test to the behavior of the code, instead of using the test to validate the code. If you write a unit test that performs a database select for a piece of data that is definitely in the database, and the test fails, is it a problem with the code or a problem with the test? It’s often easier to assume that the code is right and to modify the test to match. This approach is usually wrong.
+
+To avoid this pitfall, you should understand the inputs to the test and the expected output before you try it. This is sometimes easier said than done. For example, say you wrote some code to encrypt an arbitrary block of text using a particular key. A reasonable unit test would take a fixed string of text and pass it in to the encryption module. Then, it would examine the result to see if it was correctly encrypted.
+
+When you go to write such a test, it is tempting to try the behavior with the encryption module first and see the result. If it looks reasonable, you might write a test to look for that value. Doing so really doesn’t prove anything, however! You haven’t actually tested the code; you’ve just written a test that guarantees it will continue to return that same value. Oftentimes, writing the test requires some real work; you would need to encrypt the text independently of your encryption module to get an accurate result. If you don’t know the encryption algorithm being used, e.g., because it’s coming from a third-party library, then you can at least write tests such as decrypt(encrypt(x))==x and encrypt(a)!=encrypt(b).
+
+\begin{myWarning}{WARNING}
+Decide on the correct output for your test before you ever run the test.
+\end{myWarning}
 
 \mySamllsection{Write the Tests}
 
+The exact code behind a test varies depending on what type of test framework you have in place. One framework, the Microsoft Visual C++ Testing Framework, is discussed later in this chapter. Independent of the actual implementation, however, the following guidelines will help ensure effective tests:
+
+\begin{itemize}
+\item
+Make sure that you’re testing only one thing in each test. That way, if a test fails, it will point to a specific piece of functionality.
+
+\item
+Be specific inside the test. Did the test fail because an exception was thrown or because the wrong value was returned?
+
+\item
+Use logging extensively inside of test code. If the test fails someday, you will have some insight into what happened.
+
+\item
+Avoid tests that depend on earlier tests or are otherwise interrelated. Tests should be as atomic and isolated as possible.
+
+\item
+If the test requires the use of other subsystems, consider writing stubs or mocks to simulate those subsystems. A stub or mock implements the same interface as the subsystem it simulates. They can then be used in place of any concrete subsystem implementation. For example, if a unit test requires a database but that database is not the subsystem being tested by that unit test, then a stub or mock can implement the database interface and simulate a real database. This way, running the unit test does not require a connection to a real database, and errors in the real database implementation won’t have any impact on this specific unit test. In fact, you can use a mock to simulate error conditions that might be difficult or impossible to reliably achieve using the real database!
+
+\item
+Code reviewers must not only review the code but review the unit tests as well. When you do a code review, tell the other engineer where you think additional tests could be added.
+\end{itemize}
+
+As you will see later in this chapter, unit tests are usually small and simple pieces of code. In most cases, writing a single unit test will take only a few minutes, making unit tests one of the most productive uses of your time.
+
 \mySamllsection{Run the Tests}
 
+When you’re done writing a test, you should run it right away before the anticipation of the results becomes too much to bear. The joy of a screen full of passing unit tests shouldn’t be minimized. For most programmers, this is the easiest way to see quantitative data that declares your code useful and (as far as you know) correct.
 
+Even if you adopt the methodology of writing tests before writing code, you should still run the tests immediately after they are written. This way, you can prove to yourself that the tests fail initially. Once the code is in place, you have tangible data that shows that it accomplished what it was supposed to accomplish.
+
+It’s unlikely that every test you write will have the expected result the first time. In theory, if you are writing tests before writing code, all of your tests should fail. If one passes, either the code magically appeared or there is a problem with the test. If the coding is done and tests still fail (some would say that if tests fail, the coding is actually not done), there are two possibilities: the code could be wrong, or the tests could be wrong.
+
+Running unit tests must be automated. This can be done in several ways. One option is to have a dedicated system that automatically runs all unit tests after every continuous integration build, or at least once a night. Such a system must send out e-mails to notify developers when unit tests are failing.
+
+Another option is to set up your local development environment so that unit tests are executed every time you compile your code. For this, unit tests should be kept small and very efficient. If you do have longer-running unit tests, put these separate, and let these be tested by a dedicated test system.
 
 \mySubsubsection{30.2.3.}{Unit Testing in Action}
 
+Now that you’ve read about unit testing in theory, it’s time to actually write some tests. The following example draws on the object pool implementation from Chapter 29, “Writing Efficient C++.” As a brief recap, the object pool is a class that can be used to avoid allocating an excessive number of objects. By keeping track of already-allocated objects, the pool acts as a broker between code that needs a certain type of object and such objects that already have been allocated.
+
+The public interface for the ObjectPool class template is as follows; consult Chapter 29 for all the details:
+
+\begin{cpp}
+export
+template <typename T, typename Allocator = std::allocator<T>>
+class ObjectPool final
+{
+    public:
+        ObjectPool() = default;
+        explicit ObjectPool(const Allocator& allocator);
+        ~ObjectPool();
+
+        // Prevent move construction and move assignment.
+        ObjectPool(ObjectPool&&) = delete;
+        ObjectPool& operator=(ObjectPool&&) = delete;
+
+        // Prevent copy construction and copy assignment.
+        ObjectPool(const ObjectPool&) = delete;
+        ObjectPool& operator=(const ObjectPool&) = delete;
+
+        // Reserves and returns an object from the pool. Arguments can be
+        // provided which are perfectly forwarded to a constructor of T.
+        template <typename... Args>
+        std::shared_ptr<T> acquireObject(Args&&... args);
+};
+\end{cpp}
+
 \mySamllsection{Introducing the Microsoft Visual C++ Testing Framework}
+
+Microsoft Visual C++ comes with a built-in testing framework. The advantage of using a unit testing framework is that it allows the developer to focus on writing tests instead of dealing with setting up tests, building logic around tests, and gathering results. The following discussion is written for Visual C++ 2022.
+
+\begin{myNotic}{NOTE}
+If you are not using Visual C++, there are a number of open-source unit testing frameworks available. Google Test (\url{github.com/google/googletest}) is one such framework for C++, and the Boost Test Library (\url{www.boost.org/doc/ libs/1_82_0/libs/test/}) is another one. They both include a number of helpful utilities for test developers and options to control the automatic output of results.
+\end{myNotic}
+
+To get started with the Visual C++ Testing Framework, you have to create a test project. The following steps explain how to test the ObjectPool class template:
+
+\begin{enumerate}
+\item
+Start Visual C++, create a new project, select Native Unit Test Project, and click Next.
+
+\item
+Give the project a name and click Create.
+
+\item
+The wizard creates a new test project, which includes a file called <ProjectName>.cpp. Select this file in the Solution Explorer and delete it, because you will add your own files. If the Solution Explorer docking window is not visible, go to View -> Solution Explorer.
+
+\item
+Right-click your project in the Solution Explorer and click Properties. Go to Configuration Properties -> C/C++ -> Precompiled Headers, set the Precompiled Header option to Not Using Precompiled Headers, and click OK. Additionally, select the pch.cpp and pch.h files in the Solution Explorer and delete them. Using precompiled headers is a feature of Visual C++ to improve build times but is not used for this test project.
+
+\item
+Add empty files called ObjectPoolTest.h and ObjectPoolTest.cpp to the test project.
+\end{enumerate}
+
+Now you are ready to start adding unit tests to the code.
+
+The most common technique is to divide your unit tests into logical groups of tests, called test classes. You will now create a test class called ObjectPoolTest. The basic code in ObjectPoolTest.h for getting started is as follows:
+
+\begin{cpp}
+#pragma once
+#include <CppUnitTest.h>
+
+TEST_CLASS(ObjectPoolTest)
+{
+    public:
+};
+\end{cpp}
+
+This code defines a test class called ObjectPoolTest, but the syntax is a bit different compared to standard C++. This is so that the framework can automatically discover all the tests.
+
+If you need to perform any tasks that need to happen prior to running the tests defined in a test class or to perform any cleanup after the tests have been executed, then you can implement an initialize and a cleanup member function. Here is an example:
+
+\begin{cpp}
+TEST_CLASS(ObjectPoolTest)
+{
+    public:
+        TEST_CLASS_INITIALIZE(setUp);
+        TEST_CLASS_CLEANUP(tearDown);
+};
+\end{cpp}
+
+Because the tests for the ObjectPool class template are relatively simple and isolated, empty definitions will suffice for setUp() and tearDown(), or you can simply remove them altogether. If you do need them, the beginning stage of the ObjectPoolTest.cpp source file is as follows:
+
+\begin{cpp}
+#include "ObjectPoolTest.h"
+void ObjectPoolTest::setUp() { }
+void ObjectPoolTest::tearDown() { }
+\end{cpp}
+
+That’s all the initial code you need to start developing unit tests.
+
+\begin{myNotic}{NOTE}
+In real-world scenarios, you usually divide the testing code and the code you want to test into separate projects. In the interest of keeping this example succinct, I have not done this here.
+\end{myNotic}
 
 \mySamllsection{Writing the First Test}
 
+Because this may be your first exposure to the Visual C++ Testing Framework, or to unit tests at large, the first test will be a simple one. It tests whether 0 < 1.
+
+An individual unit test is just a member function of a test class. To create a simple test, add its declaration to the ObjectPoolTest.h file:
+
+\begin{cpp}
+TEST_CLASS(ObjectPoolTest)
+{
+    public:
+        TEST_CLASS_INITIALIZE(setUp);
+        TEST_CLASS_CLEANUP(tearDown);
+        TEST_METHOD(testSimple); // Your first test!
+};
+\end{cpp}
+
+The implementation of the testSimple test uses Assert::IsTrue(), defined in the Microsoft:: VisualStudio::CppUnitTestFramework namespace, to perform the actual test. Assert::IsTrue() validates that a given expression returns true. If the expression returns false, the test fails. Assert provides many more helper functions, such as AreEqual(), IsNull(), Fail(), ExpectException(), and so on. In the testSimple case, the test claims that 0 is less than 1. Here is the updated ObjectPoolTest.cpp file:
+
+\begin{cpp}
+#include "ObjectPoolTest.h"
+
+using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+
+void ObjectPoolTest::setUp() { }
+void ObjectPoolTest::tearDown() { }
+
+void ObjectPoolTest::testSimple()
+{
+    Assert::IsTrue(0 < 1);
+}
+\end{cpp}
+
+That’s it. Of course, most of your unit tests will do something a bit more interesting than a simple assert. As you will see, the common pattern is to perform some sort of calculation and then assert that the result is the value you expect. With the Visual C++ Testing Framework, you don’t even need to worry about exceptions; the framework catches and reports them as necessary.
+
 \mySamllsection{Building and Running Tests}
+
+Build your solution by clicking Build -> Build Solution, and open the Test Explorer (Test -> Test Explorer), shown in Figure 30.4.
+
+\myGraphic{0.7}{content/part5/chapter30/images/4.png}{FIGURE 30.4}
+
+After having built the solution, the Test Explorer automatically displays all discovered unit tests. In this case, it displays the testSimple unit test. You can run all tests by clicking the Run All Tests button in the upper-left corner of the window. When you do that, the Test Explorer shows whether the unit tests succeed or fail. In this case, the single unit test succeeds, as shown in Figure 30.5.
+
+\myGraphic{0.7}{content/part5/chapter30/images/5.png}{FIGURE 30.5}
+
+If you modify the code to assert that 1 < 0, the test fails, and the Test Explorer reports the failure, as shown in Figure 30.6.
+
+\myGraphic{0.7}{content/part5/chapter30/images/6.png}{FIGURE 30.6}
+
+The lower part of the Test Explorer window displays useful information related to the selected unit test. In case of a failed unit test, it tells you exactly what failed. In this case, it says that an assertion failed. There is also a stack trace that was captured at the time the failure occurred. You can click the hyperlinks in that stack trace to jump directly to the offending line—very useful for debugging.
 
 \mySamllsection{Negative Tests}
 
+You can write negative tests, tests that do something that should fail. For example, you can write a negative test to test that a certain function throws an expected exception. The Visual C++ Testing Framework provides the Assert::ExpectException() function to handle expected exceptions. For example, the following unit test uses ExpectException() to execute a lambda expression that throws an std::invalid\_argument exception, defined in <stdexcept>[At the time of this writing, Visual C++ 2022 contained a bug which prevents combining \#include <CppUnitTest.h> and import std;. As a workaround, replace import std; statements with \#include statements for the required header files, e.g., \#include <stdexcept>. See the downloadable source code archive for the full set of required header files in the different source code files.]. The template type parameter for ExpectException() specifies the type of exception to expect.
+
+\begin{cpp}
+void ObjectPoolTest::testException()
+{
+    Assert::ExpectException<std::invalid_argument>(
+        []{ throw std::invalid_argument { "Error" }; });
+}
+\end{cpp}
+
 \mySamllsection{Adding the Real Tests}
+
+Now that the framework is all set up and a simple test is working, it’s time to turn your attention to the ObjectPool class template and write some code that actually tests it. All of the following tests will be added to ObjectPoolTest.h and ObjectPoolTest.cpp, just like the earlier initial tests.
+
+First, copy the ObjectPool.cppm module interface file next to the ObjectPoolTest.h file you created, and then add it to the project. ObjectPool.cppm uses C++23 functionality, which is not yet enabled by default in Visual C++ 2022 at the time of this writing. To enable it, open the project properties, go to Configuration Properties -> General, and set the C++ Language Standard to “Preview - Features from the Latest C++ Working Draft.” In a future version of Visual C++, you will be able to set this option to “ISO C++23 Standard.”
+
+Before you can write the tests, you’ll need a helper class to use with the ObjectPool. The ObjectPool creates objects of a certain type and hands them out to the caller as requested. Some of the tests will need to check if a retrieved object is the same as a previously retrieved object. One way to do this is to create a pool of serial objects—objects that have a monotonically increasing serial number. The following code shows the Serial.cppm module interface file defining such a class:
+
+\begin{cpp}
+export module serial;
+
+export class Serial
+{
+    public:
+        // A new object gets a next serial number.
+        Serial() : m_serialNumber { ms_nextSerial++ } { }
+        unsigned getSerialNumber() const { return m_serialNumber; }
+    private:
+        static inline unsigned ms_nextSerial { 0 }; // The first serial number is 0
+        unsigned m_serialNumber { 0 };
+};
+\end{cpp}
+
+Now, on to the tests! As an initial sanity check, you might want a test that creates an object pool. If any exceptions are thrown during creation, the Visual C++ Testing Framework will report an error. The code is written according to the AAA principle: Arrange, Act, Assert; the test first sets up everything for the test to run, then does some work, and finally asserts the expected result. This is also often called the if-when-then principle. I recommend adding comments to your unit test that actually start with IF, WHEN, and THEN so the three phases of a test clearly stand out.
+
+\begin{cpp}
+void ObjectPoolTest::testCreation()
+{
+    // IF nothing
+
+    // WHEN creating an ObjectPool
+    ObjectPool<Serial> myPool;
+
+    // THEN no exception is thrown
+}
+\end{cpp}
+
+Don’t forget to add a TEST\_METHOD(testCreation); statement to the header file. This holds for all subsequent tests as well. You also need to add an import declaration for the object\_pool and serial modules to the ObjectPoolTest.cpp source file.
+
+\begin{cpp}
+import object_pool;
+import serial;
+\end{cpp}
+
+A second test, testAcquire(), tests a specific piece of public functionality: the ability of the ObjectPool to give out an object. In this case, there is not much to assert. To prove the validity of the resulting Serial object, the test asserts that its serial number is greater than or equal to zero.
+
+\begin{cpp}
+void ObjectPoolTest::testAcquire()
+{
+    // IF an ObjectPool has been created for Serial objects
+    ObjectPool<Serial> myPool;
+    // WHEN acquiring an object
+    auto serial { myPool.acquireObject() };
+    // THEN we get a valid Serial object
+    Assert::IsTrue(serial->getSerialNumber() >= 0);
+}
+\end{cpp}
+
+The next test is a bit more interesting. The ObjectPool should not give out the same Serial object twice. This test checks the exclusivity property of the ObjectPool by retrieving a number of objects from the pool. The serial numbers of all retrieved objects are stored in a set. If the pool is properly dishing out unique objects, none of their serial numbers should match.
+
+\begin{cpp}
+void ObjectPoolTest::testExclusivity()
+{
+    // IF an ObjectPool has been created for Serial objects
+    ObjectPool<Serial> myPool;
+    // WHEN acquiring several objects from the pool
+    const size_t numberOfObjectsToRetrieve { 20 };
+    set<unsigned> seenSerialNumbers;
+
+    for (size_t i { 0 }; i < numberOfObjectsToRetrieve; ++i) {
+        auto nextSerial { myPool.acquireObject() };
+        seenSerialNumbers.insert(nextSerial->getSerialNumber());
+    }
+
+    // THEN all retrieved serial numbers are different.
+    Assert::AreEqual(numberOfObjectsToRetrieve, seenSerialNumbers.size());
+}
+\end{cpp}
+
+The final test (for now) checks the release functionality. Once an object is released, the ObjectPool can give it out again. The pool shouldn’t allocate additional objects until it has recycled all released objects.
+
+The test first acquires 10 Serial objects from the pool, stores them in a vector to keep them alive, and records the raw pointer of each acquired Serial. Once all 10 objects have been retrieved, they are released back to the pool.
+
+The second phase of the test again retrieves 10 objects from the pool and stores them in a vector to keep them alive. All these retrieved objects must have a raw pointer that has already been seen during the first phase of the test. This validates that objects are properly reused by the pool.
+
+\begin{cpp}
+void ObjectPoolTest::testRelease()
+{
+    // IF an ObjectPool has been created for Serial objects
+    ObjectPool<Serial> myPool;
+    // AND we acquired and released 10 objects from the pool, while
+    //     remembering their raw pointers
+    const size_t numberOfObjectsToRetrieve { 10 };
+    // A set to remember all raw pointers that have been handed out by the pool.
+    set<Serial*> retrievedSerialPointers;
+    vector<shared_ptr<Serial>> retrievedSerials;
+    for (size_t i { 0 }; i < numberOfObjectsToRetrieve; ++i) {
+        auto object { myPool.acquireObject() };
+        retrievedSerialPointers.push_back(object.get());
+        // Add the retrieved Serial to the vector to keep it 'alive'.
+        retrievedSerials.push_back(object);
+    }
+    // Release all objects back to the pool.
+    retrievedSerials.clear();
+
+    // The above loop has created 10 Serial objects, with 10 different
+    // addresses, and released all 10 Serial objects back to the pool.
+
+    // WHEN again retrieving 10 objects from the pool, and
+    //      remembering their raw pointers.
+    set<Serial*> newlyRetrievedSerialPointers;
+    for (size_t i { 0 }; i < numberOfObjectsToRetrieve; ++i) {
+        auto object { myPool.acquireObject() };
+        newlyRetrievedSerialPointers.push_back(object.get());
+        // Add the retrieved Serial to the vector to keep it 'alive'.
+        retrievedSerials.push_back(object);
+    }
+    // Release all objects back to the pool.
+    retrievedSerials.clear();
+
+    // THEN all addresses of the 10 newly acquired objects must have been
+    //      seen already during the first loop of acquiring 10 objects.
+    //      This makes sure objects are properly re-used by the pool.
+    Assert::IsTrue(retrievedSerialPointers == newlyRetrievedSerialPointers);
+}
+\end{cpp}
+
+If you add all these tests and run them, the Test Explorer should look like Figure 30.7. Of course, if one or more tests fail, you are presented with the quintessential issue in unit testing: is it the test or the code that is broken?
+
+\myGraphic{0.7}{content/part5/chapter30/images/7.png}{FIGURE 30.7}
 
 \mySamllsection{Debugging Tests}
 
+The Visual C++ Testing Framework makes it easy to debug unit tests that are failing. The Test Explorer shows a stack trace captured at the time a unit test failed, containing hyperlinks pointing directly to offending lines.
+
+However, sometimes it is useful to run a unit test directly in the debugger so that you can inspect variables at run time, step through the code line by line, and so on. To do this, put a breakpoint on some line of code in a unit test. Then, right-click the unit test in the Test Explorer and click Debug. The testing framework starts running the selected tests in the debugger and breaks at your breakpoint. From then on, you can step through the code however you want.
+
 \mySamllsection{Basking in the Glorious Light of Unit Test Results}
+
+The tests in the previous section should have given you a good idea of how to start writing professional-quality tests for real code. It’s just the tip of the iceberg, though. The previous examples should help you think of additional tests that you could write for the ObjectPool class template.
+
+For example, you could add a capacity() member function to ObjectPool that returns the sum of the number of objects that have been handed out and the number of objects that are still available without allocating a new chunk of memory. This is similar to the capacity() member function of vector that returns the total number of elements that can be stored in a vector without reallocation. Once you have such a member function, you can include a test that verifies that the pool always grows by double the number of elements compared to the previous time the pool grew.
+
+There is no end to the number of unit tests you could write for a given piece of code, and that’s the best thing about unit tests. If you find yourself wondering how your code might react to a certain situation, that’s a unit test. If a particular aspect of your subsystem seems to be presenting problems, increase unit test coverage of that particular area. Even if you simply want to put yourself in the client’s shoes to see what it’s like to work with your class, writing unit tests is a great way to get a different perspective. You might even decide to write your unit tests before you implement your code. That way, you start using your planned interface before it is implemented, which could uncover use cases and error conditions that you didn’t think about before.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

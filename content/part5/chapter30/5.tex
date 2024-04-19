@@ -1,0 +1,25 @@
+As a software engineer, your role in testing may range anywhere from basic unit testing responsibility to complete management of an automated test system. Because testing roles and styles vary so much, here are several tips from my experience that may help you in different testing situations:
+
+\begin{itemize}
+\item
+Spend some time designing your automated test system. A system that runs constantly throughout the day will detect failures quickly. A system that sends e-mails to engineers automatically or sits in the middle of the room loudly playing show tunes when a failure occurs, will result in increased visibility of problems.
+
+\item
+Don’t forget about stress testing. Even if a full suite of unit tests passes for your database access class, it could still fall down when used by several dozen threads simultaneously. You should test your product under the most extreme conditions it could face in the real world.
+
+\item
+Test on a variety of platforms or a platform that closely mirrors the customer’s system. One technique of testing on multiple platforms is to use a virtual machine environment that allows you to run several different platforms on the same physical machine.
+
+\item
+Some tests can be written to intentionally inject faults in a system. For example, you could write a test that deletes a file while it is being read, or that simulates a network outage during a network operation.
+
+\item
+Bugs and tests are closely related. Bug fixes should be proven by writing regression tests. A comment with a test could refer to the original bug number.
+
+\item
+Don’t remove tests that are failing. When a co-worker is slaving over a bug and finds out you removed tests, he will come looking for you.
+\end{itemize}
+
+\begin{myWarning}{WARNING}
+The most important tip I can give you is to remember that testing is part of software development. If you agree with that and accept it before you start coding, it won’t be quite as unexpected when the feature is finished, but there is still more work to do to prove that it works.
+\end{myWarning}

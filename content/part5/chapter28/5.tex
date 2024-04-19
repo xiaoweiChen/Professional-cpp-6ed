@@ -1,0 +1,81 @@
+Managing all source code is important for any company, big or small, even for one-person projects. In a company, for example, it would be impractical to store all the source code on the machines of individual developers without it being managed by any version control software. This would result in a maintenance nightmare because not everyone would always have the latest code. Instead, all source code must be managed by version control software. There are three kinds of such software solutions:
+
+\begin{itemize}
+\item
+Local: These solutions store all source code files and their history locally on your machine and are not really suitable for use in a team. These are solutions from the ’70s and ’80s and shouldn’t be used anymore. They are not discussed further.
+
+\item
+Client/server: These solutions are split into a client component and a server component. For a personal developer, the client and server components can run on the same machine, but the separation makes it easy to move the server component to a dedicated physical server machine if the need arises.
+
+\item
+Distributed: These solutions go one step further than the client/server model. There is no central place where everything is stored. Every developer has a copy of all the files, including all the history. A peer-to-peer approach is used instead of a client/server approach. Code is synchronized between peers by exchanging patches.
+\end{itemize}
+
+The client/server solution consists of two parts. The first part is the server software, which is software running on the central server and which is responsible for keeping track of all source code files and their history. The second part is the client software. This client software is installed on every developer’s machine and is responsible for communicating with the server software to get the latest version of a source file, get a previous version of a source file, commit local changes back to the server, roll back changes to a previous version, and so on.
+
+A distributed solution doesn’t use a central server. The client software uses peer-to-peer protocols to synchronize with other peers by exchanging patches. Common operations such as committing changes, rolling back changes, and so on, are fast because no network access to a central server is involved. The disadvantage is that it requires more space on the client machine because it needs to store all the files, including the entire history.
+
+Most version control systems have a special terminology, but unfortunately, not all systems use the same terms. The following list explains a number of terms that are commonly used:
+
+\begin{itemize}
+\item
+Branch: The source code can be branched, which means that multiple versions can be developed side by side. For example, one branch can be created for every released version. On those branches, bug fixes can be implemented for those released versions, while new features are added to the main branch (often known as the “trunk”). Bug fixes created for released versions can also be merged back to the main branch.
+
+\item
+Check out: This is the action of creating a local copy on the developer’s machine, coming either from a central server or from peers.
+
+\item
+Check in, commit, merge, or push: A developer makes changes to the local copy of the source code. When everything works correctly on the local machine, the developer can check in/commit/merge/push those local changes back to the central server.
+
+\item
+Conflict and resolve: When multiple developers make overlapping changes to the same source file, a conflict might occur when committing that source file. The version control software often tries to automatically resolve these conflicts. If that is not possible, the client software asks the user to resolve any conflicts manually.
+
+\item
+Label or tag: A human-readable label or tag can be attached to all files or to a specific commit at any given time. This makes it easy to jump back to the version of the source code at that time.
+
+\item
+Repository: The collection of all files managed by the version control software, including their history. This also includes metadata about each commit, including when it was committed, by whom, and perhaps even a commit message explaining why.
+
+\item
+Revision or version: A revision, or version, is a snapshot of the contents of a file at a specific point in time. Versions represent specific points that the code can be reverted to or compared against.
+
+\item
+Update or sync: Updating or synchronizing means that the local copy on the developer’s machine is synchronized with a version on the central server or with peers. Note that this requires merging that upstream code into the developer’s local copy (with all their local changes), which may result in a conflict that needs to be resolved.
+
+\item
+Working copy: The working copy is the local copy on the individual developer’s machine.
+\end{itemize}
+
+Several version control software solutions are available. Some of them are free, and some are commercial. The following table lists a few available solutions:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{}   & \textbf{FREE/OPEN-SOURCE} & \textbf{COMMERCIAL}              \\ \hline
+\endfirsthead
+%
+\endhead
+%
+Local Only  & SCCS, RCS                 & PVCS                             \\ \hline
+Client/Server & CVS, Subversion & \begin{tabular}[c]{@{}l@{}}IBM Rational ClearCase, Azure DevOps\\ Server, Perforce\end{tabular} \\ \hline
+Distributed & Git, Mercurial, Bazaar    & TeamWare, BitKeeper, Plastic SCM \\ \hline
+\end{longtable}
+
+\begin{myNotic}{NOTE}
+The preceding list is definitely not an exhaustive one. It’s just a small selection to give you an idea of what’s available.
+\end{myNotic}
+
+This book does not recommend particular software solutions. Most software companies these days have a version control system already in place, which every developer needs to adopt. If this is not the case, the company should definitely invest some time into researching the available solutions and pick one that suits them. The bottom line is that it will be a maintenance nightmare without any version control system in place. Even for your personal projects, I recommend you investigate the available solutions. If you find one that you like, it will make your life easier. It will automatically keep track of different versions and a history of your changes. This makes it easy for you to roll back to an older version if a change didn’t work out the way it was supposed to.
+
+
+
+
+
+
+
+
+
+
+

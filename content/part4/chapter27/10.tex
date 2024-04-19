@@ -1,0 +1,212 @@
+This section demonstrates how to use threads, mutexes, locks, and condition variables to write a multithreaded Logger class. The class allows log messages to be added to a queue from different threads. The Logger class itself processes this queue in a background thread that serially writes the log messages to a file. The class is designed in two iterations to show you some examples of problems you will encounter when writing multithreaded code.
+
+The C++ standard does not have a thread-safe queue, so it is obvious that you must protect access to the queue with some synchronization mechanism to prevent multiple threads from reading/writing to the queue at the same time. This example uses a mutex and a condition variable to provide the synchronization. Based on that, you might define the Logger class as follows:
+
+\begin{myWarning}{WARNING}
+This Logger class uses std::thread instead of jthread to demonstrate 1) the catastrophic results when using thread improperly and 2) how easy it is to use thread wrongly.
+\end{myWarning}
+
+\begin{cpp}
+export class Logger
+{
+    public:
+        // Starts a background thread writing log entries to a file.
+        Logger();
+        // Prevent copy construction and assignment.
+        Logger(const Logger&) = delete;
+        Logger& operator=(const Logger&) = delete;
+        // Add log entry to the queue.
+        void log(std::string entry);
+    private:
+        // The function running in the background thread.
+        void processEntries();
+        // Helper member function to process a queue of entries.
+        void processEntriesHelper(std::queue<std::string>& queue,
+            std::ofstream& ofs) const;
+        // Mutex and condition variable to protect access to the queue.
+        std::mutex m_mutex;
+        std::condition_variable m_condVar;
+        std::queue<std::string> m_queue;
+        // The background thread.
+        std::thread m_thread;
+};
+\end{cpp}
+
+The implementation is as follows. This initial design has a couple of problems. When you try to run it, it might behave incorrect and crash. This is discussed and solved in the next design iteration of the Logger class. The while loop in the processEntries() member function is worth looking at. It processes all messages currently in the queue. While having a lock, it swaps the contents of the current queue of entries with an empty local queue on the stack. After this, it releases the lock so other threads are not blocked anymore to add new entries to the now empty current queue. Once the lock is released, all entries in the local queue are processed. This does not require the lock anymore as other threads will not touch this local queue.
+
+\begin{cpp}
+Logger::Logger()
+{
+    // Start background thread.
+    m_thread = thread { &Logger::processEntries, this };
+}
+
+void Logger::log(string entry)
+{
+    // Lock mutex and add entry to the queue.
+    lock_guard lock { m_mutex };
+    m_queue.push(move(entry));
+    // Notify condition variable to wake up thread.
+    m_condVar.notify_all();
+}
+
+void Logger::processEntries()
+{
+    // Open log file.
+    ofstream logFile { "log.txt" };
+    if (logFile.fail()) {
+        println(cerr, "Failed to open logfile.");
+        return;
+    }
+
+    unique_lock lock { m_mutex }; // Acquire a lock on m_mutex.
+    while (true) { // Start processing loop.
+        // Wait for a notification.
+        m_condVar.wait(lock);
+
+        // Condition variable is notified, so something might be in the queue.
+
+        // While we still have the lock, swap the contents of the current queue
+        // with an empty local queue on the stack.
+        queue<string> localQueue;
+        localQueue.swap(m_queue);
+
+        // Now that all entries have been moved from the current queue to the
+        // local queue, we can release the lock so other threads are not blocked
+        // while we process the entries.
+        lock.unlock();
+
+        // Process the entries in the local queue on the stack. This happens after
+        // having released the lock, so other threads are not blocked anymore.
+        processEntriesHelper(localQueue, logFile);
+        lock.lock();
+    }
+}
+
+void Logger::processEntriesHelper(queue<string>& queue, ofstream& ofs) const
+{
+    while (!queue.empty()) {
+        ofs << queue.front() << endl;
+        queue.pop();
+    }
+}
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+As you can already see from this rather simple task, writing correct multithreaded code is hard! Unfortunately, at this moment, the C++ Standard Library does not provide any concurrent data structures, at least not yet.
+
+The Logger class is just an example to show these basic building blocks. For production-quality code, I recommend using an appropriate third-party concurrent data structure, instead of writing your own. For example, the open-source boost C++ libraries (boost.org) have an implementation of a queue that is lock-free and allows concurrent use without the need for any explicit synchronization.
+\end{myWarning}
+
+The Logger class can be tested with the following test code. It launches a number of threads, all logging a few messages to the same Logger instance.
+
+\begin{cpp}
+void logSomeMessages(int id, Logger& logger)
+{
+    for (int i { 0 }; i < 10; ++i) {
+        logger.log(format("Log entry {} from thread {}", i, id));
+        this_thread::sleep_for(50ms);
+    }
+}
+
+int main()
+{
+    Logger logger;
+    vector<jthread> threads;
+    // Create a few threads all working with the same Logger instance.
+    for (int i { 0 }; i < 10; ++i) {
+        threads.emplace_back(logSomeMessages, i, ref(logger));
+    }
+}
+\end{cpp}
+
+If you build and run this naive initial version, you will notice that the application is terminated abruptly. That is because the application never calls join() or detach() on the Logger background thread. Remember from earlier in this chapter that the destructor of a joinable thread object, that is, neither join() nor detach() has been called yet, calls std::terminate() to terminate all running threads and the application itself. This means that messages still in the queue are not written to the file on disk. Some runtime libraries even issue an error or generate a crash dump when the application is terminated like this. You need to add a mechanism to gracefully shut down the background thread and wait until the background thread is completely shut down before terminating the application. You can do this by adding a destructor and a Boolean data member to the class. The new definition of the class is as follows:
+
+\begin{cpp}
+export class Logger
+{
+    public:
+        // Gracefully shut down background thread.
+        virtual ~Logger();
+        // Other public members omitted for brevity.
+    private:
+        // Boolean telling the background thread to terminate.
+        bool m_exit { false };
+        // Other members omitted for brevity.
+};
+\end{cpp}
+
+The destructor sets m\_exit to true, wakes up the background thread, and then waits until the thread is shut down. The destructor acquires a lock on m\_mutex before setting m\_exit to true. This is to prevent a race condition and deadlock with processEntries(), which could be at the beginning of its while loop right after having checked m\_exit and right before the call to wait(). If the main thread calls the Logger destructor at that very moment (assuming the destructor hadn’t been written to acquire a lock on m\_mutex), then the destructor sets m\_exit to true and calls notify\_all() after processEntries() has checked m\_exit and before processEntries() is waiting on the condition variable; thus, processEntries() will not see the new value of m\_exit, and it will miss the notification. In that case, the application is deadlocked, because the destructor is waiting on the join() call and the background thread is waiting on the condition variable. The destructor can call notify\_all() while still holding the lock or after having released it, but the lock must certainly be released before calling join(), which explains the extra code block using curly brackets.
+
+\begin{cpp}
+Logger::~Logger()
+{
+    {
+        lock_guard lock { m_mutex };
+        // Gracefully shut down the thread by setting m_exit to true.
+        m_exit = true;
+    }
+    // Notify condition variable to wake up thread.
+    m_condVar.notify_all();
+    // Wait until thread is shut down. This should be outside the above code
+    // block because the lock must be released before calling join()!
+    m_thread.join();
+}
+\end{cpp}
+
+The processEntries() member function needs to check this Boolean variable and terminate the processing loop when it’s true. It should also call wait() only when the queue is empty.
+
+\begin{cpp}
+void Logger::processEntries()
+{
+    // Omitted for brevity.
+
+    unique_lock lock { m_mutex }; // Acquire a lock on m_mutex.
+    while (true) { // Start processing loop.
+        if (!m_exit) { // Only wait for notifications if we don't have to exit.
+            if (m_queue.empty()) { // Only wait if the queue is empty.
+                m_condVar.wait(lock);
+            }
+        } else {
+            // We have to exit, process the remaining entries in the queue.
+            processEntriesHelper(m_queue, logFile);
+            break;
+        }
+
+        // Condition variable is notified, so something might be in the queue
+        // and/or we need to shut down this thread.
+
+        queue<string> localQueue;
+        localQueue.swap(m_queue);
+        lock.unlock();
+        processEntriesHelper(localQueue, logFile);
+
+        lock.lock();
+    }
+}
+\end{cpp}
+
+You cannot just check for m\_exit in the condition for the outer while loop because even when m\_exit is true, there might still be log entries in the queue that need to be written to the log file.
+
+You can add artificial delays in specific places in your multithreaded code to trigger certain behavior. Such delays should only be added for testing and must be removed from your final code! For example, to test that the race condition with the destructor is solved, you can remove any calls to log() from the main program, causing it to almost immediately call the destructor of the Logger class, and add the following delay:
+
+\begin{cpp}
+void Logger::processEntries()
+{
+    // Omitted for brevity.
+    while (true) {
+        if (!m_exit) { // Only wait for notifications if we don't have to exit.
+            this_thread::sleep_for(1000ms);
+            if (m_queue.empty()) { // Only wait if the queue is empty.
+                m_condVar.wait(lock);
+            }
+    // Remaining code omitted, same as before.
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+I recommend using jthread over thread, as it automatically joins in its destructor. With jthread, the explicit call to join() in the destructor of Logger is not necessary.
+\end{myNotic}
+
+
+

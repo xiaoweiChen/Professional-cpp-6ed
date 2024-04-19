@@ -1,0 +1,86 @@
+This section lists a few best practices related to multithreaded programming.
+
+\begin{itemize}
+\item
+Use parallel Standard Library algorithms: The Standard Library contains a large collection of algorithms. More than 60 of them support parallel execution. Whenever possible, use such parallel algorithms instead of writing your own multithreaded code. See Chapter 20, “Mastering Standard Library Algorithms,” for details on how to specify parallelization options for algorithms.
+
+\item
+Prefer using jthread over thread: Because jthread automatically joins in its destructor, it’s harder to use wrong compared to thread.
+
+\item
+Before closing the application, make sure all thread objects are unjoinable: If you do use thread, make sure that either join() or detach() has been called on all thread objects. Destructors of threads that are still joinable call std::terminate(), which abruptly terminates all threads and the application itself. Also remember that if you detach a thread, it will continue running. If it still accesses any global variables of non-trivial types, then those accesses might race with the destruction of the global variables during process shutdown, causing your program to crash on exit. These kinds of bugs can be hard to debug.
+
+\item
+The best synchronization is no synchronization: Multithreaded programming becomes much easier if you manage to design your different threads in such a way that all threads working on shared data read only from that shared data and never write to it, or only write to parts never read by other threads. In that case, there is no need for any synchronization, and you cannot have problems like data races or deadlocks.
+
+\item
+Try to use the single-thread ownership pattern: This means that a block of data is owned by no more than one thread at a time. Owning the data means that no other thread is allowed to read from or write to the data. When the thread is finished with the data, the data can be passed off to another thread, which now has sole and complete responsibility/ownership of the data. No synchronization is necessary in this case.
+
+\item
+Use atomic types and operations when possible: Atomic types and atomic operations make it easier to write data-race-free and deadlock-free code, because they handle synchronization automatically. If atomic types and operations are not possible in your multithreaded design and you need shared data, you will have to use some synchronization mechanism, such as a mutex.
+
+\item
+Use locks to protect mutable shared data: If you need mutable shared data to which multiple threads can write and you cannot use atomic types and operations, you have to use a locking mechanism to make sure that reads and writes between different threads are synchronized.
+
+\item
+Release locks as soon as possible: When you need to protect your shared data with a lock, make sure that you release the lock as soon as possible. While a thread is holding a lock, it is blocking other threads waiting for the same lock, possibly hurting performance.
+
+\item
+Use RAII lock objects: Use the lock\_guard, unique\_lock, shared\_lock, or scoped\_lock RAII classes to automatically release locks at the right time.
+
+\item
+Do not manually acquire multiple locks; instead use std::lock(), try\_lock(), or a scoped\_lock: If multiple threads need to acquire multiple locks, they must be acquired in the same order in all threads to prevent deadlock. You should use the generic std::lock() or try\_lock() functions or the scoped\_lock class to acquire multiple locks.
+
+\item
+Use a multithreading-aware profiler: This helps to find performance bottlenecks in your multithreaded applications and to find out if your multiple threads are indeed utilizing all available processing power in your system. An example of a multithreading-aware profiler is the profiler in Microsoft Visual Studio.
+
+\item
+Understand the multithreading support features of your debugger: Most debuggers have at least basic support for debugging multithreaded applications. You should be able to get a list of all running threads in your application, and you should be able to switch to any one of those threads to inspect their call stack. You can use this, for example, to inspect deadlocks, because you can see exactly what each thread is doing.
+
+\item
+Use thread pools instead of creating and destroying a lot of threads dynamically: Your performance decreases if you dynamically create and destroy a lot of threads. In that case, it’s better to use a thread pool to reuse existing threads.
+
+\item
+Use higher-level multithreading libraries: The C++ standard, at this moment, only provides basic building blocks for writing multithreaded code. Using those correctly is not trivial. Where possible, use higher-level multithreading libraries such as Intel Threading Building Blocks (TBB), Microsoft Parallel Patterns Library (PPL), and so on, rather than reinventing the wheel. Multithreaded programming is error-prone. More often than not, your wheel may not be as round as you think.
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
