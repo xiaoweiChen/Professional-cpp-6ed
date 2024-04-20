@@ -1,8 +1,98 @@
-
+Class diagrams are used to visualize individual classes and can include data members and member functions. They are also used to show the relationships between different classes.
 
 \mySubsubsection{D.2.1.}{Class Representation}
 
+A class is represented in UML as a box with a maximum of three compartments, containing the following:
 
+\begin{itemize}
+\item
+The name of the class
+
+\item
+The data members of the class
+
+\item
+The member functions of the class
+\end{itemize}
+
+Figure D.1 shows an example. MyClass has two data members—one of type string, the other of type float—and it has two member functions. The plus and minus signs in front of each member specify its visibility. The following table lists the most commonly used visibilities:
+
+\myGraphic{0.3}{content/part6/appendix-D/images/1.png}{FIGURE D.1}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{VISIBILITY} & \textbf{MEANING} \\ \hline
+\endfirsthead
+%
+\endhead
+%
++                   & public member    \\ \hline
+-                   & private member   \\ \hline
+\#                  & protected member \\ \hline
+\end{longtable}
+
+Depending on the goal of your class diagram, sometimes details of members are left out, in which case a class is represented with a box, as shown in Figure D.2. This can, for example, be used if you are only interested in visualizing the relationships between different classes.
+
+\myGraphic{0.2}{content/part6/appendix-D/images/2.png}{FIGURE D.2}
 
 \mySubsubsection{D.2.2.}{Relationship Representation}
+
+UML 2 supports six kinds of relationships between classes: inheritance, realization/implementation, aggregation, composition, association, and dependency. The following sections introduce these relationships.
+
+\mySamllsection{Inheritance}
+
+Inheritance is visualized using a line starting from the derived class and going to the base class. The line ends in a hollow triangle on the side of the base class, depicting the is-a relationship. Figure D.3 shows an example.
+
+\myGraphic{0.2}{content/part6/appendix-D/images/3.png}{FIGURE D.3}
+
+\mySamllsection{Realization/Implementation}
+
+A class implementing an interface is basically inheriting from that interface (is-a relationship). However, to make a distinction between generic inheritance and interface realization, the latter is visualized similar to inheritance but using a dashed instead of a solid line, as shown in Figure D.4. The ListBox class is derived from UIElement and implements/realizes the IClickable and IScrollable interfaces.
+
+\myGraphic{0.2}{content/part6/appendix-D/images/4.png}{FIGURE D.4}
+
+\mySamllsection{Aggregation}
+
+Aggregation represents a has-a relationship. It is visualized using a line with a hollow diamond shape on the side of the class that contains the instance or instances of the other class. In an aggregation relationship, you can also optionally specify the multiplicity of each participant in the relationship. The location of the multiplicity, that is, on which side of the line you need to write it, can be confusing at first. For example, in Figure D.5, a Class can contain/aggregate one or more Students, and each Student can follow zero or more Classes. An aggregation relationship means that the aggregated object or objects can continue to live when the aggregator is destroyed. For example, if a Class is destroyed, its Students are not destroyed.
+
+\myGraphic{0.2}{content/part6/appendix-D/images/5.png}{FIGURE D.5}
+
+The following table lists a few examples of possible multiplicities:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{MULTIPLICITY} & \textbf{MEANING}       \\ \hline
+\endfirsthead
+%
+\endhead
+%
+N                     & Exactly N instances    \\ \hline
+0..1                  & Zero or one instance   \\ \hline
+0..*                  & Zero or more instances \\ \hline
+N..*                  & N or more instances    \\ \hline
+\end{longtable}
+
+\mySamllsection{Composition}
+
+Composition is similar to aggregation and is visually represented almost the same, except that a full diamond is used instead of a hollow diamond. With composition, in contrast to aggregation, if the class that contains instances of the other class is destroyed, those contained instances are destroyed as well. Figure D.6 shows an example. A Window can contain zero or more Buttons, and each Button has to be contained by exactly one Window. If the Window is destroyed, all Buttons it contains are destroyed as well.
+
+\myGraphic{0.2}{content/part6/appendix-D/images/6.png}{FIGURE D.6}
+
+\mySamllsection{Association}
+
+An association is a generalization of an aggregation. It represents a binary link between classes, while an aggregation is a unidirectional link. A binary link can be traversed in both directions. Figure D.7 shows an example. Every Book knows who its authors are, and every Author knows which books she wrote.
+
+\myGraphic{0.2}{content/part6/appendix-D/images/7.png}{FIGURE D.7}
+
+\mySamllsection{Dependency}
+
+A dependency visualizes that a class depends on another class. It is depicted as a dashed line with an arrow pointing toward the dependent class. Usually, some text on the dashed line describes the dependency. To come back to the car factory example of Chapter 33, “Applying Design Patterns,” a CarFactory is dependent on a Car because the factory creates the cars. This is visualized in Figure D.8.
+
+\myGraphic{0.2}{content/part6/appendix-D/images/8.png}{FIGURE D.8}
 

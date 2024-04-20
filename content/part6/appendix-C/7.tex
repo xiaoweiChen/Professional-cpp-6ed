@@ -1,0 +1,41 @@
+The following table lists all the header files related to I/O streams in C++. However, normally your applications only need to include <fstream>, <iomanip>, <iostream>, <istream>, <ostream>, and <sstream>. Consult Chapter 13 for details:
+
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{HEADER} &
+\textbf{CONTENTS} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\textless{}fstream\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines the basic\_filebuf, basic\_ifstream, basic\_ofstream, and\\ basic\_fstream classes. This header declares the filebuf, wfilebuf,\\ ifstream, wifstream, ofstream, wofstream, fstream, and wfstream\\ type aliases.\end{tabular} \\ \hline
+\textless{}iomanip\textgreater{} &
+Declares the I/O manipulators not declared elsewhere (mostly in \textless{}ios\textgreater{}). \\ \hline
+\textless{}ios\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines the ios\_base and basic\_ios classes. This header declares most of\\ the stream manipulators. You rarely have to include this header directly.\end{tabular} \\ \hline
+\textless{}iosfwd\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Forward declarations of the templates and type aliases found in the other I/O\\ stream header files. You rarely need to include this header directly.\end{tabular} \\ \hline
+\textless{}iostream\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Declares cin, cout, cerr, clog, and the wide-character counterparts. Includes\\ \textless{}istream\textgreater{}, \textless{}ostream\textgreater{}, \textless{}streambuf\textgreater{}, and \textless{}ios\textgreater{}. Note that it’s not just a\\ combination of \textless{}istream\textgreater and \textless{}ostream\textgreater{}.\end{tabular} \\ \hline
+\textless{}istream\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines the basic\_istream and basic\_iostream classes. This header\\ declares the istream, wistream, iostream, and wiostream type aliases.\end{tabular} \\ \hline
+\textless{}ostream\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines the basic\_ostream class. This header declares the ostream and\\ wostream type aliases.\end{tabular} \\ \hline
+\textless{}spanstream\textgreater (C++23) &
+\begin{tabular}[c]{@{}l@{}}Defines the basic\_spanbuf, basic\_ispanstream, basic\_ospanstream, and\\ basic\_spanstream classes. This header declares the spanbuf, wspanbuf,\\ ispanstream, wispanstream, ospanstream, wospanstream, spanstream,\\ and wspanstream type aliases.\end{tabular} \\ \hline
+\textless{}sstream\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines the basic\_stringbuf, basic\_istringstream, basic\_\\ ostringstream, and basic\_stringstream classes. This header declares\\ the stringbuf, wstringbuf, istringstream, wistringstream,\\ ostringstream, wostringstream, stringstream, and wstringstream\\ type aliases.\end{tabular} \\ \hline
+\textless{}streambuf\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines the basic\_streambuf class. This header declares the type aliases\\ streambuf and wstreambuf. You rarely have to include this header directly.\end{tabular} \\ \hline
+\textless{}strstream\textgreater{} &
+Deprecated. \\ \hline
+\textless{}syncstream\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines all classes related to synchronized output streams, such as\\ osyncstream and wosyncstream. See Chapter 27, “Multithreaded\\ Programming with C++.”\end{tabular} \\ \hline
+\end{longtable}
+
+

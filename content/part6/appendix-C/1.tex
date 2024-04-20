@@ -1,0 +1,129 @@
+The C++ Standard Library includes almost the entire C Standard Library. The header files are generally the same, except for these two points:
+
+\begin{itemize}
+\item
+The header names are <cname> instead of <name.h>.
+
+\item
+All the names declared in the <cname> header files are in the std namespace.
+\end{itemize}
+
+\begin{myNotic}{NOTE}
+You can still include <name.h> if you want, but that puts the names into the global namespace instead of the std namespace. Additionally, up until C++23, the use of <name.h> C Standard Library headers was deprecated. Starting with C++23, their use is no longer deprecated, but discouraged.
+\end{myNotic}
+
+
+\begin{myNotic}{NOTE}
+The C Standard Library headers are not guaranteed to be importable using an import statement. Hence, use \#include <cname> instead of import <cname>;. Of course, using import std; also makes everything from the C Standard Library available in the std namespace, except for macros such as assert() from <cassert>.
+\end{myNotic}
+
+The following table lists all C Standard Library headers and provides a summary of their most useful functionality. Note that it’s recommended to avoid using C functionality, and instead use equivalent C++ features whenever possible:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{HEADER} &
+\textbf{CONTENTS} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\textless{}cassert\textgreater{} &
+assert() macro. \\ \hline
+\textless{}cctype\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Character predicates and manipulation functions, such as isspace() and\\ tolower().\end{tabular} \\ \hline
+\textless{}cerrno\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines errno expression, a macro to get the last error number for certain C\\ functions.\end{tabular} \\ \hline
+\textless{}cfenv\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Supports the floating-point environment, such as floating-point exceptions,\\ rounding, and so on.\end{tabular} \\ \hline
+\textless{}cfloat\textgreater{} &
+C-style defines related to floating-point arithmetic, such as FLT\_MAX. \\ \hline
+\textless{}cinttypes\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines a number of macros to use with the printf(), scanf(), and similar\\ functions. This header also includes a few functions to work with intmax\_t.\end{tabular} \\ \hline
+\textless{}climits\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}C-style limit defines, such as INT\_MAX. It is recommended to use the C++\\ equivalents from \textless{}limits\textgreater instead.\end{tabular} \\ \hline
+\textless{}clocale\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}A few localization macros and functions like LC\_ALL and setlocale(). See also\\ the C++ equivalents in \textless{}locale\textgreater{}.\end{tabular} \\ \hline
+\textless{}cmath\textgreater{} &
+Math utilities, including trigonometric functions sqrt(), fabs(), and others. \\ \hline
+\textless{}csetjmp\textgreater{} &
+setjmp() and longjmp(). Never use these in C++! \\ \hline
+\textless{}csignal\textgreater{} &
+signal() and raise(). Avoid these in C++. \\ \hline
+\textless{}cstdarg\textgreater{} &
+Macros and types for processing variable-length argument lists. \\ \hline
+\textless{}cstddef\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Important constants such as NULL, and important types such as\\ size\_t and byte.\end{tabular} \\ \hline
+\textless{}cstdint\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines a number of standard integer types such as int8\_t, int64\_t and so on.\\ It also includes macros specifying minimum and maximum values of those types.\end{tabular} \\ \hline
+\textless{}cstdio\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}File operations, including fopen() and fclose(). Formatted I/O: printf(),\\ scanf(), and family. Character I/O: getc(), putc(), and family. File\\ positioning: fseek() and ftell(). It is recommended to use C++ streams\\ instead. (See the section “I/O Streams,” later in this appendix.)\end{tabular} \\ \hline
+\textless{}cstdlib\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Random numbers with rand() and srand() (deprecated since C++14; use the\\ C++ \textless{}random\textgreater functionality instead). This header includes the abort() and\\ exit() functions, which you should avoid; C-style memory allocation functions\\ calloc(), malloc(), realloc(), and free(); C-style searching and sorting\\ with qsort() and bsearch(); string to number conversions: atof(), atoi();\\ and a set of functions related to multibyte/wide string manipulation.\end{tabular} \\ \hline
+\textless{}cstring\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Low-level memory management functions, including memcpy() and memset().\\ This header includes C-style string functions, such as strcpy() and strcmp().\end{tabular} \\ \hline
+\textless{}ctime\textgreater{} &
+Time-related functions, including time() and localtime(). \\ \hline
+\textless{}cuchar\textgreater{} &
+Defines a number of Unicode-related macros, and functions like mbrtoc16(). \\ \hline
+\textless{}cwchar\textgreater{} &
+Versions of string, memory, and I/O functions for wide characters. \\ \hline
+\textless{}cwctype\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Versions of functions in \textless{}cctype\textgreater for wide characters: iswspace(),\\ towlower(), and so on.\end{tabular} \\ \hline
+\end{longtable}
+
+The following C Standard Library headers have been removed since C++20:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{HEADER}                    & \textbf{CONTENTS}                                                                \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\textless{}ccomplex\textgreater{}  & Only included \textless{}complex\textgreater{}.                                  \\ \hline
+\textless{}ciso646\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}In C, the \textless{}iso646.h\textgreater file defines macros and, or, and so on. In C++, those are\\ keywords, so this header was empty.\end{tabular} \\ \hline
+\textless{}cstdalign\textgreater{} & Alignment-related macro \_\_alignas\_is\_defined.                                \\ \hline
+\textless{}cstdbool\textgreater{}  & Boolean type-related macro \_\_bool\_true\_false\_are\_defined.                  \\ \hline
+\textless{}ctgmath\textgreater{}   & Only included \textless{}complex\textgreater and \textless{}cmath\textgreater{}. \\ \hline
+\end{longtable}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

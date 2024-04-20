@@ -1,0 +1,76 @@
+The Standard Library contains some general-purpose utilities in several different header files:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{EADER} &
+\textbf{CONTENTS} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\textless{}any\textgreater{} &
+Defines the any class. See Chapter 24, “Additional Vocabulary Types.” \\ \hline
+\textless{}charconv\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines the chars\_format enumeration, the from\_chars() and to\_\\ chars() functions, and related structs. See Chapter 2, “Working with\\ Strings and String Views.”\end{tabular} \\ \hline
+\textless{}chrono\textgreater{} &
+Defines the chrono library. See Chapter 22, “Date and Time Utilities.” \\ \hline
+\textless{}codecvt\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Provides code conversion facets for various character encodings. This\\ header is deprecated since C++17.\end{tabular} \\ \hline
+\textless{}compare\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Provides classes and functions to support three-way comparisons. See\\ Chapters 1, “A Crash Course in C++ and the Standard Library,” and 9,\\ “Mastering Classes and Objects.”\end{tabular} \\ \hline
+\textless{}concepts\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Provides standard concepts such as same\_as, convertible\_to,\\ integral, movable, and more. See Chapter 12, “Writing Generic Code\\ with Templates.”\end{tabular} \\ \hline
+\textless{}expected\textgreater (C++23) &
+\begin{tabular}[c]{@{}l@{}}Defines the expected and unexpected class templates, the bad\_\\ expected\_access exception, and the unexpect\_t and unexpect\\ tags. See Chapter 24.\end{tabular} \\ \hline
+\textless{}filesystem\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines all available classes and functions to work with the filesystem.\\ See Chapter 13, “Demystifying C++ I/O.”\end{tabular} \\ \hline
+\textless{}format\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Provides all functionality for the format library, such as format(),\\ format\_to(), and so on. See Chapter 2.\end{tabular} \\ \hline
+\textless{}initializer\_list\textgreater{} &
+Defines the initializer\_list class template. See Chapter 1. \\ \hline
+\textless{}limits\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines the numeric\_limits class template, and specializations for\\ most built-in types. See Chapter 1.\end{tabular} \\ \hline
+\textless{}locale\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines the locale class, the use\_facet() and has\_facet() function\\ templates, and the various facet families. See Chapter 21, “String\\ Localization and Regular Expressions.”\end{tabular} \\ \hline
+\textless{}new\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines the bad\_alloc exception and set\_new\_handler()\\ function. This header also defines the prototypes for all six forms of\\ operator new and operator delete. See Chapter 15, “Overloading\\ C++ Operators.”\end{tabular} \\ \hline
+\textless{}optional\textgreater{} &
+Defines the optional class template. See Chapter 1. \\ \hline
+\textless{}print\textgreater (C++23) &
+\begin{tabular}[c]{@{}l@{}}Defines the print(), println(), vprint\_unicode(), and vprint\_\\ nonunicode() functions. See Chapters 1 and 2.\end{tabular} \\ \hline
+\textless{}random\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines the random number generation library. See Chapter 23,\\ “Random Number Facilities.”\end{tabular} \\ \hline
+\textless{}ratio\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines the ratio library to work with compile-time rational numbers.\\ See Chapter 22.\end{tabular} \\ \hline
+\textless{}regex\textgreater{} &
+Defines the regular expressions library. See Chapter 21. \\ \hline
+\textless{}source\_location\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Provides the source\_location class. See Chapter 14,\\ “Handling Errors.”\end{tabular} \\ \hline
+\textless{}stacktrace\textgreater (C++23) &
+Provides the stacktrace class. See Chapter 14. \\ \hline
+\textless{}string\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines the basic\_string class template and the type aliases string\\ and wstring. See Chapter 2.\end{tabular} \\ \hline
+\textless{}string\_view\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines the basic\_string\_view class template and the type aliases\\ string\_view and wstring\_view. See Chapter 2.\end{tabular} \\ \hline
+\textless{}system\_error\textgreater{} &
+Defines error categories and error codes. \\ \hline
+\textless{}tuple\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines the tuple class template as a generalization of the pair class\\ template. See Chapter 24.\end{tabular} \\ \hline
+\textless{}type\_traits\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines type traits for use with template metaprogramming. See\\ Chapter 26, “Advanced Templates.”\end{tabular} \\ \hline
+\textless{}typeindex\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines a simple wrapper for type\_info, which can be used as an\\ index type in associative containers.\end{tabular} \\ \hline
+\textless{}typeinfo\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines the bad\_cast and bad\_typeid exceptions. Defines the\\ type\_info class, objects of which are returned by the typeid operator.\\ See Chapter 10, “Discovering Inheritance Techniques,” for details\\ on typeid.\end{tabular} \\ \hline
+\textless{}utility\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines the pair class template and make\_pair() (see Chapter 1).\\ This header also defines utility functions such as swap(), exchange(),\\ move(), as\_const(), and more.\end{tabular} \\ \hline
+\textless{}variant\textgreater{} &
+Defines the variant class template. See Chapter 24. \\ \hline
+\textless{}version\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Provides implementation-dependent information about the C++\\ Standard Library that you are using, and exposes all Standard Library\\ feature-test macros. See Chapter 16.\end{tabular} \\ \hline
+\end{longtable}
+
+

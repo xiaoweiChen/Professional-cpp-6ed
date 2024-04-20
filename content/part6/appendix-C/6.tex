@@ -1,0 +1,25 @@
+Exceptions are covered in Chapter 14. Two header files provide most of the requisite definitions, but some exceptions for specific domains are defined in the header file for that domain:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{HEADER} &
+\textbf{CONTENTS} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\textless{}exception\textgreater{} &
+\begin{tabular}[c]{@{}l@{}}Defines the exception and bad\_exception classes, and the set\_terminate()\\ and uncaught\_exceptions() functions.\end{tabular} \\ \hline
+\textless{}stdexcept\textgreater{} &
+Non-domain-specific exceptions not defined in \textless{}exception\textgreater{}. \\ \hline
+\end{longtable}
+
+
+
+
+
+
+
