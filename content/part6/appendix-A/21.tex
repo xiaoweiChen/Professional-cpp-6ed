@@ -1,8 +1,35 @@
 
+Efficiency questions are quite common in interviews because many organizations are facing scalability issues with their code and need programmers who are savvy about performance.
 
 \mySubsubsection{A.21.1.}{Things to Remember}
 
+\begin{itemize}
+\item
+Language-level efficiency is important, but it can only go so far; design-level choices are ultimately much more significant.
 
+\item
+Algorithms with bad complexity, such as quadratic algorithms, should be avoided.
+
+\item
+Reference parameters are more efficient because they avoid copying.
+
+\item
+Object pools can help avoid the overhead of creating and destroying objects.
+
+\item
+Profiling is vital to determine which operations are really consuming the most time, so you don’t waste effort trying to optimize code that is not a performance bottleneck.
+\end{itemize}
 
 \mySubsubsection{A.21.2.}{Types of Questions}
+
+Often, the interviewer will use her own product as an example to drive efficiency questions. Sometimes the interviewer will describe an older design and some performance-related symptoms she experienced. The candidate is supposed to come up with a new design that alleviates the problem. Unfortunately, there is a major problem with a question like this: what are the odds that you’re going to come up with the same solution that the company did when the problem was actually solved? Because the odds are slim, you need to be extra careful to justify your designs. You might not come up with the actual solution, but you could still have an answer that is correct or even better than the company’s newer design.
+
+Other types of efficiency questions may ask you to tweak some C++ code for performance or iterate on an algorithm. For example, the interviewer could show you code that contains extraneous copies or inefficient loops.
+
+The interviewer might also ask you for a high-level description of profiling tools (such as gprof or Visual C++), what their benefits are, and why you should use them.
+
+
+
+
+
 

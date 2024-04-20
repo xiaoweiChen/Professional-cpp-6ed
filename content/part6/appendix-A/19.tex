@@ -1,8 +1,45 @@
 
+Almost any system, from servers to laptops and even cellphones, has processors with multiple cores these days. Multithreaded programming is crucial to harness the power of all those cores. An interviewer might ask you a couple of multithreading questions. C++ includes a standard threading support library, so it’s a good idea to know how it works.
 
 \mySubsubsection{A.19.1.}{Things to Remember}
 
+\begin{itemize}
+\item
+What race conditions and deadlocks are and how to prevent them
 
+\item
+std::jthread to spawn threads, and why it can be better than using std::thread
+
+\item
+The atomic types and atomic operations
+
+\item
+The concept of mutual exclusion, including the use of the different mutex and lock classes, to provide synchronization between threads
+
+\item
+Condition variables and how to use them to signal other threads
+
+\item
+The concepts of semaphores, latches, and barriers
+
+\item
+Futures and promises
+
+\item
+Copying and rethrowing of exceptions across thread boundaries
+
+\item
+What coroutines are, including a high-level overview of how they work
+
+\item
+The standard std::generator awaitable (C++23)
+\end{itemize}
 
 \mySubsubsection{A.19.2.}{Types of Questions}
+
+Multithreaded programming is a complicated subject, so you don’t need to expect detailed questions, unless you are interviewing for a specific multithreaded programming position.
+
+Instead, an interviewer might ask you to explain the different kinds of problems you can encounter with multithreaded code: problems such as race conditions, deadlocks, and tearing. She might ask you to explain the need for atomic types and atomic operations. You may also be asked to explain the general concepts behind multithreaded programming. This is a broad question, but it allows the interviewer to get an idea of your multithreading knowledge. Explaining the concepts of mutexes, semaphores, latches, and barriers will earn you extra points. You can also mention that a lot of the Standard Library algorithms have an option to run in parallel to improve their performance.
+
+Writing your own coroutines is complicated, but since C++23, the Standard Library comes with a standard std::generator type. If you can explain how generator works with a small example, you will earn extra points.
 

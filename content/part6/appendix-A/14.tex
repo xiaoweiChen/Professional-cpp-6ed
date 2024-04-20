@@ -1,8 +1,35 @@
 
+It’s possible, though somewhat unlikely, that you will have to perform something more difficult than a simple operator overload during an interview. Some interviewers like to have an advanced question on hand that they don’t really expect anybody to answer correctly. The intricacies of operator overloading make great, nearly impossible questions because few programmers get the syntax right without looking it up. That means it’s a great area to review before an interview.
 
 \mySubsubsection{A.14.1.}{Things to Remember}
 
+\begin{itemize}
+\item
+Overloading stream operators, because they are commonly overloaded operators, and are conceptually unique
 
+\item
+What a functor is (a callable object) and how to create one
+
+\item
+What the benefit is of making a class’s function call operator static (C++23)
+
+\item
+Choosing between a member function operator and a global function
+
+\item
+How some operators can be expressed in terms of others (for example, operator<= can be written by negating the result of operator>)
+
+\item
+The multidimensional subscript operator and what it can be used for (C++23)
+
+\item
+The fact that you can define your own user-defined literals, but without the syntactical details
+\end{itemize}
 
 \mySubsubsection{A.14.2.}{Types of Questions}
 
+It’s impossible to predict the exact questions that you’ll get, but the number of operators is finite. As long as you’ve seen an example of overloading each operator that makes sense to overload, you’ll do fine!
+
+One possible question is to write a simple class, for instance, a Fraction class to store mathematical fractions. The interviewer might then ask you to add support for some operators such as addition and subtraction. If you’re unsure how to add or subtract fractions, ask the interviewer as that’s not the point of the question; the point is writing overloaded operators.
+
+Besides asking you to implement an overloaded operator, you could be asked high-level questions about operator overloading. A find-the-bug question could contain an operator that is overloaded to do something that is conceptually wrong for that particular operator. In addition to syntax, keep the use cases and theory of operator overloading in mind.

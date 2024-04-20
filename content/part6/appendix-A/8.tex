@@ -1,8 +1,191 @@
 
+There is no limit to the types of questions you can be asked about classes and objects. Some interviewers are syntax-fixated and might throw some complicated code at you. Others are less concerned with the implementation and more interested in your design skills.
 
 \mySubsubsection{A.8.1.}{Things to Remember}
 
+\begin{itemize}
+\item
+Basic class definition syntax.
 
+\item
+Access specifiers for member functions and data members.
+
+\item
+The use of the this pointer.
+
+\item
+How name resolution works.
+
+\item
+Object creation and destruction, both on the stack and the free store.
+
+\item
+Cases when the compiler generates a constructor for you.
+
+\item
+Constructor initializers.
+
+\item
+Copy constructors and assignment operators.
+
+\item
+Delegating constructors.
+
+\item
+The mutable keyword.
+
+\item
+Member function overloading and default arguments.
+
+\item
+const members.
+
+\item
+Friend classes and member functions.
+
+\item
+Managing dynamically allocated memory in classes.
+
+\item
+static member functions and data members.
+
+\item
+Inline member functions and the fact that the inline keyword is just a hint for the compiler, which can ignore the hint.
+
+\item
+The key idea of separating interface and implementation classes, which says that interfaces should only contain public member functions, should be as stable as possible, and should not contain any data members or private/protected member functions. Thus, interfaces can remain stable while implementations are free to change under them.
+
+\item
+In-class member initializers.
+
+\item
+Explicitly defaulted and deleted special member functions.
+
+\item
+The difference between rvalues and lvalues.
+
+\item
+Rvalue references.
+
+\item
+Move semantics with move constructors and move assignment operators.
+
+\item
+The copy-and-swap idiom and what it is used for.
+
+\item
+The rule of zero versus the rule of five.
+
+\item
+Basic operator overloading syntax.
+
+\item
+The three-way comparison operator for classes.
+
+\item
+What explicit object parameters are (C++23).
+
+\item
+What constexpr and consteval functions and classes are.
+\end{itemize}
 
 \mySubsubsection{A.8.2.}{Types of Questions}
+
+Questions such as “What does the keyword mutable mean?” are great for phone screening. A recruiter may have a list of C++ terms and will move candidates to the next stage of the process based on the number of terms that they get right. You might not know all of the terms thrown at you, but keep in mind that other candidates are facing the same questions, and it’s one of the few metrics available to a recruiter.
+
+The find-the-bug style of questions is popular among interviewers and course instructors alike. You will be presented with some nonsense code and asked to point out its flaws. Interviewers struggle to find quantitative ways to analyze candidates, and this is one of the few ways to do it. In general, your approach should be to read each line of code and voice your concerns, brainstorming aloud. The types of bugs can fall into several categories:
+
+\begin{itemize}
+\item
+Syntax errors: These are rare; interviewers know you can find compile-time bugs with a compiler.
+
+\item
+Memory problems: These include problems such as leaks and double deletion.
+
+\item
+“You wouldn’t do that” problems: This category includes things that are technically correct but are not recommended. For example, you wouldn’t use C-style character arrays; you would use std::string instead.
+
+\item
+Style errors: Even if the interviewer doesn’t count it as a bug, point out poor comments or variable names.
+\end{itemize}
+
+Here’s a find-the-bug problem that demonstrates each of these areas:
+
+\begin{cpp}
+class Buggy
+{
+    Buggy(int param);
+    ˜Buggy();
+    void turtle(int i = 7, int j);
+    protected:
+    double fjord(double val);
+    int fjord(double val);
+    int param;
+    double* m_graphicDimension;
+};
+
+Buggy::Buggy(int param)
+{
+    param = param;
+    m_graphicDimension = new double;
+}
+
+Buggy::˜Buggy()
+{}
+
+double Buggy::fjord(double val)
+{
+    return val * param;
+}
+
+int Buggy::fjord(double val)
+{
+    return (int)fjord(val);
+}
+
+void Buggy::turtle(int i, int j)
+{
+    cout << "i is " << i << ", j is " << j << endl;
+}
+\end{cpp}
+
+Take a careful look at the code, and then consult the following improved version:
+
+\begin{cpp}
+import std; // Import the Standard Library functionality.
+
+class Buggy final // Mark as final, or provide a virtual destructor.
+{
+    public: // These should most likely be public.
+        explicit Buggy(int param); // Constructor should be explicit.
+
+        // Destructor not necessary as there's nothing to clean up.
+
+        void turtle(int i, int j); // Only last parameters can have defaults.
+    private: // Use private by default.
+        // int version won't compile. Overloaded member functions
+        // cannot differ only in return type.
+        double fjord(double val);
+        int m_param; // Data member naming.
+        double m_graphicDimension; // Use value semantics!
+};
+
+Buggy::Buggy(int param)
+: m_param{ param } // Prefer using constructor initializer.
+{}
+
+void Buggy::turtle(int i, int j)
+{
+    // Namespaces + use std::println().
+    std::println("i is {}, j is {}", i, j);
+}
+
+double Buggy::fjord(double val)
+{
+    return val * m_param; // Changed data member name.
+}
+\end{cpp}
+
+You should explain why you changed m\_graphicDimension from a double* pointer to a double value. If you do need to use pointers, you should explain why you should never use raw pointers that represent ownership but smart pointers instead.
+
 

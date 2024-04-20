@@ -1,8 +1,43 @@
 
+Managers sometimes shy away from hiring recent graduates or novice programmers for vital (and high-paying) jobs because it is assumed that they don’t write production-quality code. You can prove to an interviewer that your code won’t keel over randomly by demonstrating your error-handling skills during an interview.
 
 \mySubsubsection{A.13.1.}{Things to Remember}
 
+\begin{itemize}
+\item
+Syntax of exceptions
 
+\item
+Catching exceptions as references-to-const
+
+\item
+Why hierarchies of exceptions are preferable to a few generic ones
+
+\item
+The basics of how stack unwinding works when an exception gets thrown
+
+\item
+How to handle errors in constructors and destructors
+
+\item
+How smart pointers help to avoid memory leaks when exceptions are thrown
+
+\item
+The std::source\_location class as a replacement for certain C-style preprocessor macros
+
+\item
+The std::stacktrace class to get a stack trace at any moment during the execution of a program and to inspect individual stack frames (C++23)
+\end{itemize}
 
 \mySubsubsection{A.13.2.}{Types of Questions}
+
+Be prepared to discuss error handling if the interviewer brings it up. But don’t try to shoehorn error handling into the discussion yourself and force the interviewer to talk about it if they’re really trying to focus the interview on something else, like data structures or algorithms.
+
+Interviewers might ask you about different error handling strategies. Additionally, you might be asked to give a high-level overview of how stack unwinding works when an exception is thrown, without implementation details.
+
+Of course, not all programmers appreciate exceptions. Some may even have a bias against them for performance reasons. If the interviewer asks you to do something without exceptions, you’ll have to revert to traditional nullptr checks and error codes.
+
+Knowledge of the source\_location and stacktrace classes and their most important use cases will score you extra points.
+
+An interviewer can also ask you whether you would avoid using exceptions because of their performance impact. You should explain that with modern compilers, throwing an exception might possibly have a performance penalty, but just having code that can handle potential exceptions has close to zero performance penalty.
 

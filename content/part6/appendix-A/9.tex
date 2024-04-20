@@ -1,9 +1,67 @@
 
+Questions about inheritance usually come in the same forms as questions about classes. The interviewer might also ask you to implement a class hierarchy to show that you have worked with C++ enough to write derived classes without looking it up in a book.
 
 \mySubsubsection{A.9.1.}{Things to Remember}
 
+\begin{itemize}
+\item
+The syntax for inheritance
 
+\item
+The difference between private and protected from the derived class’s point of view
+
+\item
+Member function overriding and virtual
+
+\item
+The difference between overloading, overriding, and hiding
+
+\item
+The reason why base-class destructors should be virtual
+
+\item
+Chained constructors
+
+\item
+The ins and outs of upcasting and downcasting
+
+\item
+The different types of casts in C++
+
+\item
+The principle of polymorphism
+
+\item
+Pure virtual member functions and abstract base classes
+
+\item
+Multiple inheritance
+
+\item
+Run-time type information (RTTI)
+
+\item
+Inherited constructors
+
+\item
+The final keyword on classes
+
+\item
+The override and final keywords on member functions
+\end{itemize}
 
 \mySubsubsection{A.9.2.}{Types of Questions}
+
+Many of the pitfalls in inheritance questions are related to getting the details right. When you are writing a base class, don’t forget to make the member functions virtual. If you mark all member functions virtual, be prepared to justify that decision. You should be able to explain what virtual means and how it works. Also, don’t forget the public keyword before the name of the parent class in the derived class definition (for example, class Derived : public Base). It’s unlikely that you’ll be asked to perform nonpublic inheritance during an interview.
+
+More challenging inheritance questions have to do with the relationship between a base class and a derived class. Be sure you know how the different access levels work, especially the difference between private and protected. Remind yourself of the phenomenon known as slicing, when certain types of casts cause a class to lose its derived class information.
+
+
+
+
+
+
+
+
 
 

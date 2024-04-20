@@ -1,7 +1,50 @@
 
+Your interviewer will want to make sure that in addition to knowing the C++ language, you are skilled at applying it. You might not be asked a design question explicitly, but good interviewers have a variety of techniques to sneak design into other questions, as you’ll see.
+
+A potential employer will also want to know that you’re able to work with code that you didn’t write yourself. If you’ve listed third-party libraries on your résumé, then you should be prepared to answer questions about them. If you didn’t list specific libraries, a general understanding of the importance of libraries will probably suffice.
 
 \mySubsubsection{A.4.1.}{Things to Remember}
 
+\begin{itemize}
+\item
+Design is subjective. Be prepared to defend design decisions you make during the interview.
 
+\item
+Before the interview, recall the details of a design you’ve done in the past in case you are asked for an example.
+
+\item
+Be prepared to sketch out a design visually, including class hierarchies.
+
+\item
+Be prepared to tout the benefits and disadvantages of code reuse.
+
+\item
+Understand the concept of libraries.
+
+\item
+Know the tradeoffs between building from scratch and reusing existing code.
+
+\item
+Know the basics of big-O notation, or at least remember that O(n log n) is better than O($n^2$).
+
+\item
+Understand the functionality that is included in the C++ Standard Library.
+
+\item
+Know the high-level definition of design patterns.
+\end{itemize}
 
 \mySubsubsection{A.4.2.}{Types of Questions}
+
+Design questions are hard for an interviewer to come up with; any program that you could design in an interview setting is probably too simple to demonstrate real-world design skills. Design questions may come in a fuzzier form, such as “Tell me the steps in designing a good program” or “Explain the fundamental rule of code reuse.” They can also be less explicit. When discussing your previous job, the interviewer may ask, “Can you explain the design of that project to me?” Be careful not to expose intellectual property from your previous jobs, though.
+
+If the interviewer is asking you about a specific library, he will probably focus on the high-level aspects of the library as opposed to technical specifics. For example, you may be asked to explain what the strengths and weaknesses of the Standard Library are from a library design point of view.
+The best candidates talk about the Standard Library’s breadth and standardization as strengths and its sometimes-complex usage as a drawback.
+
+You may also be asked a design question that initially doesn’t sound as if it’s related to libraries. For example, the interviewer could ask how you would go about creating an application that downloads MP3 music from the web and plays it on a local computer. This question isn’t explicitly related to libraries, but that’s what it’s getting at; the question is really asking about process.
+
+You should begin by talking about how you would gather requirements and do initial prototypes. Because the question mentions two specific technologies, the interviewer would like to know how you would deal with them. This is where libraries come into play. If you tell the interviewer that you would write your own web classes and MP3-playing code, you won’t fail the test, but you will be challenged to justify the time and expense of reinventing these tools.
+
+A better answer is to say that you would survey existing libraries that perform web and MP3 functionality to see if one exists that suits the project. You might want to name some technologies that you would start with, such as libcurl (curl.haxx.se) for web retrieval in Linux or the Windows Media library for music playback in Windows.
+
+Mentioning some websites with free libraries, and some ideas of what those websites provide, might also get you extra points. Some examples are codeguru.com and codeproject.com for Windows libraries, boost.org and github.com for platform-independent C++ libraries, and so on. Giving examples of some of the licenses that are available for open-source software, such as the GNU General Public License, Boost Software License, Creative Commons license, MIT license, OpenBSD license, and so on, might score you extra credit.

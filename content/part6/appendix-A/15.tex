@@ -1,7 +1,74 @@
 
+As you’ve seen, certain aspects of the Standard Library can be difficult to work with. Few interviewers would expect you to recite the details of Standard Library classes unless you claim to be a Standard Library expert. If you know that the job you’re interviewing for makes heavy use of the Standard Library, you might want to write some Standard Library code the day before to refresh your memory. Otherwise, recalling the high-level design of the Standard Library and its basic usage should suffice.
 
 \mySubsubsection{A.15.1.}{Things to Remember}
 
+\begin{itemize}
+\item
+The different types of containers and their relationships with iterators
 
+\item
+Use of vector, which is the most frequently used Standard Library class
+
+\item
+The span class and why you should use it
+
+\item
+What an mdspan is (C++23)
+
+\item
+Use of associative containers, such as map
+
+\item
+The differences between associative containers, e.g., map, unordered associative containers, e.g., unordered\_map, and flat associative container adapters (C++23), e.g., flat\_map
+
+\item
+How to work with function pointers, function objects (callable objects), and lambda expressions
+
+\item
+What transparent operator functors are
+
+\item
+The purpose of Standard Library algorithms and some of the built-in algorithms
+
+\item
+The use of lambda expressions in combination with Standard Library algorithms
+
+\item
+The remove-erase idiom
+
+\item
+The fact that a lot of Standard Library algorithms have an option to execute them in parallel to improve performance
+
+\item
+The ways in which you can extend the Standard Library (details are most likely unnecessary)
+
+\item
+What ranges, projections, views, and range factories are
+
+\item
+The expressiveness of the Ranges library
+
+\item
+Your own opinions about the Standard Library
+\end{itemize}
 
 \mySubsubsection{A.15.2.}{Types of Questions}
+
+If interviewers are dead set on asking detailed Standard Library questions, there really are no bounds to the types of questions they could ask. If you’re feeling uncertain about syntax, though, you should state the obvious during the interview: “In real life, of course, I’d look that up in Professional C++, but I’m pretty sure it works like this . . .” At least that way, the interviewer is reminded that he should forgive the details, as long as you get the basic idea right.
+
+High-level questions about the Standard Library are often used to gauge how much you’ve used the Standard Library without making you recall all the details. For example, casual users of the Standard Library may be familiar with associative and non-associative containers. A slightly more advanced user would be able to define an iterator, describe how iterators work with containers, and describe the remove-erase idiom. Other high-level questions could ask you about your experience with Standard Library algorithms, or whether you’ve customized the Standard Library. An interviewer might also gauge your knowledge about function objects and lambda expressions, and their use with Standard Library algorithms. When talking about lambda expressions, you can score extra points if you explain the use of the auto keyword to define generic lambda expressions.
+
+You might also be asked to explain the benefits of using the ranges library. Remember, it basically allows you to write code that describes what you want to do instead of how you want to do it.
+
+
+
+
+
+
+
+
+
+
+
+

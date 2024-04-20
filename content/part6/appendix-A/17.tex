@@ -1,8 +1,22 @@
 
+Generating good random numbers in software is a complex topic, and interviewers know this. They will not ask any syntactical details about it, but you need to know the basics and concepts behind the <random> library, which is part of the C++ Standard Library.
 
 \mySubsubsection{A.17.1.}{Things to Remember}
 
+\begin{itemize}
+\item
+Using the <random> library as the preferred technique of generating random numbers
 
+\item
+How random number engines and distributions work together to generate random numbers
+
+\item
+What seeding means and why it is important
+\end{itemize}
 
 \mySubsubsection{A.17.2.}{Types of Questions}
+
+An interviewer might show you a piece of code that is using the C functions rand() and srand() to generate random numbers and ask you to comment on the code snippet. You should explain that those C functions are not recommended anymore and why it’s better to use the functionality provided by <random>.
+
+In the context of questions related to random numbers, it is important to explain the differences between true random numbers and pseudorandom numbers. You will score extra points if you explain that you can use a random\_device to generate a truly random seed for a pseudorandom number generator, as well as why you would use a pseudorandom number generator instead of just using a random\_device all the time.
 
