@@ -1,0 +1,69 @@
+By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+
+\begin{itemize}
+\item
+Exercise 31-1: What is the fundamental law of debugging?
+
+\item
+Exercise 31-2: Can you spot any problems with the following piece of code?
+
+\begin{cpp}
+import std;
+using namespace std;
+
+int* getData(int value) { return new int { value * 2 }; }
+
+int main()
+{
+    int* data { getData(21) };
+    println("{}", *data);
+
+    data = getData(42);
+    println("{}", *data);
+}
+\end{cpp}
+
+\item
+Exercise 31-3: Given the following code snippet:
+
+\begin{cpp}
+import std;
+using namespace std;
+
+int sum(int* values, int count)
+{
+    int total { 0 };
+    for (int i { 0 }; i <= count; ++i) { total += values[i]; }
+    return total;
+}
+
+int main()
+{
+    int values[] { 1, 2, 3 };
+    int total { sum(values, sizeof(values)) };
+    println("{}", total);
+}
+\end{cpp}
+
+It calculates the sum of a set of values. For the values 1, 2, and 3, you expect the sum to be 6; however, when running the code on my machine, the result is -2 for a debug build and some different random number each time I execute a release build, e.g., 920865056, -321371431, and so on. What’s going on? Use a symbolic debugger and its step-by-step execution mode to pinpoint the root cause of the wrong result. Consult the documentation of your debugger to learn how to step through individual lines of your code.
+
+\item
+Exercise 31-4: (advanced) Modify the start-time debug mode example from earlier in this chapter to use std::source\_location, discussed in Chapter 14, to get rid of the old-style LOG() macro. This is trickier than it sounds. The problem is that Logger::log() is a variadic function template, so you cannot just add a named source\_location parameter after the variadic parameter pack. One trick is to use a helper class, for example Log. The constructor accepts a variadic parameter pack and a source\_location and forwards the work to Logger::log(). The final part of the trick is the following deduction guide; see Chapter 12, “Writing Generic Code with Templates”:
+
+\begin{cpp}
+template <typename... Ts>
+Log(Ts&&...) -> Log<Ts...>;
+\end{cpp}
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+

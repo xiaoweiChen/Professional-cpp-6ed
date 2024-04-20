@@ -1,25 +1,519 @@
 
+As you read this paragraph, thousands of C++ programmers throughout the world are solving problems that have already been solved. Someone in a cubicle in San Jose is writing a smart pointer implementation from scratch that uses reference counting. A young programmer on a Mediterranean island is designing a class hierarchy that could benefit immensely from the use of mixin classes.
+
+As a professional C++ programmer, you ought to spend less of your time reinventing the wheel and more of your time adapting reusable concepts in new ways. This section gives some examples of general-purpose approaches that you can apply directly to your own programs or customize for your needs.
 
 \mySubsubsection{32.2.1.}{Resource Acquisition Is Initialization}
 
+Resource acquisition is initialization (RAII) is a simple yet powerful concept. It is used to acquire ownership of some resources and to automatically free these acquired resources when an RAII instance goes out of scope. Both initialization and destruction happen at a deterministic point in time. Basically, the constructor of a new RAII instance acquires ownership of a certain resource and initializes the instance with that resource, which is why it’s called resource acquisition is initialization. The destructor automatically frees the acquired resource when the RAII instance is destroyed.
 
+Here is an example of a File RAII class that safely wraps a C-style file handle (std::FILE) and automatically closes the file when the RAII instance goes out of scope. The RAII class also provides get(), release(), and reset() member functions that behave similarly to the same member functions on certain Standard Library classes, such as std::unique\_ptr. RAII classes usually disallow copy construction and copy assignment; hence, this implementation deletes those members.
+
+\begin{cpp}
+import std;
+
+class File final
+{
+    public:
+        explicit File(std::FILE* file) : m_file { file } { }
+        ~File() { reset(); }
+
+        // Prevent copy construction and copy assignment.
+        File(const File& src) = delete;
+        File& operator=(const File& rhs) = delete;
+
+        // Allow move construction.
+        File(File&& src) noexcept : m_file { std::exchange(src.m_file, nullptr) }
+        {
+        }
+
+        // Allow move assignment.
+        File& operator=(File&& rhs) noexcept
+        {
+            if (this != &rhs) {
+                reset();
+                m_file = std::exchange(rhs.m_file, nullptr);
+            }
+            return *this;
+        }
+
+        // get(), release(), and reset()
+        std::FILE* get() const noexcept { return m_file; }
+        [[nodiscard]] std::FILE* release() noexcept
+        {
+            return std::exchange(m_file, nullptr);
+        }
+
+        void reset(std::FILE* file = nullptr) noexcept
+        {
+            if (m_file) { std::fclose(m_file); }
+            m_file = file;
+        }
+
+    private:
+        std::FILE* m_file { nullptr };
+};
+\end{cpp}
+
+It can be used as follows:
+
+\begin{cpp}
+File myFile { std::fopen("input.txt", "r") };
+\end{cpp}
+
+As soon as the myFile instance goes out of scope, its destructor is called, and the file is automatically closed.
+
+There is one important pitfall with using RAII classes that you need to be aware of. You can accidentally write a statement that you think is properly creating an RAII instance within a certain scope, but that is instead creating a temporary object, which is immediately destroyed when that statement has finished executing. For example, the following statement correctly uses the File RAII class:
+
+\begin{cpp}
+File myFile { std::fopen("input.txt", "r") };
+\end{cpp}
+
+However, you could accidentally forget to give the RAII instance a name as follows:
+
+\begin{cpp}
+File { std::fopen("input.txt", "r") };
+\end{cpp}
+
+This statement creates a temporary File instance, which is immediately destroyed at the end of the statement. This does not trigger any warning or error from the compiler. To avoid this, you should mark the constructor of RAII classes with the [[nodiscard]] attribute. For example:
+
+\begin{cpp}
+[[nodiscard]] explicit File(std::FILE* file) : m_file{ file } { }
+\end{cpp}
+
+With this change, creating a File instance without giving it a name triggers a compiler warning such as the following:
+
+\begin{shell}
+warning C4834: discarding return value of function with 'nodiscard' attribute
+\end{shell}
+
+Of course, with the File RAII class, you probably will never forget to give it a name as you most likely will want to do something with the opened file. However, sometimes you need to create an instance of an RAII class in a certain scope, without having to directly interact any further with that created instance, e.g., mutex locks. Let’s look at such an example using an RAII class from the Standard Library, std::unique\_lock (see Chapter 27, “Multithreaded Programming with C++”). The following code snippet shows proper use of a unique\_lock. I’m initially not using the uniform initialization syntax to initialize the unique\_lock but will get back to this in the subsequent discussion.
+
+\begin{cpp}
+class Foo
+{
+    public:
+        void setData()
+        {
+            unique_lock<mutex> lock(m_mutex);
+            // ...
+        }
+    private:
+        mutex m_mutex;
+};
+\end{cpp}
+
+The setData() member function uses the unique\_lock RAII class to construct a local lock object that locks the m\_mutex data member and automatically unlocks that mutex at the end of the function.
+
+However, because you do not directly use the lock variable after it has been defined, it is easy to make the following mistake:
+
+\begin{cpp}
+unique_lock<mutex>(m_mutex);
+\end{cpp}
+
+In this code, you accidentally forgot to give the unique\_lock a name. This compiles, but it does not do what you intended it to do! It actually declares a local variable called m\_mutex (hiding the m\_mutex data member) and initializes it with a call to the unique\_lock’s default constructor. The result is that the m\_mutex data member is not locked! The compiler will give a warning, though, if the warning level is set high enough. Something along the lines of:
+
+\begin{shell}
+warning C4458: declaration of 'm_mutex' hides class member
+\end{shell}
+
+If you use uniform initialization syntax as follows, the compiler doesn’t generate the “hiding class member” warning, but it also does not do what you want. The following creates a temporary lock on m\_mutex, but since it’s temporary, the lock is immediately released at the end of this statement.
+
+\begin{cpp}
+unique_lock<mutex> { m_mutex };
+\end{cpp}
+
+Recently, some compilers actually do mark the unique\_lock constructors with [[nodiscard]], just as I recommended with the File RAII example. One such compiler is Visual C++ 2022. If you use such a compiler, the previous statement generates a warning about the fact that the return value of the constructor is discarded.
+
+Additionally, you could make a typo in the name passed as argument, for example as follows:
+
+\begin{cpp}
+unique_lock<mutex>(m);
+\end{cpp}
+
+Here you forgot to give a name for the lock, and you made a typo in the name of the argument. This code simply declares a local variable called m and initializes it with the default constructor of unique\_lock. The compiler does not even generate a warning, unless maybe a warning that m is an unreferenced local variable. In this case, though, if you would use uniform initialization syntax as follows, then the compiler issues an error complaining about an undeclared identifier m:
+
+\begin{cpp}
+unique_lock<mutex> { m };
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+Make sure you always name your RAII instances! Additionally, I recommend not to include a default constructor in an RAII class. That avoids some of the issues discussed here.
+\end{myWarning}
 
 \mySubsubsection{32.2.2.}{Double Dispatch}
 
+Double dispatch is a technique that adds an extra dimension to the concept of polymorphism. As described in Chapter 5, “Designing with Classes,” polymorphism lets the program determine behavior based on types at run time. For example, you could have an Animal class with a move() member function. All Animals move, but they differ in terms of how they move. The move() member function is defined for every derived class of Animal so that the appropriate member function can be called, or can be dispatched to, for the appropriate animal at run time without knowing the type of the animal at compile time. Chapter 10 explains how to use virtual member functions to implement this run-time polymorphism.
+
+Sometimes, however, you need a member function to behave according to the run-time type of two objects, instead of just one. For example, suppose you want to add a member function to the Animal class that returns true if the animal eats another animal, and false otherwise. The decision is based on two factors: the type of animal doing the eating and the type of animal being eaten. Unfortunately, C++ provides no language mechanism to choose a behavior based on the run-time type of more than one object. Virtual member functions alone are insufficient for modeling this scenario because they determine a member function, or behavior, depending on the run-time type of only the receiving object.
+
+Some object-oriented languages provide the ability to choose a member function at run time based on the run-time types of two or more objects. They call this feature multimethods. In C++ there is no core language feature to support multimethods, but you can use the double dispatch technique, which provides a way to make functions virtual for more than one object.
+
+\begin{myNotic}{NOTE}
+Double dispatch is really a special case of multiple dispatch, in which a behavior is chosen depending on the run-time types of two or more objects. In practice, double dispatch, which chooses a behavior based on the run-time types of exactly two objects, is usually sufficient.
+\end{myNotic}
+
 \mySamllsection{Attempt \#1: Brute Force}
+
+The most straightforward way to implement a member function whose behavior depends on the run-time types of two different objects is to take the perspective of one of the objects and use a series of if/else constructs to check the type of the other. For example, you could implement a member function called eats() in each class derived from Animal that takes the other animal as a parameter. The member function is declared pure virtual in the base class as follows:
+
+\begin{cpp}
+class Animal
+{
+    public:
+        virtual bool eats(const Animal& prey) const = 0;
+};
+\end{cpp}
+
+Each derived class implements the eats() member function and returns the appropriate value based on the type of the parameter. The implementation of eats() for several derived classes follows. Note that the TRex avoids any if statements because—according to the author—a T-rex, like any carnivorous dinosaur, eats anything.
+
+\begin{cpp}
+bool Bear::eats(const Animal& prey) const
+{
+    if (typeid(prey) == typeid(Fish)) { return true; }
+    return false;
+}
+
+bool Fish::eats(const Animal& prey) const
+{
+    if (typeid(prey) == typeid(Fish)) { return true; }
+    return false;
+}
+
+bool TRex::eats(const Animal& prey) const
+{
+    return true;
+}
+\end{cpp}
+
+This brute-force approach works, and it’s probably the most straightforward technique for a small number of classes. However, there are several reasons why you might want to avoid this approach.
+
+\begin{itemize}
+\item
+Object-oriented programming (OOP) purists often frown upon explicitly querying the type of an object because it implies a design that is lacking a proper object-oriented structure.
+
+\item
+As the number of types grows, such code can become messy and repetitive.
+
+\item
+This approach does not force derived classes to consider new types. For example, if you added a Donkey, the Bear class would continue to compile but would return false when told to eat a Donkey, even though everybody knows that bears eat donkeys. A bear would refuse to eat a donkey because there is no else if statement checking explicitly for Donkeys.
+\end{itemize}
 
 \mySamllsection{Attempt \#2: Single Polymorphism with Overloading}
 
+You could attempt to use polymorphism with overloading to circumvent all of the cascading if/else constructs. Instead of giving each class a single eats() member function that takes an Animal reference, why not overload the member function for each derived class of Animal? The base class definition would look like this:
+
+\begin{cpp}
+class Animal
+{
+    public:
+        virtual bool eats(const Bear&) const = 0;
+        virtual bool eats(const Fish&) const = 0;
+        virtual bool eats(const TRex&) const = 0;
+};
+\end{cpp}
+
+Because the member functions are pure virtual in the base class, each derived class is forced to implement the behavior for every other type of Animal. For example, the Bear class contains the following member functions:
+
+\begin{cpp}
+class Bear : public Animal
+{
+    public:
+        bool eats(const Bear&) const override { return false; }
+        bool eats(const Fish&) const override { return true; }
+        bool eats(const TRex&) const override { return false; }
+};
+\end{cpp}
+
+This approach initially appears to work, but it really solves only half of the problem. To call the proper eats() member function on an Animal, the compiler needs to know the compile-time type of the animal being eaten. A call such as the following will be successful because the compile-time types of both the animal that eats and the animal that is eaten are known:
+
+\begin{cpp}
+Bear myBear;
+Fish myFish;
+println("Bear eats fish? {}", myBear.eats(myFish));
+\end{cpp}
+
+The missing piece is that the solution is polymorphic in only one direction. You can access myBear through an Animal reference, and the correct member function will be called:
+
+\begin{cpp}
+Animal& animalRef { myBear };
+println("Bear eats fish? {}", animalRef.eats(myFish));
+\end{cpp}
+
+However, the reverse is not true. If you pass an Animal reference to the eats() member function, you will get a compilation error because there is no eats() member function that takes an Animal. The compiler cannot determine, at compile time, which version to call. The following example does not compile:
+
+\begin{cpp}
+Animal& animalRef { myFish };
+println("Bear eats fish? {}",
+    myBear.eats(animalRef)); // BUG! No member function Bear::eats(Animal&)
+\end{cpp}
+
+Because the compiler needs to know which overloaded version of the eats() member function is going to be called at compile time, this solution is not truly polymorphic. It would not work, for example, if you were iterating over an array of Animal references and passing each one to a call to eats().
+
 \mySamllsection{Attempt \#3: Double Dispatch}
 
+The double dispatch technique is a truly polymorphic solution to the multiple-type problem. In C++, polymorphism is achieved by overriding member functions in derived classes. At run time, member functions are called based on the actual type of the object. The preceding single polymorphic attempt didn’t work because it attempted to use polymorphism to determine which overloaded version of a member function to call instead of using it to determine on which class to call the member function.
 
+To begin, focus on a single derived class, perhaps the Bear class. The class needs a member function with the following declaration:
+
+\begin{cpp}
+bool eats(const Animal& prey) const override;
+\end{cpp}
+
+The key to double dispatch is to determine the result based on a member function call on the argument. Suppose that the Animal class has a member function called eatenBy(), which takes an Animal reference as a parameter. This member function returns true if the current Animal gets eaten by the one passed in. With such a member function, the definition of eats() becomes simple:
+
+\begin{cpp}
+bool Bear::eats(const Animal& prey) const
+{
+    return prey.eatenBy(*this);
+}
+\end{cpp}
+
+At first, it looks like this solution adds another layer of member function calls to the single polymorphic member function. After all, each derived class still has to implement a version of eatenBy() for every derived class of Animal. However, there is a key difference. Polymorphism is occurring twice! When you call the eats() member function on an Animal, polymorphism determines whether you are calling Bear::eats(), Fish::eats(), or one of the others. When you call eatenBy(), polymorphism again determines which class’s version of the member function to call. It calls eatenBy() on the run-time type of the prey object. Note that the run-time type of *this is always the same as the compile-time type so that the compiler can call the correct overloaded version of eatenBy() for the argument (in this case Bear).
+
+The following are the class definitions for the Animal hierarchy using double dispatch. The forward class declarations are necessary because the base class uses references to the derived classes. Note that each Animal-derived class implements the eats() member function in the same way, but it cannot be factored up into the base class. The reason is that if you attempt to do so, the compiler won’t know which overloaded version of the eatenBy() member function to call because *this would be an Animal, not a particular derived class. Member function overload resolution is determined according to the compile-time type of the object, not its run-time type.
+
+\begin{cpp}
+// Forward declarations.
+class Fish;
+class Bear;
+class TRex;
+
+class Animal
+{
+    public:
+        virtual bool eats(const Animal& prey) const = 0;
+
+        virtual bool eatenBy(const Bear&) const = 0;
+        virtual bool eatenBy(const Fish&) const = 0;
+        virtual bool eatenBy(const TRex&) const = 0;
+};
+class Bear : public Animal
+{
+    public:
+        bool eats(const Animal& prey) const override{ return prey.eatenBy(*this); }
+
+        bool eatenBy(const Bear&) const override { return false; }
+        bool eatenBy(const Fish&) const override { return false; }
+        bool eatenBy(const TRex&) const override { return true; }
+};
+
+class Fish : public Animal
+{
+    public:
+        bool eats(const Animal& prey) const override{ return prey.eatenBy(*this); }
+
+        bool eatenBy(const Bear&) const override { return true; }
+        bool eatenBy(const Fish&) const override { return true; }
+        bool eatenBy(const TRex&) const override { return true; }
+};
+
+class TRex : public Animal
+{
+    public:
+        bool eats(const Animal& prey) const override{ return prey.eatenBy(*this); }
+
+        bool eatenBy(const Bear&) const override { return false; }
+        bool eatenBy(const Fish&) const override { return false; }
+        bool eatenBy(const TRex&) const override { return true; }
+};
+\end{cpp}
+
+Double dispatch is a concept that takes a bit of getting used to. I suggest playing with this code to familiarize yourself with the concept and its implementation.
 
 \mySubsubsection{32.2.3.}{Mixin Classes}
 
+Chapters 5 and 6, “Designing for Reuse,” introduce mixin classes. They answer the question, “What else is this class able to do?” and the answer often ends with “-able.” Examples are Clickable, Drawable, Printable, Lovable, and so on. Mixin classes are a way that you can add functionality to a class without committing to a full is-a relationship. There are several techniques to implement mixin classes in C++. This section looks at the following:
+
+\begin{itemize}
+\item
+Using multiple inheritance
+
+\item
+Using class templates
+
+\item
+Using CRTP
+
+\item
+Using CRTP and “deducing this”
+\end{itemize}
+
 \mySamllsection{Using Multiple Inheritance}
+
+This section examines how to design, implement, and use a mixin class using the multiple inheritance technique.
+
+\mySamllsection{Designing a Mixin Class}
+
+Mixin classes contain actual code that can be reused by other classes. A single mixin class implements a well-defined piece of functionality. For example, you might have a mixin class called Playable that is mixed into certain types of media objects. The mixin class could, for example, contain most of the code to communicate with the computer’s sound drivers. By mixing in the class, the media object would get that functionality for free.
+
+When designing a mixin class, you need to consider what behavior you are adding and whether it belongs in the object hierarchy or in a separate class. Using the previous example, if all media classes are playable, the base class should derive from Playable instead of mixing the Playable class into all of the derived classes. If only certain media classes are playable and they are scattered throughout the hierarchy, a mixin class makes sense.
+
+One of the cases where mixin classes are particularly useful is when you have classes organized into a hierarchy on one axis, but they also contain similarities on another axis. For example, consider a war simulation game played on a grid. Each grid location can contain an Item with attack and defense capabilities and other characteristics. Some items, such as a Castle, are stationary. Others, such as a Knight or FloatingCastle, can move throughout the grid. When initially designing the object hierarchy, you might end up with something like Figure 32.1, which organizes the classes according to their attack and defense capabilities.
+
+The hierarchy in Figure 32.1 ignores the movement functionality that certain classes contain. Building your hierarchy around movement would result in a structure similar to Figure 32.2.
+
+Of course, the design of Figure 32.2 throws away all the organization of Figure 32.1. What’s a good object-oriented programmer to do?
+
+Assuming that you go with the first hierarchy, organized around attackers and defenders, you need some way to work movement into the equation. One possibility is that, even though only a portion of the derived classes support movement, you could add a move() member function to the Item base class. The default implementation would do nothing, but certain derived classes would override move() to actually change their location on the grid.
+
+\myGraphic{0.5}{content/part5/chapter32/images/1.png}{FIGURE 32.1}
+
+\myGraphic{0.5}{content/part5/chapter32/images/2.png}{FIGURE 32.2}
+
+Another approach is to write a Movable mixin class. The elegant hierarchy from Figure 32.1 could be preserved, but certain classes in the hierarchy would derive from Movable in addition to their parent. Figure 32.3 shows this design.
+
+\myGraphic{0.5}{content/part5/chapter32/images/3.png}{FIGURE 32.3}
+
+Yet another approach is to flatten the hierarchy and don’t use run time polymorphism at all. Instead, you can use static polymorphism and/or type-erasure whenever you need to deal polymorphically with a subset of your types. These approaches are not further discussed in this text.
+
+\mySamllsection{Implementing a Mixin Class}
+
+Writing a mixin class is no different from writing a normal class. In fact, it’s usually much simpler. Using the earlier war simulation, the Movable mixin class might look as follows:
+
+\begin{cpp}
+class Movable
+{
+    public:
+        virtual void move() { /* Implementation to move an item… */ }
+};
+\end{cpp}
+
+This Movable mixin class implements the actual code to move an item on the grid. It also provides a type for Items that can be moved. This allows you to create, for example, an array of all movable items without knowing or caring what actual derived class of Item they belong to.
+
+\mySamllsection{Using a Mixin Class}
+
+The code for using a mixin class is syntactically equivalent to multiple inheritance. In addition to deriving from your parent class in the main hierarchy, you also derive from the mixin class. Here’s an example:
+
+\begin{cpp}
+class FloatingCastle : public Castle, public Movable { /* … */ };
+\end{cpp}
+
+This mixes in the functionality provided by the Movable mixin class into the FloatingCastle class. Now you have a class that exists in the most logical place in the hierarchy, but still shares commonality with objects elsewhere in the hierarchy.
 
 \mySamllsection{Using Class Templates}
 
+A second option to implement a mixin class in C++ is to make the mixin class itself a class template accepting a template type parameter and then deriving itself from that type.
+
+Chapter 6 explains the mechanism for implementing a SelfDrivable mixin class template that can then be used to create self-drivable cars and trucks. Now that you are fluent in class templates (Chapters 12 and 26), the SelfDrivable mixin example from Chapter 6 should hold no surprises anymore. The mixin class is defined as follows:
+
+\begin{cpp}
+template <typename T>
+class SelfDrivable : public T { /* … */ };
+\end{cpp}
+
+If you then have a Car and a Truck class, you can easily define a self-drivable car and truck as follows:
+
+\begin{cpp}
+SelfDrivable<Car> selfDrivingCar;
+SelfDrivable<Truck> selfDrivingTruck;
+\end{cpp}
+
+This way, functionality can be added to existing classes, Car and Truck, without having to modify those classes at all.
+
+Here is a complete example:
+
+\begin{cpp}
+template <typename T>
+class SelfDrivable : public T
+{
+    public:
+        void drive() { this->setSpeed(1.2); }
+};
+
+class Car
+{
+    public:
+        void setSpeed(double speed) { println("Car speed set to {}.", speed); }
+};
+
+class Truck
+{
+    public:
+        void setSpeed(double speed) { println("Truck speed set to {}.", speed); }
+};
+
+int main()
+{
+    SelfDrivable<Car> car;
+    SelfDrivable<Truck> truck;
+    car.drive();
+    truck.drive();
+}
+\end{cpp}
+
+
 \mySamllsection{Using CRTP}
 
+Another technique to implement a mixin class in C++ is to use the curiously recurring template pattern (CRTP).
+
+The mixin class itself is again a class template, but this time it accepts a template type parameter representing the type of a derived class and doesn’t inherit itself from any other class. In the implementation a static\_cast() is required to cast this to the type of the derived class.
+
+\begin{cpp}
+template <typename Derived>
+class SelfDrivable
+{
+    public:
+        void drive()
+        {
+            auto& self { static_cast<Derived&>(*this) };
+            self.setSpeed(1.2);
+        }
+};
+\end{cpp}
+
+Concrete classes, such as Car and Truck, then inherit from SelfDrivable and pass their own type as the template type argument for SelfDrivable.
+
+\begin{cpp}
+class Car : public SelfDrivable<Car>
+{
+    public:
+        void setSpeed(double speed) { println("Car speed set to {}.", speed); }
+};
+class Truck : public SelfDrivable<Truck>
+{
+    public:
+        void setSpeed(double speed) { println("Truck speed set to {}.", speed); }
+};
+\end{cpp}
+
+These can be used as follows:
+
+\begin{shell}
+Car car;
+Truck truck;
+car.drive();
+truck.drive();
+\end{shell}
+
+\CXXTwentythreeLogo{-40}{-50}
+
 \mySamllsection{Using CRTP and Deducing this}
+
+The implementation of SelfDrivable::drive() in the previous CRTP example requires a static\_cast() to get access to the correct derived type. Thanks to the C++23 “deducing this” feature, the SelfDrivable class can be implemented more elegantly as follows using an explicit object parameter. In this implementation, the SelfDrivable mixin class is no longer a class template, but SelfDrivable::drive() is now a member function template. The parameter annotated with this is known as an explicit object parameter (see Chapter 8, “Gaining Proficiency with Classes and Objects”).
+
+\begin{cpp}
+class SelfDrivable
+{
+    public:
+        void drive(this auto& self) { self.setSpeed(1.2); }
+};
+\end{cpp}
+
+Car and Truck then simply derive from SelfDrivable:
+
+\begin{cpp}
+class Car : public SelfDrivable { /* Same as before */ };
+class Truck : public SelfDrivable { /* Same as before */ };
+\end{cpp}
+
+\myGraphic{0.5}{content/part5/chapter32/images/4.png}{FIGURE 32.4}
+
+The model-view-controller paradigm has gained widespread support within many popular frameworks. Even nontraditional applications, such as web applications, are moving in the direction of MVC because it enforces a clear separation between data, the manipulation of data, and the displaying of data.
+
+The MVC pattern has evolved into several different variants, such as model-view-presenter (MVP), model-view-adapter (MVA), model-view-viewmodel (MVVM), and so on.
+
+
+
+
+

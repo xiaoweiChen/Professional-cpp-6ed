@@ -1,38 +1,890 @@
 
+Debugging a program can be incredibly frustrating. However, with a systematic approach it becomes significantly easier. Your first step in trying to debug a program should always be to reproduce the bug. Depending on whether you can reproduce the bug, your subsequent approach will differ. The next four sections explain how to reproduce bugs, how to debug reproducible bugs, how to debug nonreproducible bugs, and how to debug regressions. Additional sections explain details about debugging memory errors and debugging multithreaded programs. The final sections show a step-bystep debugging example.
 
 \mySubsubsection{31.5.1.}{Reproducing Bugs}
 
+If you can reproduce a bug consistently, it will be much easier to determine the root cause. Sometimes a bug might be reproducible by Alice but not by Bob. That in itself can be a clue for Alice to find the root cause. Finding the root cause of bugs that are not reproducible is difficult, if not impossible.
 
+As a first step to reproduce the bug, run the program on a similar environment (hardware, operating system, and so on) and with the same inputs as the run when the bug first appeared. Be sure to include all inputs, from the program’s startup to the time of the bug’s appearance. A common mistake is to attempt to reproduce the bug by performing only the triggering action. This technique may not reproduce the bug because the bug might be caused by an entire sequence of actions.
+
+For example, if your web browser dies when you request a certain web page, it may be due to memory corruption triggered by that particular request’s network address. On the other hand, it may be because your program records all requests in a queue, with space for one million entries, and this entry was number 1,000,001. Starting the program over and sending one request certainly wouldn’t trigger the bug in that case.
+
+Sometimes it is impossible to emulate the entire sequence of events that leads to the bug. Perhaps the bug was reported by someone who can’t remember everything that she did. Alternatively, maybe the program was running for too long to emulate every input. In that case, do your best to reproduce the bug. It takes some guesswork and can be time-consuming, but effort at this point will save time later in the debugging process. Here are some techniques you can try:
+
+\begin{itemize}
+\item
+Repeat the triggering action in the correct environment and with as many inputs as possible similar to the initial report.
+
+\item
+Do a quick review of the code related to the bug. More often than not, you’ll find a likely cause that will guide you in reproducing the problem.
+
+\item
+Run automated tests that exercise similar functionality. Reproducing bugs is one benefit of automated tests. If it takes 24 hours of testing before the bug shows up, it’s preferable to let those tests run on their own rather than spend 24 hours of your time trying to reproduce the bug.
+
+\item
+If you have the necessary hardware available, running slight variations of tests concurrently on different machines can sometimes save time.
+
+\item
+Run stress tests that exercise similar functionality. If your program is a web server that died on a particular request, try running as many browsers as possible simultaneously that make that request.
+\end{itemize}
+
+After you are able to reproduce the bug consistently, you should attempt to find the smallest sequence that triggers the bug. You can start with the minimum sequence, containing only the triggering action, and slowly expand the sequence to cover the entire sequence from startup until the bug is triggered. This will result in the simplest and most efficient test case to reproduce it, which makes it simpler to find the root cause of the problem and easier to verify the fix.
 
 \mySubsubsection{31.5.2.}{Debugging Reproducible Bugs}
 
+When you can reproduce a bug consistently and efficiently, it’s time to figure out the problem in the code that causes the bug. Your goal at this point is to find the exact lines of code that trigger the problem. You can use two different strategies:
 
+\begin{itemize}
+\item
+Use a debugger: Debuggers allow you to step through the execution of your program and to view the state of memory and the values of variables at various points. They are often indispensable tools for finding the root cause of bugs. When you have access to the source code, you should use a symbolic debugger: a debugger that utilizes the variable names, class names, and other symbols in your code. To use a symbolic debugger, you must instruct your compiler to generate debug symbols. Check the documentation of your compiler for details on how to enable symbol generation.
+
+\item
+Log debug messages: By adding enough debug messages to your program and watching its output when you reproduce the bug, you should be able to pinpoint the exact lines of code where the bug occurs. If you have a debugger at your disposal, adding debug messages is usually not recommended because it requires modifications to the program and can be timeconsuming. However, if you have already instrumented your program with debug messages as described earlier, you might be able to find the root cause of your bug by running your program in debug mode while reproducing the bug. Note that bugs sometimes disappear simply when you enable logging because the act of enabling logging can slightly change the timings of your application.
+\end{itemize}
+
+The debugging example at the end of this chapter demonstrates both these approaches.
 
 \mySubsubsection{31.5.3.}{Debugging Nonreproducible Bugs}
 
+Fixing bugs that are not reproducible is significantly more difficult than fixing reproducible bugs. You often have little information and must employ a lot of guesswork. Nevertheless, a few strategies can aid you:
 
+\begin{itemize}
+\item
+Try to turn a nonreproducible bug into a reproducible bug. By using educated guesses, you can often determine approximately where the bug lies. It’s worthwhile to spend some time trying to reproduce the bug. Once you have a reproducible bug, you can figure out its root cause by using the techniques described earlier.
+
+\item
+Analyze error logs. This is easy to do if you have instrumented your program with error log generation, as described earlier. You should sift through this information because any errors that were logged directly before the bug occurred are likely to have contributed to the bug itself. If you’re lucky (or if you coded your program well), your program will have logged the exact reason for the bug at hand.
+
+\item
+Obtain and analyze traces. Again, this is easy to do if you have instrumented your program with tracing output, for example, via a ring buffer as described earlier. At the time of the bug’s occurrence, you ideally obtained a copy of the traces. These traces should lead you right to the location of the bug in your code.
+
+\item
+Examine a crash/memory dump file, if it exists. Some platforms automatically generate memory dump files of applications that terminate abnormally. On Unix and Linux, these memory dumps are called core files. Each platform provides tools for analyzing these memory dumps. They can, for example, be used to view the stack trace of the application and the contents of its memory before the application died.
+
+\item
+Inspect the code. Unfortunately, this is often the only strategy to determine the cause of a nonreproducible bug. Surprisingly, it often works. When you examine code, even code that you wrote yourself, with the perspective of the bug that just occurred, you can often find mistakes that you overlooked previously. I don’t recommend spending hours staring at your code, but tracing through the code path manually can often lead you directly to the problem.
+
+\item
+Use a memory-watching tool, such as one of the tools described in the section “Debugging Memory Problems,” later in this chapter. Such tools often alert you to memory errors that don’t always cause your program to misbehave but could potentially be the cause of the bug in question.
+
+\item
+File or update a bug report. Even if you can’t find the root cause of the bug right away, the report will be a useful record of your attempts if the problem is encountered again.
+
+\item
+If you are unable to find the root cause of the bug, be sure to add extra logging or tracing so that you will have a better chance next time the bug occurs.
+\end{itemize}
+
+Once you have found the root cause of a nonreproducible bug, you should create a reproducible test case and move it to the “reproducible bugs” category. It is important to be able to reproduce a bug before you actually fix it. Otherwise, how will you test the fix? A common mistake when debugging nonreproducible bugs is to fix the wrong problem in the code. Because you can’t reproduce the bug, you don’t know if you’ve really fixed it, so you shouldn’t be surprised when it shows up again a month later.
 
 \mySubsubsection{31.5.4.}{Debugging Regressions}
 
+If a feature contains a regression bug, it means that the feature used to work correctly, but at some point unexpectedly stopped working.
 
+A useful debugging technique for investigating regressions is to look at the change log of relevant files. If you know at what time the feature was still working, look at all the change logs since that time. You might notice something suspicious that could lead you to the root cause.
+
+Another approach that can save you a lot of time when debugging regressions is to use a binary search approach with older versions of the software (often called bisecting) to try to figure out when it started to go wrong. You can use binaries of older versions if you keep them, or you can revert the source code to an older revision. Once you know when it started to go wrong, inspect the change logs to see what changed at that time. This mechanism is possible only when you can reproduce the bug.
 
 \mySubsubsection{31.5.5.}{Debugging Memory Problems}
 
+Most catastrophic bugs, such as application crashes, are caused by memory errors. Many noncatastrophic bugs are triggered by memory errors as well. Some memory bugs are obvious. For example, if your program attempts to dereference a null pointer, the default action is to terminate the program. However, nearly every platform enables you to respond to catastrophic errors and take remedial action. The amount of effort you devote to the response depends on the importance of this kind of recovery to your end users. For example, a text editor really needs to make a best attempt to save the modified buffers (possibly under a “recovered” name), while for other programs, users may find the default behavior acceptable, even if it is unpleasant.
+
+Some memory bugs are more insidious. If you write past the end of an array in C++, your program will probably not crash at that point. However, if that array was on the stack, you may have written into a different variable or array, changing values that won’t show up until later in the program. Alternatively, if the array was on the free store, you could cause memory corruption in the free store, which will cause errors later when you attempt to allocate or free more memory dynamically.
+
+Chapter 7, “Memory Management,” introduces some of the common memory errors from the perspective of what to avoid when you’re coding. This section discusses memory errors from the perspective of identifying problems in code that exhibits bugs. You should be familiar with the discussion in Chapter 7 before continuing with this section.
+
+\begin{myWarning}{WARNING}
+Most, if not all, of the following memory problems can be avoided by using smart pointers instead of raw pointers.
+\end{myWarning}
+
 \mySamllsection{Categories of Memory Errors}
 
+To debug memory problems, you should be familiar with the types of errors that can occur. This section describes the major categories of memory errors. Each category lists different types of memory errors, including a small code example demonstrating each error, and a list of possible symptoms that you might observe. Note that a symptom is not the same thing as a bug: a symptom is an observable behavior caused by a bug.
+
+\mySamllsection{Memory-Freeing Errors}
+
+The following table summarizes five major errors that involve freeing memory:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{ERROR TYPE} &
+\textbf{SYMPTOMS} &
+\textbf{EXAMPLE} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+Memory leak &
+\begin{tabular}[c]{@{}l@{}}Process memory usage\\ grows over time. Process\\ runs more slowly over time.\\ Eventually, depending on the\\ OS, operations and system\\ calls fail because of lack\\ of memory.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}
+\\
+\begin{cpp}
+void memoryLeak()
+{
+    int* p { new int[1000] };
+    return; // Not freeing p!
+}
+\end{cpp}
+\end{tabular}
+\\ \hline
+\begin{tabular}[c]{@{}l@{}}Using\\ mismatched\\ allocation and\\ free operations\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Does not usually cause a\\ crash immediately. This\\ type of error can cause\\ memory corruption on some\\ platforms, which might show\\ up as a crash later in the\\ program. Certain mismatches\\ can also cause memory leaks.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}
+\\
+\begin{cpp}
+void mismatchedFree()
+{
+    int* p1{(int*)malloc(sizeof(int))};
+    int* p2{new int};
+    int* p3{new int[1000]};
+    delete p1; // Should use free()!
+    delete[] p2;// Should use delete!
+    free(p3); // Should use delete[]!
+}
+\end{cpp}
+\end{tabular}
+\\ \hline
+\begin{tabular}[c]{@{}l@{}}Freeing\\ memory\\ more than\\ once\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Can cause a crash if the\\ memory at that location has\\ been handed out in another\\ allocation between the two\\ calls to delete.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}
+\\
+\begin{cpp}
+void doubleFree()
+{
+    int* p1 { new int[1000] };
+    delete[] p1;
+    int* p2 { new int[1000] };
+    delete[] p1; // Freeing p1 twice!
+} // Leaking memory of p2!
+\end{cpp}
+\end{tabular}
+\\ \hline
+\begin{tabular}[c]{@{}l@{}}Freeing\\ unallocated\\ memory\end{tabular} &
+Usually causes a crash. &
+\begin{tabular}[c]{@{}l@{}}
+\\
+\begin{cpp}
+void freeUnallocated()
+{
+    int* p{reinterpret_cast<int*>(10)};
+    delete p; // p not a valid pointer!
+}
+\end{cpp}
+\end{tabular}
+\\ \hline
+\begin{tabular}[c]{@{}l@{}}Freeing\\ stack memory\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Technically a special case of\\ freeing unallocated memory.\\ This usually causes a crash.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}
+\\
+\begin{cpp}
+void freeStack()
+{
+    int x;
+    int* p { &x };
+    delete p; // Freeing stack memory!
+}
+\end{cpp}
+\end{tabular}
+\\ \hline
+\end{longtable}
+
+The crashes mentioned in this table can have different manifestations depending on your platform, such as segmentation faults, bus errors, access violations, and so on.
+
+As you can see, some of the errors do not cause immediate program termination. These bugs are more subtle, leading to problems later in the program’s execution.
+
+\mySamllsection{Memory-Access Errors}
+
+Another category of memory errors involves the actual reading and writing of memory:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|l|}
+\hline
+\textbf{ERROR TYPE} &
+\textbf{SYMPTOMS} &
+\textbf{EXAMPLE} \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\begin{tabular}[c]{@{}l@{}}Accessing\\ invalid memory\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Almost always causes\\ the program to crash\\ immediately.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}
+\\
+\begin{cpp}
+void accessInvalid()
+{
+    int* p {reinterpret_cast<int*>(10)};
+    *p = 5; // p is not a valid pointer!
+}
+\end{cpp}
+\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}Accessing\\ freed memory\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Does not usually cause\\ a crash. If the memory\\ has been handed out in\\ another allocation, this\\ error type can cause\\ “strange” and potentially\\ dangerous values to appear\\ unexpectedly.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}
+\\
+\begin{cpp}
+void accessFreed()
+{
+    int* p1 { new int };
+    delete p1;
+    *p1 = 5; // The memory pointed to
+             // by p1 has been freed!
+}
+\end{cpp}
+\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}Accessing\\ memory in\\ a different\\ allocation\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Does not usually cause\\ a crash. This error type\\ can cause “strange” and\\ potentially dangerous\\ values to appear\\ unexpectedly in other\\ variables or temporary\\ objects, or even change the\\ control flow of the program.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}
+\\
+\begin{cpp}
+void accessElsewhere()
+{
+    int x, y[10], z;
+    x = 0;
+    z = 0;
+    for (int i { 0 }; i <= 10; ++i) {
+        y[i] = 5; // BUG for i==10! element
+        // 10 is past end of array
+    }
+}
+\end{cpp}
+\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}Reading\\ uninitialized\\ memory\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Does not cause a crash,\\ unless you use the\\ uninitialized value as a\\ pointer or array index and\\ dereference it (as in the\\ example). Even then, it will\\ not always cause a crash.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}
+\\
+\begin{cpp}
+void readUninitialized()
+{
+    int* p;
+    print("{}",*p);// p is uninitialized!
+}
+\end{cpp}
+\end{tabular} \\ \hline
+\end{longtable}
+
+Memory-access errors don’t always cause a crash. They can instead lead to subtle errors, in which the program does not terminate but instead produces erroneous results. Erroneous results can lead to serious consequences, for example, when external devices—such as robotic arms, X-ray machines, radiation treatments, life support systems, and so on—are being controlled by the computer.
+
+Note that the symptoms discussed here for both memory-freeing and memory-access errors are the default symptoms for release builds of your program. Debug builds will most likely behave differently, and when you run the program inside a debugger, the debugger might break into the code when an error occurs.
+
 \mySamllsection{Tips for Debugging Memory Errors}
+
+Memory-related bugs often show up in slightly different places in the code each time you run the program. This is usually the case with free store memory corruption. Free store memory corruption is like a time bomb, ready to explode at some attempt to allocate, free, or use memory on the free store. So, when you see a bug that is reproducible but that shows up in slightly different places, you should suspect memory corruption.
+
+If you suspect a memory bug, your best option is to use a memory-checking tool for C++. Debuggers often provide options to run the program while checking for memory errors. For example, if you run a debug build of your application in the Microsoft Visual C++ debugger, it will catch almost all types of errors discussed in the previous sections. Additionally, there are some excellent third-party tools such as Purify from Rational Software (now owned by IBM) and Valgrind for Linux (discussed in Chapter 7). Microsoft also provides a free download called Application Verifier (Part of the Windows SDK, \url{https://developer.microsoft.com/windows/downloads/windows-sdk}), which can be used with release builds of your applications in a Windows environment. It is a run-time verification tool to help you find subtle programming errors like the previously discussed memory errors. These debuggers and tools work by interposing their own memory-allocation and -freeing routines to check for any misuse of dynamic memory, such as freeing unallocated memory, dereferencing unallocated memory, or writing off the end of an array.
+
+If you don’t have a memory-checking tool at your disposal and the normal strategies for debugging are not helping, you may need to resort to code inspection. First, narrow down the part of the code containing the bug. Then, as a general rule, look at all raw pointers. Provided that you work on moderate- to good-quality code, most pointers should already be wrapped in smart pointers. If you do encounter raw pointers, take a closer look at how they are used, because they might be the cause of the error. Here are some more items to look for in your code.
+
+\mySamllsection{Object and Class-Related Errors}
+
+\begin{itemize}
+\item
+Verify that your classes with dynamically allocated memory have destructors that free exactly the memory that’s allocated in the object: no more, and no less.
+
+\item
+Ensure that your classes handle copying and assignment correctly with copy constructors and assignment operators, as described in Chapter 9, “Mastering Classes and Objects.” Make sure move constructors and move assignment operators properly set pointers in the source object to nullptr so that their destructors don’t try to free that memory.
+
+\item
+Check for suspicious casts. If you are casting a pointer to an object from one type to another, make sure that it’s valid. When possible, use dynamic\_casts.
+\end{itemize}
+
+\begin{myWarning}{WARNING}
+Whenever you see raw pointers being used to handle ownership of resources, I highly recommend you replace those raw pointers with smart pointers and try to refactor your classes to follow the rule of zero, as discussed in Chapter 9. This removes the types of errors explained in the first and second bullet points in the preceding list.
+\end{myWarning}
+
+\mySamllsection{General Memory Errors}
+
+\begin{itemize}
+\item
+Make sure that every call to new is matched with exactly one call to delete and every call to new[] is matched with one call to delete[]. Similarly, every call to malloc, alloc, or calloc should be matched with one call to free. To avoid freeing memory multiple times or using freed memory, it’s recommended to set your pointer to nullptr after freeing its memory. Of course, the best solution is to simply avoid using raw pointers to handle ownership of resources and instead use smart pointers.
+
+\item
+Check for buffer overruns. Whenever you iterate over an array or write into or read from a C-style string, verify that you are not accessing memory past the end of the array or string. These problems can often be avoided by using Standard Library containers and strings.
+
+\item
+Check for dereferencing of invalid pointers.
+
+\item
+When declaring a pointer (or really any scalar type) on the stack, make sure you always initialize it as part of its declaration. For example, use T* p\{nullptr\}; or T* p\{new T\}; but never T* p;. Better yet, use smart pointers!
+
+\item
+Similarly, make sure your classes always initialize pointer data members with in-class initializers or in their constructors, by either allocating memory in the constructor or setting the pointers to nullptr. Also here, the best solution is to use smart pointers.
+\end{itemize}
 
 
 \mySubsubsection{31.5.6.}{Debugging Multithreaded Programs}
 
+C++ includes a threading support library that provides mechanisms for threading and synchronization between threads. This threading support library is discussed in Chapter 27. Multithreaded C++ programs are common, so it is important to think about the special issues involved in debugging a multithreaded program. Bugs in multithreaded programs are often caused by variations in timings in the operating system scheduling and can be difficult to reproduce. Thus, debugging multithreaded programs requires a special set of techniques:
 
+\begin{itemize}
+\item
+Use a debugger: A debugger makes it relatively easy to diagnose certain multithreaded problems, for example, deadlocks. When a deadlock appears, break into the debugger and inspect the different threads. You will be able to see which threads are blocked and on which line in the code they are blocked. Combining this with trace logs that show you how you came into the deadlock situation should be enough to fix deadlocks.
+
+\item
+Use log-based debugging: When debugging multithreaded programs, log-based debugging can sometimes be more effective than using a debugger to debug certain problems. You can add log statements to your program before and after critical sections, and before acquiring and after releasing locks. Log-based debugging is extremely useful in investigating race conditions. However, the act of adding log statements slightly changes run-time timings, which might hide the bug.
+
+\item
+Insert forced sleeps and context switches: If you are having trouble consistently reproducing a problem or you have a hunch about the root cause but want to verify it, you can force certain thread-scheduling behavior by making your threads sleep for specific amounts of time. <thread> defines sleep\_until() and sleep\_for() in the std::this\_thread namespace, which you can use to sleep. The time to sleep is specified as an std::time\_point or an std::duration respectively, both part of the chrono library discussed in Chapter 22, “Date and Time Utilities.” Sleeping for several seconds right before releasing a lock, immediately before signaling a condition variable, or directly before accessing shared data can reveal race conditions that would otherwise go undetected. If this debugging technique reveals the root cause, it must be fixed so that it works correctly after removing these forced sleeps and context switches. Never leave these forced sleeps and context switches in your code! That would be the wrong “fix” for the problem.
+
+\item
+Perform code review: Reviewing your thread synchronization code often helps in finding and fixing race conditions. Try to prove over and over that what happened is not possible, until you see how it is. It doesn’t hurt to write down these “proofs” in code comments. Also, ask a co-worker to do pair debugging; she might see something you are overlooking.
+\end{itemize}
 
 \mySubsubsection{31.5.7.}{Debugging Example: Article Citations}
 
+This section presents a buggy program and shows you the steps to take in order to debug it and fix the problem.
+
+Suppose that you’re part of a team writing a web page that allows users to search for research articles that cite a particular paper. This type of service is useful for authors who are trying to find work similar to their own. Once they find one paper representing a related work, they can look for every paper that cites that one to find other related work.
+
+In this project, you are responsible for the code that reads the raw citation data from text files. For simplicity, assume that the citation information for each paper is found in its own file. Furthermore, assume that the first line of each file contains the author, title, and publication information for the paper; that the second line is always empty; and that all subsequent lines contain the citations from the article (one on each line). Here is an example file for one of the most important papers in computer science:
+
+\begin{shell}
+Alan Turing, "On Computable Numbers, with an Application to the
+Entscheidungsproblem", Proceedings of the London Mathematical Society, Series 2,
+Vol.42 (1936-37), 230-265.
+
+Gödel, "Über formal unentscheidbare Sätze der Principia Mathematica und verwandter
+Systeme, I", Monatshefte Math. Phys., 38 (1931), 173-198.
+Alonzo Church. "An unsolvable problem of elementary number theory", American J. of
+Math., 58 (1936), 345-363.
+Alonzo Church. "A note on the Entscheidungsproblem", J. of Symbolic Logic, 1
+(1936), 40-41.
+E.W. Hobson, "Theory of functions of a real variable (2nd ed., 1921)", 87-88.
+\end{shell}
+
 \mySamllsection{Buggy Implementation of an ArticleCitations Class}
+
+You may decide to structure your program by writing an ArticleCitations class that reads the file and stores the information. This class stores the article information from the first line in one string, and the citations in a C-style array of strings.
+
+\begin{myWarning}{WARNING}
+The design decision to use a C-style array is obviously a bad one! You should opt for one of the Standard Library containers to store the citations. This is just used here as a demonstration of memory problems. There are other obvious issues with this implementation, such as not using the copy-and-swap idiom (see Chapter 9) to implement the assignment operator. But, for the purpose of illustrating a buggy application, it’s perfect.
+\end{myWarning}
+
+The ArticleCitations class definition, defined in an article\_citations module, looks like this:
+
+\begin{cpp}
+export class ArticleCitations
+{
+    public:
+        explicit ArticleCitations(const std::string& filename);
+        virtual ˜ArticleCitations();
+        ArticleCitations(const ArticleCitations& src);
+        ArticleCitations& operator=(const ArticleCitations& rhs);
+
+        const std::string& getArticle() const;
+        int getNumCitations() const;
+        const std::string& getCitation(int i) const;
+    private:
+        void readFile(const std::string& filename);
+        void copy(const ArticleCitations& src);
+
+        std::string m_article;
+        std::string* m_citations { nullptr };
+        int m_numCitations { 0 };
+};
+\end{cpp}
+
+The implementation is as follows. Keep in mind that this program is buggy! Don’t use it verbatim or as a model.
+
+\begin{cpp}
+ArticleCitations::ArticleCitations(const string& filename)
+{
+    // All we have to do is read the file.
+    readFile(filename);
+}
+
+ArticleCitations::ArticleCitations(const ArticleCitations& src)
+{
+    copy(src);
+}
+
+ArticleCitations& ArticleCitations::operator=(const ArticleCitations& rhs)
+{
+    // Check for self-assignment.
+    if (this == &rhs) {
+        return *this;
+    }
+    // Free the old memory.
+    delete [] m_citations;
+    // Copy the data.
+    copy(rhs);
+    return *this;
+}
+
+void ArticleCitations::copy(const ArticleCitations& src)
+{
+    // Copy the article name, author, etc.
+    m_article = src.m_article;
+    // Copy the number of citations.
+    m_numCitations = src.m_numCitations;
+    // Allocate an array of the correct size.
+    m_citations = new string[m_numCitations];
+    // Copy each element of the array.
+    for (int i { 0 }; i < m_numCitations; ++i) {
+        m_citations[i] = src.m_citations[i];
+    }
+}
+
+ArticleCitations::~ArticleCitations()
+{
+    delete [] m_citations;
+}
+
+void ArticleCitations::readFile(const string& filename)
+{
+    // Open the file and check for failure.
+    ifstream inputFile { filename };
+    if (inputFile.fail()) {
+        throw invalid_argument { "Unable to open file" };
+    }
+    // Read the article author, title, etc. line.
+    getline(inputFile, m_article);
+
+    // Skip the whitespace before the citations start.
+    inputFile >> ws;
+
+    int count { 0 };
+    // Save the current position so we can return to it.
+    streampos citationsStart { inputFile.tellg() };
+    // First count the number of citations.
+    while (!inputFile.eof()) {
+        // Skip whitespace before the next entry.
+        inputFile >> ws;
+        string temp;
+        getline(inputFile, temp);
+        if (!temp.empty()) {
+            ++count;
+        }
+    }
+
+    if (count != 0) {
+        // Allocate an array of strings to store the citations.
+        m_citations = new string[count];
+        m_numCitations = count;
+        // Seek back to the start of the citations.
+        inputFile.seekg(citationsStart);
+        // Read each citation and store it in the new array.
+        for (count = 0; count < m_numCitations; ++count) {
+            string temp;
+            getline(inputFile, temp);
+            if (!temp.empty()) {
+                m_citations[count] = temp;
+            }
+        }
+    } else {
+        m_numCitations = -1;
+    }
+}
+
+const string& ArticleCitations::getArticle() const { return m_article; }
+
+int ArticleCitations::getNumCitations() const { return m_numCitations; }
+
+const string& ArticleCitations::getCitation(int i) const { return m_citations[i]; }
+\end{cpp}
 
 \mySamllsection{Testing the ArticleCitations Class}
 
+The following program asks the user for a filename, constructs an ArticleCitations instance for that file, and passes this instance by value to the processCitations() function, which prints out all the information. Passing the instance by value to the function is done for this buggy example. In production code, you should pass by reference-to-const.
+
+\begin{cpp}
+void processCitations(ArticleCitations cit)
+{
+    println("{}", cit.getArticle());
+    for (int i { 0 }; i < cit.getNumCitations(); ++i) {
+        println("{}", cit.getCitation(i));
+    }
+}
+
+int main()
+{
+    while (true) {
+        print("Enter a file name (\"STOP\" to stop): ");
+        string filename;
+        cin >> filename;
+        if (filename == "STOP") { break; }
+        ArticleCitations cit { filename };
+        processCitations(cit);
+    }
+}
+\end{cpp}
+
+You decide to test the program on the Alan Turing example (stored in a file called paper1.txt). Here is the output:
+
+\begin{shell}
+Enter a file name ("STOP" to stop): paper1.txt
+Alan Turing, "On Computable Numbers, with an Application to the
+Entscheidungsproblem", Proceedings of the London Mathematical Society, Series 2,
+Vol.42 (1936-37), 230-265.
+[ 4 empty lines omitted for brevity ]
+Enter a file name ("STOP" to stop): STOP
+\end{shell}
+
+That doesn’t look right. There are supposed to be four citations printed instead of four blank lines.
+
+\mySamllsection{Message-Based Debugging}
+
+For this bug, you decide to try log-based debugging, and because this is a console application, you decide to just print messages using println(). In this case, it makes sense to start by looking at the function that reads the citations from the file. If that doesn’t work right, then obviously the object won’t have the citations. You can modify readFile() as follows:
+
+\begin{cpp}
+void ArticleCitations::readFile(const string& filename)
+{
+    // Code omitted for brevity.
+    // First count the number of citations.
+    println("readFile(): counting number of citations");
+    while (!inputFile.eof()) {
+        // Skip whitespace before the next entry.
+        inputFile >> ws;
+        string temp;
+        getline(inputFile, temp);
+        if (!temp.empty()) {
+            println("Citation {}: {}", count, temp);
+            ++count;
+        }
+        }
+        println("Found {} citations", count);
+        println("readFile(): reading citations");
+        if (count != 0) {
+        // Allocate an array of strings to store the citations.
+        m_citations = new string[count];
+        m_numCitations = count;
+        // Seek back to the start of the citations.
+        inputFile.seekg(citationsStart);
+        // Read each citation and store it in the new array.
+        for (count = 0; count < m_numCitations; ++count) {
+            string temp;
+            getline(inputFile, temp);
+            if (!temp.empty()) {
+                println("{}", temp);
+                m_citations[count] = temp;
+            }
+        }
+    } else {
+        m_numCitations = -1;
+    }
+    println("readFile(): finished");
+}
+\end{cpp}
+
+Running the same test with this program gives the following output:
+
+\begin{shell}
+Enter a file name ("STOP" to stop): paper1.txt
+readFile(): counting number of citations
+Citation 0: Gödel, "Über formal unentscheidbare Sätze der Principia Mathematica und
+verwandter Systeme, I", Monatshefte Math. Phys., 38 (1931), 173-198.
+Citation 1: Alonzo Church. "An unsolvable problem of elementary number theory",
+American J. of Math., 58 (1936), 345-363.
+Citation 2: Alonzo Church. "A note on the Entscheidungsproblem", J. of Symbolic
+Logic, 1 (1936), 40-41.
+Citation 3: E.W. Hobson, "Theory of functions of a real variable (2nd ed.,
+1921)", 87-88.
+Found 4 citations
+readFile(): reading citations
+readFile(): finished
+Alan Turing, "On Computable Numbers, with an Application to the
+Entscheidungsproblem", Proceedings of the London Mathematical Society, Series 2,
+Vol.42 (1936-37), 230-265.
+[ 4 empty lines omitted for brevity ]
+Enter a file name ("STOP" to stop): STOP
+\end{shell}
+
+As you can see from the output, the first time the program reads the citations from the file, to count them, it reads them correctly. However, the second time, they are not read correctly; nothing is printed between “readFile(): reading citations” and “readFile(): finished” — why not? One way to delve deeper into this issue is to add some debugging code to check the state of the file stream after each attempt to read a citation:
+
+\begin{cpp}
+void printStreamState(const istream& inputStream)
+{
+    if (inputStream.good()) { println("stream state is good"); }
+    if (inputStream.bad()) { println("stream state is bad"); }
+    if (inputStream.fail()) { println("stream state is fail"); }
+    if (inputStream.eof()) { println("stream state is eof"); }
+}
+
+void ArticleCitations::readFile(const string& filename)
+{
+    // Code omitted for brevity.
+
+    // First count the number of citations.
+    println("readFile(): counting number of citations");
+    while (!inputFile.eof()) {
+        // Skip whitespace before the next entry.
+        inputFile >> ws;
+        printStreamState(inputFile);
+        string temp;
+        getline(inputFile, temp);
+        printStreamState(inputFile);
+        if (!temp.empty()) {
+            println("Citation {}: {}", count, temp);
+            ++count;
+        }
+    }
+
+    println("Found {} citations", count);
+    println("readFile(): reading citations");
+    if (count != 0) {
+        // Allocate an array of strings to store the citations.
+        m_citations = new string[count];
+        m_numCitations = count;
+        // Seek back to the start of the citations.
+        inputFile.seekg(citationsStart);
+        // Read each citation and store it in the new array.
+        for (count = 0; count < m_numCitations; ++count) {
+            string temp;
+            getline(inputFile, temp);
+            printStreamState(inputFile);
+            if (!temp.empty()) {
+                println("{}", temp);
+                m_citations[count] = temp;
+            }
+        }
+    } else {
+        m_numCitations = -1;
+    }
+    println("readFile(): finished");
+}
+\end{cpp}
+
+When you run your program this time, you find some interesting information:
+
+\begin{shell}
+Enter a file name ("STOP" to stop): paper1.txt
+readFile(): counting number of citations
+stream state is good
+stream state is good
+Citation 0: Gödel, "Über formal unentscheidbare Sätze der Principia Mathematica und
+verwandter Systeme, I", Monatshefte Math. Phys., 38 (1931), 173-198.
+stream state is good
+stream state is good
+Citation 1: Alonzo Church. "An unsolvable problem of elementary number theory",
+American J. of Math., 58 (1936), 345-363.
+stream state is good
+stream state is good
+Citation 2: Alonzo Church. "A note on the Entscheidungsproblem", J. of Symbolic
+Logic, 1 (1936), 40-41.
+stream state is good
+stream state is good
+Citation 3: E.W. Hobson, "Theory of functions of a real variable (2nd ed.,
+1921)", 87-88.
+stream state is eof
+stream state is fail
+stream state is eof
+Found 4 citations
+readFile(): reading citations
+stream state is fail
+stream state is fail
+stream state is fail
+stream state is fail
+readFile(): finished
+Alan Turing, "On Computable Numbers, with an Application to the
+Entscheidungsproblem", Proceedings of the London Mathematical Society, Series 2,
+Vol.42 (1936-37), 230-265.
+[ 4 empty lines omitted for brevity ]
+Enter a file name ("STOP" to stop): STOP
+\end{shell}
+
+It looks like the stream state is good until after the final citation is read for the first time. Because the paper1.txt file contains an empty last line, the while loop is executed one more time after having read the last citation. In this last loop, inputFile >{}> ws reads the whitespace of the last line, which causes the stream state to become eof. Then, the code still tries to read a line using getline(), which causes the stream state to become fail and eof. That is expected. What is not expected is that the stream state remains fail after all attempts to read the citations a second time. That doesn’t appear to make sense at first: the code uses seekg() to seek back to the beginning of the citations before reading them a second time.
+
+However, Chapter 13 explains that streams maintain their error states until you clear them explicitly; seekg() doesn’t clear the fail state automatically. When in an error state, streams fail to read data correctly, which explains why the stream state is also fail after trying to read the citations a second time.
+
+A closer look at the code reveals that it fails to call clear() on the istream after reaching the end of the file. If you modify the code by adding a call to clear(), it will read the citations properly.
+
+Here is the corrected readFile() implementation without the debugging print statements:
+
+\begin{cpp}
+void ArticleCitations::readFile(const string& filename)
+{
+    // Code omitted for brevity.
+
+    if (count != 0) {
+        // Allocate an array of strings to store the citations.
+        m_citations = new string[count];
+        m_numCitations = count;
+        // Clear the stream state.
+        inputFile.clear();
+        // Seek back to the start of the citations.
+        inputFile.seekg(citationsStart);
+        // Read each citation and store it in the new array.
+        for (count = 0; count < m_numCitations; ++count) {
+            string temp;
+            getline(inputFile, temp);
+            if (!temp.empty()) {
+                m_citations[count] = temp;
+            }
+        }
+    } else {
+        m_numCitations = -1;
+    }
+}
+\end{cpp}
+
+Running the same test again on paper1.txt now shows the correct four citations.
+
+\mySamllsection{Using the GDB Debugger on Linux}
+
+Now that your ArticleCitations class seems to work well on one citations file, you decide to blaze ahead and test some special cases, starting with a file with no citations. The file looks like this and is stored in a file named paper2.txt:
+
+\begin{shell}
+Author with no citations
+\end{shell}
+
+When you try to run your program on this file, depending on your version of Linux and your compiler, you might get a crash that looks something like the following:
+
+\begin{shell}
+Enter a file name ("STOP" to stop): paper2.txt
+terminate called after throwing an instance of 'std::bad_alloc'
+    what(): std::bad_alloc
+Aborted (core dumped)
+\end{shell}
+
+The message “core dumped” means that the program crashed. This time you decide to give the debugger a shot. The Gnu Debugger (GDB) is widely available on Unix and Linux platforms. First, you must compile your program with debugging information (-g with g++). Then you can launch the program under GDB. Here’s an example session using the debugger to find the root cause of this problem. This example assumes your compiled executable is called buggyprogram. Text that you have to type is shown in bold.
+
+\begin{shell}
+> gdb buggyprogram
+[ Start-up messages omitted for brevity ]
+Reading symbols from /home/marc/c++/gdb/buggyprogram...done.
+(gdb) run
+Starting program: buggyprogram
+Enter a file name ("STOP" to stop): paper2.txt
+terminate called after throwing an instance of 'std::bad_alloc'
+    what(): std::bad_alloc
+Program received signal SIGABRT, Aborted.
+0x00007ffff7535c39 in raise () from /lib64/libc.so.6
+(gdb)
+\end{shell}
+
+When the program crashes, the debugger breaks the execution and allows you to poke around in the state of the program at that time. The backtrace or bt command shows the current stack trace. The last operation is at the top, with frame number zero (\#0).
+
+\begin{shell}
+gdb) bt
+#0 0x00007ffff7535c39 in raise () from /lib64/libc.so.6
+#1 0x00007ffff7537348 in abort () from /lib64/libc.so.6
+#2 0x00007ffff7b35f85 in __gnu_cxx::__verbose_terminate_handler() () from /lib64/
+libstdc++.so.6
+#3 0x00007ffff7b33ee6 in ?? () from /lib64/libstdc++.so.6
+#4 0x00007ffff7b33f13 in std::terminate() () from /lib64/libstdc++.so.6
+#5 0x00007ffff7b3413f in __cxa_throw () from /lib64/libstdc++.so.6
+#6 0x00007ffff7b346cd in operator new(unsigned long) () from /lib64/libstdc++.so.6
+#7 0x00007ffff7b34769 in operator new[](unsigned long) () from /lib64/
+libstdc++.so.6
+#8 0x00000000004016ea in ArticleCitations::copy (this=0x7fffffffe090, src=...) at
+ArticleCitations.cpp:39
+#9 0x00000000004015b5 in ArticleCitations::ArticleCitations
+(this=0x7fffffffe090, src=...)
+    at ArticleCitations.cpp:15
+#10 0x0000000000401d0c in main () at ArticleCitationsTest.cpp:23
+\end{shell}
+
+When you get a stack trace like this, you should try to find the first stack frame from the top that is in your own code. In this example, this is stack frame \#8. From this frame, you can see that there seems to be a problem in the copy() member function of ArticleCitations. This member function is invoked because main() calls processCitations() and passes the argument by value, which triggers a call to the copy constructor, which calls copy(). Of course, in production code you should pass a reference-to-const, but pass-by-value is used in this example of a buggy program. You can tell the debugger to switch to stack frame \#8 with the frame command, which requires the index of the frame that you want to jump to:
+
+\begin{cpp}
+(gdb) frame 8
+#8 0x00000000004016ea in ArticleCitations::copy (this=0x7fffffffe090, src=...) at
+ArticleCitations.cpp:39
+39   m_citations = new string[m_numCitations];
+\end{cpp}
+
+This output shows that the following line caused a problem:
+
+\begin{cpp}
+m_citations = new string[m_numCitations];
+\end{cpp}
+
+Now, you can use the list command to show the code in the current stack frame around the offending line:
+
+\begin{shell}
+(gdb) list
+34      // Copy the article name, author, etc.
+35      m_article = src.m_article;
+36      // Copy the number of citations.
+37      m_numCitations = src.m_numCitations;
+38      // Allocate an array of the correct size.
+39      m_citations = new string[m_numCitations];
+40      // Copy each element of the array.
+41      for (int i { 0 }; i < m_numCitations; ++i) {
+42          m_citations[i] = src.m_citations[i];
+43      }
+\end{shell}
+
+In GDB, you can print values available in the current scope with the print command. To find the root cause of the problem, you can try printing some of the variables. The error happens inside the copy() member function, so checking the value of the src parameter is a good start:
+
+\begin{shell}
+(gdb) print src
+$1 = (const ArticleCitations &) @0x7fffffffe060: {
+    _vptr.ArticleCitations = 0x401fb0 <vtable for ArticleCitations+16>,
+    m_article = "Author with no citations", m_citations = 0x000000000000,
+    m_numCitations = -1}
+\end{shell}
+
+A-ha! Here’s the problem. This article isn’t supposed to have any citations. Why is m\_numCitations set to the strange value -1? Take another look at the code in readFile() for the case where there are no citations. In that case, it looks like m\_numCitations is erroneously set to -1. The fix is easy: you always need to initialize m\_numCitations to 0, instead of setting it to -1 when there are no citations. Another problem is that readFile() can be called multiple times on the same ArticleCitations object, so you also need to free a previously allocated m\_citations array. Here is the fixed code:
+
+\begin{cpp}
+void ArticleCitations::readFile(const string& filename)
+{
+    // Code omitted for brevity.
+
+    delete [] m_citations; // Free previously allocated citations.
+    m_citations = nullptr;
+    m_numCitations = 0;
+    if (count != 0) {
+        // Allocate an array of strings to store the citations.
+        m_citations = new string[count];
+        m_numCitations = count;
+
+        // Code omitted for brevity.
+    }
+}
+\end{cpp}
+
+As this example shows, bugs don’t always show up right away. It often takes a debugger and some persistence to find them.
+
+\mySamllsection{Using the Visual C++ 2022 Debugger}
+
+This section explains the same debugging procedure as described in the previous section but uses the Microsoft Visual C++ 2022 debugger instead of GDB.
+
+First, you need to create a project. Either click the New Project button in the Visual Studio 2022’s welcome screen or select File -> New -> Project. In the Create A New Project dialog, search for the Console App project template with tags C++, Windows, and Console, and click Next. Enter ArticleCitations as the name for the project, choose a folder where to save the project, and click Create. Once your project is created, you can see a list of project files in the Solution Explorer. If this docking window is not visible, select View -> Solution Explorer. The project will already contain a file called ArticleCitations.cpp listed under Source Files in the Solution Explorer tree. Select this file in the Solution Explorer and delete it, as you will add your own files.
+
+Now let’s add our files. Right-click the ArticleCitations project in the Solution Explorer and select Add -> Existing Item. Add all the files from the 06\_ArticleCitations\verb|\|04\_AfterLogDebugging folder in the downloadable source code archive to the project. Your Solution Explorer should look similar to Figure 31.1.
+
+\myGraphic{0.5}{content/part5/chapter31/images/1.png}{FIGURE 31.1}
+
+This example uses C++23 features which are not yet enabled by default in Visual C++ 2022 at the time of this writing. To enable them, right-click the ArticleCitations project in the Solution Explorer window and click Properties. In the Properties window, select Configuration Properties ➪ General and set the C++ Language Standard option to “ISO C++23 Standard” or “Preview - Features From The Latest C++ Working Draft”, whichever is available in your version of Visual C++. The ISO C++23 Standard option is not currently there yet, but it will appear in a future update of Visual C++. While still in the Properties window, go to Configuration Properties ➪ C/C++ -> Command Line and add /utf-8 as Additional Options. This makes sure that characters such as the ö in Gödel are properly printed.
+
+Make sure the configuration is set to Debug and not Release and then compile the whole program by selecting Build -> Build Solution. Then copy the paper1.txt and paper2.txt test files to your ArticleCitations project folder, which is the folder containing the ArticleCitations .vcxproj file.
+
+Run the application with Debug -> Start Debugging and test the program by first specifying the paper1.txt file. It should properly read the file and output the result to the console. Then, test paper2.txt. The debugger breaks the execution with a message similar to Figure 31.2.
+
+\myGraphic{0.5}{content/part5/chapter31/images/2.png}{FIGURE 31.2}
+
+This shows that an std::bad\_array\_new\_length exception is thrown. If the code you see is not code you have written, then you need to find the line in your code that caused the exception. To do so, use the call stack window (Debug -> Windows -> Call Stack). In the call stack, you need to find the first line that contains code you wrote. This is shown in Figure 31.3. You can double-click a line in the call stack window to jump to that line in the code.
+
+\myGraphic{0.5}{content/part5/chapter31/images/3.png}{FIGURE 31.3}
+
+Just as with GDB, you see that the problem is in ArticleCitations::copy().
+
+You can now inspect variables by simply hovering your mouse over the name of a variable. If you hover over src, you’ll notice that m\_numCitations is -1. The reason and the fix are the same as in the GDB example.
+
+Instead of hovering over variables to inspect their values, you can also use the Debug -> Windows -> Autos window, which shows a list of variables. Figure 31.4 shows this list with the src variable expanded to show its data members. From this window, you can also see that m\_numCitations is -1.
+
+\myGraphic{0.5}{content/part5/chapter31/images/4.png}{FIGURE 31.4}
 
 \mySubsubsection{31.5.8.}{Lessons from the ArticleCitations Example}
+
+You might be inclined to disregard this example as too small to be representative of real debugging. Although the buggy code is not lengthy, many classes that you write will not be much bigger, even in large projects. Imagine if you had failed to test this example thoroughly before integrating it with the rest of the project. If these bugs showed up later, you and other engineers would spend more time narrowing down the problem before you could debug it as shown here. Additionally, the techniques shown in this example apply to all debugging, whether on a large or small scale.
+
+
+
+
+
+
+
+
+
+
+
+
+
 

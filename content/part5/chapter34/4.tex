@@ -1,0 +1,35 @@
+By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+
+\begin{itemize}
+\item
+Exercise 34-1: Write a program that outputs the sizes of all standard C++ integer types. If possible, try to compile and execute it with different compilers on different platforms.
+
+\item
+Exercise 34-2: This chapter introduces the concept of big- and little-endian encoding of integer values. It also explained that over a network, it’s recommended to always use big-endian encoding and to convert as necessary. Write a program that can convert 16-bit unsigned integers between little- and big-endian encoding in both directions. Pay special attention to the data types you use. Write a main() function to test your function.
+
+\item
+Bonus exercise: Can you do the same for 32-bit integers?
+
+\item
+Exercise 34-3: The networking example in the Shifting Paradigms section showing how to use a C-style API with C++ might be a bit abstract. It doesn’t present an entire implementation as that would require networking code which is neither provided by the C nor the C++ Standard Library. In this exercise, let’s look at a much smaller C-style library that you might want to use in your C++ code. The C-style library basically consists of two functions. The first function, reverseString(), allocates a new string and initializes it with the reverse of a given source string. The second function, freeString(), frees the memory allocated by reverseString(). Here are their declarations with descriptive comments:
+
+\begin{cpp}
+/// <summary>
+/// Allocates a new string and initializes it with the reverse of a given string.
+/// </summary>
+/// <param name="string">The source string to reverse.</param>
+/// <returns>A newly allocated buffer filled with the reverse of the
+/// given string.
+/// The returned memory needs to be freed with freeString().</returns>
+char* reverseString(const char* string);
+
+/// <summary>Frees the memory allocated for the given string.</summary>
+/// <param name="string">The string to deallocate.</param>
+void freeString(char* string);
+\end{cpp}
+
+How would you use this “library” from your C++ code?
+
+\item
+Exercise 34-4: All examples about mixing C and C++ code in this chapter have been about calling C code from C++. Of course, the opposite is also possible when limiting yourself to data types known by C. In this exercise, you’ll combine both directions. Write a C function called writeTextFromC(const char*) that calls a C++ function called writeTextFromCpp(const char*) that uses std::println() to print out the given string to the standard output. To test your code, write a main() function in C++ that calls the C function writeTextFromC().
+\end{itemize}

@@ -1,0 +1,33 @@
+It’s impossible to write completely bug-free code, so debugging skills are important. However, a few tips can help you to minimize the number of bugs:
+
+\begin{itemize}
+\item
+Read this book from cover to cover: Learn the C++ language intimately, especially pointers and memory management. Then, recommend this book to your friends and co-workers so they avoid bugs too.
+
+\item
+Design before you code: Starting to write code for a feature without thinking about the design at all tends to lead to convoluted designs that are harder to understand and are more error prone. It also makes you more likely to omit possible edge cases and error conditions. Thus, before you start writing code, think about the design. And, once you start the implementation, don’t be afraid to change the design if you come across an issue that you didn’t think of before. There is nothing wrong with making changes to the design once you start the implementation.
+
+\item
+Do code reviews: In a professional environment, every single line of code should be peer reviewed. Sometimes it takes a fresh perspective to notice problems.
+
+\item
+Test, test, and test again: Thoroughly test your code, and have others test your code! They are more likely to find problems you haven’t thought of.
+
+\item
+Write automated unit tests: Unit tests are designed to test isolated functionality. You should write unit tests for all implemented features. Run these unit tests automatically as part of your continuous integration setup, or automatically after each local compilation. Chapter 30, “Becoming Adept at Testing,” discusses unit testing in detail.
+
+\item
+Expect error conditions, and handle them appropriately: In particular, plan for and handle errors when working with files and network connections. They will occur. See chapters 13, “Demystifying C++ I/O,” and 14, “Handling Errors.”
+
+\item
+Use smart pointers to avoid resource leaks: Smart pointers automatically free resources when they are not needed anymore.
+
+\item
+Don’t ignore compiler warnings: Configure your compiler to compile with a high warning level. Do not blindly ignore warnings. Ideally, you should enable an option in your compiler to treat warnings as errors. This forces you to address each warning immediately. With GCC or Clang you can pass -Werror to the compiler to treat all warnings as errors. In Visual C++, open the properties of your project, go to Configuration Properties -> C/C++ ➪ General, and enable the option Treat Warnings As Errors.
+
+\item
+Use static code analysis: A static code analyzer helps to pinpoint problems in your code by analyzing your source code. Ideally, static code analysis is done in real time while typing code in your integrated development environment (IDE) to detect problems early. It can also be set up to run automatically by your build process. There are quite a few different analyzers available on the Internet, both free and commercial.
+
+\item
+Use good coding style: Strive for readability and clarity, use meaningful names, don’t use abbreviations, add code comments (not only interface comments), use the override and explicit keywords, and so on. This makes it easier for other people to understand your code.
+\end{itemize}

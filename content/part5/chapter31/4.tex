@@ -1,19 +1,505 @@
 
+Your programs should contain functionality that enables easier debugging when the inevitable bugs arise. This section describes some examples of such functionality and presents sample implementations, where appropriate, that you can incorporate into your own programs.
 
 \mySubsubsection{31.4.1.}{Error Logging}
 
+Imagine this scenario: You have just released a new version of your flagship product, and one of the first users reports that the program “stopped working.” You attempt to pry more information from the user and eventually discover that the program died in the middle of an operation. The user can’t quite remember what he was doing or if there were any error messages. How will you debug this problem?
 
+Now imagine the same scenario, but in addition to the limited information from the user, you are also able to examine the error log on the user’s computer. In the log you see a message from your program that says, “Error: unable to open config.xml file.” Looking at the code near the spot where that error message was generated, you find a line in which you read from the file without checking whether the file was opened successfully. You’ve found the root cause of your bug!
+
+Error logging is the process of writing error messages to persistent storage so that they will be available following an application, or even machine, crash. Despite the example scenario, you might still have doubts about this strategy. Won’t it be obvious by your program’s behavior if it encounters errors? Won’t the user notice if something goes wrong? As the preceding example shows, user reports are not always accurate or complete. In addition, many programs, such as the operating system kernel and long-running daemons like inetd (internet service daemon) or syslogd on Unix, are not interactive and run unattended on a machine. The only way these programs can communicate with users is through error logging. In many cases, a program might also want to automatically recover from certain errors and hide those errors from the user. Still, having logs of those errors available can be invaluable to improve the overall stability of the program.
+
+Thus, your program should log errors as it encounters them. That way, if a user reports a bug, you will be able to examine the log files on the machine to see if your program reported any errors prior to encountering the bug. Unfortunately, error logging is platform-dependent: C++ does not contain a standard logging mechanism. Examples of platform-specific logging mechanisms include the syslog facility in Unix and the event reporting API in Windows. You should consult the documentation for your development platform. There are also some open-source implementations of cross-platform logging frameworks. Here are two examples:
+
+\begin{itemize}
+\item
+log4cpp at \url{log4cpp.sourceforge.net}
+
+\item
+Boost.Log at \url{boost.org}
+\end{itemize}
+
+Now that you’re convinced that logging is a great feature to add to your programs, you might be tempted to log messages every few lines in your code so that, in the event of any bug, you’ll be able to trace the code path that was executing. These types of log messages are appropriately called traces.
+
+However, you should not write these traces to log files for two reasons. First, writing to persistent storage is slow. Even on systems that write the logs asynchronously, logging that much information will slow down your program. Second, and most important, most of the information that you would put in your traces is not appropriate for the end user to see. It will just confuse the user, leading to unwarranted service calls. That said, tracing is an important debugging technique under the correct circumstances, as described in the next section.
+
+Here are some specific guidelines for the types of errors you should log:
+
+\begin{itemize}
+\item
+Unrecoverable errors, such as a system call failing unexpectedly.
+
+\item
+Errors for which an administrator can take action, such as low memory, an incorrectly formatted data file, an inability to write to disk, or a network connection being down.
+
+\item
+Unexpected errors such as a code path that you never expected to take or variables with unexpected values. On the other hand, your code should “expect” users to enter invalid data and should handle it appropriately. An unexpected error represents a bug in your program.
+
+\item
+Potential security breaches, such as a network connection attempted from an unauthorized address, or too many network connections attempted (denial of service).
+\end{itemize}
+
+A natural question you might be asking yourself is: What should be included in a logged error? At the very least, each logged error should contain the date and time the error occurred and the error message itself. In multithreaded applications, it’s useful to log the ID of the thread that caused the error as well. Starting with C++23, the Standard Library includes std::stacktrace, discussed in Chapter 14, which allows you to get a stack trace at any moment during the execution of your program. You could include such a stack trace, or at least part of it, with each logged error.
+
+It is also useful to log warnings, or recoverable errors, giving you the option to investigate if they can possibly be avoided.
+
+Most logging APIs allow you to specify a log level or error level, typically at least “error,” “warning,” or “info”. You can log non-error conditions under a log level that is less severe than “error.” For example, you might want to log significant state changes in your application, or startup and shutdown of the program. You also might consider giving your users a way to adjust the log level of your program at run time so that they can customize the amount of logging that occurs.
 
 \mySubsubsection{31.4.2.}{Debug Traces}
 
+When debugging complicated problems, public error messages generally do not contain enough information. You often need a complete trace of the code path taken, or values of variables before the bug showed up. In addition to basic messages, it’s sometimes helpful to include the following information in debug traces:
+
+\begin{itemize}
+\item
+The thread ID, if it’s a multithreaded program
+
+\item
+The name of the function that generates the trace
+
+\item
+The name of the source file in which that function lives
+\end{itemize}
+
+You can add this tracing to your program through a special debug mode, or via a ring buffer. Both of these techniques are explained in detail in the following sections. Note that in multithreaded programs you have to make your trace logging thread-safe. See Chapter 27, “Multithreaded Programming with C++,” for details on multithreaded programming.
+
+\begin{myWarning}{WARNING}
+Trace files can be written in text format, but if you do, be careful with logging too much detail. You don’t want to leak intellectual property through your log files! Logging too much implementation details can also be dangerous if hackers can get a hold of the trace output!
+\end{myWarning}
+
 \mySamllsection{Debug Mode}
+
+A first technique to add debug traces is to provide a debug mode for your program. In debug mode, the program writes trace output to standard error or to a file, and perhaps does extra checking during execution. There are several ways to add a debug mode to your program. All following examples are writing traces in text format.
+
+\mySamllsection{Start-Time Debug Mode}
+
+Start-time debug mode allows your application to run with or without debug mode depending on a command-line argument. This strategy includes the debug code in the “release” binary and allows debug mode to be enabled at a customer site. However, it does require users to restart the program to run it in debug mode, which may prevent you from obtaining useful information about certain bugs.
+
+The following example is a simple program implementing a start-time debug mode. This program doesn’t do anything useful; it is only for demonstrating the technique.
+
+All logging functionality is wrapped in a Logger class. This class has two static data members: the name of the log file and a Boolean saying whether logging is enabled or disabled. The class has a public static log() member function template. Variadic templates like this one are discussed in Chapter 26, “Advanced Templates.” The log file is opened, flushed, and closed on each call to log(). This might lower performance a bit; however, it does guarantee correct logging, which is more important.
+
+\begin{cpp}
+class Logger
+{
+    public:
+        static void enableLogging(bool enable) { ms_loggingEnabled = enable; }
+        static bool isLoggingEnabled() { return ms_loggingEnabled; }
+        template <typename... Args>
+        static void log(const Args&... args)
+        {
+            if (!ms_loggingEnabled) { return; }
+            ofstream logfile { ms_debugFilename, ios_base::app };
+            if (logfile.fail()) {
+                println(cerr, "Unable to open debug file!");
+                return;
+            }
+            print(logfile, "{:L} UTC: ", chrono::system_clock::now());
+            // Use a fold-expression; see Chapter 26.
+            (logfile << ... << args);
+            logfile << endl;
+        }
+    private:
+        static inline const string ms_debugFilename { "debugfile.out" };
+        static inline bool ms_loggingEnabled { false };
+};
+\end{cpp}
+
+The following helper macro is defined to make it easy to log something. It’s a macro accepting a variable number of arguments. You get access to those arguments using \_\_VA\_ARGS\_\_. The macro uses \_\_func\_\_, a predefined variable defined by the C++ standard that contains the name of the current function.
+
+\begin{cpp}
+#define LOG(...) Logger::log(__func__, "(): ", __VA_ARGS__)
+\end{cpp}
+
+This macro replaces every call to LOG() in your code with a call to Logger::log(). The macro automatically includes the function name as first argument to Logger::log(). For example, suppose you call the macro as follows:
+
+\begin{cpp}
+LOG("The value is: ", value);
+\end{cpp}
+
+The LOG() macro replaces this with the following:
+
+\begin{cpp}
+Logger::log(__func__, "(): ", "The value is: ", value);
+\end{cpp}
+
+Start-time debug mode needs to parse the command-line arguments to find out whether it should enable debug mode. Unfortunately, there is no standard functionality in C++ for parsing command-line arguments. This program uses a simple isDebugSet() function to check for the debug flag among all the command-line arguments, but a function to parse all command-line arguments would need to be more sophisticated.
+
+\begin{cpp}
+bool isDebugSet(int argc, char** argv)
+{
+    auto parameters { views::counted(argv, argc) };
+    return ranges::contains(parameters, string_view { "-d" });
+}
+\end{cpp}
+
+Some arbitrary test code is used to exercise the debug mode in this example. Two classes are defined, ComplicatedClass and UserCommand. Both classes define an operator<{}< to write instances of them to a stream. The Logger class uses this operator to dump objects to the log file.
+
+\begin{cpp}
+class ComplicatedClass { /* ... */ };
+ostream& operator<<(ostream& outStream, const ComplicatedClass& src)
+{
+    outStream << "ComplicatedClass";
+    return outStream;
+}
+
+class UserCommand { /* ... */ };
+ostream& operator<<(ostream& outStream, const UserCommand& src)
+{
+    outStream << "UserCommand";
+    return outStream;
+}
+\end{cpp}
+
+Here is some test code with a number of log calls:
+
+\begin{cpp}
+UserCommand getNextCommand(ComplicatedClass* obj)
+{
+    UserCommand cmd;
+    return cmd;
+}
+
+void processUserCommand(const UserCommand& cmd)
+{
+    // Details omitted for brevity.
+}
+
+void trickyFunction(ComplicatedClass* obj)
+{
+    LOG("given argument: ", *obj);
+    for (size_t i { 0 }; i < 100; ++i) {
+        UserCommand cmd { getNextCommand(obj) };
+        LOG("retrieved cmd ", i, ": ", cmd);
+        try {
+            processUserCommand(cmd);
+        } catch (const exception& e) {
+            LOG("exception from processUserCommand(): ", e.what());
+        }
+    }
+}
+
+int main(int argc, char** argv)
+{
+    Logger::enableLogging(isDebugSet(argc, argv));
+    if (Logger::isLoggingEnabled()) {
+        // Print the command-line arguments to the trace.
+        for (size_t i { 0 }; i < argc; ++i) {
+            LOG("Argument: ", argv[i]);
+        }
+    }
+    ComplicatedClass obj;
+    trickyFunction(&obj);
+    // Rest of the function not shown.
+}
+\end{cpp}
+
+There are two ways to run this application:
+
+\begin{shell}
+> STDebug
+> STDebug -d
+\end{shell}
+
+Debug mode is activated only when the -d argument is specified on the command line.
+
+\begin{myWarning}{WARNING}
+Macros in C++ should be avoided as much as possible because they can be hard to debug. However, for logging purposes, using a simple macro can be acceptable, and it makes using the logging code much easier. Even so, with std::source\_location, discussed in Chapter 14, the example can be modified to avoid the use of a macro. This is the topic of one of the exercises at the end of this chapter.
+\end{myWarning}
+
+\mySamllsection{Compile-Time Debug Mode}
+
+Instead of enabling or disabling debug mode through a command-line argument, you could also use a preprocessor symbol such as DEBUG\_MODE and \#ifdefs to selectively compile the debug code into your program. To generate a debug version of this program, you would have to compile it with the symbol DEBUG\_MODE defined. Your compiler allows you to define symbols during compilation; consult your compiler’s documentation for details. For example, GCC allows you to specify –Dsymbol through the command line. Microsoft Visual C++ allows you to specify the symbols through the Visual Studio IDE or by specifying /D symbol if you use the Visual C++ command-line tools. Instead of using a custom DEBUG\_MODE symbol, you could also use the NDEBUG symbol, which is defined by a compiler for release builds and not for debug builds.
+
+The advantage of this technique is that your debug code is not compiled into the “release” binary and so does not increase its size. The disadvantage is that there is no way to enable debugging at a customer site for testing or following the discovery of a bug.
+
+An example implementation is given in CTDebug.cpp in the downloadable source code archive. One important remark on this implementation is that it contains the following definition for the LOG() macro:
+
+\begin{cpp}
+#ifdef DEBUG_MODE
+    #define LOG(...) Logger::log(__func__, "(): ", __VA_ARGS__)
+#else
+    #define LOG(...) (void)0
+#endif
+\end{cpp}
+
+That is, if DEBUG\_MODE is not defined, then all calls to LOG() are replaced with nothing, called no-ops.
+
+\begin{myWarning}{WARNING}
+Be careful not to put any code that must be executed for correct program functioning inside your LOG() calls. For example, the following line of code could be asking for trouble:
+
+\begin{cpp}
+LOG("Result: ", calculateResult());
+\end{cpp}
+
+If DEBUG\_MODE is not defined, the preprocessor replaces all LOG() calls with noops, which means that the call to calculateResult() is removed as well!
+\end{myWarning}
+
+As logging code is removed if DEBUG\_MODE is not defined, it could mean that certain variables might be unused, which can trigger compiler warnings. Using the [[maybe\_unused]] attribute (see Chapter 1, “A Crash Course in C++ and the Standard Library”) avoids such warnings. For example:
+
+\begin{cpp}
+int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv)
+{
+#ifdef DEBUG_MODE
+    // Print the command-line arguments to the trace.
+    for (size_t i { 0 }; i < argc; ++i) { LOG("Argument: ", argv[i]); }
+#endif
+    ComplicatedClass obj;
+    trickyFunction(&obj);
+    // Rest of the function not shown.
+}
+\end{cpp}
+
+\mySamllsection{Run-Time Debug Mode}
+
+The most flexible way to provide a debug mode is to allow it to be enabled or disabled at run time. One way to provide this feature is to supply an asynchronous interface that controls debug mode on the fly. This interface could be an asynchronous command that makes an interprocess call into the application (for example, using sockets, signals, or remote procedure calls). This interface could also take the form of a menu command in the user interface. C++ provides no standard way to perform interprocess communication or to implement user interfaces, so an example of this technique is not shown.
 
 \mySamllsection{Ring Buffers}
 
+Debug mode is useful for debugging reproducible problems and for running tests. However, bugs often appear when the program is running in non-debug mode, and by the time you or the customer enables debug mode, it is too late to gain any information about the bug. One solution to this problem is to enable tracing in your program at all times. You usually need only the most recent traces to debug a program, so you should store only the most recent traces at any point in a program’s execution. One way to provide for this is through careful use of log file rotations.
+
+However, for performance reasons, it’s better that you don’t log these traces continuously to disk. Instead, store them in memory and provide a mechanism to dump all the trace messages to standard error or to a log file if the need arises.
+
+A common technique is to use a ring buffer, or circular buffer, to store a fixed number of messages, or messages in a fixed amount of memory. When the buffer fills up, it starts writing messages at the beginning of the buffer again, overwriting the older messages. This cycle can repeat indefinitely. The following sections provide an implementation of a ring buffer and show you how you can use it in your programs.
+
+\mySamllsection{Ring Buffer Interface}
+
+The following RingBuffer class provides a simple ring buffer storing messages. The client specifies the number of entries in the constructor and adds messages with the addEntry() member function. Once the number of entries exceeds the number allowed, new entries overwrite the oldest entries in the buffer. The buffer also provides the option to output entries to a stream as they are added to the buffer. The client can specify an output stream in the constructor and can reset it with the setOutput() member function. Finally, the operator<{}< streams the entire buffer to an output stream. This implementation uses a variadic template member function, discussed in Chapter 26.
+
+\begin{cpp}
+export class RingBuffer final
+{
+    public:
+        // Constructs a ring buffer with space for numEntries.
+        // Entries are written to *outStream as they are queued (optional).
+        explicit RingBuffer(std::size_t numEntries = DefaultNumEntries,
+            std::ostream* outStream = nullptr);
+        // Adds an entry to the ring buffer, possibly overwriting the
+        // oldest entry in the buffer (if the buffer is full).
+        template <typename... Args>
+        void addEntry(const Args&... args)
+        {
+            std::ostringstream oss;
+            std::print(oss, "{:L} UTC: ", std::chrono::system_clock::now());
+            // Use a fold-expression; see Chapter 26.
+            (oss << ... << args);
+            addStringEntry(std::move(oss).str());
+        }
+
+        // Streams the buffer entries, separated by newlines, to outStream.
+        friend std::ostream& operator<<(std::ostream& outStream, RingBuffer& rb);
+
+        // Streams entries as they are added to the given stream.
+        // Specify nullptr to disable this feature.
+        // Returns the old output stream.
+        std::ostream* setOutput(std::ostream* newOutStream);
+
+    private:
+        std::vector<std::string> m_entries;
+        std::vector<std::string>::iterator m_next;
+
+        std::ostream* m_outStream { nullptr };
+        bool m_wrapped { false };
+
+        static constexpr std::size_t DefaultNumEntries { 500 };
+
+        void addStringEntry(std::string entry);
+};
+\end{cpp}
+
+\mySamllsection{Ring Buffer Implementation}
+
+This implementation of the ring buffer stores a fixed number of string objects. This approach certainly is not the most efficient solution. Other possibilities would be to provide a fixed number of bytes of memory for the buffer. However, this implementation should be sufficient unless you’re writing a high-performance application.
+
+For multithreaded programs, it’s useful to add the ID of the thread to each trace entry. Of course, the ring buffer has to be made thread-safe before using it in a multithreaded application. See Chapter 27 for multithreaded programming.
+
+Here are the implementations:
+
+\begin{cpp}
+// Initialize the vector to hold exactly numEntries. The vector size
+// does not need to change during the lifetime of the object.
+// Initialize the other members.
+RingBuffer::RingBuffer(size_t numEntries, ostream* outStream)
+    : m_entries { numEntries }, m_outStream { outStream }, m_wrapped { false }
+{
+    if (numEntries == 0) {
+        throw invalid_argument { "Number of entries must be > 0." };
+    }
+    m_next = begin(m_entries);
+}
+
+// The addStringEntry algorithm is pretty simple: add the entry to the next
+// free spot, then reset m_next to indicate the free spot after
+// that. If m_next reaches the end of the vector, it starts over at 0.
+//
+// The buffer needs to know if the buffer has wrapped or not so
+// that it knows whether to print the entries past m_next in operator<<.
+void RingBuffer::addStringEntry(string entry)
+{
+    // If there is a valid m_outStream, write this entry to it.
+    if (m_outStream) { *m_outStream << entry << endl; }
+    // Move the entry to the next free spot and increment
+    // m_next to point to the free spot after that.
+    *m_next = move(entry);
+    ++m_next;
+    // Check if we've reached the end of the buffer. If so, we need to wrap.
+    if (m_next == end(m_entries)) {
+        m_next = begin(m_entries);
+        m_wrapped = true;
+    }
+}
+
+// Set the output stream.
+ostream* RingBuffer::setOutput(ostream* newOutStream)
+{
+    return exchange(m_outStream, newOutStream);
+}
+
+// operator<< uses an ostream_iterator to "copy" entries directly
+// from the vector to the output stream.
+//
+// operator<< must print the entries in order. If the buffer has wrapped,
+// the earliest entry is one past the most recent entry, which is the entry
+// indicated by m_next. So, first print from entry m_next to the end.
+//
+// Then (even if the buffer hasn't wrapped) print from beginning to m_next-1.
+ostream& operator<<(ostream& outStream, RingBuffer& rb)
+{
+    if (rb.m_wrapped) {
+        // If the buffer has wrapped, print the elements from
+        // the earliest entry to the end.
+        copy(rb.m_next, end(rb.m_entries),
+        ostream_iterator<string>{ outStream, "\n" });
+    }
+    // Now, print up to the most recent entry.
+    // Go up to m_next because the range is not inclusive on the right side.
+    copy(begin(rb.m_entries), rb.m_next,
+    ostream_iterator<string>{ outStream, "\n" });
+    return outStream;
+}
+\end{cpp}
+
+\mySamllsection{Using the Ring Buffer}
+
+To use the ring buffer, you can create an instance of it and start adding messages to it. When you want to print the buffer, just use operator<{}< to print it to the appropriate ostream. Here is the earlier start-time debug mode program modified to use a ring buffer instead. Changes are highlighted. The definitions of the ComplicatedClass and UserCommand classes, and the functions getNextCommand(), processUserCommand(), and trickyFunction() are not shown. They are the same as before.
+
+\begin{cpp}
+RingBuffer debugBuffer;
+
+#define LOG(...) debugBuffer.addEntry(__func__, "(): ", __VA_ARGS__)
+
+int main(int argc, char** argv)
+{
+    // Log the command-line arguments.
+    for (size_t i { 0 }; i < argc; ++i) {
+        LOG("Argument: ", argv[i]);
+    }
+
+    ComplicatedClass obj;
+    trickyFunction(&obj);
+
+    // Print the current contents of the debug buffer to cout.
+    cout << debugBuffer;
+}
+\end{cpp}
+
+\mySamllsection{Displaying the Ring Buffer Contents}
+
+Storing trace debug messages in memory is a great start, but for them to be useful, you need a way to access these traces for debugging.
+
+Your program should provide a “hook” to tell it to export the messages. This hook could be similar to the interface you would use to enable debugging at run time. Additionally, if your program encounters a fatal error that causes it to exit, it could export the ring buffer automatically to a log file before exiting.
+
+Another way to retrieve these messages is to obtain a memory dump of the program. Each platform handles memory dumps differently, so you should consult a reference or expert for your platform.
 
 \mySubsubsection{31.4.3.}{Assertions}
 
+<cassert> defines an assert() macro. It takes a Boolean expression and, if the expression evaluates to false, prints an error message and terminates the program. If the expression evaluates to true, it does nothing.
 
+\begin{myWarning}{WARNING}
+Normally, you should avoid any library functions or macros that can terminate your program. The assert() macro is an exception. If an assertion triggers, it means that some assumption is wrong or that something is catastrophically, unrecoverably wrong, and the only sane thing to do is to terminate the application at that very moment, instead of continuing.
+\end{myWarning}
+
+Assertions allow you to “force” your program to exhibit a bug at the exact point where that bug originates. If you didn’t assert at that point, your program might proceed with those incorrect values, and the bug might not show up until much later. Thus, assertions allow you to detect bugs earlier than you otherwise would.
+
+\begin{myNotic}{NOTE}
+The behavior of the standard assert() macro depends on the NDEBUG preprocessor symbol: if the symbol is not defined, the assertion takes place; otherwise, it is ignored. Compilers often define this symbol when compiling “release” builds. If you want to leave assertions in release builds, you may have to change your compiler settings or write your own version of assert() that isn’t affected by the value of NDEBUG.
+\end{myNotic}
+
+assert() is a C-style macro whose implementation depends on whether client code defines the NDEBUG preprocessor symbol or not. That makes <cassert> an example of a non-modular, nonimportable header, as explained in Chapter 11, “Modules, Header Files, and Miscellaneous Topics.” Use \#include <cassert> instead of import <cassert> to get access to the assert() macro.
+
+You could use assertions in your code whenever you are “assuming” something about the state of your variables. For example, if you call a library function that is supposed to return a pointer and claims never to return nullptr, throw in an assert() after the function call to make sure that the pointer isn’t nullptr.
+
+However, you should assume as little as possible. For example, if you are writing a library function, don’t assert that the parameters are valid. Instead, check the parameters, and return an error code or throw an exception if they are invalid.
+
+As a rule, assertions should be used only for cases that are truly problematic and should therefore never be ignored when they occur during development. If you hit an assertion during development, fix it, don’t just disable the assertion.
+
+Let’s look at a couple of examples on how to use assert(). Here is a process() function that requires three elements in a vector passed to the function:
+
+\begin{cpp}
+void process(const vector<int>& coordinate)
+{
+    assert(coordinate.size() == 3);
+    // ...
+}
+\end{cpp}
+
+If the process() function is called with a vector that has less or more elements than three, the assertion fails and generates a message similar to the following (the exact message depends on the compiler that is used):
+
+\begin{shell}
+Assertion failed: coordinate.size() == 3, file D:\test\test.cpp, line 12
+\end{shell}
+
+If you want a custom error message, you can use the following trick using the comma operator and a set of extra parentheses:
+
+\begin{cpp}
+assert(("A custom message...", coordinate.size() == 3));
+\end{cpp}
+
+The output then will be something as follows:
+
+\begin{shell}
+Assertion failed: ("A custom message...", coordinate.size() == 3), file D:\test\
+test.cpp, line 106
+\end{shell}
+
+If at some point in your code you want that an assert always fails with a certain error message, you can use the following trick:
+
+\begin{cpp}
+assert(!"This should never happen.");
+\end{cpp}
+
+\begin{myWarning}{WARNING}
+Be careful not to put any code that must be executed for correct program functioning inside assertions. For example, the following line of code could be asking for trouble:
+
+\begin{cpp}
+assert(calculateResult() != 0);
+\end{cpp}
+
+If a release build of your code strips assertions, then the call to calculateResult() is stripped as well!
+\end{myWarning}
 
 \mySubsubsection{31.4.4.}{Crash Dumps}
+
+Make sure your programs create crash dumps, also called memory dumps or core dumps. A crash dump is a dump file that is created when your application crashes. It contains information about which threads were running at the time of the crash, a call stack of all the threads, and so on. How you create such dumps is platform dependent, so you should consult the documentation of your platform or use a third-party library that takes care of it for you. Breakpad (github.com/google/ breakpad/) is an example of such an open-source cross-platform library that can write and process crash dumps.
+
+Also make sure you set up a symbol server and a version control server. The symbol server is used to store debugging symbols of released binaries of your software. These symbols are used later to interpret crash dumps received from customers. The version control server, discussed in Chapter 28, “Maximizing Software Engineering Methods,” stores all revisions of your source code. When debugging crash dumps, this version control server is used to download the correct source code for the revision of your software that created the crash dump.
+
+The exact procedure of analyzing crash dumps depends on your platform and compiler, so consult their documentation.
+
+From my personal experience, I have found that a crash dump is often worth more than a thousand bug reports.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

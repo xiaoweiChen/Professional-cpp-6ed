@@ -1,16 +1,186 @@
 
+The second type of factory-related pattern is called the factory method pattern. With this pattern, it is entirely up to the concrete factory to decide what kind of object to create. In the earlier abstract factory example, the ICarFactory had a member function to either create an SUV or create a sedan. With the factory method pattern, you just ask for a car from the factory, and the concrete factories decide what exactly to build. Let’s look at another car factory simulation.
 
 \mySubsubsection{33.3.1.}{Example: A Second Car Factory Simulation}
 
+In the real world, when you talk about driving a car, you can do so without referring to the specific type of car. You could be discussing a Toyota or a Ford. It doesn’t matter, because both Toyotas and Fords are drivable. Now, suppose that you want a new car. You would then need to specify whether you wanted a Toyota or a Ford, right? Not always. You could just say, “I want a car,” and depending on where you were, you would get a specific car. If you said “I want a car” in a Toyota factory, chances are you’d get a Toyota. (Or you’d get arrested, depending on how you asked.) If you said “I want a car” in a Ford factory, you’d get a Ford.
 
+The same concepts apply to C++ programming. The first concept, a generic car that’s drivable, is nothing new; it’s standard polymorphism, described in Chapter 5, “Designing with Classes.” You could write an abstract ICar interface that defines a virtual drive() member function. Both Toyota and Ford could be implementing such an interface.
+
+Your program could drive cars without knowing whether they were really Toyotas or Fords. However, with standard object-oriented programming, the one place that you’d need to specify Toyota or Ford would be when you created the car. Here, you would need to call the constructor for one or the other. You couldn’t just say, “I want a car.” However, suppose that you also had a parallel class hierarchy of car factories. The CarFactory base class could define a public non-virtual requestCar() member function that forwards the work to a private virtual createCar() member function. The ToyotaFactory and FordFactory derived classes override the createCar() member function to build a Toyota or a Ford. Figure 33.3 shows the ICar and CarFactory hierarchies.
+
+\myGraphic{0.7}{content/part5/chapter33/images/3.png}{FIGURE 33.3}
+
+Now, suppose that there is one CarFactory object in a program. When code in the program, such as a car dealer, wants a new car, it calls requestCar() on the CarFactory object. Depending on whether that car factory is really a ToyotaFactory or a FordFactory, the code gets either a Toyota or a Ford. Figure 33.4 shows the objects in a car dealer program using a ToyotaFactory.
+
+\myGraphic{0.7}{content/part5/chapter33/images/4.png}{FIGURE 33.4}
+
+Figure 33.5 shows the same program, but with a FordFactory instead of a ToyotaFactory. Note that the CarDealer object and its relationship with the factory stay the same.
+
+\myGraphic{0.7}{content/part5/chapter33/images/5.png}{FIGURE 33.5}
+
+This example demonstrates using polymorphism with factories. When you ask the car factory for a car, you might not know whether it’s a Toyota factory or a Ford factory, but either way it will give you a car that you can drive. This approach leads to easily extensible programs; simply changing the factory instance can allow the program to work on a completely different set of objects and classes.
 
 \mySubsubsection{33.3.2.}{Implementation of a Factory Method}
 
+One reason for using factories is that the type of the object you want to create may depend on some condition. For example, if you want a car, you might want to put your order into the factory that has received the fewest requests so far, regardless of whether the car you eventually get is a Toyota or a Ford. The following implementation shows how to write such factories in C++.
 
+The first thing we need is the hierarchy of cars:
+
+\begin{cpp}
+export class ICar
+{
+    public:
+        virtual ˜ICar() = default; // Always a virtual destructor!
+        virtual std::string info() const = 0;
+};
+
+export class Ford : public ICar
+{
+    public:
+        std::string info() const override { return "Ford"; }
+};
+
+export class Toyota : public ICar
+{
+    public:
+        std::string info() const override { return "Toyota"; }
+};
+\end{cpp}
+
+The CarFactory base class is a bit more interesting. Each factory keeps track of the number of cars produced. When the public non-virtual requestCar() member function is called, the number of cars produced at the factory is increased by one, and the private virtual createCar() member function is called, which creates and returns a new concrete car. This idiom is also called the non-virtual interface idiom (NVI). The idea is that individual factories override createCar() to return the appropriate type of car. The CarFactory itself implements requestCar(), which takes care of updating the number of cars produced. The requestCar() member function is an example of the template method design pattern.
+
+The CarFactory also provides a public member function to query the number of cars produced at each factory. The class definitions for the CarFactory class and derived classes are as follows:
+
+\begin{cpp}
+export class CarFactory
+{
+    public:
+        virtual ˜CarFactory() = default; // Always a virtual destructor!
+        // Omitted defaulted default ctor, copy/move ctor, copy/move assignment op.
+
+        std::unique_ptr<ICar> requestCar()
+        {
+            // Increment the number of cars produced and return the new car.
+            ++m_numberOfCarsProduced;
+            return createCar();
+        }
+
+        unsigned getNumberOfCarsProduced() const { return m_numberOfCarsProduced; }
+    private:
+        virtual std::unique_ptr<ICar> createCar() = 0;
+        unsigned m_numberOfCarsProduced { 0 };
+};
+
+export class FordFactory final : public CarFactory
+{
+    private:
+        std::unique_ptr<ICar> createCar() override {
+            return std::make_unique<Ford>(); }
+};
+
+export class ToyotaFactory final : public CarFactory
+{
+    private:
+        std::unique_ptr<ICar> createCar() override {
+            return std::make_unique<Toyota>(); }
+};
+\end{cpp}
+
+As you can see, the derived classes simply override createCar() to return the specific type of car that they produce.
+
+\begin{myNotic}{NOTE}
+Factory methods are one way to implement virtual constructors, which are member functions that create objects of different types. For example, the requestCar() member function creates both Toyotas and Fords, depending on the concrete factory object on which it is called.
+\end{myNotic}
 
 \mySubsubsection{33.3.3.}{Using a Factory Method}
 
+The simplest way to use a factory is to instantiate it and to call the appropriate member function, as in the following piece of code:
 
+\begin{cpp}
+ToyotaFactory myFactory;
+auto myCar { myFactory.requestCar() };
+println("{}", myCar->info()); // Outputs Toyota
+\end{cpp}
+
+A more interesting example makes use of the virtual constructor idea to build a car in the factory that has the fewest cars produced. To do this, you can create a new factory, called LeastBusyFactory, that derives from CarFactory and that accepts a number of other CarFactory objects in its constructor. As all CarFactory classes have to do, LeastBusyFactory overrides the createCar() member function. Its implementation finds the least busy factory in the list of factories passed to the constructor and asks that factory to create a car. Here is the implementation of such a factory:
+
+\begin{cpp}
+class LeastBusyFactory final : public CarFactory
+{
+    public:
+        // Constructs an instance, taking ownership of the given factories.
+        explicit LeastBusyFactory(vector<unique_ptr<CarFactory>> factories);
+    private:
+        unique_ptr<ICar> createCar() override;
+        vector<unique_ptr<CarFactory>> m_factories;
+};
+
+LeastBusyFactory::LeastBusyFactory(vector<unique_ptr<CarFactory>> factories)
+    : m_factories { move(factories) }
+{
+    if (m_factories.empty()) {
+        throw runtime_error { "No factories provided." };
+    }
+}
+
+unique_ptr<ICar> LeastBusyFactory::createCar()
+{
+    auto leastBusyFactory { ranges::min_element(m_factories,
+        [](const auto& factory1, const auto& factory2) {
+            return factory1->getNumberOfCarsProduced() <
+                factory2->getNumberOfCarsProduced(); }) };
+    return (*leastBusyFactory)->requestCar();
+}
+\end{cpp}
+
+The following code makes use of this factory to build 10 cars, whatever brand they might be, from the factory that has produced the least number of cars:
+
+\begin{cpp}
+vector<unique_ptr<CarFactory>> factories;
+
+// Create 3 Ford factories and 1 Toyota factory.
+factories.push_back(make_unique<FordFactory>());
+factories.push_back(make_unique<FordFactory>());
+factories.push_back(make_unique<FordFactory>());
+factories.push_back(make_unique<ToyotaFactory>());
+
+// To get more interesting results, preorder some cars from specific factories.
+for (size_t i : {0, 0, 0, 1, 1, 2}) { factories[i]->requestCar(); }
+
+// Create a factory that automatically selects the least busy
+// factory from a list of given factories.
+LeastBusyFactory leastBusyFactory { move(factories) };
+
+// Build 10 cars from the least busy factory.
+for (unsigned i { 0 }; i < 10; ++i) {
+    auto theCar { leastBusyFactory.requestCar() };
+    println("{}", theCar->info());
+}
+\end{cpp}
+
+When executed, the program prints out the make of each car produced.
+
+\begin{shell}
+Toyota
+Ford
+Toyota
+Ford
+Ford
+Toyota
+Ford
+Ford
+Ford
+Toyota
+\end{shell}
 
 \mySubsubsection{33.3.4.}{Other Uses}
+
+You can use a factory method pattern for more than just modeling real-world factories. For example, consider a word processor in which you want to support documents in different languages, where each document uses a single language. There are many aspects of the word processor in which the choice of document language requires different support: the character set used in the document (whether accented characters are needed), the spell checker, the thesaurus, and the way the document is displayed, to name just a few. You could use factories to design a clean word processor by writing a LanguageFactory base class and derived factories for each language of interest, such as EnglishLanguageFactory and FrenchLanguageFactory. When the user specifies a language for a document, the program uses the appropriate LanguageFactory to create language-specific instances of certain functionality. For example, it calls the createSpellchecker() member function on the factory to create a language-specific spell checker. It then replaces the current spell checker for the previous language attached to the document with the newly constructed spell checker for the new language.
+
+
+
+
+
+
 

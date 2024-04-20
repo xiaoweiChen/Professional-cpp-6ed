@@ -1,12 +1,123 @@
+Sometimes, the abstraction given by a class doesn’t suit the current design and can’t be changed. In this case, you can build an adapter class. The adapter provides the abstraction that the rest of the code uses and serves as the link between the desired abstraction and the actual underlying code. There are two main use cases:
 
+\begin{itemize}
+\item
+Implementing a certain interface by reusing some existing implementation. In this use case, the adapter typically creates an instance of the implementation behind the scenes.
+
+\item
+Allowing existing functionality to be used through a new interface. In this use case, the constructor of the adapter typically receives an instance of the underlying object in its constructor
+\end{itemize}
+
+Chapter 18, “Standard Library Containers,” discusses how the Standard Library uses the adapter pattern to implement containers like stack and queue in terms of other containers, such as deque and list.
 
 \mySubsubsection{33.5.1.}{Example: Adapting a Logger Class}
 
+For this adapter pattern example, let’s assume a very basic Logger class. Here is the interface and class definition:
 
+\begin{cpp}
+// Definition of a logger interface.
+export class ILogger
+{
+    public:
+        virtual ˜ILogger() = default; // Always a virtual destructor!
+        enum class LogLevel { Debug, Info, Error };
+        // Logs a single message at the given log level.
+        virtual void log(LogLevel level, const std::string& message) = 0;
+};
+
+// Concrete implementation of ILogger.
+export class Logger : public ILogger
+{
+    public:
+        Logger();
+        void log(LogLevel level, const std::string& message) override;
+    private:
+        // Converts a log level to a human readable string.
+        std::string_view getLogLevelString(LogLevel level) const;
+};
+\end{cpp}
+
+The Logger class has a constructor, which outputs a line of text to the standard console, and a member function called log() that writes the given message to the console prefixed with the current system time and a log level. Here are the implementations:
+
+\begin{cpp}
+Logger::Logger() { println("Logger constructor"); }
+
+void Logger::log(LogLevel level, const string& message)
+{
+    println("{}: [{}] {}", chrono::system_clock::now(),
+    getLogLevelString(level), message);
+}
+
+string_view Logger::getLogLevelString(LogLevel level) const
+{ /* See the strategy-based logger earlier in this chapter. */ }
+\end{cpp}
+
+One reason why you might want to write an adapter class around this basic Logger class is to change its interface. Maybe you are not interested in the log level and you would like to call the log() member function with just one argument, the actual message. You might also want to change the interface to accept an std::string\_view instead of a string as the argument for the log() member function.
 
 \mySubsubsection{33.5.2.}{Implementation of an Adapter}
 
+The first step in implementing the adapter pattern is to define the new interface for the underlying functionality. This new interface is called IAdaptedLogger and looks like this:
 
+\begin{cpp}
+export class IAdaptedLogger
+{
+    public:
+        virtual ~IAdaptedLogger() = default; // Always virtual destructor!
+        // Logs a single message with Info as log level.
+        virtual void log(std::string_view message) = 0;
+};
+\end{cpp}
+
+This class is an abstract class, which declares the desired interface that you want for your new logger. The interface defines only one pure virtual member function, that is, a log() member function accepting just a single argument of type string\_view.
+
+The next step is to write the concrete new logger class, AdaptedLogger, which implements IAdaptedLogger so that it has the interface that you designed. The implementation wraps a Logger instance, i.e., it uses composition.
+
+\begin{cpp}
+export class AdaptedLogger : public IAdaptedLogger
+{
+    public:
+        AdaptedLogger();
+        void log(std::string_view message) override;
+    private:
+        Logger m_logger;
+};
+\end{cpp}
+
+The constructor of the new class writes a line to the standard output to keep track of which constructors are being called. The code then implements the log() member function from IAdaptedLogger by forwarding the call to the log() member function of the Logger instance that is wrapped. In that call, the given string\_view is converted to a string, and the log level is hard-coded as Info.
+
+\begin{cpp}
+AdaptedLogger::AdaptedLogger() { println("AdaptedLogger constructor"); }
+
+void AdaptedLogger::log(string_view message)
+{
+    m_logger.log(Logger::LogLevel::Info, string { message });
+}
+\end{cpp}
 
 \mySubsubsection{33.5.3.}{Using an Adapter}
+
+Because adapters exist to provide a more appropriate interface for the underlying functionality, their use should be straightforward and specific to the particular case. Given the previous implementation, the following code snippet uses the new simplified interface for the logging functionality:
+
+\begin{cpp}
+AdaptedLogger logger;
+logger.log("Testing the logger.");
+\end{cpp}
+
+It produces the following output:
+
+\begin{shell}
+Logger constructor
+AdaptedLogger constructor
+2023-08-12 14:06:53.3694244: [INFO] Testing the logger.
+\end{shell}
+
+
+
+
+
+
+
+
+
+
 

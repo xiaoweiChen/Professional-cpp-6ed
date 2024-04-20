@@ -1,25 +1,214 @@
 
+There are several reasons why the C++ language encounters platform issues. C++ is a high-level language, and the standard does not specify certain low-level details. For example, the layout of an object in memory is unspecified by the standard and left to the compiler[Starting with C++23, the order of members is defined by the standard and must be in the same order as they are declared in the class definition—older standards allowed compilers to reorder members. However, other aspects of object layout, such as padding and alignment, are platform-specific.]. Different compilers can use different memory layouts for objects.
+
+C++ also faces the challenge of providing a standard language and a Standard Library without a standard implementation. Varying interpretations of the specification among C++ compiler and library vendors can lead to trouble when moving from one system to another.
+
+Finally, C++ is selective in what the language provides as standard. Despite the existence of the Standard Library, programs often need functionality that is not provided by the language or the Standard Library. This functionality generally comes from third-party libraries or the platform itself, and can vary greatly.
 
 \mySubsubsection{34.1.1.}{Architecture Issues}
 
+The term architecture generally refers to the processor, or family of processors, on which a program runs. A standard PC running Windows or Linux generally runs on the x86 or x64 architecture, and older versions of macOS were usually found on the PowerPC architecture. As a high-level language, C++ shields you from the differences between these architectures. For example, a Core i7 processor may have a single instruction that performs the same functionality as six PowerPC instructions. As a C++ programmer, you don’t need to know what this difference is or even that it exists. One advantage to using a high-level language is that the compiler takes care of converting your code into the processor’s native assembly code format.
+
+However, processor differences do sometimes rise up to the level of C++ code. The first one discussed, the size of integers, is important if you are writing cross-platform code. The others you won’t face often, unless you are doing particularly low-level work, but still, you should be aware that they exist.
+
 \mySamllsection{Size of Integers}
+
+The C++ standard does not define the exact size of integer types. The standard just says the following in section [basic.fundamental]:
+
+\begin{myNotic}{NOTE}
+There are five standard signed integer types: signed char, short int, int, long int, and long long int. In this list, each type provides at least as much storage as those preceding it in the list.
+\end{myNotic}
+
+The standard does give a few additional hints for the size of these types, but never an exact size. The actual size is compiler-dependent. Thus, if you want to write truly cross-platform code, you cannot rely on these types. One of the exercises at the end of this chapter asks you to investigate this further.
+
+Besides these core language integer types, the C++ Standard Library does define a number of types that have clearly specified sizes, all defined in the std namespace in <cstdint>, although some of the types are optional. Here is an overview:
+
+% Please add the following required packages to your document preamble:
+% \usepackage{longtable}
+% Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
+\begin{longtable}{|l|l|}
+\hline
+\textbf{TYPE} & \textbf{DESCRIPTION}                                                                                                                                \\ \hline
+\endfirsthead
+%
+\endhead
+%
+\begin{tabular}[c]{@{}l@{}}int8\_t\\ int16\_t\\ int32\_t\\ int64\_t\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Signed integers of which the size is exactly 8, 16, 32, or 64 bits. On exotic\\ platforms, some of these types might be absent. For example, if your exotic\\ platform doesn’t support an 8-bit type, int8\_t will simply be absent.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}int\_fast8\_t\\ int\_fast16\_t\\ int\_fast32\_t\\ int\_fast64\_t\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Signed integers with sizes of at least 8, 16, 32, or 64 bits. For these,\\ the compiler should use the fastest integer type it has that satisfies the\\ requirements.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}int\_least8\_t\\ int\_least16\_t\\ int\_least32\_t\\ int\_least64\_t\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}Signed integers with sizes of at least 8, 16, 32, or 64 bits — the smallest such\\ types that exist. These types are guaranteed always to exist, even on exotic\\ platforms. For example, a hypothetical platform with 24-bit bytes would alias\\ both int\_least8\_t and int\_least16\_t to its 24-bit char type.\end{tabular} \\ \hline
+intmax\_t     & An integer type with the maximum size supported by the compiler.                                                                                    \\ \hline
+intptr\_t     & \begin{tabular}[c]{@{}l@{}}An integer type big enough to store a pointer. This type is also optional, but\\ most compilers support it.\end{tabular} \\ \hline
+\end{longtable}
+
+There are also unsigned variants available, such as uint8\_t, uint\_fast8\_t, and so on.
+
+\begin{myNotic}{NOTE}
+When writing cross-platform code, I recommend using the <cstdint> types instead of the basic integer types.
+\end{myNotic}
 
 \mySamllsection{Binary Compatibility}
 
+As you probably already know, you cannot take a program compiled for a Core i7 computer and run it on a PowerPC-based Mac. These two platforms are not binary compatible because their processors do not support the same set of instructions. When you compile a C++ program, your source code is turned into binary instructions that the computer executes. That binary format is defined by the platform, not by the C++ language.
+
+One solution to support platforms that are not binary compatible is to build each version separately with a compiler on each target platform.
+
+Another solution is cross-compilation. When you are using platform X for your development, but you want your program to run on platforms Y and Z, you can use a cross-compiler on your platform X that generates binary code for platforms Y and Z.
+
+You can also make your program open source. When you make your source code available to end users, they can compile it natively on their systems and build a version of the program that is in the correct binary format for their machines. As discussed in Chapter 4, “Designing Professional C++ Programs,” open-source software has become increasingly popular. One of the major reasons is that it allows programmers to collaboratively develop software and increase the number of platforms on which it can run.
+
 \mySamllsection{Address Sizes}
+
+When someone describes an architecture as 64-bit, they most likely mean that the address size is 64 bits, or 8 bytes. In general, a system with a larger address size can handle more memory and might operate more quickly on complex programs.
+
+Because pointers are memory addresses, they are inherently tied to address sizes. Sometimes, programmers are taught that pointers are always 8 bytes, but this is wrong. For example, consider the following code snippet, which outputs the size of a pointer:
+
+\begin{cpp}
+int *ptr { nullptr };
+println("ptr size is {} bytes", sizeof(ptr));
+\end{cpp}
+
+If this program is compiled and executed on a 32-bit x86 system, the output will be as follows:
+
+\begin{shell}
+ptr size is 4 bytes
+\end{shell}
+
+If you compile and run it on an x86-64 system, the output will be as follows:
+
+\begin{shell}
+ptr size is 8 bytes
+\end{shell}
+
+From a programmer’s point of view, the upshot of varying pointer sizes is that you cannot equate a pointer with either 4 or 8 bytes. More generally, you need to be aware that most sizes are not prescribed by the C++ standard. The standard only says that a long is at least as long as an int, which is at least as long as a short, and so on.
+
+The size of a pointer is also not necessarily the same as the size of an integer. For example, on a 64-bit platform, pointers are 64-bit, but integers could be 32-bit. Casting a 64-bit pointer to a 32-bit integer results in losing 32 critical bits! The standard does define an std::uintptr\_t type alias in <cstdint> which is an integer type at least big enough to hold a pointer. The definition of this type is optional according to the standard, but virtually all compilers support it.
+
+\begin{myWarning}{WARNING}
+Never assume that a pointer is 32 bits or 64 bits. Never cast a pointer to an integer, unless you use std::uintptr\_t.
+\end{myWarning}
 
 \mySamllsection{Byte Order}
 
+All modern computers store numbers in a binary representation, but the representation of the same number on two platforms may not be identical. This sounds contradictory, but as you’ll see, there are two approaches to representing numbers that both make sense.
+
+Most computers these days are byte-addressable, meaning that every byte in memory has a unique memory address. Numeric types in C++ usually occupy multiple bytes. For example, a short may occupy 2 bytes. Imagine that your program contains the following line:
+
+\begin{cpp}
+short myShort { 513 };
+\end{cpp}
+
+In binary, the number 513 is 0000 0010 0000 0001. This number contains 16 ones and zeros, or 16 bits. Because there are 8 bits in a byte, the computer needs 2 bytes to store the number. Because each individual memory address contains 1 byte, the computer needs to split the number up into multiple bytes. Assuming that a short is 2 bytes, the number is split into two parts. The higher part of the number is put into the high-order byte, and the lower part of the number is put into the low-order byte. In this case, the high-order byte is 0000 0010 and the low-order byte is 0000 0001.
+
+Now that the number has been split up into memory-sized parts, the only question that remains is how to store them in memory. Two bytes are needed, but the order of the bytes is underdetermined and, in fact, depends on the architecture of the system in question.
+
+One way to represent the number is to put the high-order byte first in memory and the low-order byte next. This strategy is called big-endian ordering because the bigger part of the number comes first. PowerPC and SPARC processors use a big-endian approach. Some other processors, such as x86, arrange the bytes in the opposite order, putting the low-order byte first in memory. This approach is called little-endian ordering because the smaller part of the number comes first. An architecture may choose one approach or the other, usually based on backward compatibility. For the curious, the terms big-endian and little-endian predate modern computers by several hundred years. Jonathan Swift coined the terms in his eighteenth-century novel Gulliver’s Travels to describe the opposing camps of a debate about the proper end on which to break an egg.
+
+Regardless of the endianness a particular architecture uses, your programs can continue to use numerical values without paying any attention to whether the machine uses big-endian ordering or little-endian ordering. That ordering only comes into play when data moves between architectures. For example, if you are sending binary data across a network, you may need to consider the endianness of the other system. One solution is to use the standard network byte ordering, which is always big-endian. So, before sending data across a network, you convert it to big-endian, and whenever you receive data from a network, you convert it from big-endian to the native endianness of your system.
+
+Similarly, if you are writing binary data to a file, you may need to consider what happens when that file is opened on a system with opposite byte ordering.
+
+The Standard Library includes the std::endian enumeration, defined in <bit>, which can be used to determine whether the current system is a big- or little-endian system. The following code snippet outputs the native byte ordering of your system:
+
+\begin{cpp}
+switch (endian::native)
+{
+    case endian::little:
+        println("Native ordering is little-endian.");
+        break;
+    case endian::big:
+        println("Native ordering is big-endian.");
+        break;
+}
+\end{cpp}
 
 \mySubsubsection{34.1.2.}{Implementation Issues}
 
+When a C++ compiler is written, it is designed by a human being who attempts to adhere to the C++ standard. Unfortunately, the C++ standard is more than 2,000 pages long and written in a combination of prose, pseudocode, and examples. Two human beings implementing a compiler according to such a standard are unlikely to interpret every piece of prescribed information in the same way or to catch every single edge case. As a result, compilers will have bugs.
+
 \mySamllsection{Compiler Quirks and Extensions}
+
+There is no simple rule for finding or avoiding compiler bugs. The best you can do is to stay up to speed on compiler updates and perhaps subscribe to a mailing list or newsgroup for your compiler. If you suspect that you have encountered a compiler bug, a simple web search for the error message or condition you have witnessed could uncover a workaround or patch.
+
+One area that compilers are notorious for having trouble with is language features that are added by recent updates to the standard. Although in recent years, vendors of major compilers are pretty quick in adding support for the latest features.
+
+Another issue to be aware of is that compilers often include their own language extensions without making it obvious to the programmer. For example, variable-length stack-based arrays (VLAs) are not part of the C++ language; however, they are part of the C language. Some compilers support both the C and C++ standards and can allow the use of VLAs in C++ code. One such compiler is g++. The following compiles and runs as expected with the g++ compiler:
+
+\begin{cpp}
+int i { 4 };
+char myStackArray[i]; // Not a standard language feature!
+\end{cpp}
+
+Some compiler extensions may be useful, but if there is a chance that you will switch compilers at some point, you should see if your compiler has a strict mode where it avoids using such extensions. For example, compiling the previous code with the -pedantic flag passed to g++ yields the following warning:
+
+\begin{shell}
+warning: ISO C++ forbids variable length array 'myStackArray' [-Wvla]
+\end{shell}
+
+The C++ specification allows for a certain type of compiler-defined language extension through the \#pragma mechanism. \#pragma is a preprocessor directive whose behavior is defined by the implementation. If the implementation does not understand the directive, it ignores it. For example, some compilers allow the programmer to turn compiler warnings off temporarily with \#pragma.
 
 \mySamllsection{Library Implementations}
 
+Most likely, your compiler includes an implementation of the C++ Standard Library. Because the Standard Library is written in C++, however, you aren’t required to use the implementation that came bundled with your compiler. You could use a third-party Standard Library that, for example, has been optimized for speed, or you could even write your own.
+
+Of course, Standard Library implementers face the same problems that compiler writers face: the standard is subject to interpretation. In addition, certain implementations may make tradeoffs that are incompatible with your needs. For example, one implementation may optimize for speed, while another implementation may focus on optimizing for being able to catch misuses at run time.
+
+When working with a Standard Library implementation, or indeed any third-party library, it is important to consider the tradeoffs that the designers made during the development. Chapter 4 contains a more detailed discussion of the issues involved in using libraries.
+
 \mySamllsection{Handling Different Implementations}
 
+As discussed in the previous sections, not all compilers and Standard Library implementations behave exactly the same. This is something you need to keep in mind when doing cross-platform development. Concretely, as a developer, you are most likely using a single toolchain, that is, a single compiler with a single Standard Library implementation. It’s unlikely that you will personally verify all your code changes with all toolchains that your product must build with. The solution: continuous integration and automated testing.
 
+You should set up a continuous integration environment that automatically builds all code changes on all toolchains that you need to support. The moment a build breaks on one of the toolchains, the developer who broke the build should automatically be informed.
+
+Not all development environments use the same project files to describe all the source files, compiler switches, and so on. If you need to support multiple environments, manually maintaining separate project files for each is a maintenance nightmare. Instead, it’s better to a use a single type of project file or single set of build scripts that can then automatically be transformed to concrete project files or concrete build scripts for specific toolchains. One such tool is called CMake. The collection of source files, compiler switches, libraries to link with, and so on, are described in CMake configuration files, which also have support for scripting. The CMake tool then automatically generates project files, for example for Visual C++ for development on Windows, or Xcode for development on macOS.
+
+Once the continuous integration environment produces a build, automated testing should be triggered for that build. This should run a suite of test scripts on the produced executable to verify its correct behavior. Also in this step, if something goes wrong, the developer should automatically be informed.
 
 \mySubsubsection{34.1.3.}{Platform-Specific Features}
+
+C++ is a great general-purpose language. Thanks to the Standard Library, the language is packed with so many features that a casual programmer could happily code in C++ for years without going beyond what is built in. However, professional programs require facilities that C++ does not provide. This section lists several important features that are provided by the platform or third-party libraries, not by the C++ language or the C++ Standard Library:
+
+\begin{itemize}
+\item
+Graphical user interfaces: Most commercial programs today run on an operating system that has a graphical user interface, containing such elements as clickable buttons, movable windows, and hierarchical menus. C++, like the C language, has no notion of these elements. To write a graphical application in C++, you can use platform-specific libraries that allow you to draw windows, accept input through the mouse, and perform other graphical tasks. A better option is to use a third-party library, such as wxWidgets (\url{wxwidgets.org}), Qt (\url{qt.io}), Uno (\url{platform.uno}), and many more that provide an abstraction layer for building graphical applications. These libraries often provide support for many different target platforms.
+
+\item
+Networking: The Internet has changed the way we write applications. These days, most applications check for updates through the web, and games provide a networked multiplayer mode. C++ does not provide a mechanism for networking yet, though several standard libraries exist. The most common means of writing networking software is through an abstraction called sockets. A socket library implementation can be found on most platforms, and it provides a simple procedure-oriented way to transfer data over a network. Some platforms support a stream-based networking system that operates like I/O streams in C++. There are also thirdparty networking libraries available that provide a networking abstraction layer. These libraries often support many different target platforms. Choosing a networking library that is IPvindependent would be a better choice than choosing one that only supports IPv4, as IPv6 is already being used.
+
+\item
+OS events and application interaction: In pure C++ code, there is little interaction with the surrounding operating system and other applications. The command-line arguments are about all you get in a standard C++ program without platform extensions. For example, operations such as copy and paste (which interact with the operating system’s “clipboard”) are not directly supported in C++. You can either use platform-provided libraries or use thirdparty libraries that support multiple platforms. For example, both wxWidgets and Qt are examples of libraries that abstract the clipboard operations and support multiple platforms.
+
+\item
+Low-level files: Chapter 13, “Demystifying C++ I/O,” explains standard I/O in C++, including reading and writing files. Many operating systems provide their own file APIs, which are usually incompatible with the standard file classes in C++. These libraries often provide OS-specific file tools, such as a mechanism to get the home directory of the current user.
+
+\item
+Threads: Concurrent threads of execution within a single program were not directly supported in C++03 or earlier. Since C++11, a threading support library has been included with the Standard Library, as explained in Chapter 27, “Multithreaded Programming with C++,” and C++17 has added parallel algorithms, as discussed in Chapter 20, “Mastering Standard Library Algorithms.” If you need more powerful threading functionality besides what the Standard Library provides, then you need to use third-party libraries. Two examples are Intel’s Threading Building Blocks (TBB) and the STE||AR Group’s High Performance ParalleX (HPX) library.
+\end{itemize}
+
+\begin{myNotic}{NOTE}
+If you are doing cross-platform development and you need functionality not provided by the C++ language or the C++ Standard Library, you should try to find a third-party cross-platform library that provides the functionality you require. If, instead, you start using platform-specific APIs directly, then you are complicating your cross-platform code a lot, as you will have to implement the functionality for each platform you need to support.
+\end{myNotic}
+
+\begin{myNotic}{NOTE}
+When using third-party libraries, if possible, get these libraries as source code and build them yourself with the exact toolchains you need.
+\end{myNotic}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

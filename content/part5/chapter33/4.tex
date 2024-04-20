@@ -1,0 +1,44 @@
+The previous sections describe two concrete patterns related to factories: the abstract factory pattern and the factory method pattern.
+
+There are other types of factories. For example, a factory can also be implemented in a single class instead of a class hierarchy. In that case, a single create() member function on the factory takes a type or string parameter from which it decides which object to create, instead of delegating that work to concrete subclasses. Such a function is commonly called a factory function. This factory pattern does not provide dependency inversion and does not allow customization of the construction process.
+
+An example of using a factory function is an alternative implementation of the pimpl idiom, discussed in Chapter 9, “Mastering Classes and Objects.” It provides a wall between the public interface and the concrete implementation of the provided functionality. This use of a factory function looks as follows. First, the following is publicly exposed, with a create() factory function:
+
+\begin{cpp}
+// Public interface (to be included in the rest of the program,
+// shared from a library, ...)
+class Foo
+{
+    public:
+        virtual ˜Foo() = default; // Always a virtual destructor!
+        // Omitted defaulted copy/move ctor, copy/move assignment op.
+        static unique_ptr<Foo> create(); // Factory function.
+        // Public functionality...
+        virtual void bar() = 0;
+    protected:
+        Foo() = default; // Protected default constructor.
+};
+\end{cpp}
+
+Next, the implementation is hidden from the outside world:
+
+\begin{cpp}
+// Implementation
+class FooImpl : public Foo
+{
+    public:
+    void bar() override { /* ... */ }
+};
+
+unique_ptr<Foo> Foo::create()
+{
+    return make_unique<FooImpl>();
+}
+\end{cpp}
+
+Any client code that needs a Foo instance can create one as follows:
+
+\begin{cpp}
+auto fooInstance { Foo::create() };
+fooInstance->bar();
+\end{cpp}

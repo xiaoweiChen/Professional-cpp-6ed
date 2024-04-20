@@ -1,8 +1,59 @@
 
+When graphical operating systems first came on the scene in the 1980s, procedural programming was the norm. At the time, writing a GUI application usually involved manipulating complex data structures and passing them to OS-provided functions. For example, to draw a rectangle in a window, you might have had to populate a Window struct with the appropriate information and pass it to a drawRect() function.
+
+As object-oriented programming (OOP) grew in popularity, programmers looked for a way to apply the OOP paradigm to GUI development. The result is known as an object-oriented framework. In general, a framework is a set of classes that are used collectively to provide an object-oriented interface to some underlying functionality. By frameworks, programmers usually mean large class libraries that are used for general application development. However, a framework can really represent functionality of any size. If you write a suite of classes that provides database functionality for your application, those classes could be considered a framework.
 
 \mySubsubsection{32.3.1.}{Working with Frameworks}
 
+The defining characteristic of a framework is that it provides its own set of techniques and patterns. Frameworks usually require a bit of learning to get started with because they have their own mental model. Before you can work with a large application framework, such as the Microsoft Foundation Classes (MFC), you need to understand its view of the world.
 
+Frameworks vary greatly in their abstract ideas and in their actual implementation. Many frameworks are built on top of legacy procedural APIs, which may affect various aspects of their design. Other frameworks are written from the ground up with object-oriented design in mind. Some frameworks might ideologically oppose certain aspects of the C++ language. For example, a framework could consciously shun the notion of multiple inheritance.
+
+When you start working with a new framework, your first task is to find out what makes it tick. To what design principles does it subscribe? What mental model are its developers trying to convey? What aspects of the language does it use extensively? These are all vital questions, even though they may sound like things that you’ll pick up along the way. If you fail to understand the design, model, or language features of the framework, you will quickly get into situations where you overstep the bounds of the framework.
+
+An understanding of the framework’s design will also make it possible for you to extend it. For example, if the framework omits a feature, such as support for printing, you could write your own printing classes using the same model as the framework. By doing so, you retain a consistent model for your application, and you have code that can be reused by other applications.
+
+Additionally, a framework might use certain specific data types. For example, the MFC framework uses the CString data type to represent strings, instead of using the Standard Library std::string class. This does not mean you have to switch to the data types provided by the framework for your entire code base. Instead, you could convert the data types on the boundaries between the framework code and the rest of your code.
 
 \mySubsubsection{32.3.2.}{The Model-View-Controller Paradigm}
+
+As I mentioned earlier, frameworks vary in their approaches to object-oriented design. One common paradigm is known as model-view-controller (MVC). This paradigm models the notion that many applications commonly deal with a set of data, one or more views on that data, and manipulation of the data.
+
+In MVC, a set of data is called the model. In a race car simulator, the model would keep track of various statistics, such as the current speed of the car and the amount of damage it has sustained. In practice, the model often takes the form of a class with many getters and setters. The class definition for the model of the race car might look as follows:
+
+\begin{cpp}
+class RaceCar
+{
+    public:
+        RaceCar();
+        virtual ~RaceCar() = default;
+
+        virtual double getSpeed() const;
+        virtual void setSpeed(double speed);
+
+        virtual double getDamageLevel() const;
+        virtual void setDamageLevel(double damage);
+    private:
+        double m_speed { 0.0 };
+        double m_damageLevel { 0.0 };
+};
+\end{cpp}
+
+A view is a particular visualization of the model. For example, there could be two views on a RaceCar. The first view could be a graphical view of the car, and the second could be a graph that shows the level of damage over time. The important point is that both views are operating on the same data—they are different ways of looking at the same information. This is one of the main advantages of the MVC paradigm: by keeping data separated from its display, you can keep your code more organized and easily create additional views.
+
+The final piece to the MVC paradigm is the controller. The controller is the piece of code that changes the model in response to some event. For example, when the driver of the race car simulator runs into a concrete barrier, the controller instructs the model to bump up the car’s damage level and reduce its speed. The controller can also manipulate the view. For example, when the user scrolls a scrollbar in the user interface, the controller instructs the view to scroll its content.
+
+The three components of MVC interact in a feedback loop. Actions are handled by the controller, which adjusts the model and/or views. If the model changes, it notifies the views to update themselves. Figure 32.4 shows this interaction.
+
+
+
+
+
+
+
+
+
+
+
+
 

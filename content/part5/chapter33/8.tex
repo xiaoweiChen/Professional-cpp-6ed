@@ -1,12 +1,149 @@
 
+The observer pattern is used to have observers be notified by observable objects (= subjects). Concrete observers are registered with the observable object they are interested in. When the observable object’s state changes, it notifies all registered observers of this change. The main benefit of using the observer pattern is that it decreases coupling. The observable class does not need to know the concrete observer types that are observing it.
 
 \mySubsubsection{33.8.1.}{Example: Exposing Events from Subjects}
 
-
+This example consists of generic-purpose events with a variadic number of arguments. Subjects can expose specific events, for example an event raised when the subject’s data is modified, an event raised when the subject’s data is deleted, and so on.
 
 \mySubsubsection{33.8.2.}{Implementation of an Observable}
 
+First, a variadic class template Event is defined. Variadic class templates are discussed in Chapter 26, “Advanced Templates.” The class stores a map of functions with a variadic number of arguments. An addObserver() member function is provided to register a new observer in the form of a function that should be notified when this event is raised. addObserver() returns an EventHandle that subsequently can be passed to removeObserver() to unregister the observer. This EventHandle is just a number that is increased with every registered observer. Finally, the raise() member function notifies all registered observers that the event has been raised.
 
+\begin{cpp}
+using EventHandle = unsigned int;
+
+template <typename... Args>
+class Event final
+{
+    public:
+        // Adds an observer. Returns an EventHandle to unregister the observer.
+        [[nodiscard]] EventHandle addObserver(
+        function<void(const Args&...)> observer)
+        {
+            auto number { ++m_counter };
+            m_observers[number] = move(observer);
+            return number;
+        }
+
+        // Unregisters the observer pointed to by the given handle.
+        void removeObserver(EventHandle handle)
+        {
+            m_observers.erase(handle);
+        }
+
+        // Raise event: notifies all registered observers.
+        void raise(const Args&... args)
+        {
+            for (const auto& [_, callback] : m_observers) { callback(args...); }
+        }
+    private:
+        unsigned int m_counter { 0 };
+        map<EventHandle, function<void(const Args&...)>> m_observers;
+};
+\end{cpp}
+
+Any class that wants to expose events on which observers can register themselves just needs to provide register and unregister member functions. Thanks to the use of a variadic class template, Event instances can be created with any number of parameters. This allows an observable object to pass any relevant information to observers. Here is an example:
+
+\begin{cpp}
+class ObservableSubject
+{
+    public:
+        EventHandle registerDataModifiedObserver(const auto& observer) {
+        return m_eventDataModified.addObserver(observer); }
+        void unregisterDataModifiedObserver(EventHandle handle) {
+            m_eventDataModified.removeObserver(handle); }
+
+        EventHandle registerDataDeletedObserver(const auto& observer) {
+            return m_eventDataDeleted.addObserver(observer); }
+        void unregisterDataDeletedObserver(EventHandle handle) {
+            m_eventDataDeleted.removeObserver(handle); }
+
+        void modifyData()
+        {
+            // ...
+            m_eventDataModified.raise(1, 2.3);
+        }
+
+        void deleteData()
+        {
+            // ...
+            m_eventDataDeleted.raise();
+        }
+    private:
+        Event<int, double> m_eventDataModified;
+        Event<> m_eventDataDeleted;
+};
+\end{cpp}
 
 \mySubsubsection{33.8.3.}{Using an Observer}
+
+The following is some test code that demonstrates how to use the implemented observer pattern. Suppose we have the following stand-alone global function modified() that can handle modification events:
+
+\begin{cpp}
+void modified(int a, double b) { println("modified({}, {})", a, b); }
+\end{cpp}
+
+Suppose that we also have a class Observer capable of handling modification events:
+
+\begin{cpp}
+class Observer final
+{
+    public:
+        explicit Observer(ObservableSubject& subject) : m_subject { subject }
+        {
+            m_subjectModifiedHandle = m_subject.registerDataModifiedObserver(
+                [this](int i, double d) { onSubjectModified(i, d); });
+        }
+        ~Observer()
+        {
+            m_subject.unregisterDataModifiedObserver(m_subjectModifiedHandle);
+        }
+    private:
+        void onSubjectModified(int a, double b)
+        {
+            println("Observer::onSubjectModified({}, {})", a, b);
+        }
+        ObservableSubject& m_subject;
+        EventHandle m_subjectModifiedHandle;
+};
+\end{cpp}
+
+Finally, we can construct an ObservableSubject instance and register some observers:
+
+\begin{cpp}
+ObservableSubject subject;
+
+auto handleModified { subject.registerDataModifiedObserver(modified) };
+auto handleDeleted { subject.registerDataDeletedObserver(
+    []{ println("deleted"); }) };
+Observer observer { subject };
+
+subject.modifyData();
+subject.deleteData();
+
+println("");
+
+subject.unregisterDataModifiedObserver(handleModified);
+subject.modifyData();
+subject.deleteData();
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+modified(1, 2.3)
+Observer::onSubjectModified(1, 2.3)
+deleted
+
+Observer::onSubjectModified(1, 2.3)
+deleted
+\end{shell}
+
+\begin{myNotic}{NOTE}
+One issue with the observer pattern that you need to keep in mind is the lifetime coupling between observers and subjects. In the previous example, for instance, the destructor of Observer works only if the subject is still alive.
+\end{myNotic}
+
+
+
+
 

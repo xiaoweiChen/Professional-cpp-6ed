@@ -1,12 +1,156 @@
 
+A chain of responsibility is used when you want a number of objects to get a crack at performing a particular action. Chains of responsibility are perhaps most commonly used for event handling. Many modern applications, particularly those with graphical user interfaces, are designed as a series of events and responses. For example, when a user clicks the File menu and selects Open, an “open” event is triggered. When the user moves the mouse over the drawable area of a paint program, mouse move events are generated continuously. If the user presses down a button on the mouse, a “mouse down” event for that button-press is generated. The program can then start paying attention to the mouse move events, allowing the user to “draw” some object and continue doing this until the “mouse up” event occurs. Each operating system has its own way of naming and using these events, but the overall idea is the same: when an event occurs, it is somehow propagated to different objects to take appropriate action.
+
+You might find the chain of responsibility pattern to be similar to the decorator pattern. However, there is a difference. You should see the chain of responsibility pattern as the architectural equivalent of an if-else cascade; that is, find a first match. The decorator pattern on the other hand extends functionality.
+
+As you know, C++ does not have any built-in facilities for graphical programming. It also has no notion of events, event transmission, or event handling. A chain of responsibility is a reasonable approach to give different objects a chance to handle certain events.
 
 \mySubsubsection{33.10.1.}{Example: Event Handling}
 
-
+Consider a drawing program: an application with a window in which shapes can be drawn. The user can press a mouse button somewhere in the application’s window. If that happens, the application should figure out whether the user clicked a shape. If so, the shape is asked to handle the “mouse button down” event. If it decides it doesn’t need to handle the event, it passes the event to the window, which gets the next crack at the event. If the window is also not interested in the event, it forwards it to the application itself, which is the final object in the chain to handle the event. It’s a chain of responsibility because each handler may either handle the event or pass the event to the next handler in the chain.
 
 \mySubsubsection{33.10.2.}{Implementation of a Chain of Responsibility}
 
+Suppose all possible events are defined in an enumeration as follows:
 
+\begin{cpp}
+enum class Event { LeftMouseButtonDown, LeftMouseButtonUp,
+    RightMouseButtonDown, RightMouseButtonUp };
+\end{cpp}
+
+Next, the following Handler base class is defined:
+
+\begin{cpp}
+class Handler
+{
+    public:
+        virtual ~Handler() = default;
+        // Omitted defaulted default ctor, copy/move ctor, copy/move assignment op.
+        explicit Handler(Handler* nextHandler) : m_nextHandler { nextHandler } { }
+        virtual void handleMessage(Event message) = 0;
+    protected:
+        void nextHandler(Event message)
+        {
+            if (m_nextHandler) { m_nextHandler->handleMessage(message); }
+        }
+    private:
+        Handler* m_nextHandler { nullptr };
+};
+\end{cpp}
+
+Next, the Application, Window, and Shape classes are concrete handlers, all deriving from the Handler class. In this example, Application handles only RightMouseButtonDown messages, Window handles only LeftMouseButtonUp messages, and Shape handles only LeftMouseButtonDown messages. If any of the handlers receives a message it doesn’t know about, it calls the next handler in the chain.
+
+\begin{cpp}
+class Application : public Handler
+{
+    public:
+        explicit Application(Handler* nextHandler) : Handler { nextHandler } { }
+        void handleMessage(Event message) override
+        {
+            println("Application::handleMessage()");
+            if (message == Event::RightMouseButtonDown) {
+                println(" Handling message RightMouseButtonDown");
+            } else { nextHandler(message); }
+        }
+};
+
+class Window : public Handler
+{
+    public:
+        explicit Window(Handler* nextHandler) : Handler { nextHandler } { }
+        void handleMessage(Event message) override
+        {
+            println("Window::handleMessage()");
+            if (message == Event::LeftMouseButtonUp) {
+                println(" Handling message LeftMouseButtonUp");
+            } else { nextHandler(message); }
+        }
+};
+
+class Shape : public Handler
+{
+    public:
+        explicit Shape(Handler* nextHandler) : Handler { nextHandler } { }
+        void handleMessage(Event message) override
+        {
+            println("Shape::handleMessage()");
+            if (message == Event::LeftMouseButtonDown) {
+                println(" Handling message LeftMouseButtonDown");
+            } else { nextHandler(message); }
+        }
+};
+\end{cpp}
 
 \mySubsubsection{33.10.3.}{Using a Chain of Responsibility}
+
+The chain of responsibility implemented in the previous section can be tested as follows:
+
+\begin{cpp}
+Application application { nullptr };
+Window window { &application };
+Shape shape { &window };
+
+shape.handleMessage(Event::LeftMouseButtonDown);
+println("");
+
+shape.handleMessage(Event::LeftMouseButtonUp);
+println("");
+
+shape.handleMessage(Event::RightMouseButtonDown);
+println("");
+
+shape.handleMessage(Event::RightMouseButtonUp);
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Shape::handleMessage()
+    Handling message LeftMouseButtonDown
+
+Shape::handleMessage()
+Window::handleMessage()
+    Handling message LeftMouseButtonUp
+
+Shape::handleMessage()
+Window::handleMessage()
+Application::handleMessage()
+    Handling message RightMouseButtonDown
+
+Shape::handleMessage()
+Window::handleMessage()
+Application::handleMessage()
+\end{shell}
+
+Of course, in a real application there must be some other class that dispatches the events to the correct object, i.e., calls handleMessage() on the correct object. Because this task varies greatly by framework or platform, the following example shows pseudo-code for handling a left mouse button down event, in lieu of platform-specific C++ code:
+
+\begin{cpp}
+MouseLocation location { getMouseLocation() };
+Shape* clickedShape { findShapeAtLocation(location) };
+if (clickedShape) {
+    clickedShape->handleMessage(Event::LeftMouseButtonDown);
+} else {
+    window.handleMessage(Event::LeftMouseButtonDown);
+}
+\end{cpp}
+
+The chained approach is flexible and has an appealing structure for object-oriented hierarchies. The downside is that it requires diligence on the part of the programmer. If a class forgets to chain to the next handler in the chain, events will effectively get lost. Worse, if you chain to the wrong class, you could end up in an infinite loop!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

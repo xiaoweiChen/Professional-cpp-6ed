@@ -1,12 +1,136 @@
 
+A factory in real life constructs tangible objects, such as tables or cars. Similarly, a factory in objectoriented programming constructs objects. When you use factories in your program, portions of code that want to create a particular object ask a factory for an instance of the object instead of calling the object constructor themselves. For example, an interior decorating program might have a FurnitureFactory object. When part of the code needs a piece of furniture such as a table, it calls the createTable() member function of the FurnitureFactory object, returning a new table. This is the main benefit of factories; they abstract the object creation process.
+
+At first glance, factories seem to lead to complicated designs. It appears that you’re only adding another layer of indirection to the program. Instead of calling createTable() on a FurnitureFactory, you could simply create a new Table object directly. However, a benefit of using factories is that they can be used alongside class hierarchies to construct objects without knowing their exact type. As you’ll see in the following example, factories can run parallel to class hierarchies. This is not to say they must run parallel to class hierarchies. Factories may as well just create any number of concrete types.
+
+Another benefit of factories is that instead of directly creating various objects all over your code, you pass around factories that allow different parts of the program to create objects of the same kind for a particular domain.
+
+Another reason to use a factory is when the creation of your objects requires certain information, states, resources, and so on, owned by the factory, and which clients of the factory should not know about. A factory can also be used if creating your objects requires a complex series of steps to be executed in the right order, or if all created objects need to be linked to other objects in a correct manner, and so on.
+
+Factories can be swapped; using dependency injection, you can easily substitute a different factory in your program. And, just as you can use polymorphism with the created objects, you can use polymorphism with factories. The following example demonstrates this.
+
+There are two major types of factory-related patterns in object-oriented programming: the abstract factory pattern and the factory method pattern. This section discusses the abstract factory pattern, while the next section discusses the factory method pattern.
 
 \mySubsubsection{33.2.1.}{Example: A Car Factory Simulation}
 
+Imagine a factory capable of producing cars. The factory creates the type of car that is requested from it. First, a hierarchy is needed to represent several types of cars. Figure 33.1 introduces an ICar interface with a virtual member function to retrieve information about a specific car. The Toyota and Ford cars derive from ICar, and finally, both Ford and Toyota have a sedan and an SUV model.
 
+Next to the car hierarchy, we need a factory hierarchy. An abstract factory just exposes an interface to create a sedan or an SUV independent of the brand, with concrete factories constructing concrete models from concrete brands. Figure 33.2 shows this hierarchy.
+
+\myGraphic{0.5}{content/part5/chapter33/images/1.png}{FIGURE 33.1}
+
+\myGraphic{0.5}{content/part5/chapter33/images/2.png}{FIGURE 33.2}
 
 \mySubsubsection{33.2.2.}{Implementation of an Abstract Factory}
 
+The implementation of the car hierarchy is straightforward:
 
+\begin{cpp}
+export class ICar
+{
+    public:
+    virtual ˜ICar() = default; // Always a virtual destructor!
+    virtual std::string info() const = 0;
+};
+
+export class Ford : public ICar { };
+
+export class FordSedan : public Ford
+{
+    public:
+    std::string info() const override { return "Ford Sedan"; }
+};
+
+export class FordSuv : public Ford
+{
+    public:
+    std::string info() const override { return "Ford SUV"; }
+};
+
+export class Toyota : public ICar { };
+
+export class ToyotaSedan : public Toyota
+{
+    public:
+    std::string info() const override { return "Toyota Sedan"; }
+};
+
+export class ToyotaSuv : public Toyota
+{
+    public:
+    std::string info() const override { return "Toyota SUV"; }
+};
+\end{cpp}
+
+Next up is the ICarFactory interface. It simply exposes member functions to create a sedan or an SUV without knowing any concrete factory or car.
+
+\begin{cpp}
+export class ICarFactory
+{
+    public:
+        virtual ˜ICarFactory() = default; // Always a virtual destructor!
+        virtual std::unique_ptr<ICar> makeSuv() = 0;
+        virtual std::unique_ptr<ICar> makeSedan() = 0;
+};
+\end{cpp}
+
+Then finally we have the concrete factories, creating concrete car models. Only the FordFactory is shown; the ToyotaFactory is similar.
+
+\begin{cpp}
+export class FordFactory : public ICarFactory
+{
+    public:
+        std::unique_ptr<ICar> makeSuv() override {
+            return std::make_unique<FordSuv>(); }
+        std::unique_ptr<ICar> makeSedan() override {
+            return std::make_unique<FordSedan>(); }
+};
+\end{cpp}
+
+The approach used in this example is called an abstract factory because the type of object created depends on which concrete factory is being used.
 
 \mySubsubsection{33.2.3.}{Using an Abstract Factory}
+
+The following example shows how to use the implemented factories. It has a function that accepts an abstract car factory and uses that to build both a sedan and an SUV and prints out information about each produced car. This function has no idea about any concrete factory or any concrete cars; i.e., it only uses interfaces. The main() function creates two factories, one for Fords and one for Toyotas, and then asks the createSomeCars() function to use each of these factories to create some cars.
+
+\begin{cpp}
+void createSomeCars(ICarFactory& carFactory)
+{
+    auto sedan { carFactory.makeSedan() };
+    auto suv { carFactory.makeSuv() };
+    println("Sedan: {}", sedan->info());
+    println("SUV: {}", suv->info());
+}
+
+int main()
+{
+    FordFactory fordFactory;
+    ToyotaFactory toyotaFactory;
+    createSomeCars(fordFactory);
+    createSomeCars(toyotaFactory);
+}
+\end{cpp}
+
+The output of this code snippet is as follows:
+
+\begin{shell}
+Sedan: Ford Sedan
+SUV: Ford SUV
+Sedan: Toyota Sedan
+SUV: Toyota SUV
+\end{shell}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

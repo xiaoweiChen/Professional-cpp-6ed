@@ -1,12 +1,125 @@
 
+The decorator pattern is exactly what it sounds like: a “decoration” on a class. The pattern is used to augment or change the behavior of a class at run time. Decorators are a lot like derived classes but are able to dynamically change the decorated class’s behavior. The trade-off is that decorators have fewer ways to change behavior compared to derived classes, because, for example, a decorator cannot override certain helper member functions. On the other hand, the major benefit of decorators is that they are non-intrusive; that is, they allow you to adapt behavior without having to change code in the underlying class. Decorators can also easily be composed to accomplish exactly what you need without having to write derived classes for each combination.
+
+For example, if you have a stream of data that you are parsing and you reach data that represents an image, you could temporarily decorate the stream object with an ImageStream object. The ImageStream constructor would take the stream object as a parameter and would have built-in knowledge of image parsing. Once the image is parsed, you could continue using the original object to parse the remainder of the stream. The ImageStream acts as a decorator because it adds new functionality (image parsing) to an existing object (a stream).
 
 \mySubsubsection{33.9.1.}{Example: Defining Styles in Web Pages}
 
+As you may already know, web pages are written in a simple text-based structure called HyperText Markup Language (HTML). In HTML, you can apply styles to a text by using style tags, such as <b> and </b> for bold and <i> and </i> for italic. The following line of HTML displays the message in bold:
 
+\begin{shell}
+<b>A party? For me? Thanks!</b>
+\end{shell}
+
+The following line displays the message in bold and italic:
+
+\begin{shell}
+<i><b>A party? For me? Thanks!</b></i>
+\end{shell}
+
+Paragraphs in HTML are wrapped in <p> and </p> tags. Here’s an example:
+
+\begin{shell}
+<p>This is a paragraph.</p>
+\end{shell}
+
+Suppose you are writing an HTML editing application. Your users should be able to type in paragraphs of text and apply one or more styles to them. You could make each type of paragraph a new derived class, as shown in Figure 33.7, but that design is cumbersome and would grow exponentially as new styles are added.
+
+\myGraphic{0.7}{content/part5/chapter33/images/7.png}{FIGURE 33.7}
+
+The alternative is to consider styled paragraphs not as types of paragraphs, but as decorated paragraphs. This leads to situations like the one shown in Figure 33.8, where an ItalicParagraph operates on a BoldParagraph, which in turn operates on a Paragraph. The recursive decoration of objects nests the styles in code just as they are nested in HTML.
+
+\myGraphic{0.7}{content/part5/chapter33/images/8.png}{FIGURE 33.8}
 
 \mySubsubsection{33.9.2.}{Implementation of a Decorator}
 
+To start, you need an IParagraph interface:
 
+\begin{cpp}
+class IParagraph
+{
+    public:
+        virtual ˜IParagraph() = default; // Always a virtual destructor!
+        virtual std::string getHTML() const = 0;
+};
+\end{cpp}
+
+The Paragraph class implements this IParagraph interface:
+
+\begin{cpp}
+class Paragraph : public IParagraph
+{
+    public:
+        explicit Paragraph(std::string text) : m_text { std::move(text) } {}
+        std::string getHTML() const override {return format("<p>{}</p>", m_text); }
+    private:
+        std::string m_text;
+};
+\end{cpp}
+
+To decorate a Paragraph with zero or more styles, you need styled IParagraph classes, each one constructible from an existing IParagraph. This way, they can all decorate a Paragraph or a styled IParagraph. The BoldParagraph class derives from IParagraph and implements getHTML(). The key here is that since you only intend to use it as a decorator, its single public non-copy constructor takes a reference-to-const to an IParagraph.
+
+\begin{cpp}
+class BoldParagraph : public IParagraph
+{
+    public:
+        explicit BoldParagraph(const IParagraph& paragraph)
+        : m_wrapped { paragraph } { }
+        std::string getHTML() const override {
+            return format("<b>{}</b>", m_wrapped.getHTML()); }
+    private:
+        const IParagraph& m_wrapped;
+};
+\end{cpp}
+
+The ItalicParagraph class is similar:
+
+\begin{cpp}
+class ItalicParagraph : public IParagraph
+{
+    public:
+        explicit ItalicParagraph(const IParagraph& paragraph)
+        : m_wrapped { paragraph } { }
+        std::string getHTML() const override {
+            return format("<i>{}</i>", m_wrapped.getHTML()); }
+    private:
+        const IParagraph& m_wrapped;
+};
+\end{cpp}
 
 \mySubsubsection{33.9.3.}{Using a Decorator}
+
+rom the user’s point of view, the decorator pattern is appealing because it is easy to apply and is transparent once applied. A BoldParagraph behaves just like a Paragraph. Keep in mind, though, that since a BoldParagraph contains just a reference to an IParagraph, if you somehow change the text of that IParagraph, that change will be visible through the BoldParagraph as well.
+
+Here is an example that creates and outputs a paragraph, first in bold and then in bold and italic:
+
+\begin{cpp}
+Paragraph text { "A party? For me? Thanks!" };
+// Bold
+println("{}", BoldParagraph{text}.getHTML());
+// Bold and Italic
+println("{}", ItalicParagraph{BoldParagraph{text}}.getHTML());
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+<b><p>A party? For me? Thanks!</p></b>
+<i><b><p>A party? For me? Thanks!</p></b></i>
+\end{shell}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

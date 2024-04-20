@@ -1,36 +1,353 @@
 
+Chapter 1, “A Crash Course in C++ and the Standard Library,” explains that the C++ standard specification is more than 2,000 pages long. The standard defines a lot of keywords and a very large number of language features. It is impossible to memorize it all. Even C++ experts need to look things up sometimes. With that in mind, this section presents examples of coding techniques that are used in almost all C++ programs. When you remember the concept but forgot the syntax, turn to the following sections for a refresher.
 
 \mySubsubsection{32.1.1.}{. . .Write a Class}
 
+Don’t remember how to get started? No problem—here is the definition of a Simple class defined in a module interface file:
 
+\begin{cpp}
+export module simple;
+
+// A simple class that illustrates class definition syntax.
+export class Simple
+{
+    public:
+        Simple(); // Constructor
+        virtual ~Simple() = default; // Defaulted virtual destructor
+
+        // Disallow copy construction and copy assignment.
+        Simple(const Simple& src) = delete;
+        Simple& operator=(const Simple& rhs) = delete;
+
+        // Explicitly default move constructor and move assignment operator.
+        Simple(Simple&& src) = default;
+        Simple& operator=(Simple&& rhs) = default;
+
+        virtual void publicMemberFunction(); // Public member function
+        int m_publicInteger; // Public data member
+
+    protected:
+        virtual void protectedMemberFunction();// Protected member function
+        int m_protectedInteger { 41 }; // Protected data member
+
+    private:
+        virtual void privateMemberFunction(); // Private member function
+        int m_privateInteger { 42 }; // Private data member
+        static constexpr int Constant { 2 }; // Private constant
+        static inline int ms_staticInt { 3 }; // Private static data member
+};
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+This class definition shows some things that are possible but not recommended. In your own class definitions, you should avoid having public or protected data members. A class should encapsulate its data; hence, you should make data members private and provide public or protected getter and setter member functions.
+\end{myNotic}
+
+As explained in Chapter 10, “Discovering Inheritance Techniques,” if your class is meant to be a base class for other classes, you must make at least your destructor virtual. It’s allowed to leave the destructor non-virtual, but then I recommend to mark the class as final so that no other classes can derive from it. If you only want to make your destructor virtual but you don’t need any code inside the destructor, then you can explicitly default it, as in the Simple class example.
+
+This example also demonstrates that you can explicitly delete or default special member functions. The copy constructor and copy assignment operator are deleted to prevent unintentional copying, while the move constructor and move assignment operator are explicitly defaulted.
+
+Next, here is the module implementation file:
+
+\begin{cpp}
+module simple;
+
+Simple::Simple() : m_publicInteger { 40 }
+
+{
+    // Implementation of constructor
+}
+
+void Simple::publicMemberFunction() { /* Implementation */ }
+void Simple::protectedMemberFunction() { /* Implementation */ }
+void Simple::privateMemberFunction() { /* Implementation */ }
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Class member function definitions can also appear directly in the module interface file as demonstrated in the next section. You are not required to split a class up into a module interface file and a module implementation file.
+\end{myNotic}
+
+Chapters 8, “Gaining Proficiency with Classes and Objects,” and 9, “Mastering Classes and Objects,” provide all the details for writing your own classes.
 
 \mySubsubsection{32.1.2.}{. . .Derive from an Existing Class}
 
+To derive from an existing class, you declare a new class that is an extension of another class. Here is the definition for a class called DerivedSimple, deriving from Simple, and defined in a derived\_simple module:
 
+\begin{cpp}
+export module derived_simple;
+
+export import simple;
+
+// A class derived from the Simple class.
+export class DerivedSimple : public Simple
+{
+    public:
+        DerivedSimple() : Simple{} // Constructor
+        { /* Implementation of constructor */ }
+
+        void publicMemberFunction() override // Overridden member function
+        {
+            // Implementation of overridden member function
+            Simple::publicMemberFunction(); // Access the base class implementation
+        }
+
+        virtual void anotherMemberFunction() // New member function
+        { /* Implementation of new member function */ }
+};
+\end{cpp}
+
+Consult Chapter 10 for details on inheritance techniques.
 
 \mySubsubsection{32.1.3.}{. . .Write a Lambda Expression}
 
+Lambda expressions allow you to write small anonymous inline functions. They are especially powerful in combination with the C++ Standard Library algorithms. The following code snippet shows an example. It uses the count\_if() algorithm and a lambda expression to count the number of even values in a vector. Additionally, the lambda expression captures the callCount variable by reference from its enclosing scope to keep track of the number of times it gets called.
 
+\begin{cpp}
+vector values { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+int callCount { 0 };
+auto evenCount { ranges::count_if(values,
+    [&callCount](int value) {
+        ++callCount;
+        return value % 2 == 0;
+    })
+};
+println("There are {} even elements in the vector.", evenCount);
+println("Lambda was called {} times.", callCount);
+\end{cpp}
+
+Chapter 19, “Function Pointers, Function Objects, and Lambda Expressions,” discusses lambda expressions in detail.
 
 \mySubsubsection{32.1.4.}{. . .Use the Copy-and-Swap Idiom}
 
+The copy-and-swap idiom is discussed in detail in Chapter 9. It’s an idiom to implement a possibly throwing operation on an object with a strong exception-safety guarantee, that is, all-or-nothing. You simply create a copy of the object, modify that copy (can be a complex algorithm, possibly throwing exceptions), and finally, when no exceptions have been thrown, swap the copy with the original object using a non-throwing swap(). An assignment operator is an example of an operation for which you can use the copy-and-swap idiom. Your assignment operator first makes a local copy of the source object and then swaps this copy with the current object using only a non-throwing swap() implementation.
 
+Here is a concise example of the copy-and-swap idiom used for a copy assignment operator. The class defines a copy constructor, a copy assignment operator, and a swap() member function marked as noexcept.
+
+\begin{cpp}
+export module copy_and_swap;
+
+export class CopyAndSwap final
+{
+    public:
+        CopyAndSwap() = default;
+        ~CopyAndSwap(); // Destructor
+
+        CopyAndSwap(const CopyAndSwap& src); // Copy constructor
+        CopyAndSwap& operator=(const CopyAndSwap& rhs); // Copy assignment operator
+
+        void swap(CopyAndSwap& other) noexcept; // noexcept swap() member function
+    private:
+        // Private data members...
+};
+// Standalone noexcept swap() function
+export void swap(CopyAndSwap& first, CopyAndSwap& second) noexcept;
+\end{cpp}
+
+Here are the implementations:
+
+\begin{cpp}
+CopyAndSwap::~CopyAndSwap() { /* Implementation of destructor. */ }
+
+CopyAndSwap::CopyAndSwap(const CopyAndSwap& src)
+{
+    // This copy constructor can first delegate to a non-copy constructor
+    // if any resource allocations have to be done. See the Spreadsheet
+    // implementation in Chapter 9 for an example.
+
+    // Make a copy of all data members...
+}
+
+void swap(CopyAndSwap& first, CopyAndSwap& second) noexcept
+{
+    first.swap(second);
+}
+
+void CopyAndSwap::swap(CopyAndSwap& other) noexcept
+{
+    using std::swap;
+    // Swap each data member, for example:
+    // swap(m_data, other.m_data);
+}
+
+CopyAndSwap& CopyAndSwap::operator=(const CopyAndSwap& rhs)
+{
+    // Copy-and-swap idiom.
+    auto copy { rhs }; // Do all the work in a temporary instance.
+    swap(copy); // Commit the work with only non-throwing operations.
+    return *this;
+}
+\end{cpp}
+
+Consult Chapter 9 for a more detailed discussion.
 
 \mySubsubsection{32.1.5.}{. . .Throw and Catch Exceptions}
 
+If you’ve been working on a team that doesn’t use exceptions (for shame!) or if you’ve gotten used to Java-style exceptions, the C++ syntax may escape you. Here’s a refresher that uses the built-in exception class std::runtime\_error. In most larger programs, you will write your own exception classes.
 
+\begin{cpp}
+import std;
+using namespace std;
+void throwIf(bool should)
+{
+    if (should) {
+        throw runtime_error { "Here's my exception" };
+    }
+}
+int main()
+{
+    try {
+        throwIf(false); // Doesn't throw.
+        throwIf(true); // Throws.
+    } catch (const runtime_error& e) {
+        println(cerr, "Caught exception: {}", e.what());
+        return 1;
+    }
+}
+\end{cpp}
+
+Chapter 14, “Handling Errors,” discusses exceptions in more detail.
 
 \mySubsubsection{32.1.6.}{. . .Write a Class Template}
 
+Template syntax can be confusing. The most forgotten piece of the template puzzle is that code that uses a class template needs to be able to see the class template definition as well as the member function implementations. The same holds for function templates. One technique to accomplish this is to simply put the class member function implementations directly in the interface file containing the class template definition. The following example demonstrates this and implements a class template that wraps a reference to an object and includes a getter. Here is the module interface file:
 
+\begin{cpp}
+export module simple_wrapper;
+export template <typename T>
+class SimpleWrapper
+{
+    public:
+        explicit SimpleWrapper(T& object) : m_object { object } { }
+        T& get() const { return m_object; }
+    private:
+        T& m_object;
+};
+\end{cpp}
+
+The code can be tested as follows:
+
+\begin{cpp}
+import simple_wrapper;
+import std;
+using namespace std;
+
+int main()
+{
+    // Try wrapping an integer.
+    int i { 7 };
+    SimpleWrapper intWrapper { i }; // Using CTAD.
+    // Or without class template argument deduction (CTAD).
+    SimpleWrapper<int> intWrapper2 { i };
+    i = 2;
+    println("wrapped value is {}", intWrapper.get());
+    println("wrapped value is {}", intWrapper2.get());
+
+    // Try wrapping a string.
+    string str { "test" };
+    SimpleWrapper stringWrapper { str };
+    str += "!";
+    println("wrapped value is {}", stringWrapper.get());
+}
+\end{cpp}
+
+Details about templates can be found in Chapter 12, “Writing Generic Code with Templates,” and Chapter 26, “Advanced Templates.”
 
 \mySubsubsection{32.1.7.}{. . .Constrain Template Parameters}
 
+With concepts, you can put constraints on template parameters of class and function templates. For example, the following code snippet constrains the template type parameter T of the SimpleWrapper class template from the previous section to be either a floating-point or an integral type. Specifying a type for T that does not satisfy these constraints will cause a compilation error.
 
+\begin{cpp}
+import std;
+
+export template <typename T> requires (std::floating_point<T> || std::integral<T>)
+class SimpleWrapper
+{
+    public:
+        explicit SimpleWrapper(T& object) : m_object { object } { }
+        T& get() const { return m_object; }
+    private:
+        T& m_object;
+};
+\end{cpp}
+
+Chapter 12 explains concepts in detail.
 
 \mySubsubsection{32.1.8.}{. . .Write to a File}
 
+The following program outputs a message to a file and then reopens the file and appends another message. Additional details can be found in Chapter 13, “Demystifying C++ I/O.”
 
+\begin{cpp}
+import std;
+using namespace std;
+
+int main()
+{
+    ofstream outputFile { "FileWrite.out" };
+    if (outputFile.fail()) {
+        println(cerr, "Unable to open file for writing.");
+        return 1;
+    }
+    outputFile << "Hello!" << endl;
+    outputFile.close();
+
+    ofstream appendFile { "FileWrite.out", ios_base::app };
+    if (appendFile.fail()) {
+        println(cerr, "Unable to open file for appending.");
+        return 2;
+    }
+    appendFile << "World!" << endl;
+}
+\end{cpp}
 
 \mySubsubsection{32.1.9.}{. . .Read from a File}
+
+Details for file input are discussed in Chapter 13. Here is a quick sample program for file reading basics. It reads the file written by the program in the previous section and outputs it one whitespaceseparated token at a time.
+
+\begin{cpp}
+import std;
+using namespace std;
+
+int main()
+{
+    ifstream inputFile { "FileWrite.out" };
+    if (inputFile.fail()) {
+        println(cerr, "Unable to open file for reading.");
+        return 1;
+    }
+
+    string nextToken;
+    while (inputFile >> nextToken) {
+        println("Token: {}", nextToken);
+    }
+}
+\end{cpp}
+
+The following reads an entire text file with a single call to getline(). This doesn’t work with binary files, as they might contain \verb|\|0 characters in their contents.
+
+\begin{cpp}
+string fileContents;
+getline(inputFile, fileContents, '\0');
+println("{}", fileContents);
+\end{cpp}
+
+An alternative is to use an istreambuf\_iterator (see Chapter 17, “Understanding Iterators and the Ranges Library”):
+
+\begin{cpp}
+string fileContents {
+    istreambuf_iterator<char> { inputFile },
+    istreambuf_iterator<char> { }
+};
+println("{}", fileContents);
+\end{cpp}
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -1,12 +1,156 @@
 
+The singleton is one of the simplest design patterns. In English, the word singleton means “one of a kind” or “individual.” It has a similar meaning in programming. The singleton pattern is a strategy for enforcing the existence of exactly one instance of a class in a program. Applying the singleton pattern to a class guarantees that only one object of that class type will ever be created. The singleton pattern also specifies that the one object is globally accessible from anywhere in the program. Programmers usually refer to a class following the singleton pattern as a singleton class.
+
+If your program relies on the assumption that there will be exactly one instance of a class, you could enforce that assumption with the singleton pattern. Technically, in C++, you could achieve the same thing using global variables and free functions in some namespace instead of a class, but other languages, such as Java, don’t have the concept of global variables.
+
+However, the singleton pattern has a number of disadvantages that you need to be aware of. If you have multiple singletons, it’s not always easy to guarantee that they are initialized in the right order at program startup. It’s also not easy to ensure a singleton is still there when callers need it during program shutdown. On top of that, singleton classes introduce hidden dependencies, cause tight coupling, and complicate unit testing. In a unit test, for example, you might want to write a mock version (see Chapter 30, “Becoming Adept at Testing”) of a singleton that accesses the network or a database, but given the nature of a typical singleton implementation, that’s hard to do.
+
+A more appropriate design pattern is the strategy design pattern, discussed earlier in this chapter. With the strategy design pattern, you create an interface for each service you provide and inject the interfaces a component needs into the component. Strategy makes it easy to introduce different implementations which helps with mocking (stub versions) for unit testing. Still, the singleton pattern is discussed here because you will encounter it, especially in legacy code bases.
+
+\begin{myWarning}{WARNING}
+Avoid using the singleton pattern in new code because of its numerous problems. Prefer other patterns, such as the strategy design pattern.
+\end{myWarning}
 
 \mySubsubsection{33.11.1.}{Example: A Logging Mechanism}
 
+Many applications have a notion of a logger—a class that is responsible for writing status information, debugging data, and errors to a central location. A logging class could have the following characteristics:
 
+\begin{itemize}
+\item
+It is available at all times.
+
+\item
+It is easy to use.
+
+\item
+There is only one instance.
+\end{itemize}
+
+The singleton pattern could be used to accomplish these requirements. But again, in new code I recommend avoiding introducing new singletons.
 
 \mySubsubsection{33.11.2.}{Implementation of a Singleton}
 
+There are two approaches to implement singleton behavior in C++. The first approach uses a class with only static member functions. Such a class needs no instantiation and is accessible from anywhere. The problem with this technique is that it lacks a built-in mechanism for construction and destruction. And, technically, a class that uses all static member functions doesn’t really follow the singleton design pattern but the monostate design pattern; that is, such a class can have multiple instances but only one state. The term singleton implies that there is exactly one instance of the class. The monostate design pattern is not further discussed in this section.
 
+The second approach uses access control levels to regulate the creation and access of one single instance of a class. This is a true singleton and illustrated with the example of a Logger class, providing similar features as the strategy-based Logger discussed earlier in this chapter.
+
+To build a true singleton in C++, you can use the access control mechanisms as well as the static keyword. An actual Logger instance exists at run time, and the class enforces that only one instance is ever instantiated. Clients can always get a hold of that single instance through a static member function called instance(). The class definition looks like this:
+
+\begin{cpp}
+export class Logger final
+{
+    public:
+        enum class LogLevel { Debug, Info, Error };
+
+        // Sets the name of the log file.
+        // Note: needs to be called before the first call to instance()!
+        static void setLogFilename(std::string logFilename);
+
+        // Returns a reference to the singleton Logger object.
+        static Logger& instance();
+
+        // Prevent copy/move construction.
+        Logger(const Logger&) = delete;
+        Logger(Logger&&) = delete;
+
+        // Prevent copy/move assignment operations.
+        Logger& operator=(const Logger&) = delete;
+        Logger& operator=(Logger&&) = delete;
+
+        // Sets the log level.
+        void setLogLevel(LogLevel level);
+
+        // Logs a single message at the given log level.
+        void log(std::string_view message, LogLevel logLevel);
+    private:
+        // Private constructor and destructor.
+        Logger();
+        ~Logger();
+
+        // Converts a log level to a human-readable string.
+        std::string_view getLogLevelString(LogLevel level) const;
+
+        static inline std::string ms_logFilename;
+        std::ofstream m_outputStream;
+        LogLevel m_logLevel { LogLevel::Error };
+};
+\end{cpp}
+
+This implementation is based on Scott Meyers’ singleton pattern. This means that the instance() member function contains a local static instance of the Logger class. C++ guarantees that this local static instance is initialized in a thread-safe fashion, so you don’t need any manual thread synchronization in this version of the singleton pattern. These are called magic statics or thread-safe static local variables. Note that only the initialization is thread-safe! If multiple threads are going to call member functions on the Logger class, then you should make the Logger member functions themselves thread safe as well. See Chapter 27, “Multithreaded Programming with C++,” for a detailed discussion on synchronization mechanisms to make a class thread-safe.
+
+The implementation of the Logger class is straightforward. Once the log file has been opened, each log message is written to it with a timestamp and the log level prepended, and then flushed to disk.
+
+The constructor and destructor are called automatically when the static instance of the Logger class in the instance() member function is created and destroyed. Because the constructor and destructor are private, no external code can create or delete a Logger.
+
+Here are the implementations of the setLogFilename() and instance() member functions and the constructor and destructor. The other member functions have the same implementations as in the strategy-based logger example earlier in this chapter.
+
+\begin{cpp}
+void Logger::setLogFilename(string logFilename)
+{ ms_logFilename = move(logFilename); }
+
+Logger& Logger::instance()
+{
+    static Logger instance; // Thread-safe static local variable.
+    return instance;
+}
+
+Logger::Logger()
+{
+    m_outputStream.open(ms_logFileName, ios_base::app);
+    if (!m_outputStream.good()) {
+        throw runtime_error { "Unable to initialize the Logger!" };
+    }
+    println(m_outputStream, "{}: Logger started.", chrono::system_clock::now());
+}
+
+
+Logger::~Logger()
+{ println(m_outputStream, "{}: Logger stopped.", chrono::system_clock::now()); }
+\end{cpp}
 
 \mySubsubsection{33.11.3.}{Using a Singleton}
+
+The singleton Logger class can be tested as follows:
+
+\begin{cpp}
+// Set the log filename before the first call to instance().
+Logger::setLogFilename("log.out");
+// Set log level to Debug.
+Logger::instance().setLogLevel(Logger::LogLevel::Debug);
+// Log some messages.
+Logger::instance().log("test message", Logger::LogLevel::Debug);
+// Set log level to Error.
+Logger::instance().setLogLevel(Logger::LogLevel::Error);
+// Now that the log level is set to Error, logging a Debug
+// message will be ignored.
+Logger::instance().log("A debug message", Logger::LogLevel::Debug);
+\end{cpp}
+
+After executing, the file log.out contains the following lines:
+
+\begin{shell}
+2023-08-12 17:36:15.1370238: Logger started.
+2023-08-12 17:36:15.1372522: [DEBUG] test message
+2023-08-12 17:36:15.1373057: Logger stopped.
+\end{shell}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

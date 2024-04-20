@@ -1,0 +1,15 @@
+By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+
+\begin{itemize}
+\item
+Exercise 32-1: Write an RAII class template, Pointer<T>, that can store a pointer to a T and automatically deletes the memory when such an RAII instance goes out of scope. Provide a reset() and release() member function, and an overloaded operator*.
+
+\item
+Exercise 32-2: Modify your class template from Exercise 32-1 so that it throws an exception if the argument given to the constructor is nullptr.
+
+\item
+Exercise 32-3: Take your solution from Exercise 32-2 and add a member function template called assign() with a template type parameter E. The function should accept an argument of type E and assign this argument to the data to which the wrapped pointer is pointing. Add a constraint to the member function template to make sure type E is in fact assignable to an lvalue of type T.
+
+\item
+Exercise 32-4: Write a lambda expression returning the sum of two arguments. Both arguments must be of the same type. The lambda expression should work with all kind of data types, such as integral types, floating-point types, and even std::strings. Try out your lambda expression by calculating the sum of 11 and 22, 1.1 and 2.2, and “Hello ” and “world!”
+\end{itemize}

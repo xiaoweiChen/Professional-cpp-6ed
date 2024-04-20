@@ -1,36 +1,612 @@
 
+For certain types of programs, C++ may not be the best tool for the job. For example, if your Unix program needs to interact closely with the shell environment, you may be better off writing a shell script than a C++ program. If your program performs heavy text processing, you may decide that the Perl language is the way to go. If you need a lot of database interaction, then C\# or Java might be a better choice. C\# in combination with the WPF framework or the Uno platform might be better suited to write modern graphical user interface applications, and so on. Still, if you do decide to use another language, you sometimes might want to be able to call into C++ code, for example, to perform some computational-expensive operations; or the other way around, you might want to call non-C++ code from C++. Fortunately, there are some techniques you can use to get the best of both worlds—the specific specialty of another language combined with the power and flexibility of C++.
+
 \mySubsubsection{34.2.1.}{Mixing C and C++}
 
+As you already know, the C++ language is almost a superset of the C language. Most C code can easily be converted to C++, but there are a few things to keep in mind. A handful of C features are not supported by C++; for example, C supports variable-length arrays (VLAs), while C++ does not. Other things to keep in mind are the use of reserved words. In C, for example, the term class has no particular meaning. Thus, it could be used as a variable name, as in the following C code:
 
+\begin{cpp}
+int class = 1; // Compiles in C, not C++
+printf("class is %d\n", class);
+\end{cpp}
+
+This program compiles and runs in C but yields an error when compiled as C++ code. When you translate, or port, a program from C to C++, these are the types of errors you will face. Fortunately, the fixes are usually quite simple. In this case, rename the class variable to, e.g., classID and the code will compile.
+
+On the other hand, every C++ compiler is also a C compiler. There is no reason to compile “C as C++”; you can just compile “C as C”. If your project consists of a mixture of C and C++, you can simply link the C and C++ object files together into the final executable. This ease of incorporating C code in a C++ program comes in handy when you encounter a useful library or legacy code that was written in C. Functions and classes, as you’ve seen many times in this book, work just fine together. A class member function can call a function, and a function can make use of objects.
 
 \mySubsubsection{34.2.2.}{Shifting Paradigms}
 
+One of the dangers of mixing C and C++ is that your program may start to lose its object-oriented properties. For example, if your object-oriented web browser is implemented with a procedural networking library, the program will be mixing these two paradigms. Given the importance and quantity of networking tasks in such an application, you might consider writing an object-oriented wrapper around the procedural library. A typical design pattern that can be used for this is called the façade.
 
+For example, imagine that you are writing a web browser in C++, but you are using a networking library that has a C-style API and contains the functions declared in the following code. Note that the HostHandle and ConnectionHandle data structures have been omitted for brevity.
+
+\begin{cpp}
+// networklib.h
+#include "HostHandle.h"
+#include "ConnectionHandle.h"
+
+// Gets the host record for a particular Internet host given
+// its hostname (i.e. www.host.com).
+HostHandle* lookupHostByName(const char* hostName);
+// Frees the given HostHandle.
+void freeHostHandle(HostHandle* host);
+
+// Connects to the given host.
+ConnectionHandle* connectToHost(HostHandle* host);
+// Closes the given connection.
+void closeConnection(ConnectionHandle* connection);
+
+// Retrieves a web page from an already-opened connection.
+char* retrieveWebPage(ConnectionHandle* connection, const char* page);
+// Frees the memory pointed to by page.
+void freeWebPage(char* page);
+\end{cpp}
+
+The networklib.h interface is fairly simple and straightforward. However, it is not object-oriented, and a C++ programmer who uses such a library is bound to feel icky, to use a technical term. This library isn’t organized into a cohesive class. Of course, the authors of the library could have written a better interface, but as the user of a library, you have to accept what you are given. Writing a wrapper is your opportunity to customize the interface.
+
+Before you build an object-oriented wrapper for this library, take a look at how it might be used as-is to gain an understanding of its actual usage. In the following program, the networklib library is used to retrieve the web page at \url{www.example.com/index.html}:
+
+\begin{cpp}
+HostHandle* myHost { lookupHostByName("www.example.com") };
+ConnectionHandle* myConnection { connectToHost(myHost) };
+char* result { retrieveWebPage(myConnection, "/index.html") };
+
+println("The result is:\n{}", result);
+
+freeWebPage(result); result = nullptr;
+closeConnection(myConnection); myConnection = nullptr;
+freeHostHandle(myHost); myHost = nullptr;
+\end{cpp}
+
+A possible way to make the library more object-oriented is to provide a single abstraction that recognizes the commonality between looking up a host, connecting to the host, and retrieving a web page. A good object-oriented wrapper hides the needless complexity of the HostHandle and ConnectionHandle types.
+
+This example follows the design principles described in Chapters 5, “Designing with Classes,” and 6, “Designing for Reuse”: the new class should capture the common use case for the library. The previous example shows the most frequently used pattern: first a host is looked up, then a connection is established, and finally a page is retrieved. It is also likely that subsequent pages will be retrieved from the same host, so a good design will accommodate that mode of use as well.
+
+To start, the HostRecord class wraps the functionality of looking up a host. It’s an RAII class. Its constructor uses lookupHostByName() to perform the lookup. The unique\_ptr data member uses a custom deleter to automatically free the retrieved HostHandle by calling freeHostHandle(). See Chapter 7, “Memory Management,” for a discussion of using custom deleters with unique\_ptr. Here is the code:
+
+\begin{cpp}
+export class HostRecord final
+{
+    public:
+        // Looks up the host record for the given host.
+        explicit HostRecord(const std::string& host)
+            : m_hostHandle { lookupHostByName(host.c_str()), freeHostHandle }
+        { }
+        // Returns the underlying handle.
+        HostHandle* get() const noexcept { return m_hostHandle.get(); }
+    private:
+        std::unique_ptr<HostHandle, decltype(&freeHostHandle)> m_hostHandle;
+};
+\end{cpp}
+
+Next, a WebHost class is implemented that uses the HostRecord class. The WebHost class creates a connection to a given host and supports retrieving webpages. It’s also an RAII class. When the WebHost object is destroyed, it automatically closes the connection to the host. The getPage() member function calls retrieveWebPage() and immediately stores the result in a unique\_ptr with a custom deleter, freeWebPage(). Here is the code:
+
+\begin{cpp}
+export class WebHost final
+{
+    public:
+        // Connects to the given host.
+        explicit WebHost(const std::string& host);
+        // Obtains the given page from this host.
+        std::string getPage(const std::string& page);
+    private:
+        std::unique_ptr<ConnectionHandle, decltype(&closeConnection)> m_connection
+            { nullptr, closeConnection };
+};
+
+WebHost::WebHost(const std::string& host)
+{
+    HostRecord hostRecord { host };
+    if (hostRecord.get()) {
+        m_connection = { connectToHost(hostRecord.get()), closeConnection };
+    }
+}
+
+std::string WebHost::getPage(const std::string& page)
+{
+    std::string resultAsString;
+    if (m_connection) {
+        std::unique_ptr<char[], decltype(&freeWebPage)> result {
+            retrieveWebPage(m_connection.get(), page.c_str()),
+            freeWebPage };
+        resultAsString = result.get();
+    }
+    return resultAsString;
+}
+\end{cpp}
+
+The WebHost class effectively encapsulates the behavior of a host and provides useful functionality without unnecessary calls and data structures. The implementation of the WebHost class makes extensive use of the networklib library without exposing any of its workings to the user. The constructor of WebHost uses a HostRecord RAII object for the specified host. The resulting HostRecord is used to set up a connection to the host, which is stored in the m\_connection data member for later use. The HostRecord RAII object is automatically destroyed at the end of the constructor. The WebHost destructor destroys m\_connection which closes the connection. The getPage() member function uses retrieveWebPage() to retrieve a web page, converts it to an std::string, uses freeWebPage() to free memory, and returns the retrieved page as an std::string.
+
+The WebHost class makes the common case easy for the client programmer. Here is an example:
+
+\begin{cpp}
+WebHost myHost { "www.example.com" };
+string result { myHost.getPage("/index.html") };
+println("The result is:\n{}", result);
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+Networking-savvy readers may note that keeping a connection open to a host indefinitely is considered bad practice and doesn’t adhere to the HTTP specification. You should not do this in production-quality code. However, for this example, I’ve chosen elegance over etiquette.
+\end{myNotic}
+
+As you can see, the WebHost class provides an object-oriented wrapper around the C-style library. By providing an abstraction, you can change the underlying implementation without affecting client code, and you can provide additional features. These features can include connection reference counting, automatically closing connections after a specific time to adhere to the HTTP specification, automatically reopening the connection on the next getPage() call, and so on.
+
+You’ll explore writing wrappers a bit more in one of the exercises at the end of this chapter.
 
 \mySubsubsection{34.2.3.}{Linking with C Code}
 
+The previous example assumed that you had the raw C code to work with. The example took advantage of the fact that most C code will successfully compile with a C++ compiler. If you only have compiled C code, perhaps in the form of a library, you can still use it in your C++ program, but you need to take a few extra steps.
 
+Before you can start using compiled C code in your C++ programs, you first need to know about a concept called name mangling. To implement function overloading, the complex C++ namespace is “flattened.” For example, if you have a C++ program, it is legitimate to write the following:
+
+\begin{cpp}
+void myFunc(double);
+void myFunc(int);
+void myFunc(int, int);
+\end{cpp}
+
+However, this would mean that the linker would see several different functions, all called myFunc, and would not know which one you want to call. Therefore, all C++ compilers perform an operation that is referred to as name mangling and is the logical equivalent of generating names, as follows:
+
+\begin{shell}
+myFunc_double
+myFunc_int
+myFunc_int_int
+\end{shell}
+
+To avoid conflicts with other names you might have defined, the compiler might generate names that are reserved as identifiers, for example, names beginning with double underscores or names beginning with an underscore followed by an uppercase letter. Alternatively, some compilers generate names that have characters that are legal to the linker but not legal in C++ source code. For example, Microsoft VC++ generates names as follows:
+
+\begin{shell}
+?myFunc@@YAXN@Z
+?myFunc@@YAXH@Z
+?myFunc@@YAXHH@Z
+\end{shell}
+
+This encoding is complex and often vendor specific. The C++ standard does not specify how function overloading should be implemented on a given platform, so there is no standard for name mangling algorithms.
+
+In C, function overloading is not supported (the compiler will complain about duplicate definitions). So, names generated by the C compiler are quite simple, for example, \_myFunc.
+
+Now, if you compile a simple program with the C++ compiler, even if it has only one instance of the myFunc name, it still generates a request to link to a mangled name. However, when you link with the C library, it cannot find the desired mangled name, and the linker complains. Therefore, it is necessary to tell the C++ compiler to not mangle that name. This is done by using the extern "C" qualification both in the header file (to instruct the client code to create a name compatible with C) and, if your library source is in C++, at the definition site (to instruct the library code to generate a name compatible with C).
+
+Here is the syntax of extern "C":
+
+\begin{cpp}
+extern "C" declaration1();
+extern "C" declaration2();
+\end{cpp}
+
+or:
+
+\begin{cpp}
+extern "C" {
+    declaration1();
+    declaration2();
+}
+\end{cpp}
+
+The C++ standard says that any language specification can be used, so in principle, the following could be supported by a compiler:
+
+\begin{cpp}
+extern "C" void myFunc(int i);
+extern "Fortran" Matrix* matrixInvert(Matrix* M);
+extern "Pascal" void someLegacySubroutine(int n);
+extern "Ada" bool aimMissileDefense(double angle);
+\end{cpp}
+
+In practice, many compilers only support "C". Each compiler vendor will inform you which language designators they support.
+
+As an example, the following code specifies the function prototype for cFunction() as an external C function:
+
+\begin{cpp}
+extern "C" {
+    void cFunction(int i);
+}
+
+int main()
+{
+    cFunction(8); // Calls the C function.
+}
+\end{cpp}
+
+The actual definition for cFunction() is provided in a compiled binary file attached in the link phase. The extern keyword informs the compiler that the linked-in code was compiled in C.
+
+A more common pattern for using extern is at the header level. For example, if you are using a graphics library written in C, it probably came with an .h file for you to include. The author of this header file should condition it on whether it is being compiled for C or C++. A C++ compiler predefines the symbol \_\_cplusplus if you are compiling for C++. The symbol is not defined for C compilations. This symbol can be used to condition a header file as follows:
+
+\begin{cpp}
+#ifdef __cplusplus
+    extern "C" {
+#endif
+        drawCircle();
+        drawSquare();
+#ifdef __cplusplus
+    } // matches extern "C"
+#endif
+\end{cpp}
+
+This means that drawCircle() and drawSquare() are functions that are in a library compiled by the C compiler. Using this technique, the same header file can be used in both C and C++ clients.
+
+Whether you are including C code in your C++ program or linking against a compiled C library, remember that even though C++ is almost a superset of C, they are different languages with different design goals. Adapting C code to work in C++ is quite common, but providing an object-oriented C++ wrapper around procedural C code is often much better.
 
 \mySubsubsection{34.2.4.}{Calling C++ Code from C\#}
 
+Even though this is a C++ book, I won’t pretend that there aren’t other languages out there. One example is C\#. By using the Interop services from C\#, it’s pretty easy to call C++ code from within your C\# applications. An example scenario could be that you develop parts of your application, like the graphical user interface, in C\#, but use C++ to implement certain performance-critical or computational-expensive components. To make Interop work, you need to write a library in C++, which can be called from C\#. On Windows, the library will be in a .dll file. The following C++ example defines a functionInDLL() function that is compiled into a library. The function accepts a Unicode string and returns an integer. The implementation writes the received string to the console and returns the value 42 to the caller:
 
+\begin{cpp}
+import std;
+using namespace std;
+
+extern "C"
+{
+    __declspec(dllexport) int functionInDLL(const wchar_t* p)
+    {
+        wcout << format(L"The following string was received by C++: '{}'", p)
+        << endl;
+        return 42; // Return some value...
+    }
+}
+\end{cpp}
+
+Keep in mind that you are implementing a function in a library, not writing a program, so you do not need a main() function. How you compile this code depends on your development environment. If you are using Microsoft Visual C++, you need to go to the properties of your project and select Dynamic Library (.dll) as the configuration type. The example uses \_\_declspec(dllexport) to tell the linker that this function should be made available to clients of the library. This is the way you do it with Microsoft Visual C++. Other linkers might use a different mechanism to export functions.
+
+Once you have the library, you can call it from C\# by using the Interop services. First, you need to include the Interop namespace:
+
+\begin{cpp}
+using System.Runtime.InteropServices;
+\end{cpp}
+
+Next, you define the function prototype and tell C\# where it can find the implementation of the function. This is done with the following statement, assuming you have compiled the library as HelloCpp.dll:
+
+\begin{cpp}
+[DllImport("HelloCpp.dll", CharSet = CharSet.Unicode)] public static extern int functionInDLL(String s);
+\end{cpp}
+
+The first line is saying that C\# should import this function from a library called HelloCpp.dll and that it should use Unicode strings. The second line specifies the actual prototype of the function, which is a function accepting a string as parameter and returning an integer. The following code shows a complete example of how to use the C++ library from C\#:
+
+\begin{cpp}
+using System;
+using System.Runtime.InteropServices;
+
+namespace HelloCSharp
+{
+    class Program
+    {
+        [DllImport("HelloCpp.dll", CharSet = CharSet.Unicode)]
+        public static extern int functionInDLL(String s);
+
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Written by C#.");
+            int result = functionInDLL("Some string from C#.");
+            Console.WriteLine("C++ returned the value " + result);
+        }
+    }
+}
+\end{cpp}
+
+The output is as follows:
+
+\begin{shell}
+Written by C#.
+The following string was received by C++: 'Some string from C#.'
+C++ returned the value 42
+\end{shell}
+
+The details of the C\# code are outside the scope of this C++ book, but the general idea should be clear with this example.
+
+This section only talked about calling C++ functions from C\# and didn’t say anything about using C++ classes from C\#. That will be remedied in the next section with the introduction of C++/CLI.
 
 \mySubsubsection{34.2.5.}{Use C\# Code from C++ and C++ from C\# with C++/CLI}
 
+To use C\# code from C++, you can use C++/CLI. CLI stands for Common Language Infrastructure and is the backbone of all .NET languages such as C\#, Visual Basic .NET, and so on. C++/CLI was created by Microsoft in 2005 to be a version of C++ that supports the CLI. In December 2005, C++/CLI has been standardized as the ECMA-372 standard. You can write your C++ programs in C++/CLI and gain access to any other piece of functionality written in any other language that supports the CLI, such as C\#. Keep in mind, though, that C++/CLI might lag behind the latest C++ standard, meaning that it does not necessarily support all latest C++ features. Discussing the C++/CLI language in detail is outside the scope of this pure C++ book. Only a few small examples are given.
 
+Suppose you have the following C\# class in a C\# library:
+
+\begin{cpp}
+namespace MyLibrary
+{
+    public class MyClass
+    {
+        public double DoubleIt(double value) { return value * 2.0; }
+    }
+}
+\end{cpp}
+
+You can consume this C\# library from your C++/CLI code as follows. The important bits are highlighted. CLI objects are managed by a memory garbage collector that automatically cleans up memory when memory is not needed anymore. As such, you cannot just use the standard C++ new operator to create managed objects; you have to use gcnew, an abbreviation for “garbage collect new.” Instead of storing the resulting pointer in a normal C++ pointer variable such as MyClass* or in a smart pointer such as std::unique\_ptr<MyClass>, you have to store it using a handle, MyClass\^{}, usually pronounced as “MyClass hat.”
+
+\begin{cpp}
+#include <iostream>
+
+using namespace System;
+using namespace MyLibrary;
+
+int main(array<System::String^>^ args)
+{
+    MyClass^ instance { gcnew MyClass() };
+    auto result { instance->DoubleIt(1.2) };
+    std::cout << result << std::endl;
+}
+\end{cpp}
+
+C++/CLI can also be used in the other direction; you can write managed C++ ref classes, which are then accessible by any other CLI language. Here is a simple example of a managed C++ ref class:
+
+\begin{cpp}
+#pragma once
+
+using namespace System;
+
+namespace MyCppLibrary
+{
+    public ref class MyCppRefClass
+    {
+        public:
+            double TripleIt(double value) { return value * 3.0; }
+    };
+}
+\end{cpp}
+
+This C++/CLI ref class can then be used from C\# as follows:
+
+\begin{cpp}
+using MyCppLibrary;
+namespace MyLibrary
+{
+    public class MyClass
+    {
+        public double TripleIt(double value)
+        {
+            // Ask C++ to triple it.
+            MyCppRefClass cppRefClass = new MyCppRefClass();
+            return cppRefClass.TripleIt(value);
+        }
+    }
+}
+\end{cpp}
+
+As you can see, the basics are not that complicated, but these examples all use primitive datatypes, such as double. It starts to become more complicated if you need to work with non-primitive datatypes such as strings, vectors, and so on, because then you need to start marshaling objects between C\# and C++/CLI, and vice versa. However, this would take us too far for this brief introduction to C++/CLI.
 
 \mySubsubsection{34.2.6.}{Calling C++ Code from Java with JNI}
 
+The Java Native Interface (JNI) is part of the Java language that allows programmers to access functionality that was not written in Java. Because Java is a cross-platform language, the original intent was to make it possible for Java programs to interact with the operating system. JNI also allows programmers to make use of libraries written in other languages, such as C++. Access to C++ libraries may be useful to a Java programmer who has a performance-critical or computational-expensive piece of code or who needs to use legacy code.
 
+JNI can also be used to execute Java code within a C++ program, but such a use is far less common. Because this is a C++ book, I do not include an introduction to the Java language. This section is recommended if you already know Java and want to incorporate C++ code into your Java code.
+
+To begin your Java cross-language adventure, start with the Java program. For this example, the simplest of Java programs will suffice:
+
+\begin{cpp}
+public class HelloCpp
+{
+    public static void main(String[] args)
+    {
+        System.out.println("Hello from Java!");
+    }
+}
+\end{cpp}
+
+Next, you need to declare a Java method that will be written in another language. To do this, you use the native keyword and leave out the implementation:
+
+\begin{cpp}
+// This will be implemented in C++.
+public static native void callCpp();
+\end{cpp}
+
+The C++ code will eventually be compiled into a shared library that gets dynamically loaded into the Java program. You can load this library inside a Java static block so that it is loaded when the Java program begins executing. The name of the library can be whatever you want, for example, hellocpp.so on Linux systems, or hellocpp.dll on Windows systems.
+
+\begin{cpp}
+static { System.loadLibrary("hellocpp"); }
+\end{cpp}
+
+Finally, you need to actually call the C++ code from within the Java program. The callCpp() Java method serves as a placeholder for the not-yet-written C++ code. Here is the complete Java program:
+
+\begin{cpp}
+public class HelloCpp
+{
+    static { System.loadLibrary("hellocpp"); }
+
+    // This will be implemented in C++.
+    public static native void callCpp();
+
+    public static void main(String[] args)
+    {
+        System.out.println("Hello from Java!");
+        callCpp();
+    }
+}
+\end{cpp}
+
+That’s all for the Java side. Now, just compile the Java program as you normally would:
+
+\begin{shell}
+javac HelloCpp.java
+\end{shell}
+
+Then use the javah program (I like to pronounce it as jav-AHH!) to create a header file for the native function:
+
+\begin{shell}
+javah HelloCpp
+\end{shell}
+
+After running javah, you will find a file named HelloCpp.h, which is a fully working (if somewhat ugly) C/C++ header file. Inside of that header file is a C function definition for a function called Java\_HelloCpp\_callCpp(). Your C++ program will need to implement this function. The full prototype is as follows:
+
+\begin{cpp}
+JNIEXPORT void JNICALL Java_HelloCpp_callCpp(JNIEnv*, jclass);
+\end{cpp}
+
+Your C++ implementation of this function can make full use of the C++ language. This example just outputs some text from C++. First, you need to include the jni.h header file and the HelloCpp.h file that was created by javah. You also need to include any C++ headers that you intend to use.
+
+\begin{cpp}
+#include <jni.h>
+#include "HelloCpp.h"
+#include <iostream>
+\end{cpp}
+
+The C++ function is written as normal. The parameters to the function allow interaction with the Java environment and the object that called the native code. They are beyond the scope of this example.
+
+\begin{cpp}
+JNIEXPORT void JNICALL Java_HelloCpp_callCpp(JNIEnv*, jclass)
+{
+    std::cout << "Hello from C++!" << std::endl;
+}
+\end{cpp}
+
+How to compile this code into a library depends on your environment, but you will most likely need to tweak your compiler’s settings to include the JNI headers. Using the GCC compiler on Linux, your compile command might look like this:
+
+\begin{shell}
+g++ -shared -I/usr/java/jdk/include/ -I/usr/java/jdk/include/linux \
+HelloCpp.cpp -o hellocpp.so
+\end{shell}
+
+The output from the compiler is the library used by the Java program. As long as the shared library is somewhere in the Java class path, you can execute the Java program as you normally would:
+
+\begin{shell}
+java HelloCpp
+\end{shell}
+
+You should see the following result:
+
+\begin{shell}
+Hello from Java!
+Hello from C++!
+\end{shell}
+
+Of course, this example just scratches the surface of what is possible through JNI. You could use JNI to interface with OS-specific features or hardware drivers. For complete coverage of JNI, you should consult a Java text.
 
 \mySubsubsection{34.2.7.}{Calling Scripts from C++ Code}
 
+The original Unix OS included a rather limited C library, which did not support certain common operations. Unix programmers therefore developed the habit of launching scripts from applications to accomplish tasks that should have had API or library support. Scripts can be written in languages such as Perl and Python, but they can also be shell scripts for executing in a shell such as Bash.
 
+Today, many of these Unix programmers still insist on using scripts as a form of subroutine call. To enable these kinds of interoperabilities, C++ provides the std::system() function defined in <cstdlib>. It requires only a single argument, a string representing the command you want to execute. Here are some examples:
+
+\begin{cpp}
+system("python my_python_script.py"); // Launch a Python script.
+system("perl my_perl_script.pl"); // Launch a Perl script.
+system("my_shell_script.sh"); // Launch a Shell script.
+\end{cpp}
+
+However, there are significant risks to this approach. For example, if there is an error in the script, the caller may or may not get a detailed error indication. The system() call is also exceptionally heavyduty, because it has to create an entire new process to execute the script. This may ultimately be a serious performance bottleneck in your application.
+
+Using system() to launch scripts is not further discussed in this text. In general, you should explore the features of C++ libraries to see if there are better ways to do something. There are some platformindependent wrappers around a lot of platform-specific libraries, for example, the Boost Asio library, which provides portable networking and other low-level I/O, including sockets, timers, serial ports, and so on. If you need to work with a filesystem, you can use the platform-independent <filesystem> API available as part of the C++ Standard Library since C++17, and discussed in Chapter 13. Concepts like launching a Perl script with system() to process some textual data may not be the best choice. Using techniques like the regular expressions library of C++, see Chapter 21, “String Localization and Regular Expressions,” might be a better choice for your string processing needs.
 
 \mySubsubsection{34.2.8.}{Calling C++ Code from Scripts}
 
+C++ contains a built-in general-purpose mechanism to interface with other languages and environments. You’ve already used it many times, probably without paying much attention to it—it’s the arguments to and return value from the main() function.
+
+C and C++ were designed with command-line interfaces in mind. The main() function receives the arguments from the command line and returns a status code that can be interpreted by the caller. In a scripting environment, arguments to and status codes from your program can be a powerful mechanism that allows you to interface with the environment.
+
 \mySamllsection{A Practical Example: Encrypting Passwords}
 
+Assume that you have a system that writes everything a user sees and types to a file for auditing purposes. The file can be read only by the system administrator so that she can figure out who to blame if something goes wrong. An excerpt of such a file might look like this:
+
+\begin{shell}
+Login: bucky-bo
+Password: feldspar
+
+bucky-bo> mail
+bucky-bo has no mail
+bucky-bo> exit
+\end{shell}
+
+While the system administrator may want to keep a log of all user activity, she may also want to obscure everybody’s passwords in case the file is somehow obtained by a hacker. She decides to write a script to parse the log files and to use C++ to perform the actual encryption. The script then calls out to a C++ program to perform the encryption.
+
+The following script uses the Perl language, though almost any scripting language could accomplish this task. Note also that these days, there are libraries available for Perl that perform encryption, but, for the sake of this example, let’s assume the encryption is done in C++. If you don’t know Perl, you will still be able to follow along. The most important element of the Perl syntax for this example is the ` character. The ` character instructs the Perl script to shell out to an external command. In this case, the script will shell out to a C++ program called encryptString.
+
+\begin{myNotic}{NOTE}
+Launching an external process causes a big performance overhead because a completely new process has to be created. You shouldn’t use it when you need to call the external process often. In this password encryption example, it is okay, because you can assume that a log file will contain only a few password lines.
+\end{myNotic}
+
+The strategy for the script is to loop over every line of a file, userlog.txt, looking for lines that contain a password prompt. The script writes a new file, userlog.out, which contains the same text as the source file, except that all passwords are encrypted. The first step is to open the input file for reading and the output file for writing. Then, the script needs to loop over all the lines in the file. Each line in turn is placed in a variable called \$line.
+
+\begin{shell}
+open (INPUT, "userlog.txt") or die "Couldn't open input file!";
+open (OUTPUT, ">userlog.out") or die "Couldn't open output file!";
+while ($line = <INPUT>) {
+\end{shell}
+
+Next, the current line is checked against a regular expression to see if this particular line contains the Password: prompt. If it does, Perl stores the password in the variable \$1.
+
+\begin{shell}
+    if ($line =˜ m/^Password: (.*)/) {
+\end{shell}
+
+If a match is found, the script calls the encryptString program with the detected password to obtain an encrypted version of it. The output of the program is stored in the \$result variable, and the result status code from the program is stored in the variable \$?. The script checks \$? and quits immediately if there is a problem. If everything is okay, the password line is written to the output file with the encrypted password instead of the original one.
+
+\begin{shell}
+        $result = `./encryptString $1`;
+        if ($? != 0) { exit(-1); }
+        print OUTPUT "Password: $result\n";
+    } else {
+\end{shell}
+
+If the current line is not a password prompt, the script writes the line as is to the output file. At the end of the loop, it closes both files and exits.
+
+\begin{shell}
+        print OUTPUT "$line";
+    }
+}
+close (INPUT);
+close (OUTPUT);
+\end{shell}
+
+That’s it. The only other required piece is the actual C++ program. Implementation of a cryptographic algorithm is beyond the scope of this book. The important piece is the main() function because it accepts the string that should be encrypted as an argument.
+
+Arguments are contained in the argv array of C-style strings. You should always check the argc parameter before accessing an element of argv. If argc is 1, there is one element in the argument list, and it is accessible as argv[0]. Actual command-line parameters begin at argv[1]. The zeroth element of the argv array is generally the name of the program, but because it is controlled by whoever spawned the current process, e.g., by the Linux execve() system call, it can technically hold any data at all. All you’re guaranteed is that each argument in argv[0] through argv[argc-1] is a nullterminated string, and argv[argc] itself is a null pointer.
+
+The following is the main() function for a C++ program that encrypts the input string. Notice that the program returns 0 for success and non-0 for failure, as is standard in Linux.
+
+\begin{cpp}
+int main(int argc, char** argv)
+{
+    if (argc < 2) {
+        println(cerr, "Usage: {} string-to-be-encrypted", argv[0]);
+        return 1;
+    }
+    print("{}", encrypt(argv[1]));
+}
+\end{cpp}
+
+\begin{myNotic}{NOTE}
+There is actually a subtle security hole in this code. When the to-beencrypted string is passed to the C++ program as a command-line argument, it may be visible to other users through the process table. One example of a more secure way to get the information into the C++ program would be to send it through standard input.
+\end{myNotic}
+
+Now that you’ve seen how easily C++ programs can be incorporated into scripting languages, you can combine the strengths of the two languages for your own projects. You can use a scripting language to interact with the operating system and control the flow of the script, and a traditional programming language like C++ for the heavy lifting.
+
+\begin{myNotic}{NOTE}
+This example is just to demonstrate how to use Perl and C++ together. The C++ Standard Library includes regular expressions support, which makes it easy to convert this Perl/C++ solution into a pure C++ solution. This pure C++ solution will run much faster because it avoids calling an external program. See Chapter 21 for details on the regular expressions library.
+\end{myNotic}
 
 \mySubsubsection{34.2.9.}{Calling Assembly Code from C++}
+
+C++ is considered a fast language, especially relative to other languages. Yet, in some rare cases, you might want to use raw assembly code when speed is absolutely critical. The compiler generates assembly code from your source files, and this generated assembly code is fast enough for virtually all purposes. Both the compiler and the linker (when it supports link time code generation) use optimization algorithms to make the generated assembly code as fast as possible. These optimizers are getting more and more powerful by using special processor instruction sets such as MMX, SSE, and AVX. These days, it’s hard to write your own assembly code that outperforms the code generated by the compiler, unless you know all the little details of these enhanced instruction sets.
+
+However, in case you do need it, the keyword asm can be used by a C++ compiler to allow the programmer to insert raw assembly code. The keyword is part of the C++ standard, but its implementation is compiler-defined. In some compilers, you can use asm to drop from C++ down to the level of assembly right in the middle of your program. Sometimes, the support for the asm keyword depends on your target architecture, and sometimes a compiler uses a non-standard keyword instead of the asm keyword. For example, Microsoft Visual C++ 2022 does not support the asm keyword. Instead, it supports the \_\_asm keyword when compiling in 32-bit mode, and does not support inline assembly at all when compiling in 64-bit mode.
+
+Assembly code can be useful in some applications, but I don’t recommend it for most programs. There are several reasons to avoid assembly code:
+
+\begin{itemize}
+\item
+Your code is no longer portable to another processor once you start including raw assembly code for your platform.
+
+\item
+Most programmers don’t know assembly languages and won’t be able to modify or maintain your code.
+
+\item
+Assembly code is not known for its readability. It can hurt your program’s use of style.
+
+\item
+Most of the time, it is not necessary. If your program is slow, look for algorithmic problems, or consult some of the other performance suggestions from Chapter 29, “Writing Efficient C++.”
+\end{itemize}
+
+\begin{myWarning}{WARNING}
+When you encounter performance issues in your application, use a profiler to determine the real hotspot, and look into algorithmic speed-ups! Only start thinking about using assembly code if you have exhausted all other options, and even then, think about the disadvantages of assembly code.
+\end{myWarning}
+
+Practically, if you have a computationally expensive block of code, you should move it to its own C++ function. If you determine, using performance profiling (see Chapter 29), that this function is a performance bottleneck, and there is no way to write the code smaller and faster, you might use raw assembly code to try to increase its performance.
+
+In such a case, one of the first things you want to do is declare the function extern "C" so the C++ name mangling is suppressed. Then, you can write a separate module in assembly code that performs the function more efficiently. The advantage of a separate module is that there is both a “reference implementation” in C++ that is platform-independent, and also a platform-specific high-performance implementation in raw assembly code. The use of extern "C" means that the assembly code can use a simple naming convention (otherwise, you have to reverse-engineer your compiler’s name mangling algorithm). Then, you can link with either the C++ version or the assembly code version.
+
+You would write this module in assembly code and run it through an assembler, rather than using the inline asm keyword in C++. This is particularly true in many of the popular x86-compatible 64-bit compilers, where the inline asm keyword is not supported.
+
+Even though it is possible, you should use raw assembly code only if there are significant performance improvements. Additionally, don’t forget Amdahl’s law. For example, a 10x speedup in your encryption routine sounds great, but if your program spends 90 percent of its time not doing encryption, that means that 10x speedup is for 10 percent of the program only—just a 9 percent overall improvement!
+
+
+
+
 

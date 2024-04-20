@@ -1,8 +1,103 @@
 
+A technical interview will often include some basic C++ questions to weed out the candidates who put C++ on their résumé simply because they’ve heard of the language. These questions might be asked during a phone screen, when a developer or recruiter calls you before bringing you in for an in-person interview. They could also be asked via e-mail or in person. When answering these questions, remember that the interviewer is just trying to establish that you’ve actually learned and used C++. You generally don’t need to get every detail right to earn high marks.
 
 \mySubsubsection{A.1.1.}{Things to Remember}
 
+\begin{itemize}
+\item
+Use of functions
 
+\item
+Uniform initialization
+
+\item
+Basic use of modules
+
+\item
+Use of the standard named module std (C++23)
+
+\item
+How to print text to the screen using the modern std::print() and println() functions (C++23)
+
+\item
+How to print text to the screen using std::cout
+
+\item
+Use of namespaces and nested namespaces
+
+\item
+Language basics, such as loop syntax, including the range-based for loop, conditional statements, the conditional operator, and variables
+
+\item
+Use of the three-way comparison operator
+
+\item
+Enumerations
+
+\item
+The difference between the stack and the free store
+
+\item
+The many uses of const
+
+\item
+What pointers and references are and their differences
+
+\item
+The need for references to be bound to a variable when they are declared and that the binding cannot be changed
+
+\item
+The advantages of pass-by-reference over pass-by-value
+
+\item
+Structured bindings
+
+\item
+The auto keyword, and its use with structured bindings and to deduce the type of an expression or a function’s return type
+
+\item
+Basic use of Standard Library containers such as std::array and vector
+
+\item
+Using std::pair and optional
+
+\item
+How type aliases and typedefs work
+
+\item
+The general idea behind attributes
+\end{itemize}
 
 \mySubsubsection{A.1.2.}{Types of Questions}
 
+Basic C++ questions will often come in the form of a vocabulary test. The interviewer may ask you to define C++ terms, such as auto or enum class. She may be looking for the textbook answer, but you can often score extra points by giving sample usage or extra detail. For example, when asked to define the auto keyword, you can score extra points by not only explaining the use of auto to define variables, but also its use with function return type deduction and structured bindings.
+
+The other form that basic C++ competence questions can take is a short program that you write in front of the interviewer. An interviewer may give you a warm-up question, such as, “Write Hello, World in C++.” When you get a seemingly simple question like this, make sure that you score all the extra points you can by showing that you are namespace-savvy and up-to-date with the latest standards; i.e., you use the modern std::print() and println() functions instead of the C-style printf() function, and you know that a single import of std gives access to the entire Standard Library. However, upgrading a code base with every new C++ standard takes time, so a lot of companies don’t always use the latest C++ standard. That means you still need to know how to do things using older standards. For the “Hello, World” program, you should also demonstrate that you can write it using std::cout and \#include instead of std::println() and import.
+
+Asking a candidate to define const is a classic C++ interview question. The keyword provides a sliding scale with which an interviewer can assess an answer. For example, a fair candidate will talk about const variables. A good candidate will explain const member functions and pass-by-referenceto-const and explain why this can be more efficient than pass-by-value. A great candidate might talk about the relationship of const to thread-safety (discussed in Chapter 27, “Multithreaded Programming with C++”), show how to define static const data members (discussed in Chapter 9, “Mastering Classes and Objects”), or differentiate const from constexpr (see Chapter 9).
+
+Certain topics described in this chapter also come in find-the-bug type problems. Be on the lookout for misuse of references. For example, imagine a class that contains a reference as a data member:
+
+\begin{cpp}
+class Gwenyth
+{
+    private:
+        int& m_caversham;
+};
+int main()
+{
+    Gwenyth g;
+}
+\end{cpp}
+
+The statement in main() won’t compile, and the compiler will spit out an error saying that it attempts to reference a deleted function. Because m\_caversham is a reference, it needs to be bound to a variable when the class is constructed. The compiler-generated default constructor cannot do that, so the compiler implicitly deletes the default constructor of Gwenyth. You need to provide a constructor and initialize the reference in the constructor initializer. The class could take the variable to be referenced as a parameter to the constructor:
+
+\begin{cpp}
+class Gwenyth
+{
+    public:
+        explicit Gwenyth(int& i) : m_caversham { i } { }
+    private:
+        int& m_caversham;
+};
+\end{cpp}
