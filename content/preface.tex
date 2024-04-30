@@ -1,25 +1,26 @@
 
-The development of C++ started in 1982 by Bjarne Stroustrup, a Danish computer scientist, as the successor of C with Classes. In 1985, the first edition of The C++ Programming Language book was released. The first standardized version of C++ was released in 1998, called C++98. In 2003, C++03 came out and contained a few small updates. After that, it was silent for a while, but traction slowly started building up, resulting in a major update of the language in 2011, called C++11. From then on, the C++ Standard Committee has been on a three-year cycle to release updated versions, giving us C++14, C++17, C++20, and now C++23. All in all, with the release of C++23 in 2023, C++ is almost 40 years old and still going strong. In most rankings of programming languages in 2023, C++ is in the top four. It is being used on an extremely wide range of hardware, going from small devices with embedded microprocessors all the way up to multi-rack supercomputers. Besides wide hardware support, C++ can be used to tackle almost any programming job, be it games on mobile platforms, performance-critical artificial intelligence (AI) and machine learning (ML) software, components for self-driving cars, real-time 3-D graphics engines, low-level hardware drivers, entire operating systems, software stacks for networking equipment, web browsers, and so on. The performance of C++ programs is hard to match with any other programming language, and as such, it is the de facto language for writing fast, powerful, and enterprise-class programs. Big tech companies, such as Microsoft, Facebook, Amazon, Google, and many more, use services written in C++ to run their infrastructure. As popular as C++ has become, the language can be difficult to grasp in full. There are simple, but powerful, techniques that professional C++ programmers use that don’t show up in traditional texts, and there are useful parts of C++ that remain a mystery even to experienced C++ programmers.
+C++始于1982年，作为C语言的继承者，由丹麦计算机科学家Bjarne Stroustrup创建。1985年，《C++编程语言》第一版发布。C++的第一个标准于1998年发布，称为C++98。2003年，C++03发布，进行了一些小的更新。之后，C++的发展一度沉寂，但慢慢地开始积聚动力，最终在2011年有了重大更新，C++11。此后，C++标准委员会开始每三年发布一次更新版本，于是有了C++14、C++17、C++20，以及现在的C++23。随着C++23在2023年的发布，C++虽已年过四旬，但依旧强大。2023年的编程语言排名中，C++位于前四名，可应用在很多硬件上，从小型嵌入式微处理器的设备到多机架超级计算机。除了可观的硬件支持，C++还可以处理各种编程任务，无论是移动平台上的游戏、性能敏感的人工智能（AI）和机器学习（ML）软件、自动驾驶组件、实时3D图形引擎、底层硬件驱动、操作系统、网络设备的软件、网络浏览器等。C++程序在性能方面具有其他编程语言不可比拟的优势，因此成为了编写高效、强大和企业级程序的默认语言。像微软、Facebook、亚马逊、谷歌等大型科技公司都在使用用C++编写服务来运行他们的基础设施。尽管C++已经如此流行，但完全掌握这门语言还是很有难度。专业C++开发者使用的一些技巧，可能在传统教材中根本找不到，所以即便是资深C++开发者，也会有知识盲区。
 
-Too often, programming books focus on the syntax of the language instead of its real-world use. The typical C++ text introduces a major part of the language in each chapter, explaining the syntax and providing an example. Professional C++ does not follow this pattern. Instead of giving you just the nuts and bolts of the language with little practical context, this book will teach you how to use C++ in the real world. It will show you the little-known features that will make your life easier, as well as the programming techniques that separate novices from professional programmers.
 
-\mySubsectionNoFile{}{Who this book is for}
+很多时候，编程书籍更多地关注语法，而非实际应用。传统的C++教科书会在每一章中介绍语言的某个主要部分，解释语法并提供一个例子。但《Professional C++》不遵循这种模式，不会只介绍语言的基本知识和少量实践，而是会展示C++的实战用例。本书将展示一些鲜为人知的功能，可使读者们的编程更加轻松，同时还会向菜鸟与专业程序员展示不同的编程技巧。
 
-Even if you have used the language for years, you might still be unfamiliar with the more advanced features of C++, or you might not be using the full capabilities of the language. Maybe you don’t yet know all the new features introduced with the latest release, C++23. Perhaps you write competent C++ code but would like to learn more about design and good programming style in C++. Or maybe you’re relatively new to C++ but want to learn the “right” way to program from the start. This book will meet those needs and bring your C++ skills to the professional level.
+\mySubsectionNoFile{}{适读人群}
 
-Because this book focuses on advancing from basic or intermediate knowledge of C++ to becoming a professional C++ programmer, it assumes that you have some knowledge about programming.
+即使已经使用C++语言多年，也可能不熟悉C++的一些更高级特性，或者没有充分利用该语言的所有功能，甚至还不知道最新版本C++23引入的新特性。或许已经能写出合格的C++代码，但想要了解更多关于设计和良好编程风格的内容。或者您是C++的新手，但希望一开始就了解“正确”的编程方式。这本书将满足这些需求，并将您的C++技能提升到专业水平。
 
-Chapter 1, “A Crash Course in C++ and the Standard Library,” covers the basics of C++ as a refresher, but it is not a substitute for actual training in programming. If you are just starting with C++ but you have experience in another programming language such as C, Java, or C\#, you should be able to pick up most of what you need from Chapter 1.
+本书会侧重于从C++的基本或中级知识提升到成为资深C++开发者，所以需要阅读本书的读者们已经具备一些基础C++编程知识和经验。
 
-In any case, you should have a solid foundation in programming fundamentals. You should know about loops, functions, and variables. You should know how to structure a program, and you should be familiar with fundamental techniques such as recursion. You should have some knowledge of common data structures such as queues, and useful algorithms such as sorting and searching. You don’t need to know about object-oriented programming just yet—that is covered in Chapter 5, “Designing with Classes.”
+第1章，“C++和标准库速成课程”，涵盖了C++的基础知识作为复习，但并不能替代实际的编程训练。若是刚开始学习C++，但有C、Java、C\#等其他编程语言的经验，应该能够从第1章中获得学习后面章节所需的大部分知识。
 
-You will also need to be familiar with the compiler you will be using to compile your code. Two compilers, Microsoft Visual C++ and GCC, are introduced later in this introduction. For other compilers, refer to the documentation that came with your compiler.
+无论如何，读者们都需要扎实的编程基础知识，应该了解循环、函数和变量。知道如何构建程序，并且应该熟悉递归等基本算法，对常见的数据结构（如队列）和一些有用的算法（如排序和搜索）也要有所了解。不过，不需要非常了解面向对象编程——这将在第5章“使用类进行设计”中详细介绍。
 
-\mySubsectionNoFile{}{What This Book Covers}
+并且还需要熟悉将用于编译代码的编译器。后面将介绍两个编译器，Microsoft Visual C++和GCC。对于其他编译器，请参阅编译器提供的文档。
 
-Professional C++ uses an approach to C++ programming that will both increase the quality of your code and improve your programming efficiency. You will find discussions on new C++23 features throughout this sixth edition. These features are not just isolated to a few chapters or sections; instead, examples have been updated to use new features when appropriate.
+\mySubsectionNoFile{}{内容简介}
 
-Professional C++ teaches you more than just the syntax and language features of C++. It also emphasizes programming methodologies, reusable design patterns, and good programming style. The Professional C++ methodology incorporates the entire software development process, from designing and writing code to debugging and working in groups. This approach will enable you to master the C++ language and its idiosyncrasies, as well as take advantage of its powerful capabilities for large-scale software development.
+《Professional C++》采用的方法既可以提高代码质量，又可以提高编程效率。在第六版中，关于新C++23特性的讨论将贯穿全书。这些特性并不局限于几章或几节；并且，示例会在适当的时候使用新特性重新实现。
+
+《Professional C++》不仅教授C++的语法和语言特性，还强调编程方法学、可重用的设计模式和良好的编程风格。《Professional C++》的方法学涵盖了整个软件开发过程，从设计和编写代码到调试和团队协作。这种方法将使您能够掌握C++语言及其特性，并利用其强大的功能进行大规模软件开发。
 
 Imagine users who have learned all of the syntax of C++ without seeing a single example of its use. They know just enough to be dangerous! Without examples, they might assume that all code should go in the main() function of the program or that all variables should be global—practices that are generally not considered hallmarks of good programming.
 
@@ -29,7 +30,7 @@ By reading and understanding this book, you will become a professional C++ progr
 
 There are many good reasons to make the effort to be a professional C++ programmer as opposed to a programmer who knows C++. Understanding the true workings of the language will improve the quality of your code. Learning about different programming methodologies and processes will help you to work better with your team. Discovering reusable libraries and common design patterns will improve your daily efficiency and help you stop reinventing the wheel. All of these lessons will make you a better programmer and a more valuable employee. While this book can’t guarantee you a promotion, it certainly won’t hurt.
 
-\mySubsectionNoFile{}{How This Book is Structured}
+\mySubsectionNoFile{}{本书结构}
 
 This book is made up of five parts.
 
@@ -73,11 +74,12 @@ The following are additional excellent online resources:
 \url{stackoverflow.com}: Search for answers to common programming questions—or ask your own questions.
 \end{itemize}
 
-\mySubsectionNoFile{}{Conventions}
+\mySubsectionNoFile{}{惯例}
 
 \CXXTwentythreeLogo{-40}{-40}
 
-Paragraphs or sections that are specific to the C++23 standard have a little C++23 icon on the left, just as this paragraph does. C++11, C++14, C++17, and C++20 features are not marked with any icon.
+讨论C++23标准的段落或部分，会在左侧有一个的C++23小图标，就像这段话一样。而C++11、C++14、C++17和C++20的特性则没有标记。
+
 
 \mySubsectionNoFile{}{What You Need to Use This Book}
 
