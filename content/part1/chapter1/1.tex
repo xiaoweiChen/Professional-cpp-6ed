@@ -1,9 +1,9 @@
 
-The C++ language is often viewed as a “better C” or a “superset of C.” It was mainly designed to be an object-oriented C, commonly called as “C with classes.” Later on, many of the annoyances and rough edges of the C language were addressed as well. Because C++ is based on C, some of the syntax you’ll see in this section will look familiar to you if you are an experienced C programmer. The two languages certainly have their differences, though. As evidence, the C23 standard specification document is a little fewer than 800 pages in size, while the C++23 standard specification document is more than 2,000 pages. So, if you’re a C programmer but also if you are coming from other languages such as Java, C\#, Python, and so on, be on the lookout for new or unfamiliar syntax!
+C++语言常视为“更好的C语言”或“C语言的超集”，其设计为面向对象的C，所以称之为“带类的C”。后来，C语言的许多令人烦恼和粗糙的问题得到了解决。因为C++是基于C的，若是一个经验丰富的C语言开发者，那肯定会在本节中看到的一些熟悉的语法。当然，这两种语言也有不同之处。C23标准规范文档的篇幅不到800页，而C++23标准规范文档的篇幅超过2000页。所以，若是一名C语言开发者，或是熟悉其他语言(如Java、C\#、Python等)的开发者，请留意自己不熟悉的语法!
 
-\mySubsubsection{1.1.1.}{The Obligatory “Hello, World” Program}
+\mySubsubsection{1.1.1.}{必不可少的“Hello, World”}
 
-In all its glory, the following code is the simplest C++ program you’re likely to encounter. If you are using an older version of C++, then import std; and std::println() might not work. In that case, you’ll need to use alternatives discussed shortly.
+下面的代码是最简单的C++程序。若使用的是旧版本的C++，import  std;std::println()会无法识，将需要使用替代方案（稍后会讨论）。
 
 \begin{cpp}
 // 01_helloworld.cpp
@@ -16,36 +16,36 @@ int main()
 }
 \end{cpp}
 
-This code, as you might expect, prints the message “Hello, World!” on the screen. It is a simple program and unlikely to win any awards, but it does exhibit the following important concepts about the format of a C++ program:
+这段代码会在屏幕上输出“Hello, World!”。这是一个简单的程序，并展示了关于C++程序格式的相关概念:
 
 \begin{itemize}
 \item
-Comments
+注释
 
 \item
-Importing modules
+导入模块
 
 \item
-The main() function
+main()函数
 
 \item
-Printing text
+屏幕输出
 
 \item
-Returning from a function
+从函数返回
 \end{itemize}
 
-These concepts are briefly explained in upcoming sections.
+这些概念将在接下来的章节中进行简要解释。
 
-\mySamllsection{Comments}
+\mySamllsection{注释}
 
-The first line of the program is a comment, a message that exists for the programmer only and is ignored by the compiler. In C++, there are two ways to delineate a comment. You can use two forward slashes to indicate that whatever follows on that line is a comment:
+程序的第一行是注释，这是一条仅为开发者存在的信息，编译器会忽略它。C++中，有两种描述注释的方法。可以使用两个正斜杠来表示该行后面的内容是注释:
 
 \begin{cpp}
 // 01_helloworld.cpp
 \end{cpp}
 
-The same behavior (this is to say, none) can be achieved by using a multiline comment. Multiline comments start with /* and end with */. The following code shows a multiline comment in action (or, more appropriately, inaction):
+同样的行为(也就是说，没有)可以通过使用多行注释来实现。多行注释以/*开始，以*/结束。下面的代码展示了一个多行注释的作用:
 
 \begin{cpp}
 /* This is a multiline comment.
@@ -53,180 +53,176 @@ The same behavior (this is to say, none) can be achieved by using a multiline co
 */
 \end{cpp}
 
-Comments are covered in detail in Chapter 3, “Coding with Style.”
+注释将在第3章“编码风格”中详细介绍。
 
-\mySamllsection{Importing Modules}
+\mySamllsection{导入模块}
 
-Support for modules was one of the big four new features of C++20, replacing the old mechanism of header files. If you want to use functionality from a module, you simply import that module. This is done with an import declaration. Starting with C++23, you can get access to the entire C++ Standard Library by importing a single standard named module called std. The first line of the “Hello, World” application imports this standard module:
+模块是C++20的四大新特性之一，取代了旧的以头文件为机制的方式。若想使用某个模块的功能，只需简单地导入该模块，可以通过导入声明来实现。从C++23开始，可以通过导入一个单一的标准命名模块来访问整个C++标准库，这个标准模块叫做std。Hello, World的第一行导入了这个标准模块：
 
 \begin{cpp}
 import std;
 \end{cpp}
 
-If the program did not import that module, it would be unable to perform its only task of printing text.
+若没有导入该模块，将无法执行进行屏幕输出。
 
-Without C++23’s standard named module support, you have to explicitly import all individual header files that your code requires. As there are more than 100 header files in the Standard Library, it’s not always obvious to know which specific header you need to import to use a certain feature. As a reference, Appendix C, “Standard Library Header Files,” lists all header files of the C++ Standard Library including a short description of their contents. For example, instead of importing the standard named module std in the “Hello, World” application, you can import only those header files that the code really needs. In this example, the code only needs to import <print> to get access to the text printing functionality. Notice that when importing the named module std, you don’t use angle brackets, but when importing individual header files, you need to use angle brackets as follows:
+若没有C++23的标准命名模块支持，必须显式导入代码所需的头文件。由于标准库中有超过100个头文件，并不总是清楚需要导入哪个特定的头文件才能使用某个特定功能。作为一个参考，附录C“标准库头文件”中，列出了C++标准库的所有头文件，包括它们内容的简短描述。例如，“Hello, World”中，可以不导入标准命名模块std，只导入代码需要的头文件即可。这个例子中，代码只需要导入<print>来获取文本的输出功能。请注意，导入命名模块std时，不使用尖括号，但在导入单个头文件时，需要使用尖括号：
 
 \begin{cpp}
 import <print>;
 \end{cpp}
 
-Since this is a book about C++23, this book uses modules everywhere. All functionality provided by the C++ Standard Library is provided in well-defined header files. Most examples in this book simply import the std named module, instead of individual header files, but the text always mentions in which header file certain functionality is provided.
+因为本书是一本关于C++23的书，所以在所有地方都使用了模块。C++标准库提供的所有功能都包含在定义良好的头文件中。本书中的大多数示例只是导入std命名模块，而不是单个头文件，但会指出功能是哪个头文件提供的。
 
-Modules are not limited to Standard Library functionality. You can write your own modules to provide custom types and functionality, as you will learn throughout this book.
+模块不仅限于标准库，我们也可以编写自己的模块来提供自定义类型和功能。
 
 \begin{myNotic}{NOTE}
-If your compiler does not yet have full support for modules, you can replace explicit header file import declarations with \#include preprocessor directives, discussed in an upcoming section.
+若正在使用的编译器尚未完全支持模块，可以将头文件导入声明替换为\#include预处理指令。
 \end{myNotic}
 
-\mySamllsection{How the Compiler Processes Your Source Code}
+\mySamllsection{编译器如何处理源码}
 
-In short, building a C++ program is a three-step process. Technically, there are a few more phases in the compilation process, but this simplified view is sufficient for now.
+简而言之，构建C++程序需要三个步骤。从技术上讲，编译过程中还有更多的阶段，现阶段这个简化的视图就足够了。
 
 \begin{enumerate}
 \item
-First, the code is run through a preprocessor, which recognizes meta-information about the code and handles preprocessor directives, such as \#include directives. A source file in which all preprocessor directives are handled is called a translation unit.
+首先，代码通过预处理运行，预处理器识别有关代码的元信息并处理预处器指令，例如\#include指令。处理所有预处理指令的源文件称为\textbf{翻译单元}。
 
 \item
-Next, all translation units are independently compiled, or translated, into machine-readable object files in which references to functions and so on are not yet defined.
+接下来，所有翻译单元独立编译或翻译成机器可读的文件，其中对函数等的引用尚未定义。
 
 \item
-Resolving those references is done in the final phase by the linker, which links all object files together into the final executable.
+解析这些引用在最后阶段由链接器完成，其会将所有的目标文件链接到最终的可执行文件中。
 \end{enumerate}
 
 \CXXTwentythreeLogo{-40}{-50}
-
 \begin{myNotic}{NOTE}
-Starting with C++23, the standard mandates that C++ compilers accept source code files saved with UTF-8 encoding. Chapter 21, “String Localization and Regular Expressions,” discusses different encodings, including UTF-8. I recommend configuring your toolchain to use UTF-8. This will improve portability of your files between different platforms and will allow you to use non-English characters in your source files.
+从C++23开始，标准规定C++编译器必须接受使用UTF-8编码的源代码文件。第21章“字符串本地化和正则表达式”讨论了不同的编码，包括UTF-8。我建议您配置工具链以使用UTF-8。这将提高您的文件在不同平台之间的可移植性，并允许源文件中使用非英文字符。
 
-To enable UTF-8 support with Microsoft Visual C++, add the /utf-8 option to the Additional Options setting under Project Properties -> Configuration Properties -> C/C++ -> Command Line. For GCC, use the command-line option -finput-charset=UTF-8. Clang assumes all files are UTF-8 by default.
+为了在Microsoft Visual C++中启用UTF-8支持，请在项目属性 -> 配置属性 -> C/C++ -> 命令行 下的附加选项设置中添加 /utf-8 选项。对于GCC，请使用命令行选项 -finput-charset=UTF-8。Clang默认认为所有文件都是UTF-8编码。
 \end{myNotic}
 
-\mySamllsection{Preprocessor Directives}
+\mySamllsection{预处理指令}
 
-If your compiler does not yet support modules, then instead of importing modules or header files, you need to \#include header files. That is, explicit import declarations such as import <print>;, need to be replaced with \#include preprocessor directives as follows:
+若编译器尚不支持模块，需要用\#include头文件来代替导入模块或头文件。也就是说，显式的导入声明，如import <print>;，需要用\#include预处理指令替换：
 
 \begin{cpp}
 #include <print>
 \end{cpp}
 
-Directives aimed at the preprocessor start with the \# character, as in \#include <print>. In this case, the \#include directive tells the preprocessor to take everything from the <print> header file and copy it into the current file. The <print> header provides the functionality to print text to the screen.
+预处理的指令以\#字符开头，例如\#include。\#include指令告诉预处理器从<print>头文件中获取所有内容并将其复制到当前文件中。<print>头文件提供了将文本打印到屏幕的功能。
 
-Chapter 11, “Modules, Header Files, and Miscellaneous Topics,” discusses preprocessor directives in a bit more detail. But, as mentioned, this book uses modules instead of old-style header files.
+第11章“模块、头文件和其他主题”对预处理指令进行了更详细的讨论。
 
-\mySamllsection{The main() Function}
+\mySamllsection{main()函数}
 
-main() is, of course, where the program starts. The return type of main() is an int, indicating the result status of the program. The main() function either takes no parameters or takes two parameters as follows:
+当然，main()是程序的起始点。main()的返回类型是int，表示程序的结果状态。main()函数可以没有任何参数，或者两个参数：
 
 \begin{cpp}
 int main(int argc, char** argv)
 \end{cpp}
 
-argc gives the number of arguments passed to the program, and argv contains those arguments. Note that argv[0] can be the program name, but it might as well be an empty string, so do not rely on it; instead, use platform-specific functionality to retrieve the program name. The important thing to remember is that the actual arguments contained in argv start at index 1.
-
-\hspace*{\fill} \\ % will remove
-\hspace*{\fill} \\ % will remove
-\hspace*{\fill} \\ % will remove
+argc给出传递给程序的参数数量，而argv包含这些参数。其中，argv[0]可能是程序名称，也可能是空字符串，所以不要依赖它；相反，应该使用特定于平台的函数来获取程序名称。另外，包含在argv中的实际参数，需要从索引1开始计算。
 
 \CXXTwentythreeLogo{-40}{-50}
 
-\mySamllsection{Printing Text}
+\mySamllsection{屏幕输出}
 
-Before C++23, you would use I/O streams to output text to the screen. Streams are briefly covered in the next section and in detail in Chapter 13, “Demystifying C++ I/O.” However, C++23 introduces a new, easier-to-use mechanism to print text to the screen, which is used in almost every code snippet in this book: std::print() and println(), both defined in <print>.
+C++23前，可使用I/O流将文本输出到屏幕。流会在下一节和第13章“揭开I/O的神秘面纱”中进行了简要介绍。C++23引入了一个新的、更易于使用的机制来输出文本到屏幕，这在本书的每个代码片段中都使用到了：std::print()和println()，都在<print>中定义。
 
-Chapter 2, “Working with Strings and String Views,” discusses the std::print() and println() string formatting and printing functions in detail. However, their basic use is straightforward and introduced here so that they can already be used in upcoming code snippets. In its most basic form, println() can be used to print a line of text that automatically ends with a new line:
+第2章“使用字符串和字符串视图”详细讨论了std::print()和println()，用于将字符串格式化和输出到屏幕上。其基本使用的方式非常直接，其最基本的形式中，println()可以用来打印一行文本，该文本输出后会自动换行：
 
 \begin{cpp}
 std::println("Hello, World!");
 \end{cpp}
 
-The first argument to println() is a format string, which can contain replacement fields to be replaced with values passed in as second and subsequent arguments. You indicate where a replacement field goes by including curly brackets, \{\}, for each field to be included. For example:
+println()的第一个参数是字符串格式的，其中可以包含替换字段，这些字段将由作为第二个和后续参数传递的值替换。可以在每个字段旁边包含大括号\{\}来指示替换字段的位置。例如：
 
 \begin{cpp}
 std::println("There are {} ways I love you.", 219);
 \end{cpp}
 
-In this example, the number 219 is inserted into the string, so the output is:
+这个例子中，数字219将插入到字符串中，所以输出为：
 
 \begin{shell}
 There are 219 ways I love you
 \end{shell}
 
-You can have as many replacement fields as needed, for example:
+可以根据需要设置任意多的替换字段，例如:
 
 \begin{cpp}
 std::println("{} + {} = {}", 2, 4, 6);
 \end{cpp}
 
-In this example, each field is applied in order, so the resulting output is:
+这个例子中，每个字段都是按顺序应用的，所以结果输出为:
 
 \begin{shell}
 2 + 4 = 6
 \end{shell}
 
-There is much more to be said about the format of replacement fields, but that’s for Chapter 2.
+关于替换字段的格式还有很多要说的，但这是第2章的内容。
 
-If you use print() instead of println(), the printed text will not end with a new line character.
+若使用print()而不是println()，输出的文本将不会以换行。
 
-\mySamllsection{I/O Streams}
+\mySamllsection{输入输出流}
 
-If your compiler does not yet support the C++23 std::print() and println() functions, you have to rewrite them using I/O streams.
+若编译器还不支持C++23，在使用std::print()和println()函数，则必须使用I/O流重新实现。
 
-I/O streams are covered in depth in Chapter 13, but the basics of output and input are simple. Think of an output stream as a laundry chute for data. Anything you toss into it will be output appropriately. std::cout is the chute corresponding to the user console, or standard out. There are other chutes, including std::cerr, which outputs to the error console. The <{}< operator tosses data down the chute. Output streams allow multiple types of data to be sent down the stream sequentially on a single line of code. The following code outputs text, followed by a number, followed by more text:
+输入输出流会在第13章中深入的介绍，但其基本概念很简单。可以将输出流想象成数据槽通道，投入其中的东西都会输出。std::cout是与用户控制台或标准输出对应的通道。还有其他的通道，包括std::cerr，输出到错误控制台。<{}<运算符将数据投入通道中。输出流允许多种类型的数据在单行代码中顺序发送到通道中。以下代码输出文本，然后是一个数字，最后是文本：
 
 \begin{cpp}
 std::cout << "There are " << 219 << " ways I love you." << std::endl;
 \end{cpp}
 
-Starting with C++20, though, it is recommended to use std::format(), defined in <format>, to perform string formatting. The format() function uses the same concept of replacement fields as print() and println()and is discussed in detail in Chapter 2. However, using it to rewrite the previous statement is easy enough:
+从C++20开始，推荐使用std::format()，其定义在<format>中，对字符串进行格式化。format()函数使用与print()和println()相同的替换字段概念，这会在第2章中详细讨论。用其来重写前面的语句也很简单：
 
 \begin{cpp}
 std::cout << std::format("There are {} ways I love you.", 219) << std::endl;
 \end{cpp}
 
-Thus, if your compiler doesn’t support print() and println() yet, you can easily rewrite such statements to use cout, format(), and endl. For example, suppose you have the following statement:
+若编译器尚不支持print()和println()，可以使用cout、format()和endl。假设有以下代码：
+
 
 \begin{cpp}
 std::println("{} + {} = {}", 2, 4, 6);
 \end{cpp}
 
-In this statement, replace println() with format(), stream the result to cout, and add an output of endl:
+将println()替换为format()，将结果流式传输到cout，并添加endl输出:
 
 \begin{cpp}
 std::cout << std::format("{} + {} = {}", 2, 4, 6) << std::endl;
 \end{cpp}
 
-std::endl represents an end-of-line sequence. When the output stream encounters std::endl, it will output everything that has been sent down the chute so far and move to the next line. An alternate way of representing the end of a line is by using the \verb|\|n character. The \verb|\|n character is an escape sequence, which refers to a new-line character. Escape sequences can be used within any quoted string of text. The following table shows the most common ones:
+std::endl表示行结束。当输出流遇到std::endl时，会将输出到目前为止已发送到通道中的所有内容，并移动到下一行。表示行结束的另一种方法是使用\verb|\|n字符。\verb|\|n字符是一个转义字符，是一个换行字符。转义字符可以在任何带引号的文本字符串中使用。下表显示了最常见的几种:
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{Escape sequence}         & \textbf{Meaning}                                             \\ \hline
+\textbf{转义字符}         & \textbf{含义}                                             \\ \hline
 \endfirsthead
 %
 \endhead
 %
-\textbackslash{}n                & New line: moves the cursor to the beginning of the next line \\ \hline
+\textbackslash{}n                & 换行:将光标移到下一行的开头 \\ \hline
 \textbackslash{}r &
-\begin{tabular}[c]{@{}l@{}}Carriage return: moves the cursor to the beginning of the current line, but\\ does not advance to the next line\end{tabular} \\ \hline
-\textbackslash{}t                & Tab                                                          \\ \hline
-\textbackslash{}\textbackslash{} & Backslash character                                          \\ \hline
-\textbackslash{}"                & Quotation mark                                               \\ \hline
+\begin{tabular}[c]{@{}l@{}}回车:将光标移到当前行的开头，但不能换行\end{tabular} \\ \hline
+\textbackslash{}t                & 制表符                                                          \\ \hline
+\textbackslash{}\textbackslash{} & 反斜杠字符                                          \\ \hline
+\textbackslash{}"                & 引号                                               \\ \hline
 \end{longtable}
 
 \begin{myWarning}{WARNING}
-Keep in mind that endl inserts a new line into the stream and flushes everything currently in its buffers down the chute. Overusing endl, for example in a loop, is not recommended because it will have a performance impact. On the other hand, inserting \textbackslash{}n into the stream also inserts a new line but does not automatically flush the buffers.
+请记住，endl会将新行插入到流中，并将当前在其缓冲区中的所有内容输出到通道中。所以不建议过度使用endl，例如在循环中，因为这会影响性能。另一方面，在流中插入\textbackslash{}n也会插入新行，但不会自动刷新缓冲区。
 \end{myWarning}
 
-By default, print() and println() print text to the standard output console, std::cout. You can print to the error console, std::cerr, as follows:
+默认情况下，print()和println()将文本输出到标准输出控制台std::cout。也可以输出到错误控制台std::cerr:
 
 \begin{cpp}
 std::println(std::cerr, "Error: {}", 6);
 \end{cpp}
 
-Streams can also be used to accept input from the user. The simplest way to do so is to use the >{}> operator with an input stream. The std::cin input stream accepts keyboard input from the user. Here is an example:
+流也可以用来接受来自用户的输入。最简单的方法是对输入流使用操作符>{}>。cin输入流可接受来自用户的键盘输入:
 
 \begin{cpp}
 import std;
@@ -238,27 +234,27 @@ int main()
 }
 \end{cpp}
 
-The >{}> operator stops input when it encounters a space character after reading a value. That also means you cannot use the operator to read text containing spaces. Additionally, user input can be tricky because you never know what kind of data the user will enter. Chapter 13 discusses input streams in detail, including how to read text with embedded spaces.
+操作符>{}>在读取值后遇到空格字符时停止输入，所以不能使用操作符读取包含空格的文本。此外，用户输入可能很棘手，因为不知道用户将输入什么样的数据。第13章详细讨论了输入流，包括如何读取带有空格的文本。
 
-If you’re new to C++ and coming from a C background, you’re probably wondering what has been done with the trusty old printf() and scanf() functions. While these functions can still be used in C++, I strongly recommend using the modern print(), println(), and format() functions and the streams library instead, mainly because the printf() and scanf() family of functions do not provide any type safety.
+若是C++新手，并且具有C背景，可能会想知道是否可以使用printf()和scanf()函数。虽然这些函数仍然可以在C++中使用，但强烈建议使用现代的print()、println()和format()函数和流库，其主要原因是因为printf()和scanf()系列函数不提供类型安全的保障。
 
-\mySamllsection{Returning from a Function}
+\mySamllsection{从函数返回}
 
-The last line in the “Hello, World” program is as follows:
+“Hello, World”程序的最后一行:
 
 \begin{cpp}
 return 0;
 \end{cpp}
 
-Since this is the main() function, returning from it returns control to the operating system. When doing so, it passes the value 0, which usually signals to the operating system that there were no errors while executing the program. For error cases, you can return non-zero values.
+由于这是main()函数，从它返回将控制权返回给操作系统。当这样做时，其传递值0，这通常向操作系统发出信号，表明在执行程序时没有错误。对于错误情况，可以返回非零值。
 
-A return statement in main() is optional. If you don’t write one, the compiler will implicitly add a return 0; for you.
+main()中的return语句是可选的。若不写一个，编译器将隐式地添加一个return 0;。
 
-\mySubsubsection{1.1.2.}{Namespaces}
+\mySubsubsection{1.1.2.}{命名空间}
 
-Namespaces address the problem of naming conflicts between different pieces of code. For example, you might be writing some code that has a function called foo(). One day, you decide to start using a third-party library, which also has a foo() function. The compiler has no way of knowing which version of foo() you are referring to within your code. You can’t change the library’s function name, and it would be a big pain to change your own.
+命名空间解决了不同代码段之间的命名冲突问题。例如，正在编写一些代码，其中包含一个名为foo()的函数。某天，决定开始使用第三方库，该库也有一个foo()函数，这时编译器无法知道代码中引用的是哪个版本的foo()。若不能更改库的函数名，就要更改自己的函数名，这是一件非常痛苦的事情。
 
-Namespaces come to the rescue in such scenarios because you can define the context in which names are defined. To place code in a namespace, enclose it within a namespace block. Here’s an example:
+这种情况下，命名空间可以发挥作用，因为可以定义定义名称的上下文。将代码放置在命名空间，请将其包含在命名空间块中:
 
 \begin{cpp}
 namespace mycode {
@@ -269,13 +265,13 @@ namespace mycode {
 }
 \end{cpp}
 
-By placing your version of foo() in the namespace mycode, you are isolating it from the foo() function provided by the third-party library. To call the namespace-enabled version of foo(), prepend the namespace onto the function name by using ::, also called the scope resolution operator, as follows:
+将您自己的foo()放在命名空间mycode中，可以将其与第三方库提供的foo()函数隔离。要调用支持命名空间的foo()版本，请使用::将命名空间添加到函数名之前，也称为作用域解析操作符:
 
 \begin{cpp}
 mycode::foo(); // Calls the "foo" function in the "mycode" namespace
 \end{cpp}
 
-Any code that falls within a mycode namespace block can call other code within the same namespace without explicitly prepending the namespace. This implicit namespace is useful in making the code more readable. You can also avoid prepending of namespaces with a using directive. This directive tells the compiler that the subsequent code is making use of names in the specified namespace. The namespace is thus implied for the code that follows:
+属于mycode命名空间块的代码都可以调用同一命名空间内的其他代码，而无需显式添加命名空间。这种隐式命名空间的做法，有助于提高代码的可读性。也可以使用using指令来消除命名空间的前缀。该指令告诉编译器，后续代码正在使用指定命名空间中的名称，所以下面的代码隐藏了命名空间:
 
 \begin{cpp}
 using namespace mycode;
@@ -287,12 +283,12 @@ int main()
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-The main() function must never be put in a namespace. It must be in the global namespace.
+main()函数绝不能放在命名空间中，其必须在全局命名空间中。
 \end{myNotic}
 
-A single source file can contain multiple using directives, but beware of overusing this shortcut. In the extreme case, if you declare that you’re using every namespace known to humanity, you’re effectively eliminating namespaces entirely! Name conflicts will again result if you are using two namespaces that contain the same names. It is also important to know in which namespace your code is operating so that you don’t end up accidentally calling the wrong version of a function.
+单个源文件可以包含多个using指令，但不要过度使用这种方式。极端情况下，若声明使用人类已知的所有所以空间，实际上就等于消除了命名空间!若使用包含相同名称的两个名称空间，将名称冲突会继续。知道代码在哪个名称空间中运行也很重要，这样就不会意外地调用错误的函数。
 
-You’ve seen the namespace syntax before—you used it in the “Hello, World” program, where println is a name defined in the std namespace. You can write “Hello, World” with a using directive as shown here:
+之前已经了解了命名空间的语法，在“Hello, World”程序中我们使用了它，其中println是在std名称空间中定义的名称。可以用using指令写“Hello, World”，如下所示:
 
 \begin{cpp}
 import std;
@@ -306,16 +302,16 @@ int main()
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Most code snippets in this book assume a using directive for the std namespace so that everything from the C++ Standard Library can be used without the need to qualify it with std::.
+本书中的大多数代码片段都假定std命名空间有一个using指令，C++标准库中的所有内容都可以使用，而不需要用std::来限定。
 \end{myNotic}
 
-A using declaration can be used to refer to a particular item within a namespace. For example, if the only part of the std namespace that you want to use unqualified is print, you can use the following using declaration:
+using声明可用于引用命名空间中的特定项。只想在std命名空间中使用非限定的print，可以使用下面的using声明:
 
 \begin{cpp}
 using std::print;
 \end{cpp}
 
-Subsequent code can refer to print without prepending the namespace, but other items in the std namespace, such as println, still need to be explicit:
+后续代码可以在不添加名称空间的情况下引用print，但std命名空间中的其他项，如println，仍然需要显式限定:
 
 \begin{cpp}
 using std::print;
@@ -324,12 +320,12 @@ std::println("World!");
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-Never put a using directive or using declaration in a header file at global scope; otherwise, you force it on everyone who includes your header file. Putting it in a smaller scope, for instance at namespace or class scope, is OK, even in a header file. It’s also perfectly fine to put a using directive or declaration in a module interface file, as long as you don’t export it. However, this book always fully qualifies all types in module interface files, as I think it makes it easier to understand an interface. Module interface files and exporting entities from modules are explained later in this chapter.
+永远不要在全局作用域的头文件中放置using指令或using声明;否则，将强制每个包含头文件的源文件执行此操作。可以将其放在较小的作用域中(例如命名空间或类作用域中)，即使在头文件中也是如此。把using指令或声明放在模块接口文件中也完全没问题，只要不导出。因为我认为模块使接口更容易理解，所以本书完全限定模块接口文件中的所有类型。模块接口文件和从模块导出将在后续章节中进行解释。
 \end{myWarning}
 
-\mySamllsection{Nested Namespace}
+\mySamllsection{嵌套命名空间}
 
-A nested namespace is a namespace inside another one. Each namespace is separated by a double colon. Here’s an example:
+嵌套命名空间是指一个命名空间在另一个命名空间内。每个命名空间由双冒号分隔。这里有一个例子:
 
 \begin{cpp}
 namespace MyLibraries::Networking::FTP {
@@ -337,7 +333,7 @@ namespace MyLibraries::Networking::FTP {
 }
 \end{cpp}
 
-This compact syntax was not available before C++17 in which case you had to resort to the following:
+这种紧凑的语法在C++17之前不可用。若是编译器不支持C++17，可以使用如下方法:
 
 \begin{cpp}
 namespace MyLibraries {
@@ -349,58 +345,58 @@ namespace MyLibraries {
 }
 \end{cpp}
 
-\mySamllsection{Namespace Alias}
+\mySamllsection{命名空间的别名}
 
-A namespace alias can be used to give a new and possibly shorter name to another namespace. Here’s an example:
+命名命名空间别名可用于为另一个命名空间提供一个新的、可能更短的名称:
 
 \begin{cpp}
 namespace MyFTP = MyLibraries::Networking::FTP;
 \end{cpp}
 
-\mySubsubsection{1.1.3.}{Literals}
+\mySubsubsection{1.1.3.}{字面量}
 
-Literals are used to write numbers or strings in your code. C++ supports a couple of standard literals. Integral numbers can be written using the following literals (the examples represent the same number, 123):
+字面量用于在代码中编写数字或字符串，C++支持一些标准字面量。整数可以用以下字面值表示(示例表示相同的数字123):
 
 \begin{itemize}
 \item
-Decimal literal, 123
+十进制字面量, 123
 
 \item
-Octal literal, 0173 (starts with a zero)
+八进制字面量, 0173 (以0开头)
 
 \item
-Hexadecimal literal, 0x7B (starts with 0x)
+十六进制字面量, 0x7B (以0x开头)
 
 \item
-Binary literal, 0b1111011 (starts with 0b)
+二进制字面量, 0b1111011 (以0b开头)
 \end{itemize}
 
 \begin{myWarning}{WARNING}
-Never put a zero, 0, in front of a numerical literal, unless it’s an octal literal!
+永远不要在数字字面值前面放一个0，除非它是八进制字面量!
 \end{myWarning}
 
-Other examples of literals in C++ include the following:
+C++中使用字面量的其他例子：
 
 \begin{itemize}
 \item
-A floating-point value (such as 3.14f)
+浮点值 (例如 3.14f)
 
 \item
-A double floating-point value (such as 3.14)
+双精度浮点值 (例如 3.14)
 
 \item
-A hexadecimal floating-point literal (such as 0x3.ABCp-10 and 0Xb.cp12l)
+十六进制浮点字面值 (例如 0x3.ABCp-10 和 0Xb.cp12l)
 
 \item
-A single character (such as 'a')
+单个字符 (例如 'a')
 
 \item
-A zero-terminated array of characters (such as "character array")
+以零结尾的字符数组 (例如 "character array")
 \end{itemize}
 
-A literal can have a suffix, such as the f in 3.14f, to force a certain type. In this case, 3.14f results in a float, while 3.14 results in a double.
+字面量可以带有后缀，例如3.14f中的f，以强制使用某种类型。本例中，3.14f的结果是float，而3.14的结果是double。
 
-Single quote characters can be used as digit separators in numeric literals. For example:
+单引号字符可以用作数字字面量中的数字分隔符。例如:
 
 \begin{itemize}
 \item
@@ -413,22 +409,22 @@ Single quote characters can be used as digit separators in numeric literals. For
 0.123'456f
 \end{itemize}
 
-Multiple string literals separated only by whitespace are automatically concatenated into a single string. For example:
+仅用空格分隔的多个字符串字面值，可以自动连接成单个字符串。例如:
 
 \begin{cpp}
 std::println("Hello, "
              "World!");
 \end{cpp}
 
-is equivalent to:
+等价于：
 
 \begin{cpp}
 std::println("Hello, World!");
 \end{cpp}
 
-It is also possible to define your own type of literals, which is an advanced feature explained in Chapter 15, “Overloading C++ Operators.”
+也可以自定义字面值，这是第15章“重载C++操作符”中一项高级特性。
 
-\mySubsubsection{1.1.4.}{Variables}
+\mySubsubsection{1.1.4.}{变量}
 
 In C++, variables can be declared just about anywhere in your code and can be used anywhere in the current block below the line where they are declared. Variables can be declared without being given a value. These uninitialized variables generally end up with a semi-random value based on whatever is in memory at that time, and they are therefore the source of countless bugs. Variables in C++ can alternatively be assigned an initial value when they are declared. The code that follows shows both flavors of variable declaration, both using ints, which represent integer values:
 
