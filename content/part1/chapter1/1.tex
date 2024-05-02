@@ -372,7 +372,7 @@ namespace MyFTP = MyLibraries::Networking::FTP;
 \end{itemize}
 
 \begin{myWarning}{WARNING}
-永远不要在数字字面值前面放一个0，除非它是八进制字面量!
+除非是八进制字面量，永远不要在数字字面值前面放一个0!
 \end{myWarning}
 
 C++中使用字面量的其他例子：
@@ -394,7 +394,7 @@ C++中使用字面量的其他例子：
 以零结尾的字符数组 (例如 "character array")
 \end{itemize}
 
-字面量可以带有后缀，例如3.14f中的f，以强制使用某种类型。本例中，3.14f的结果是float，而3.14的结果是double。
+字面量可以带有后缀，例如3.14f中的f，以强制使用某种类型。本例中，3.14f是float，而3.14是double。
 
 单引号字符可以用作数字字面量中的数字分隔符。例如:
 
@@ -426,7 +426,7 @@ std::println("Hello, World!");
 
 \mySubsubsection{1.1.4.}{变量}
 
-In C++, variables can be declared just about anywhere in your code and can be used anywhere in the current block below the line where they are declared. Variables can be declared without being given a value. These uninitialized variables generally end up with a semi-random value based on whatever is in memory at that time, and they are therefore the source of countless bugs. Variables in C++ can alternatively be assigned an initial value when they are declared. The code that follows shows both flavors of variable declaration, both using ints, which represent integer values:
+C++中，变量几乎可以在代码的任何地方声明，并可以在声明之后的当前块内使用。变量可以在未给定值的情况下声明，这些未初始化的变量通常会有一个随机的值，这个值基于那一刻内存中的内容，因此这也是无数错误的根源。C++中，变量在声明时可以选择赋予一个初始值。下面的代码展示了两种风格的变量声明，使用了表示整数值的int类型：
 
 \begin{cpp}
 int uninitializedInt;
@@ -436,108 +436,108 @@ println("{} was assigned as an initial value", initializedInt);
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Most compilers will issue a warning or an error when code is using uninitialized variables. Some compilers will generate code that will report an error at run time.
+当代码使用未初始化的变量时，大多数编译器都会发出警告或错误。有些编译器会生成在运行时报错的代码。
 \end{myNotic}
 
-The initializedInt variable is initialized using the uniform initialization syntax. You can also use the following assignment syntax for initializing variables:
+initializedInt变量可以使用统一的初始化语法进行初始化，也可以使用下面的赋值语法来初始化变量:
 
 \begin{cpp}
 int initializedInt = 7;
 \end{cpp}
 
-Uniform initialization was introduced with the C++11 standard in 2011. It is recommended to use uniform initialization instead of the old assignment syntax, so that’s the syntax used in this book. The section “Uniform Initialization” later in this chapter goes deeper in on the benefits and why it is recommended.
+统一初始化是在2011年随C++11标准引入的。建议使用统一初始化来代替旧的赋值语法，本书也使用了这种语法。后面，会在“统一初始化”的章节中更深入地探讨其优点，以及推荐使用的原因。
 
-Variables in C++ are strongly typed; that is, they always have a specific type. C++ comes with a whole set of built-in types that you can use out of the box. The following table shows the most common types:
+C++中的变量是强类型的，所以总是具有特定的类型。C++提供了一套完整的内置类型，可以直接使用。下表展示了最常见的一些类型：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{Type} &
-\textbf{Description} &
-\textbf{Usage} \\ \hline
+\textbf{类型} &
+\textbf{描述} &
+\textbf{用法} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 \begin{tabular}[c]{@{}l@{}}(signed) int\\ signed\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Positive and negative integers;\\ the range depends on the\\ compiler (usually 4 bytes)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}正、负整数;范围取决于编译器\\ (通常为4字节)\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}int i \{-7\};\\ signed int i \{-6\};\\ signed i \{-5\};\end{tabular} \\ \hline
 (signed) short (int) &
-Short integer (usually 2 bytes) &
+短整数(通常为2字节) &
 \begin{tabular}[c]{@{}l@{}}short s \{13\};\\ short int s \{14\};\\ signed short s \{15\};\\ signed short int s \{16\};\end{tabular} \\ \hline
 (signed) long (int) &
-Long integer (usually 4 bytes) &
+长整数(通常为4字节) &
 long l \{-7L\}; \\ \hline
 (signed) long long (int) &
-\begin{tabular}[c]{@{}l@{}}Long long integer; the range\\ depends on the compiler but\\ is at least the same as for long\\ (usually 8 bytes)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}超长整型;该范围取决于编译器，\\ 但至少与长整数相同\\ (通常为8字节)\end{tabular} &
 long long ll \{14LL\}; \\ \hline
 \begin{tabular}[c]{@{}l@{}}unsigned (int)\\ unsigned short (int)\\ unsigned long (int)\\ unsigned long long (int)\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Limits the preceding types to\\ values \textgreater{}= 0\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}将上述类型限制为\textgreater{}= 0的值\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}unsigned int i \{2U\};\\ unsigned j \{5U\};\\ unsigned short s \{23U\};\\ unsigned long l \{54UL\};\\ unsigned long long ll \{140ULL\};\end{tabular} \\ \hline
 float &
-\begin{tabular}[c]{@{}l@{}}Single precision floating-point\\ numbers\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}单精度浮点数\end{tabular} &
 float f \{7.2f\}; \\ \hline
 double &
-\begin{tabular}[c]{@{}l@{}}Double precision floating-point\\ numbers; precision is at least the\\ same as for float\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}双精度浮点数;\\ 精度至少与float相同\end{tabular} &
 double d \{7.2\}; \\ \hline
 long double &
-\begin{tabular}[c]{@{}l@{}}Long double precision floating\\ point numbers; precision is at\\ least the same as for double\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}长双精度浮点数;\\ 精度至少与double相同\end{tabular} &
 long double d \{16.98L\}; \\ \hline
 \begin{tabular}[c]{@{}l@{}}char\\ unsigned char\\ signed char\end{tabular} &
-A single character &
+单个字符 &
 char ch \{'m'\}; \\ \hline
 \begin{tabular}[c]{@{}l@{}}char8\_t\\ char16\_t\\ char32\_t\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}A single n-bit UTF-n-encoded\\ Unicode character where n can\\ be 8, 16, or 32\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}单个n位UTF-n编码的Unicode字符，\\ 其中n可以是8、16或32\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}char8\_t c8 \{u8'm'\};\\ char16\_t c16 \{u'm'\};\\ char32\_t c32 \{U'm'\};\end{tabular} \\ \hline
 wchar\_t &
-\begin{tabular}[c]{@{}l@{}}A single wide character; the size\\ depends on the compiler\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}单个宽字符;大小取决于编译器\end{tabular} &
 wchar\_t w \{L'm'\}; \\ \hline
 bool &
-\begin{tabular}[c]{@{}l@{}}A Boolean type that can have\\ one of two values: true or false\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}布尔类型，有两个可能值:true或false\end{tabular} &
 bool b \{true\}; \\ \hline
 \end{longtable}
 
-The range of signed and unsigned integer and char types is as follows:
+有符号整数和无符号整数以及char类型的范围如下:
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{Type}                                             & \textbf{Signed}                 & \textbf{Unsigned}  \\ \hline
+\textbf{类型}                                             & \textbf{有符号}                 & \textbf{无符号}  \\ \hline
 \endfirsthead
 %
 \endhead
 %
-char                                                      & -128 to 127                     & 0 to 255           \\ \hline
-\begin{tabular}[c]{@{}l@{}}2-byte\\ integers\end{tabular} & -32,768 to 32,767               & 0 to 65,535        \\ \hline
-\begin{tabular}[c]{@{}l@{}}4-byte\\ integers\end{tabular} & -2,147,483,648 to 2,147,483,647 & 0 to 4,294,967,295 \\ \hline
-\begin{tabular}[c]{@{}l@{}}8-byte\\ integers\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}-9,223,372,036,854,775,808 to\\ 9,223,372,036,854,775,807\end{tabular} &
-0 to 18,446,744,073,709,551,615 \\ \hline
+char                                                      & -128 - 127                     & 0 - 255           \\ \hline
+\begin{tabular}[c]{@{}l@{}}2字节的整数\end{tabular} & -32,768 - 32,767               & 0 - 65,535        \\ \hline
+\begin{tabular}[c]{@{}l@{}}4字节的整数\end{tabular} & -2,147,483,648 - 2,147,483,647 & 0 - 4,294,967,295 \\ \hline
+\begin{tabular}[c]{@{}l@{}}8字节的整数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}-9,223,372,036,854,775,808 -\\ 9,223,372,036,854,775,807\end{tabular} &
+0 - 18,446,744,073,709,551,615 \\ \hline
 \end{longtable}
 
-Type char is a different type compared to both the signed char and unsigned char types. It should be used only to represent characters. Depending on your compiler, it can be either signed or unsigned, so you should not rely on it being signed or unsigned.
+char类型与有符号char和无符号char类型相比是一种不同的类型，只用于表示字符。根据编译器的不同，可以有符号，也可以无符号。
 
-The range and precision of floating-point types is discussed in the section “Floating-Point Numbers” later in this chapter.
+浮点类型的范围和精度将在本章的“浮点数”一节中讨论。
 
-Related to char, <cstddef> provides the std::byte type representing a single byte. Before C++17, a char or unsigned char was used to represent a byte, but those types make it look like you are working with characters. std::byte on the other hand clearly states your intention, that is, a single byte of memory. A byte can be initialized as follows:
+与char相关的是，<cstddef>提供了std::byte类型，表示单个字节。C++17之前，使用char或unsigned char来表示字节，但这些类型看起来像是在处理字符。另一方面，std::byte可以清楚地说明意图，即单个字节的内存。字节可以按如下方式初始化:
 
 \begin{cpp}
 std::byte b { 42 };
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-C++ does not provide a basic string type. However, a standard implementation of a string is provided as part of the Standard Library, as briefly discussed later in this chapter and in detail in Chapter 2.
+C++不提供基本的字符串类型。但作为标准库的一部分，提供了字符串的标准实现，本章稍后会简单说明一下，详细讨论将在第2章进行。
 \end{myNotic}
 
-\mySamllsection{Numerical Limits}
+\mySamllsection{数值范围}
 
-C++ provides a standard way to obtain information about numeric limits, such as the maximum possible value for an integer on the current platform. In C, you could access constants, such as INT\_MAX. While those are still available in C++, it’s recommended to use the std::numeric\_limits class template defined in <limits>. Class templates are discussed later in this book, but those details are not important to understand how to use numeric\_limits. For now, you just need to know that, since it is a class template, you have to specify the type you are interested in between a set of angle brackets. For example, to get numeric limits for integers, you write std::numeric\_limits<int>. Consult a Standard Library reference (see Appendix B) to learn exactly what kind of information you can query using numeric\_limits.
+C++提供了一种标准的方法来获取有关数字限制的信息，例如：当前平台上整数的最大可能值。C可以访问常量，例如INT\_MAX。这些在C++中仍然可用，但建议使用<limits>中定义的std::numeric\_limits类模板。类模板将在本书后面讨论，这些细节对于理解如何使用numeric\_limits并不重要。现在，只需要知道，它是一个类模板，所以必须在一组尖括号之间指定类型。例如，要获取整数的数值限制，可以编写std::numeric\_limits<int>。参考标准库参考(参见附录B)，了解使用numeric\_limits可以查询哪些类型的信息。
 
-Here are a few examples:
+举一些例子：
 
 \begin{cpp}
 println("int:");
@@ -551,7 +551,7 @@ println("Min double value: {}", numeric_limits<double>::min());
 println("Lowest double value: {}", numeric_limits<double>::lowest());
 \end{cpp}
 
-The output of this code snippet on my system is as follows:
+这些代码在我的系统上的输出:
 
 \begin{shell}
 int:
@@ -564,22 +564,22 @@ Min double value: 2.2250738585072014e-308
 Lowest double value: -1.7976931348623157e+308
 \end{shell}
 
-Note the differences between min() and lowest(). For an integer, the minimum value equals the lowest value. However, for floating-point types, the minimum value is the smallest positive value that can be represented, while the lowest value is the most negative value representable, which equals -max().
+注意min()和lowest()之间的区别。对于整数，最小值等于最小值。然而，对于浮点类型，最小值是可以表示的最小正值，而最小值是可以表示的最大负值，等于-max()。
 
-\mySamllsection{Zero Initialization}
+\mySamllsection{零初始化}
 
-Variables can be initialized to zero with \{0\}, or with a zero initializer, \{\}. Zero initialization initializes primitive integer types (such as char, int, and so on) to zero, primitive floating-point types to 0.0, pointer types to nullptr, and constructs objects with the default constructor (discussed later).
+变量可以用\{0\}初始化为零，也可以用零初始化器\{\}。零初始化将基本整数类型(如char、int等)初始化为零，将基本浮点类型初始化为0.0，将指针类型初始化为nullptr，并使用默认构造函数构造对象(稍后讨论)。
 
-Here is an example of zero initializing a float and an int:
+下面是零初始化浮点型和int型的例子:
 
 \begin{cpp}
 float myFloat {};
 int myInt {};
 \end{cpp}
 
-\mySamllsection{Casting}
+\mySamllsection{类型转换}
 
-Variables can be converted to other types by casting them. For example, a float can be cast to an int. C++ provides three ways to explicitly change the type of a variable. The first method is a holdover from C; it is not recommended but, unfortunately, still commonly used. The second method is rarely used. The third method is the most verbose but is also the cleanest one and is therefore recommended.
+变量可以通过强制转换转换为其他类型。例如，可以将float类型强制转换为int类型。c++提供了三种显式更改变量类型的方法。第一个方法是从C语言继承来的，不推荐使用，但这种方法仍然广泛使用。第二种方法很少使用。第三种方法是最冗长的，但也最干净，推荐使用。
 
 \begin{cpp}
 float myFloat { 3.14f };
@@ -588,95 +588,96 @@ int i2 { int(myFloat) }; // method 2
 int i3 { static_cast<int>(myFloat) }; // method 3
 \end{cpp}
 
-The resulting integer will be the value of the floating-point number with the fractional part truncated. Chapter 10, “Discovering Inheritance Techniques,” describes the different casting methods in more detail. In some contexts, variables can be automatically cast, or coerced. For example, a short can be automatically converted into a long because a long represents the same type of data with at least the same precision:
+得到的整数将是截断小数部分的浮点数的值。第10章“了解继承”更详细地描述了不同的类型转换方法。某些上下文中，可以自动强制转换或强制转换变量。例如，因为long表示至少具有相同精度的相同类型的数据，short可以自动转换为long:
 
 \begin{cpp}
 long someLong { someShort }; // no explicit cast needed
 \end{cpp}
 
-When automatically casting variables, you need to be aware of the potential loss of data. For example, casting a float to an int throws away the fractional part of the number, and the resulting integer can even be completely wrong if the floating-point value represents a number bigger than the maximum representable integer value. Most compilers will issue a warning or even an error if you assign a float to an int without an explicit cast. If you are certain that the left-hand side type is fully compatible with the right-hand side type, it’s OK to cast implicitly.
+自动转换变量时，需要注意潜在的数据丢失。例如，将浮点型转换为int型会丢掉数字的小数部分，若浮点值表示的数字大于可表示的最大整数值，则得到的整数甚至是错误的。若将float赋值给int而不进行显式强制类型转换，大多数编译器将发出警告，甚至报错。若确定左侧类型与右侧类型完全兼容，则可以进行隐式强制转换。
 
-\mySamllsection{Floating-Point Numbers}
+\mySamllsection{浮点数}
 
-Working with floating-point numbers can be more complicated than working with integral types. You need to keep a few things in mind. Calculations with floating-point values that are orders of magnitude different can cause errors. Furthermore, calculating the difference between two floating-point numbers that are almost identical will cause the loss of precision. Also keep in mind that a lot of decimal values cannot be represented exactly as floating-point numbers. However, going deeper in on the numerical problems with using floating-point numbers and how to write numerical stable floatingpoint algorithms is outside the scope of this book, as these topics warrant a whole book on their own.
+处理浮点数比处理整型更复杂，使用数量级不同的浮点值进行计算可能会导致错误。此外，计算两个几乎相同的浮点数之间的差会导致精度的损失。并且，许多十进制值不能精确地表示为浮点数。深入讨论使用浮点数的数值问题，以及如何编写数值稳定的浮点算法超出了本书的范围。
 
-There are several special floating-point numbers:
+有几种特殊的浮点数:
 
 \begin{itemize}
 \item
-+/-infinity: Represents positive and negative infinity, for example the result of dividing a nonzero number by zero
+\textbf{正/负无穷大}:表示正无穷大和负无穷大，例如：非零数除以零的结果
 
 \item
-NaN: Abbreviation for not-a-number, for example the result of dividing zero by zero, a mathematically undefined result
+\textbf{NaN}: 非数字的缩写，例如0除以0的结果，数学上未定义的结果
 \end{itemize}
 
-To check whether a given floating-point number is not-a-number, use std::isnan(). To check for infinity, use std::isinf(). Both functions are defined in <cmath>.
+要检查给定的浮点数是否不是数字，请使用std::isnan()。要检查无穷大，使用std::isinf()。这两个函数都在<cmath>中定义。
 
-To obtain one of these special floating-point values, use numeric\_limits, for example std::numeric\_limits<double>::infinity().
+要获得这些特殊的浮点值，请使用numeric\_limits，例如std::numeric\_limits<double>::infinity()。
 
 \CXXTwentythreeLogo{-40}{-50}
 
-\mySamllsection{Extended Floating-Point Types}
+\mySamllsection{扩展浮点数类型}
 
-As mentioned in the section on variables earlier, C++ provides the following standard floating-point types: float, double, and long double.
+正如前面关于变量的部分所提到的，C++提供了以下标准浮点类型:float、double和long double。
 
-C++23 introduces the following extended floating-point types that have become popular in certain domains. Support for these is optional, and not all compilers provide these types.
+C++23引入了以下扩展的浮点类型，这些类型在某些领域已经变得很流行。对这些类型的支持可选，并不是所有编译器都提供这些类型。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{Type}    & \textbf{Description}                               & \textbf{Literal suffix} \\ \hline
+\textbf{类型}    & \textbf{描述}                               & \textbf{字面量后缀} \\ \hline
 \endfirsthead
 %
 \endhead
 %
-std::float16\_t  & 16-bit format from the IEEE 754 standard.          & F16 or f16              \\ \hline
-std::float32\_t  & 32-bit format from the IEEE 754 standard.          & F32 or f32              \\ \hline
-std::float64\_t  & 64-bit format from the IEEE 754 standard.          & F64 or f64              \\ \hline
-std::float128\_t & 128-bit format from the IEEE 754 standard.         & F128 or f128            \\ \hline
-std::bfloat16\_t & Brain floating point.
-(Developed by Google Brain, an artificial intelligence group at Google. It is used in AI processors and supported in hardware on the latest NVIDIA GPUs.) Used in certain AI domains. & BF16 or bf16            \\ \hline
+std::float16\_t  & IEEE 754标准的16位格式。         & F16 或 f16              \\ \hline
+std::float32\_t  & IEEE 754标准的32位格式。          & F32 或 f32              \\ \hline
+std::float64\_t  & IEEE 754标准的64位格式。          & F64 或 f64              \\ \hline
+std::float128\_t & IEEE 754标准的128位格式。         & F128 或 f128            \\ \hline
+std::bfloat16\_t & 脑浮点数，用于某些AI领域。 & BF16 或 bf16            \\ \hline
 \end{longtable}
 
-Most of the time, the standard types, float, double, and long double, are enough. From these, double should be your default type. Using float can trigger loss of precision, and, depending on your use case, this might or might not be acceptable.
+大脑浮点数:由谷歌人工智能团队Google Brain开发。用于人工智能处理器，并持最新的NVIDIA GPU。
 
-\mySamllsection{Range and Accuracy of Floating-Point Types}
+大多数情况下，标准类型float、double和long double就足够了。因此，double应该是您的默认类型。使用float可能会导致精度损失，损失是否可接受，要具体情况具体分析。
 
-Floating-point types have a limited range and a limited precision. The following table gives detailed specifications of all standard and extended floating-point types supported by C++. However, the specifications of the standard types, float, double, and long double, are not specified exactly by the C++ standard. The standard says only that long double should have at least the same precision as double, and double should have at least the same precision as float. For these three types, the table shows values commonly used by compilers.
+\mySamllsection{浮点类型的范围和精度}
+
+浮点类型具有有限的范围和有限的精度，下表给出了C++支持的所有标准和扩展浮点类型的详细规范。标准类型(float、double和long double)的规范并没有在C++标准中明确规定。标准只要求long double至少具有与double相同的精度，而double至少具有与float相同的精度。对于这三种类型，下表展示了主流编译器常用的值。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|l|l|l|l|}
 \hline
-\textbf{Type} &
-\textbf{Name} &
-\textbf{Mantissa bits} &
-\textbf{Decimal digits} &
-\textbf{Exponent bit} &
-\textbf{Min} &
-\textbf{Max} \\ \hline
+\textbf{类型} &
+\textbf{名称} &
+\textbf{尾数位} &
+\textbf{小数位数} &
+\textbf{指数位} &
+\textbf{最小值} &
+\textbf{最大值} \\ \hline
 \endfirsthead
 %
 \endhead
 %
-float           & \begin{tabular}[c]{@{}l@{}}Single\\ precision\end{tabular}   & 24 & 7.22  & 8  & $1.18$x$10^{-38}$   & $3.40$x$10^{38}$   \\ \hline
-double          & \begin{tabular}[c]{@{}l@{}}Double\\ precision\end{tabular}   & 53 & 15.95 & 11 & $2.23$x$10^{-308}$  & $1.80$x$10^{308}$  \\ \hline
-long double     & \begin{tabular}[c]{@{}l@{}}Extended\\ precision\end{tabular} & 64 & 19.27 & 15 & $3.36$x$10^{-4932}$ & $1.19$x$10^{4932}$ \\ \hline
-std::float16\_t & \begin{tabular}[c]{@{}l@{}}Half\\ precision\end{tabular}     & 11 & 3.31  & 5  & $6.10$x$10^{-5}$    & $65504$       \\ \hline
-std::float32\_t & \begin{tabular}[c]{@{}l@{}}Single\\ precision\end{tabular}   & 24 & 7.22  & 8  & $1.18$x$10^{-38}$   & $3.40$x$10^{38}$   \\ \hline
-std::float64\_t & \begin{tabular}[c]{@{}l@{}}Double\\ precision\end{tabular}   & 53 & 15.95 & 11 & $2.23$x$10^{-308}$  & $1.80$x$10^{308}$  \\ \hline
+float           & \begin{tabular}[c]{@{}l@{}}单精度\end{tabular}   & 24 & 7.22  & 8  & $1.18$x$10^{-38}$   & $3.40$x$10^{38}$   \\ \hline
+double          & \begin{tabular}[c]{@{}l@{}}双精度\end{tabular}   & 53 & 15.95 & 11 & $2.23$x$10^{-308}$  & $1.80$x$10^{308}$  \\ \hline
+long double     & \begin{tabular}[c]{@{}l@{}}扩展精度\end{tabular} & 64 & 19.27 & 15 & $3.36$x$10^{-4932}$ & $1.19$x$10^{4932}$ \\ \hline
+std::float16\_t & \begin{tabular}[c]{@{}l@{}}半精度\end{tabular}     & 11 & 3.31  & 5  & $6.10$x$10^{-5}$    & $65504$       \\ \hline
+std::float32\_t & \begin{tabular}[c]{@{}l@{}}单精度\end{tabular}   & 24 & 7.22  & 8  & $1.18$x$10^{-38}$   & $3.40$x$10^{38}$   \\ \hline
+std::float64\_t & \begin{tabular}[c]{@{}l@{}}双精度\end{tabular}   & 53 & 15.95 & 11 & $2.23$x$10^{-308}$  & $1.80$x$10^{308}$  \\ \hline
 std::float128\_t &
-\begin{tabular}[c]{@{}l@{}}Quadruple\\ precision\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}四倍精度\end{tabular} &
 113 &
 34.02 &
 15 &
 $3.36$x$10^{-4932}$ &
 $1.19$x$10^{4932}$ \\ \hline
 std::bfloat16\_t &
-\begin{tabular}[c]{@{}l@{}}Brain\\ floating\\ point\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}脑浮点\end{tabular} &
 8 &
 2.41 &
 8 &
@@ -684,67 +685,67 @@ $1.18$x$10^{-38}$ &
 $3.40$x$10^{38}$ \\ \hline
 \end{longtable}
 
-\mySubsubsection{1.1.5.}{Operators}
+\mySubsubsection{1.1.5.}{操作符}
 
-What good is a variable if you don’t have a way to change it? The following table shows common operators used in C++ and sample code that makes use of them. Operators in C++ can be binary (operate on two expressions), unary (operate on a single expression), or even ternary (operate on three expressions). There is only one ternary operator in C++, and it is explained in the section “The Conditional Operator” later in this chapter. Furthermore, Chapter 15, “Overloading C++ Operators,” is reserved for operators and explains how you can add support for these operators to your own custom types.
+除了改变一个变量，它还有什么用呢?下表显示了C++中常用的操作符，以及使用这些操作符的示例代码。C++中的操作符可以是二进制(对两个表达式进行操作)、一元(对单个表达式进行操作)，甚至三元(对三个表达式进行操作)。C++中只有一种三元运算符，本章后面的“条件运算符”一节中对其进行了解释。此外，第15章“重载C++操作符”会解释如何在自己的自定义类型中，添加对这些操作符的支持。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{Operator} &
-\textbf{Description} &
-\textbf{Usage} \\ \hline
+\textbf{操作符} &
+\textbf{描述} &
+\textbf{用法} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 = &
-\begin{tabular}[c]{@{}l@{}}Binary operator to assign the value on the right to the\\ expression on the left.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}将右边的值赋给左边表达式的二元操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}int i;\\ i = 3;\\ int j;\\ j = i;\end{tabular} \\ \hline
 ! &
-\begin{tabular}[c]{@{}l@{}}Unary operator to complement the true/false (non-0/0)\\ status of an expression.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}用于补充表达式的真/假(非0/0)状态的一元操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}bool b \{!true\};\\ bool b2 \{!b\};\end{tabular} \\ \hline
 + &
-Binary operator for addition. &
+用于加法的二进制运算符 &
 \begin{tabular}[c]{@{}l@{}}int i \{3 + 2\};\\ int j \{i + 5\};\\ int k \{i + j\};\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}-\\ *\\ /\end{tabular} &
-Binary operators for subtraction, multiplication, and division. &
+用于减法、乘法和除法的二进制运算符 &
 \begin{tabular}[c]{@{}l@{}}int i \{5 – 1\};\\ int j \{5 * 2\};\\ int k \{j / i\};\end{tabular} \\ \hline
 \% &
-\begin{tabular}[c]{@{}l@{}}Binary operator for the remainder of a division operation.\\ This is also referred to as the mod or modulo operator. For\\ example: 5\%2=1.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}除法运算余数的二进制运算符，也称为取模或取模算子。\\ 例如: 5\%2=1\end{tabular} &
 int rem \{5 \% 2\}; \\ \hline
 ++ &
-\begin{tabular}[c]{@{}l@{}}Unary operator to increment an expression by 1. If the\\ operator occurs after the expression, or post-increment, the\\ result of the expression is the unincremented value. If the\\ operator occurs before the expression, or pre-increment, the\\ result of the expression is the new value.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}一元运算符，将表达式加1。\\ 若运算符出现在表达式之后或自增后，则表达式的结果是未自增的值\\ 若运算符出现在表达式之前，或者在递增前，表达式的结果就是新值\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}i++;\\ ++i;\end{tabular} \\ \hline
 -- &
-Unary operator to decrement an expression by 1. &
+一元运算符，将表达式减1。 &
 \begin{tabular}[c]{@{}l@{}}i--;\\ --i;\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}+=\\ -=\\ *=\\ /+\\ \%=\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Shorthand syntax for:\\ i = i + (j);\\ i = i - (j);\\ i = i * (j);\\ i = i / (j);\\ i = i \% (j);\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}简写语法:\\ i = i + (j);\\ i = i - (j);\\ i = i * (j);\\ i = i / (j);\\ i = i \% (j);\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}i += j;\\ i -= j;\\ i *= j;\\ i /= j;\\ i \%= j;\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}\&\\ \&=\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Takes the raw bits of one expression and performs a bitwise\\ AND with the other expression.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}获取变量的位表达式，并与另一个表达式按位执行与运算。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}i = j \& k;\\ j \&= k;\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}|\\ |=\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Takes the raw bits of one expression and performs a bitwise\\ OR with the other expression.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}获取变量的位表达式，并对另一个表达式执行位或运算。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}i = j | k;\\ j |= k;\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}\textless{}\textless\\ \textgreater{}\textgreater\\ \textless{}\textless{}=\\ \textgreater{}\textgreater{}=\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Takes the raw bits of an expression and “shifts” each bit left\\ (\textless{}\textless{}) or right (\textgreater{}\textgreater{}) the specified number of places.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}获取表达式的原始位，并将每个位向左\\ (\textless{}\textless{})或向右(\textgreater{}\textgreater{})移动”指定的位数。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}i = i \textless{}\textless 1;\\ i = i \textgreater{}\textgreater 4;\\ i \textless{}\textless{}= 1;\\ i \textgreater{}\textgreater{}= 4;\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}\textasciicircum\\ \textasciicircum{}=\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Performs a bitwise exclusive or, also called XOR operation,\\ on two expressions.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}对两个表达式执行位异或操作，也称为异或操作。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}i = i \textasciicircum j;\\ i \textasciicircum{}= j;\end{tabular} \\ \hline
 \end{longtable}
 
-Operators of the form op=, e.g., +=, are called compound assignment operators.
+op=形式的操作符，例如+=，称为复合赋值操作符。
 
-When a binary operator is applied to two operands of different types, the compiler inserts an implicit conversion to convert one of them to the other before applying the operator. You can also use explicit conversions to convert one type to another using static\_cast().
+当二元操作符应用于两个不同类型的操作数时，编译器会插入隐式转换。在应用该操作符之前，将其中一个操作数转换为另一个操作数。还可以使用static\_cast()使用显式转换将一种类型转换为另一种类型。
 
-For implicit conversions, the compiler has certain rules to decide which type it converts to which other type. For example, for a binary operation with a small integer type and a larger integer type, the smaller type will be converted to the larger one. However, the results might not always be as you would expect. Thus, I recommend being careful with implicit conversions and using explicit conversions to make sure the compiler does what you intend.
+对于隐式转换，编译器有一定的规则来决定将哪个类型转换为另一个类型。例如，对于具有小整数类型和大整数类型的二进制操作，较小的类型将转换为较大的类型。然而，结果可能并不总是像你期望的那样，所以建议谨慎使用隐式转换，并使用显式转换，以确保编译器按开发者的期望工作。
 
-The following code snippet shows the most common variable types and operators in action. It also shows explicit conversions and explains why they are necessary. If you are unsure about how variables and operators work, try to figure out what the output of this program will be, and then run it to confirm your answer.
+下面的代码片段显示了最常见的变量类型和操作符。还展示了显式转换，并解释了为什么需要转换。若不确定变量和操作符是如何工作的，请尝试预测这个程序的输出将是什么，然后运行它来确认答案。
 
 \begin{cpp}
 int someInteger { 256 };
@@ -766,28 +767,28 @@ someDouble = static_cast<double>(someFloat) / 100000;
 println("{}", someDouble);
 \end{cpp}
 
-The C++ compiler has a recipe for the order in which expressions are evaluated. If you have a complicated expression with many operators, the order of execution may not be obvious. For that reason, it’s probably better to break up a complicated expression into several smaller expressions, or explicitly group subexpressions by using parentheses. For example, the following line of code might be confusing unless you happen to know the exact evaluation order of the operators:
+C++编译器有一个表达式计算的顺序。若有一个包含许多操作符的复杂表达式，则执行顺序可能不明显。出于这个原因，最好将一个复杂的表达式分解成几个较小的表达式，或者通过使用括号显式地对子表达式进行分组。例如，除非知道操作符的准确求值顺序，否则下面这行代码的计算顺序可能会令人困惑:
 
 \begin{cpp}
 int i { 34 + 8 * 2 + 21 / 7 % 2 };
 \end{cpp}
 
-Adding parentheses makes it clear which operations are happening first:
+添加括号可以明确哪些操作先发生:
 
 \begin{cpp}
 int i { 34 + (8 * 2) + ( (21 / 7) % 2 ) };
 \end{cpp}
 
-For those of you playing along at home, both approaches are equivalent and end up with i equal to 51. If you assumed that C++ evaluated expressions from left to right, your answer would have been 1. C++ evaluates /, *, and \% first (in left-to-right order), followed by addition and subtraction, then bitwise operators. Parentheses let you explicitly tell the compiler that a certain operation should be evaluated first.
+对于在家练习的同学来说，这两种方法是相等的，最后i等于51。若假设C++从左到右计算表达式，则的答案将是1。C++首先计算/，*和\%(按从左到右的顺序)，然后是加法和减法，然后是位运算符。括号可以显式地告诉编译器应该首先计算某个操作。
 
-Formally, the evaluation order of operators is expressed by their precedence. Operators with a higher precedence are executed before operators with a lower precedence. The following list shows the precedence of the operators from the previous table. Operators higher in the list have higher precedence and hence are executed before operators lower in the list.
+形式上，运算符的求值顺序由它们的优先级表示，优先级高的操作符在优先级低的操作符之前执行。下面的列表显示了上表中操作符的优先级，列表中较高的操作符具有较高的优先级，因此在列表中较低的操作符之前执行。
 
 \begin{itemize}
 \item
-++ \enspace −− (postfix)
+++ \enspace −{}− (后置)
 
 \item
-! \enspace ++ \enspace −− (prefix)
+! \enspace ++ \enspace −{}− (前置)
 
 \item
 * \enspace / \enspace \%
@@ -812,12 +813,11 @@ Formally, the evaluation order of operators is expressed by their precedence. Op
 
 \end{itemize}
 
-This is only a selection of the available C++ operators. Chapter 15 gives a complete overview of all available operators, including their precedence.
+这只是一些常用的C++操作符。第15章给出了所有可用操作符的完整概述，包括其优先级。
 
+\mySubsubsection{1.1.6.}{枚举}
 
-\mySubsubsection{1.1.6.}{Enumerations}
-
-An integer really represents a single value from a larger set of values—the entire sequence of integral numbers. Enumerations are types that let you define your own sequences so that you can declare variables with values in that sequence. For example, in a chess program, you could represent each piece as an int, with constants for the piece types, as shown in the following code. The integers representing the types are marked const to indicate that they can never change.
+整数实际上表示较大的值集合中的一个值——整个整数序列。枚举是允许自定义序列的类型，这样就可以用该序列中的值声明变量。例如，在国际象棋程序中，可以将每个棋子表示为int，并用常量表示棋子类型，如下面的代码所示。表示类型的整数标记为const，表明永远不会改变。
 
 \begin{cpp}
 const int PieceTypeKing { 0 };
@@ -828,21 +828,21 @@ const int PieceTypePawn { 3 };
 int myPiece { PieceTypeKing };
 \end{cpp}
 
-This representation can become dangerous. Since a piece is just an int, what would happen if another programmer added code to increment the value of a piece? By adding 1, a king becomes a queen, which really makes no sense. Worse still, someone could come in and give a piece a value of -1, which has no corresponding constant.
+这种表示可能会变得危险。由于piece只是一个int类型，若另一个开发者添加代码来增加piece的值，会发生什么?加1，国王就变成了王后，这真的没有意义。更糟糕的是，有人可能会给一个片段一个-1的值，而这个值没有对应的常数。
 
-Strongly typed enumerations solve these problems by tightly defining the range of values for a variable. The following code declares a new type, PieceType, which has four possible values, called enumerators, representing four of the chess pieces:
+强类型枚举通过严格定义变量的值范围来解决这些问题。下面的代码声明了一个新类型PieceType，有四个可能的值，称为枚举数，代表四个棋子:
 
 \begin{cpp}
 enum class PieceType { King, Queen, Rook, Pawn };
 \end{cpp}
 
-This new type can be used as follows:
+这个新类型可以像下面这样使用:
 
 \begin{cpp}
 PieceType piece { PieceType::King };
 \end{cpp}
 
-Behind the scenes, an enumeration is just an integer value. The underlying values for King, Queen, Rook, and Pawn are 0, 1, 2, and 3, respectively. It’s possible to specify the integer values for enumerators yourself. The syntax is as follows:
+枚举只是一个整数值，King、Queen、Rook和Pawn的基本值分别为0、1、2和3。可以自己指定枚举数的整数值:
 
 \begin{cpp}
 enum class PieceType
@@ -854,9 +854,9 @@ enum class PieceType
 };
 \end{cpp}
 
-If you do not assign a value to an enumerator, the compiler automatically assigns it a value that is the previous enumerator incremented by 1. If you do not assign a value to the first enumerator, the compiler assigns it the value 0. So, in this example, King has the integer value 1, Queen has the value 2 assigned by the compiler, Rook has the value 10, and Pawn has the value 11 assigned automatically by the compiler.
+若没有给枚举数赋值，编译器会自动给它赋一个上一个枚举数加1的值。若果不给第一个枚举数赋值，编译器将给它赋值0。所以这个例子中，King的整数值是1，Queen的值是编译器赋值的2，Rook的值是10，Pawn的值是编译器自动赋值的11。
 
-Even though enumerators are internally represented by integer values, they are not automatically converted to integers, which means the following is illegal:
+尽管枚举数在内部由整数值表示，但不会自动转换为整数，所以以下操作是非法的:
 
 \begin{cpp}
 int underlyingValue { piece };
@@ -864,13 +864,13 @@ int underlyingValue { piece };
 
 \CXXTwentythreeLogo{-40}{-35}
 
-Starting with C++23, you can use std::to\_underlying(). For example:
+C++23开始，可以使用std::to\_underlying()。例如:
 
 \begin{cpp}
 int underlyingValue { to_underlying(piece) };
 \end{cpp}
 
-By default, the underlying type of an enumerator is an integer, but this can be changed as follows:
+默认情况下，枚举数的基础类型是整数，但也可以这样修改:
 
 \begin{cpp}
 enum class PieceType : unsigned long
@@ -882,21 +882,21 @@ enum class PieceType : unsigned long
 };
 \end{cpp}
 
-For an enum class, the enumerator names are not automatically exported to the enclosing scope. This means they cannot clash with other names already defined in the parent scope. As a result, different strongly typed enumerations can have enumerators with the same name. For example, the following two enumerations are perfectly legal:
+对于枚举类，枚举数名称不会自动导出到封闭作用域，所以不会与父作用域中已经定义的其他名称冲突，从而不同的强类型枚举可以具有相同名称的枚举数。例如，下面两个枚举完全合法:
 
 \begin{cpp}
 enum class State { Unknown, Started, Finished };
 enum class Error { None, BadInput, DiskFull, Unknown };
 \end{cpp}
 
-A big benefit of this is that you can give short names to the enumerators, for example, Unknown instead of UnknownState and UnknownError. However, it also means that you either have to fully qualify enumerators, or use a using enum or using declaration. Here’s an example of a using enum declaration:
+这样做的一大好处是，可以为枚举器提供简短的名称，用Unknown代替UnknownState和UnknownError。但必须完全限定枚举值，或者使用using enum或using声明。下面是using enum声明的一个例子:
 
 \begin{cpp}
 using enum PieceType;
 PieceType piece { King };
 \end{cpp}
 
-A using declaration can be used if you want to avoid having to fully qualify specific enumerators. For example, in the following code snippet, King can be used without full qualification, but other enumerators still need to be fully qualified:
+若希望避免完全限定特定枚举数，可以使用using声明。例如，在下面的代码片段中，King可以在没有完全限定的情况下使用，但其他枚举数仍然需要完全限定:
 
 \begin{cpp}
 using PieceType::King;
@@ -905,47 +905,47 @@ piece = PieceType::Queen;
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-Even though C++ allows you to avoid fully qualifying enumerators, I recommend using this feature judiciously. At least try to minimize the scope of the using enum or using declaration because if this scope is too big, you risk reintroducing name clashes. The section on the switch statement later in this chapter shows a properly scoped use of a using enum declaration.
+尽管C++允许您避免完全限定的枚举器，但建议谨慎使用该特性。至少要缩小using enum或using声明的作用域，因为若这个作用域太大，就有可能重新引入名称冲突。本章后面关于switch语句的部分，展示了using enum声明的适当作用域用法。
 \end{myWarning}
 
-\mySamllsection{Old-Style Enumerations}
+\mySamllsection{旧式枚举}
 
-New code should always use the strongly typed enumerations explained in the previous section. However, in legacy code bases, you might find old-style enumerations, also known as unscoped enumerations: enum instead of enum class. Here is the previous PieceType defined as an old-style enumeration:
+新代码应该始终使用前一节中解释的强类型枚举。但在遗留代码库中，可能会看到旧式枚举，也称为无作用域枚举:enum，而非enum类。下面是之前定义为旧式枚举的PieceType:
 
 \begin{cpp}
 enum PieceType { PieceTypeKing, PieceTypeQueen, PieceTypeRook, PieceTypePawn };
 \end{cpp}
 
-The enumerators of such old-style enumerations are exported to the enclosing scope. This means that in the parent scope you can use the names of the enumerators without fully qualifying them, for example:
+这种旧式枚举的枚举数导出到封闭作用域。所以在父作用域中，可以使用枚举数的名称而不完全限定它们，例如:
 
 \begin{cpp}
 PieceType myPiece { PieceTypeQueen };
 \end{cpp}
 
-This of course also means that they can clash with other names already defined in the parent scope resulting in a compilation error. Here’s an example:
+当然，它们可能与父作用域中已经定义的其他名称冲突，从而导致编译错误。这里有一个例子:
 
 \begin{cpp}
 bool ok { false };
 enum Status { error, ok };
 \end{cpp}
 
-This code snippet does not compile because the name ok is first defined to be a Boolean variable, and later the same name is used as the name of an enumerator. Visual C++ 2022 emits the following error:
+这段代码片段无法编译，因为名称ok首先定义为一个布尔变量，之后又将相同的名称用作枚举数的名称。Visual C++ 2022会出现以下错误:
 
 \begin{shell}
 error C2365: 'ok': redefinition; previous definition was 'data variable'
 \end{shell}
 
-Hence, you should make sure such old-style enumerations have enumerators with unique names, such as PieceTypeQueen, instead of simply Queen.
+因此，应该确保这种旧式枚举具有具有唯一名称的枚举数，例如PieceTypeQueen，而不是简单的Queen。
 
-These old-style enumerations are not strongly typed, meaning they are not type safe. They are always interpreted as integers, and thus you can inadvertently compare enumerators from completely different enumerations, or pass an enumerator of the wrong enumeration to a function.
+这些旧式枚举不是强类型的，所以类型不安全。它们可解释为整数，所以会无意中比较来自完全不同枚举的枚举数，或者将错误枚举类型的枚举数传递给函数。
 
 \begin{myWarning}{WARNING}
-Always use strongly typed enum class enumerations instead of oldstyle, unscoped, type-unsafe enum enumerations.
+始终使用强类型枚举类枚举，而不是旧式的、无作用域的、类型不安全的枚举类型。
 \end{myWarning}
 
-\mySubsubsection{1.1.7.}{Structs}
+\mySubsubsection{1.1.7.}{结构体}
 
-Structs let you encapsulate one or more existing types into a new type. The classic example of a struct is a database record. If you are building a personnel system to keep track of employee information, you might want to store the first initial, last initial, employee number, and salary for each employee. A struct that contains all of this information is shown in the employee.cppm module interface file that follows. This is your first self-written module in this book. Module interface files usually have .cppm as extension. The first line in the module interface file is a module declaration and states that this file is defining a module called employee. Furthermore, a module needs to explicitly state what it exports, i.e., what will be visible when this module is imported somewhere else. Exporting a type from a module is done with the export keyword in front of, for example, a struct.
+结构体允许将一个或多个现有类型封装成一个新的类型，其经典示例是数据库。若正在构建一个人事系统来跟踪员工信息，可能希望存储每个员工的姓名首字母、姓氏首字母、员工编号和薪资。以下employee.cppm模块接口文件中展示了一个包含所有这些信息的结构体，这是目前编写的第一个模块。模块接口文件通常具有.cppm扩展名。模块接口文件的第一行是一个模块声明，表明这个文件正在定义一个名为employee的模块。此外，模块需要明确声明它导出了什么，即当这个模块在其他地方导入时，哪些内容可见。通过在例如结构体前加上export关键字，可以从模块中导出一个类型。
 
 \begin{cpp}
 export module employee;
@@ -958,7 +958,7 @@ export struct Employee {
 };
 \end{cpp}
 
-A variable declared with type Employee has all of these fields built in. The individual fields of a struct can be accessed by using the . operator. The example that follows creates and then outputs the record for an employee. Just as with the standard named module std, you don’t use angle brackets when importing custom modules.
+使用类型Employee声明的变量内置了所有这些字段，结构体的各个字段可以通过使用.运算符来访问。下面的示例创建然后输出一个员工的记录，与导入标准命名模块std一样，导入自定义模块时也不使用尖括号。
 
 \begin{cpp}
 import std;
@@ -982,13 +982,13 @@ int main()
 }
 \end{cpp}
 
-\mySubsubsection{1.1.8.}{Conditional Statements}
+\mySubsubsection{1.1.8.}{条件语句}
 
-Conditional statements let you execute code based on whether something is true. As shown in the following sections, there are two main types of conditional statements in C++: if/else statements and switch statements.
+条件语句允许你根据某个条件是否为真来执行代码。如下节所示，C++中有两种主要的条件语句：if/else语句和switch语句。
 
-\mySamllsection{if/else Statements}
+\mySamllsection{if/else}
 
-The most common conditional statement is the if statement, which can be accompanied by an else. If the condition given inside the if statement is true, the line or block of code is executed. If not, execution continues with the else case if present or with the code following the conditional statement. The following code shows a cascading if statement, a fancy way of saying that the if statement has an else statement that in turn has another if statement, and so on:
+最常见的条件语句是if语句，可以伴随一个else。若if语句内部给出的条件为真，则执行该行或代码块；否则，继续执行当前if语句的else情况（若存在），或者执行条件语句之后的代码。以下代码展示了一个级联if语句，花哨的说法是if语句有一个else语句，而这个else语句又有一个if语句，依此类推：
 
 \begin{cpp}
 if (i > 4) {
@@ -1000,11 +1000,11 @@ if (i > 4) {
 }
 \end{cpp}
 
-The expression between the parentheses of an if statement must be a Boolean value or evaluate to a Boolean value. A value of 0 evaluates to false, while any non-zero value evaluates to true. For example, if(0) is equivalent to if(false). Logical evaluation operators, described later, provide ways of evaluating expressions to result in a true or false Boolean value.
+if语句括号内的表达式必须是布尔值或计算结果为布尔值。值为0的计算结果为false，而任何非零值的计算结果为true。例如，if(0)等同于if(false)。后面将描述的逻辑评估运算符提供了一种方法，用于计算表达式以产生true或false的布尔值。
 
-\mySamllsection{Initializers for if Statements}
+\mySamllsection{if语句的初始化式}
 
-C++ allows you to include an initializer inside an if statement using the following syntax:
+C++允许你在if语句中使用以下语法包含一个初始化表达式：
 
 \begin{cpp}
 if (<initializer>; <conditional_expression>) {
@@ -1016,19 +1016,19 @@ if (<initializer>; <conditional_expression>) {
 }
 \end{cpp}
 
-Any variable introduced in the <initializer> is available only in the <conditional\_expression>, in the <if\_body>, in all <else\_if\_expression>s and <else\_if\_body>s, and in the <else\_body>. Such variables are not available outside the if statement.
+<initializer>中引入的变量仅在<conditional\_expression>、<if\_body>、所有<else\_if\_expression>和<else\_if\_body>，以及<else\_body>中可用。这样的变量在if语句外部不可用。
 
-It is too early in this book to give a useful example of this feature, but here is an example of how it could be employed:
+给出这个功能的例子还为时过早，但这里有一个如何使用它的例子:
 
 \begin{cpp}
 if (Employee employee { getEmployee() }; employee.salary > 1000) { ... }
 \end{cpp}
 
-In this example, the initializer gets an employee by calling the getEmployee() function. Functions are discussed later in this chapter. The condition checks whether the salary of the retrieved employee exceeds 1000. Only in that case is the body of the if statement executed. More concrete examples will be given throughout this book.
+这个例子中，初始化器通过调用getEmployee()函数来获取一个员工，条件检查检索到的员工的薪资是否超过1000。只有在这种情况 下，才会执行if语句的主体。本书将在后续提供更具体的例子。
 
-\mySamllsection{switch Statements}
+\mySamllsection{switch}
 
-The switch statement is an alternate syntax for performing actions based on the value of an expression. In C++, the expression of a switch statement must be of an integral type, a type convertible to an integral type, an enumeration, or a strongly typed enumeration, and must be compared to constants. Each constant value represents a “case.” If the expression matches the case, the subsequent lines of code are executed until a break statement is reached. You can also provide a default case, which is matched if none of the other cases matches. The following pseudocode shows a common use of the switch statement:
+switch语句是基于表达式值执行操作的一种替代语法。在C++中，switch语句的表达式必须是整型、可转换为整型的类型、枚举或强类型枚举，并且必须与常量进行比较。每个常量值代表一个“case”。若表达式与某个case匹配，就会执行后续的代码，直到遇到break语句。还可以提供一个default，若其他case都不匹配，就会执行default。以下伪代码展示了switch语句的常见用法：
 
 \begin{cpp}
 switch (menuItem) {
@@ -1044,7 +1044,7 @@ switch (menuItem) {
 }
 \end{cpp}
 
-A switch statement can always be converted into if/else statements. The previous switch statement can be converted as follows:
+switch语句可以转换为if/else语句。前面的switch语句可以转换为如下形式：
 
 \begin{cpp}
 if (menuItem == OpenMenuItem) {
@@ -1056,9 +1056,9 @@ if (menuItem == OpenMenuItem) {
 }
 \end{cpp}
 
-switch statements are generally used when you want to do something based on more than one specific value of an expression, as opposed to some test on the expression. In such a case, the switch statement avoids cascading if/else statements. If you need to inspect only one value, an if or if/else statement is fine.
+switch语句通常根据表达式的多个特定值执行操作时使用，而不是对表达式进行某种测试。这种情况下，switch语句避免了级联的if/else语句。若只需要检查一个值，使用if或if/else语句就可以。
 
-Once a case expression matching the switch condition is found, all statements that follow it are executed until a break statement is reached. This execution continues even if another case expression is encountered, which is called fallthrough. In the following example, a single set of statements is executed for both Mode::Standard and Default. If mode is Custom, then value is first changed from 42 to 84, after which the Standard and Default statements are executed. In other words, the Custom case falls through until it eventually reaches a break statement or the end of the switch statement. This code snippet also shows a nice example of using a properly scoped using enum declaration to avoid having to write Mode::Custom, Mode::Standard, and Mode::Default for the different case labels.
+当找到与switch条件匹配的case表达式，就会执行跟随其后的所有语句，直到遇到break语句。即使遇到另一个case表达式，这种执行也会继续，这称为“fallthrough”（穿透）。在下面的例子中，对于Mode::Standard和Default，执行的是同一组语句。若mode是Custom，则value首先从42改为84，之后Standard和Default的语句也会执行。换句话说，Custom案例会穿透执行，直到最终遇到一个break语句或switch语句的末尾。这段代码还展示了使用适当作用域的using enum声明的好例子，避免了在不同case标签上写Mode::Custom, Mode::Standard和Mode::Default的必要。
 
 \begin{cpp}
 enum class Mode { Default, Custom, Standard };
@@ -1077,7 +1077,7 @@ switch (mode) {
 }
 \end{cpp}
 
-Fallthrough can be a source of bugs, for example if you accidentally forget a break statement. Because of this, some compilers give a warning if a fallthrough is detected in a switch statement, unless the case is empty. In the previous example, no compiler will give a warning that the Standard case falls through to the Default case, but a compiler might give a warning for the Custom case fallthrough. To prevent this warning and to make it clear to a reader and the compiler that the fallthrough is intentional, you can use a [[fallthrough]] attribute as follows:
+穿透可能会导致错误，例如不小心忘记了一个break语句。因此，一些编译器会在switch语句中检测穿透情况，除非case为空，否则会给出一个警告。之前的例子中，没有编译器会警告Standard案例穿透到Default案例，但是对于Custom案例的穿透，编译器可能会给出警告。为了避免这个警告，并让读者和编译器清楚穿透是有意的，可以使用一个[[fallthrough]]属性：
 
 \begin{cpp}
 switch (mode) {
@@ -1093,7 +1093,7 @@ switch (mode) {
 }
 \end{cpp}
 
-Surrounding the statements following a case expression with braces is often optional, but sometimes necessary, for example, when defining variables. Here is an example:
+通常情况下，围绕在case表达式后面的语句周围的括号是可选的，但在定义变量时，是必要的：
 
 \begin{cpp}
 switch (mode) {
@@ -1111,107 +1111,107 @@ switch (mode) {
 }
 \end{cpp}
 
-When using a switch statement for enumerations, most compilers issue a warning when you don’t handle all different enumerators, either by explicitly writing cases for each enumerator or by writing cases for only a selection of the enumerators in combination with a default case. However, it’s recommended not to include a default case in a switch statement switching on enumerations. Instead, you should explicitly list all enumerators. The reason is that this makes the code less error prone for when you later add more enumerators to the enumeration. In that case, if you forget to add any new enumerator to specific switch statements, the compiler will issue a warning instead of silently handling the new enumerator using the default case.
+当使用switch语句处理枚举时，若没有为所有的枚举器处理所有不同的情况，大多数编译器会发出警告，无论是通过为每个枚举器显式编写case，还是通过仅为选择的一部分枚举器编写case并有一个default。这里，建议在处理枚举的switch语句中不要包含default，而应该显式地列出所有的枚举器。因为以后向枚举中添加更多的枚举值，这样做会使代码更容易避免错误。若忘记将新的枚举值添加到特定的switch语句中，编译器将发出警告，而不是默默地使用default处理新的枚举值。
 
-\mySamllsection{Initializers for switch Statements}
+\mySamllsection{switch语句的初始化式}
 
-Just as for if statements, you can use initializers with switch statements. The syntax is as follows:
+就像if语句一样，可以在switch语句中使用初始化式。语法如下：
 
 \begin{cpp}
 switch (<initializer>; <expression>) { <body> }
 \end{cpp}
 
-Any variables introduced in the <initializer> are available only in the <expression> and in the <body>. They are not available outside the switch statement.
+<initializer>中引入的变量仅在<expression>和<body>中可用，其在switch语句外部不可用。
 
-\mySubsubsection{1.1.9.}{The Conditional Operator}
+\mySubsubsection{1.1.9.}{条件运算符}
 
-C++ has one operator that takes three arguments, known as a ternary operator. It is used as a shorthand conditional expression of the form “if [something] then [perform action], otherwise [perform some other action].” The conditional operator is represented by a ? and a :. The following code outputs “yes” if the variable i is greater than 2, and “no” otherwise:
+C++有一个接受三个参数的运算符，称为三元运算符。可用作一种简短的条件表达式，即“如果[某事]为真，则[执行动作]，否则[执行其他动作]”。条件运算符由?和:表示。以下代码在变量i大于2时输出“yes”，否则输出“no”：
 
 \begin{cpp}
 println("{}", (i > 2) ? "yes" : "no");
 \end{cpp}
 
-The parentheses around i > 2 are optional, so the following is equivalent:
+i > 2周围的括号是可选的，等价与下面的代码:
 
 \begin{cpp}
 println("{}", i > 2 ? "yes" : "no");
 \end{cpp}
 
-The advantage of the conditional operator is that it is an expression, not a statement like the if and switch statements. Hence, a conditional operator can occur within almost any context. In the preceding example, the conditional operator is used within code that performs output. A convenient way to remember how the syntax is used is to treat the question mark as though the statement that comes before it really is a question. For example, “Is i greater than 2? If so, the result is ‘yes’; if not, the result is ‘no.’”
+其优势在于它是一个表达式，而不是像if和switch语句那样的语句。前面的例子中，条件运算符可用在执行输出的代码中。记住这种语法使用的一个方便方法是，将问号前面的语句当作一个真正的问题。"例如，i大于2吗？若是，结果是'yes'；若不是，结果是'no'。"
 
-\mySubsubsection{1.1.10.}{Logical Evaluation Operators}
+\mySubsubsection{1.1.10.}{逻辑求值运算符}
 
-You have already seen a logical evaluation operator without a formal definition. The > operator compares two values. The result is true if the value on the left is greater than the value on the right. All logical evaluation operators follow this pattern—they all result in a true or false.
+您已经看到了一个逻辑评估运算符，但没有正式的定义，运算符>会比较两个值。若左边的值大于右边的值，结果为真。所有逻辑评估运算符都遵循这种模式——其结果是真或假。
 
-The following table shows common logical evaluation operators:
+下表给出了常见的逻辑求值运算符:
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{op} &
-\textbf{Description} &
-\textbf{Usage} \\ \hline
+\textbf{运算符} &
+\textbf{描述} &
+\textbf{用法} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 \begin{tabular}[c]{@{}l@{}}\textless\\ \textless{}=\\ \textgreater\\ \textgreater{}=\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Determines if the left-hand side is less than, less\\ than or equal to, greater than, or greater than or\\ equal to the right-hand side.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}确定左边是否小于、小于或等于、大于或大于或等于右边。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}if (i \textless 0) \{\\   print("i is negative");\\ \}\end{tabular} \\ \hline
 == &
-\begin{tabular}[c]{@{}l@{}}Determines if the left-hand side equals the\\ right-hand side. Don’t confuse this with the =\\ (assignment) operator!\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}确定左边是否等于右边。不要将它与=(赋值)操作符混淆!\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}if (i == 3) \{\\   print("i is 3");\\ \}\end{tabular} \\ \hline
 != &
-\begin{tabular}[c]{@{}l@{}}Not equals. The result of the statement is true if\\ the left-hand side does not equal the right-hand\\ side.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}不是等号。若左边不等于右边，这个语句的结果为true。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}if (i != 3) \{\\   print("i is not 3");\\ \}\end{tabular} \\ \hline
 \textless{}=\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Three-way comparison operator, also called the\\ spaceship operator. Explained in more detail in\\ the next section.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}三向比较运算符，也称为太空飞船运算符。\\ 下一节将更详细地解释。\end{tabular} &
 result = i \textless{}=\textgreater 0; \\ \hline
 ! &
-\begin{tabular}[c]{@{}l@{}}Logical NOT. This complements the true/false\\ status of a Boolean expression. This is a unary\\ operator.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}逻辑否。这是布尔表达式true/false状态的补充，\\ 是一个一元算子。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}if (!bool1) \{\\   print("bool1 is false");\\ \}\end{tabular} \\ \hline
 \&\& &
-\begin{tabular}[c]{@{}l@{}}Logical AND. The result is true if both parts of\\ the expression are true.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}逻辑。若表达式的两个部分都为真，则结果为真。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}if (bool1 \&\& bool2) \{\\   print("both are true");\\ \}\end{tabular} \\ \hline
 || &
-\begin{tabular}[c]{@{}l@{}}Logical OR. The result is true if either part of\\ the expression is true.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}逻辑或。若表达式的任何一部分为真，则结果为真。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}if (bool1 || bool2) \{\\   print("at least one is true");\\ \}\end{tabular} \\ \hline
 \end{longtable}
 
-C++ uses short-circuit logic when evaluating logical expressions. That means that once the final result is certain, the rest of the expression won’t be evaluated. For example, if you are performing logical OR operations of several Boolean expressions, as shown in the following code, the result is known to be true as soon as one of them is found to be true. The rest won’t even be checked.
+C++在评估逻辑表达式时使用短路逻辑，当最终结果确定，表达式的其余部分将不会计算。例如，若对几个布尔表达式执行逻辑或操作，如以下代码所示，当发现其中一个为真，结果就已知为真，其余的部分就不会进行检查了。
 
 \begin{cpp}
 bool result { bool1 || bool2 || (i > 7) || (27 / 13 % i + 1) < 2 };
 \end{cpp}
 
-In this example, if bool1 is found to be true, the entire expression must be true, so the other parts aren’t evaluated. In this way, the language saves your code from doing unnecessary work. It can, however, be a source of hard-to-find bugs if the later subexpressions in some way influence the state of the program (for example, by calling a separate function).
+这个例子中，若bool1为真，则整个表达式必须为真，因此其他部分不会计算。这样，语言避免了你的代码做不必要的工作。然而，若后续的子表达式以某种方式影响程序的状态（例如，通过调用一个单独的函数），这可能会成为难以发现的错误的来源。
 
-The following code shows a statement using \&\& that short-circuits after the second term because 0 always evaluates to false:
+下面的代码显示了一个使用\&\&的语句，因为0的计算结果总是为false，所以该语句在第二项之后短路:
 
 \begin{cpp}
 bool result { bool1 && 0 && (i > 7) && !done };
 \end{cpp}
 
-Short-circuiting can be beneficial for performance. You can put less resource intensive tests first so that more expensive tests are not even executed when the logic short-circuits. It is also useful in the context of pointers to avoid parts of the expression to be executed when a pointer is not valid. Pointers and short-circuiting with pointers are discussed later in this chapter.
+短路可以带来性能上的好处，可以将资源消耗较少的测试放在前面，这样当逻辑短路时，更昂贵的测试不会执行到。指针的上下文中，因为其可以避免在指针无效时执行表达式的某些部分，所以短路也是非常有用的。指针和指针的短路将在本章后面继续讨论。
 
-\mySubsubsection{1.1.11.}{Three-Way Comparisons}
+\mySubsubsection{1.1.11.}{三元比较运算符}
 
-The three-way comparison operator can be used to determine the order of two values. It is also called the spaceship operator because its sign, <=>, resembles a spaceship. With a single expression, it tells you whether a value is equal, less than, or greater than another value. Because it has to return more than just true or false, it cannot return a Boolean type. Instead, it returns an enumeration-like type, defined in <compare> in the std namespace. If the operands are integral types, the result is a strong ordering and can be one of the following:
+三路比较运算符可以用来确定两个值的顺序，也称为太空船运算符，因为其符号<=>像一艘太空船。使用单个表达式，可以了解一个值是等于、小于还是大于另一个值。因为它必须返回的不仅是真或假，所以它不能返回布尔类型。相反，它返回一个在std命名空间中<compare>定义的类枚举类型。若操作数是整型，结果是一个强序，可以是以下之一：
 
 \begin{itemize}
 \item
-strong\_ordering::less: First operand less than second
+strong\_ordering::less: 第一个操作数小于第二个
 
 \item
-strong\_ordering::greater: First operand greater than second
+strong\_ordering::greater: 第一个操作数大于第二个
 
 \item
-strong\_ordering::equal: First operand equal to second
+strong\_ordering::equal: 第一个操作数等于第二个操作数
 \end{itemize}
 
-Here is an example of its use:
+下面是它的用法:
 
 \begin{cpp}
 int i { 11 };
@@ -1221,42 +1221,42 @@ if (result == strong_ordering::greater) { println("greater"); }
 if (result == strong_ordering::equal) { println("equal"); }
 \end{cpp}
 
-Certain types don’t have a total ordering. For example, not-a-number floating-point values are never equal, less than, or greater than any other floating-point value. Thus, such comparisons result in a partial ordering:
+某些类型没有顺序关系。例如，非数（NaN）浮点值永远不会等于、小于或大于任何其他浮点值，所以这种比较结果是一个偏序关系：
 
 \begin{itemize}
 \item
-partial\_ordering::less: First operand less than second
+partial\_ordering::less: 第一个操作数小于第二个
 
 \item
-partial\_ordering::greater: First operand greater than second
+partial\_ordering::greater: 第一个操作数大于第二个
 
 \item
-partial\_ordering::equivalent: First operand equivalent to second, meaning !(a<b) \&\& !(b<a); for example, -0.0 is equivalent to +0.0, but they are not equal
+partial\_ordering::equivalent: 第一个操作数相当于第二个操作数，!(a<b) \&\& !(b<a);例如，-0.0等于+0.0，但它们其实不相等
 
 \item
-partial\_ordering::unordered: If one or both of the operands is not-a-number
+partial\_ordering::unordered: 若一个或两个操作数都不是数字
 \end{itemize}
 
-If you really need a strong ordering of your floating-point values, e.g., if you know they are never not-a-number, you can use std::strong\_order(), which always produces an std::strong\_ordering result.
+若真的需要浮点值的强排序，例如，知道比较的两个数是数字，可以使用std::strong\_order()，会产生一个std::strong\_ordering结果。
 
-There is also a weak ordering, which is an additional ordering type that you can choose from to implement three-way comparisons for your own types. With a weak ordering, all values are ordered, i.e., there is no unordered result, but the ordering is not strong, meaning there can be non-equal values that are equivalent. An example is ordering strings with case-insensitive comparisons. In that case, the strings “Hello World” and “hello world” are certainly not equal, but they are equivalent. Here are the different results of a weak ordering:
+还有一种弱序关系，可以用来为自定义类型实现三路比较的附加排序类型。弱序关系中，所有值都有序，即没有无序结果，但排序不是强序，所以可能存在实际不等，但使用时等价的值。一个例子是对字符串进行不区分大小写的比较，字符串“Hello World”和“hello world”显然不相等，但它们等价。以下是弱序关系的不同结果：
 
 \begin{itemize}
 \item
-weak\_ordering::less: First operand less than second
+weak\_ordering::less: 第一个操作数小于第二个
 
 \item
-weak\_ordering::greater: First operand greater than second
+weak\_ordering::greater: 第一个操作数大于第二个
 
 \item
-weak\_ordering::equivalent: First operand equivalent to second
+weak\_ordering::equivalent: 第一个操作数等同于第二个操作数
 \end{itemize}
 
-The three different types of ordering support certain implicit conversions. A strong\_ordering can be converted implicitly to a partial\_ordering or a weak\_ordering. A weak\_ordering can be converted implicitly to a partial\_ordering.
+三种不同类型的排序支持某些隐式转换。强排序（strong\_ordering）可以隐式转换为偏排序（partial\_ordering）或弱排序（weak\_ordering）。弱排序（weak\_ordering）可以隐式转换为偏排序（partial\_ordering）。
 
-For primitive types, using the three-way comparison operator doesn’t gain you much compared to just performing individual comparisons using the ==, <, and > operators. However, it becomes useful with objects that are more expensive to compare. With the three-way comparison operator, such objects can be ordered with a single operator, instead of potentially having to call two individual comparison operators, triggering two expensive comparisons. Chapter 9, “Mastering Classes and Objects,” explains how to add support for three-way comparisons to your own types.
+对于基本类型来说，使用三路比较操作符相比于直接使用 ==、<和>操作符进行单个比较，并没有带来太多优势。但当涉及到比较成本较高的对象时，三路比较操作符就变得非常有用了。使用三路比较操作符，这类对象可以通过单个操作符进行排序，而不需要调用两个单独的比较操作符，从而进行两次昂贵的比较。第9章“类和对象”解释了如何为自己的类型添加对三路比较的支持。
 
-Finally, <compare> provides named comparison functions to interpret the result of an ordering. These functions are std::is\_eq(), is\_neq(), is\_lt(), is\_lteq(), is\_gt(), and is\_gteq() returning true if an ordering represents ==, !=, <, <=, >, or >= respectively, false otherwise. Here is an example:
+最后，<compare>提供了命名比较函数来解释排序的结果。这些函数是std::is\_eq(), is\_neq(), is\_lt(), is\_lteq(), is\_gt()和 is\_gteq()，如果排序代表==，!=，<，<=，>或>=，则分别返回true，否则返回false。下面是一个例子：
 
 \begin{cpp}
 int i { 11 };
@@ -1266,23 +1266,23 @@ if (is_gt(result)) { println("greater"); }
 if (is_eq(result)) { println("equal"); }
 \end{cpp}
 
-\mySubsubsection{1.1.12.}{Functions}
+\mySubsubsection{1.1.12.}{函数}
 
-For programs of any significant size, placing all the code inside of main() is unmanageable. To make programs easier to understand, you need to break up, or decompose, code into concise functions.
+对于任何具有一定规模的程序来说，将所有代码放在main()函数内部是不可行的。为了使程序更容易理解，需要将代码分解成简洁的函数。
 
-In C++, you first declare a function to make it available for other code to use. If the function is used only inside a particular file, you generally declare and define the function in that source file. If the function is for use by other modules or files, you export a declaration for the function from a module interface file, while the function’s definition can be either in the same module interface file or in a module implementation file (discussed later).
+C++中，需要声明一个函数，以便其他代码可以使用它。若函数只在特定的文件内部使用，通常需要在那个源文件中声明和定义函数。若函数要在其他模块或文件使用，需要从模块接口文件中导出函数的声明，而函数的定义可以位于相同的模块接口文件中，或者在一个模块实现文件中（后面会讨论）。
 
 \begin{myNotic}{NOTE}
-Function declarations are often called function prototypes or function headers to emphasize that they represent how the function can be accessed, but not the code behind it. The term function signature is used to denote the combination of the function name and its parameter list, but without the return type.
+函数声明称为函数原型或函数头，表示函数如何访问。函数签名的术语用于指代函数名及其参数列表的组合，但不包括返回类型。
 \end{myNotic}
 
-A function declaration is shown in the following code. This example has a return type of void, indicating that the function does not provide a result to the caller. The caller must provide two arguments for the function to work with—an integer and a character.
+函数声明在下面的代码中显示。这个例子有一个返回类型为void，表示该函数不向调用者提供结果。调用者必须为函数提供两个参数以供其使用——一个整数和一个字符。
 
 \begin{cpp}
 void myFunction(int i, char c);
 \end{cpp}
 
-Without an actual definition to match this function declaration, the link stage of the compilation process will fail because code that makes use of the function will be calling nonexistent code. The following definition prints the values of the two parameters:
+若没有与这个函数声明相匹配的实际定义，因为使用该函数的代码将会调用不存在的代码，编译过程的链接阶段将会失败。以下的定义打印出两个参数的值：
 
 \begin{cpp}
 void myFunction(int i, char c)
@@ -1292,7 +1292,7 @@ void myFunction(int i, char c)
 }
 \end{cpp}
 
-Elsewhere in the program, you can make calls to myFunction() and pass in arguments for the two parameters. Some sample function calls are shown here:
+程序的其它地方，可以调用myFunction()并为两个参数传递实参。这里展示了一些函数调用的示例：
 
 \begin{cpp}
 int someInt { 6 };
@@ -1303,10 +1303,11 @@ myFunction(5, someChar);
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-In C++, unlike C, a function that takes no parameters just has an empty parameter list. It is not necessary to use void to indicate that no parameters are taken. However, you must still use void to indicate when no value is returned.
+C++与C不同，一个不接受任何参数的函数只需要一个空的参数列表。没有必要使用void来指示没有参数被接受。但当没有值返回时，仍然需要使用void来表示。
+
 \end{myNotic}
 
-C++ functions can also return a value to the caller. The following function adds two numbers and returns the result:
+C++函数也可以向调用者返回一个值。以下函数将两个数字相加并返回结果：
 
 \begin{cpp}
 int addNumbers(int number1, int number2)
@@ -1315,15 +1316,15 @@ int addNumbers(int number1, int number2)
 }
 \end{cpp}
 
-This function can be called as follows:
+这个函数可以这样调用:
 
 \begin{cpp}
 int sum { addNumbers(5, 3) };
 \end{cpp}
 
-\mySamllsection{Function Return Type Deduction}
+\mySamllsection{函数返回类型推导}
 
-You can ask the compiler to figure out the return type of a function automatically. To make use of this functionality, just specify auto as the return type.
+可以要求编译器自动找出函数的返回类型。要使用此功能，只需将auto指定为返回类型。
 
 \begin{cpp}
 auto addNumbers(int number1, int number2)
@@ -1332,11 +1333,11 @@ auto addNumbers(int number1, int number2)
 }
 \end{cpp}
 
-The compiler deduces the return type based on the expressions used for the return statements in the body of the function. There can be multiple return statements, but they must all resolve to exactly the same type as the compiler will never insert any implicit conversions to deduce the return type of a function. Such a function can even include recursive calls (calls to itself), but the first return statement in the function must be a non-recursive call.
+编译器根据函数体中用于返回语句的表达式来推断返回类型。因为编译器永远不会插入任何隐式转换来推断函数的返回类型，所以可以有多个返回语句，但都必须都解析为完全相同的类型。这样的函数甚至可以包括递归调用（调用自身），但函数中的第一个返回语句必须是非递归调用。
 
-\mySamllsection{Current Function’s Name}
+\mySamllsection{获取当前函数名}
 
-Every function has a local predefined variable \_\_func\_\_ containing the name of the current function. One use of this variable could be for logging purposes.
+每个函数都有一个局部预定义变量\_\_func\_\_包含当前函数的名称，这个变量很可能会用于日志记录。
 
 \begin{cpp}
 int addNumbers(int number1, int number2)
@@ -1346,40 +1347,40 @@ int addNumbers(int number1, int number2)
 }
 \end{cpp}
 
-\mySamllsection{Function Overloading}
+\mySamllsection{函数重载}
 
-Overloading a function means providing several functions with the same name but with a different set of parameters. Only specifying different return types is not enough, as the returned value can be ignored when calling the function; instead, the number and/or types of the parameters must be different.
+重载函数意味着提供多个具有相同名称但具有不同参数集的函数。因为在调用函数时可以忽略返回值，所以只指定不同的返回类型完全不够;相反，参数的数量和/或类型必须不同。
 
-Suppose you want to provide versions of addNumbers() that work with integers and with doubles. Without overloading, you would have to come up with unique names, for example:
+若希望提供处理整数和双精度的addNumbers()版本。若没有重载，将需要为函数使用唯一名称，例如:
 
 \begin{cpp}
 int addNumbersInts(int a, int b) { return a + b; }
 double addNumbersDoubles(double a, double b) { return a + b; }
 \end{cpp}
 
-With function overloading, you don’t need to come up with different names for the different versions of a function. The following code snippet defines two functions called addNumbers(), one defined for integers, the other defined for doubles:
+有了函数重载，就不需要为函数的不同版本取不同的名字。下面的代码片段定义了两个名为addNumbers()的函数，一个为整型定义，另一个为双精度定义:
 
 \begin{cpp}
 int addNumbers(int a, int b) { return a + b; }
 double addNumbers(double a, double b) { return a + b; }
 \end{cpp}
 
-When calling addNumbers(), the compiler automatically selects the correct function overload based on the provided arguments. This process is called overload resolution.
+当调用addNumbers()时，编译器会根据提供的参数自动选择正确的重载函数，这个过程称为重载解析。
 
 \begin{cpp}
 println("{}", addNumbers(1, 2)); // Calls the integer version
 println("{}", addNumbers(1.11, 2.22)); // Calls the double version
 \end{cpp}
 
-\mySubsubsection{1.1.13.}{Attributes}
+\mySubsubsection{1.1.13.}{属性}
 
-Attributes are a mechanism to add optional and/or vendor-specific information into source code. Before attributes were standardized in C++, vendors decided how to specify such information. Examples are \_\_attribute\_\_, \_\_declspec, and so on. Since C++11, there is standardized support for attributes by using the double square brackets syntax [[attribute]].
+属性是一种向源代码中添加可选和/或特定于供应商的信息的机制。C++标准化属性之前，供应商决定如何指定这些信息。例如\_\_attribute\_\_、\_\_declspec等。从C++11开始，通过使用双方括号语法[[attribute]]，对属性有了标准化的支持。
 
-Earlier in this chapter, the [[fallthrough]] attribute is introduced to prevent a compiler warning when fallthrough in a switch case statement is intentional. The C++ standard defines a couple more standard attributes.
+之前的内容使用了[[fallthrough]]属性，是为了防止在switch case语句中故意出现fallthrough时编译器发出警告。C++标准定义了很多的标准属性。
 
 \mySamllsection{[[nodiscard]]}
 
-The [[nodiscard]] attribute can be used on a function that returns a value. The compiler will then issue a warning if the return value from that function is not used by the calling function. Here is an example:
+[[nodiscard]]属性可用于返回值的函数。若调用函数没有使用该函数的返回值，编译器将发出警告。下面是一个例子:
 
 \begin{cpp}
 [[nodiscard]] int func() { return 42; }
@@ -1390,17 +1391,17 @@ int main()
 }
 \end{cpp}
 
-The compiler issues a warning similar to the following:
+编译器发出类似如下的警告:
 
 \begin{shell}
 warning C4834: discarding return value of function with 'nodiscard' attribute
 \end{shell}
 
-This feature can, for example, be used for functions that return error codes. By adding the [[nodiscard]] attribute to such functions, the error codes returned from them cannot be ignored.
+例如，这个特性可以用于返回错误代码的函数。通过向这些函数添加[[nodiscard]]属性，就不能忽略返回的错误码。
 
-More general, the [[nodiscard]] attribute can be used on classes, structs, functions, and enumerations. An example of applying the attribute to an entire class is when you have a class representing error conditions. By applying [[nodiscard]] to such a class, the compiler will issue a warning for every function call that returns such an error condition and where the caller doesn’t do anything with it.
+[[nodiscard]]属性可用于类、结构、函数和枚举。将属性应用于整个类的一个示例是，当有一个表示错误条件的类时。通过将[[nodiscard]]应用于这样的类，编译器将对每个返回此类错误条件的函数调用发出警告，并且调用者没有对其进行任何操作。
 
-A reason can be provided for the [[nodiscard]] attribute in the form of a string. This reason is then displayed in the warning messages generated by the compiler if the returned value is ignored by the caller of the function. Here is an example:
+可以以字符串的形式为[[nodiscard]]属性提供原因。若函数的调用者忽略返回值，则编译器会在生成的警告消息中显示此原因。下面是一个例子:
 
 \begin{cpp}
 [[nodiscard("Some explanation")]] int func();
@@ -1408,7 +1409,7 @@ A reason can be provided for the [[nodiscard]] attribute in the form of a string
 
 \mySamllsection{[[maybe\_unused]]}
 
-The [[maybe\_unused]] attribute can be used to suppress the compiler from issuing a warning when something is unused, as in this example:
+[[maybe\_unused]]属性可以用来抑制编译器在某些代码未使用时发出警告，如下例所示:
 
 \begin{cpp}
 int func(int param1, int param2)
@@ -1417,14 +1418,14 @@ int func(int param1, int param2)
 }
 \end{cpp}
 
-If the compiler warning level is set high enough, this function definition results in two compiler warnings. For example, Microsoft Visual C++ gives these warnings:
+若编译器警告级别设置得足够高，该函数定义将导致两个编译器警告。例如，Microsoft Visual C++给出了警告:
 
 \begin{shell}
 warning C4100: 'param2': unreferenced formal parameter
 warning C4100: 'param1': unreferenced formal parameter
 \end{shell}
 
-By using the [[maybe\_unused]] attribute, you can suppress such warnings:
+通过使用[[maybe\_unused]]属性，可以抑制这样的警告:
 
 \begin{cpp}
 int func(int param1, [[maybe_unused]] int param2)
@@ -1433,17 +1434,17 @@ int func(int param1, [[maybe_unused]] int param2)
 }
 \end{cpp}
 
-In this case, the second parameter is marked with the attribute suppressing its warning. The compiler now only issues a warning for param1:
+这种情况下，第二个参数标记为抑制其警告的属性。编译器现在只对param1发出警告:
 
 \begin{shell}
 warning C4100: 'param1': unreferenced formal parameter
 \end{shell}
 
-The [[maybe\_unused]] attribute can be used on classes, structs, non-static data members, unions, typedefs, type aliases, variables, functions, enumerations, and enumerators. Some of these terms you might not know yet but are discussed later in this book.
+[[maybe\_unused]]属性可用于类、结构、非静态数据成员、联合、类型定义、类型别名、变量、函数、枚举和枚举值。其中一些术语你可能还不知道，但在本书后面会讨论到。
 
 \mySamllsection{[[noreturn]]}
 
-Adding a [[noreturn]] attribute to a function means that it never returns control to the caller. Typically, the function either causes some kind of termination (process termination or thread termination) or throws an exception. Exceptions are discussed later in this chapter. With this attribute, the compiler can avoid giving certain warnings or errors because it now knows more about the intent of the function. Here is an example:
+向函数添加[[noreturn]]属性意味着永远不会将控制权返回给调用者。通常，该函数要么导致某种终止(进程终止或线程终止)，要么抛出异常。本章后面将讨论异常。有了这个属性，编译器可以避免给出某些警告或错误。下面是一个例子:
 
 \begin{cpp}
 import std;
@@ -1480,7 +1481,7 @@ int main()
 }
 \end{cpp}
 
-This code snippet compiles fine without any warnings or errors. However, if you remove the [[noreturn]] attribute, the compiler generates the following warning (output from Visual C++):
+此代码段编译良好，没有任何警告或错误。然而，若删除[[noreturn]]属性，编译器会生成以下警告(Visual C++的输出):
 
 \begin{shell}
 warning C4715: 'isFeatureLicensed': not all control paths return a value
@@ -1488,21 +1489,21 @@ warning C4715: 'isFeatureLicensed': not all control paths return a value
 
 \mySamllsection{[[deprecated]]}
 
-[[deprecated]] can be used to mark something as deprecated, which means you can still use it, but its use is discouraged. This attribute accepts an optional argument that can be used to explain the reason for the deprecation, as in this example:
+[[deprecated]]可以用来标记已弃用的东西，虽然可以使用，但不鼓励使用。该属性接受一个可选参数，该参数可用于解释弃用的原因，如下所示:
 
 \begin{cpp}
 [[deprecated("Unsafe function, please use xyz")]] void func();
 \end{cpp}
 
-If you use this deprecated function, you’ll get a compilation error or warning. For example, GCC gives the following warning:
+若使用这个已弃用的函数，将得到编译错误或警告。例如，GCC给出以下警告:
 
 \begin{shell}
 warning: 'void func()' is deprecated: Unsafe function, please use xyz
 \end{shell}
 
-\mySamllsection{[[likely]] and [[unlikely]]}
+\mySamllsection{[[likely]] 和 [[unlikely]]}
 
-The likelihood attributes [[likely]] and [[unlikely]] can be used to help the compiler in optimizing code. These attributes can, for example, be used to mark branches of if and switch statements according to how likely it is that a branch will be taken. However, these attributes are rarely required. Compilers and hardware these days have powerful branch prediction to figure it out themselves, but in certain cases, such as performance critical code, you might have to help the compiler. The syntax is as follows:
+属性[[likely]]和[[unlikely]]可以用来帮助编译器优化代码。例如，可以使用这些属性来标记if语句的分支，并根据执行分支的可能性来切换语句，但很少需要这些属性。现在的编译器和硬件都有强大的分支预测功能，可以自行解决问题，但在某些情况下，比如性能关键的代码，编译器可能需要帮助。语法如下:
 
 \begin{cpp}
 int value { /* ... */ };
@@ -1527,7 +1528,7 @@ switch (value)
 
 \mySamllsection{[[assume]]}
 
-The [[assume]] attribute allows the compiler to assume that certain expressions are true without evaluating them at run time. The compiler can use such assumptions to better optimize the code. As an example, let’s look at the following function:
+[[assume]]属性允许编译器假设某些表达式为真，而不需要在运行时对它们求值。编译器可以使用这样的假设来更好地优化代码。作为一个例子，来看看下面的函数:
 
 \begin{cpp}
 int divideBy32(int x)
@@ -1536,7 +1537,7 @@ int divideBy32(int x)
 }
 \end{cpp}
 
-The function accepts a signed integer, so the compiler has to produce code to make sure the division works for both positive and negative numbers. If you are sure that x will never be negative, and for some reason you cannot make x of type unsigned, you can add an assumption as follows:
+该函数接受一个有符号整数，因此编译器必须生成代码以确保除法对正数和负数都有效。若确定x永远不会是负数，并且由于某些原因不能使x的类型为unsigned，可以添加如下假设:
 
 \begin{cpp}
 int divideBy32(int x)
@@ -1546,15 +1547,15 @@ int divideBy32(int x)
 }
 \end{cpp}
 
-With this assumption in place, the compiler can omit any code to handle negative numbers and optimize the division into a single instruction, a simple right shift of five bits.
+有了这个假设，编译器就可以省略处理负数的代码，并将除法优化为一条指令，即简单的向右移5位。
 
-\mySubsubsection{1.1.14.}{C-Style Arrays}
+\mySubsubsection{1.1.14.}{C风格的数组}
 
 \begin{myWarning}{WARNING}
-This section briefly explains C-style arrays, as you will encounter them in legacy code. However, in C++, it is best to avoid C-style arrays and instead use Standard Library functionality, such as std::array and vector, discussed in the following two sections.
+本节简要解释C风格数组，开发者们可能会在历史代码中看到它们。C++中，最好避免使用C风格的数组，而是使用标准库功能，例如std::array和vector，这些将在下面的两节中讨论。
 \end{myWarning}
 
-Arrays hold a series of values, all of the same type, each of which can be accessed by its position in the array. In C++, you must provide the size of the array when the array is declared. You cannot give a variable as the size—it must be a constant, or a constant expression (constexpr). Constant expressions are discussed in Chapter 9. The code that follows shows the declaration of an array of three integers followed by three lines to initialize the elements to 0:
+数组持有一系列值，所有值类型相同，每个值都可以通过其在数组中的位置来访问。C++声明数组时，必须提供数组的大小。不能使用变量作为大小——必须是常量，或者是一个常量表达式（constexpr）。下面的代码展示了声明一个包含三个整数的数组，接着是三行代码用于将元素初始化为0：
 
 \begin{cpp}
 int myArray[3];
@@ -1564,79 +1565,79 @@ myArray[2] = 0;
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-In C++, the first element of an array is always at position 0, not position 1! The last position of the array is always the size of the array minus 1!
+C++数组的第一个元素始终位于位置0，而不是位置1！数组的最后一个位置始终是数组大小减1！
 \end{myWarning}
 
-The “Loops” section later in this chapter discusses how you could use loops to initialize each element of an array. However, instead of using loops or the previous initialization mechanism, you can also accomplish zero initialization with the following one-liner:
+本章后面“循环”部分讨论了如何使用循环来初始化数组的每个元素。然而，除了使用循环或之前的初始化机制，还可以使用以下单行代码来完成零初始化：
 
 \begin{cpp}
 int myArray[3] = { 0 };
 \end{cpp}
 
-You can even drop the 0.
+甚至可以省略0。
 
 \begin{cpp}
 int myArray[3] = {};
 \end{cpp}
 
-Finally, the equal sign is optional as well, so you can write this:
+等号也以没有，所以可以这样写:
 
 \begin{cpp}
 int myArray[3] {};
 \end{cpp}
 
-An array can be initialized with an initializer list, in which case the compiler deduces the size of the array automatically. Here’s an example:
+可以使用初始化列表初始化数组，编译器会自动计算数组的大小。这里有一个例子:
 
 \begin{cpp}
 int myArray[] { 1, 2, 3, 4 }; // The compiler creates an array of 4 elements
 \end{cpp}
 
-If you do specify the size of the array and the initializer list has fewer elements than the given size, the remaining elements are set to 0. For example, the following code sets only the first element in the array to the value 2 and sets all others to 0:
+若指定了数组的大小，并且初始化列表中的元素少于给定的大小，则剩余的元素将设置为0。例如，下面的代码只将数组中的第一个元素设置为值2，并将所有其他元素设置为0:
 
 \begin{cpp}
 int myArray[3] { 2 };
 \end{cpp}
 
-To get the size of a stack-based C-style array, you can use the std::size() function, defined in <array>. It returns an std::size\_t, which is an unsigned integer type defined in <cstddef>. Here is an example:
+要获取基于堆栈的c风格数组的大小，可以使用std::size()函数，该函数在<array>中定义，返回std::size\_t，这是在<cstddef>中定义的无符号整数类型。下面是一个例子:
 
 \begin{cpp}
 std::size_t arraySize { std::size(myArray) };
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-In legacy code, you might see size\_t being used without the std namespace qualification, without a using namespace std directive, and without a using std::size\_t declaration. This does not work any longer when you use import std, as that imports everything into the std namespace. Hence, you need either to use std::size\_t or to use a proper using directive or declaration. Alternatively, Chapter 11 explains that you can import the named module std.compat instead of std, but this is not recommended for new code.
+旧代码中，可能会看到size\_t使用时没有std命名空间的限定，没有使用using namespace std，也没有使用using std::size\_t。当使用import std时，这种方式不再有效，因为import std会将std命名空间中的所有内容导入到此。因此，需要使用std::size\_t，或者使用适当的using指令或声明。另外，第11章解释了可以导入名为std.compat的模块，而非std，但这不推荐用于新代码。
 \end{myNotic}
 
 \CXXTwentythreeLogo{-40}{-50}
 
 \begin{myNotic}{NOTE}
-C++23 introduces a literal suffix uz for type std::size\_t, for example, 42uz.
+C++23为类型std::size\_t引入了一个字面值后缀uz，例如：42uz。
 \end{myNotic}
 
-An older trick to get the size of a stack-based C-style array was to use the sizeof operator. The sizeof operator returns the size of its argument in bytes. To get the number of elements in a stackbased array, you divide the size in bytes of the array by the size in bytes of the first element. Here’s an example:
+获取基于堆栈的C风格数组大小的旧技巧是使用sizeof操作符，sizeof操作符返回其参数的大小(以字节为单位)。要获得基于堆栈的数组中的元素数，可以用数组的字节大小除以第一个元素的字节大小。这里有一个例子:
 
 \begin{cpp}
 std::size_t arraySize { sizeof(myArray) / sizeof(myArray[0]) };
 \end{cpp}
 
-The preceding examples show a one-dimensional array of integers, which you can think of as a line of integers, each with its own numbered compartment. C++ allows multidimensional arrays. You might think of a two-dimensional array as a checkerboard, where each location has a position along the x-axis and a position along the y-axis. Three-dimensional arrays can be pictured as a cube, while higher-dimensional arrays are harder to visualize. The following code shows the syntax for creating a two-dimensional array of characters for a tic-tac-toe board and then putting an “o” in the center square:
+前面的例子展示了一个整数的一维数组，可以将其视为一排整数，每个整数都有自己的编号隔间。C++允许多维数组，可以将二维数组想象为一个棋盘，每个位置都有x轴位置和y轴位置。三维数组可以想象为立方体，而更高维度的数组更难可视化。下面的代码展示了创建一个用于井字游戏的字符二维数组的语法，然后在中心方块放置一个“o”：
 
 \begin{cpp}
 char ticTacToeBoard[3][3];
 ticTacToeBoard[1][1] = 'o';
 \end{cpp}
 
-Figure 1.1 shows a visual representation of this board with the position of each square.
+图1.1显示了该板与每个正方形的位置的可视化表示。
+
+\myGraphic{0.6}{content/part1/chapter1/images/1.png}{图 1.1}
 
 \mySubsubsection{1.1.15.}{std::array}
 
-The arrays discussed in the previous section come from C and still work in C++. However, C++ has a special type for fixed-size containers called std::array, defined in <array>. It’s basically a thin wrapper around C-style arrays.
+上一节讨论的数组来自C，但在C++中仍然可以工作。C++为固定大小的容器提供了一个特殊类型std::array，定义在<array>中，是对C风格数组的一个薄包装。
 
-\myGraphic{0.6}{content/part1/chapter1/images/1.png}{FIGURE 1.1}
+使用std::arrays，而非C风格的数组有许多优点。容器总是知道自己的大小，不会自动转换为指针以避免某些类型的错误，并且有迭代器以便于遍历元素。迭代器在第17章“理解迭代器和范围库”中详细讨论。下面的例子演示了如何使用数组容器，数组类型是一个类模板，接受一些类模板参数，允许指定要在容器中存储多少元素。以及其类型。通过在array后面的尖括号内指定类模板参数，来为类模板参数提供类模板实参，例如 array<int,3>。
 
-There are a number of advantages to using std::arrays instead of C-style arrays. They always know their own size, are not automatically cast to a pointer to avoid certain types of bugs, and have iterators to easily loop over the elements. Iterators are discussed in detail in Chapter 17, “Understanding Iterators and the Ranges Library.” The following example demonstrates how to use the array container. The array type is a class template accepting a number of class template parameters that allow you to specify how many elements you want to store in the container and their type. You provide class template arguments for class template parameters by specifying them between the angle brackets after array, as in array<int,3>.
-
-Chapter 12, “Writing Generic Code with Templates,” discusses templates in detail. However, for now, just remember that you have to specify two arguments between the angle brackets; the first represents the type of the elements in the array, and the second represents the size of the array.
+第12章“使用模板编写通用代码”详细讨论了模板。但现在只需记住，必须在尖括号之间指定两个参数；第一个代表数组中元素的类型，第二个代表数组的大小。
 
 \begin{cpp}
 array<int, 3> arr { 9, 8, 7 };
@@ -1644,23 +1645,24 @@ println("Array size = {}", arr.size());
 println("2nd element = {}", arr[1]);
 \end{cpp}
 
-C++ supports class template argument deduction (CTAD), as discussed in detail in Chapter 12. For now, it’s enough to remember that this allows you to avoid having to specify the template arguments between angle brackets for certain class templates. CTAD works only when using an initializer because the compiler uses this initializer to automatically deduce the template arguments. This works for std::array, allowing you to define the previous array as follows:
+C++支持类模板参数推导（CTAD），这会第12章中详细讨论。现在只需要记住，这允许避免为某些类模板在尖括号之间指定模板参数。CTAD仅在使用初始化器时有效，因为编译器使用这个初始化器来自动推导模板参数。这对std::array有效，允许将前面的数组改成如下代码：
 
 \begin{cpp}
 array arr { 9, 8, 7 };
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-C-style arrays and std::arrays have a fixed size, which must be known at compile time. They cannot grow or shrink at run time.
+C风格的数组和std::array有固定的大小，必须在编译时知道，其长度不能在运行时改变。
 \end{myNotic}
 
-If you want an array with a dynamic size, it is recommended to use std::vector, as explained in the next section. A vector automatically increases in size when you add new elements to it.
+若想要一个动态大小的数组，建议使用std::vector，下一节将对此进行解释。当向vector中添加新元素时，其大小会自动增加。
 
 \mySubsubsection{1.1.16.}{std::vector}
 
-The C++ Standard Library provides a number of different non-fixed-size containers that can be used to store information. std::vector, declared in <vector>, is an example of such a container. The vector class replaces the concept of C-style arrays with a much more flexible and safer mechanism.
+C++标准库提供了许多不同的非固定大小的容器，可用于存储信息。在<vector>中声明的std::vector就是这种容器。vector类用一种更加灵活和安全的机制，取代了C风格数组。
 
-As a user, you need not worry about memory management, as a vector automatically allocates enough memory to hold its elements. A vector is dynamic, meaning that elements can be added and removed at run time. Chapter 18, “Standard Library Containers,” goes into more detail regarding containers, but the basic use of a vector is straightforward, which is why it’s introduced in the beginning of this book so that it can be used in examples. The following code demonstrates the basic functionality of vector:
+作为用户，不需要担心内存管理，因为vector会自动分配足够的内存来容纳其元素。vector是动态的，可以在运行时添加和删除元素。第18章“标准库容器”更详细地介绍了容器，vector的基本使用非常简单，这就是为什么它会在本书的开始部分介绍。下面的代码演示了vector的基本功能：
+
 
 \begin{cpp}
 // Create a vector of integers.
@@ -1674,50 +1676,50 @@ myVector.push_back(44);
 println("1st element: {}", myVector[0]);
 \end{cpp}
 
-myVector is declared as vector<int>. The angle brackets are required to specify the template arguments, just as with std::array. A vector is a generic container. It can contain almost any type of object, but all elements in a vector must be of the same type. This type is specified between the angle brackets. Templates are discussed in detail in Chapter 12 and Chapter 26, “Advanced Templates.”
+myVector声明为vector<int>。需要使用尖括号来指定模板参数，就像使用std::array时一样。vector是一个通用容器，可以包含几乎任何类型的对象，但vector中的所有元素必须是同一类型，这个类型在尖括号之间指定。模板在第12章和第26章“高级模板”中详细讨论。
 
-Just as std::array, the vector class template supports CTAD, allowing you to define myVector as follows:
+就像std::array一样，vector类模板也支持CTAD，可以这样定义myVector:
 
 \begin{cpp}
 vector myVector { 11, 22 };
 \end{cpp}
 
-Again, an initializer is required for CTAD to work. The following is illegal:
+同样，CTAD需要初始化列表才能工作。以下是非法的:
 
 \begin{cpp}
 vector myVector;
 \end{cpp}
 
-To add elements to a vector, you can use the push\_back() member function. Individual elements can be accessed using a similar syntax as for arrays, i.e., operator[].
+要向vector中添加元素，可以使用push\_back()成员函数。可以使用与数组类似的语法访问单个元素，即操作符[]。
 
 \mySubsubsection{1.1.17.}{std::pair}
 
-The std::pair class template is defined in <utility>. It groups together two values of possibly different types. The values are accessible through the first and second public data members. Here is an example:
+std::pair类模板定义在<utility>头文件中，其将两个可能不同类型的值组合在一起。这些值可以通过 first 和 second 公共数据成员访问。下面是一个例子：
 
 \begin{cpp}
 pair<double, int> myPair { 1.23, 5 };
 println("{} {}", myPair.first, myPair.second);
 \end{cpp}
 
-pair also supports CTAD, so you can define myPair as follows:
+pair也支持CTAD，所以可以这样定义myPair:
 
 \begin{cpp}
 pair myPair { 1.23, 5 };
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-While you could write a function returning an std::pair, it is recommended to write a small struct or class containing the two values and return that from the function. The downside of returning a pair is that client code must use first and second to access the two values. By returning a proper struct or class, you can give more meaningful names to the two values.
+虽然可以编写一个返回std::pair的函数，但是建议编写一个包含两个值的小型结构体或类，并从函数中返回该结构体或类的实例。返回pair的缺点是调用端代码必须使用first和second来访问这两个值，通过返回一个合适的结构体或类，可以给这两个值赋予更有意义的名称。
 \end{myNotic}
 
 \mySubsubsection{1.1.18.}{std::optional}
 
-std::optional, defined in <optional>, holds a value of a specific type, or nothing. It is introduced already in this first chapter as it is a useful type to use in some of the examples throughout the book.
+std::optional定义在<optional>中，保存一个特定类型的值，或者不保存任何值。它已经在第1章中介绍过了，这是一种非常有用的类型。
 
-Basically, optional can be used for parameters of a function if you want to allow for values to be optional. It is also often used as a return type from a function if the function can either return something or not. This removes the need to return “special” values from functions such as nullptr, -1, EOF, and so on. It also removes the need to write the function as returning a Boolean, representing success or failure, while storing the actual result of the function in an argument passed to the function as an output parameter (a parameter of type reference-to-non-const, discussed later in this chapter).
+基本上，若想要允许参数是可选的，可以使用optional作为函数的参数。它也经常作为函数的返回类型，若函数可能返回某个值，也可能不返回任何值。这消除了从函数返回“特殊”值（如nullptr、-1、EOF等）的需要，还消除了将函数编写为返回一个布尔值（表示成功或失败），同时将函数的实际结果存储在作为输出参数（一个类型为非常量引用的参数，稍后在章节中讨论）传递给函数的需求。
 
-The optional type is a class template, so you have to specify the actual type that you need between angle brackets, as in optional<int>. This syntax is similar to how you specify the type stored in a vector, for example vector<int>.
+optional类型是一个类模板，因此需要在尖括号之间指定需要的实际类型，例如 optional<int>。这种语法类似于vector中指定存储的类型，例如 vector<int>。
 
-Here is an example of a function returning an optional:
+下面是一个返回optional对象的函数示例:
 
 \begin{cpp}
 optional<int> getData(bool giveIt)
@@ -1729,14 +1731,14 @@ optional<int> getData(bool giveIt)
 }
 \end{cpp}
 
-You can call this function as follows:
+可以这样调用这个函数:
 
 \begin{cpp}
 optional<int> data1 { getData(true) };
 optional<int> data2 { getData(false) };
 \end{cpp}
 
-To determine whether an optional has a value, use the has\_value() member function, or simply use the optional in an if statement:
+要确定optional对象是否有值，可以使用has\_value()成员函数，或者直接在if语句中使用可选对象:
 
 \begin{cpp}
 println("data1.has_value = {}", data1.has_value());
@@ -1745,42 +1747,42 @@ if (!data2) {
 }
 \end{cpp}
 
-If an optional has a value, you can retrieve it with value() or with the dereferencing operator *. This operator is discussed in detail later in this chapter in the context of pointers.
+若optional对象有一个值，可以使用value()或解引用操作符*来检索：
 
 \begin{cpp}
 println("data1.value = {}", data1.value());
 println("data1.value = {}", *data1);
 \end{cpp}
 
-If you call value() on an empty optional, an std::bad\_optional\_access exception is thrown. Exceptions are introduced later in this chapter.
+若对一个空的optional对象使用value()，将会抛出一个std::bad\_optional\_access异常。
 
-value\_or() can be used to return either the value of an optional or another value when the optional is empty:
+value\_or()可以用来返回optional的值，或者当optional为空时返回另一个值：
 
 \begin{cpp}
 println("data2.value = {}", data2.value_or(0));
 \end{cpp}
 
-You cannot store a reference (discussed later in this chapter) in an optional, so optional<T\&> does not work. Instead, you can store a pointer in an optional.
+不能在optional中存储引用（将在本章后面讨论），因此optional<T\&>将不起作用但可以在optional中存储指针。
 
-\mySubsubsection{1.1.19.}{Structured Bindings}
+\mySubsubsection{1.1.19.}{结构化绑定}
 
-A structured binding allows you to declare multiple variables that are initialized with elements from a data structure such as an array, struct, or pair.
+结构化绑定允许您声明多个变量，这些变量可以从数组、结构体或对组等数据结构中初始化。
 
-Assume you have the following std::array:
+假设有如下的std::array:
 
 \begin{cpp}
 array values { 11, 22, 33 };
 \end{cpp}
 
-You can declare three variables, x, y, and z, initialized with the three values from the array as follows. You have to use the auto keyword for structured bindings, i.e., you cannot, for example, specify int instead of auto.
+可以使用结构化绑定声明三个变量x、y和z，并使用数组中的三个值来初始化它们。对于结构化绑定，必须使用auto关键字，不能使用int代替auto。
 
 \begin{cpp}
 auto [x, y, z] { values };
 \end{cpp}
 
-The number of variables declared with the structured binding has to match the number of values in the expression on the right.
+使用结构化绑定声明的变量数量必须与右侧表达式中的值数量相匹配。
 
-Structured bindings also work with structs if all non-static members are public. Here’s an example:
+若结构体中的所有非静态成员都是public，结构化绑定也可以用于结构体。这里有一个例子：
 
 \begin{cpp}
 struct Point { double m_x, m_y, m_z; };
@@ -1789,7 +1791,7 @@ point.m_x = 1.0; point.m_y = 2.0; point.m_z = 3.0;
 auto [x, y, z] { point };
 \end{cpp}
 
-As a final example, the following code snippet decomposes the elements of a pair into separate variables:
+作为最后一个例子，下面的代码片段将一对中的元素分解为单独的变量:
 
 \begin{cpp}
 pair myPair { "hello", 5 };
@@ -1798,15 +1800,15 @@ println("theString: {}", theString);
 println("theInt: {}", theInt);
 \end{cpp}
 
-It is also possible to create a set of references-to-non-const or references-to-const using the structured bindings syntax, by using auto\& or const auto\& instead of auto. Both references-to-nonconst and references-to-const are discussed later in this chapter.
+还可以使用结构化绑定语法创建一组非常量引用或常量引用，通过使用auto\&或 const auto\&代替auto。非常量引用和常量引用都将在本章后面讨论。
 
-\mySubsubsection{1.1.20.}{Loops}
+\mySubsubsection{1.1.20.}{循环}
 
-Computers are great for doing the same thing over and over. C++ provides four looping mechanisms: the while loop, do/while loop, for loop, and range-based for loop.
+计算机非常适合一遍又一遍地做相同的事情。C++提供了四种循环机制：while循环、do/while循环、for循环和基于范围的for循环。
 
-\mySamllsection{The while Loop}
+\mySamllsection{while循环}
 
-The while loop lets you perform a block of code repeatedly as long as an expression evaluates to true. For example, the following completely silly code prints “This is silly.” five times:
+while循环允许重复执行一个代码块，只要表达式的计算结果为true。例如，下面这段代码输出“This is silly”五次:
 
 \begin{cpp}
 int i { 0 };
@@ -1816,11 +1818,11 @@ while (i < 5) {
 }
 \end{cpp}
 
-The keyword break can be used within a loop to immediately get out of the loop and resume execution of the program starting at the line of code following the loop. The keyword continue can be used to return to the top of the loop and reevaluate the while expression. However, using continue in loops is often considered poor style because it causes the execution of a program to jump around somewhat haphazardly, so use it sparingly.
+关键字break可以在循环内部使用，用于立即退出循环并从紧随循环之后的代码行开始继续执行程序。关键字continue可以用于返回到循环顶部并重新计算while中的表达式。因为它会导致程序的执行跳来跳去，所以在循环中使用continue通常认为是不良的风格，所以应该尽量少用。
 
-\mySamllsection{The do/while Loop}
+\mySamllsection{do/while循环}
 
-C++ has a variation on the while loop called do/while. It works similarly to the while loop, except that the code to be executed comes first, and the conditional check for whether to continue happens at the end. In this way, you can use a loop when you want a block of code to always be executed at least once and possibly additional times based on some condition. The example that follows prints the statement, “This is silly.” once, even though the condition ends up being false:
+while循环有一种变体，称为do/while循环。它的工作方式与while循环类似，不同之处在于要执行的代码放在前面，而是否继续的条件的检查发生在最后。通过这种方式，可以使用循环来实现，当希望某个代码块至少执行一次，并根据某些条件可能执行更多次的情况。下面的例子即使条件最终为假，也会打印一次语句：“This is silly.”：
 
 \begin{cpp}
 int i { 100 };
@@ -1830,9 +1832,9 @@ do {
 } while (i < 5);
 \end{cpp}
 
-\mySamllsection{The for Loop}
+\mySamllsection{for循环}
 
-The for loop provides another syntax for looping. Any for loop can be converted to a while loop, and vice versa. However, the for loop syntax is often more convenient because it looks at a loop in terms of a starting expression, an ending condition, and a statement to execute at the end of every iteration. In the following code, i is initialized to 0; the loop continues as long as i is less than 5; and at the end of every iteration, i is incremented by 1. This code does the same thing as the while loop example earlier but is more readable because the starting value, ending condition, and per-iteration statements are all visible on one line.
+for循环提供了另一种循环的语法。任何for循环都可以转换为while循环，反之亦然。然而，for循环的语法通常更方便，因为它从起始表达式、结束条件和每次迭代结束时执行的表达式的角度来看待循环。在下面的代码中，i初始化为0；只要i小于5，循环就会继续；并且每次迭代的结束时，i会递增1。这段代码实现了与前面while循环示例相同的功能，但由于起始值、结束条件和每次迭代的语句都在一行中可见，因此可读性更强。
 
 \begin{cpp}
 for (int i { 0 }; i < 5; ++i) {
@@ -1840,35 +1842,34 @@ for (int i { 0 }; i < 5; ++i) {
 }
 \end{cpp}
 
-\mySamllsection{The Range-Based for Loop}
+\mySamllsection{基于范围的循环}
 
-The range-based for loop is the fourth looping mechanism. It allows for easy iteration over elements of a container. This type of loop works for C-style arrays, initializer lists (discussed later in this chapter), and any type that supports begin() and end() functions returning iterators (see Chapter 17), such as std::array, vector, and all other Standard Library containers discussed in Chapter 18, “Standard Library Containers.”
+基于范围的for循环是第四种循环机制，可以轻松地遍历容器中的元素。这种类型的循环适用于C风格的数组、初始化列表（本章后面讨论），以及任何支持begin()和end()函数返回迭代器的类型（参见第17章），例如std::array、vector和第18章“标准库容器”中讨论的所有其他标准库容器。
 
-The following example first defines an array of four integers. The range-based for loop then iterates over a copy of every element in this array and prints out each value. To iterate over the elements themselves without making copies, use a reference variable, as discussed later in this chapter.
+下面的例子首先定义了一个包含四个整数的数组。基于范围的for循环然后遍历这个数组的每个元素的副本，并打印出每个值。要遍历元素本身而不制作副本，请使用引用变量，这将在本章后面讨论。
 
 \begin{cpp}
 array arr { 1, 2, 3, 4 };
 for (int i : arr) { println("{}", i); }
 \end{cpp}
 
-\mySamllsection{Initializers for Range-Based for Loops}
+\mySamllsection{基于范围的for循环——初始化式}
 
-You can use initializers with range-based for loops, similar to initializers for if and switch statements. The syntax is as follows:
+您可以在基于范围的for循环中使用初始化列表，类似于if和switch语句的初始化式。语法如下：
 
 \begin{cpp}
 for (<initializer>; <range-declaration> : <range-expression>) { <body> }
 \end{cpp}
 
-Any variables introduced in the <initializer> are available only in the <range-declaration>, the <range-expression> and in the <body>. They are not available outside the range-based for loop.
-Here is an example:
+<initializer>中引入的任何变量仅在<range-declaration>、<range-expression>和<body>中可用，在基于范围的for循环外部不可用。下面是一个例子：
 
 \begin{cpp}
 for (array arr { 1, 2, 3, 4 }; int i : arr) { println("{}", i); }
 \end{cpp}
 
-\mySubsubsection{1.1.21.}{Initializer Lists}
+\mySubsubsection{1.1.21.}{初始化列表}
 
-Initializer lists are defined in <initializer\_list> and make it easy to write functions that can accept a variable number of arguments. The std::initializer\_list type is a class template, and so it requires you to specify the type of elements in the list between angle brackets, similar to how you specify the type of elements stored in a vector. The following example shows how to use an initializer list:
+初始化列表在<initializer\_list>中定义，使得编写可以接受可变数量参数的函数变得容易。std::initializer\_list类型是一个类模板，因此要求在尖括号之间指定列表中元素的类型，类似于在vector中指定存储的元素类型。下面的例子展示了如何使用初始化列表：
 
 \begin{cpp}
 import std;
@@ -1884,32 +1885,32 @@ int sum(initializer_list<int> values)
 }
 \end{cpp}
 
-By accepting an initializer list of integers as a parameter, the function sum() can be called with a braced initializer of integers as argument. The body of the function uses a range-based for loop to accumulate the total sum. This function can be used as follows:
+通过接受一个整数初始化列表作为参数，函数sum()可以使用一个整数的大括号初始化器作为参数来调用，函数体使用基于范围的for循环来累加总和。这个函数可以这样使用：
 
 \begin{cpp}
 int a { sum({ 1, 2, 3 }) };
 int b { sum({ 10, 20, 30, 40, 50, 60 }) };
 \end{cpp}
 
-Initializer lists are type safe. All elements in such a list must be of the same type. For the sum() function shown here, all elements of the initializer list must be integers. Trying to call it with a double, as shown next, results in a compilation error or warning stating that converting from double to int requires narrowing.
+初始化列表是类型安全的，列表中的所有元素必须是相同类型的。对于这里的sum()函数，初始化列表中的所有元素必须是整数。尝试使用double调用它，如下所示，会导致编译错误或警告，报告中会指出将double转换为int需要窄化转换。
 
 \begin{cpp}
 int c { sum({ 1, 2, 3.0 }) };
 \end{cpp}
 
-\mySubsubsection{1.1.22.}{Strings in C++}
+\mySubsubsection{1.1.22.}{C++中的字符串}
 
-There are two ways to work with strings in C++:
+C++中有两种处理字符串的方法:
 
 \begin{itemize}
 \item
-The C style: Representing strings as arrays of characters
+C风格:将字符串表示为字符数组
 
 \item
-The C++ style: Wrapping a C-style representation in an easier-to-use and safer string type
+C++风格:用更容易使用和更安全的字符串类型包装C风格的数组
 \end{itemize}
 
-Chapter 2 provides a detailed discussion. For now, the only thing you need to know is that the C++ std::string type is defined in <string> and that you can use a C++ string almost like a basic type. The following example shows that strings can be used just like character arrays:
+第 2 章提供了详细的讨论。现在，只需要知 C++的std::string类型定义在<string>中，并且可以像使用基本类型一样使用C++字符串。下面的例子显示了字符串可的使用方式：
 
 \begin{cpp}
 string myString { "Hello, World" };
@@ -1917,7 +1918,7 @@ println("The value of myString is {}", myString);
 println("The second letter is {}", myString[1]);
 \end{cpp}
 
-\mySubsubsection{1.1.23.}{C++ as an Object-Oriented Language}
+\mySubsubsection{1.1.23.}{C++作为面向对象的语言}
 
 If you are a C programmer, you may have viewed the features covered so far in this chapter as convenient additions to the C language. As the name C++ implies, in many ways the language is just a “better C.” There is one major point that this view overlooks: unlike C, C++ is an objectoriented language.
 
@@ -1942,7 +1943,7 @@ export class AirlineTicket
 {
     public:
         AirlineTicket();
-        ˜AirlineTicket();
+        ~AirlineTicket();
         double calculatePriceInDollars();
         std::string getPassengerName();
         void setPassengerName(std::string name);
