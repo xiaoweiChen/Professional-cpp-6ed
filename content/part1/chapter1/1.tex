@@ -2271,22 +2271,22 @@ class MyClass
 统一初始化也可以用于标准库容器，比如std::vector。
 
 \begin{myNotic}{NOTE}
-考虑到所有这些好处，建议使用统一初始化来代替赋值语法来初始化变量。本书在可能的情况下，都使用了统一初始化。
+建议使用统一初始化来代替赋值语法来初始化变量。本书在可能的情况下，都使用了统一初始化。
 \end{myNotic}
 
 \mySamllsection{指定初始化}
 
-Designated initializers initialize data members of aggregates using their name. An aggregate type is an object of an array type, or an object of a structure or class that satisfies the following restrictions: only public data members, no user-declared or inherited constructors, no virtual functions (see Chapter 10), and no virtual, private, or protected base classes (see Chapter 10). A designated initializer starts with a dot followed by the name of a data member. Designated initializers must be in the same order as the declaration order of the data members. Mixing designated initializers and nondesignated initializers is not allowed. Any data members that are not initialized using a designated initializer are initialized with their default values, which means the following:
+指定初始化器使用数据成员的名称来初始化聚合体类型的数据成员，聚合体类型是指数组类型的对象，或者是满足以下条件的结构体或类的对象：只有公共数据成员，没有用户声明或继承的构造函数，没有虚函数（参见第10章），并且没有虚拟、私有或保护的基类（参见第10章）。指定初始化，后面跟着数据成员的名称，必须按照数据成员的声明顺序排列。不允许混合使用指定初始化器和非指定初始化。任何没有使用指定初始化的数据成员，都将使用它们的默认值进行初始化：
 
 \begin{itemize}
 \item
-Data members that have an in-class initializer will get that value.
+具有类内初始化项的数据成员将获得该值。
 
 \item
-Data members that do not have an in-class initializer are zero initialized.
+没有类内初始化项的数据成员会使用零初始化。
 \end{itemize}
 
-Let’s take a look at a slightly modified Employee structure. This time the salary data member has a default value of 75,000.
+来看一下修改过的Employee结构体。这一次，salary数据成员的默认值为75,000。
 
 \begin{cpp}
 struct Employee {
@@ -2297,13 +2297,13 @@ struct Employee {
 };
 \end{cpp}
 
-Earlier in this chapter, such an Employee structure is initialized using a uniform initialization syntax as follows:
+在前面，的Employee结构体是使用统一的初始化语法初始化的，如下所示:
 
 \begin{cpp}
 Employee anEmployee { 'J', 'D', 42, 80'000 }
 \end{cpp}
 
-Using designated initializers, this can be written as follows:
+使用指定初始化式，可以这样写:
 
 \begin{cpp}
 Employee anEmployee {
@@ -2314,9 +2314,9 @@ Employee anEmployee {
 };
 \end{cpp}
 
-A benefit of using such designated initializers is that it’s much easier to understand what a designated initializer is initializing compared to using the uniform initialization syntax.
+使用指定初始化的好处是，与统一初始化相比，更容易理解在初始化什么。
 
-With designated initializers, you can skip initialization of certain members if you are satisfied with their default values. For example, when creating an employee, you could skip initializing employeeNumber, in which case employeeNumber is zero initialized as it doesn’t have an in-class initializer:
+使用指定初始化，可以跳过对某些成员的初始化，若对这些成员的默认值感到满意。例如，在创建一个员工时，可以跳过初始化employeeNumber。因为它没有类内初始化，所以employeeNumber将使用零初始化：
 
 \begin{cpp}
 Employee anEmployee {
@@ -2326,13 +2326,13 @@ Employee anEmployee {
 };
 \end{cpp}
 
-With the uniform initialization syntax, this is not possible, and you have to specify 0 for the employee number as follows:
+使用统一的初始化语法，这是不可能的，必须将员工编号指定为0，如下所示:
 
 \begin{cpp}
 Employee anEmployee { 'J', 'D', 0, 80'000 };
 \end{cpp}
 
-If you skip initializing the salary data member as follows, then salary gets its default value, which is its in-class initialization value, 75,000:
+若跳过如下初始化salary数据成员，则salary将获得其默认值，即其在类中的初始化值75,000:
 
 \begin{cpp}
 Employee anEmployee {
@@ -2341,61 +2341,61 @@ Employee anEmployee {
 };
 \end{cpp}
 
-A final benefit of using designated initializers is that when members are added to the data structure, existing code using designated initializers keeps working. The new data members will just be initialized with their default values.
+当成员添加到数据结构中时，使用指定初始化，的现有代码可以继续工作。新的数据成员将使用其默认值进行初始化。
 
 \mySubsubsection{1.1.26.}{指针和动态内存}
 
-Dynamic memory allows you to build programs with data that is not of fixed size at compile time. Most nontrivial programs make use of dynamic memory in some form.
+动态内存允许您使用编译时不固定大小的数据构建程序，大多数重要的程序都以某种形式使用动态内存。
 
-\mySamllsection{栈和自由存储}
+\mySamllsection{栈和堆}
 
-\myGraphic{0.4}{content/part1/chapter1/images/2.png}{FIGURE 1.2}
+C++应用程序中，内存可分为两部分——栈和堆。将栈可视化为一副扑克牌的一种方式。当前顶部的牌代表程序的当前作用域，通常是当前正在执行的函数。当前函数内部声明的所有变量都会占用栈帧顶部，即牌堆顶。若当前函数foo()调用另一个函数bar()，则会在牌堆上放置一张新牌，以便bar()有自己的栈帧来工作。从foo()传递到bar()的所有参数都会从foo()栈帧复制到bar()栈帧。图1.2展示了在执行函数foo()时，其中声明了两个整数值的栈可能的样子。
 
-Memory in your C++ application is divided into two parts—the stack and the free store. One way to visualize the stack is as a deck of cards. The current top card represents the current scope of the program, usually the function that is currently being executed. All variables declared inside the current function will take up memory in the top stack frame, the top card of the deck. If the current function, which I’ll call foo(), calls another function bar(), a new card is put on the deck so that bar() has its own stack frame to work with. Any parameters passed from foo() to bar() are copied from the foo() stack frame into the bar() stack frame. Figure 1.2 shows what the stack might look like during the execution of a hypothetical function foo() that has declared two integer values.
+\myGraphic{0.3}{content/part1/chapter1/images/2.png}{图1.2}
 
-Stack frames are nice because they provide an isolated memory workspace for each function. If a variable is declared inside the foo() stack frame, calling the bar() function won’t change it unless you specifically tell it to. Also, when the foo() function is done running, the stack frame goes away, and all of the variables declared within the function no longer take up memory. Variables that are stackallocated do not need to be deallocated (deleted) by the programmer; it happens automatically.
+栈帧的好处在于，为每个函数提供了一个独立的内存工作空间。若在foo()栈帧内声明了一个变量，调用bar()函数不会改变它，除非你明确告诉它这样做。此外，当foo()函数运行完毕后，栈帧消失，函数内部声明的所有变量不再占用内存。栈分配的变量不需要程序员进行释放（删除），这会自动发生。
 
-The free store is an area of memory that is completely independent of the current function or stack frame. You can put variables on the free store if you want them to exist even when the function in which they were created has completed. The free store is less structured than the stack. You can think of it as just a pile of bits. Your program can add new bits to the pile at any time or modify bits that are already on the pile. You have to make sure that you deallocate (delete) any memory that you allocated on the free store. This does not happen automatically, unless you use smart pointers, which are discussed in detail in Chapter 7, “Memory Management.”
+堆是一个与当前函数或栈帧完全独立的内存区域。若想在函数完成后仍然让变量存在，可以将变量放在堆上。程序可以在任何时候向堆中添加新的位，或者修改已经存在的位。开发者必须确保删除在堆上分配的内存。这不会自动发生，除非使用智能指针，这在第7章“内存管理”中会详细讨论。
 
 \begin{myWarning}{WARNING}
-Pointers are introduced here because you will encounter them, especially in legacy code bases. In new code, however, such raw/naked pointers are allowed only if there is no ownership involved. Otherwise, you should use one of the smart pointers explained in Chapter 7.
+在历史遗留的代码中，可能会看到指针。现代代码中，只有在不涉及所有权的情况下才允许使用原始/裸指针。否则，应该使用第7章中的智能指针。
 \end{myWarning}
 
 \mySamllsection{使用指针}
 
-You can put anything on the free store by explicitly allocating memory for it. For example, to put an integer on the free store, you need to allocate memory for it, but first you need to declare a pointer:
+可以通过显式地方式，为其在堆上分配内存。例如，要将一个整数放入堆区，需要分配内存，但首先需要声明指针:
 
 \begin{cpp}
 int* myIntegerPointer;
 \end{cpp}
 
-The * after the int type indicates that the variable you are declaring refers or points to some integer memory. Think of the pointer as an arrow that points at the dynamically allocated free store memory. It does not yet point to anything specific because you haven’t assigned it to anything; it is an uninitialized variable. Uninitialized variables should be avoided at all times, and especially uninitialized pointers because they point to some random place in memory. Working with such pointers will most likely make your program crash. That’s why you should always declare and initialize your pointers at the same time! You can initialize them to a null pointer (nullptr—for more information, see the “Null Pointer Constant” section) if you don’t want to allocate memory right away:
+int类型后跟的*，表示声明的变量指向某个整数内存。将指针想象为指向动态分配内存的箭头。目前它还没有指向特定位置，因为还没有给它分配给任何东西；它是一个未初始化的变量。应该始终避免使用未初始化的变量，尤其是未初始化的指针，因为它们可能指向内存中的某个随机位置。这样的指针很可能会导致程序崩溃。这就是为什么你应该总是在声明指针的同时对其进行初始化！若不想立即分配内存，可以将它们初始化为空指针（nullptr——有关更多信息，请参见“空指针常量”部分）：
 
 \begin{cpp}
 int* myIntegerPointer { nullptr };
 \end{cpp}
 
-A null pointer is a special default value that no valid pointer will ever have and converts to false when used in a Boolean expression. Here’s an example:
+空指针是一个特殊的默认值，不是一个有效的指针，在布尔表达式中使用时转换为false。这里有一个例子:
 
 \begin{cpp}
 if (!myIntegerPointer) { /* myIntegerPointer is a null pointer. */ }
 \end{cpp}
 
-You use the new operator to allocate the memory:
+使用new操作符来分配内存:
 
 \begin{cpp}
 myIntegerPointer = new int;
 \end{cpp}
 
-In this case, the pointer points to the address of just a single integer value. To access this value, you need to dereference the pointer. Think of dereferencing as following the pointer’s arrow to the actual value on the free store. To set the value of the newly allocated free store integer, you would use code like the following:
+这种情况下，指针只指向一个整数值的地址。要访问该值，需要对指针解引用。可以把解引用看作是跟随指针的箭头指向自由存储中的实际值。要设置新分配的自由存储整数的值，可以使用如下代码:
 
 \begin{cpp}
 *myIntegerPointer = 8;
 \end{cpp}
 
-Notice that this is not the same as setting myIntegerPointer to the value 8. You are not changing the pointer; you are changing the memory that it points to. If you were to reassign the pointer value, it would point to the memory address 8, which is probably random garbage that will eventually make your program crash.
+注意，这并不等同于将myIntegerPointer设置为值8。这里不是更改指针，而是更改指针所指向的内存。若重新分配指针的值，将指向内存地址8，最终会导致您的程序崩溃。
 
-After you are finished with your dynamically allocated memory, you need to deallocate the memory using the delete operator. To prevent the pointer from being used after having deallocated the memory it points to, it’s recommended to set it to nullptr:
+使用完动态分配的内存后，需要使用delete运算符释放内存。为了防止在释放指针所指向的内存后继续使用指针，建议将其设置为nullptr（C++11引入，用于指针的空值，以区分NULL）：
 
 \begin{cpp}
 delete myIntegerPointer;
@@ -2403,17 +2403,17 @@ myIntegerPointer = nullptr;
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-A pointer must be valid before it is dereferenced. Dereferencing a null pointer or an uninitialized pointer causes undefined behavior. Your program might crash, but it might just as well keep running and start giving strange results.
+指针在解引用之前必须是有效的。解引用空指针或未初始化的指针会导致未定义的行为。程序可能会崩溃，但它也可能继续运行，并开始给出奇怪的结果。
 \end{myWarning}
 
-Pointers don’t always point to free store memory. You can declare a pointer that points to a variable on the stack, even another pointer. To get a pointer to a variable, you use the \& (“address of”) operator:
+指针并不总是指向空闲存储空间。可以声明一个指向堆栈上变量的指针，甚至可以声明另一个指针。要获取指向变量的指针，可以使用\& ("address of")操作符:
 
 \begin{cpp}
 int i { 8 };
 int* myIntegerPointer { &i }; // Points to the variable with the value 8
 \end{cpp}
 
-C++ has a special syntax for dealing with pointers to structures or classes. Technically, if you have a pointer to a structure or a class, you can access its fields by first dereferencing it with *, and then using the normal . syntax, as in the code that follows. This code snippet also demonstrates how to dynamically allocate and deallocate an Employee instance.
+C++有一种特殊的语法来处理指向结构体或类的指针。技术上，若有一个指向结构体或类的指针，可以首先使用*解引用它，然后使用正常的.语法来访问其字段，如下面的代码片段所示。该代码片段还演示了如何动态分配和释放一个Employee实例。
 
 \begin{cpp}
 Employee* anEmployee { new Employee { 'J', 'D', 42, 80'000 } };
@@ -2421,25 +2421,25 @@ println("{}", (*anEmployee).salary);
 delete anEmployee; anEmployee = nullptr;
 \end{cpp}
 
-This syntax is a little messy. The -> (arrow) operator lets you perform both the dereference and the field access in one step. The following statement is equivalent to the previous println() call but is easier to read:
+这个语法有点乱。->(箭头)操作符允许您在一个步骤中同时执行解引用和字段访问。下面的语句等价于之前的println()，但更容易阅读:
 
 \begin{cpp}
 println("{}", anEmployee->salary);
 \end{cpp}
 
-Remember the concept of short-circuiting logic, discussed earlier in this chapter? This can be useful in combination with pointers to avoid using an invalid pointer, as in the following example:
+还记得本章前面讨论过的短路逻辑的概念吗?这可以与指针结合使用，以避免使用无效指针，如下例所示:
 
 \begin{cpp}
 bool isValidSalary { anEmployee && anEmployee->salary > 0 };
 \end{cpp}
 
-Or, here it is a little bit more verbose:
+或者:
 
 \begin{cpp}
 bool isValidSalary { anEmployee != nullptr && anEmployee->salary > 0 };
 \end{cpp}
 
-anEmployee is dereferenced to get the salary only if it is a valid pointer. If it is a null pointer, the logical operation short-circuits, and the anEmployee pointer is not dereferenced.
+解引用anEmployee以获取薪水值，前提是它是一个有效的指针。若它是一个空指针，逻辑操作会短路，不会解引用anEmployee指针。
 
 \mySamllsection{动态分配数组}
 
