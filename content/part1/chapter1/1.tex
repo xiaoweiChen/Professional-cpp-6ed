@@ -1920,19 +1920,19 @@ println("The second letter is {}", myString[1]);
 
 \mySubsubsection{1.1.23.}{C++作为面向对象的语言}
 
-If you are a C programmer, you may have viewed the features covered so far in this chapter as convenient additions to the C language. As the name C++ implies, in many ways the language is just a “better C.” There is one major point that this view overlooks: unlike C, C++ is an objectoriented language.
+若您是一个C程序员，可能会将本章到目前为止所介绍的特性视为对C语言的有益补充。正如C++这个名字所暗示的，从许多方面来说，这种语言只是“更好的C”。但这种观点忽略了一个主要问题：与C不同，C++是一种面向对象的语言。
 
-Object-oriented programming (OOP) is a different, arguably more natural, way to write code. If you are used to procedural languages such as C or Pascal, don’t worry. Chapter 5, “Designing with Classes,” covers all the background information you need to know to shift your mindset to the objectoriented paradigm. If you already know the theory of OOP, the rest of this section will get you up to speed (or refresh your memory) on basic C++ object syntax.
+面向对象编程（OOP）是一种不同、可以说是更自然的编写代码的方式。若习惯了C或Pascal等过程式语言，不必担心。第5章“使用类进行设计”涵盖了需要了解的背景知识，以帮助您理解面向对象的范式。若已经了解OOP的理论，本节的其余部分将帮助您快速掌握（或刷新记忆）基本的C++对象语法。
 
-\mySamllsection{Defining Classes}
+\mySamllsection{定义类}
 
-A class defines the characteristics of an object. In C++, classes are usually defined and exported from a module interface file (.cppm), while their definitions can either be directly in the same module interface file or in a corresponding module implementation file (.cpp). Chapter 11 discusses modules in depth.
+C++中，类定义了对象的特点。类通常在模块接口文件（.cppm）中定义和导出，而实现可以直接在相同的模块接口文件中，或者在一个相应的模块实现文件（.cpp）中。第11章将深入讨论模块。
 
-A basic class definition for an airline ticket class is shown in the following example. The class can calculate the price of the ticket based on the number of miles in the flight and whether the customer is a member of the Elite Super Rewards Program.
+以下示例展示了一个基本的机票类的定义。这个类可以根据飞行里程和客户是否是精英超级奖励计划的成员，来计算机票价格。
 
-The definition begins by declaring the class name. Inside a set of curly braces, the data members (properties) of the class and its member functions (behaviors) are declared. Each data member and member function is associated with a particular access level: public, protected, or private. These labels can occur in any order and can be repeated. Members that are public can be accessed from outside the class, while members that are private cannot be accessed from anywhere outside the class. Members that are protected can be accessed by derived classes, explained in detail in Chapter 10 in the context of inheritance. It’s recommended to make all your data members private, and if needed, to give access to them with public or protected getters to retrieve data from an object and public or protected setters to set data for an object. This way, you can easily change the representation of your data while keeping the public/protected interface the same.
+定义首先声明了类名。在一对花括号内，声明了类的数据成员（属性）和成员函数（行为）。每个数据成员和成员函数都与一个特定的访问级别相关联：公有（public）、保护（protected）或私有（private）。这些标签可以以任何顺序出现，并且可以重复。公有成员可以从类外部访问，而私有成员不能从类外部任何地方访问。保护成员可以被派生类访问，第10章将详细解释继承上下文中的派生类。建议将所有数据成员设为私有，并在需要时，使用公有或保护的获取方法（getters）来从对象检索数据，以及使用公有或保护的设置方法（setters）来为对象设置数据。这样，可以轻松地更改数据的表示形式，同时保持公有/保护接口不变。
 
-Remember, when writing a module interface file, don’t forget to use an export module declaration to specify which module you are writing, and don’t forget to explicitly export the types you want to make available to users of your module.
+编写模块接口文件时，请记住使用export module声明来指定您正在编写哪个模块，并明确导出您希望向模块用户提供的数据类型。
 
 \begin{cpp}
 export module airline_ticket;
@@ -1958,17 +1958,17 @@ export class AirlineTicket
 };
 \end{cpp}
 
-This book follows the convention to prefix each data member of a class with a lowercase m followed by an underscore, such as m\_passengerName.
+本书遵循一个约定，即给类的每个数据成员加上一个以小写字母m开头，后跟一个下划线的前缀，例如m\_passengerName。
 
-The member function that has the same name as the class with no return type is a constructor. It is automatically called when an object of the class is created. The member function with a tilde (~) character followed by the class name is a destructor. It is automatically called when an object is destroyed.
+具有与类相同名称且没有返回类型的成员函数是构造函数。当创建类的一个对象时，自动调用。以波浪号（~）字符开头，后跟类名称的成员函数是析构函数。当对象销毁时，其会自动调用。
 
-The .cppm module interface file defines the class, while the implementations of the member functions in this example are in a .cpp module implementation file. This source file starts with the following module declaration to tell the compiler that this is a source file for the airline\_ticket module:
+.cppm模块接口文件定义了类，而本例中成员函数的实现位于.cpp模块实现文件中。这个源文件以以下模块声明开始，告诉编译器这是airline\_ticket模块的一个源文件：
 
 \begin{cpp}
 module airline_ticket;
 \end{cpp}
 
-There are several ways to initialize data members of a class. One way is to use a constructor initializer, which follows a colon after the constructor header. Here is the AirlineTicket constructor with a constructor initializer:
+C++有几种方法可以初始化类的数据成员。一种方法是使用构造函数初始化列表，跟在构造函数头部的冒号之后。以下是一个使用构造函数初始化列表的AirlineTicket构造函数示例：
 
 \begin{cpp}
 AirlineTicket::AirlineTicket()
@@ -1978,7 +1978,7 @@ AirlineTicket::AirlineTicket()
 {}
 \end{cpp}
 
-A second option is to put the initializations in the body of the constructor, as shown here:
+第二个选择是将初始化放在构造函数的主体中，如下所示:
 
 \begin{cpp}
 AirlineTicket::AirlineTicket()
@@ -1990,7 +1990,7 @@ AirlineTicket::AirlineTicket()
 }
 \end{cpp}
 
-However, if the constructor is only initializing data members without doing anything else, then there is actually no real need for a constructor because data members can be initialized directly inside a class definition, also known as in-class initializers. For example, instead of writing an AirlineTicket constructor, you can modify the data members in the class definition to initialize them as follows:
+若只是初始化数据成员而不做其他事情，则并不真正需要构造函数，因为数据成员可以直接在类定义内初始化，这也称为类内初始化。例如，可以修改类定义中的数据成员以初始化它们，而不是编写一个AirlineTicket构造函数：
 
 \begin{cpp}
 private:
@@ -1999,9 +1999,9 @@ private:
     bool m_hasEliteSuperRewardsStatus { false };
 \end{cpp}
 
-If your class additionally needs to perform some other types of initializations, such as opening a file, allocating memory, and so on, then you still need to write a constructor to handle those initializations.
+若类还需要执行其他类型的初始化，例如打开文件、分配内存等，则需要编写一个构造函数来处理这些初始化。
 
-Here is the destructor for the AirlineTicket class:
+下面是AirlineTicket类的析构函数：
 
 \begin{cpp}
 AirlineTicket::~AirlineTicket()
@@ -2010,9 +2010,9 @@ AirlineTicket::~AirlineTicket()
 }
 \end{cpp}
 
-This destructor doesn’t do anything and can simply be removed from this class. It is just shown here so you know the syntax of destructors. Destructors are required if you need to perform some cleanup, such as closing files, freeing memory, and so on. Chapters 8, “Gaining Proficiency with Classes and Objects,” and 9 discuss destructors in more detail.
+这个析构函数不做任何事情，可以从这个类中删除。这里只显示它，是为了让您了解析构函数的语法。若需要执行一些清理操作，例如关闭文件、释放内存等，则需要使用析构函数。在第8章“熟练掌握类和对象”和第9章中，会对析构函数进行了更加详细地讨论。
 
-The definitions of the other AirlineTicket class member functions are shown here:
+其他AirlineTicket类成员函数的定义如下:
 
 \begin{cpp}
 double AirlineTicket::calculatePriceInDollars()
@@ -2043,7 +2043,7 @@ void AirlineTicket::setHasEliteSuperRewardsStatus(bool status)
 }
 \end{cpp}
 
-As mentioned in the beginning of this section, it’s also possible to put the member function implementations directly in the module interface file. The syntax is as follows:
+也可以将成员函数实现直接放在模块接口文件中。语法如下:
 
 \begin{cpp}
 export class AirlineTicket
@@ -2073,15 +2073,15 @@ export class AirlineTicket
 };
 \end{cpp}
 
-\mySamllsection{Using Classes}
+\mySamllsection{使用类}
 
-To use the AirlineTicket class, you first need to import its module:
+要使用AirlineTicket类，首先需要导入其模块:
 
 \begin{cpp}
 import airline_ticket;
 \end{cpp}
 
-The following sample program makes use of the class. This example shows the creation of a stackbased AirlineTicket object:
+下面的示例程序使用了这个类。下面的例子展示了如何创建一个基于堆栈的AirlineTicket对象:
 
 \begin{cpp}
 AirlineTicket myTicket;
@@ -2091,13 +2091,13 @@ double cost { myTicket.calculatePriceInDollars() };
 println("This ticket will cost ${}", cost);
 \end{cpp}
 
-The AirlineTicket example exposes you to the general syntax for creating and using classes. Of course, there is much more to learn, and that’s the topic of Chapters 8, 9, and 10.
+AirlineTicket示例展示了创建和使用类的通用语法。
 
-\mySubsubsection{1.1.24.}{Scope Resolution}
+\mySubsubsection{1.1.24.}{范围解析}
 
-As a C++ programmer, you need to familiarize yourself with the concept of a scope, which defines where an item is visible. Every name in your program, including variable, function, and class names, is in a certain scope. You create scopes with namespaces, function definitions, blocks delimited by curly braces, and class definitions. Variables that are initialized in the initialization statement of for loops and range-based for loops are scoped to that for loop and are not visible outside the for loop. Similarly, variables initialized in an initializer for if or switch statements are scoped to that if or switch statement and are not visible outside that statement. When you try to access a variable, function, or class, the name is first looked up in the nearest enclosing scope, then the parent scope, and so forth, up to the global scope. Any name not in a namespace, function, block delimited by curly braces, or class is assumed to be in the global scope. If it is not found in the global scope, at that point the compiler generates an undefined symbol error.
+作为C++开发者，需要熟悉作用域的概念，其定义了项目的可见性。程序中的每个名称（包括变量、函数和类名）都在某个作用域内。可以使用命名空间、函数定义、由花括号分隔的块，以及类定义来创建作用域。在for循环和基于范围的for循环的初始化语句中，初始化的变量作用于该for循环，并且在该for循环之外不可见。同样，若在if或switch语句的初始化表达式中初始化了变量，则该变量作用于该if或switch语句，并且在该语句之外不可见。当尝试访问变量、函数或类时，首先在最近的外围作用域中查找该名称，然后是父作用域，以此类推，直到全局作用域。不在命名空间、函数、由花括号分隔的块或类中的名称，都会假定为在全局作用域中。若在全局作用域中没有找到，此时编译器会生成一个未定义符号错误。
 
-Sometimes names in scopes hide identical names in other scopes. Other times, the scope you want is not part of the default scope resolution from that particular line in the program. If you don’t want the default scope resolution for a name, you can qualify the name with a specific scope using the scope resolution operator ::. The following example demonstrates this. The example defines a class Demo with a get() member function, a get() function that is globally scoped, and a get() function that is in the NS namespace.
+有时作用域中的名称会隐藏其他作用域中的同名名称。有时，想要的作用域不是从程序中特定行的默认作用域解析的一部分。若不希望对名称使用默认的作用域解析，可以使用作用域解析运算符::来限定具有特定作用域的名称。以下示例演示了这一点。该示例定义了一个带有get()成员函数的Demo类，一个全局作用域的get()函数，以及一个位于NS命名空间中的get()函数。
 
 \begin{cpp}
 class Demo
@@ -2114,7 +2114,7 @@ namespace NS
 }
 \end{cpp}
 
-The global scope is unnamed, but you can access it specifically by using the scope resolution operator by itself (with no name prefix). The different get() functions can be called as follows. In this example, the code itself is in the main() function, which is always in the global scope:
+全局作用域未命名，但可以单独使用作用域解析操作符(没有名称前缀)来访问，不同的get()函数可以按如下方式调用。这个例子中，代码本身在main()函数中，所以也在全局作用域中:
 
 \begin{cpp}
 int main()
@@ -2127,7 +2127,7 @@ int main()
 }
 \end{cpp}
 
-If the earlier namespace called NS is defined as an unnamed / anonymous namespace, that is, a namespace without a name as follows:
+若将前面的命名空间NS定义为未命名/匿名命名空间，即没有命名的命名空间，如下所示:
 
 \begin{cpp}
 namespace
@@ -2136,21 +2136,21 @@ namespace
 }
 \end{cpp}
 
-then the following line will cause a compilation error about ambiguous name resolution because you would have a get() defined in the global scope, and another get() defined in the unnamed namespace.
+因为您将在全局作用域中定义一个get()，而在未命名的名称空间中定义另一个get()，所以下面这行代码将导致关于歧义名称解析的编译错误。
 
 \begin{cpp}
 println("{}", get());
 \end{cpp}
 
-The same error occurs if you add the following using directive right before the main() function:
+若在main()函数之前添加以下using指令，也会出现同样的错误:
 
 \begin{cpp}
 using namespace NS;
 \end{cpp}
 
-\mySubsubsection{1.1.25.}{Uniform Initialization}
+\mySubsubsection{1.1.25.}{统一初始化}
 
-Before C++11, initialization of types was not always uniform. For example, take the following definitions of a circle, once as a structure, and once as a class:
+在C++11之前，类型的初始化并不总是统一的。例如，以下对圆的定义，一个是结构体，一个是类：
 
 \begin{cpp}
 struct CircleStruct
@@ -2170,30 +2170,30 @@ class CircleClass
 };
 \end{cpp}
 
-In pre-C++11, initialization of a variable of type CircleStruct and a variable of type CircleClass looked different:
+C++11之前中，CircleStruct类型变量和CircleClass类型变量的初始化是不同的:
 
 \begin{cpp}
 CircleStruct myCircle1 = { 10, 10, 2.5 };
 CircleClass myCircle2(10, 10, 2.5);
 \end{cpp}
 
-For the structure version, you can use the \{...\} syntax. However, for the class version, you needed to call the constructor using function notation: (...).
+对于结构体，可以使用\{…\}语法。但对于类，需要使用函数表示法调用构造函数:(…)。
 
-Since C++11, you can more uniformly use the \{...\} syntax to initialize types, as follows:
+C++11起，可以更统一地使用\{…\}语法初始化类型，如下所示:
 
 \begin{cpp}
 CircleStruct myCircle3 = { 10, 10, 2.5 };
 CircleClass myCircle4 = { 10, 10, 2.5 };
 \end{cpp}
 
-The definition of myCircle4 automatically calls the constructor of CircleClass. Even the use of the equal sign is optional, so the following are identical:
+myCircle4的定义自动调用CircleClass的构造函数。甚至使用等号也是可选的，所以下面语句等价:
 
 \begin{cpp}
 CircleStruct myCircle5 { 10, 10, 2.5 };
 CircleClass myCircle6 { 10, 10, 2.5 };
 \end{cpp}
 
-As another example, in the section “Structs” earlier in this chapter, an Employee structure is initialized as follows:
+作为另一个例子，在本章前面的“结构体”一节中，Employee结构体初始化如下所示:
 
 \begin{cpp}
 Employee anEmployee;
@@ -2203,13 +2203,13 @@ anEmployee.employeeNumber = 42;
 anEmployee.salary = 80'000;
 \end{cpp}
 
-With uniform initialization, this can be rewritten as follows:
+统一初始化的情况下，可以重写为:
 
 \begin{cpp}
 Employee anEmployee { 'J', 'D', 42, 80'000 };
 \end{cpp}
 
-Uniform initialization is not limited to structures and classes. You can use it to initialize almost anything in C++. For example, the following code initializes all four variables with the value 3:
+统一初始化并不局限于结构和类，可以用它来初始化C++中的任何东西。例如，下面的代码用值3初始化所有四个变量:
 
 \begin{cpp}
 int a = 3;
@@ -2218,25 +2218,25 @@ int c = { 3 }; // Uniform initialization
 int d { 3 }; // Uniform initialization
 \end{cpp}
 
-Uniform initialization can be used to perform zero-initialization of variables; you just specify an empty set of curly braces, as shown here:
+统一初始化可用于对变量进行零初始化，只需指定一组空花括号，如下所示:
 
 \begin{cpp}
 int e { }; // Uniform initialization, e will be 0
 \end{cpp}
 
-This syntax can also be used with structures. If you create an instance of the Employee struct as follows, then its data members are default initialized, which, for primitive types such as char and int, means they’ll contain whatever random data is left in memory:
+这种语法也可以用于结构体。若按照以下方式创建一个Employee结构体的实例，则其数据成员将进行默认初始化，对于像char和int这样的基本类型来说，将包含内存中的随机数据：
 
 \begin{cpp}
 Employee anEmployee;
 \end{cpp}
 
-However, if you create the instance as follows, then all data members are zero initialized:
+然而，若像下面这样创建实例，则所有的数据成员都是零初始化:
 
 \begin{cpp}
 Employee anEmployee { };
 \end{cpp}
 
-A benefit of using uniform initialization is that it prevents narrowing. When using the old-style assignment syntax to initialize variables, C++ implicitly performs narrowing, as shown here:
+使用统一初始化的一个好处是它可以防止窄化。当使用旧式赋值语法初始化变量时，C++会进行隐式窄化，如下所示:
 
 \begin{cpp}
 int main()
@@ -2245,15 +2245,15 @@ int main()
 }
 \end{cpp}
 
-For the statement in main(), C++ automatically truncates 3.14 to 3 before assigning it to x. Some compilers might issue a warning about this narrowing, while others won’t. In any case, narrowing conversions should not go unnoticed, as they might cause subtle or not so subtle bugs. With uniform initialization, the assignment to x must generate a compilation error if your compiler fully conforms to the C++11 standard:
+C++在main()函数中使用以下语句时，C++会自动将3.14截断为3，然后将其赋值给x。一些编译器可能会发出关于这种窄化的警告。无论如何，不应该忽视窄化转换，这可能会导致错误。使用统一初始化时，若的编译器完全符合C++11标准，那么对x的赋值必须生成编译错误：
 
 \begin{cpp}
 int x { 3.14 }; // Error because narrowing
 \end{cpp}
 
-If a narrowing cast is what you need, I recommend using the gsl::narrow\_cast() function available in the Guidelines Support Library (GSL).
+若需要一个窄化转换，建议使用Guidelines Support Library(GSL)中提供的gsl::narrow\_cast()函数。这个函数用于执行显式的窄化转换，并且会在运行时检查转换的有效性，若转换不合法，会抛出一个异常。
 
-Uniform initialization can also be used in the constructor initializer to initialize arrays that are members of a class.
+统一初始化也可以用在构造函数初始化列表中，用于初始化类的成员数组。例如：
 
 \begin{cpp}
 class MyClass
@@ -2268,13 +2268,13 @@ class MyClass
 };
 \end{cpp}
 
-Uniform initialization can be used with the Standard Library containers as well—such as std::vector, already demonstrated earlier in this chapter.
+统一初始化也可以用于标准库容器，比如std::vector。
 
 \begin{myNotic}{NOTE}
-Considering all these benefits, it is recommended to use uniform initialization over using the assignment syntax to initialize variables. Hence, this book uses uniform initialization wherever possible.
+考虑到所有这些好处，建议使用统一初始化来代替赋值语法来初始化变量。本书在可能的情况下，都使用了统一初始化。
 \end{myNotic}
 
-\mySamllsection{Designated Initializers}
+\mySamllsection{指定初始化}
 
 Designated initializers initialize data members of aggregates using their name. An aggregate type is an object of an array type, or an object of a structure or class that satisfies the following restrictions: only public data members, no user-declared or inherited constructors, no virtual functions (see Chapter 10), and no virtual, private, or protected base classes (see Chapter 10). A designated initializer starts with a dot followed by the name of a data member. Designated initializers must be in the same order as the declaration order of the data members. Mixing designated initializers and nondesignated initializers is not allowed. Any data members that are not initialized using a designated initializer are initialized with their default values, which means the following:
 
@@ -2343,11 +2343,11 @@ Employee anEmployee {
 
 A final benefit of using designated initializers is that when members are added to the data structure, existing code using designated initializers keeps working. The new data members will just be initialized with their default values.
 
-\mySubsubsection{1.1.26.}{Pointers and Dynamic Memory}
+\mySubsubsection{1.1.26.}{指针和动态内存}
 
 Dynamic memory allows you to build programs with data that is not of fixed size at compile time. Most nontrivial programs make use of dynamic memory in some form.
 
-\mySamllsection{The Stack and the Free Store}
+\mySamllsection{栈和自由存储}
 
 \myGraphic{0.4}{content/part1/chapter1/images/2.png}{FIGURE 1.2}
 
@@ -2361,7 +2361,7 @@ The free store is an area of memory that is completely independent of the curren
 Pointers are introduced here because you will encounter them, especially in legacy code bases. In new code, however, such raw/naked pointers are allowed only if there is no ownership involved. Otherwise, you should use one of the smart pointers explained in Chapter 7.
 \end{myWarning}
 
-\mySamllsection{Working with Pointers}
+\mySamllsection{使用指针}
 
 You can put anything on the free store by explicitly allocating memory for it. For example, to put an integer on the free store, you need to allocate memory for it, but first you need to declare a pointer:
 
@@ -2441,7 +2441,7 @@ bool isValidSalary { anEmployee != nullptr && anEmployee->salary > 0 };
 
 anEmployee is dereferenced to get the salary only if it is a valid pointer. If it is a null pointer, the logical operation short-circuits, and the anEmployee pointer is not dereferenced.
 
-\mySamllsection{Dynamically Allocated Arrays}
+\mySamllsection{动态分配数组}
 
 The free store can also be used to dynamically allocate arrays. You use the new[] operator to allocate memory for an array.
 
@@ -2477,7 +2477,7 @@ If you do need dynamically allocated memory, avoid using malloc() and free() fro
 To prevent memory leaks, every call to new should be paired with a call to delete, and every call to new[] should be paired with a call to delete[]. Not calling delete or delete[], or mismatching calls, results in memory leaks or worse. All these intricacies are discussed in Chapter 7.
 \end{myWarning}
 
-\mySamllsection{Null Pointer Constant}
+\mySamllsection{空指针常量}
 
 Before C++11, the constant NULL, defined in <cstddef>, was used for null pointers. You cannot get access to this constant using any import declaration; instead, you must use \#include <cstddef>. NULL is simply defined as the constant 0, which can cause problems. Take the following example:
 
@@ -2500,13 +2500,13 @@ This problem is avoided by using a real null pointer constant, nullptr. The foll
 func(nullptr);
 \end{cpp}
 
-\mySubsubsection{1.1.27.}{The Use of const}
+\mySubsubsection{1.1.27.}{const的用法}
 
 The keyword const can be used in a few different ways in C++. Its uses are related, but there are subtle differences. The subtleties of const make for excellent interview questions! Basically, the keyword const is short for “constant” and specifies that something remains unchanged.
 
 The compiler enforces this requirement by marking any attempt to change it as an error. Furthermore, when optimizations are enabled, the compiler can take advantage of this knowledge to produce better code.
 
-\mySamllsection{const as a Qualifier for a Type}
+\mySamllsection{const作为类型的限定符}
 
 If you assumed that the keyword const has something to do with constants, you have correctly uncovered one of its uses. In C, programmers often use the preprocessor \#define mechanism, see Chapter 11, to declare symbolic names for values that won’t change during the execution of the program, such as the version number. In C++, programmers are encouraged to avoid \#define in favor of using const to define constants. Defining a constant with const is just like defining a variable, except that the compiler guarantees that code cannot change the value. Here are some examples:
 
@@ -2519,7 +2519,7 @@ const double PI { 3.141592653589793238462 };
 
 You can mark any variable const, including global variables and class data members.
 
-\mySamllsection{const Member Functions}
+\mySamllsection{const成员函数}
 
 When a variable contains one or more levels of indirection via a pointer, applying const becomes trickier. Consider the following lines of code:
 
@@ -2602,7 +2602,7 @@ const int * const * const * const ip { nullptr };
 Here is another easy-to-remember rule to figure out complicated variable declarations: read from right to left. For example, int* const ip reads from right to left as “ip is a const pointer to an int.” Further, int const* ip reads as “ip is a pointer to a const int,” and const int* ip reads as “ip is a pointer to an int constant.”
 \end{myNotic}
 
-\mySamllsection{const to Protect Parameters}
+\mySamllsection{使用const保护参数}
 
 In C++, you can cast a non-const variable to a const variable. Why would you want to do this? It offers some degree of protection from other code changing the variable. If you are calling a function that a co-worker of yours is writing and you want to ensure that the function doesn’t change the value of an argument you pass in, you can tell your co-worker to have the function take a const parameter. If the function attempts to change the value of the parameter, it will not compile.
 
@@ -2627,7 +2627,7 @@ You can also use const on primitive-type parameters to prevent accidentally chan
 void func(const int param) { /* Not allowed to change param... */ }
 \end{cpp}
 
-\mySamllsection{const Member Functions}
+\mySamllsection{const成员函数}
 
 A second use of the const keyword is to mark class member functions as const, preventing them from modifying data members of the class. The AirlineTicket class introduced earlier can be modified to mark all read-only member functions as const. The const must be added to both the member function declaration and its definition. If any const member function tries to modify one of the AirlineTicket data members, the compiler will emit an error.
 
@@ -2662,11 +2662,11 @@ std::string AirlineTicket::getPassengerName() const
 To follow the const-correctness principle, it’s recommended to declare member functions that do not change any data members of the object as being const. These member functions are also called inspectors, compared to mutators for non-const member functions.
 \end{myNotic}
 
-\mySubsubsection{1.1.28.}{References}
+\mySubsubsection{1.1.28.}{引用}
 
 Professional C++ code, including much of the code in this book, uses references extensively. A reference in C++ is an alias for another variable. All modifications to the reference change the value of the variable to which it refers. You can think of references as implicit pointers that save you the trouble of taking the address of variables and dereferencing the pointer. Alternatively, you can think of references as just another name for the original variable. You can create stand-alone reference variables, use reference data members in classes, accept references as parameters to functions, and return references from functions.
 
-\mySamllsection{Reference Variables}
+\mySamllsection{引用变量}
 
 Reference variables must be initialized as soon as they are created, like this:
 
