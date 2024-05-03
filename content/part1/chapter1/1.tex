@@ -2443,43 +2443,43 @@ bool isValidSalary { anEmployee != nullptr && anEmployee->salary > 0 };
 
 \mySamllsection{动态分配数组}
 
-The free store can also be used to dynamically allocate arrays. You use the new[] operator to allocate memory for an array.
+堆也可用于动态分配数组，可以使用new[]操作符为数组分配内存。
 
 \begin{cpp}
 int arraySize { 8 };
 int* myVariableSizedArray { new int[arraySize] };
 \end{cpp}
 
-This allocates enough memory to hold arraySize integers. Figure 1.3 shows what the stack and the free store both look like after this code is executed. As you can see, the pointer variable still resides on the stack, but the array that was dynamically created lives on the free store.
+这将分配足够的内存来保存arraySize整数。图1.3显示了执行这段代码后堆栈和堆存储的样子。指针变量仍然驻留在堆栈中，但是动态创建的数组驻留在堆存储区中。
 
-Now that the memory has been allocated, you can work with myVariableSizedArray as though it were a regular stack-based array:
+\myGraphic{1.0}{content/part1/chapter1/images/3.png}{图1.3}
+
+现在内存已经分配，可以使用myVariableSizedArray，就好像是基于堆栈的数组:
 
 \begin{cpp}
 myVariableSizedArray[3] = 2;
 \end{cpp}
 
-When your code is done with the array, it should remove the array from the free store so that other variables can use the memory. In C++, you use the delete[] operator to do this:
+使用完数组后，应该将数组从堆存储区中删除，以便其他变量可以使用该内存。C++可以使用delete[]来完成这个工作:
 
 \begin{cpp}
 delete[] myVariableSizedArray;
 myVariableSizedArray = nullptr;
 \end{cpp}
 
-The brackets after delete indicate that you are deleting an array!
-
-\myGraphic{1.0}{content/part1/chapter1/images/3.png}{FIGURE 1.3}
+delete后面的括号表示正在删除一个数组!
 
 \begin{myNotic}{NOTE}
-If you do need dynamically allocated memory, avoid using malloc() and free() from C. Instead, use new and delete, or new[] and delete[] from C++. However, in modern C++, the goal is to avoid new, delete, new[], and delete[] altogether, and use more modern constructs such as Standard Library containers, e.g., std::vector, and smart pointers, discussed in Chapter 7.
+若确实需要动态分配的内存，请避免使用C语言中的malloc()和free()。请使用C++中的new和delete，或者new[]和delete[]。在现代C++中，我们的目标是完全避免使用new、delete、new[]和delete[]，而使用更现代的结构，如标准库容器（例如std::vector）和智能指针，这些内容将在第7章中讨论。
 \end{myNotic}
 
 \begin{myWarning}{WARNING}
-To prevent memory leaks, every call to new should be paired with a call to delete, and every call to new[] should be paired with a call to delete[]. Not calling delete or delete[], or mismatching calls, results in memory leaks or worse. All these intricacies are discussed in Chapter 7.
+为了防止内存泄漏，每个对new的调用都应该与delete的调用配对，每个对new[]的调用都应该与delete[]的调用配对。不调用delete或delete[]，或者调用不匹配，会导致内存泄漏，这些问题将在第7章中讨论。
 \end{myWarning}
 
 \mySamllsection{空指针常量}
 
-Before C++11, the constant NULL, defined in <cstddef>, was used for null pointers. You cannot get access to this constant using any import declaration; instead, you must use \#include <cstddef>. NULL is simply defined as the constant 0, which can cause problems. Take the following example:
+C++11之前，在<cstddef>中定义的常量NULL用于空指针。不能使用import声明来访问这个常量，必须使用\#include <cstddef>。NULL简单地定义为常数0，这可能会导致问题。举个例子:
 
 \begin{cpp}
 #include <cstddef>
@@ -2492,9 +2492,9 @@ int main()
 }
 \end{cpp}
 
-The code defines a function func() with a single integer parameter. The main() function calls func() with argument NULL, which is supposed to be a null pointer constant. However, since NULL is not a real pointer, but identical to the integer 0, it triggers a call to func(int). This might be unexpected behavior. Hence, some compilers even give a warning about this.
+代码定义了一个带有单个整数参数的函数func()。main()函数使用参数NULL调用func()，这个参数应该是一个空指针常量。然而，由于NULL实际上并不是一个真正的指针，而是与整数0相同，因此触发了对func(int)的调用。因此，一些编译器甚至会对此发出警告。
 
-This problem is avoided by using a real null pointer constant, nullptr. The following code uses this real null pointer constant and causes a compilation error because there is no overload of func() accepting a pointer:
+通过使用真正的空指针常量nullptr，可以避免这个问题。下面的代码使用了真正的空指针常量，并且由于没有接受指针的func()重载，所以以下代码会导致编译错误：
 
 \begin{cpp}
 func(nullptr);
@@ -2502,13 +2502,13 @@ func(nullptr);
 
 \mySubsubsection{1.1.27.}{const的用法}
 
-The keyword const can be used in a few different ways in C++. Its uses are related, but there are subtle differences. The subtleties of const make for excellent interview questions! Basically, the keyword const is short for “constant” and specifies that something remains unchanged.
+C++关键字const有几种不同的使用方式，其用途是相关的，但存在一些细微的差异。const的微妙之处会使其成为面试中的绝佳问题！const关键字是“constant”（常量）的缩写，指定某些内容保持不变。
 
-The compiler enforces this requirement by marking any attempt to change it as an error. Furthermore, when optimizations are enabled, the compiler can take advantage of this knowledge to produce better code.
+编译器通过将尝试更改它的行为，标记为错误来强制执行这一要求。此外，当启用优化时，编译器可以利用这一提示来生成更好的代码。
 
 \mySamllsection{const作为类型的限定符}
 
-If you assumed that the keyword const has something to do with constants, you have correctly uncovered one of its uses. In C, programmers often use the preprocessor \#define mechanism, see Chapter 11, to declare symbolic names for values that won’t change during the execution of the program, such as the version number. In C++, programmers are encouraged to avoid \#define in favor of using const to define constants. Defining a constant with const is just like defining a variable, except that the compiler guarantees that code cannot change the value. Here are some examples:
+若认为关键字const与常量有关，那么您已经正确地发现了它的一个用途。在C语言中，开发者经常使用预处理\#define机制（参见第11章）来声明在程序执行期间不会改变的值的符号名，例如版本号。C++不鼓励使用\#define，而使用const来定义常量。使用const定义常量就像定义变量一样，不同之处在于编译器保证了代码无法更改该值。这里有一些例子：
 
 \begin{cpp}
 const int versionNumberMajor { 2 };
@@ -2517,11 +2517,11 @@ const std::string productName { "Super Hyper Net Modulator" };
 const double PI { 3.141592653589793238462 };
 \end{cpp}
 
-You can mark any variable const, including global variables and class data members.
+可以将变量标记为const，包括全局变量和类数据成员。
 
 \mySamllsection{const成员函数}
 
-When a variable contains one or more levels of indirection via a pointer, applying const becomes trickier. Consider the following lines of code:
+当变量通过指针包含一个或多个间接层时，使用const变得更加棘手。看看下面的代码行:
 
 \begin{cpp}
 int* ip;
@@ -2529,9 +2529,9 @@ ip = new int[10];
 ip[4] = 5;
 \end{cpp}
 
-Suppose that you decide to apply const to ip. Set aside your doubts about the usefulness of doing so for a moment, and consider what it means. Do you want to prevent the ip variable itself from being changed, or do you want to prevent the values to which it points from being changed? That is, do you want to prevent the second statement or the third statement?
+假设将const应用于ip，考虑一下这意味着什么。是想防止修改ip变量，还是想避免修改它指向的值？也就是说，是想避免第二条语句执行，还是第三条语句执行？
 
-To prevent the pointed-to values from being modified (as in the third statement), you can add the keyword const to the declaration of ip like this:
+为了避免修改指向的值（如第三条语句所示），可以在声明ip时添加关键字const，如下所示：
 
 \begin{cpp}
 const int* ip;
@@ -2539,7 +2539,7 @@ ip = new int[10];
 ip[4] = 5; // DOES NOT COMPILE!
 \end{cpp}
 
-Now you cannot change the values to which ip points. An alternative but semantically equivalent way to write this is as follows:
+现在就不能更改ip所指向的值。另一种语义上等价的写法如下:
 
 \begin{cpp}
 int const* ip;
@@ -2547,9 +2547,9 @@ ip = new int[10];
 ip[4] = 5; // DOES NOT COMPILE!
 \end{cpp}
 
-Putting the const before or after the int makes no difference in its functionality.
+将const放在int型的前面或后面对其功能没有影响。
 
-If you instead want to mark ip itself const (not the values to which it points), you need to write this:
+若想将ip本身标记为const(而不是它所指向的值)，需要这样写:
 
 \begin{cpp}
 int* const ip { nullptr };
@@ -2557,49 +2557,49 @@ ip = new int[10]; // DOES NOT COMPILE!
 ip[4] = 5; // Error: dereferencing a null pointer
 \end{cpp}
 
-Now that ip itself cannot be changed, the compiler requires you to initialize it when you declare it, either with nullptr as in the preceding code or with newly allocated memory as follows:
+既然ip本身不能更改，编译器要求在声明它时初始化，可以像前面的代码一样使用nullptr，也可以像下面这样使用新分配的内存:
 
 \begin{cpp}
 int* const ip { new int[10] };
 ip[4] = 5;
 \end{cpp}
 
-You can also mark both the pointer and the value to which it points const like this:
+也可以像这样把指针和所指向的值都标记为const:
 
 \begin{cpp}
 int const* const ip { nullptr };
 \end{cpp}
 
-Here is an alternative but equivalent syntax:
+下面是另一种等价的语法:
 
 \begin{cpp}
 const int* const ip { nullptr };
 \end{cpp}
 
-Although this syntax might seem confusing, there is actually a simple rule: the const keyword applies to whatever is directly to its left. Consider this line again:
+虽然这种语法看起来令人困惑，但实际上有一个简单的规则:const关键字适用于直接在其左边的内容。再看看这句:
 
 \begin{cpp}
 int const* const ip { nullptr };
 \end{cpp}
 
-From left to right, the first const is directly to the right of the word int. Thus, it applies to the int to which ip points. Therefore, it specifies that you cannot change the values to which ip points. The second const is directly to the right of the *. Thus, it applies to the pointer to the int, which is the ip variable. Therefore, it specifies that you cannot change ip (the pointer) itself.
+从左到右，第一个const紧跟在int这个词的右边，适用于ip指向的int，它指定了不能更改ip指向的值。第二个const紧跟在*的右边，适用于指向int的指针，即ip变量，它指定不能更改ip（指针）本身。
 
-The reason this rule becomes confusing is an exception. That is, the first const can go before the variable like this:
+这条规则变得令人困惑的原因是，第一个const可以放在变量前面，像这样：
 
 \begin{cpp}
 const int* const ip { nullptr };
 \end{cpp}
 
-This “exceptional” syntax is used much more commonly than the other syntax.
+这种“异常”语法比其他语法更常用。
 
-You can extend this rule to any number of levels of indirection, as in this example:
+可以将此规则进行扩展到，如下例所示:
 
 \begin{cpp}
 const int * const * const * const ip { nullptr };
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Here is another easy-to-remember rule to figure out complicated variable declarations: read from right to left. For example, int* const ip reads from right to left as “ip is a const pointer to an int.” Further, int const* ip reads as “ip is a pointer to a const int,” and const int* ip reads as “ip is a pointer to an int constant.”
+这里有一个容易记住的规则，可以帮助你理解复杂的变量声明：从右向左阅读。例如，int* const ip 从右向左读作“ip是一个指向int的常量指针。”进一步，int const* ip 读作“ip是一个指向常量int的指针”，而const int* ip 读作“ip是一个指向int常量的指针。”
 \end{myNotic}
 
 \mySamllsection{使用const保护参数}
