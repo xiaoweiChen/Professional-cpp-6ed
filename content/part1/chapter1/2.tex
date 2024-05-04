@@ -1,36 +1,36 @@
 
-The following program builds on the employee database example used earlier in the discussion on structs. This time, you will end up with a fully functional C++ program that uses many of the features discussed in this chapter. This real-world example includes the use of classes, exceptions, streams, vectors, namespaces, references, and other language features.
+以下程序基于本章结构讨论中早些时候使用的员工数据库示例。这次，将得到一个完全功能的C++程序，该程序使用了本章讨论的许多特性。这个实际示例包括使用类、异常、流、vector、命名空间、引用，以及其他语言特性。
 
-\mySubsubsection{1.2.1.}{An Employee Records System}
+\mySubsubsection{1.2.1.}{员工档案系统}
 
-The next sections implement a program to manage a company’s employee records with the following feature set:
+接下来实现一个程序来管理公司的员工记录与以下功能:
 
 \begin{itemize}
 \item
-Add and fire employees
+增加和解雇员工
 
 \item
-Promote and demote employees
+晋升和降职员工
 
 \item
-View all employees, past and present
+查看所有员工，过去和现在
 
 \item
-View all current employees
+查看所有当前员工
 
 \item
-View all former employees
+查看所有前雇员
 \end{itemize}
 
-The design for this program divides the code into three parts. The Employee class encapsulates the information describing a single employee. The Database class manages all the employees of the company. Finally, a separate UserInterface file provides the interactivity of the program.
+该程序的设计将代码分为三个部分。Employee类封装了描述单个员工的个人信息，Database类管理公司的所有员工。最后，一个单独的UserInterface文件提供了程序的交互性。
 
-\mySubsubsection{1.2.2.}{The Employee Class}
+\mySubsubsection{1.2.2.}{Employee类}
 
-The Employee class maintains all the information about an employee. Its member functions provide a way to query and change that information. An Employee also knows how to display herself on the console. Additionally, member functions exist to adjust the employee’s salary and employment status.
+Employee类维护雇员的所有信息，成员函数提供了查询和更改该信息的方法。Employee也知道如何在控制台上进行输出，还存在成员函数来调整员工的工资和雇佣状态。
 
 \mySamllsection{Employee.cppm}
 
-The Employee.cppm module interface file defines the Employee class. The sections of this file are described individually in the text that follows. The first few lines are as follows:
+Employee.cppm模块接口文件定义了Employee类。接下来，文本将逐个描述此文件的部分。文件的前几行如下所示：
 
 \begin{cpp}
 export module employee;
@@ -38,20 +38,20 @@ import std;
 namespace Records {
 \end{cpp}
 
-The first line is a module declaration and states that this file exports a module called employee, followed by an import for the Standard Library functionality. This code also declares that the subsequent code, contained within the curly braces, lives in the Records namespace. Records is the namespace that is used throughout this program for application-specific code.
+第一行是模块声明，声明该文件导出一个名为employee的模块，后面跟着对标准库功能的导入。此代码还声明了随花括号内的后续代码位于Records命名空间中，Records是本程序中用于应用程序特定代码的命名空间。
 
-Next, the following two constants are defined inside the Records namespace. This book uses the convention to not prefix constants with any special letter and to start them with a capital letter to better contrast them with variables.
+接下来，在Records命名空间内部定义了以下两个常量。本书不对常量添加任何特殊前缀，以大写字母起始，以便更好地与变量区分开。
 
 \begin{cpp}
 const int DefaultStartingSalary { 30'000 };
 export const int DefaultRaiseAndDemeritAmount { 1'000 };
 \end{cpp}
 
-The first constant represents the default starting salary for new employees. This constant is not exported, because code outside this module does not need access to it. Code in the employee module can access this constant as Records::DefaultStartingSalary.
+第一个常量代表新员工的默认起始工资。因为模块外的代码不需要访问它，所以这个常量没有导出。员工模块内的代码可以作为Records::DefaultStartingSalary来访问这个常量。
 
-The second constant is the default amount for promoting or demoting an employee. This constant is exported, so code outside this module could, for example, promote an employee by twice the default amount.
+第二个常量是晋升或降职员工的默认金额。因为导出了这个常量，所以模块外的代码可以访问，例如，可以通过两倍的默认金额来晋升一个员工。
 
-Next, the Employee class is defined and exported, along with its public member functions:
+接下来，定义并导出了Employee类，及其公共成员函数：
 
 \begin{cpp}
 export class Employee
@@ -81,9 +81,9 @@ export class Employee
         bool isHired() const;
 \end{cpp}
 
-A constructor is provided that accepts a first and last name. The promote() and demote() member functions both have integer parameters that have a default value equal to DefaultRaiseAndDemeritAmount. In this way, other code can omit the parameter, and the default will automatically be used. Member functions to hire and fire an employee are provided, together with a member function to display information about an employee. A number of setters and getters provide functionality to change the information or to query the current information of an employee.
+提供了一个构造函数，接受一个首字母和姓。promote()和demote()成员函数都有整数参数，其默认值等于DefaultRaiseAndDemeritAmount。这样，其他代码可以省略参数，默认值会自动使用。提供了一些成员函数来雇佣和解雇员工，以及一个显示员工信息的成员函数。一些setter和getter提供了修改员工信息或查询员工当前信息的功能。
 
-The data members are declared as private so that other parts of the code cannot modify them directly:
+数据成员声明为私有，其他代码不能直接进行修改：
 
 \begin{cpp}
     private:
@@ -96,11 +96,11 @@ The data members are declared as private so that other parts of the code cannot 
 }
 \end{cpp}
 
-The setters and getters provide the only public way of modifying or querying those values. The data members are directly initialized here inside the class definition instead of in a constructor. By default, new employees have no name, an employee number of –1, the default starting salary, and a status of not hired.
+setter和getter提供了修改或查询这些值的唯一方法。数据成员在类定义中直接初始化，而不是在构造函数中。默认情况下，新员工没有姓名，员工编号为-1，默认起薪，状态为未雇用。
 
 \mySamllsection{Employee.cpp}
 
-The first few lines of the module implementation file are as follows:
+模块实现文件的前几行如下所示:
 
 \begin{cpp}
 module employee;
@@ -108,9 +108,9 @@ import std;
 using namespace std;
 \end{cpp}
 
-The first line specifies for which module this source file is, followed by an import of std, and a using directive.
+第一行指定这个源文件属于哪个模块，后面是一个std的导入和一个using指令。
 
-The constructor accepting a first and last name just sets the corresponding data members:
+接受姓和名的构造函数只设置相应的数据成员:
 
 \begin{cpp}
 namespace Records {
@@ -120,7 +120,7 @@ namespace Records {
     }
 \end{cpp}
 
-The promote() and demote() member functions simply call setSalary() with a new value. The default values for the integer parameters are not repeated here; they are allowed only in a function declaration, not in a definition.
+promote()和demote()成员函数只是用一个新值调用setSalary()。这里不重复整型参数的默认值，只允许在函数声明中使用，而不允许在定义中使用。
 
 \begin{cpp}
 void Employee::promote(int raiseAmount)
@@ -134,14 +134,14 @@ void Employee::demote(int demeritAmount)
 }
 \end{cpp}
 
-The hire() and fire() member functions just set the m\_hired data member appropriately:
+hire()和fire()成员函数只是设置了m\_hired的状态:
 
 \begin{cpp}
 void Employee::hire() { m_hired = true; }
 void Employee::fire() { m_hired = false; }
 \end{cpp}
 
-The display() member function uses println() to display information about the current employee. Because this code is part of the Employee class, it could access data members, such as m\_salary, directly instead of using getters, such as getSalary(). However, it is considered good style to make use of getters and setters when they exist, even from within the class.
+display()成员函数使用println()来显示当前员工的信息。这段代码是Employee类的一部分，所以可以直接访问数据成员，比如m\_salary，而不是使用getter，比如getSalary()。然而，当getter和setter存在时，即使是在类中，使用它们是一种良好的编程风格。
 
 \begin{cpp}
 void Employee::display() const
@@ -155,7 +155,7 @@ void Employee::display() const
 }
 \end{cpp}
 
-Finally, a number of getters and setters perform the task of getting and setting values:
+最后，一些getter和setter执行获取和设置值的任务:
 
 \begin{cpp}
     // Getters and setters
@@ -176,11 +176,11 @@ Finally, a number of getters and setters perform the task of getting and setting
 }
 \end{cpp}
 
-Even though these member functions seem trivial, it’s better to have trivial getters and setters than to make your data members public. For example, in the future, you may want to perform bounds checking in the setSalary() member function. Getters and setters also make debugging easier because you can insert a breakpoint in them to inspect values when they are retrieved or set. Another reason is that when you decide to change how you are storing the data in your class, you only need to modify these getters and setters, while other code using your class can remain untouched.
+尽管这些成员函数看似微不足道，但拥有getter和setter总比将数据成员公开的好。例如，将来可以在setSalary()成员函数中执行边界检查。getter和setter可以将断点插入，会让调试更容易。另一个原因是，当决定更改在类中存储数据的方式时，只需要修改这些getter和setter即可。
 
 \mySamllsection{EmployeeTest.cpp}
 
-As you write individual classes, it is often useful to test them in isolation. The following code includes a main() function that performs some simple operations using the Employee class. Once you are confident that the Employee class works, you should remove or comment out this file so that you don’t attempt to compile your code with multiple main() functions.
+编写单个类时，需要对它们进行隔离测试。下面的代码包含一个main()函数，该函数使用Employee类执行一些简单的操作。当确定Employee类可以正常工作，就应该删除或注释掉这个文件，这样就不会试图用多个main()函数编译代码。
 
 \begin{cpp}
 import std;
@@ -204,15 +204,15 @@ int main()
 }
 \end{cpp}
 
-Another and much better way to test individual classes is with unit testing, discussed in Chapter 30, “Becoming Adept at Testing.” Unit tests are small pieces of code to test specific functionality and that remain in the code base. All unit tests are frequently executed; for example, they can automatically be executed by your build system. The benefit of doing this is that if you make some changes to existing functionality, the unit tests will instantly warn you if you break something.
+另一种，并且更好的测试单个类的方法是单元测试。单元测试是用于测试特定功能的小代码块，其会保留在代码库中。所有的单元测试都会频繁执行；例如，由构建系统自动执行。这样做的好处是，若对现有功能进行了一些更改，单元测试会立即提示，是否破坏了某项功能。
 
-\mySubsubsection{1.2.3.}{The Database Class}
+\mySubsubsection{1.2.3.}{Database类}
 
-The Database class is implemented next. It uses the std::vector class from the Standard Library to store Employee objects.
+接下来实现Database类，使用标准库中的std::vector类来存储Employee对象。
 
 \mySamllsection{Database.cppm}
 
-Here are the first few lines of the database.cppm module interface file:
+以下是数据库.cppm模块接口文件的前几行代码：
 
 \begin{cpp}
 export module database;
@@ -223,9 +223,9 @@ namespace Records {
     const int FirstEmployeeNumber { 1'000 };
 \end{cpp}
 
-Because the database will take care of automatically assigning an employee number to a new employee, a constant defines where the numbering begins.
+因为数据库将自动为新员工分配员工编号，所以定义了一个常量来指定编号的起始值。
 
-Next, the Database class is defined and exported:
+接下来，定义并导出Database类：
 
 \begin{cpp}
     export class Database
@@ -238,9 +238,9 @@ Next, the Database class is defined and exported:
                                   const std::string& lastName);
 \end{cpp}
 
-The database provides an easy way to add a new employee by providing a first and last name. For convenience, this member function returns a reference to the new employee. External code can also get an employee reference by calling the getEmployee() member function. Two overloads of this member function are declared. One allows retrieval by employee number. The other requires a first and last name.
+数据库提供了一种简单的方法来添加新员工，通过提供首字母和姓，这个成员函数返回新员工的引用。外部代码还可以通过调用getEmployee()成员函数来获取员工的引用。这个成员函数声明了两个重载版本。一个允许按员工编号检索。另一个需要首字母和姓。
 
-Because the database is the central repository for all employee records, it has the following member functions to display all employees, the employees who are currently hired, and the employees who are no longer hired:
+因为数据库是所有员工记录的中心存储库，所以有以下成员函数来显示所有员工、当前雇佣的员工和解雇的员工：
 
 \begin{cpp}
             void displayAll() const;
@@ -248,7 +248,7 @@ Because the database is the central repository for all employee records, it has 
             void displayFormer() const;
 \end{cpp}
 
-Finally, the private data members are defined as follows:
+最后，私有数据成员定义如下:
 
 \begin{cpp}
         private:
@@ -258,11 +258,11 @@ Finally, the private data members are defined as follows:
 }
 \end{cpp}
 
-The m\_employees data member contains the Employee objects, while m\_nextEmployeeNumber keeps track of what employee number is assigned to a new employee and is initialized with the FirstEmployeeNumber constant.
+m\_employees数据成员包含Employee对象，而m\_nextEmployeeNumber跟踪分配给新员工的员工编号，并使用FirstEmployeeNumber常量进行初始化。
 
 \mySamllsection{Database.cpp}
 
-Here is the implementation of the addEmployee() member function:
+下面是addEmployee()成员函数的实现:
 
 \begin{cpp}
 module database;
@@ -282,9 +282,9 @@ namespace Records {
     }
 \end{cpp}
 
-The addEmployee() member function creates a new Employee object, fills in its information, and adds it to the vector. The m\_nextEmployeeNumber data member is incremented after its use so that the next employee will get a new number. The back() member function of vector returns a reference to the last element in the vector, which is the newly added employee.
+addEmployee()成员函数创建一个新的Employee对象，填充其信息，并将其添加到vector中。数据成员m\_nextEmployeeNumber在使用后递增，以便下一个员工将获得一个新号。vector的back()成员函数返回vector中最后一个元素的引用，即新添加的雇员。
 
-One of the getEmployee() member functions is implemented as follows. The second overload is implemented similarly, hence not shown. They both loop over all employees in m\_employees using a range-based for loop and check whether an Employee is a match for the information passed to the member function. An exception is thrown if no match is found. Notice the use of auto\& in the rangebased for loop, because the loop doesn’t want to work with copies of Employees but with references to the Employees in the m\_employees vector.
+getEmployee()成员函数之一实现如下。第二个重载的实现与此类似，因此没有展示。它们都使用基于范围的for循环遍历m\_employees中的所有员工，并检查Employee是否与传递给成员函数的信息相匹配。若没有找到匹配项，则抛出异常。注意，在基于范围的for循环中使用了auto\&，循环不想处理Employees的副本，而是要处理对m\_employees中的Employees的引用。
 
 \begin{cpp}
     Employee& Database::getEmployee(int employeeNumber)
@@ -298,7 +298,7 @@ One of the getEmployee() member functions is implemented as follows. The second 
     }
 \end{cpp}
 
-The following display member functions all use a similar algorithm: they loop through all employees and ask each employee to display itself to the console if the criterion for display matches.
+下面的display成员函数都使用类似的算法:循环遍历所有员工，并要求每个员工在显示条件匹配时将自己显示到终端。
 
 \begin{cpp}
     avoid Database::displayAll() const
@@ -324,7 +324,7 @@ The following display member functions all use a similar algorithm: they loop th
 
 \mySamllsection{DatabaseTest.cpp}
 
-A simple test for the basic functionality of the database is shown here:
+下面是对数据库基本功能的一个简单测试:
 
 \begin{cpp}
 import std;
@@ -357,11 +357,11 @@ int main()
 }
 \end{cpp}
 
-\mySubsubsection{1.2.4.}{The User Interface}
+\mySubsubsection{1.2.4.}{用户接口}
 
-The final part of the program is a menu-based user interface that makes it easy for users to work with the employee database.
+该程序的最后一部分是一个基于菜单的用户界面，使用户可以轻松地使用员工数据库。
 
-The following main() function contains a loop that displays the menu, performs the selected action, and then does it all again. For most actions, separate functions are defined. For simpler actions, such as displaying employees, the actual code is put in the appropriate case.
+下面的main()函数包含一个循环，该循环显示菜单，执行选定的操作，然后再次执行所有操作。对于大多数操作，都定义了单独的函数。对于更简单的操作，比如显示雇员，实际的代码会放在适当的位置。
 
 \begin{cpp}
 import std;
@@ -412,7 +412,7 @@ int main()
 }
 \end{cpp}
 
-The displayMenu() function prints the menu and gets input from the user. One important note is that this code assumes that the user will “play nice” and type a number when a number is requested. When you read about I/O in Chapter 13, you will learn how to protect against bad input.
+displayMenu()函数打印菜单并从用户处获取输入。一个重要的注意事项是，这段代码假设用户会“表现得很好”，并在请求数字时输入一个数字。第13章将展示如何处理不良输入。
 
 \begin{cpp}
 int displayMenu()
@@ -435,7 +435,7 @@ int displayMenu()
 }
 \end{cpp}
 
-The doHire() function gets the new employee’s name from the user and tells the database to add the employee:
+doHire()函数从用户那里获取新员工的姓名，并告诉数据库添加该员工:
 
 \begin{cpp}
 void doHire(Database& db)
@@ -455,7 +455,7 @@ void doHire(Database& db)
 }
 \end{cpp}
 
-doFire() and doPromote() both ask the database for an employee by their employee number and then use the public member functions of the Employee object to make changes:
+doFire()和doPromote()都通过员工编号向数据库查询员工，然后使用employee对象的public成员函数进行更改:
 
 \begin{cpp}
 void doFire(Database& db)
@@ -491,11 +491,11 @@ void doPromote(Database& db)
 }
 \end{cpp}
 
-\mySubsubsection{1.2.5.}{Evaluating the Program}
+\mySubsubsection{1.2.5.}{评估项目}
 
-The preceding program covers a number of topics from the simple to the more complex. There are a number of ways that you could extend this program. For example, the user interface does not expose all the functionality of the Database and Employee classes. You could modify the UI to include those features. You could also try to implement additional functionality that you can think of for both classes, which would be a great exercise to practice the material you learned in this chapter.
+程序涵盖了从简单到更复杂的一系列主题，有多种方式可以扩展这个程序。例如，用户界面并没有暴露出Database和Employee类的所有功能，可以修改UI以包括这些特性。还可以尝试实现这两个类的其他功能，这将是一个练习本章所学材料的好方法。
 
-If there are parts of this program that don’t make sense, consult the relevant sections in this chapter to review those topics. If something is still unclear, the best way to learn is to play with the code and try things. For example, if you’re not sure how to use the conditional operator, write a short main() function that uses it.
+若对这个程序的某些部分感到困惑，请参阅本章的相关部分来复习这些主题。若仍然不清楚，学习最好的方式是编写代码并尝试各种操作。例如，不确定如何使用条件运算符，可以编写一个短小的main()函数来使用看看。
 
 
 

@@ -2604,9 +2604,10 @@ const int * const * const * const ip { nullptr };
 
 \mySamllsection{使用const保护参数}
 
-In C++, you can cast a non-const variable to a const variable. Why would you want to do this? It offers some degree of protection from other code changing the variable. If you are calling a function that a co-worker of yours is writing and you want to ensure that the function doesn’t change the value of an argument you pass in, you can tell your co-worker to have the function take a const parameter. If the function attempts to change the value of the parameter, it will not compile.
+C++可以将非常量变量强制转换为常量变量，这样做可以在一定程度上避免其他代码更改该变量。若要调用一个由您的同事编写的函数，并且确保该函数不改变传入的值，可以告诉同事让该函数接受一个常量参数。若该函数尝试更改参数的值，则代码将无法顺利编译。
 
-In the following code, a string* is automatically cast to a const string* in the call to mysteryFunction(). If the author of mysteryFunction() attempts to change the value of the passed string, the code will not compile. There are ways around this restriction, but using them requires conscious effort. C++ only protects against accidentally changing const variables.
+以下代码中，string*自动转换为mysteryFunction()调用中的const string*。若mysteryFunction()的作者尝试修改传入的字符串的值，代码将无法编译。虽然有一些方法可以绕过这种限制，但需要付出额外的努力。C++仅保护避免意外更改常量变量。
+
 
 \begin{cpp}
 void mysteryFunction(const string* someString)
@@ -2621,7 +2622,7 @@ int main()
 }
 \end{cpp}
 
-You can also use const on primitive-type parameters to prevent accidentally changing them in the body of the function. For example, the following function has a const integer parameter. In the body of the function, you cannot modify the param integer. If you do try to modify it, the compiler will generate an error.
+还可以对基本类型参数使用const，以避免在函数体中对其进行修改。例如，下面的函数有一个const整型形参。在函数体中，不能修改参数整数。若尝试修改它，编译器将会报错。
 
 \begin{cpp}
 void func(const int param) { /* Not allowed to change param... */ }
@@ -2629,7 +2630,7 @@ void func(const int param) { /* Not allowed to change param... */ }
 
 \mySamllsection{const成员函数}
 
-A second use of the const keyword is to mark class member functions as const, preventing them from modifying data members of the class. The AirlineTicket class introduced earlier can be modified to mark all read-only member functions as const. The const must be added to both the member function declaration and its definition. If any const member function tries to modify one of the AirlineTicket data members, the compiler will emit an error.
+const关键字的第二个用途是标记类成员函数为const，防止修改类数据成员。之前引入的AirlineTicket类，可以将所有只读成员函数标记为const。const必须添加到成员函数的声明和定义中。若const成员函数尝试修改AirlineTicket的一个数据成员，编译器将报错。
 
 \begin{cpp}
 export class AirlineTicket
@@ -2659,7 +2660,7 @@ std::string AirlineTicket::getPassengerName() const
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-To follow the const-correctness principle, it’s recommended to declare member functions that do not change any data members of the object as being const. These member functions are also called inspectors, compared to mutators for non-const member functions.
+了遵循const正确性原则，建议将不改变对象的数据成员的成员函数声明为const。与非const成员函数的mutator相比，这些成员函数也称为检查器(inspector)。
 \end{myNotic}
 
 \mySubsubsection{1.1.28.}{引用}
@@ -2668,32 +2669,32 @@ Professional C++ code, including much of the code in this book, uses references 
 
 \mySamllsection{引用变量}
 
-Reference variables must be initialized as soon as they are created, like this:
+引用变量必须在创建后立即初始化，如下所示:
 
 \begin{cpp}
 int x { 3 };
 int& xRef { x };
 \end{cpp}
 
-Attaching \& to a type indicates that the variable is a reference. It is still used as though it was a normal variable, but behind the scenes, it is really a pointer to the original variable. Both the variable x and the reference variable xRef point to exactly the same value; i.e., xRef is just another name for x. If you change the value through either one of them, the change is visible through the other one as well. For example, the following code sets x to 10 through xRef:
+将\&添加到类型表明该变量是引用。该变量仍然当作一个普通的变量来使用，但它实际上是一个指向原始变量的指针。变量x和引用变量xRef都指向完全相同的值，xRef只是x的另一个名字。若改变了其中一个值，另一个的值也会改变。例如，下面的代码通过xRef将x设置为10:
 
 \begin{cpp}
 xRef = 10;
 \end{cpp}
 
-You cannot declare a reference variable outside of a class definition without initializing it.
+若不初始化引用变量，就不能在类定义之外声明。
 
 \begin{cpp}
 int& emptyRef; // DOES NOT COMPILE!
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-A reference variable must always be initialized when it’s created.
+引用变量在创建时必须初始化。
 \end{myWarning}
 
-\mySamllsection{Modifying References}
+\mySamllsection{修改引用}
 
-A reference always refers to the same variable to which it is initialized; references cannot be changed once they are created. The syntax might be confusing for beginning C++ programmers. If you assign a variable to a reference when the reference is declared, the reference refers to that variable. However, if you assign a variable to a reference after that, the variable to which the reference refers is changed to the value of the variable being assigned. The reference is not updated to refer to that variable. Here is a code example:
+C++中的引用一旦初始化后就不能更改，始终指向初始化时指定的变量。引用的语法可能会对初学者造成混淆。若在声明引用时将一个变量赋值给该引用，则该引用指向该变量。但在此之后将另一个变量赋值给该引用，则更改的是引用所指向的变量的值，而不是更新引用以指向被赋值的变量。下面是一个代码示例：
 
 \begin{cpp}
 int x { 3 }, y { 4 };
@@ -2701,15 +2702,15 @@ int& xRef { x };
 xRef = y; // Changes value of x to 4. Doesn't make xRef refer to y.
 \end{cpp}
 
-You might try to circumvent this restriction by taking the address of y when you assign it:
+可以尝试通过在赋值时，获取y的地址来绕过这个限制:
 
 \begin{cpp}
 xRef = &y; // DOES NOT COMPILE!
 \end{cpp}
 
-This code does not compile. The address of y is a pointer, but xRef is declared as a reference to an int, not a reference to a pointer.
+这段代码无法编译。变量y的地址是一个指针，但xRef声明为对int的引用，而不是对指针的引用。
 
-Some programmers go even further in their attempts to circumvent the intended semantics of references. What if you assign a reference to a reference? Won’t that make the first reference refer to the variable to which the second reference refers? You might be tempted to try this code:
+一些开发者在尝试绕过引用的预期语义方面走得更远。若将一个引用赋值给另一个引用会怎样？难道这不会让第一个引用指向第二个引用所引用的变量吗？可以尝试以下代码：
 
 \begin{cpp}
 int x { 3 }, z { 5 };
@@ -2718,17 +2719,17 @@ int& zRef { z };
 zRef = xRef; // Assigns values, not references
 \end{cpp}
 
-The final statement does not change to what zRef refers to. Instead, it sets the value of z to 3, because xRef refers to x, which is 3.
+最后的语句不会改变zRef所引用的内容。相反，它将z的值设置为3，因为xRef引用的x是3。
 
 \begin{myWarning}{WARNING}
-Once a reference is initialized to refer to a specific variable, you cannot change the reference to refer to another variable; you can change only the value of the variable the reference refers to.
+当引用初始化为指向一个特定的变量，就不能将其更改为指向另一个变量，只能更改所引用的变量的值。
 \end{myWarning}
 
-\mySamllsection{References-to-const}
-References-to-const
-const applied to references is usually easier than const applied to pointers for two reasons. First, references are const by default, in that you can’t change to what they refer. So, there is no need to mark them const explicitly. Second, you can’t create a reference to a reference, so there is usually only one level of indirection with references. The only way to get multiple levels of indirection is to create a reference to a pointer.
+\mySamllsection{const引用}
 
-Thus, when C++ programmers refer to a reference-to-const, they mean something like this:
+引用上使用const通常比在指针上使用const容易，原因有二。首先，引用默认就是const的，因为不能更改它们所引用的对象。因此，没有必要显式地将它们标记为const。其次，不能创建一个引用的引用，所以通常引用只有一层，获取多层引用的唯一方法是创建一个指向指针的引用。
+
+因此，当C++程序员提到一个对const的引用时，他们的意思通常是像这样的东西：
 
 \begin{cpp}
 int z;
@@ -2736,31 +2737,31 @@ const int& zRef { z };
 zRef = 4; // DOES NOT COMPILE
 \end{cpp}
 
-By applying const to the int\&, you prevent assignment to zRef, as shown. Similar to pointers, const int\& zRef is equivalent to int const\& zRef. Note, however, that marking zRef const has no effect on z. You can still modify the value of z by changing it directly instead of through the reference.
+对int\&使用const，可以避免对zRef的赋值。与指针类似，const int\& zRef等同于int const\& zRef。但请注意，将zRef标记为const对z没有影响。仍然可以通过直接更改z的值来修改z的值，而不是通过引用。
 
-You cannot create a reference to an unnamed value, such as an integer literal, unless the reference is to a const value. In the following example, unnamedRef1 does not compile because it is a referenceto-non-const referring to a constant. That would mean you could change the value of the constant, 5, which doesn’t make sense. unnamedRef2 works because it’s a reference-to-const, so you cannot for example write unnamedRef2 = 7.
+但不能创建对未命名值的引用，比如整数字面量，除非引用是对const值的引用。以下示例中，unnamedRef1无法编译，因为它是对常量的非常量引用，可能会改变常量5的值，这没有意义。unnamedRef2有效，因为它是对const的引用，所以不能写unnamedRef2 = 7。
 
 \begin{cpp}
 int& unnamedRef1 { 5 }; // DOES NOT COMPILE
 const int& unnamedRef2 { 5 }; // Works as expected
 \end{cpp}
 
-The same holds for temporary objects. You cannot create a reference-to-non-const to a temporary object, but a reference-to-const is fine. For example, suppose you have the following function returning an std::string object:
+对于临时对象也是如此。不能创建对临时对象的非const引用，但可以创建对const的引用。例如，假设以下函数返回一个std::string对象:
 
 \begin{cpp}
 string getString() { return "Hello world!"; }
 \end{cpp}
 
-You can create a reference-to-const to the result of calling getString(), and that reference keeps the temporary std::string object alive until the reference goes out of scope:
+可以为调用getString()的结果创建一个对const的引用，该引用会使临时std::string对象保持活动状态，直到该引用超出作用域:
 
 \begin{cpp}
 string& string1 { getString() }; // DOES NOT COMPILE
 const string& string2 { getString() }; // Works as expected
 \end{cpp}
 
-\mySamllsection{References to Pointers and Pointers to References}
+\mySamllsection{指针的引用和引用的指针}
 
-You can create references to any type, including pointer types. Here is an example of a reference to a pointer to int:
+可以创建对任何类型的引用，包括指针类型。下面是一个引用int型指针的例子:
 
 \begin{cpp}
 int* intP { nullptr };
@@ -2770,9 +2771,9 @@ ptrRef = new int;
 delete ptrRef; ptrRef = nullptr;
 \end{cpp}
 
-The syntax is a little strange: you might not be accustomed to seeing * and \& right next to each other. However, the semantics are straightforward: ptrRef is a reference to intP, which is a pointer to int. Modifying ptrRef changes intP. References to pointers are rare but can occasionally be useful, as discussed in the “Reference Parameters” section later in this chapter.
+这个语法可能看起来有点奇怪：可能不习惯看到*和\&紧挨在一起。然而，其语义是直接的：ptrRef是对intP的引用，而intP是一个指向int的指针。修改ptrRef会改变intP。指向指针的引用不常见，但正如本章后面“引用参数”部分所讨论，偶尔会这样用。
 
-Taking the address of a reference gives the same result as taking the address of the variable to which the reference refers. Here is an example:
+取一个引用的地址与取该引用所引用变量的地址得到的结果相同：
 
 \begin{cpp}
 int x { 3 };
@@ -2781,29 +2782,29 @@ int* xPtr { &xRef }; // Address of a reference is pointer to value.
 *xPtr = 100;
 \end{cpp}
 
-This code sets xPtr to point to x by taking the address of a reference to x. Assigning 100 to *xPtr changes the value of x to 100. Writing the comparison xPtr == xRef will not compile because of a type mismatch; xPtr is a pointer to an int, while xRef is a reference to an int. The comparisons xPtr == \&xRef and xPtr == \&x both compile without errors and are both true.
+这段代码通过取x的引用的地址来设置xPtr指向x。将100赋值给*xPtr会将x的值更改为100。因为类型不匹配，比较xPtr == xRef将无法编译；xPtr是一个指向int的指针，而xRef是int的引用。比较xPtr == \&xRef和xPtr == \&x都可以编译且不会出错，并且都是真。
 
-Finally, note that you cannot declare a reference to a reference or a pointer to a reference. For example, neither int\&\& nor int\&* is allowed.
+最后不能声明对引用的引用或对引用的指针。例如，不允许使用int\&\&或int\&*。
 
-\mySamllsection{Structured Bindings and References}
+\mySamllsection{结构化绑定和引用}
 
-Structured bindings are introduced earlier in this chapter. One of the examples given was the following:
+本章前面介绍了结构化绑定:
 
 \begin{cpp}
 pair myPair { "hello", 5 };
 auto [theString, theInt] { myPair }; // Decompose using structured bindings
 \end{cpp}
 
-Now that you know about references and const variables, it’s time to learn that both can be combined with structured bindings as well. Here’s an example:
+既然已经了解了引用和const变量，那么是时候了解它们也可以与结构化绑定结合使用了:
 
 \begin{cpp}
 auto& [theString, theInt] { myPair }; // Decompose into references-to-non-const
 const auto& [theString, theInt] { myPair }; // Decompose into references-to-const
 \end{cpp}
 
-\mySamllsection{Reference Data Members}
+\mySamllsection{引用数据成员}
 
-Data members of classes can be references. As discussed earlier, a reference cannot exist without referring to some other variable, and it is not possible to change where a reference refers to. Thus, reference data members cannot be initialized inside the body of a class constructor, but they must be initialized in the constructor initializer. Syntax-wise, a constructor initializer immediately follows the constructor header and starts with a colon. The following is a quick example with the constructor initializer highlighted. Chapter 9 goes in much more detail.
+类的数据成员可以是引用，但引用不能独立存在，必须引用某个其他变量，而且不可能更改引用指向的位置。因此，引用数据成员不能在类构造函数的主体内部初始化，而必须在构造函数的初始化列表中初始化。语法上，构造函数初始化列表紧随构造函数之后，并以冒号开始。以下是一个带有构造函数初始化列表突出显示的快速示例。第9章将详细讨论这个问题。
 
 \begin{cpp}
 class MyClass
@@ -2816,14 +2817,14 @@ class MyClass
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-A reference must always be initialized when it’s created. Usually, references are created when they are declared, but reference data members need to be initialized in a constructor initializer for the containing class.
+引用在创建时必须始终初始化，在声明引用时创建引用，但引用数据成员需要在包含类的构造函数初始化项中进行初始化。
 \end{myWarning}
 
-\mySamllsection{Reference Parameters}
+\mySamllsection{引用参数}
 
-C++ programmers do not often use stand-alone reference variables or reference data members. The most common use of references is for parameters to functions. The default parameter-passing semantics is pass-by-value: functions receive copies of their arguments. When those parameters are modified, the original arguments remain unchanged. Pointers to stack variables are often used in C to allow functions to modify variables in other stack frames. By dereferencing the pointer, the function can change the memory that represents the variable even though that variable isn’t in the current stack frame. The problem with this approach is that it brings the messiness of pointer syntax into what is really a simple task.
+C++开发者通常不使用独立的引用变量或引用数据成员。引用的最常见用途是作为函数的参数，默认的参数传递语义是按值传递：函数接收其参数的副本。当修改这些参数时，原始参数保持不变。在C语言中，指针常用于允许函数修改其他栈帧中的变量。通过解引用指针，函数可以更改表示变量的内存，即使该变量不在当前的栈帧中。这种方法的问题在于，它将混乱的指针语法带入了一个实际上非常简单的任务。
 
-Instead of passing pointers to functions, C++ offers a better mechanism, called pass-by-reference, where parameters are references instead of pointers. The following are two implementations of an addOne() function. The first one has no effect on the variable that is passed in because it is passed by value, and thus the function receives a copy of the value passed to it. The second one uses a reference and thus changes the original variable.
+C++提供了一种更好的机制，称为按引用传递，其中参数是引用而不是指针，以替代将指针传递给函数。以下是addOne()函数的两种实现。因为它是按值传递的，第一种对传递进来的变量没有影响，因此函数接收的是传递给它的值的副本。第二种使用引用，因此改变了原始变量。
 
 \begin{cpp}
 void addOne(int i)
@@ -2837,7 +2838,7 @@ void addOne(int& i)
 }
 \end{cpp}
 
-The syntax for the call to the addOne() function with an integer reference is no different than if the function just took an integer.
+使用整数引用调用addOne()函数的语法与函数只接受整数的语法没有什么不同。
 
 \begin{cpp}
 int myInt { 7 };
@@ -2845,10 +2846,10 @@ addOne(myInt);
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-There is a subtle difference between the two addOne() implementations. The version using pass-by-value accepts literals without a problem; for example, addOne(3); is legal. However, doing the same with the pass-by-reference version of addOne() will result in a compilation error. This can be solved by using reference-to-const parameters, discussed in the next section.
+在两个addOne()实现之间有一个微妙的区别。使用按值传递的版本可以毫无问题地接受字面量；例如，addOne(3); 是合法的。然而，若使用按引用传递的addOne()版本尝试做同样的事情，将会导致编译错误。这可以通过使用下一节讨论的常量引用参数来解决。
 \end{myNotic}
 
-Here is another example where pass-by-reference comes in handy; it’s a simple swap function to swap the values of two ints:
+下面是另一个引用传递派上用场的例子.这是一个简单的交换函数，用于交换两个int型的值:
 
 \begin{cpp}
 void swap(int& first, int& second)
@@ -2859,16 +2860,16 @@ void swap(int& first, int& second)
 }
 \end{cpp}
 
-You can call it like this:
+可以这样调用:
 
 \begin{cpp}
 int x { 5 }, y { 6 };
 swap(x, y);
 \end{cpp}
 
-When swap() is called with the arguments x and y, the first parameter is initialized to refer to x, and the second parameter is initialized to refer to y. When swap() modifies first and second, x and y are actually changed.
+使用x和y作为参数调用swap()时，第一个参数被初始化为引用x，第二个参数初始化为引用y。当swap()修改first和second时，实际上是改变了x和y的值。
 
-A common quandary arises when you have a pointer to something that you need to pass to a function that takes a reference. You can “convert” a pointer to a reference in this case by dereferencing the pointer. This action gives you the value to which the pointer points, which the compiler then uses to initialize the reference parameter. For example, you can call swap() like this:
+当有一个指向你需要在函数中传递的引用的指针时，常见的问题就出现了。这种情况下，可以通过解引用指针来“转换”指针为引用。这个操作给了指针指向的值，编译器然后用这个值来初始化引用参数。例如，可以像这样调用swap()：
 
 \begin{cpp}
 int x { 5 }, y { 6 };
@@ -2876,15 +2877,15 @@ int *xp { &x }, *yp { &y };
 swap(*xp, *yp);
 \end{cpp}
 
-Finally, if you have a function that needs to return an object of a class that is expensive to copy, you’ll often see the function accepting an output parameter of type reference-to-non-const to such a class that the function then modifies, instead of directly returning such an object. Developers thought that this was the recommended way to prevent any performance penalties with creating copies when returning objects from functions. However, even back then, compilers were usually smart enough to avoid any redundant copies. So, we have the following rule:
+最后，若有一个函数需要返回一个复制成本较高的类的对象，经常会看到这个函数接受一个非const引用的输出参数，然后函数修改这个参数，而不是直接返回这样的对象。开发者们认为这是推荐的方法，以避免在从函数返回对象时创建副本带来的性能损失。编译器通常足够智能，能够避免任何冗余的复制。因此，有以下规则：
 
 \begin{myWarning}{WARNING}
-The recommended way to return objects from a function is to return them by value, instead of using output parameters.
+从函数返回对象的推荐方法是按值返回，而不是使用输出参数。
 \end{myWarning}
 
-\mySamllsection{Pass-by-Reference-to-const}
+\mySamllsection{通过引用常量}
 
-The main value in reference-to-const parameters is efficiency. When you pass a value into a function, an entire copy is made. When you pass a reference, you are really just passing a pointer to the original so the computer doesn’t need to make a copy. By passing a reference-to-const, you get the best of both worlds: no copy is made, and the original variable cannot be changed. References-toconst become more important when you are dealing with objects because they can be large and making copies of them can have unwanted side effects. The following example shows how to pass an std::string to a function as a reference-to-const:
+引用到常量（reference-to-const）参数的主要价值在于效率。将一个值传递给函数时，会制作整个值的副本。传递一个引用时，实际上只是传递了一个指向原始值的指针，因此计算机不需要制作副本。通过传递一个引用到常量，两全其美：不制作副本，并且不能更改原始变量。处理对象时，引用到常量变得更加重要，因为对象可能很大，复制它们可能会有不良的副作用。以下示例显示了如何将std::string作为引用到常量传递给函数：
 
 \begin{cpp}
 import std;
@@ -2899,39 +2900,39 @@ int main()
 }
 \end{cpp}
 
-\mySamllsection{Pass-by-Reference vs. Pass-by-Value}
+\mySamllsection{传递引用 vs. 传递值}
 
-Pass-by-reference is required when you want to modify the parameter and see those changes reflected in the variable passed to the function. However, you should not limit your use of pass-by-reference to only those cases. Pass-by-reference avoids copying the arguments to the function, providing two additional benefits:
+希望修改参数并希望函数接收的变量反映这些更改时，需要使用按引用传递。然而，应该只将按引用传递限制在这些情况下。按引用传递避免了将参数复制到函数中，提供了两个好处：
 
 \begin{itemize}
 \item
-Efficiency: Large objects could take a long time to copy. Pass-by-reference passes only a reference to the object into the function.
+提高效率：按值传递参数时，函数参数会创建一个副本，这可能导致性能下降，尤其是当参数是大型对象时。按引用传递则避免了这一复制过程，从而提高了函数调用的效率。
 
 \item
-Support: Not all classes allow pass-by-value.
+增强代码清晰度：按引用传递参数表明函数会修改参数的值，这有助于提高代码的可读性和可维护性。开发者可以清楚地知道哪些参数会被修改，哪些不会。并非所有类都允许按值传递。
 \end{itemize}
 
-If you want to leverage these benefits but do not want to allow the original objects to be modified, you should mark the parameters const, giving you pass-by-reference-to-const.
+若希望利用这些优点，但又不希望修改原始对象，则应该将参数标记为const，从而通过引用传递到const。
 
 \begin{myNotic}{NOTE}
-These benefits of pass-by-reference imply that you should use pass-by-value only for simple built-in types such as int and double for which you don’t need to modify the arguments. If you need to pass an object to a function, prefer to pass it by reference-to-const instead of by value. This prevents unnecessary copying. Pass it by reference-to-non-const if the function needs to modify the object. Chapter 9 slightly modifies this rule after the introduction of move semantics, allowing passby-value of objects in certain cases.
+这些按引用传递的好处，应该仅对那些不需要修改参数的简单内置类型（如int和double）使用按值传递。若需要将一个对象传递给一个函数，最好是通过引用const，而非按值传递。这样可以防止不必要的复制。若函数需要修改对象，请通过引用非const的变量进行传递。第9章中，引入移动语义后，会修改了这个规则，允许在某些情况下按值传递对象。
 \end{myNotic}
 
-\mySamllsection{Reference Return Values}
+\mySamllsection{引用返回值}
 
-You can return a reference from a function. Of course, you can use this technique only if the variable to which the returned reference refers to continues to exist following the function termination.
+可以从函数返回一个引用，只有当返回的引用所引用的变量在函数终止后还存在，才能使用这种技术。
 
 \begin{myWarning}{WARNING}
-From a function, never return a reference to a variable that is locally scoped to that function, such as an automatically allocated variable on the stack that will be destroyed when the function ends.
+从函数中，永远不要返回对局部作用域为该函数的变量的引用，例如：在堆栈上自动分配的变量，该变量将在函数结束时销毁。
 \end{myWarning}
 
-One of the main reasons to return a reference is if you want to be able to assign to the return value directly as an lvalue (the left-hand side of an assignment statement). Several overloaded operators commonly return references, such as operators =, +=, and so on. Chapter 15 goes into more details on how to write such overloaded operators yourself.
+返回引用的一个主要原因是，想要能够直接将返回值作为左值（赋值语句的左侧）进行赋值。许多重载运算符通常返回引用，例如运算符=、+=等。
 
-Another reason to return a reference from a function is if the return type is expensive to copy. By returning a reference or reference-to-const, the copying is avoided, but keep the earlier warning in mind. This is often used to return objects by reference-to-const from class member functions, as demonstrated later in this chapter.
+从函数返回引用的另一个原因是，返回类型复制成本较高。通过返回引用或引用到常量，可以避免复制。但请记住之前的警告，这通常用于从类成员函数返回通过引用到常量的对象，如本章稍后所示。
 
-\mySamllsection{Deciding Between References and Pointers}
+\mySamllsection{在引用和指针之间做出决定}
 
-References in C++ could be considered redundant: everything you can do with references, you can accomplish with pointers. For example, you could write the earlier shown swap() function like this:
+C++中的引用可以认为是多余的:可以用引用做的所有事情，都可以用指针来完成。例如，可以像这样编写前面显示的swap()函数:
 
 \begin{cpp}
 void swap(int* first, int* second)
@@ -2942,28 +2943,28 @@ void swap(int* first, int* second)
 }
 \end{cpp}
 
-However, this code is more cluttered than the version with references. References make your programs cleaner and easier to understand. They are also safer than pointers: it’s impossible to have a null reference, and you don’t explicitly dereference references, so you can’t encounter any of the dereferencing errors associated with pointers. Of course, these arguments about references being safer are valid only in the absence of any pointers. For example, take the following function that accepts a reference to an int:
+然而，这种代码比使用引用的版本更混乱。引用使程序更清晰、更容易理解。它们也比指针更安全：不可能有null引用，并且不需要显式解引用引用，因此不会遇到与指针相关的任何解引用错误。当然，这些关于引用更安全的论点只在没有指针的情况下才有效。例如，考虑以下接受一个整数引用的函数：
 
 \begin{cpp}
 void refcall(int& t) { ++t; }
 \end{cpp}
 
-You could declare a pointer and initialize it to point to some random place in memory. Then you could dereference this pointer and pass it as the reference argument to refcall(), as in the following code. This code compiles fine, but it is undefined what will happen when executed. It could for example cause a crash.
+可以声明一个指针并将其初始化为指向内存中的某个随机位置。然后，可以解引用这个指针并将其作为引用参数传递给refcall()，如下面的代码所示。这段代码可以正常编译，但在执行时可能会发生未定义的行为，可能会导致程序崩溃。
 
 \begin{cpp}
 int* ptr { (int*)8 };
 refcall(*ptr);
 \end{cpp}
 
-Most of the time, you can use references instead of pointers. References to objects also support polymorphism, discussed in detail in Chapter 10, in the same way as pointers to objects. However, there are some use cases in which you need to use a pointer. One example is when you need to change the location to which it points. Recall that you cannot change the variable to which a reference refers. For example, when you dynamically allocate memory, you need to store a pointer to the result in a pointer rather than a reference. A second use case in which you need to use a pointer is when the pointer is optional, that is, when it can be nullptr. Yet another use case is if you want to store polymorphic types (discussed in Chapter 10) in a container.
+大多数时候，可以用引用代替指针。对象的引用也支持多态性，正如第10章中详细讨论的那样，这与指向对象的指针的方式相同。然而，有些情况下需要使用指针，当需要更改它所指向的位置时，不能更改引用所引用的变量。例如，当动态分配内存时，需要将指向结果的指针存储在一个指针中，而不是一个引用中。指针可选的另一个用例是，所以其可以是nullptr。还有一个用例是想在容器中存储多态类型（在第10章中讨论）。
 
-A long time ago, and in legacy code, a way to distinguish between appropriate use of pointers and references in parameters and return types was to consider who owns the memory. If the code receiving the variable became the owner and thus became responsible for releasing the memory associated with an object, it had to receive a pointer to the object. If the code receiving the variable didn’t have to free the memory, it received a reference. Nowadays, however, raw pointers should be avoided in favor of smart pointers (see Chapter 7), which is the recommended way to transfer ownership.
+很久以前，以及在遗留代码中，区分指针和引用参数和返回类型适当使用的办法是考虑谁拥有内存。若接收变量的代码成为所有者，并因此负责释放与对象关联的内存，它必须接收指向对象的指针。若接收变量的代码不需要释放内存，将接收一个引用。但现在，应该避免使用原始指针，而应使用智能指针（请参见第7章），这是传递内存所有权推荐的方式。
 
 \begin{myNotic}{NOTE}
-Prefer references over pointers; that is, use a pointer only if a reference is not possible.
+首选引用，而非指针。只有在不能使用引用时才使用指针。
 \end{myNotic}
 
-Consider a function that splits an array of ints into two arrays: one of even numbers and one of odd numbers. The function doesn’t know how many numbers in the source array will be even or odd, so it should dynamically allocate the memory for the destination arrays after examining the source array. It should also return the sizes of the two new arrays. Altogether, there are four items to return: pointers to the two new arrays and the sizes of the two new arrays. Obviously, you must use pass-by-reference. The canonical C way to write the function looks like this:
+考虑一个函数，将一个整数数组分成两个数组：一个包含偶数，另一个包含奇数。函数不知道源数组中会有多少个偶数或奇数，因此它在检查源数组后应动态分配两个新数组的内存，还应该返回两个新数组的大小。总共需要返回四个项目：两个新数组的指针和两个新数组的大小。显然，必须使用按引用传递。标准的C方式编写该函数如下所示：
 
 \begin{cpp}
 void separateOddsAndEvens(const int arr[], size_t size, int** odds,
@@ -2995,7 +2996,7 @@ void separateOddsAndEvens(const int arr[], size_t size, int** odds,
 }
 \end{cpp}
 
-The final four parameters to the function are the “reference” parameters. To change the values to which they refer, separateOddsAndEvens() must dereference them, leading to some ugly syntax in the function body. Additionally, when you want to call separateOddsAndEvens(), you must pass the address of two pointers so that the function can change the actual pointers, and pass the address of two size\_ts so that the function can change the actual size\_ts. Note also that the caller is responsible for deleting the two arrays created by separateOddsAndEvens()!
+该函数的最后四个参数是“引用”参数。为了改变它们所引用的值，separateOddsAndEvens()必须对其进行解引用，这导致了函数体内的丑陋语法。此外，想要调用separateOddsAndEvens()时，必须传递两个指针的地址，这样函数才能改变实际的指针，并传递两个size\_t的地址，这样函数才能改变实际的size\_t。还要注意，调用者负责删除separateOddsAndEvens()创建的两个数组！
 
 \begin{cpp}
 int unSplit[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
@@ -3012,7 +3013,7 @@ delete[] oddNums; oddNums = nullptr;
 delete[] evenNums; evenNums = nullptr;
 \end{cpp}
 
-If this syntax annoys you (which it should), you can write the same function by using references to obtain true pass-by-reference semantics:
+若这种语法让你感到厌烦(应该如此)，可以通过使用引用来获得真正的按引用传递语义来编写相同的函数:
 
 \begin{cpp}
 void separateOddsAndEvens(const int arr[], size_t size, int*& odds,
@@ -3041,14 +3042,14 @@ void separateOddsAndEvens(const int arr[], size_t size, int*& odds,
 }
 \end{cpp}
 
-In this case, the odds and evens parameters are references to int*s. separateOddsAndEvens() can modify the int*s that are used as arguments to the function (through the reference), without any explicit dereferencing. The same logic applies to numOdds and numEvens, which are references to size\_ts. With this version of the function, you no longer need to pass the addresses of the pointers or size\_ts; the reference parameters handle it for you automatically:
+这种情况下，odds和evens参数是int的引用。separateOddsAndEvens()可以修改作为函数参数使用的int（通过引用），而无需显式解引用。同样的逻辑适用于numOdds和numEvens，它们是size\_t的引用。使用这个函数版本，不再需要传递指针或size\_t的地址；引用参数会自动处理。
 
 \begin{cpp}
 separateOddsAndEvens(unSplit, std::size(unSplit),
     oddNums, numOdds, evenNums, numEvens);
 \end{cpp}
 
-Even though using reference parameters is already much cleaner than using pointers, it is recommended that you avoid dynamically allocated arrays as much as possible. For example, by using the Standard Library vector container, the separateOddsAndEvens() function can be rewritten to be much safer, shorter, more elegant, and much more readable, because all memory allocations and deallocations happen automatically.
+尽管使用引用参数已经比使用指针更清晰，但建议尽可能避免使用动态分配的数组。例如，通过使用标准库中的vector容器，separateOddsAndEvens()函数可以重写为更安全、更短、更优雅且更易读的版本，并且所有内存分配和释放都是自动进行的。
 
 \begin{cpp}
 void separateOddsAndEvens(const vector<int>& arr,
@@ -3064,7 +3065,7 @@ void separateOddsAndEvens(const vector<int>& arr,
 }
 \end{cpp}
 
-This version can be used as follows:
+该版本可以这样使用:
 
 \begin{cpp}
 vector<int> vecUnSplit { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
@@ -3072,11 +3073,11 @@ vector<int> odds, evens;
 separateOddsAndEvens(vecUnSplit, odds, evens);
 \end{cpp}
 
-Note that you don’t need to deallocate the odds and evens containers; the vector class takes care of this. This version is much easier to use than the versions using pointers or references.
+请注意，不需要释放odds和evens容器，vector类会自动处理。这个版本比使用指针或引用的版本更容易使用。
 
-The version using vectors is already much better than the versions using pointers or references, but as I recommended earlier, output parameters should be avoided as much as possible. If a function needs to return something, it should just return it instead of using output parameters! Since C++17, a compiler is not allowed to perform any copying or moving of objects for statements of the form return object; where object is a nameless temporary. This is called mandatory elision of copy/ move operations and means that there’s no performance penalty at all by returning object by value. If object is a local variable that is not a function parameter, non-mandatory elision of copy/move operations is allowed, an optimization also known as named return value optimization (NRVO). This optimization is not guaranteed by the standard. Some compilers perform this optimization only for release builds but not for debug builds. With mandatory and non-mandatory elision, compilers can avoid any copying of objects that are returned from functions. This results in zero-copy pass-by-value semantics. Note that for NRVO, even though the copy/move constructors won’t be called, they still need to be accessible; otherwise, the program is ill-formed according to the standard. Copy/move operations and constructors are discussed in Chapter 9, but those details are not important for the current discussion.
+使用vector已经比使用指针或引用的版本要好得多，但正如我之前所建议的，应尽可能避免使用输出参数。若一个函数需要返回某个值，应该直接返回它，而不是使用输出参数！自C++17以来，编译器不允许对形式为return object;的语句执行复制或移动操作，其中object是一个匿名临时变量。这称为强制省略复制/移动操作，通过值返回对象，但没有任何性能开销。若object是一个局部变量，不是函数参数，则允许执行非强制省略的复制/移动操作，这是称为命名返回值优化（NRVO）的一种优化方式。这个优化不是由标准保证的，一些编译器只在发布版本中执行此优化，而不是在调试版本中。通过强制省略和非强制省略，编译器可以避免从函数返回的任何对象的复制，这就是一种零拷贝的按值传递语义。请注意，对于NRVO，尽管复制/移动构造函数不会调用，但它们仍然需要是可访问的；否则，根据标准，程序就是错误的。
 
-The following version of separateOddsAndEvens() returns a simple struct of two vectors, instead of accepting two output vectors as parameters, and uses designated initializers.
+以下是一个版本的separateOddsAndEvens()，返回一个简单的结构体，包含两个vector，而非接受两个输出vector作为参数，并使用指定初始化。
 
 \begin{cpp}
 struct OddsAndEvens { vector<int> odds, evens; };
@@ -3095,7 +3096,7 @@ OddsAndEvens separateOddsAndEvens(const vector<int>& arr)
 }
 \end{cpp}
 
-With these changes, the code to call separateOddsAndEvens() becomes compact yet easy to read and understand:
+通过这些修改，调用separateOddsAndEvens()的代码变得紧凑，也易于阅读和理解:
 
 \begin{cpp}
 vector<int> vecUnSplit { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
@@ -3104,14 +3105,14 @@ auto oddsAndEvens { separateOddsAndEvens(vecUnSplit) };
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Avoid output parameters. If a function needs to return something, just return it by value.
+避免输出参数。若一个函数需要返回一些东西，只需按值返回即可。
 \end{myNotic}
 
 \mySubsubsection{1.1.29.}{const\_cast()}
 
-In C++ every variable has a specific type. It is possible in certain situations to cast a variable of one type to a variable of another type. To that end, C++ provides five types of casts: const\_cast(), static\_cast(), reinterpret\_cast(), dynamic\_cast(), and std::bit\_cast(). This section discusses const\_cast(). The second type of cast, static\_cast(), is briefly introduced earlier in this chapter and discussed in more detail in Chapter 10. The other remaining casts are also discussed in Chapter 10.
+C++中每个变量都有特定的类型。某些情况下，可以将一个类型的变量强制转换为另一个类型的变量。为此，C++提供了五种类型的强制转换：const\_cast()、static\_cast()、reinterpret\_cast()、dynamic\_cast()和std::bit\_cast()。本节讨论const\_cast()。第二种强制转换类型static\_cast()会在本书的前期进行简要介绍，并在第10章中详细讨论，其他的强制转换会在第10章中详细讨论。
 
-const\_cast() is the most straightforward of the different casts available. You can use it to add const-ness to a variable or cast away const-ness of a variable. It is the only cast of the five that is allowed to cast away const-ness. Theoretically, of course, there should be no need for a const cast. If a variable is const, it should stay const. In practice, however, you sometimes find yourself in a situation where a function is specified to take a const parameter, which it must then pass to a function that takes a non-const parameter, and you are absolutely sure that the latter function will not modify its non-const argument. The “correct” solution would be to make const consistent in the program, but that is not always an option, especially if you are using third-party libraries. Thus, you sometimes need to cast away the const-ness of a variable, but again you should do this only when you are sure the function you are calling will not modify the object; otherwise, there is no other option than to restructure your program. Here is an example:
+const\_cast()是可用的五种强制转换中最简单的一种，可以使用它来向变量添加const属性，或者去除变量的const属性。它是五种强制转换中唯一允许去除const属性的。理论上，不应该有去除const的需求。若一个变量是const的，它应该保持const。但在实践中，有时会遇到这样的情况：一个函数指定要接收一个const参数，然后必须将其传递给一个接收非const参数的函数，并且确定后一个函数不会修改其非const参数。程序中保持const一致性的“正确”解决方案并不总是可行，尤其是使用第三方库时。因此，有时需要去除变量的const属性，但同样，应该只在确信调用的函数不会修改对象时才这样做；否则，没有其他选择，只能重构代码。以下是示例：
 
 \begin{cpp}
 void thirdPartyLibraryFunction(char* str);
@@ -3122,20 +3123,20 @@ void f(const char* str)
 }
 \end{cpp}
 
-Additionally, the Standard Library provides a helper function called std::as\_const(), defined in <utility>, which returns a reference-to-const of its reference parameter. Basically, as\_const(obj) is equivalent to const\_cast<const T\&>(obj), where T is the type of obj. Using as\_const() results in shorter and more readable code compared to using const\_cast(). Concrete use cases for as\_const() are coming later in this book, but its basic use is as follows:
+此外，标准库提供了一个辅助函数std::as\_const()，定义在<utility>头文件中，它返回其引用参数的引用到常量版本。as\_const(obj)等价于const\_cast<const T\&>(obj)，其中T是obj的类型。与使用const\_cast()相比，使用as\_const()可以得到更短且可读性更高的代码。as\_const()的具体用例将在本书的稍后部分介绍，但其基本用法如下所示：
 
 \begin{cpp}
 string str { "C++" };
 const string& constStr { as_const(str) };
 \end{cpp}
 
-\mySubsubsection{1.1.30.}{Exceptions}
+\mySubsubsection{1.1.30.}{异常}
 
-C++ is a flexible language, but it does allow you to do unsafe things. For example, the compiler will let you write code that scribbles on random memory addresses or tries to divide by zero (computers don’t deal well with infinity). One language feature that attempts to add a degree of safety is exceptions.
+C++是一种灵活的语言，允许进行不安全的事情。例如，编译器允许编写在随机内存地址上乱写或尝试除以零（计算机不太擅长处理无穷大）的代码。C++中的一种试图增加一定安全性的语言特性，就是异常处理。
 
-An exception is an exceptional situation, that is, a situation that you don’t expect or want in the normal flow of execution of a program. For example, if you are writing a function that retrieves a web page, several things could go wrong. The Internet host that contains the page might be down, the page might come back blank, or the connection could be lost. One way you could handle this situation is by returning a special value from the function, such as nullptr or an error code. Exceptions provide a much better mechanism for dealing with problems.
+异常是一个异常情况，是一个在程序的正常执行流中不期望或不想要的特殊情况。例如，正在编写一个函数来检索网页，可能会发生许多问题。可能包含网页的互联网主机可能无法访问，网页可能返回空白，或者连接可能丢失。处理这种情况的一种方法是函数返回一个特殊值，例如nullptr或一个错误代码。异常提供了一种更好的处理问题的机制。
 
-Exceptions come with some new terminology. When a piece of code detects an exceptional situation, it throws an exception. Another piece of code catches the exception and takes appropriate action. The following example shows a function, divideNumbers(), that throws an exception if the caller passes in a denominator of zero. The std::invalid\_argument exception is defined in <stdexcept>.
+异常伴随着一些新的术语。当代码检测到一个异常情况时，会抛出一个异常。另一段代码捕获异常并采取适当的行动。以下示例展示了一个名为divideNumbers()的函数，若调用者传递了一个除数为零的参数，它会抛出一个异常。std::invalid\_argument异常在<stdexcept>头文件中定义。
 
 \begin{cpp}
 double divideNumbers(double numerator, double denominator)
@@ -3147,7 +3148,8 @@ double divideNumbers(double numerator, double denominator)
 }
 \end{cpp}
 
-When the throw statement is executed, the function immediately ends without returning a value. If the caller surrounds the function call with a try/catch block, as shown in the following code, it receives the exception and is able to handle it. Chapter 14, “Handling Errors,” goes into much more detail on exception handling, but for now, just remember that it is recommended to catch exceptions by reference-to-const, such as const invalid\_argument\& in the following example. Also note that all Standard Library exception classes have a member function called what(), which returns a string containing a brief explanation of the exception.
+
+当执行throw语句时，函数立即结束，不返回任何值。若调用者使用try/catch块围绕函数调用，如以下代码所示，可以接收到异常并能够处理它。第14章“处理错误”将更详细地介绍异常处理，现在只需记住，建议通过引用到常量来捕获异常，例如在以下示例中的const invalid\_argument\&。此外，所有标准库异常类都有一个名为what()的成员函数，会返回一个包含异常简要解释的字符串。
 
 \begin{cpp}
 try {
@@ -3159,38 +3161,38 @@ try {
 }
 \end{cpp}
 
-The first call to divideNumbers() executes successfully, and the result is printed on the screen. The second call throws an exception. No value is returned, and the only output is the error message that is printed when the exception is caught. The third call is never executed because the second call throws an exception, causing the program to jump to the catch block. The output for the preceding code snippet is as follows:
+第一个调用divideNumbers()执行成功，结果输出到屏幕上。第二个调用抛出了一个异常。没有返回值，并且只有当捕获异常时才会输出错误消息。第三个调用永远不会执行，因为第二个调用抛出了异常，导致程序跳转到catch块。前面代码段输出如下所示：
 
 \begin{shell}
 5
 Exception caught: Denominator cannot be 0.
 \end{shell}
 
-Exceptions can get tricky in C++. To use exceptions properly, you need to understand what happens to the stack variables when an exception is thrown, and you have to be careful to properly catch and handle the necessary exceptions. Also, if you need to include more information about an error in an exception, you can write your own exception types. Lastly, the C++ compiler doesn’t force you to catch every exception that might occur. If your code never catches any exceptions but an exception is thrown, the program will be terminated. These trickier aspects of exceptions are covered in detail in Chapter 14.
+C++中，处理异常可能会很复杂。为了正确使用异常，需要了解当异常抛出时栈变量的行为，并且需要小心地正确捕获和处理必要的异常。此外，弱需要在异常中包含更多关于错误的额外信息，可以编写自己的异常类型。最后，C++编译器不会强制捕获可能发生的每个异常。若代码没有捕获异常，但抛出了异常，程序将终止。这些关于异常的更复杂方面在第14章中有详细的介绍。
 
-\mySubsubsection{1.1.31.}{Type Aliases}
+\mySubsubsection{1.1.31.}{类型别名}
 
-A type alias provides a new name for an existing type declaration. You can think of a type alias as syntax for introducing a synonym for an existing type declaration without creating a new type. The following gives a new name, IntPtr, to the int* type declaration:
+类型别名提供了一个现有类型声明的新名称。可以将类型别名视为为现有类型声明引入同义词的语法，而不创建新类型。以下是将int*类型声明重命名为IntPtr的示例：
 
 \begin{cpp}
 using IntPtr = int*;
 \end{cpp}
 
-You can use the new type name and the definition it aliases interchangeably. For example, the following two lines are valid:
+可以互换地使用新类型名称及其别名的定义。例如，以下两行:
 
 \begin{cpp}
 int* p1;
 IntPtr p2;
 \end{cpp}
 
-Variables created with the new type name are completely compatible with those created with the original type declaration. So, it is perfectly valid, given these definitions, to write the following, because they are not just compatible types; they are the same type:
+使用新类型名称创建的变量，与使用原始类型声明创建的变量完全兼容。根据这些定义，以下代码是完全有效的，因为不仅仅是兼容的类型，它们的类型也相同：
 
 \begin{cpp}
 p1 = p2;
 p2 = p1;
 \end{cpp}
 
-The most common use for type aliases is to provide manageable names when the real type declarations become too unwieldy. This situation commonly arises with templates. An example from the Standard Library itself is std::basic\_string<T> to represent strings. It’s a class template where T is the type of each character in the string, for example char. You have to specify the template type parameter any time you want to refer to such a type. For declaring variables, specifying function parameters, and so on, you would have to write basic\_string<char>:
+类型别名的最常见用途是在类型声明变得过于繁琐时，提供可管理的名称，这种情况在模板中经常出现。标准库自身的示例是std::basic\_string<T>来表示字符串。它是一个类模板，其中T是字符串中每个字符的类型，例如char。每次想要引用此类类型时，都必须指定模板类型参数。声明变量、函数参数等时，必须这样写:basic\_string<char>：
 
 \begin{cpp}
 void processVector(const vector<basic_string<char>>& vec) { /* omitted */ }
@@ -3202,13 +3204,13 @@ int main()
 }
 \end{cpp}
 
-Since basic\_string<char> is used that frequently, the Standard Library provides the following type alias as a shorter, more meaningful name:
+由于basic\_string<char>经常使用，标准库提供了以下类型别名作为更短、更有意义的名称：
 
 \begin{cpp}
 using string = basic_string<char>;
 \end{cpp}
 
-With this type alias, the previous code snippet can be written more elegantly:
+有了这个类型别名，前面的代码片段可以写得更优雅:
 
 \begin{cpp}
 void processVector(const vector<string>& vec) { /* omitted */ }
@@ -3220,104 +3222,104 @@ int main()
 }
 \end{cpp}
 
-\mySubsubsection{1.1.32.}{typedefs}
+\mySubsubsection{1.1.32.}{typedef}
 
-Type aliases were introduced in C++11. Before C++11, you had to use typedefs to accomplish something similar but in a more convoluted way. This old mechanism is still explained here because you will come across it in legacy code bases.
+类型别名是在C++11中引入的。C++11之前，为了实现类似的功能，必须使用typedef，但这种方式更为复杂。这个旧机制在这里需要来解释以下，因为各位会在历史代码中看到它。
 
-Just as a type alias, a typedef provides a new name for an existing type declaration. For example, take the following type alias:
+就像类型别名一样，typedef也为现有类型声明提供了一个新名称。例如，看看以下typedef使用：
 
 \begin{cpp}
 using IntPtr = int*;
 \end{cpp}
 
-This can be written as follows with a typedef:
+可以使用typedef:
 
 \begin{cpp}
 typedef int* IntPtr;
 \end{cpp}
 
-As you can see, it’s much less readable. The order is reversed, which causes a lot of confusion, even for professional C++ developers. Other than being more convoluted, a typedef behaves the same as a type alias. For example, the typedef can be used as follows:
+正如您所看到的，可读性要差得多。因为顺序颠倒了，这导致了很多困惑，即使对于专业Cc++开发人员也是如此。除了更复杂之外，typedef的行为与类型别名相同。例如，typedef可以这样使用:
 
 \begin{cpp}
 IntPtr p;
 \end{cpp}
 
-Type aliases and typedefs are not entirely equivalent, though. Compared to typedefs, type aliases are more powerful when used with templates, but that is a topic covered in Chapter 12 because it requires more details about templates.
+类型别名和typedef并不完全等价。与typedef相比，类型别名在与模板一起使用时更加强大，因为需要更多关于模板的详细信息，所以会在第12章中进行讨论。
 
 \begin{myNotic}{NOTE}
-Always prefer type aliases over typedefs.
+始终优先选择类型别名，而非typedef。
 \end{myNotic}
 
-\mySubsubsection{1.1.33.}{Type Inference}
+\mySubsubsection{1.1.33.}{类型推断}
 
-Type inference allows the compiler to automatically deduce the type of an expression. There are two keywords for type inference: auto and decltype.
+类型推断允许编译器自动推导表达式的类型。有两种关键字用于类型推断：auto和decltype。
 
-\mySamllsection{The auto Keyword}
+\mySamllsection{auto关键字}
 
-The auto keyword has a number of different uses:
+auto关键字有许多不同的用途:
 
 \begin{itemize}
 \item
-To deduce a function’s return type, as explained earlier in this chapter
+推断函数的返回类型
 
 \item
-To define structured bindings, as explained earlier in this chapter
+定义结构化绑定
 
 \item
-To deduce the type of an expression, as discussed in this section
+来推断表达式的类型
 
 \item
-To deduce the type of non-type template parameters; see Chapter 12
+推导非类型模板参数的类型
 
 \item
-To define abbreviated function templates; see Chapter 12
+定义简化的函数模板
 
 \item
-To use with decltype(auto); see Chapter 12
+与decltype(auto)一起使用
 
 \item
-To write functions using the alternative function syntax; see Chapter 12
+使用可选函数语法编写函数
 
 \item
-To write generic lambda expressions; see Chapter 19, “Function Pointers, Function Objects, and Lambda Expressions”
+编写泛型Lambda表达式
 \end{itemize}
 
-auto can be used to let the compiler automatically deduce the type of a variable at compile time. The following statement shows the simplest use of the auto keyword in that context:
+auto可用于让编译器在编译时，自动推断变量的类型。下面的语句展示了auto关键字在该上下文中最简单的用法:
 
 \begin{cpp}
 auto x { 123 }; // x is of type int.
 \end{cpp}
 
-In this example, you don’t win much by typing auto instead of int; however, it becomes useful for more complicated types. Suppose you have a function called getFoo() that has a complicated return type. If you want to assign the result of calling getFoo() to a variable, you can spell out the complicated type, or you can simply use auto and let the compiler figure it out:
+这个例子中，使用auto而非int类型并不会带来什么好处；然而，当类型更复杂时，auto就变得有用了。假设有一个名为getFoo()的函数，其返回类型非常复杂。若想要将调用getFoo()的结果赋值给一个变量，可以显式地指定复杂的类型，或者简单地使用auto并让编译器来确定类型：
 
 \begin{cpp}
 auto result { getFoo() };
 \end{cpp}
 
-This has the added benefit that you can easily change the function’s return type without having to update all the places in the code where that function is called.
+这样做的好处是，可以轻松地更改函数的返回类型。
 
-\mySamllsection{The auto\& Syntax}
+\mySamllsection{auto\& 语法}
 
-Using auto to deduce the type of an expression strips away reference and const qualifiers. Suppose you have the following:
+使用auto来推断表达式的类型，会去掉引用和const限定符。假设有如下代码:
 
 \begin{cpp}
 const string message { "Test" };
 const string& foo() { return message; }
 \end{cpp}
 
-You can call foo() and store the result in a variable with the type specified as auto, as follows:
+可以调用foo()并将结果存储在一个指定为auto类型的变量中，如下所示:
 
 \begin{cpp}
 auto f1 { foo() };
 \end{cpp}
 
-Because auto strips away reference and const qualifiers, f1 is of type string, and thus a copy is made! If you want a reference-to-const, you can explicitly make it a reference and mark it const, as follows:
+因为auto去掉了引用和const限定符，所以f1的类型是string，因此生成了一个副本!若想要一个对const的引用，可以显式地将其设置为引用并将其标记为const，如下所示:
 
 \begin{cpp}
 const auto& f2 { foo() };
 \end{cpp}
 
-Earlier in this chapter, the as\_const() utility function is introduced. It returns a reference-to-const version of its reference parameter. Be careful when using as\_const() in combination with auto. Since auto strips away reference and const qualifiers, the following result variable has type string, not const string\&, and hence a copy is made:
+本章前面介绍了as\_const()实用函数，返回其引用形参的引用到const版本。在与auto一起使用as\_const()时要小心，由于auto去掉了引用和const限定符，下面的结果变量的类型是string，而不是const string\&，因此会进行复制:
 
 \begin{cpp}
 string str { "C++" };
@@ -3325,73 +3327,73 @@ auto result { as_const(str) };
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-Always keep in mind that auto strips away reference and const qualifiers and thus creates a copy! If you do not want a copy, use auto\& or const auto\&.
+始终记住auto会去掉引用和const限定符，从而创建一个副本!若不想要副本，请使用auto\&或const auto\&。
 \end{myWarning}
 
-\mySamllsection{The auto* Syntax}
+\mySamllsection{auto* 语法}
 
-The auto keyword can also be used for pointers. Here’s an example:
+auto关键字也可以用于指针。这里有一个例子:
 
 \begin{cpp}
 int i { 123 };
 auto p { &i };
 \end{cpp}
 
-The type of p is int*. There is no danger here to accidentally make a copy, unlike when working with references as discussed in the previous section. However, when working with pointers, I do recommend using the auto* syntax as it more clearly states that pointers are involved, for example:
+p的类型是int*。与前一节讨论的使用引用时不同，这里不存在创建副本的危险。当使用指针时，我建议使用auto*语法，因为它更清楚地说明了指针的使用，例如:
 
 \begin{cpp}
 auto* p { &i };
 \end{cpp}
 
-Additionally, using auto* versus just auto does resolve a strange behavior when using auto, const, and pointers together. Suppose you write the following:
+此外，使用auto*而不是仅仅使用auto确实解决了auto、const和指针一起使用时的奇怪行为。假设这样写:
 
 \begin{cpp}
 const auto p1 { &i };
 \end{cpp}
 
-Most of the time, this is not doing what you expect it to do!
+大多数时候，代码并没有按照期望进行操作!
 
-Often, when you use const, you want to protect the thing to which the pointer is pointing to. You would think that p1 is of type const int*, but in fact, the type is int* const, so it’s a const pointer to a non-const integer! Putting the const after the auto as follows doesn’t help; the type is still int* const:
+通常，当使用const时，想要保护指针所指向的对象。可能会认为p1的类型是const int*，但实际上，其类型是int* const，所以它是一个指向非const整数的const指针!下面代码把const放在auto之后也没有帮助，类型仍然是int* const:
 
 \begin{cpp}
 auto const p2 { &i };
 \end{cpp}
 
-When you use auto* in combination with const, then it is behaving as you would expect. Here’s an example:
+将auto*与const结合使用时，其行为就如期望的那样。这里有一个例子:
 
 \begin{cpp}
 const auto* p3 { &i };
 \end{cpp}
 
-Now p3 is of type const int*. If you really want a const pointer instead of a const integer, you put the const at the end:
+现在p3的类型是const int*。若的想要一个const指针而不是一个const整数，可以把const放在末尾:
 
 \begin{cpp}
 auto* const p4 { &i };
 \end{cpp}
 
-p4 has type int* const.
+p4的类型是int* const。
 
-Finally, with this syntax you can make both the pointer and the integer constant:
+最后，使用这种语法，可以使指针和整型常量:
 
 \begin{cpp}
 const auto* const p5 { &i };
 \end{cpp}
 
-p5 is of type const int* const. You cannot achieve this if you omit the *.
+p5的类型为const int* const。若省略*，则无法实现这一点。
 
-\mySamllsection{Copy List vs. Direct List Initialization}
+\mySamllsection{复制列表vs.直接使用列表初始化}
 
-There are two types of initializations that use braced initializer lists:
+有两种类型的初始化使用带括号的初始化列表:
 
 \begin{itemize}
 \item
-Copy list initialization: T obj = \{arg1, arg2, ...\};
+复制列表初始化: T obj = \{arg1, arg2, ...\};
 
 \item
-Direct list initialization: T obj \{arg1, arg2, ...\};
+直接使用列表初始化: T obj \{arg1, arg2, ...\};
 \end{itemize}
 
-In combination with auto type deduction, there is an important difference between copy- and direct list initialization. Here is an example:
+在与auto类型推导结合使用时，复制列表初始化和直接列表初始化之间有一个重要的区别。下面是一个例子:
 
 \begin{cpp}
 // Copy list initialization
@@ -3403,38 +3405,39 @@ auto c { 11 }; // int
 auto d { 11, 22 }; // Error, too many elements.
 \end{cpp}
 
-For copy list initialization, all the elements in the braced initializer must be of the same type. For example, the following does not compile:
+对于复制列表初始化，大括号初始化式中的所有元素必须具有相同的类型。例如，以下代码无法编译:
 
 \begin{cpp}
 auto b = { 11, 22.33 }; // Compilation error
 \end{cpp}
 
-\mySamllsection{The decltype Keyword}
+\mySamllsection{decltype关键字}
 
-The decltype keyword takes an expression as argument and computes the type of that expression, as shown here:
+decltype关键字接受一个表达式作为参数，并计算该表达式的类型，如下所示:
 
 \begin{cpp}
 int x { 123 };
 decltype(x) y { 456 };
 \end{cpp}
 
-In this example, the compiler deduces the type of y to be int because that is the type of x.
+这个例子中，编译器将y的类型推断为int，因为它是x的类型。
 
-The difference between auto and decltype is that decltype does not strip reference and const qualifiers. Take, again, a function foo() returning a reference-to-const string. Defining f2 using decltype as follows results in f2 being of type const string\&, and thus no copy is made:
+auto和decltype之间的区别在于，decltype不会剥离引用和const限定符。再次以函数foo()为例，该函数返回对const字符串的引用。使用下列decltype定义f2的结果是，f2的类型为const string\&，因此不进行复制:
 
 \begin{cpp}
 decltype(foo()) f2 { foo() };
 \end{cpp}
 
-On first sight, decltype doesn’t seem to add much value. However, it is powerful in the context of templates, discussed in Chapters 12 and 26.
+乍一看，decltype似乎并没有什么价值，但它使用在模板的上下文中就十分强大了，会在第12章和第26章中继续讨论。
 
-\mySubsubsection{1.1.34.}{The Standard Library}
+\mySubsubsection{1.1.34.}{标准库}
 
-C++ comes with a Standard Library, which contains a lot of useful classes that can readily be used in your code. The benefit of using these classes is that you don’t need to reinvent their functionality, and you don’t need to waste time on implementing things that have already been implemented for you. Another benefit is that the classes available in the Standard Library are heavily tested and verified for correctness by thousands of users. The Standard Library classes are also optimized for performance, so using them will most likely result in better performance compared to making your own implementation.
+C++附带了一个标准库，其中包含了许多有用的类，这些类可以立即使用。这些类的优点是，不需要重新实现其功能。另一个优点是，标准库中的类已经由成千上万的用户进行了大量测试和验证，以确保其正确性。标准库中的类也经过性能优化，因此使用它们很可能会比自己的实现有更好的性能。
 
-A lot of functionality is provided by the Standard Library. Chapters 16 to 24 provide more details; however, when you start working with C++, it is good to have an idea of what the Standard Library can do for you from the beginning. This is especially important if you are a C programmer. As a C programmer, you might try to solve problems in C++ the same way you would solve them in C, but in C++ there is probably an easier and safer solution to the problem that involves using Standard Library classes.
+标准库提供了大量的功能。第16章到第24章会有更多介绍；当开始使用C++时，了解标准库可以为做些什么还挺重要。这对于C开发者来说尤其重要，C开发者可能会尝试以与C相同的方式在C++中解决问题，但在C++中，可能存在一个更简单、更安全的解决方案，涉及使用标准库中的类。
 
-That is the reason why this chapter already introduces some Standard Library classes, such as std::string, array, vector, pair, and optional. These are used throughout examples in this book from the beginning, to make sure you get into the habit of using Standard Library classes. Many more classes are introduced in Chapters 16 to 24.
+这就是为什么本章已经介绍了一些标准库的类，如std::string、array、vector、pair和optional。这些类在本书的示例中从开始就一直在使用，以确保读者养成使用标准库类的好习惯，并会在第16章到第24章中会介绍更多的标准库类。
+
 
 
 
