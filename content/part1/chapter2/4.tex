@@ -1,8 +1,9 @@
-By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+
+通过解决下面的练习，可以练习本章讨论的内容。所有练习的解决方案都可以在本书的网站\url{www.wiley.com/go/proc++6e}下载到源码。然而，若在练习中卡住了，在从网站上寻找解决方案之前，可以考虑先重读本章的部分内容，试着自己找到答案
 
 \begin{itemize}
 \item
-Exercise 2-1: Write a program that asks the user for two strings and then prints them out in alphabetical order, using the three-way comparison operator. To ask the user for a string, you can use the std::cin stream, briefly introduced in Chapter 1. Chapter 13, “Demystifying C++ I/O,” explains input and output in detail, but for now, here is how to read in a string from the console. To terminate the line, just press Enter.
+\textbf{练习2-1}:编写程序，要求用户输入两个字符串，然后使用三向比较操作符按字母顺序输出出来。要向用户请求字符串，可以使用std::cin流，在第1章中简要介绍过。第13章“C++ I/O的神秘面纱”详细解释了输入和输出，但这里是如何从终端中读取字符串。要终止该输入，只需按Enter键。
 
 \begin{cpp}
 std::string s;
@@ -10,23 +11,23 @@ getline(cin, s1);
 \end{cpp}
 
 \item
-Exercise 2-2: Write a program that asks the user for a source string (= haystack), a string to find in the source string (= needle), and a replacement string. Write a function with three parameters—the haystack, needle, and replacement string—that returns a copy of the haystack with all needles replaced with the replacement string. Use only std::string, no string\_view. What kind of parameter types will you use and why? Call this function from main() and print out all the strings for verification.
+\textbf{练习2-2}:编写程序，要求用户输入一个源字符串(= haystack)、一个要在源字符串中查找的字符串(= needle)和一个替换字符串。编写一个带有三个参数(haystack、needle和replacement string)的函数，返回一个haystack的副本，其中所有的needle都替换为目标字符串。只使用std::string，不使用string\_view。您将使用哪种参数类型，为什么?从main()调用这个函数，并输出出所有的字符串进行验证。
 
 \item
-Exercise 2-3: Modify the program from Exercise 2-2 and use std::string\_view on as many places as reasonable.
+\textbf{练习2-3}:修改练习2-2中的程序，并在尽可能多的地方使用std::string\_view。
 
 \item
-Exercise 2-4: Write a program that asks the user to enter an unknown number of floatingpoint numbers and stores all numbers in a vector. Each number should be entered followed by a new line. Stop asking for more numbers when the user inputs the number 0. To read a floating-point number from the console, use cin in the same way it was used in Chapter 1 to input integer values. Format all numbers in a table with a couple of columns where each column outputs the number in a different format. Each row in the table corresponds to one of the inputted numbers.
+\textbf{练习2-4}:编写程序，要求用户输入未知数量的浮点数，并将所有数字存储在vector中，每个数字都应在输入后加一行。当用户输入数字0时，停止请求更多的数字。要从终端中读取浮点数，使用cin的方法与第1章中使用cin输入整数值的方法相同。用一对列格式化表中的所有数字，其中每列以不同的格式输出数字。表中的每一行对应一个输入的数字。
 
 \item
-Exercise 2-5: Write a program that asks the user to enter an unknown number of words. Stop the input when the user enters *. Store all the individual words in a vector. You can input individual words using the following:
+\textbf{练习2-5}:编写程序，要求用户输入一个未知数量的单词。当用户输入*时停止输入。将所有单独的单词存储在一个向量中，可以用下列方法输入单个单词:
 
 \begin{cpp}
 std::string word;
 cin >> word;
 \end{cpp}
 
-When the input is finished, calculate the length of the longest word. Finally, output all the words in columns, five on a row. The width of the columns is based on the longest word. Output the words centered within their column, and separate the columns with the | character.
+当输入完成后，计算最长单词的长度。最后，输出列中的所有单词，每行5个。列的宽度基于最长的单词。输出列中居中的单词，并用|字符分隔列。
 \end{itemize}
 
 
