@@ -3,16 +3,17 @@
 
 \mySubsubsection{2.1.1.}{C风格的字符串}
 
-In the C language, strings are represented as an array of characters. The last character of a string is a null character (\textbackslash{}0) so that code operating on the string can determine where it ends. This null character is officially known as NUL, spelled with one L, not two. NUL is not the same as the NULL pointer.
+C语言中，字符串表示为字符数组。字符串的最后一个字符是空字符(\textbackslash{}0)，以便在字符串上操作的代码可以确定它的结束位置。这个空字符的正式名称是NUL，只有一个L，而不是两个。NUL与NULL指针并不相同。
 
-Even though C++ provides a better string abstraction, it is important to understand the C technique for strings because they still arise in C++ programming. One of the most common situations is where a C++ program has to call a C-based interface in some third-party library or as part of interfacing to the operating system.
-By far, the most common mistake that programmers make with C strings is that they forget to allocate space for the \textbackslash{}0 character. For example, the string "hello" appears to be five characters long, but six characters worth of space are needed in memory to store the value, as shown in Figure 2.1.
+尽管C++提供了更好的字符串类，但是理解C的字符串也很重要。最常见的情况是，C++程序必须调用某些第三方库中的基于C的接口，或者作为与操作系统接口的一部分。
+
+目前为止，开发者在使用C字符串时最常犯的错误是忘记为\textbackslash{}0字符分配空间。例如，字符串"hello"看起来有5个字符长，但是在内存中需要6个字符的空间来存储该值，如图2.1所示。
 
 \myGraphic{0.4}{content/part1/chapter2/images/1.png}{图2.1}
 
-C++ contains several functions from the C language that operate on strings. These functions are defined in <cstring>. As a general rule of thumb, these functions do not handle memory allocation.
+C++包含了几个来自C语言的字符串操作函数，这些函数定义在<cstring>头文件中。通常情况下，这些函数不分配内存。
 
-For example, the strcpy() function takes two strings as parameters. It copies the second string onto the first, whether it fits or not. The following code attempts to build a wrapper around strcpy() that allocates the correct amount of memory and returns the result, instead of taking in an already allocated string. This initial attempt will turn out to be wrong! It uses the strlen() function to obtain the length of the string. The caller is responsible for freeing the memory allocated by copyString().
+例如，strcpy()函数接受两个字符串作为参数，会将第二个字符串复制到第一个字符串中，不管是否适合。下面的代码试图构建一个strcpy()的封装函数，该函数分配正确数量的内存并返回结果，而不是接受一个已经分配的字符串。这个初始尝试将是错误的！使用strlen()函数来获取字符串的长度，调用者负责释放由copyString()分配的内存。
 
 \begin{cpp}
 char* copyString(const char* str)
@@ -23,7 +24,7 @@ char* copyString(const char* str)
 }
 \end{cpp}
 
-The copyString() function as written is incorrect. The strlen() function returns the length of the string, not the amount of memory needed to hold it. For the string "hello", strlen() returns 5, not 6. The proper way to allocate memory for a string is to add 1 to the amount of space needed for the actual characters. It seems a bit unnatural to have +1 all over the place. Unfortunately, that’s how it works, so keep this in mind when you work with C-style strings. The correct implementation is as follows:
+copyString()函数的实现并不正确。strlen() 函数返回的是字符串的长度，而不是保存它所需的内存量。对于字符串 "hello"，strlen() 返回的是5，而不是6。为字符串分配内存的正确方法是，为实际字符所需的空间数量加1。在各个地方都加上1，看起来有些不自然，但这就是它的工作方式。正确的实现如下所示：
 
 \begin{cpp}
 char* copyString(const char* str)
@@ -34,7 +35,7 @@ char* copyString(const char* str)
 }
 \end{cpp}
 
-One way to remember that strlen()returns only the number of actual characters in the string is to consider what would happen if you were allocating space for a string made up of several other strings. For example, if your function took in three strings and returned a string that was the concatenation of all three, how big would it be? To hold exactly enough space, it would be the length of all three strings added together, plus one space for the trailing \textbackslash{}0 character. If strlen() included the \textbackslash{}0 in the length of the string, the allocated memory would be too big. The following code uses the strcpy() and strcat() functions to perform this operation. The cat in strcat() stands for concatenate.
+记住strlen()只返回字符串中的实际字符数的一种方法是，若为由几个其他字符串组成的字符串分配空间会发生什么。例如，若函数接受三个字符串，并返回一个字符串，它是这三个字符串的连接，它有多大?为了容纳足够的空间，它将是所有三个字符串加在一起的长度，加上一个空格用于结尾的\textbackslash{}0字符。strlen()在字符串长度中包含\textbackslash{}0，则分配的内存将太大。下面的代码使用strcpy()和strcat()函数来执行此操作。strcat()中的cat表示连接。
 
 \begin{cpp}
 char* appendStrings(const char* str1, const char* str2, const char* str3)
@@ -47,7 +48,7 @@ char* appendStrings(const char* str1, const char* str2, const char* str3)
 }
 \end{cpp}
 
-The sizeof() operator in C and C++ can be used to get the size of a certain data type or variable. For example, sizeof(char) returns 1 because a char has a size of 1 byte. However, in the context of C-style strings, sizeof() is not the same as strlen(). You should never use sizeof() to try to get the size of a string. It returns different sizes depending on how the C-style string is stored. If it is stored as a char[], then sizeof() returns the actual memory used by the string, including the \textbackslash{}0 character, as in this example:
+C和C++中的sizeof()运算符可用于获取特定数据类型或变量的大小。例如，sizeof(char)返回1，因为char的大小为1字节。但在C风格字符串的上下文中，sizeof()与strlen()不同，永远不要使用sizeof()来获取字符串的长度。它会根据C风格字符串的存储方式返回不同的大小。若存储为char[]，那么sizeof()返回字符串实际使用的内存，包括\textbackslash{}0字符，如下例所示:
 
 \begin{cpp}
 char text1[] { "abcdef" };
@@ -55,7 +56,7 @@ size_t s1 { sizeof(text1) }; // is 7
 size_t s2 { strlen(text1) }; // is 6
 \end{cpp}
 
-However, if the C-style string is stored as a char*, then sizeof() returns the size of a pointer!
+然而，C风格的字符串存储为char*，那么sizeof()返回指针的大小!
 
 \begin{cpp}
 const char* text2 { "abcdef" };
@@ -63,40 +64,41 @@ size_t s3 { sizeof(text2) }; // is platform-dependent
 size_t s4 { strlen(text2) }; // is 6
 \end{cpp}
 
-Here, s3 will be 4 when compiled in 32-bit mode, and 8 when compiled in 64-bit mode because it is returning the size of a const char*, which is a pointer.
+这里，s3在32位模式下编译时为4，在64位模式下编译时为8，因为其返回的是const char*的大小，这是一个指针。
 
-A complete list of functions to operate on C-style strings can be found in the <cstring> header file.
+在<cstring>头文件中可以找到操作C风格字符串的完整函数列表。
 
 \begin{myWarning}{WARNING}
-When you use the C-style string functions with Microsoft Visual Studio, the compiler is likely to give you security-related warnings or even errors about these functions being deprecated. You can eliminate these warnings by using other C Standard Library functions, such as strcpy\_s() or strcat\_s(), which are part of the “secure C library” standard (ISO/IEC TR 24731). However, the best solution is to switch to the C++ std::string class, discussed in the upcoming “The C++ std::string Class” section, but first a bit more on string literals.
+当在Microsoft Visual Studio中使用C风格字符串函数时，编译器很可能会给你关于这些函数已弃用的安全相关警告甚至错误。可以通过使用其他C标准库函数，例如strcpy\_s()或strcat\_s()，来消除这些警告，这些函数是“安全C库”标准（ISO/IEC TR 24731）的一部分。然而，最好的解决方案是切换到C++的std::string类，首先来了解一下字符串字面量。
 \end{myWarning}
 
-\mySubsubsection{2.1.2.}{字符串字面值}
+\mySubsubsection{2.1.2.}{字符串字面量}
 
-You’ve probably seen strings written in a C++ program with quotes around them. For example, the following code outputs the string hello by including the string itself, not a variable that contains it:
+C++程序中，会使用引号括起来的字符串。例如，下面的代码通过包含字符串本身而不是包含它的变量来输出字符串hello:
 
 \begin{cpp}
 println("hello");
 \end{cpp}
 
-In the preceding line, "hello" is a string literal because it is written as a value, not a variable. String literals are actually stored in a read-only part of memory. This allows the compiler to optimize memory usage by reusing references to equivalent string literals. That is, even if your program uses the string literal "hello" 500 times, the compiler is allowed to optimize memory by creating just one instance of hello in memory. This is called literal pooling.
-String literals can be assigned to variables, but because string literals are in a read-only part of memory and because of the possibility of literal pooling, assigning them to variables can be risky.
+在前一行中，"hello" 是一个字符串字面量，因为其为一个值，而不是一个变量。字符串字面量实际上存储在内存的只读部分。这允许编译器通过重用对等字符串字面量的引用来优化内存使用，即使你的程序500次使用字符串字面量 "hello"，编译器也可以通过在内存中只创建一个 "hello" 实例来优化内存，这称为字面量池化。
 
-The C++ standard officially says that string literals are of type “array of n const char”; however, for backward compatibility with older non-const-aware code, some compilers do not force you to assign a string literal to a variable of type const char*. They let you assign a string literal to a char* without const, and the program will work fine unless you attempt to change the string. Generally, the behavior of modifying string literals is undefined. It could, for example, cause a crash, it could keep working with seemingly inexplicable side effects, the modification could silently be ignored, or it could just work; it all depends on your compiler. For example, the following code exhibits undefined behavior:
+字符串字面量可以赋值给变量，但是由于字符串字面量存储在内存的只读部分，并且由于可能进行字面量池化，将其赋值给变量可能会有风险。
+
+C++标准正式规定字符串字面量的类型为“n个const char的数组”；当为了与旧的、不支持const的代码向后兼容，一些编译器不会将字符串字面量赋值给const char*类型的变量。其允许将字符串字面量赋值给没有const char*，程序会正常工作，除非尝试更改字符串。通常，修改字符串字面量是未定义行为。例如，可能会导致程序崩溃，可能会继续工作并产生无法解释的结果，可能会忽略修改，或者也会正常工作；这一切都取决于编译器。例如，以下代码就展示了一种未定义行为：
 
 \begin{cpp}
 char* ptr { "hello" }; // Assign the string literal to a variable.
 ptr[1] = 'a'; // Undefined behavior!
 \end{cpp}
 
-A much safer way to code is to use a pointer to const characters when referring to string literals. The following code contains the same bug, but because it assigned the literal to a const char*, the compiler catches the attempt to write to read-only memory:
+更安全的编码方式是在引用字符串字面量时使用指向const字符的指针。下面的代码包含相同的错误，但由于将字面量赋给了const char*，编译器捕获了写入只读内存的尝试:
 
 \begin{cpp}
 const char* ptr { "hello" }; // Assign the string literal to a variable.
 ptr[1] = 'a'; // Error! Attempts to write to read-only memory
 \end{cpp}
 
-You can also use a string literal as an initial value for a character array (char[]). In this case, the compiler creates an array that is big enough to hold the string and copies the string to this array. The compiler does not put the literal in read-only memory and does not do any literal pooling.
+还可以使用字符串字面量作为字符数组(char[])的初始值，编译器会创建一个足够大的数组来保存字符串，并将字符串复制到这个数组中。编译器不会将字面量放在只读内存中，也不做字面量池化。
 
 \begin{cpp}
 char arr[] { "hello" }; // Compiler takes care of creating appropriate sized
@@ -104,129 +106,129 @@ char arr[] { "hello" }; // Compiler takes care of creating appropriate sized
 arr[1] = 'a'; // The contents can be modified.
 \end{cpp}
 
-\mySamllsection{原字符串字面值}
+\mySamllsection{原字符串字面量}
 
-Raw string literals are string literals that can span multiple lines of code, don’t require escaping of embedded double quotes, and process escape sequences like \textbackslash{}t and \textbackslash{}n as normal text and not as escape sequences. Escape sequences are discussed in Chapter 1, “A Crash Course in C++ and the Standard Library.” For example, if you write the following with a normal string literal, you will get a compilation error because the string contains non-escaped double quotes:
+原字符串字面量是可以跨越多行代码的字符串字面量，不需要转义嵌入的双引号，并且将转义序列(如\textbackslash{}t和\textbackslash{}n)处理为普通文本而不是转义序列。转义序列将在第1章“C++和标准库速成”中讨论。例如，容易用一个普通的字符串字面值写下面的代码，因为字符串包含未转义的双引号，所以会得到一个编译错误:
 
 \begin{cpp}
 println("Hello "World"!"); // Error!
 \end{cpp}
 
-Normally you have to escape the double quotes as follows:
+通常，必须转义双引号，如下所示:
 
 \begin{cpp}
 println("Hello \"World\"!");
 \end{cpp}
 
-With a raw string literal, you can avoid the need to escape the quotes. A raw string literal starts with R"( and ends with )":
+使用原字符串字面值，可以避免转义引号。原始字符串字面值以R"开始(并以)"结束:
 
 \begin{cpp}
 println(R"(Hello "World"!)");
 \end{cpp}
 
-If you need a string consisting of multiple lines, without raw string literals, you need to embed \textbackslash{}n escape sequences in your string where you want to start a new line. Here’s an example:
+若需要一个由多行组成的字符串，而没有原始字符串字面量，则需要在希望开始新行的字符串中嵌入\textbackslash{}n转义序列。这里有一个例子:
 
 \begin{cpp}
 println("Line 1\nLine 2");
 \end{cpp}
 
-The output is as follows:
+输出结果为:
 
 \begin{shell}
 Line 1
 Line 2
 \end{shell}
 
-With a raw string literal, instead of using \textbackslash{}n escape sequences to start new lines, you can simply press Enter to start real physical new lines in your source code as follows. The output is the same as the previous code snippet using the embedded \textbackslash{}n.
+使用原字符串文字，而不是使用\textbackslash{}n转义序列开始新行，可以简单地按Enter键在源代码中开始真正的新行，如下所示。输出与前面使用嵌入的\textbackslash{}n的代码段相同。
 
 \begin{cpp}
 println(R"(Line 1
 Line 2)");
 \end{cpp}
 
-Escape sequences are ignored in raw string literals. For example, in the following raw string literal, the \textbackslash{}t escape sequence is not replaced with a tab character but is kept as the sequence of a backslash followed by the letter t:
+忽略转义序列原字符串中的字面量。例如，下面的原始字符串文字中，\textbackslash{}t转义序列不会使用制表符替换，而是保留为反斜杠后跟字母t的字符串:
 
 \begin{cpp}
 println(R"(Is the following a tab character? \t)");
 \end{cpp}
 
-This outputs the following:
+输出如下:
 
-\begin{cpp}
+\begin{shell}
 Is the following a tab character? \t
-\end{cpp}
+\end{shell}
 
-Because a raw string literal ends with )", you cannot embed a )" in your string using this syntax. For example, the following string is not valid because it contains the )" sequence in the middle of the string:
+因为原字符串字面值以)"结尾，所以不能使用此语法在字符串中嵌入a)"。例如，下面的字符串是无效的，因为它在字符串的中间包含了)":
 
 \begin{cpp}
 println(R"(Embedded )" characters)"); // Error!
 \end{cpp}
 
-If you need embedded )" characters, you need to use the extended raw string literal syntax, which is as follows:
+若需要嵌入“)”字符，需要使用扩展的原字符串字面语法，如下所示:
 
 \begin{cpp}
 R"d-char-sequence(r-char-sequence)d-char-sequence"
 \end{cpp}
 
-The r-char-sequence is the actual raw string. The d-char-sequence is an optional delimiter sequence, which should be the same at the beginning and at the end of the raw string literal. This delimiter sequence can have at most 16 characters. You should choose this delimiter sequence as a sequence that will not appear in the middle of your raw string literal.
+C++原字符串字面量允许包含任何字符，而不需要进行转义。原始字符串字面量以 R"delimiter(和)delimiter"的形式出现，其中“delimiter”是一个分隔符序列，“delimiter”之间是实际的字符串。
 
-The previous example can be rewritten using a unique delimiter sequence as follows:
+原始字符串字面量的语法如下：
 
 \begin{cpp}
 println(R"-(Embedded )" characters)-");
 \end{cpp}
 
-Raw string literals make it easier to work with database querying strings, regular expressions, file paths, and so on. Regular expressions are discussed in Chapter 21, “String Localization and Regular Expressions.”
+原字符串文字可以更容易地处理数据库查询字符串、正则表达式、文件路径等。正则表达式将在第21章“字符串本地化和正则表达式”中讨论。
 
 \mySubsubsection{2.1.3.}{C++的std::string类}
 
-C++ provides a much-improved implementation of the concept of a string as part of the Standard Library. In C++, std::string is a class (actually an instantiation of the std::basic\_string class template) that supports many of the same functionalities as the <cstring> functions, but that takes care of memory allocations for you. The string class is defined in <string> and lives in the std namespace. It has already been introduced in the previous chapter, but now it’s time to take a closer look at it.
+作为标准库的一部分，C++提供了对字符串概念的实现。std::string是一个类(实际上是std::basic\_string类模板的实例化)，支持许多与<cstring>函数相同的功能，也会为处理内存分配。string类定义在<string>中，位于std命名空间中。
 
 \mySamllsection{C风格的字符串有什么问题?}
 
-To understand the necessity of the C++ string class, consider the advantages and disadvantages of C-style strings.
+理解C++的string类的必要性，请考虑C风格字符串的优缺点。
 
-Advantages:
-
-\begin{itemize}
-\item
-They are simple, making use of the underlying basic character type and array structure.
-
-\item
-They are lightweight, taking up only the memory that they need if used properly.
-
-\item
-They are low level, so you can easily manipulate and copy them as raw memory.
-
-\item
-If you’re a C programmer—why learn something new?
-\end{itemize}
-
-Disadvantages:
+优点:
 
 \begin{itemize}
 \item
-They require incredible efforts to simulate a first-class string data type.
+很简单，利用了底层的基本字符类型和数组结构。
 
 \item
-They are unforgiving and susceptible to difficult-to-find memory bugs.
+轻量级，若使用得当，只占用它们所需的内存。
 
 \item
-They don’t leverage the object-oriented nature of C++.
+底层的，所以可以如原始内存般很容易地操纵和复制。
 
 \item
-They require knowledge of their underlying representation on the part of the programmer.
+若是一个C开发者，为什么要学习新的东西呢?
 \end{itemize}
 
-The preceding lists were carefully constructed to make you think that perhaps there is a better way. As you’ll learn, C++ strings solve all the problems of C-style strings and render most of the arguments about the advantages of C strings over a first-class data type irrelevant.
+缺点:
+
+\begin{itemize}
+\item
+需要付出很大的努力来模拟字符串数据类型。
+
+\item
+容易受到难以发现的内存错误的影响。
+
+\item
+没有面向对象的特性。
+
+\item
+需要开发者了解其底层表示形式。
+\end{itemize}
+
+列表是精心构建的，也许有更好的方法，而C++字符串将解决C风格字符串的所有问题。
 
 \mySamllsection{使用std::string类}
 
-Even though string is a class, you can almost always treat it as if it were a built-in type. In fact, the more you think of it that way, the better off you are. Through the magic of operator overloading, C++ strings are much easier to use than C-style strings. The next two sections start the discussion by demonstrating how operator overloading makes it easy to concatenate and compare strings. Subsequent sections discuss how C++ strings handle memory, their compatibility with C-style strings, and some of the built-in operations you can perform on strings.
+尽管string是一个类，但可以将其视为内置类型来处理。通过重载运算符，C++字符串比C风格的字符串使用起来要简单得多。接下来的两个部分将通过演示运算符重载，如何简化字符串的连接和比较来开始讨论。随后的部分将讨论C++字符串如何处理内存、与C风格字符串的兼容性，以及可以对字符串执行的内置操作。
 
-\mySamllsection{Concatenating Strings}
+\mySamllsection{连接字符串}
 
-The + operator is redefined for strings to mean “string concatenation.” The following code produces 1234:
+为字符串重新定义了+操作符，以表示“字符串连接”。下面的代码产生1234:
 
 \begin{cpp}
 string a { "12" };
@@ -234,7 +236,7 @@ string b { "34" };
 string c { a + b }; // c is "1234"
 \end{cpp}
 
-The += operator is also overloaded to allow you to easily append a string:
+也重载了+=操作符，可以轻松地加长字符串:
 
 \begin{cpp}
 a += b; // a is "1234"
@@ -242,30 +244,30 @@ a += b; // a is "1234"
 
 \mySamllsection{比较字符串}
 
-Another problem with C strings is that you cannot use == to compare them. Suppose you have the following two strings:
+C字符串的另一个问题是不能使用==来比较。假设有以下两个字符串:
 
 \begin{cpp}
 char* a { "12" };
 char b[] { "12" };
 \end{cpp}
 
-Writing a comparison as follows always returns false, because it compares the pointer values, not the contents of the strings:
+因为它比较的是指针值，所以像下面这样编写比较总是返回false，而非字符串的内容:
 
 \begin{cpp}
 if (a == b) { /* ... */ }
 \end{cpp}
 
-Note that C arrays and pointers are related. You can think of C arrays, like the b array in the example, as pointers to the first element in the array. Chapter 7, “Memory Management,” goes deeper in on the array-pointer duality.
+注意，C数组和指针是相关的。可以将C数组(如示例中的b数组)视为指向数组中第一个元素的指针。第7章“内存管理”会深入地讨论了数组-指针的二元性。
 
-To compare C strings, you have to write something like so:
+要比较C字符串，必须这样写:
 
 \begin{cpp}
 if (strcmp(a, b) == 0) { /* ... */ }
 \end{cpp}
 
-Furthermore, there is no way to use <, <=, >=, or > to compare C strings, so strcmp() performs a three-way comparison, returning a value less than 0, 0, or a value greater than 0, depending on the lexicographic ordering relationship of the strings. This results in clumsy and hard-to-read code, which is also error-prone.
+此外，无法使用<、<=、>=或>来比较C字符串，因此strcmp()执行三向比较，返回小于0、0或大于0的值，这取决于字符串的字典顺序关系。这导致代码笨拙且难以阅读，也更容易出错。
 
-With C++ strings, comparison operators (==, !=, <, and so on) are all overloaded to work on the actual characters of the string. For example:
+对于C++的string，比较操作符(==、!=、<等)都进行了重载，以处理字符串的实际字符。例如:
 
 \begin{cpp}
 string a { "Hello" };
@@ -274,7 +276,7 @@ println("'{}' < '{}' = {}", a, b, a < b); // 'Hello' < 'World' = true
 println("'{}' > '{}' = {}", a, b, a > b); // 'Hello' > 'World' = false
 \end{cpp}
 
-The C++ string class additionally provides a compare() member function that behaves like strcmp() and has a similar return type. Here is an example:
+C++的string类还提供了一个compare()成员函数，其行为类似于strcmp()，并具有类似的返回类型。下面是一个例子:
 
 \begin{cpp}
 string a { "12" };
@@ -286,15 +288,15 @@ if (result > 0) { println("greater"); }
 if (result == 0) { println("equal"); }
 \end{cpp}
 
-Just as with strcmp(), this is cumbersome to use. You need to remember the exact meaning of the return value. Furthermore, since the return value is just an integer, it is easy to forget the meaning of this integer and to write the following wrong code to compare for equality:
+与strcmp()一样，使用起来也很麻烦，需要记住返回值的确切含义。此外，由于返回值只是一个整数，很容易忘记这个整数的含义，并可能会出现下面这样的错误代码:
 
 \begin{cpp}
 if (a.compare(b)) { println("equal"); }
 \end{cpp}
 
-compare() returns 0 for equality, anything else for non-equality. So, this line of code does the opposite of what it was intended to do; that is, it outputs “equal” for non-equal strings! If you just want to check whether two strings are equal, do not use compare(), but simply ==.
+compare()返回0表示相等，其他值表示不相等。所以，这行代码做了与它的本意相反的事情；对于不相等的字符串，它输出“相等”!若只是想检查两个字符串是否相等，不要使用compare()，而只需使用==。
 
-Since C++20, this is improved with the three-way comparison operator, introduced in Chapter 1. The string class has full support for this operator. Here’s an example:
+C++20起，通过在第1章中介绍的三向比较运算符改进了这一点。string类支持此操作符。这里有一个例子:
 
 \begin{cpp}
 auto result { a <=> b };
@@ -305,7 +307,7 @@ if (is_eq(result)) { println("equal"); }
 
 \mySamllsection{内存处理}
 
-As the following code shows, when string operations require extending the string, the memory requirements are automatically handled by the string class, so memory overruns are a thing of the past. This code snippet also demonstrates that individual characters can be accessed with the square brackets operator, [], just as with C-style strings.
+如下面的代码所示，当字符串操作需要扩展字符串时，内存需求将由字符串类自动处理，因此内存溢出已成为过去。此代码展示了可以使用方括号操作符[]访问单个字符，就像使用C风格字符串一样。
 
 \begin{cpp}
 string myString { "hello" };
@@ -318,47 +320,47 @@ println("{}", myString);
 println("{}", myOtherString);
 \end{cpp}
 
-The output of this code is shown here:
+代码的输出如下所示:
 
 \begin{shell}
 hello, there
 Hello, there
 \end{shell}
 
-There are several things to note in this example. One point is that there are no memory leaks even though strings are allocated and resized in a few places. All of these string objects are created as stack variables. While the string class certainly has a bunch of allocating and resizing to do, the string destructors clean up this memory when string objects go out of scope. How exactly destructors work is explained in detail in Chapter 8, “Gaining Proficiency with Classes and Objects.”
+这个例子中，有几点需要注意。一是尽管字符串在某些地方分配和调整大小，但没有内存泄漏，所有这些字符串对象都作为栈变量创建。虽然string类肯定需要进行大量的分配和调整大小操作，但是当字符串对象离开作用域时，string析构函数会清理这些内存。析构函数具体如何工作，在第8章“类和对象”中有详细解释。
 
-Another point to note is that the operators work the way you want them to work. For example, the = operator copies the strings, which is most likely what you want. If you are used to working with array-based strings, this will be either refreshingly liberating for you or somewhat confusing. Don’t worry—once you learn to trust the string class to do the right thing, life gets so much easier.
+另一点需要注意的是，运算符按你的期望工作。例如，=运算符会复制字符串，这很可能是想要的结果。若习惯了使用基于数组的字符串，会感觉到解脱，或有些困惑。不必担心——当学会信任string类去做正确的事情，生活就会变得轻松许多。
 
 \mySamllsection{与C风格字符串的兼容性}
 
-For compatibility, you can use the c\_str() member function on a string to get a const char pointer, representing a C-style string. However, the returned const pointer becomes invalid whenever the string has to perform any memory reallocation or when the string object is destroyed. You should call the member function just before using the result so that it accurately reflects the current contents of the string, and you must never return the result of c\_str() called on a stack-based string object from a function.
+为了兼容性，可以在字符串上使用c\_str()成员函数来获取一个代表C风格字符串的const char指针。当字符串需要进行任何内存重新分配，或者字符串对象销毁时，返回的指针就会无效。应该在使用结果之前调用成员函数，以便它准确地反映字符串的当前内容，并且绝不能从函数中返回在基于栈的字符串对象上调用的c\_str()的结果。
 
-There is also a data() member function that, up until C++14, always returned a const char* just as c\_str(). Starting with C++17, however, data() returns a char* when called on a non-const string.
+还有一个data()成员函数，在C++14之前，总是返回一个const char*，就像c\_str()一样。从C++17开始，当在非常量字符串上调用时，data()会返回一个char*指针。
 
 \mySamllsection{字符串操作}
 
-The string class supports quite a few additional operations. The following list highlights a few. Consult a Standard Library Reference (see Appendix B, “Annotated Bibliography”) for a complete list of all supported operations that can be performed on string objects.
+string 类支持许多额外的操作。以下列表突出显示了一些操作。请查阅标准库参考（见附录 B，“带注释的参考文献”）以获取可以在字符串对象支持操作的完整列表。
 
 \CXXTwentythreeLogo{-40}{-110}
 
 \begin{itemize}
 \item
-substr(pos,len): Returns the substring that starts at a given position and has a given length
+substr(pos,len): 返回从给定位置开始并具有给定长度的子字符串
 
 \item
-find(str): Returns the position where a given substring is found, or string::npos if not found
+find(str): 返回找到给定子字符串的位置，若没有找到则返回string::npos
 
 \item
-replace(pos,len,str): Replaces part of a string (given by a position and a length) with another string
+replace(pos,len,str): 用另一个字符串替换字符串的一部分(由位置和长度给出)
 
 \item
-starts\_with(str)/ends\_with(str): Returns true if a string starts/ends with a given substring
+starts\_with(str)/ends\_with(str): 若字符串以给定的子字符串开始/结束，则返回true
 
 \item
-contains(str)/contains(ch): Returns true if a string contains another string or character
+contains(str)/contains(ch): 若字符串包含另一个字符串或字符，则返回true
 \end{itemize}
 
-Here is a small code snippet that shows some of these operations in action:
+下面是一小段代码片段，展示了其中的一些操作:
 
 \begin{cpp}
 string strHello { "Hello!!" };
@@ -376,7 +378,7 @@ println("{}", strWorld.contains('.'));
 println("{}", strWorld.contains("Hello"));
 \end{cpp}
 
-The output is as follows:
+输出为:
 
 \begin{shell}
 Hello World
@@ -387,11 +389,11 @@ false
 
 \CXXTwentythreeLogo{-40}{-40}
 
-Before C++23, it was possible to construct a string object by passing nullptr to its constructor. This would then result in undefined behavior at run time. Starting with C++23, trying to construct a string from nullptr results in a compilation error.
+C++23前，可以通过将nullptr传递给构造函数来构造字符串对象，这将在运行时导致未定义的行为。从C++23起，使用nullptr构造字符串将会导致编译错误。
 
-\mySamllsection{std::string字面值}
+\mySamllsection{std::string字面量}
 
-A string literal in source code is usually interpreted as a const char* or a const char[]. You can use the standard literal s to interpret a string literal as an std::string instead.
+源码中的字符串字面值通常解释为const char*或const char[]，可以使用标准字s将字符串字面值解释为std::string。
 
 \begin{cpp}
 auto string1 { "Hello World" }; // string1 is a const char*.
@@ -399,7 +401,7 @@ auto& string2 { "Hello World" }; // string2 is a const char[12].
 auto string3 { "Hello World"s }; // string3 is an std::string.
 \end{cpp}
 
-The standard literal s is defined in the std::literals::string\_literals namespace. However, both the string\_literals and literals namespaces are inline namespaces. As such, you have the following options to make those string literals available to your code:
+标准字s在std::literals::string\_literals命名空间中定义，但string\_literals和字面量命名空间都是内联命名空间。因此，使用这些字符串字面量有以下几种方式:
 
 \begin{cpp}
 using namespace std;
@@ -408,7 +410,7 @@ using namespace std::string_literals;
 using namespace std::literals::string_literals;
 \end{cpp}
 
-Basically, everything that is declared in an inline namespace is automatically available in the parent namespace. To define an inline namespace yourself, you use the inline keyword. For example, the string\_literals inline namespace is defined as follows:
+内联命名空间中声明的所有内容，会自动在父命名空间中可用。要自己定义内联命名空间，可以使用内联关键字。例如，string\_literals内联命名空间定义如下:
 
 \begin{cpp}
 namespace std {
@@ -422,15 +424,15 @@ namespace std {
 
 \mySamllsection{std::vector和字符串的CTAD}
 
-Chapter 1 explains that std::vector supports class template argument deduction (CTAD), allowing the compiler to automatically deduce the type of a vector based on an initializer list. You have to be careful when using CTAD for a vector of strings. Take the following declaration of a vector, for example:
+第1章解释了std::vector支持类模板实参演绎(CTAD)，允许编译器根据初始化式列表自动推导vector的类型。但对字符串vector使用CTAD时必须小心，以下面的vector为例:
 
 \begin{cpp}
 vector names { "John", "Sam", "Joe" };
 \end{cpp}
 
-The deduced type will be vector<const char*>, not vector<string>! This is an easy mistake to make and can lead to some strange behavior of your code, or even crashes, depending on what you do with the vector afterward.
+推导出的类型将是vector<const char*>，而不是vector<string>！这是一个容易犯的错误，可能会导致你的代码出现一些奇怪的行为，甚至在之后的操作中导致崩溃。
 
-If you want a vector<string>, then use std::string literals as explained in the previous section. Note the s behind each string literal in the following example:
+若想要一个vector<string>，请使用std::string的字面量。注意以下示例中每个字符串字面量后面的s：
 
 \begin{cpp}
 vector names { "John"s, "Sam"s, "Joe"s };
@@ -438,21 +440,21 @@ vector names { "John"s, "Sam"s, "Joe"s };
 
 \mySubsubsection{2.1.4.}{数值转换}
 
-The C++ Standard Library provides both high-level and low-level numeric conversion functions, explained in the upcoming sections.
+C++标准库提供了高级和低级数值转换函数，将在后面的章节中进行解释。
 
 \mySamllsection{高级数值转换}
 
-The std namespace includes a number of helper functions, defined in <string>, that make it easy to convert numerical values into strings or strings into numerical values.
+std命名空间在<string>头文件中定义了许多辅助函数，这些函数可以轻松地将数值转换为字符串，或者将字符串转换为数值。
 
 \mySamllsection{转换为字符串}
 
-The following functions are available to convert numerical values into strings, where T can be (unsigned) int, (unsigned) long, (unsigned) long long, float, double, or long double. All of these functions create and return a new string object and manage all necessary memory allocations.
+以下函数可用于将数值转换为字符串，其中T可以是(unsigned) int、(unsigned) long、(unsigned) long、float、double或long double。所有这些函数都可以创建并返回一个新的字符串对象，并且管理所有必要的内存分配。
 
 \begin{cpp}
 string to_string(T val);
 \end{cpp}
 
-These functions are straightforward to use. For example, the following code converts a long double value into a string:
+这些函数使用起来很简单。例如，下面的代码将长双精度值转换为字符串:
 
 \begin{cpp}
 long double d { 3.14L };
@@ -461,7 +463,7 @@ string s { to_string(d) }; // s contains 3.140000
 
 \mySamllsection{字符串的转换}
 
-Converting in the other direction is done by the following set of functions, also defined in the std namespace. In these prototypes, str is the string that you want to convert, pos is a pointer that receives the index of the first unconverted character, and base is the mathematical base that should be used during conversion. The pos pointer can be nullptr, in which case it is ignored. These functions ignore leading whitespace, throw invalid\_argument if no conversion could be performed, and throw out\_of\_range if the converted value is outside the range of the return type.
+另一个方向的转换由以下一组函数完成，其也定义在std命名空间中。str是要转换的字符串，pos是接收第一个未转换字符的索引的指针，base是转换期间应该使用的数字基数。pos指针可以是nullptr，可以忽略。这些函数忽略前导空格，若无法执行转换则抛出invalid\_argument异常，若转换值超出返回类型的范围则抛出out\_of\_range异常。
 
 \begin{cpp}
 int stoi(const string& str, size_t *pos = nullptr, int base = 10);
@@ -474,7 +476,7 @@ double stod(const string& str, size_t *pos = nullptr);
 long double stold(const string& str, size_t *pos = nullptr);
 \end{cpp}
 
-Here is an example:
+举个栗子：
 
 \begin{cpp}
 const string toParse { " 123USD" };
@@ -484,41 +486,43 @@ println("Parsed value: {}", value);
 println("First non-parsed character: '{}'", toParse[index]);
 \end{cpp}
 
-The output is as follows:
+输出为：
 
 \begin{shell}
 Parsed value: 123
 First non-parsed character: 'U'
 \end{shell}
 
-stoi(), stol(), stoul(), stoll(), and stoull() accept integral values and have a parameter called base, which specifies the base in which the given integral value is expressed. A base of 10, the default, assumes the usual decimal numbers, 0–9, while a base of 16 assumes hexadecimal numbers. If the base is set to 0, the function automatically figures out the base of the given number as follows:
+stoi()、stol()、stoll()、stoll()和stoll()接受整数值，并有一个名为base的参数，该参数指定了表示给定整数值的基数。默认的以10为基数假设通常的十进制数，0-9，而以16为基数假设十六进制数。若基数设置为0，则该函数自动计算出给定数字的基数如下:
 
 \begin{itemize}
 \item
-If the number starts with 0x or 0X, it is parsed as a hexadecimal number.
+若数字以0x或0x开头，则解析为十六进制数。
 
 \item
-If the number starts with 0, it is parsed as an octal number.
+若数字以0开头，则将其解析为八进制数。
 
 \item
-Otherwise, it is parsed as a decimal number.
+否则，解析为十进制数。
 \end{itemize}
 
 \mySamllsection{低级数值转换}
 
-The standard also provides a number of lower-level numerical conversion functions, all defined in <charconv>. These functions do not perform any memory allocations and do not work directly with std::strings, but instead they use raw buffers provided by the caller. Additionally, they are tuned for high performance and are locale-independent (see Chapter 21 for details on locales). The end result is that these functions can be orders of magnitude faster than other higher-level numerical conversion functions. These functions are also designed for perfect round-tripping, which means that serializing a numerical value to a string representation followed by deserializing the resulting string back to a numerical value results in the exact same value as the original one.
+C++ 标准库在<charconv>头文件中提供了一些较低级别的数值转换函数。这些函数不执行内存分配，也不直接与std::strings一起工作，而是使用调用者提供的原始内存。此外，它们针对高性能进行了优化，并且与地域设置无关（关于地域设置的详细信息，请参见第21章）所以，这些函数的速度可能比其他较高级别的数值转换函数快几个数量级。
 
-You should use these functions if you want highly performant, perfect round-tripping, localeindependent conversions, for example to serialize/deserialize numerical data to/from human-readable formats such as JSON, XML, and so on.
+这些函数还设计用于完美回转（round-tripping），可将数值序列化为字符串表示形式，然后反序列化结果字符串回到数值，可以得到与原始值完全相同的值。
+
+若需要高性能、完美回转、与地域设置无关的转换，例如将数值数据序列化/反序列化为人类可读的格式时(如JSON、XML等)，应该使用这些函数。
 
 \mySamllsection{转换为字符串}
 
-For converting integers to characters, the following set of functions is available:
+要将整数转换为字符，可以使用以下函数集:
 
 \begin{cpp}
 to_chars_result to_chars(char* first, char* last, IntegerT value, int base = 10);
 \end{cpp}
 
-Here, IntegerT can be any signed or unsigned integer type or char. The result is of type to\_chars\_result, a type defined as follows:
+这里，integer可以是任何有符号或无符号整数类型或char。结果的类型为to\_chars\_result，其类型定义如下:
 
 \begin{cpp}
 struct to_chars_result {
@@ -527,9 +531,9 @@ struct to_chars_result {
 };
 \end{cpp}
 
-The ptr member is either equal to the one-past-the-end pointer of the written characters if the conversion was successful or equal to last if the conversion failed (in which case ec == errc::value\_too\_large). If ec is equal to a default constructed errc, then the conversion was successful.
+ptr成员要么等于已写入字符的“超出末尾”指针（若转换成功），要么等于last（若转换失败，这种情况下ec==errc::value\_too\_large）。若ec等于一个默认构造的errc，则转换成功。
 
-Here is an example of its use:
+以下是其使用的一个例子：
 
 \begin{cpp}
 const size_t BufferSize { 50 };
@@ -538,7 +542,7 @@ auto result { to_chars(out.data(), out.data() + out.size(), 12345) };
 if (result.ec == errc{}) { println("{}", out); /* Conversion successful. */ }
 \end{cpp}
 
-Using structured bindings introduced in Chapter 1, you can write it as follows:
+使用第1章介绍的结构化绑定:
 
 \begin{cpp}
 string out(BufferSize, ' '); // A string of BufferSize space characters.
@@ -546,7 +550,7 @@ auto [ptr, error] { to_chars(out.data(), out.data() + out.size(), 12345) };
 if (error == errc{}) { println("{}", out); /* Conversion successful. */ }
 \end{cpp}
 
-Similarly, the following set of conversion functions is available for floating-point types:
+类似地，以下一组转换函数可用于浮点类型:
 
 \begin{cpp}
 to_chars_result to_chars(char* first, char* last, FloatT value);
@@ -556,7 +560,7 @@ to_chars_result to_chars(char* first, char* last, FloatT value,
                          chars_format format, int precision);
 \end{cpp}
 
-Here, FloatT can be any floating-point type, e.g., float, double, or long double. Formatting can be specified with a combination of chars\_format flags.
+这里，FloatT可以是任何浮点类型，例如float、double或long double。格式化可以用chars\_format标志组合来指定。
 
 \begin{cpp}
 enum class chars_format {
@@ -567,7 +571,7 @@ enum class chars_format {
 };
 \end{cpp}
 
-The default format is chars\_format::general, which causes to\_chars() to convert the floatingpoint value to a decimal notation in the style of (-)ddd.ddd or to a decimal exponent notation in the style of (-)d.ddde±dd, whichever results in the shortest representation with at least one digit before the decimal point (if present). If a format but no precision is specified, the precision is automatically determined to result in the shortest possible representation for the given format, with a maximum precision of six digits. Here is an example:
+默认的格式是chars\_format::general，会导致to\_chars()函数将浮点值转换为十进制表示法，形式为 (-)ddd.ddd，或者转换为十进制指数表示法，形式为 (-)d.ddde±dd，取两者中结果最短的表示法，且小数点前至少有一个数字（若有的话）。若指定了格式但未指定精度，则精度会自动确定，以给定格式产生尽可能短的表示法，最大精度为六位数字。下面是一个例子：
 
 \begin{cpp}
 double value { 0.314 };
@@ -578,7 +582,7 @@ if (error == errc{}) { println("{}", out); /* Conversion successful. */ }
 
 \mySamllsection{字符串的转换}
 
-For the opposite conversion—that is, converting character sequences into numerical values—the following set of functions is available(Starting with C++23, the integer overloads of to\_chars() and from\_chars() are marked as constexpr. This means that they can be evaluated at compile time in other constexpr functions and classes. See Chapter 9, “Mastering Classes and Objects,” for a discussion of constexpr.):
+对于反向转换(即将字符序列转换为数值)，可以使用以下函数集(从C++23起，to\_chars()和from\_chars()的整数重载标记为constexpr)，可以在编译时在其他constexpr函数和类中求值。有关constexpr的讨论，请参见第9章“类和对象”。
 
 \begin{cpp}
 from_chars_result from_chars(const char* first, const char* last, IntegerT& value,
@@ -596,9 +600,9 @@ struct from_chars_result {
 };
 \end{cpp}
 
-The ptr member of the result type is a pointer to the first character that was not converted, or it equals last if all characters were successfully converted. If none of the characters could be converted, ptr equals first, and the value of the error code will be errc::invalid\_argument. If the parsed value is too large to be representable by the given type, the value of the error code will be errc::result\_out\_of\_range. Note that from\_chars() does not skip any leading whitespace.
+结果类型的ptr成员是指向未转换的第一个字符的指针，若所有字符都已成功转换，则其等于最后一个字符。若所有字符都不能转换，则ptr = first，错误码的值将为errc::invalid\_argument。若解析的值太大，无法用给定类型表示，则错误代码的值为errc::result\_out\_of\_range。注意，from\_chars()不会跳过字符串中的前置空格。
 
-The perfect round-tripping feature of to\_chars() and from\_chars() can be demonstrated as follows:
+to\_chars()和from\_chars()完美回转特性的示例如下所示:
 
 \begin{cpp}
 double value1 { 0.314 };
@@ -619,11 +623,11 @@ if (error2 == errc{}) {
 
 \mySubsubsection{2.1.5.}{std::string\_view类}
 
-Before C++17, there was always a dilemma of choosing the parameter type for a function that accepted a read-only string. Should it be a const char*? In that case, if a client had an std::string available, they had to call c\_str() or data() on it to get a const char*. Even worse, the function would lose the nice object-oriented aspects of string and all its nice helper member functions. Maybe the parameter could instead be a const string\&? In that case, you always needed a string. If you passed a string literal, for example, the compiler silently created a temporary string object that contained a copy of your string literal and passed a reference to that object to your function, so there was a bit of overhead. Sometimes people would write multiple overloads of the same function— one that accepted a const char* and another that accepted a const string\&—but that was obviously a less-than-elegant solution.
+C++17之前，对于接受只读字符串的函数，参数类型的选择一直是一个难题。比如需要const char*的情况下，若有一个可用的std::string，则需要调用c\_str()或data()来获取一个const char*。更糟糕的是，函数会失去字符串的面向对象特性，以及所有便捷的成员函数。那参数是const string\&？这种情况下，总是需要一个字符串。如果传递字符串字面量，编译器会自动地创建一个临时字符串对象，其中包含字符串字面量的副本，并将对该对象的引用传递给函数，因此会有一些开销。有时人们会编写同一函数的多个重载——一个接受 const char*，另一个接受 const string\&——但这显然不是一个优雅的解决方案。
 
-Since C++17, all those problems are solved with the introduction of the std::string\_view class, which is an instantiation of the std::basic\_string\_view class template, and defined in <string\_view>. A string\_view is basically a drop-in replacement for const string\& but without the overhead. It never copies strings! A string\_view provides a read-only view of a string and supports an interface similar to string, including the contains() member function introduced in C++23. One exception is the absence of c\_str(), but data() is available. On the other hand, string\_view does add the member functions remove\_prefix(size\_t) and remove\_suffix(size\_t), which shrink a string by advancing the starting pointer by a given offset or by moving the end pointer backward by a given offset. Just like for string, starting with C++23, constructing a string\_view from nullptr results in a compilation error.
+自从C++17起，所有这些问题可以使用std::string\_view类得到了解决，它是std::basic\_string\_view模板的一个实例，定义在<string\_view>中。string\_view 是const string\&的直接替代品，没有开销，从不复制字符串！string\_view提供了一个字符串的只读视图，并支持类似于字符串的接口，包括C++23引入的contains() 成员函数。一个例外是缺少c\_str()，但有data()可用。另外，string\_view添加了remove\_prefix(size\_t)和remove\_suffix(size\_t)成员函数，通过将起始指针向前移动给定的偏移量，或将结束指针向后移动给定的偏移量来缩短字符串。就像字符串一样，从C++23开始，使用nullptr构造string\_view将导致编译错误。
 
-If you know how to use std::string, then using a string\_view is straightforward, as the following example code demonstrates. The extractExtension() function extracts and returns from a given filename the extension including the dot character. Note that string\_views are usually passed by value because they are extremely cheap to copy. They just contain a pointer to, and the length of, a string. The rfind() member function searches a string for another given string or character starting from the back. The substr() member function called on a string\_view returns a string\_view, which is passed to a string constructor to convert it to a string and then returned from the function.
+若知道如何使用std::string，那么使用string\_view非常类似。extractExtension()函数从给定的文件名中提取，并返回包括点字符在内的扩展名。注意，因为它们的复制成本非常低，所以string\_views通过值传递，并只包含指向字符串的指针和字符串的长度。rfind()成员函数从字符串的末尾开始搜索另一个给定的字符串或字符，在 string\_view上调用的substr()成员函数返回的string\_view，传递给字符串构造函数以转换为字符串，然后从函数返回。
 
 \begin{cpp}
 string extractExtension(string_view filename)
@@ -633,7 +637,7 @@ string extractExtension(string_view filename)
 }
 \end{cpp}
 
-This function can be used with all kinds of different strings:
+这个函数可以用于各种不同的字符串:
 
 \begin{cpp}
 string filename { R"(c:\temp\my file.ext)" };
@@ -645,9 +649,9 @@ println("C string: {}", extractExtension(cString));
 println("Literal: {}", extractExtension(R"(c:\temp\my file.ext)"));
 \end{cpp}
 
-There is not a single copy of the argument being made in all these calls to extractExtension(). The filename parameter of the extractExtension() function is just a pointer and a length. This is all very efficient.
+对extractExtension()的所有这些调用中，没有一个参数的副本。extractExtension()函数的filename参数只是一个指针和一个长度，非常高效。
 
-There is also a string\_view constructor that accepts any raw buffer and a length. This can be used to construct a string\_view out of a string buffer that is not NUL (\textbackslash{}0) terminated. It is also useful when you do have a NUL-terminated string buffer, but you already know the length of the string, so the string\_view constructor does not need to count the number of characters again. Here is an example:
+还有一个string\_view构造函数，可用于从非NUL(\textbackslash{}0)终止的字符串内存中构造string\_view。当确实有一个以NUL结束的字符串缓冲区，但是已经知道字符串的长度时就很有用，所以string\_view构造函数不需要再次计算字符数。下面是一个例子:
 
 \begin{cpp}
 const char* raw { /* ... */ };
@@ -655,25 +659,25 @@ size_t length { /* ... */ };
 println("Raw: {}", extractExtension({ raw, length }));
 \end{cpp}
 
-The last line can also be written more explicitly as follows:
+最后一行也可以写得更明确:
 
 \begin{cpp}
 println("Raw: {}", extractExtension(string_view { raw, length }));
 \end{cpp}
 
-Finally, you can also construct a string\_view from a common range, which is a range based on iterators and, since C++23, from a modern range. Iterators, common ranges, and modern ranges are discussed in Chapter 17, “Understanding Iterators and the Ranges Library.”
+最后，还可以从公共范围构造string\_view，该范围是基于迭代器的范围，从C++23起，可以从现代范围构造的。迭代器、公共范围和现代范围将在第17章“理解迭代器和范围库”中讨论。
 
 \begin{myNotic}{NOTE}
-Use an std::string\_view instead of const string\& or const char* whenever a function requires a read-only string as one of its parameters.
+当函数需要一个只读字符串作为其参数之一时，使用std::string\_view而非const string\&或const char*.
 \end{myNotic}
 
-You cannot implicitly construct a string from a string\_view. This is prohibited to prevent accidentally copying the string in a string\_view, as constructing a string from a string\_view always involves copying the data. To convert a string\_view to a string, use an explicit string constructor. That is exactly what the return statement in extractExtension() does:
+不能使用string\_view隐式地构造字符串。因为从string\_view构造字符串总是涉及复制数据，禁止这样做是为了防止意外地复制string\_view中的字符串。要将string\_view转换为字符串，请使用显式字符串构造函数。这是extractExtension()中的return语句所做的:
 
 \begin{cpp}
 return string { filename.substr(filename.rfind('.')) };
 \end{cpp}
 
-For the same reason, you cannot concatenate a string and a string\_view. The following code does not compile:
+出于同样的原因，不能将字符串和string\_view连接。无法编译以下代码:
 
 \begin{cpp}
 string str { "Hello" };
@@ -681,13 +685,13 @@ string_view sv { " world" };
 auto result { str + sv }; // Error, does not compile!
 \end{cpp}
 
-Instead, convert the string\_view to a string using a string constructor:
+可以使用字符串构造函数将string\_view转换为字符串:
 
 \begin{cpp}
 auto result1 { str + string { sv } };
 \end{cpp}
 
-Or, use append():
+或者，使用append():
 
 \begin{cpp}
 string result2 { str };
@@ -695,16 +699,16 @@ result2.append(sv.data(), sv.size());
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-Functions returning a string should return a const string\& or a string, but not a string\_view. Returning a string\_view would introduce the risk of invalidating the returned string\_view if, for example, the string to which it refers needs to reallocate.
+返回字符串的函数应该返回const string\&或字符串，但不能返回string\_view。若它所引用的字符串需要重新分配，返回string\_view会带来使返回的string\_view无效的风险。
 \end{myWarning}
 
 \begin{myWarning}{WARNING}
-Storing a const string\& or a string\_view as a data member of a class requires you to make sure the string to which they refer stays alive for the duration of the object’s lifetime. It’s strongly recommended to store an std::string instead.
+将const string\&或string\_view存储为类的数据成员，需要确保它们所引用的字符串在对象的生命周期内保持存活。强烈建议存储std::string。
 \end{myWarning}
 
 \mySamllsection{std::string\_view和临时字符串}
 
-A string\_view should not be used to store a view of a temporary string. Take the following example:
+不应该使用string\_view来存储临时字符串视图。举个例子:
 
 \begin{cpp}
 string s { "Hello" };
@@ -712,21 +716,21 @@ string_view sv { s + " World!" };
 println("{}", sv);
 \end{cpp}
 
-This code snippet has undefined behavior, i.e., what happens when running this code depends on your compiler and compiler settings. It might crash, it might print “ello World!” (without the letter H), and so on. Why is this undefined behavior? The initializer expression for the sv string\_view results in a temporary string with the “Hello World!” contents. The string\_view then stores a pointer to this temporary string. At the end of the second line of code, this temporary string is destroyed, leaving the string\_view with a dangling pointer.
+此代码片段具有未定义的行为，可能会崩溃，可能会打印“hello World!”(没有字母H)等等。为什么这是未定义的行为? string\_view sv的初始化表达式的结果是一个带有“Hello World!”内容的临时字符串。然后，string\_view存储一个指向这个临时字符串的指针。第二行代码的末尾，这个临时字符串销毁，从而给string\_view留下一个悬空指针。
 
 \begin{myWarning}{WARNING}
-Never use std::string\_view to store a view of temporary strings.
+永远不要使用std::string\_view来存储临时字符串视图。
 \end{myWarning}
 
-\mySamllsection{std::string\_view字面值}
+\mySamllsection{std::string\_view字面量}
 
-You can use the standard literal sv to interpret a string literal as an std::string\_view. Here’s an example:
+可以使用标准字面量sv将字符串字面值解释为std::string\_view。这里有一个例子:
 
 \begin{cpp}
 auto sv { "My string_view"sv };
 \end{cpp}
 
-The standard literal sv requires one of the following using directives:
+标准字sv需要下列using指令之一:
 
 \begin{cpp}
 using namespace std::literals::string_view_literals;
@@ -737,19 +741,19 @@ using namespace std;
 
 \mySubsubsection{2.1.6.}{非标准字符串}
 
-There are several reasons why many C++ programmers don’t use C++-style strings. Some programmers simply aren’t aware of the string type because it was not always part of the C++ specification. Others have discovered over the years that the C++ string doesn’t provide the behavior they need or dislike the fact that std::string is totally agnostic about the character encoding and so have developed their own string type. Chapter 21 returns to the topic of character encodings.
+许多C++程序员不使用C++风格字符串的原因有几个。一些程序员简单地不知道string类型，因为它并不是C++规范中一直存在的部分。其他人多年来发现C++字符串没有提供他们需要的行为，或者不喜欢std::string对字符编码完全无知，因此开发了他们自己的字符串类型。
 
-Perhaps the most common reason is that development frameworks and operating systems tend to have their own way of representing strings, such as the CString class in the Microsoft MFC framework. Often, this is for backward compatibility or to address legacy issues. When starting a project in C++, it is important to decide ahead of time how your group will represent strings. Some things are for sure:
+也许最常见的原因是，开发框架和操作系统倾向于有自己的字符串表示方式，例如Microsoft MFC框架中的CString类，这是为了向后兼容或解决遗留问题。开始一个C++项目时，提前决定团队将如何表示字符串是很重要的。有些事情是肯定的：
 
 \begin{itemize}
 \item
-You should never pick the C-style string representation.
+永远不要选择C风格的字符串表示。
 
 \item
-You can standardize on the string functionality available in the framework you are using, such as the built-in string features of MFC, Qt, and so on.
+可以对正在使用的框架中可用的字符串功能进行标准化，例如MFC、Qt等的内置字符串特性。
 
 \item
-If you use std::string for your strings, then use std::string\_view to pass read-only strings to functions; otherwise, see if your framework has support for something similar like string\_views.
+若使用std::string作为字符串，则使用std::string\_view将只读字符串传递给函数;否则，请查看框架是否支持类似string\_views的功能。
 \end{itemize}
 
 
