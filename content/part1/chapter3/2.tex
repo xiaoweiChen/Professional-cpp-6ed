@@ -1,12 +1,11 @@
 
-In the programming context, documentation usually refers to comments contained in the source files. Comments are your opportunity to tell the world what was going through your head when you wrote the accompanying code. They are a place to say anything that isn’t obvious from looking at the code itself.
+编程中，文档通常指的是源文件中包含的注释。注释是展示开发者在编写代码时的所思所想，可以表达一些代码无法表达的东西。
 
-\mySubsubsection{3.2.1.}{Reasons to Write Comments}
+\mySubsubsection{3.2.1.}{为什么要写注释}
 
 It may seem obvious that writing comments is a good idea, but have you ever stopped to think about why you need to comment your code? Sometimes programmers acknowledge the importance of commenting without fully understanding why comments are important. There are several reasons, all of which are explored in this chapter.
 
-
-\mySamllsection{Commenting to Explain Usage}
+\mySamllsection{解释用法}
 
 One reason to use comments is to explain how clients should interact with the code. Normally, a developer should be able to understand what a function does simply based on the name of the function, the type of the return value, and the name and type of its parameters. However, not everything can be expressed in code. Function pre- and postconditions(Preconditions are the conditions that client code must satisfy before calling a function. Postconditions are the conditions that must be satisfied by the function when it has finished executing.) and the exceptions a function can throw are things that you can only explain in a comment. In my opinion, it is OK to only add a comment if it really adds any useful information, such as pre- and postconditions and exceptions; otherwise, it’s acceptable to omit the comment. Nevertheless, it’s rare for a function to have no pre- or postconditions. Bottom line, it’s up to the developer to decide whether a function needs a comment. Experienced programmers will have no problems deciding about this, but less experienced developers might not always make the right decision. That’s why some companies have a rule stating that at least each publicly accessible function or member function in a module or header file should have a comment explaining what it does, what its arguments are, what values it returns, which pre- and postconditions need to be satisfied, and which exceptions it can throw.
 
@@ -75,7 +74,7 @@ LRESULT handleMessage(WPARAM wParam, LPARAM lParam);
 
 Your public documentation should describe the behavior of your code, not the implementation. The behavior includes the inputs, outputs, error conditions and handling, intended uses, and performance guarantees. For example, public documentation describing a call to generate a single random number should specify that it takes no parameters, returns an integer in a previously specified range, and should list all the exceptions that might be thrown when something goes wrong. This public documentation should not explain the details of the linear congruence algorithm for actually generating the number. Providing too much implementation detail in comments targeted for users of your code is probably the single most common mistake in writing public comments.
 
-\mySamllsection{Commenting to Explain Complicated Code}
+\mySamllsection{解释复杂的代码}
 
 Good comments are also important inside the actual source code. In a simple program that processes input from the user and writes a result to the console, it is probably easy to read through and understand all of the code. In the professional world, however, you will often need to write code that is algorithmically complex or too esoteric to understand simply by inspection.
 
@@ -138,7 +137,7 @@ void sort(int data[], std::size_t size)
 
 The new code is certainly more verbose, but a reader unfamiliar with sorting algorithms would be much more likely to understand it with the comments included.
 
-\mySamllsection{Commenting to Convey Meta-information}
+\mySamllsection{传递元信息}
 
 \begin{myWarning}{WARNING}
 All meta-information mentioned in this section is from practices from the past. Nowadays, such meta-information is highly discouraged, as the use of a version control system, as discussed in Chapter 28, “Maximizing Software Engineering Methods,” is mandatory. Such a solution offers an annotated change history with revision dates, author names, and, if properly used, comments accompanying each modification, including references to change requests and bug reports. You should check in, or commit, each change request or bug fix separately with a descriptive comment. With such a system, you don’t need to manually keep track of such meta-information directly in the source code files.
@@ -169,15 +168,15 @@ RecordID saveRecord(Record& record)
 
 However, it’s worth repeating, such legacy meta-information has no place in new code.
 
-\mySamllsection{Copyright Comment}
+\mySamllsection{版权声明}
 
 Another type of meta-information is a copyright notice. Some companies require such a copyright notice at the beginning of every source file, even though, since the Berne Convention in 1886, it is not required to explicitly write a copyright statement to actually have copyright on your work.
 
-\mySubsubsection{3.2.2.}{Commenting Styles}
+\mySubsubsection{3.2.2.}{注释风格}
 
 Every organization has a different approach to commenting code. In some environments, a particular style is mandated to give the code a common standard for documentation. Other times, the quantity and style of commenting are left up to the programmer. The following examples depict several approaches to commenting code.
 
-\mySamllsection{Commenting Every Line}
+\mySamllsection{每行注释}
 
 One way to avoid lack of documentation is to force yourself to over document by including a comment for every line. Commenting every line of code should ensure that there’s a specific reason for everything you write. In reality, such heavy commenting on a large scale is unwieldy, messy, and tedious! For example, consider the following useless comments:
 
@@ -238,7 +237,7 @@ This code is taken out of context, but the comments give you a good idea of what
 Commenting every line of code is usually not warranted, but if the code is complicated enough to require it, don’t just translate the code to English: explain what’s really going on.
 \end{myNotic}
 
-\mySamllsection{Prefix Comments}
+\mySamllsection{前缀注释}
 
 Your group may decide to begin all source files with a standard comment. This is an opportunity to document important information about the program and a specific file. Examples of information that could be at the top of every file include the following:
 
@@ -284,7 +283,7 @@ Here is an example of a prefix comment:
 // The following code is (c) copyright 2023, FruitSoft, Inc. ALL RIGHTS RESERVED
 \end{cpp}
 
-\mySamllsection{Fixed-Format Comments}
+\mySamllsection{注释的固定}
 
 Writing comments in a standard format that can be parsed by external document builders is a popular programming practice. In the Java language, programmers can write comments in a standard format that allows a tool called JavaDoc to automatically create hyperlinked documentation for the project. For C++, a free tool called Doxygen (available at doxygen.org) parses comments to automatically build HTML documentation, class diagrams, UNIX man pages, and other useful documents. Doxygen even recognizes and parses JavaDoc-style comments in C++ programs. The code that follows shows JavaDoc-style comments that are recognized by Doxygen:
 
@@ -323,11 +322,11 @@ Note that you should still avoid writing useless comments, even when you use a t
 Watermelon(std::size_t initialSeeds);
 \end{cpp}
 
-\myGraphic{0.7}{content/part1/chapter3/images/1.png}{FIGURE 3.1}
+\myGraphic{0.7}{content/part1/chapter3/images/1.png}{图3.1}
 
 Automatically generated documentation as shown in Figure 3.1 can be helpful during development because it allows developers to browse through a high-level description of classes and their relationships. Your group can easily customize a tool like Doxygen to work with the style of comments that you have adopted. Ideally, your group would set up a machine that builds documentation on a daily basis.
 
-\mySamllsection{Ad Hoc Comments}
+\mySamllsection{临时注释}
 
 Most of the time, you use comments on an as-needed basis. Here are some guidelines for comments that appear within the body of your code:
 
@@ -357,7 +356,7 @@ Avoid offensive or derogatory language. You never know who might look at your co
 Liberal use of inside jokes is generally considered OK. Check with your manager.
 \end{itemize}
 
-\mySamllsection{Self-Documenting Code}
+\mySamllsection{自文档化代码}
 
 Well-written code often doesn’t need abundant commenting. The best code is written to be readable.
 If you find yourself adding a comment for every line, consider whether the code could be rewritten to better match what you are saying in the comments. For example, use descriptive names for your functions, parameters, variables, classes, and so on. Properly make use of const; that is, if a variable is not supposed to be modified, mark it as const. Reorder the steps in a function to make it clearer what it is doing. Introduce intermediate well-named variables to make an algorithm easier to understand. Remember that C++ is a language. Its main purpose is to tell the computer what to do, but the semantics of the language can also be used to explain its meaning to a reader.
