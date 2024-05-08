@@ -23,7 +23,7 @@ Names in the global namespace that begin with an underscore (such as \_name) are
 
 Other than those rules, names exist only to help you and your fellow programmers work with the individual elements of your program. Given this purpose, it is surprising how often programmers use unspecific or inappropriate names.
 
-\mySubsubsection{3.4.1.}{Choosing a Good Name}
+\mySubsubsection{3.4.1.}{起一个好名字}
 
 The best name for a variable, member function, function, parameter, class, namespace, and so on, accurately describes the purpose of the item. Names can also imply additional information, such as the type or specific usage. Of course, the real test is whether other programmers understand what you are trying to convey with a particular name.
 
@@ -34,8 +34,8 @@ There are no set-in-stone rules for naming other than the rules that work for yo
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{GOOD NAMES} &
-\textbf{BAD NAMES} \\ \hline
+\textbf{良好的名字} &
+\textbf{糟糕的名字} \\ \hline
 \endfirsthead
 %
 \endhead
@@ -56,15 +56,15 @@ There are no set-in-stone rules for naming other than the rules that work for yo
 \begin{tabular}[c]{@{}l@{}}srcFile, dstFile\\ Abbreviations\end{tabular} \\ \hline
 \end{longtable}
 
-\mySubsubsection{3.4.2.}{Naming Conventions}
+\mySubsubsection{3.4.2.}{命名规则}
 
 Selecting a name doesn’t always require a lot of thought and creativity. In many cases, you’ll want to use standard techniques for naming. The following are some of the types of data for which you can make use of standard names.
 
-\mySamllsection{Counters}
+\mySamllsection{计数器}
 
 Early in your programming career, you probably saw code that used the variable i as a counter. It is customary to use i and j as counters and inner-loop counters, respectively. Be careful with nested loops, however. It’s a common mistake to refer to the “ith” element when you really mean the “jth” element. When working with 2-D matrices, it’s probably easier to use row and column as indices instead of i and j. Some programmers prefer using counters outerLoopIndex and innerLoopIndex, and some even frown upon using i and j as loop counters.
 
-\mySamllsection{Prefixes}
+\mySamllsection{前缀}
 
 Many programmers begin their variable names with a letter that provides some information about the variable’s type or usage. On the other hand, there are as many programmers, or even more, who disapprove of using any kind of prefix because this could make evolving code less maintainable in the future. For example, if a member variable is changed from static to non-static, you have to rename all the uses of that name. If you don’t rename them, your names continue to convey semantics, but now they are the wrong semantics.
 
@@ -75,10 +75,10 @@ However, you often don’t have a choice, and you need to follow the guidelines 
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|l|}
 \hline
-\textbf{PREFIX} &
-\textbf{EXAMPLE NAME} &
-\textbf{LITERAL PREFIX MEANING} &
-\textbf{USAGE} \\ \hline
+\textbf{前缀} &
+\textbf{示例} &
+\textbf{前缀含义} &
+\textbf{用法} \\ \hline
 \endfirsthead
 %
 \endhead
@@ -101,7 +101,7 @@ kMaximumLength &
 Designates a Boolean value \\ \hline
 \end{longtable}
 
-\mySamllsection{Hungarian Notation}
+\mySamllsection{匈牙利命名法}
 
 Hungarian notation is a variable and data member-naming convention that is popular with Microsoft Windows programmers. The basic idea is that instead of using single-letter prefixes such as m, you should use more verbose prefixes to indicate additional information. The following line of code shows the use of Hungarian notation:
 
@@ -115,15 +115,15 @@ The term Hungarian notation arose from the fact that its inventor, Charles Simon
 Good names convey information about their purpose without making the code unreadable
 \end{myNotic}
 
-\mySamllsection{Getters and Setters}
+\mySamllsection{getter和setter}
 
 If your class contains a data member, such as m\_status, it is customary to provide access to the member via a getter called getStatus() and, optionally, a setter called setStatus(). To give access to a Boolean data member, you typically use is as a prefix instead of get, for example isRunning(). The C++ language has no prescribed naming for these functions, but your organization will probably want to adopt this or a similar naming scheme.
 
-\mySamllsection{Capitalization}
+\mySamllsection{大写}
 
 There are many different ways of capitalizing names in your code. As with most elements of coding style, it is important that your group adopts a standardized approach and that all members adopt that approach. One way to get messy code is to have some programmers naming classes in all lowercase with underscores representing spaces (priority\_queue) and others using capitals with each subsequent word capitalized (PriorityQueue). Variables and data members almost always start with a lowercase letter and use either underscores (my\_queue) or capitals (myQueue) to indicate word breaks. Functions traditionally start with a capital letter in C++, but, as you’ve seen, in this book I have adopted the style of using a lowercase first letter for functions to distinguish them from class names.
 
-\mySamllsection{Namespaced Constants}
+\mySamllsection{命名空间常量}
 
 Imagine that you are writing a program with a graphical user interface. The program has several menus, including File, Edit, and Help. To represent the ID of each menu, you may decide to use a constant. A perfectly reasonable name for a constant referring to the Help menu ID is Help.
 

@@ -3,13 +3,13 @@
 
 \mySubsubsection{3.2.1.}{为什么要写注释}
 
-It may seem obvious that writing comments is a good idea, but have you ever stopped to think about why you need to comment your code? Sometimes programmers acknowledge the importance of commenting without fully understanding why comments are important. There are several reasons, all of which are explored in this chapter.
+写注释似乎是一个好方法，但各位是否停下来想过，为什么需要对代码进行注释?有时开发者承认注释的重要性，但没有完全理解注释为什么重要，其中有几个原因。
 
 \mySamllsection{解释用法}
 
-One reason to use comments is to explain how clients should interact with the code. Normally, a developer should be able to understand what a function does simply based on the name of the function, the type of the return value, and the name and type of its parameters. However, not everything can be expressed in code. Function pre- and postconditions(Preconditions are the conditions that client code must satisfy before calling a function. Postconditions are the conditions that must be satisfied by the function when it has finished executing.) and the exceptions a function can throw are things that you can only explain in a comment. In my opinion, it is OK to only add a comment if it really adds any useful information, such as pre- and postconditions and exceptions; otherwise, it’s acceptable to omit the comment. Nevertheless, it’s rare for a function to have no pre- or postconditions. Bottom line, it’s up to the developer to decide whether a function needs a comment. Experienced programmers will have no problems deciding about this, but less experienced developers might not always make the right decision. That’s why some companies have a rule stating that at least each publicly accessible function or member function in a module or header file should have a comment explaining what it does, what its arguments are, what values it returns, which pre- and postconditions need to be satisfied, and which exceptions it can throw.
+使用注释原因之一是，解释应如何与代码交互。通常，开发者能够仅基于函数的名称、返回值的类型，以及其参数的名称和类型来理解函数的作用。然而，并非所有的内容都能在代码中表达。函数的前置条件和后置条件（前置条件是客户端代码在调用函数之前必须满足的条件，后置条件是函数执行完毕后必须满足的条件），以及函数可能抛出的异常，那些需要在注释中解释的事情。在我看来，只有当注释真正有用，才应该添加注释；否则，省略注释。尽管如此，函数没有前置或后置条件的情况还是很罕见。总之，是否需要为函数添加注释应由开发者决定。经验丰富的程序员在这方面不会有问题，但经验较少的开发者可能无法做出正确的决定。这就是为什么有些公司规定，模块或头文件中，至少每个公开可访问的函数或成员函数都应该有一个注释，解释其作用、参数是什么、返回什么值、需要满足哪些前置和后置条件，以及它可能抛出哪些异常。
 
-A comment gives you the opportunity to state, in English, anything that you can’t state in code. For example, there’s really no way in C++ code to indicate that the saveRecord() member function of a database object throws an exception if openDatabase() has not been called yet. A comment, however, can be the perfect place to note this restriction, as follows:
+注释提供了用自然语言陈述无法使用代码表达的机会。例如，C++中没有办法指示数据库对象的saveRecord()成员函数，若在调用openDatabase()之前使用，会抛出异常。然而，注释可以是注明这种限制的理想之地，如下所示：
 
 \begin{cpp}
 // Throws:
@@ -17,7 +17,7 @@ A comment gives you the opportunity to state, in English, anything that you can�
 int saveRecord(Record& record);
 \end{cpp}
 
-The saveRecord() member function accepts a reference-to-non-const Record object. Users might wonder why it’s not a reference-to-const, so this is something that needs to be explained in a comment:
+saveRecord()成员函数接受对非const Record对象的引用。用户可能想知道为什么不是对const的引用，所以这需要在注释中解释:
 
 \begin{cpp}
 // Parameters:
@@ -28,7 +28,7 @@ The saveRecord() member function accepts a reference-to-non-const Record object.
 int saveRecord(Record& record);
 \end{cpp}
 
-The C++ language forces you to specify the return type of a function, but it does not provide a way for you to say what the returned value actually represents. For example, the declaration of saveRecord() indicates that it returns an int (a bad design decision discussed further in this section), but a client reading that declaration wouldn’t know what the int means. A comment explains the meaning of it:
+C++语言强制指定函数的返回类型，但没有提供一种方法来说明返回值实际表示什么。例如，saveRecord()的声明表明返回一个int(本节将进一步讨论一个糟糕的设计决策)，但是使用者阅读该声明时，并不知道int是什么意思。一条注释就足以解释其含义:
 
 \begin{cpp}
 // Saves the given record to the database.
@@ -43,9 +43,9 @@ The C++ language forces you to specify the return type of a function, but it doe
 int saveRecord(Record& record);
 \end{cpp}
 
-The previous comment documents everything about saveRecord() in a formal way, including a sentence that describes what the member function does. Some companies require such formal and thorough documentation; however, I don’t recommend this style of commenting all the time. The first line, for example, is rather useless since the name of the function is self-explanatory. The description of the parameter is important as is the comment about the exception, so these definitely should stay.
+前面的注释以正式的方式记录了关于saveRecord()的所有信息，包括描述该成员函数作用的语句。一些公司要求这种正式和详尽的文档，但我不推荐一直使用这种注释风格。例如，第一行相当无用，因为函数的名称已经足够自解释。参数的描述以及关于异常的注释很重要，所以这些肯定应该保留。
 
-Documenting what exactly the return type represents for this version of saveRecord() is required since it returns a generic int. However, a much better design would be to return a RecordID instead of a plain int, which removes the need to add any comments for the return type. RecordID could be a simple class with a single int data member, but it conveys more information, and it allows you to add more data members in the future if need be. So, the following is a much better saveRecord():
+由于这个版本的saveRecord()返回一个通用的int类型，因此需要记录返回类型确切代表什么。而更好的设计是返回一个RecordID，而非一个普通的int，这样可以省去为返回类型添加任何注释的需求。RecordID可以是一个只有一个int数据成员的简单类，但它传达了更多信息，并且需要的话，可以添加更多的数据成员，所以下面是一个更好的saveRecord()：
 
 \begin{cpp}
 // Parameters:
@@ -57,10 +57,10 @@ RecordID saveRecord(Record& record);
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-If your company’s coding guidelines don’t force you to write formal comments for functions, use common sense when writing them. Only state something in a comment that is not obvious based on the name of the function, the return type, and the name and type of its parameters.
+当公司的编码指南没有强制为函数编写正式的注释时，在写注释时请使用常识。根据函数名、返回类型，及其参数的名称和类型，只在注释中说明一些不明显的内容。
 \end{myNotic}
 
-Sometimes, the parameters to and the return type from a function are generic and can be used to pass all kinds of information. In that case you need to clearly document exactly what type is being passed. For example, message handlers in Windows accept two parameters, LPARAM and WPARAM, and can return an LRESULT. All three can be used to pass almost anything you like, but you cannot change their type. By using type casting, they can, for example, be used to pass simple integers or pointers to some objects. Your documentation could look like this:
+有时，函数的参数和返回类型是通用的，可以用来传递各种信息。这时，需要清楚地记录确切传递的是什么类型。例如，Windows中的消息处理程序接受两个参数，LPARAM和WPARAM，并且可以返回一个LRESULT。这三个参数几乎可以用来传递任何东西，但不能改变它们的类型。通过使用类型转换，它们可以用来传递简单的整数或指向某些对象的指针。注释写起来可能像这样：
 
 \begin{cpp}
 // Parameters:
@@ -72,13 +72,13 @@ Sometimes, the parameters to and the return type from a function are generic and
 LRESULT handleMessage(WPARAM wParam, LPARAM lParam);
 \end{cpp}
 
-Your public documentation should describe the behavior of your code, not the implementation. The behavior includes the inputs, outputs, error conditions and handling, intended uses, and performance guarantees. For example, public documentation describing a call to generate a single random number should specify that it takes no parameters, returns an integer in a previously specified range, and should list all the exceptions that might be thrown when something goes wrong. This public documentation should not explain the details of the linear congruence algorithm for actually generating the number. Providing too much implementation detail in comments targeted for users of your code is probably the single most common mistake in writing public comments.
+公开文档应该描述代码的行为，而不是实现细节。行为包括输入、输出、错误条件和处理、预期用途和性能保证。例如，描述生成单个随机数接口的公开文档，应说明这个接口不接受任何参数，返回一个在之前指定范围内的整数，并应列出当出现问题时可能抛出的所有异常。公开文档不应该解释实际生成数字的线性同余算法的细节。针对用户的注释中提供过多的实现细节，可能是编写注释时最常见的错误之一了。
 
 \mySamllsection{解释复杂的代码}
 
-Good comments are also important inside the actual source code. In a simple program that processes input from the user and writes a result to the console, it is probably easy to read through and understand all of the code. In the professional world, however, you will often need to write code that is algorithmically complex or too esoteric to understand simply by inspection.
+实际的代码中，良好的注释也同样重要。一个简单的用户处理输入，并将结果写入控制台的程序中，可能很容易阅读并理解。但在专业领域，经常需要编写在复杂算法，或者过于深奥而无法一目了然的代码。
 
-Consider the code that follows. It is well-written, but it may not be immediately apparent what it is doing. You might recognize the algorithm if you have seen it before, but a newcomer probably wouldn’t understand the way the code works.
+看看下面的代码。它写得很好，但可能不会立即明白它在做什么。若以前见过这个算法，可能会认出它，但新手可能并不理解这些代码在干嘛。
 
 \begin{cpp}
 void sort(int data[], std::size_t size)
@@ -95,7 +95,7 @@ void sort(int data[], std::size_t size)
 }
 \end{cpp}
 
-A better approach would be to include comments that describe the parameters to the function, the algorithm that is being used, and any (loop) invariants. Invariants are conditions that must be true during the execution of a piece of code, for example, a loop iteration. In the modified function that follows, a comment at the top explains the meaning of the two parameters, a thorough comment at the start of the function explains the algorithm at a high level, and inline comments explain specific lines that may be confusing:
+一个好的方法是在注释中描述函数的参数、使用的算法以及（循环）不变量。不变量是在代码执行期间必须为真的条件，例如循环迭代。在下面修改后的函数中，顶部的注释解释了两个参数的含义，函数开始处的详细注释从高层次解释了算法，内联注释解释了可能令人困惑的代码：
 
 \begin{cpp}
 // Implements the "insertion sort" algorithm.
@@ -135,15 +135,15 @@ void sort(int data[], std::size_t size)
 }
 \end{cpp}
 
-The new code is certainly more verbose, but a reader unfamiliar with sorting algorithms would be much more likely to understand it with the comments included.
+新的代码确实更加冗长，但是包含注释后，不熟悉排序算法的读者更有可能理解这段代码所做的事情。
 
 \mySamllsection{传递元信息}
 
 \begin{myWarning}{WARNING}
-All meta-information mentioned in this section is from practices from the past. Nowadays, such meta-information is highly discouraged, as the use of a version control system, as discussed in Chapter 28, “Maximizing Software Engineering Methods,” is mandatory. Such a solution offers an annotated change history with revision dates, author names, and, if properly used, comments accompanying each modification, including references to change requests and bug reports. You should check in, or commit, each change request or bug fix separately with a descriptive comment. With such a system, you don’t need to manually keep track of such meta-information directly in the source code files.
+本节中提到的元信息都是过去实践的做法。如今，这种元信息是强烈不推荐使用的，如第28章中讨论的，需要强制性使用版本控制系统。这样的解决方案提供了一个带修订日期、作者姓名的注释变更历史，若使用得当，还包括伴随每次修改的注释，包括对变更请求和错误报告的引用。应该分别提交每个变更请求或错误修复，并附上描述性注释。有了版本控制系统，就不需要在源代码文件中手动跟踪此类元信息。
 \end{myWarning}
 
-In old legacy code bases, you might come across comments that were used to provide information at a higher level than the code itself. Such meta-information provided details about the creation of the code without addressing the specifics of its behavior, such as the original author of each function, the date a piece of code was written, the specific feature a function addresses, the bug number that corresponds to a line of code, a reminder to revisit a possible problem in the code later, a change-log, and more. Here is an example:
+旧的遗留代码库中，可能会遇到用于提供比代码本身更高层次信息的注释。这种元信息提供了关于代码创建的详细信息，不涉及其行为的具体细节，例如每个函数的原始作者、编写代码的日期、函数针对的具体功能、与代码行对应的错误编号、稍后重新检查代码中可能存在的问题的提醒、变更日志等等。这里有一个例子：
 
 \begin{cpp}
 // Date       | Change
@@ -166,19 +166,17 @@ RecordID saveRecord(Record& record)
 }
 \end{cpp}
 
-However, it’s worth repeating, such legacy meta-information has no place in new code.
-
 \mySamllsection{版权声明}
 
-Another type of meta-information is a copyright notice. Some companies require such a copyright notice at the beginning of every source file, even though, since the Berne Convention in 1886, it is not required to explicitly write a copyright statement to actually have copyright on your work.
+另一种类型的元信息是版权声明。一些公司要求在每个源文件的开头都有这样的版权声明，尽管自从1886年的伯尔尼公约以来，实际上并不需要明确写出版权声明才能拥有版权。
 
 \mySubsubsection{3.2.2.}{注释风格}
 
-Every organization has a different approach to commenting code. In some environments, a particular style is mandated to give the code a common standard for documentation. Other times, the quantity and style of commenting are left up to the programmer. The following examples depict several approaches to commenting code.
+每个组织对代码注释都有不同的方法，有些组织会强制要求使用特定的风格，以便为文档提供共同的代码标准。其他时候，注释的数量和风格则由程序员自己决定。以下示例展示了注释代码的几种方法。
 
 \mySamllsection{每行注释}
 
-One way to avoid lack of documentation is to force yourself to over document by including a comment for every line. Commenting every line of code should ensure that there’s a specific reason for everything you write. In reality, such heavy commenting on a large scale is unwieldy, messy, and tedious! For example, consider the following useless comments:
+避免文档不足的一种方法是过度文档化，为每一行代码都包含一个注释。为每一行代码添加注释可确保写的每一样东西都有具体的原因。实际上，如此大规模的沉重注释很不方便，并且有些混乱，甚至是无趣的！例如：
 
 \begin{cpp}
 int result; // Declare an integer to hold the result.
@@ -191,33 +189,33 @@ if (result % 2 == 0) { // If the result modulo 2 is 0 ...
 return result; // Return the result.
 \end{cpp}
 
-The comments in this code express each line as part of an easily readable English story. This is entirely useless if you assume that the reader has at least basic C++ skills. These comments don’t add any additional information to code. Specifically, look at this line:
+这段代码中的注释将每一行描述为一个易于阅读的英文故事。假设读者具有基本的C++技能，这些注释就完全没有必要。这些注释并没有为代码添加真正有用的信息，特别是这行代码：
 
 \begin{cpp}
 if (result % 2 == 0) { // If the result modulo 2 is 0 ...
 \end{cpp}
 
-The comment is just an English translation of the code. It doesn’t say why the programmer has used the modulo operator on the result with the value 2. The following would be a better comment:
+这个注释只是代码的英文翻译，没有说明程序员为什么对结果使用模运算符并取值为2。下面将是一个更好的注释：
 
 \begin{cpp}
 if (result % 2 == 0) { // If the result is even ...
 \end{cpp}
 
-The modified comment, while still fairly obvious to most programmers, gives additional information about the code. The modulo operator with 2 is used because the code needs to check whether the result is even.
+修改后的注释虽然对大多数程序员来说仍然相当明显，并提供了关于代码的有用信息。使用模运算符2是因为代码需要检查结果是否为偶数。
 
-Even better, if some expression does something that might not be immediately obvious to everyone, I recommend turning it into a function with a well-chosen name. This makes the code self-documenting, removing the need to write comments where the function is used, and results in a piece of reusable code. For example, you can define a function isEven() as follows:
+更进一步的，若某些表达式做的事情不明显，我建议将其转换为一个具有适当名称的函数。这使得代码自解释，在使用函数的地方不需要编写注释，并且产生了一块可重用的代码。例如，可以定义一个函数isEven()，如下所示：
 
 \begin{cpp}
 bool isEven(int value) { return value % 2 == 0; }
 \end{cpp}
 
-And then use it like this, without any comments:
+然后像这样使用它，无需注释：
 
 \begin{cpp}
 if (isEven(result)) {
 \end{cpp}
 
-Despite its tendency to be verbose and superfluous, heavy commenting can be useful in cases where the code would otherwise be difficult to comprehend. The following code also comments every line, but these comments are actually helpful:
+尽管过度注释可能会导致冗长和多余，但在代码难以理解的情况下，重度注释可能会有所帮助。以下代码也为每一行添加了注释，但这些注释实际上是有用的：
 
 \begin{cpp}
 // Calculate the doodad. The start, end, and offset values come from the
@@ -231,49 +229,49 @@ result &= getProcessorMask();
 setUserField((result + MarigoldOffset) / MarigoldConstant + MarigoldConstant);
 \end{cpp}
 
-This code is taken out of context, but the comments give you a good idea of what each line does. Without them, the calculations involving \& and the mysterious “Marigold Formula” would be difficult to decipher.
+虽然这段代码脱离了上下文，但注释很好地解释了每一行的作用。没有这些注释，涉及 \& 和神秘“Marigold Formula”的计算将难以解读。
 
 \begin{myNotic}{NOTE}
-Commenting every line of code is usually not warranted, but if the code is complicated enough to require it, don’t just translate the code to English: explain what’s really going on.
+通常没有必要为每一行代码添加注释，若代码复杂这种程度，请不要只是将代码翻译成自然语言，而是说明代码所做事情的真实意图。
 \end{myNotic}
 
 \mySamllsection{前缀注释}
 
-Your group may decide to begin all source files with a standard comment. This is an opportunity to document important information about the program and a specific file. Examples of information that could be at the top of every file include the following:
+有的团队会决定以一个标准注释开始所有源文件，这是一个记录有关程序和特定文件的重要信息的机会。每个文件顶部可能包含的信息示例包括以下内容：
 
 \begin{itemize}
 \item
-Copyright information
+版权信息
 
 \item
-A brief description of the file/class
+文件/类的简要描述
 
 \item
-Incomplete features*
+不完整的功能*
 
 \item
-Known bugs*
+已知的问题 *
 \end{itemize}
 
-* These items are usually handled by your bug and feature tracking system (see Chapter 30, “Becoming Adept at Testing”).
+* 这些项目通常由问题和特性跟踪系统处理(参见第30章)。
 
-The following lists some examples of information that should never be included in such comments, as these are automatically handled by your version control system (see Chapter 28).
+下面列出了一些永远不应该包含在注释中的信息的例子，这些信息应由版本控制系统处理(参见第28章)。
 
 \begin{itemize}
 \item
-The last-modified date
+最后修改日期
 
 \item
-The original author
+原作者
 
 \item
- A change-log (as described earlier)
+更改日志
 
 \item
-The feature ID addressed by the file
+文件所寻址的特性ID
 \end{itemize}
 
-Here is an example of a prefix comment:
+下面是一个前缀注释的例子:
 
 \begin{cpp}
 // Implements the basic functionality of a watermelon. All units are expressed
@@ -283,9 +281,9 @@ Here is an example of a prefix comment:
 // The following code is (c) copyright 2023, FruitSoft, Inc. ALL RIGHTS RESERVED
 \end{cpp}
 
-\mySamllsection{注释的固定}
+\mySamllsection{固定注释}
 
-Writing comments in a standard format that can be parsed by external document builders is a popular programming practice. In the Java language, programmers can write comments in a standard format that allows a tool called JavaDoc to automatically create hyperlinked documentation for the project. For C++, a free tool called Doxygen (available at doxygen.org) parses comments to automatically build HTML documentation, class diagrams, UNIX man pages, and other useful documents. Doxygen even recognizes and parses JavaDoc-style comments in C++ programs. The code that follows shows JavaDoc-style comments that are recognized by Doxygen:
+编写可以由外部文档构建器解析的标准格式注释是一种流行的编程实践。Java可以编写符合标准格式的注释，这使得一个名为JavaDoc的工具能够自动为项目创建超链接的文档。对于C++，通过Doxygen（可在\url{doxygen.org}获取）的免费工具可以解析注释来自动构建HTML文档、类图、UNIX手册和其他文档。Doxygen甚至能够识别并解析C++程序中的JavaDoc风格注释。下面的代码展示了Doxygen能够识别的JavaDoc注释：
 
 \begin{cpp}
 /**
@@ -309,9 +307,9 @@ export class Watermelon
 };
 \end{cpp}
 
-Doxygen recognizes the C++ syntax and special comment directives such as @param, @return, and @throws to generate customizable output. Figure 3.1 shows an example of a Doxygen-generated HTML class reference.
+Doxygen识别C++语法和特殊的注释指令，如@param、@return和@throws，以生成可定制的输出。图3.1展示了Doxygen生成的HTML类参考的一个例子。
 
-Note that you should still avoid writing useless comments, even when you use a tool to automatically generate documentation. Take a look at the Watermelon constructor in the previous code. Its comment omits a description and only describes the parameter and the exceptions it throws. Adding a description, as in the following example, is redundant:
+即使使用工具自动生成文档，也应避免编写无用的注释。看看前面代码中的Watermelon构造函数。其注释省略了描述，只描述了参数和它抛出的异常。如下面的例子所示：
 
 \begin{cpp}
 /**
@@ -322,49 +320,48 @@ Note that you should still avoid writing useless comments, even when you use a t
 Watermelon(std::size_t initialSeeds);
 \end{cpp}
 
-\myGraphic{0.7}{content/part1/chapter3/images/1.png}{图3.1}
+\myGraphic{0.5}{content/part1/chapter3/images/1.png}{图3.1}
 
-Automatically generated documentation as shown in Figure 3.1 can be helpful during development because it allows developers to browse through a high-level description of classes and their relationships. Your group can easily customize a tool like Doxygen to work with the style of comments that you have adopted. Ideally, your group would set up a machine that builds documentation on a daily basis.
+如图3.1所示的自动生成的文档在开发过程中很有帮助，允许开发人员浏览类及其关系的高级描述。团队可以轻松地自定义一个像 Doxygen 这样的工具，以适应相应的注释风格。理想情况下，团队会对文档进行每日构建。
 
 \mySamllsection{临时注释}
 
-Most of the time, you use comments on an as-needed basis. Here are some guidelines for comments that appear within the body of your code:
+大多数时候，仅根据需要使用注释。以下是在代码中使用注释的一些指南：
 
 \begin{itemize}
 \item
-Before adding a comment, first consider whether you can rework the code to make the comment redundant—for example, by renaming variables, functions, and classes; by reordering steps in the code; by introducing intermediate well-named variables; and so on.
+添加注释之前，首先考虑是否可以通过重写代码来使注释变得多余。例如，通过重命名变量、函数和类；重新排序代码中的步骤；引入中间的命名变量等。
 
 \item
-Imagine someone else is reading your code. If there are subtleties that are not immediately obvious, then you should document those.
+试想其他人正在阅读您的代码时，若有些微妙之处不是很清晰，那么应该记录下来。
 
 \item
-Don’t put your initials in the code. Version control systems will track that kind of information automatically for you.
+不用初始化代码，版本控制系统会自动跟踪这类信息。
 
 \item
-If you are doing something with an API that isn’t immediately obvious, include a reference to the documentation of that API where it is explained.
+若正在使用的API不是很明显，请在该API的文档中包含对其作用的说明。
 
 \item
-Remember to update your comments when you update the code. Nothing is more confusing than code that is fully documented with incorrect comments.
+记得在更新代码时更新注释，没有什么比有错误注释的代码更令人困惑的了。
 
 \item
-If you use comments to separate a function into sections, consider whether the function can be broken up into multiple, smaller functions.
+若使用注释将一个函数分成几个部分，请考虑是否可以将该函数分解为多个更小的函数。
 
 \item
-Avoid offensive or derogatory language. You never know who might look at your code someday.
+避免使用有冒犯性的文字，因为你永远不知道有一天谁会看到这些代码。
 
 \item
-Liberal use of inside jokes is generally considered OK. Check with your manager.
+讲笑话和调侃通常无伤大雅，必要的时候请和你的经理商量一下是否要写这些东西。
 \end{itemize}
 
-\mySamllsection{自文档化代码}
+\mySamllsection{自解释代码}
 
-Well-written code often doesn’t need abundant commenting. The best code is written to be readable.
-If you find yourself adding a comment for every line, consider whether the code could be rewritten to better match what you are saying in the comments. For example, use descriptive names for your functions, parameters, variables, classes, and so on. Properly make use of const; that is, if a variable is not supposed to be modified, mark it as const. Reorder the steps in a function to make it clearer what it is doing. Introduce intermediate well-named variables to make an algorithm easier to understand. Remember that C++ is a language. Its main purpose is to tell the computer what to do, but the semantics of the language can also be used to explain its meaning to a reader.
+良好的代码通常不需要大量注释。若发现自己每行都在添加注释，考虑一下代码是否可以重写，以更好地与注释中的内容相匹配。例如，为函数、参数、变量、类等使用描述性名称。正确使用const；若一个变量不应该修改，就将其标记为const。重新排序函数中的步骤，使其更清楚地知道它在做什么。引入中间的好名字变量，使算法更容易理解。记住C++是一种语言，其主要目的是告诉计算机做什么，但语言的语义也可以用来向读者解释其含义。
 
-Another way to write self-documenting code is to break up, or decompose, your code into smaller pieces. That is the topic of the next section.
+编写自解释代码的另一种方法是，将代码分解为更小的片段。这就是下一节的主题了。
 
 \begin{myNotic}{NOTE}
-Good code is naturally readable and only requires comments to provide useful additional information.
+好的代码自然易读，只需要注释来提供有用的信息。
 \end{myNotic}
 
 

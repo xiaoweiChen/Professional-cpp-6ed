@@ -1,69 +1,69 @@
 
-Decomposition is the practice of breaking up code into smaller pieces. There is nothing more daunting in the world of coding than opening up a file of source code to find 300-line functions and massive, nested blocks of code. Ideally, each function should accomplish a single task. Any subtasks of significant complexity should be decomposed into separate functions. For example, if somebody asks you what a function does and you answer, “First it does A, then it does B; then, if C, it does D; otherwise, it does E,” you should probably have separate helper functions for A, B, C, D, and E.
+分解是将代码分解为更小片段。编码中，没什么比打开一个源代码文件，却发现有300行长的函数和大量嵌套的代码块更让人望而却步的了。理想情况下，每个函数应该完成一个任务。非常复杂的子任务，都应该分解成单独的函数。例如，若有人问你一个函数是做什么的，你回答说：“首先它做A，然后做B；然后，如果C，它做D；否则，它做E，”那么应该为A、B、C、D和E实现有单独的辅助函数。
 
-Decomposition is not an exact science. Some programmers will say that no function should be longer than a page of printed code. That may be a good rule of thumb, but you could certainly find a quarter-page of code that is desperately in need of decomposition. Another rule of thumb is that if you squint your eyes and look at the format of the code without reading the actual content, it shouldn’t appear too dense in any one area. For example, Figures 3.2 and 3.3 show code that has been purposely blurred so that you don’t focus on the content. It should be obvious that the code in Figure 3.3 has better decomposition than the code in Figure 3.2.
+分解并不是一门精确的科学。一些开发者会说，没有函数应该长于打印出来的一页。这也许是个不错的经验法则，但你肯定能找到一个迫切需要分解的四分之一页的代码。另一个经验法则是，若眯着眼睛，不看实际的代码内容，只看代码的格式，那么在任何一个区域都不应该显得太密集。例如，图3.2和图3.3显示了故意模糊处理的代码，这样你就不会关注内容。很明显，图3.3中的代码分解的比图3.2更好。
 
-\myGraphic{0.4}{content/part1/chapter3/images/2.png}{FIGURE 3.2}
+\myGraphic{0.3}{content/part1/chapter3/images/2.png}{FIGURE 3.2}
 
-\myGraphic{0.4}{content/part1/chapter3/images/3.png}{FIGURE 3.3}
+\myGraphic{0.3}{content/part1/chapter3/images/3.png}{FIGURE 3.3}
 
-\mySubsubsection{3.3.1.}{Decomposition through Refactoring}
+\mySubsubsection{3.3.1.}{通过重构进行分解}
 
-Sometimes, when you’ve had a few coffees and you’re really in the programming zone, you start coding so fast that you end up with code that does exactly what it’s supposed to do but is far from pretty. All programmers do this from time to time. Short periods of vigorous coding are sometimes the most productive times in the course of a project. Dense code also arises over the course of time as code is modified. As new requirements and bug fixes emerge, existing code is amended with small modifications. The computing term cruft refers to the gradual accumulation of small amounts of code that eventually turns a once-elegant piece of code into a mess of patches and special cases.
+有时，当喝了几杯咖啡，进入编程状态时，会开始快速编码，最终的代码确实完成了它应该做的事情，但远非美观，所有开发者都会时不时有这样的经历。短时间的激烈编码，有时是项目过程中最富有成效的时刻。随着时间的推移，代码的修改也会导致代码变得密集。随着新需求和错误修复的出现，现有代码会进行小幅修改。计算术语“cruft”指的是代码中逐渐积累的少量代码，最终将一段曾经优雅的代码变成了一堆补丁和“特殊”情况。
 
-Refactoring is the act of restructuring your code. The book Refactoring: Improving the Design of Existing Code, 2nd edition, by Martin Fowler is one of the most influential books about refactoring (see the bibliography in Appendix B, “Annotated Bibliography”). The following list contains some example techniques to refactor code:
-
-\begin{itemize}
-\item
-Techniques that allow for more abstraction:
+重构是对代码进行结构重组的行为。《重构(第二版):改善既有代码的设计》（附录B中提到的参考文献）一书是关于重构的最有影响力的书籍之一。以下列表包含了一些重构代码的示例技术：
 
 \begin{itemize}
 \item
-Encapsulate data member: Make a data member private and give access to it with getter and setter member functions.
-
-\item
-Generalize type: Create more general types to allow for more code sharing.
-\end{itemize}
-
-\item
-Techniques for breaking code apart into more logical pieces:
+更多的抽象化:
 
 \begin{itemize}
 \item
-Extract member function: Turn part of a larger member function into a new member function to make it easier to understand.
+封装数据成员:将数据成员设为private，并通过getter和setter成员函数对其进行访问。
 
 \item
-Extract class: Move part of the code from an existing class into a new class.
+泛化类型:创建更通用的类型，以允许更多的代码共享。
 \end{itemize}
 
 \item
-Techniques for improving names and the location of code:
+将代码分解成更多逻辑片段:
 
 \begin{itemize}
 \item
-Move member function or move data member: Move to a more appropriate class or source file.
+提取成员函数：将较大成员函数的一部分转换为新的成员函数，以便更容易理解。
 
 \item
-Rename member function or rename data member: Change the name to better reveal its purpose.
+提取类：将现有类中的部分代码移动到新类中。
+\end{itemize}
 
 \item
-Pull up: In object-oriented programming, move to a base class.
+改进代码名称和位置:
+
+\begin{itemize}
+\item
+移动成员函数或移动数据成员:移动到更合适的类或源文件。
 
 \item
-Push down: In object-oriented programming, move to a derived class.
+重命名成员函数或重命名数据成员:更改名称以更好地显示其目的。
+
+\item
+上拉:在面向对象编程中，移动到基类。
+
+\item
+下推:在面向对象编程中，移动到派生类。
 \end{itemize}
 \end{itemize}
 
-Whether your code starts its life as a dense block of unreadable cruft or it just evolves that way, refactoring is necessary to periodically purge the code of accumulated hacks. Through refactoring, you revisit existing code and rewrite it to make it more readable and maintainable. Refactoring is an opportunity to revisit the decomposition of code. If the purpose of the code has changed or if it was never decomposed in the first place, when you refactor the code, squint at it and determine whether it needs to be broken down into smaller parts.
+无论代码最初是作为一块密集的、难以阅读的cruft开始的，还是逐渐演变成那样，重构都是必要的，以定期清除代码中积累的临时解决方案。通过重构，可以重新访问现有代码并重写，使其更具可读性和可维护性。重构是重新审视代码分解的机会。若代码的目的已经改变，或者它最初就没有分解，那么重构代码时，请眯着眼睛看看，确定是否需要将其分解为更小的部分。
 
-When refactoring code, it is important to be able to rely on a testing framework that catches any defects that you might introduce. Unit tests, discussed in Chapter 30, are particularly well suited for helping you catch mistakes during refactoring.
+重构代码时，需要依赖一个测试框架来捕获可能引入的缺陷。第30章讨论的单元测试特别适合在重构过程中捕捉错误。
 
-\mySubsubsection{3.3.2.}{Decomposition by Design}
+\mySubsubsection{3.3.2.}{按设计分解}
 
-If you use modular decomposition and approach every module and function by considering what pieces of it you can put off until later, your programs will generally be less dense and more organized than if you implement every feature in its entirety as you code.
+若使用模块化分解，并且在编写每个模块和函数时考虑哪些部分可以推迟，那么程序的每个功能越单一，代码整体更有组织。
 
-Of course, you should still design your program before jumping into the code.
+当然，每位开发者都应该在编写代码之前，对自己的程序进行必要的设计。
 
-\mySubsubsection{3.3.3.}{Decomposition in This Book}
+\mySubsubsection{3.3.3.}{本书中的分解}
 
-You will see decomposition in many of the examples in this book. In many cases, functions are referred to for which no implementation is shown because they are not relevant to the example and would take up too much space.
+各位将在本书的许多示例中看到分解的情况。许多情况下，会引用一些函数，因为它们与示例无关，并且占用太多空间，所以没有展示其具体实现。
