@@ -1,33 +1,33 @@
 
-The C++ compiler has a few naming rules:
+C++编译器有一些命名规则:
 
 \begin{itemize}
 \item
-Names can contain uppercase and lowercase letters, digits, and underscores.
+名称可以包含大写和小写字母、数字和下划线。
 
 \item
-Letters are not limited to the English alphabet but can be letters from any language, such as Japanese, Arabic, and so on.
+字母不仅限于英文字母，可以是任何语言的字母，例如日语、阿拉伯语等。
 
 \item
-Names cannot start with a number (for example, 9to5).
+名称不能以数字开头（例如，9to5）。
 
 \item
-Names that contain a double underscore (such as my\_\_name) are reserved for use by the Standard Library and shall not be used.
+包含双下划线的名称会（例如 my\_\_name）保留给标准库使用，不应使用。
 
 \item
-Names that begin with an underscore followed by an uppercase letter (such as \_Name) are always reserved for use by the Standard Library and shall not be used.
+以下划线后跟大写字母开头的名称（例如 \_Name）始终保留给标准库使用，不应使用。
 
 \item
-Names in the global namespace that begin with an underscore (such as \_name) are reserved and shall not be used.
+全局命名空间中以下划线开头的名称（例如 \_name）保留给标准库，不应使用。
 \end{itemize}
 
-Other than those rules, names exist only to help you and your fellow programmers work with the individual elements of your program. Given this purpose, it is surprising how often programmers use unspecific or inappropriate names.
+除了这些规则之外，名称的存在仅仅是为了帮助开发者们使用程序中的各个元素，但开发者经常使用不具体或不恰当的名称。
 
 \mySubsubsection{3.4.1.}{起一个好名字}
 
-The best name for a variable, member function, function, parameter, class, namespace, and so on, accurately describes the purpose of the item. Names can also imply additional information, such as the type or specific usage. Of course, the real test is whether other programmers understand what you are trying to convey with a particular name.
+变量、成员函数、函数、参数、类、命名空间的最佳名称应准确描述相应的目的。名称还可以附加其他信息，例如类型或特定用法。当然，真正的考验是其他开发者是否能理解用特定名称试图传达的意思。
 
-There are no set-in-stone rules for naming other than the rules that work for your organization. However, there are some names that are rarely appropriate. The following table shows some names at both ends of the naming continuum:
+除了适用于所在组织的规则之外，没有一成不变的命名规则。然而，有些名称怎么看都不恰当。下表展示了一些极端命名：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -40,35 +40,35 @@ There are no set-in-stone rules for naming other than the rules that work for yo
 %
 \endhead
 %
-\begin{tabular}[c]{@{}l@{}}sourceName, destinationName\\ Distinguishes two objects\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}thing1, thing2\\ Too general\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}m\_nameCounter\\ Conveys data member status\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}m\_NC\\ Too obscure, too brief\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}calculateMarigoldOffset()\\ Simple, accurate\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}doAction()\\ Too general, imprecise\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}m\_typeString\\ Easy on the eyes\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}typeSTR256\\ A name only a computer could love\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}g\_settings\\ Conveys global status\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}m\_IHateLarry\\ Unacceptable inside joke\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}errorMessage\\ Descriptive name\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}string\\ Nondescriptive name\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}sourceFile, destinationFile\\ No abbreviations\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}srcFile, dstFile\\ Abbreviations\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}sourceName, destinationName\\ 很好的进行区分\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}thing1, thing2\\ 过于宽泛\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}m\_nameCounter\\ 传递数据成员状态\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}m\_NC\\ 太模糊，太简短了\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}calculateMarigoldOffset()\\ 简单、准确\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}doAction()\\ 太笼统，不准确\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}m\_typeString\\ 轻松悦目\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}typeSTR256\\ 只有电脑才会喜欢的名字\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}g\_settings\\ 表示全局状态\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}m\_IHateLarry\\ 不可接受的内部笑话\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}errorMessage\\ 描述性名称\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}string\\ 非描述性名称\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}sourceFile, destinationFile\\ 非缩写\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}srcFile, dstFile\\ 缩写\end{tabular} \\ \hline
 \end{longtable}
 
 \mySubsubsection{3.4.2.}{命名规则}
 
-Selecting a name doesn’t always require a lot of thought and creativity. In many cases, you’ll want to use standard techniques for naming. The following are some of the types of data for which you can make use of standard names.
+选择一个名称并不总是需要大量的思考和创造力。很多情况下，可能希望借鉴标准的命名技巧，以下是一些可以使用标准名称的数据类型。
 
 \mySamllsection{计数器}
 
-Early in your programming career, you probably saw code that used the variable i as a counter. It is customary to use i and j as counters and inner-loop counters, respectively. Be careful with nested loops, however. It’s a common mistake to refer to the “ith” element when you really mean the “jth” element. When working with 2-D matrices, it’s probably easier to use row and column as indices instead of i and j. Some programmers prefer using counters outerLoopIndex and innerLoopIndex, and some even frown upon using i and j as loop counters.
+在编程生涯早期，可能见过使用变量 i 作为计数器的代码。通常习惯上使用 i 和 j 分别作为计数器和内层循环计数器，但在使用嵌套循环时要小心。一个常见的错误是在需要“jth”元素时，却引用了“ith”元素。在处理二维矩阵时，使用 row 和 column 作为索引而不是 i 和 j 可能更容易理解。一些开发者更喜欢使用计数器 outerLoopIndex 和 innerLoopIndex，甚至有些开发者对使用 i 和 j 作为循环计数器表示强烈不满。
 
 \mySamllsection{前缀}
 
-Many programmers begin their variable names with a letter that provides some information about the variable’s type or usage. On the other hand, there are as many programmers, or even more, who disapprove of using any kind of prefix because this could make evolving code less maintainable in the future. For example, if a member variable is changed from static to non-static, you have to rename all the uses of that name. If you don’t rename them, your names continue to convey semantics, but now they are the wrong semantics.
+许多开发者会以提供变量类型或用途信息的字母开头命名他们的变量。另外，也有同样多甚至更多的开发则不赞成使用类型前缀，这可能会使未来演变的代码更难以维护。例如，若一个成员变量从静态更改为非静态，需要重命名所有该名称的使用。若不重命名，现有的名称将继续传达语义，但提供了错误的语义。
 
-However, you often don’t have a choice, and you need to follow the guidelines of your company. The following table shows some potential prefixes:
+有时这没得选，需要遵循组织的指导。下表展示了一些可能会使用的前缀：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -86,48 +86,50 @@ However, you often don’t have a choice, and you need to follow the guidelines 
 \begin{tabular}[c]{@{}l@{}}m\\ m\_\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}mData\\ m\_data\end{tabular} &
 “member” &
-Data member within a class \\ \hline
+类中的数据成员 \\ \hline
 \begin{tabular}[c]{@{}l@{}}s\\ ms\\ ms\_\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}sLookupTable\\ msLookupTable\\ ms\_lookupTable\end{tabular} &
 “static” &
-Static variable or data member \\ \hline
+静态变量或数据成员 \\ \hline
 k &
 kMaximumLength &
-\begin{tabular}[c]{@{}l@{}}“konstant” (German for\\ “constant”)\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}A constant value. Some\\ programmers omit any prefix to\\ indicate constants.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}“konstant” \\(德语中的“constant”)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}一个常量值，一些开发者会省略前缀来\\表示常量。
+\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}b\\ is\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}bCompleted\\ isCompleted\end{tabular} &
 “Boolean” &
-Designates a Boolean value \\ \hline
+指定一个布尔值 \\ \hline
 \end{longtable}
 
 \mySamllsection{匈牙利命名法}
 
-Hungarian notation is a variable and data member-naming convention that is popular with Microsoft Windows programmers. The basic idea is that instead of using single-letter prefixes such as m, you should use more verbose prefixes to indicate additional information. The following line of code shows the use of Hungarian notation:
+匈牙利命名法是一种变量和数据成员命名约定，它在微软Windows开发者中很受欢迎。基本思想是，使用更详细的的前缀来表示变量信息，而不是使用单个字母前缀，如 m。以下代码行展示了匈牙利命名法的使用：
 
 \begin{cpp}
 char* pszName; // psz means "pointer to string, zero-terminated"
 \end{cpp}
 
-The term Hungarian notation arose from the fact that its inventor, Charles Simonyi, is Hungarian. Some also say that it accurately reflects the fact that programs using Hungarian notation end up looking as if they were written in a foreign language. For this latter reason, some programmers tend to dislike Hungarian notation. In this book, prefixes are used, but not Hungarian notation. Adequately named variables don’t need much additional context information besides the prefix. For example, a data member named m\_name says it all.
+匈牙利命名法这个术语源于这样一个事实：它的发明者查尔斯·西蒙尼（Charles Simonyi）是匈牙利人。有些人还说，使用匈牙利命名法的程序看起来好像是用外语编写的。由于这个后一个原因，一些开发者不喜欢匈牙利命名法。本书中，使用了前缀，但不是匈牙利命名法。充分命名的变量除了前缀之外不需要太多的上下文信息。例如，一个名为 m\_name 的数据成员就足以说明一切。
 
 \begin{myNotic}{NOTE}
-Good names convey information about their purpose without making the code unreadable
+好的名称能够传达关于它们的目的，而不会使代码变得难以阅读。
 \end{myNotic}
 
 \mySamllsection{getter和setter}
 
-If your class contains a data member, such as m\_status, it is customary to provide access to the member via a getter called getStatus() and, optionally, a setter called setStatus(). To give access to a Boolean data member, you typically use is as a prefix instead of get, for example isRunning(). The C++ language has no prescribed naming for these functions, but your organization will probably want to adopt this or a similar naming scheme.
+若类包含一个如 m\_status 的数据成员，通常的做法是提供一个名为 getStatus() 的 getter 方法来访问该成员，以及一个可选的名为 setStatus() 的 setter 方法。为了访问一个布尔类型的数据成员，通常使用 is 作为前缀而不是 get，例如 isRunning()。C++ 没有规定这些函数的命名，但组织内可能希望采用这种或类似的命名方案。
 
 \mySamllsection{大写}
 
-There are many different ways of capitalizing names in your code. As with most elements of coding style, it is important that your group adopts a standardized approach and that all members adopt that approach. One way to get messy code is to have some programmers naming classes in all lowercase with underscores representing spaces (priority\_queue) and others using capitals with each subsequent word capitalized (PriorityQueue). Variables and data members almost always start with a lowercase letter and use either underscores (my\_queue) or capitals (myQueue) to indicate word breaks. Functions traditionally start with a capital letter in C++, but, as you’ve seen, in this book I have adopted the style of using a lowercase first letter for functions to distinguish them from class names.
+代码中命名时，有许多不同的方式来使用大写字母。与编码风格的大多数元素一样，重要的是团队需要采用标准化的方法，并且所有成员都遵循这种方式。一种让代码变得混乱的方式是让一些开发者将类名全部使用小写字母，并用下划线表示空格（priority\_queue），而其他开发者使用大写字母，并且每个后续的单词都大写（PriorityQueue）。变量和数据成员总是以小写字母开头，并使用下划线（my\_queue）或大写字母（myQueue）来表示单词分隔。C++函数传统上以大写字母开头，但本书中，我会使用小写字母开头的风格来区分函数名和类名。
 
 \mySamllsection{命名空间常量}
 
-Imagine that you are writing a program with a graphical user interface. The program has several menus, including File, Edit, and Help. To represent the ID of each menu, you may decide to use a constant. A perfectly reasonable name for a constant referring to the Help menu ID is Help.
+假设正在编写一个带有图形用户界面的程序。该程序有几个菜单，包括文件(File)、编辑(Edit)和帮助(Help)。为了表示每个菜单的ID，可能会决定使用一个常量。对于一个指向帮助菜单ID的常量，一个完全合理的名称是Help。
 
-The name Help will work fine until you add a Help button to the main window. You also need a constant to refer to the ID of the button, but Help is already taken.
+Help这个名字在添加一个帮助按钮到主窗口之前,都能很好地工作。当然，还需要一个常量来引用按钮的ID，但是Help已经使用了。
 
-A possible solution for this is to put your constants in different namespaces, which are discussed in Chapter 1, “A Crash Course in C++ and the Standard Library.” You create two namespaces: Menu and Button. Each namespace has a Help constant, and you use them as Menu::Help and Button::Help, although in this case, a more recommended solution is to use enumerations, also introduced in Chapter 1.
+解决这个问题的一个方案是将常量放在不同的命名空间中，这在第1章中讨论过。可以创建了两个命名空间：Menu和Button。每个命名空间都有一个Help常量，可以使用它们作为Menu::Help和Button::Help。在这种情况下，一个更推荐的解决方案是使用枚举，也在第1章中介绍过。
+
 

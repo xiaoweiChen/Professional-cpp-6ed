@@ -1,11 +1,11 @@
-By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at www.wiley.com/go/ proc++6e. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+通过解决下面的练习，可以练习本章讨论的内容。所有练习的解决方案都可以在本书的网站\url{www.wiley.com/go/proc++6e}下载到源码。然而，若在练习中卡住了，在从网站上寻找解决方案之前，可以考虑先重读本章的部分内容，试着自己找到答案。
 
-Code comments and coding style are subjective. The following exercises do not have a single perfect answer. The solutions from the website provide one of many possible correct answers to the exercises.
-
+代码注释和编码风格是主观的，以下练习并没有一个完美的答案，网站上提供的解决方案提供了这些练习的许多可能正确答案之一。
 
 \begin{itemize}
 \item
-Exercise 3-1: Chapter 1 discusses an example of an employee records system. That system has a database, and one of the member functions of the database is displayCurrent(). Here is the implementation of that member function with some comments:
+\textbf{练习 3-1}: 第 1 章讨论了一个员工记录系统。该系统有一个数据库，数据库的一个成员函数是 displayCurrent()。下面是这个成员函数的实现，包括一些注释：
+
 
 \begin{cpp}
 void Database::displayCurrent() const // The displayCurrent() member function
@@ -18,11 +18,11 @@ void Database::displayCurrent() const // The displayCurrent() member function
 }
 \end{cpp}
 
-Do you see anything wrong with these comments? Why? Can you come up with better comments?
+你觉得这些注释有什么不对吗?为什么?能提出更好的意见吗?
 
 
 \item
-Exercise 3-2: The employee records system from Chapter 1 contains a Database class. The following is a snippet of that class with only three member functions. Add proper JavaDocstyle comments to this code snippet. Consult Chapter 1 to brush up on what exactly these member functions do.
+\textbf{练习 3-2}: 第 1 章中的员工记录系统包含一个 Database 类。下面是该类的片段，其中只有三个成员函数。为这个代码片段添加 JavaDoc 风格的注释。查阅第 1 章，复习这些成员函数的确切功能。
 
 \begin{cpp}
 class Database
@@ -38,7 +38,7 @@ class Database
 \end{cpp}
 
 \item
-Exercise 3-3: The following class has a number of naming issues. Can you spot them all and propose better names?
+\textbf{练习 3-3}: 下面的类存在一些命名问题。能找出它们并建议更好的名称吗？
 
 \begin{cpp}
 class xrayController
@@ -61,7 +61,7 @@ class xrayController
 \end{cpp}
 
 \item
-Exercise 3-4: Given the following code snippet, reformat the snippet three times: first put curly braces on their own lines, then indent the curly braces themselves, and finally remove the curly braces for single-statement code blocks. This exercise allows you to get a feeling of different formatting styles and what the impact is on code readability.
+\textbf{练习 3-4}: 给定下面的代码片段，请重新格式化这个片段三次：首先将大括号放在它们自己的行上，然后缩进大括号本身，最后对于单语句代码块，移除大括号。这个练习可以帮助你体验不同的格式化风格，以及它们对代码可读性的影响。
 
 \begin{cpp}
 Employee& Database::getEmployee(int employeeNumber)

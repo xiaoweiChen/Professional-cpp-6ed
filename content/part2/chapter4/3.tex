@@ -1,38 +1,38 @@
 
-There are several aspects of the C++ language that you need to keep in mind when designing for C++:
+为C++设计时，需要考虑几个方面：
 
 \begin{itemize}
 \item
-C++ provides object-oriented capabilities. This means your designs can include class hierarchies, class interfaces, and object interactions. Object-oriented design is quite different compared to procedural design as used in languages such as C and others. Chapter 5 focuses on object-oriented design in C++.
+C++提供了面向对象的功能，所以设计可以包括类层次、类接口和对象交互。与C等语言中使用的过程式设计相比，面向对象的设计非常不同。第5章专注于C++中的面向对象设计。
 
 \item
-C++ is a multi-paradigm programming language. Besides object-oriented capabilities as described in the previous point, C++ supports other paradigms, such as procedural. Which paradigm to choose, object-oriented or procedural, is part of the design process.
+C++是一种多范式编程语言。除了前面提到的面向对象功能外，C++还支持其他范式，如过程式。选择面向对象，还是过程式范式是设计过程的一部分。
 
 \item
-C++ has numerous facilities for designing generic and reusable code. Next to object-oriented and procedural capabilities, C++ supports other language facilities such as templates for generic programming. Design techniques for reusable code are discussed in more detail later in this chapter and further in Chapter 6, “Designing for Reuse.”
+C++提供了大量用于设计通用和可重用代码的工具。除了面向对象和过程式能力外，C++还支持其他语言功能，如模板用于泛型编程。关于可重用代码的设计技术将在本章的后面部分，以及第6章中更详细地讨论。
 
 \item
-C++ provides a large Standard Library. This includes a string class, string formatting, I/O facilities, multithreading building blocks, many common data structures and algorithms, and much more. All of these facilitate coding in C++.
+C++提供了一个大的标准库。这包括一个字符串类、字符串格式化、I/O工具、多线程构建块、许多常见数据结构和算法，以及更多。所有这些都有助于C++编程。
 
 \item
-C++ readily accommodates many design patterns. In other words, it supports common ways to solve problems.
+C++可以轻松适应许多设计模式，支持解决常见问题的通用方法。
 \end{itemize}
 
-Tackling a design can be overwhelming. I have spent entire days scribbling design ideas on paper, crossing them out, writing more ideas, crossing those out, and repeating the process. Sometimes this process is helpful, and, at the end of those days (or weeks), it leads to a clean, efficient design. Other times it is frustrating and leads nowhere, but it is not a waste of effort. You will most likely waste more time if you have to re-implement a design that turned out to be broken. It’s important to remain aware of whether you are making real progress. If you find that you are stuck, you can take one of the following actions:
+处理设计可能会感到不知所措。我曾经花了整整一天的时间在纸上潦草地写下设计想法，划掉它们，写下更多的想法，再划掉，然后重复这个过程。有时这个过程很有帮助，到了那几天（或几周）的末尾，才有了一个清晰、高效的设计。在其他时候，这个过程令人沮丧，没有结果，但这不是白费力气。若需要重新实现一个设计，结果证明是错误的，可能会浪费更多的时间。重要的是要意识到否取得了真正的进展。若发现自己陷入困境，可以采取以下行动：
 
 \begin{itemize}
 \item
-Ask for help. Consult a co-worker, mentor, book, newsgroup, or web page.
+寻求帮助。咨询同事、导师、书籍或网页。
 
 \item
-Work on something else for a while. Come back to this design choice later.
+暂时做其他事情。稍后再回到这个设计选择。
 
 \item
-Make a decision and move on. Even if it’s not an ideal solution, decide on something and try to work with it. An incorrect choice will soon become apparent. However, it may turn out to be an acceptable solution. Perhaps there is no clean way to accomplish what you want to with this design. Sometimes you have to accept an “ugly” solution if it’s the only realistic strategy to fulfill your requirements. Whatever you decide, make sure you document your decision so that you and others in the future know why you made it. This includes documenting designs that you have rejected and the rationale behind the rejection.
+做出决定并继续前进。即使它不是理想的解决方案，也决定一个并尝试使其工作。若是错误的选择，很快就会显现出来。然而，它可能证明是一个可接受的解决方案。也许这个设计没有干净的方法来实现你想要的东西。有时若这满足要求的最现实策略，则需要接受一个“丑陋”的解决方案。无论决定什么，都要记录下相关的决定，这样你和未来的其他人就知道当时为什么做出了这个决定。这包括记录了被拒绝的设计和你拒绝的理由。
 \end{itemize}
 
 \begin{myNotic}{NOTE}
-Keep in mind that good design is hard, and getting it right takes practice. Don’t expect to become an expert overnight—and don’t be surprised if you find it more difficult to master C++ design than C++ coding.
+记住，做出良好的设计非常困难，正确地做好需要练习。不要期望一夜之间成为专家——若发现掌握C++设计比掌握C++编码还困难，这很正常。
 \end{myNotic}
 
 
