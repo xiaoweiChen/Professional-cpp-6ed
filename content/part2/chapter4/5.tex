@@ -1,333 +1,333 @@
 
-Experienced C++ programmers never start a project from scratch. They incorporate code from a wide variety of sources, such as the Standard Library, open-source libraries, proprietary code bases in their workplace, and their own code from previous projects. You should reuse code liberally in your projects. To make the most of this rule, this section first explains the different types of code that you can reuse, followed by the trade-offs between reusing existing code and writing it yourself. The final part of this section discusses a number of guidelines for choosing a library to reuse, once you have decided not to write the code yourself but to reuse existing code.
+有经验的C++开发者从来不会从零开始一个项目。他们会从各种来源整合代码，例如标准库、开源库、专有代码库，以及以前项目中的代码，应该在项目中自由地重用代码。本节首先解释了可以重用的不同类型的代码，然后是重用现有代码与自行编写代码之间的利弊。本节的最后一部分讨论了若决定重用现有代码时，选择要重用库的一些指导原则。
 
 \begin{myNotic}{NOTE}
-Reusing code does not mean copying and pasting existing code! In fact, it means quite the opposite: reusing code without duplicating it.
+重用代码并不意味着复制粘贴现有代码！
 \end{myNotic}
 
-\mySubsubsection{4.5.1.}{A Note on Terminology}
+\mySubsubsection{4.5.1.}{术语注释}
 
-Before analyzing the advantages and disadvantages of code reuse, it is helpful to specify the terminology involved and to categorize the types of reusable code. There are three categories of code available for reuse:
+分析代码重用的优缺点之前，需要明确涉及的术语，并分类可重用的代码类型。可供重用的代码分为三个类别：
 
 \begin{itemize}
 \item
-Code you wrote yourself in the past
+自己过去编写的代码
 
 \item
-Code written by a co-worker
+同事编写的代码
 
 \item
-Code written by a third party outside your current organization or company
+当前组织或公司外第三方编写的代码
 \end{itemize}
 
-There are several ways that the code you reuse can be structured:
+可以重用的代码有以下几种：
 
 \begin{itemize}
 \item
-Stand-alone functions or classes. When you reuse your own code or co-workers’ code, you will generally encounter this variety.
+独立函数或类。当重用自己或同事的代码时，通常会遇到这种类型。
 
 \item
-Libraries. A library is a collection of code used to accomplish a specific task, such as parsing XML, or to handle a specific domain, such as cryptography. Other examples of functionality usually found in libraries include threads and synchronization support, networking, and graphics.
+库。库是用于完成特定任务（如解析XML）或处理特定领域（如密码学）的代码集合。库中能找到的其他功能示例，包括线程和同步支持、网络和图形。
 
 \item
-Frameworks. A framework is a collection of code around which you design a program. For example, the Microsoft Foundation Classes (MFC) library provides a framework for creating graphical user interface applications for Microsoft Windows. Frameworks usually dictate the structure of your program.
+框架。框架是设计程序时围绕其构建的代码集合。例如，Microsoft Foundation Classes (MFC) 库为创建Microsoft Windows的图形用户界面应用程序提供了一个框架。框架通常规定了程序结构。
 
 \item
-Entire applications. Your project might include multiple applications. Perhaps you need a web server front end to support your new e-commerce infrastructure. It is possible to bundle entire third-party applications, such as a web server, with your software. This approach takes code reuse to the extreme in that you reuse entire applications.
+整个应用程序，这种方法将代码重用推向极致。我们的项目可能包括多个应用程序，也许需要一个网络服务器前端来支持新电子商务基础设施。可以捆绑整个第三方应用程序(例如：网络服务器)。
 \end{itemize}
 
 \begin{myNotic}{NOTE}
-A program uses a library but fits into a framework. Libraries provide specific functionality, while frameworks are fundamental to your program design and structure.
+程序使用库，适应框架。库提供特定的功能，而框架对程序设计和结构至关重要。
 \end{myNotic}
 
-Another term that arises frequently is application programming interface, or API. An API is an interface to a library or body of code for a specific purpose. For example, programmers often refer to the sockets API, meaning the exposed interface to the sockets networking library, instead of the library itself.
+另一个经常出现的术语是应用程序编程接口（Application Programming Interface，简称API），是针对特定目的的库或代码体的接口。例如，程序员经常提到套接字API，套接字网络库的公开接口，而不是库本身。
 
 \begin{myNotic}{NOTE}
-Although people use the terms API and library interchangeably, they are not equivalent. The library refers to the implementation, while the API refers to the published interface to the library.
+API和库这两个术语并不等价。库指的是实现，而API指的是库的公开接口。
 \end{myNotic}
 
-For the sake of brevity, the rest of this chapter uses the term library to refer to any reusable code, whether it is really a library, framework, entire application, or random collection of functions from your co-worker.
+为了简洁起见，本章的其余部分使用“库”这个术语来指代任何可重用的代码，无论它实际上是一个库、框架、整个应用程序，还是一个随机函数集合。
 
-\mySubsubsection{4.5.2.}{Deciding Whether to Reuse Code or Write It Yourself}
+\mySubsubsection{4.5.2.}{重用还是重写代码？}
 
-The rule to reuse code is easy to understand in the abstract. However, it’s somewhat vague when it comes to the details. How do you know when it’s appropriate to reuse code and which code to reuse? There is always a trade-off, and the decision depends on the specific situation. However, there are some general advantages and disadvantages to reusing code.
+重用代码的规则在抽象概念上很容易理解。当涉及到细节时，会有些模糊。那如何知道何时适合重用代码，以及重用哪些代码？这取决于具体情况。这里，介绍一些重用代码一般性的优缺点。
 
-\mySamllsection{Advantages to Reusing Code}
+\mySamllsection{重用的优点}
 
-Reusing code can provide tremendous advantages to you and to your project:
-
-\begin{itemize}
-\item
-You may not know how to or may not be able to justify the time to write the code you need. Would you really want to write code to handle formatted output? Of course not. That’s why you use the standard C++ std::format() or print() functionality.
-
-\item
-Your designs will be simpler because you will not need to design those components of the application that you reuse.
-
-\item
-The code that you reuse usually requires no debugging. You can often assume that library code is bug-free because it has already been tested and used extensively.
-
-\item
-Libraries handle more error conditions than would your first attempt at the code. You might forget obscure errors or edge cases at the beginning of the project and would waste time fixing these problems later. Library code that you reuse has generally been tested extensively and used by many programmers before you, so you can assume that it handles most errors properly.
-
-\item
-Libraries are often tested on a wide range of platforms with different hardware, different operating systems and operating system versions, different graphic cards, and so on; much more than you could possibly have available to test yourself. Sometimes, libraries contain workarounds to make them work on specific platforms.
-
-\item
-Libraries generally are designed to be suspect of bad user inputs. Invalid requests, or requests not appropriate for the current state, usually result in suitable error notifications. For example, a request to seek a nonexistent record in a database, or to read a record from a database that is not open, would have well-specified behavior from a library.
-
-\item
-Reusing code written by domain experts is safer than writing your own code for that area. For example, you should not attempt to write your own security code unless you are a security expert. If you need security or cryptography in your programs, use a library. Many seemingly minor details in code of that nature could compromise the security of the entire program, and possibly the entire system, if you got them wrong.
-
-\item
-Library code is constantly improving. If you reuse the code, you receive the benefits of these improvements without doing the work yourself. In fact, if the library writers have properly separated the interface from the implementation, you can obtain these benefits by upgrading your library version without changing your interaction with the library. A good upgrade modifies the underlying implementation without changing the interface.
-\end{itemize}
-
-\mySamllsection{Disadvantages to Reusing Code}
-
-Unfortunately, there are also some disadvantages to reusing code:
+重用代码可以为项目带来巨大的优势：
 
 \begin{itemize}
 \item
-When you use libraries that you didn’t write yourself, you must spend time understanding the interface and correct usage before you can jump in and use it. This extra time at the beginning of your project will slow down your initial design and coding, but the advantage is that it will save you significant time later because there is less code that needs to be maintained by you, and the final code will be simpler.
+可能不知道如何编写需要的代码，或者可能无法证明花时间编写代码的合理性。我们真的想编写处理格式化输出的代码吗？当然不是。这就是为什么要使用C++的标准std::format()或print()。
 
 \item
-When you write your own code, it does exactly what you want. Library code might not provide the exact functionality that you require.
+由于不需要设计重用的应用程序的组件，因此这里的设计将会更简单。
 
 \item
-Even if the library code provides the exact functionality you need, it might not give you the performance that you desire. The performance might be bad in general, poor for your specific use case, or completely unspecified.
+重用的代码通常不需要调试。通常可以假设库代码是没有错误的，因为它已经经过广泛测试和使用。
 
 \item
-Using library code introduces a Pandora’s box of support issues. If you discover a bug in the library, what do you do? Often you don’t have access to the source code, so you couldn’t fix it even if you wanted to. If you have already invested significant time in learning the library interface and using the library, you probably don’t want to give it up, but you might find it difficult to convince the library developers to fix the bug on your time schedule. Also, if you are using a third-party library, what do you do if the library authors drop support for the library before you stop supporting the product that depends on it? Think carefully about this before you decide to use a library for which you cannot get source code.
+库处理的错误条件比第一次尝试编写的代码要多。在项目开始时，可能会忘记一些不常见的错误或边缘情况，并且会浪费时间在后期修复这些问题。重用的库代码通常已经经过广泛的测试，并且在此之前已经有许多开发者使用过，因此可以假设它正确处理了大多数错误。
 
 \item
-In addition to support problems, libraries present licensing issues, which cover topics such as disclosure of your source code, redistribution fees (often called binary license fees), credit attribution, and development licenses. You should carefully inspect the licensing issues before using any library. For example, some open-source libraries require you to make your own code open-source.
+库通常在各种不同的硬件、不同的操作系统、不同的显卡等平台上进行过测试。有时，库包含了一些变通方法，以使它们能在特定平台上工作。
 
 \item
-Reusing code requires a trust factor. You must trust whoever wrote the code by assuming that they did a good job. Some people like to have control over all aspects of their project, including every line of source code.
+库通常设计为对不良用户输入持怀疑态度。无效的请求或对当前状态不合适的请求通常会得到适当的错误通知。例如，对数据库中不存在的记录进行查找的请求，或从未打开的数据库中读取记录的请求，库会对这些行为有明确的规定。
 
 \item
-Upgrading to a new version of the library can cause problems. The upgrade could introduce bugs, which could have fatal consequences in your product. A performance-related upgrade might optimize performance in certain cases but make it worse in your specific use case.
+重用领域专家编写的代码比自己编写代码更安全。除非是安全专家，否则不应尝试自己编写安全代码。若程序需要安全性或加密，请使用库。若在这些细节上出错，许多看似微小的错误都可能危及整个程序，甚至可能是整个系统的安全。
 
 \item
-Upgrading your compiler to a new version can cause problems when you are using binaryonly libraries. You can only upgrade the compiler when the library vendor provides binaries compatible with your new version of the compiler.
+库代码在不断完善。若重用代码，可以获得这些改进的好处，而不需要自己完成工作。实际上，若库的编写者正确地将接口与实现分离开来，可以通过升级库版本来获得这些好处，而不需要改变与库的交互方式。一个好的升级会修改底层实现，但不改变接口。
 \end{itemize}
 
-\mySamllsection{Putting It Together to Make a Decision}
+\mySamllsection{重用的缺点}
 
-Now that you are familiar with the terminology, advantages, and disadvantages of reusing code, you are better prepared to make the decision about whether to reuse code. Often, the decision is obvious. For example, if you want to write a graphical user interface (GUI) in C++ for Microsoft Windows, you should use a framework such as MFC or Qt. You probably don’t know how to write the underlying code to create a GUI in Windows, and more importantly, you don’t want to waste time to learn it. You will save person-years of effort by using a framework in this case.
-
-However, other times the choice is less obvious. For example, if you are unfamiliar with a library and need only a simple data structure, it might not be worth the time to learn the library to reuse only one component that you could write in a few days.
-
-Ultimately, you need to make a decision based on your own particular needs. It often comes down to a trade-off between the time it would take to write it yourself and the time required to find and learn how to use a library to solve the problem. Carefully consider how the advantages and disadvantages listed previously apply to your specific case, and decide which factors are most important to you. Finally, remember that you can always change your mind, which might even be relatively easy if you handled the abstraction correctly.
-
-\mySubsubsection{4.5.3.}{Guidelines for Choosing a Library to Reuse}
-
-When you’ve decided to reuse libraries, frameworks, co-workers’ code, entire applications, or your own code, there are several guidelines you should keep in mind to pick the right code to reuse.
-
-\mySamllsection{Understand the Capabilities and Limitations}
-
-Take the time to familiarize yourself with the code. It is important to understand both its capabilities and its limitations. Start with the documentation and the published interfaces or APIs. Ideally, that will be sufficient to understand how to use the code. However, if the library doesn’t provide a clear separation between interface and implementation, you may need to explore the source code itself if it is provided. Also, talk to other programmers who have used the code and who might be able to explain its intricacies. You should begin by learning the basic functionality. If it’s a library, what functions does it provide? If it’s a framework, how does your code fit in? What classes should you derive from? What code do you need to write yourself? You should also consider specific issues depending on the type of code.
-
-Here are some points to keep in mind when choosing a library:
+不过，重用代码也存在一些缺点：
 
 \begin{itemize}
 \item
-Is it safe to use the library in multithreaded programs?
+当使用不是自己编写的库时，必须花时间理解接口和正确的使用方法，然后才能开始使用。项目的开始阶段，这额外的投入会减慢程序设计和编码的速度，而好处是，因为需要维护的代码更少，最终的代码也会更简单，将在后期节省大量的时间。
 
 \item
-Does the library impose any specific compiler settings on code using it? If so, is that acceptable in your project?
+当编写自己的代码时，它完全按照您的要求执行。库代码可能无法提供需要的功能。
 
 \item
-On what other libraries does the library depend?
+即使库代码提供了需要的功能，也可能无法提供期望的性能。性能总体上可能不佳，对特定用例来说可能很差，或者完全没有指定。
+
+\item
+使用库代码会引入一系列支持问题。若在库中发现了一个错误，需要怎么做？通常无法访问源代码，即使想修复它也无能为力。若已经在学习库接口和使用库上投入了大量时间，可能不想放弃，但会发现很难说服库开发者按照自己的时间表修复错误。另外，若使用的是第三方库，库作者已经停止对库的支持，要怎么办？在决定使用一个无法获得源代码的库之前，请仔细考虑这个问题。
+
+\item
+除了支持问题，库还带来许可问题，这些问题包括披露源代码、再发布费用（通常称为二进制许可证费用）、信用归属和开发许可证。在使用库之前，应该仔细检查许可问题。例如，一些开源库要求将代码开源。
+
+\item
+重用代码需要信任因素。必须信任编写代码的人，假设他们做得很好。有些人喜欢对项目的所有方面（包括每一行源代码）都有控制权。
+
+\item
+升级到库的新版本可能会引起问题。升级可能会引入错误，这可能会在产品中产生致命的后果。与性能相关的升级可能在某些情况下优化性能，但在特定用例中却可能使其变得更糟。
+
+\item
+当使用仅二进制的库时，将编译器升级到新版本可能会引起问题。只能在库提供商提供的编译器新版本提供兼容的二进制文件时升级编译器。
 \end{itemize}
 
-Additionally, you might have to do some more detailed research for specific libraries:
+\mySamllsection{综合考虑做出决定}
+
+现在已经熟悉了重用代码的术语、优点和缺点，将更好地准备做出是否重用代码的决定。通常，这个决定是明显的。例如，想用C++为Microsoft Windows编写一个图形用户界面（GUI），应该使用MFC或Qt这样的框架。可能不知道如何编写在Windows中创建GUI的底层代码，更重要的是，不想浪费时间学习它。这种情况下，使用框架可以节省工作量。
+
+然而，有时选择并不那么明显。例如，不熟悉一个库并且只需要一个简单的数据结构，学习库以重用一个可以在几天内编写完成的组件可能并不值得。
+
+最终，需要根据自己特定的需求做出决定。这通常是在自己编写所需的时间和寻找，并学习如何使用库解决问题所需的时间之间的权衡。仔细考虑前面列出的优点和缺点如何适用于您的具体情况，并决定哪些是重要因素。记住，开发者总是可以改变主意，若正确处理了抽象，这可能很简单。
+
+\mySubsubsection{4.5.3.}{选择重用库的指导}
+
+决定重用库、框架、同事的代码、整个应用程序或自己曾经的代码时，应该牢记以下几个原则，以选择正确的代码进行重用。
+
+\mySamllsection{能力和局限性}
+
+花时间熟悉代码。了解其功能及其限制非常重要。从文档和发布的接口或API开始，这将足以理解如何使用代码。然而，若库没有在接口和实现之间提供清晰的分离，可能需要探索源代码本身（若提供的话）。此外，与其他使用过代码的开发者交谈，他们可能能够解释其复杂性。应该从学习基本功能开始。若是一个库，提供了哪些功能？若是一个框架，的代码如何适配？应该从哪些类派生？需要自己编写哪些代码？还应该根据代码类型考虑特定问题。
+
+选择库时，请记住以下几点：
 
 \begin{itemize}
 \item
-Which initialization and cleanup calls are needed?
+在多线程程序中使用该库是否安全？
 
 \item
-If you need to derive from a class, which constructor should you call on it? Which virtual member functions should you override?
+该库是否对使用它的代码强加了特定的编译器设置？如果是，我们的项目是否可以接受？
 
 \item
-If a call returns memory pointers, who is responsible for freeing the memory: the caller or the library? If the library is responsible, when is the memory freed? It’s highly recommended to find out whether you can use smart pointers (see Chapter 7, “Memory Management”) to manage memory allocated by the library.
-
-\item
-What are all the return values (by value or reference) from a call?
-
-\item
-What are all the possible exceptions thrown?
-
-\item
-What error conditions do library calls check for, and what do they assume? How are errors handled? How is the client program notified about errors? Avoid using libraries that pop up message boxes, print messages on the standard output console, or terminate the program. The client program should decide how to inform users about an error, not the library.
+该库是否依赖其他库
 \end{itemize}
 
-\mySamllsection{Understand the Learning Cost}
+此外，可能需要对特定库进行更详细的研究：
 
-The learning cost is the amount of time it takes for a developer to learn how to use a library. This is not just an initial cost when starting to use the library, but a recurring cost over time. Whenever a new team member joins the project, she needs to learn how to use that library.
+\begin{itemize}
+\item
+需要哪些初始化和清理调用？
 
-This cost can be substantial for certain libraries. As such, if you find the functionality you need in a well-known library, I recommend using that one over using some exotic, lesser-known library. For example, if the Standard Library provides the data structure or algorithm you need, use that one instead of using another library.
+\item
+如果需要从类派生，应该调用哪个构造函数？应该覆盖哪些虚成员函数？
 
-\mySamllsection{Understand the Performance}
+\item
+如果调用返回内存指针，谁负责释放内存：调用者还是库？如果由库负责，内存何时被释放？强烈建议您找出是否可以使用智能指针（请参阅第7章）来管理库分配的内存。
 
-It is important to know the performance guarantees that the library or other code provides. Even if your particular program is not performance sensitive, you should make sure that the code you use doesn’t have awful performance for your particular use.
+\item
+调用的所有返回值（按值或引用）是什么？
 
-\mySamllsection{Big-O Notation}
+\item
+可能抛出的所有异常是什么？
 
-Programmers generally discuss and document algorithm and library performance using big-O notation. This section explains the general concepts of algorithm complexity analysis and big-O notation without a lot of unnecessary mathematics. If you are already familiar with these concepts, you can skip this section.
+\item
+库调用检查哪些错误条件，其假设什么？如何处理错误？客户端程序如何得知错误？避免使用弹出消息框、在标准输出控制台打印消息或终止程序的库。客户端程序应该决定如何告知用户错误。
+\end{itemize}
 
-Big-O notation specifies relative, rather than absolute, performance. For example, instead of saying that an algorithm runs in a specific amount of time, such as 300 milliseconds, big-O notation specifies how an algorithm performs as its input size increases. Examples of input sizes include the number of items to be sorted by a sorting algorithm, the number of elements in a hash table during a key lookup, and the size of a file to be copied between disks.
+\mySamllsection{了解学习成本}
+
+学习成本是开发者学习如何使用库所需的时间量。这不仅仅是开始使用库时的初始成本，而是随时间推移的重复成本。每当新团队成员加入项目时，都需要学习如何使用该库。
+
+对于某些库来说，这个成本可能是相当可观的。因此，如果在知名库中找到了所需的功能，我建议您使用它，而非使用一些不为人知的库。例如，若标准库提供了需要的数据结构或算法，请使用标准库，请勿使用非标准库。
+
+\mySamllsection{了解性能}
+
+了解库或其他代码提供的性能非常重要。即使程序对性能不敏感，也应该确保使用的代码不会性能产生糟糕的影响。
+
+\mySamllsection{大O符号}
+
+开发者通常使用大O符号来讨论和记录算法和库的性能。本节解释了算法复杂度分析和大O符号的基本概念，而没有涉及过多的不必要的数学。如果已经熟悉这些概念，可以跳过本节。
+
+大O符号指定的是相对性能，而不是绝对性能。例如，大O符号不是说明一个算法以特定的时间运行，比如300毫秒，而是说明随着输入大小的增加，算法的表现如何。输入大小的例子包括排序算法要排序的项数、哈希表在键查找期间的元素数量，以及要在磁盘之间复制的文件大小。
 
 \begin{myNotic}{NOTE}
-Big-O notation applies only to algorithms whose speed depends on their inputs. It does not apply to algorithms that take no input or whose running time is random. In practice, you will find that the running times of most algorithms of interest depend on their input, so this limitation is not significant.
+大O符号只适用于其速度取决于输入的算法，不适用于没有输入的算法或其运行时间是随机的算法。实践中，会发现大多数感兴趣的算法的运行时间都取决于它们的输入，所以这个限制并不重要。
 \end{myNotic}
 
-To be more formal, big-O notation specifies an algorithm’s run time as a function of its input size, also known as the complexity of the algorithm. It’s not as complicated as it sounds. For example, an algorithm could take twice as long to process twice as many elements. Thus, if it takes 1 second to process 200 elements, it will take 2 seconds to process 400 elements, and 4 seconds to process 800 elements. Figure 4.3 shows this graphically. It is said that the complexity of such an algorithm is a linear function of its input size, because, graphically, it is represented by a straight line.
+更正式地说，大O符号将算法的运行时间指定为输入大小的函数，这也称为算法的复杂度。例如，一个算法处理两倍数量的元素可能需要两倍的时间。因此，如果处理200个元素需要1秒，处理400个元素需要2秒，处理800个元素需要4秒。图4.3以图形方式展示了这一点。据说这种算法的复杂度是输入大小的线性函数，因为从图形上看，它由一条直线表示。
 
-\myGraphic{0.7}{content/part2/chapter4/images/3.png}{FIGURE 4.3}
+\myGraphic{0.5}{content/part2/chapter4/images/3.png}{图4.3}
 
-Big-O notation summarizes the algorithm’s linear performance like this: O(n). The O just means that you’re using big-O notation, while the n represents the input size. O(n) specifies that the algorithm speed is a direct linear function of the input size.
+大O符号这样总结算法的线性性能：O(n)。这里的O只是表示大O符号，而n代表输入大小。O(n)指定算法速度是输入大小的直接线性函数。
 
-Of course, not all algorithms have performance that is linear with respect to their input size. The following table summarizes the common complexities, in order of their performance from best to worst:
+当然，并非所有算法的性能都与输入大小成线性关系。下表按性能从好到差的顺序总结了常见的复杂度：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|l|}
 \hline
-\textbf{\begin{tabular}[c]{@{}l@{}}ALGORITHM \\COMPLEXITY\end{tabular}} &
-\textbf{\begin{tabular}[c]{@{}l@{}}BIG-O\\ NOTATION\end{tabular}} &
-\textbf{EXPLANATION} &
-\textbf{EXAMPLE ALGORITHMS} \\ \hline
+\textbf{\begin{tabular}[c]{@{}l@{}}算法复杂度\end{tabular}} &
+\textbf{\begin{tabular}[c]{@{}l@{}}大O\end{tabular}} &
+\textbf{解释} &
+\textbf{示例} \\ \hline
 \endfirsthead
 %
 \endhead
 %
-Constant &
+常量 &
 O(1) &
-\begin{tabular}[c]{@{}l@{}}The running time is\\ independent of the input size.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Accessing a single\\ element in an array.\end{tabular} \\ \hline
-Logarithmic &
-O(log n) &
-\begin{tabular}[c]{@{}l@{}}The running time is a function\\ of the logarithm base 2 of the\\ input size.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Finding an element\\ in a sorted list using\\ binary search.\end{tabular} \\ \hline
-Linear &
+\begin{tabular}[c]{@{}l@{}}运行时间与输入\\大小无关\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}访问数组中的单个元素。\end{tabular} \\ \hline
+对数 &
+O($log_2 n$) &
+\begin{tabular}[c]{@{}l@{}}运行时间是输入\\大小以2为底的对数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}使用二分查找在排序列表中查找元素。\end{tabular} \\ \hline
+线性 &
 O(n) &
-\begin{tabular}[c]{@{}l@{}}The running time is directly\\ proportional to the input size.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Finding an element in\\ an unsorted list.\end{tabular} \\ \hline
-Linear Logarithmic &
-O(n log n) &
-\begin{tabular}[c]{@{}l@{}}The running time is a function\\ of the linear times the\\ logarithmic function of the\\ input size.\end{tabular} &
-Merge sort. \\ \hline
-Quadratic &
-O(n2) &
-\begin{tabular}[c]{@{}l@{}}The running time is a function\\ of the square of the input\\ size.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}A slower sorting\\ algorithm like\\ selection sort.\end{tabular} \\ \hline
-Exponential &
-O(2n) &
-\begin{tabular}[c]{@{}l@{}}The running time is an\\ exponential function of the\\ input size.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Optimized traveling\\ salesman problem.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}运行时间与输入\\大小成正比\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}在未排序的列表中查找元素。\end{tabular} \\ \hline
+线性对数 &
+O($n log_2 n$) &
+\begin{tabular}[c]{@{}l@{}}运行时间是\\线性函数乘以输入大小的对数\end{tabular} &
+归并排序 \\ \hline
+二次方 &
+O($n^2$) &
+\begin{tabular}[c]{@{}l@{}}运行时间是\\输入大小的平方\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}较慢的排序算法，比如选择排序。\end{tabular} \\ \hline
+指数 &
+O($2^n$) &
+\begin{tabular}[c]{@{}l@{}}运行时间是\\输入大小的指数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}优化旅行商问题。\end{tabular} \\ \hline
 \end{longtable}
 
-There are two advantages to specifying performance as a function of the input size instead of in absolute numbers:
+将性能指定为输入大小的函数而不是绝对数字有两个优点：
 
 \begin{itemize}
 \item
-It is platform independent. Specifying that a piece of code runs in 200 milliseconds on one computer says nothing about its speed on a second computer. It is also difficult to compare two different algorithms without running them on the same computer with the exact same load. On the other hand, performance specified as a function of the input size is applicable to any platform.
+平台无关。指定一段代码在一台计算机上运行200毫秒，并不能说明它在另一台计算机上的速度。同时，如果不在同一台计算机上以相同的负载运行两种不同的算法，很难对它们进行比较。另一方面，作为输入大小函数的性能适用于任何平台。
 
 \item
-Performance as a function of input size covers all possible inputs to the algorithm with one specification. The specific time in seconds that an algorithm takes to run covers only one specific input and says nothing about any other input.
+作为输入大小函数的性能用一个规格覆盖了算法可能遇到的所有输入。算法运行所需的具体时间（以秒计）只覆盖一个特定的输入，并且对其他输入没有提供信息。
 \end{itemize}
 
-\mySamllsection{Tips for Understanding Performance}
+\mySamllsection{了解性能的技巧}
 
-Now that you are familiar with big-O notation, you are prepared to understand most performance documentation. The C++ Standard Library in particular describes its algorithm and data structure performance using big-O notation. However, big-O notation is sometimes insufficient or even misleading. Consider the following issues whenever you think about big-O performance specifications:
+现在熟悉了大O符号，已经准备好了理解大多数性能文档。特别是C++标准库，可用大O符号描述其算法和数据结构的性能。然而，大O符号有时是不够的，甚至是误导性的。在考虑大O性能规格时，请考虑以下问题：
 
 \begin{itemize}
 \item
-If an algorithm takes twice as long to work on twice as much data, it doesn’t say anything about how long it took in the first place! If the algorithm is written badly but scales well, it’s still not something you want to use. For example, suppose the algorithm makes unnecessary disk accesses. That probably wouldn’t affect the big-O time but would be very bad for overall performance.
+如果一个算法处理两倍的数据需要两倍的时间，这并不能说明最初的运行时间！如果算法编写得不好但扩展性好，仍然不是想要使用的。例如，假设算法进行了不必要的磁盘访问。这可能不会影响大O时间，但对整体性能来说是非常糟糕的。
 
 \item
-Along those lines, it’s difficult to compare two algorithms with the same big-O running time. For example, if two different sorting algorithms both claim to be O(n log n), it’s hard to tell which is really faster without running your own tests.
+在这个基础上，很难比较具有相同大O运行时间的两种算法。例如，如果两种不同的排序算法都声称是O($n log_2 n$)，在没有运行自己的测试的情况下，很难判断哪种算法实际上更快。
 
 \item
-The big-O notation describes the time complexity of an algorithm asymptotically, as the input size grows to infinity. For small inputs, big-O time can be very misleading. An O(n2) algorithm might actually perform better than an O(log n) algorithm on small input sizes. Consider your likely input sizes before making a decision.
+大O符号描述了算法的时间复杂度，是随着输入大小趋于无穷大时的情况。对于小输入，大O时间可能具有误导性。一个O($n^2$)算法可能在小输入尺寸上实际上比一个O($log_2 n$)算法表现更好。做出决定之前，需要考虑可能的输入。
 \end{itemize}
 
-In addition to considering big-O characteristics, you should look at other facets of the algorithm performance. Here are some guidelines to keep in mind:
+除了考虑大O特性之外，还应该查看算法的其他性能方面。以下是参考的指南：
 
 \begin{itemize}
 \item
-You should consider how often you intend to use a particular piece of library code. Some people find the 90/10 rule helpful: 90 percent of the running time of most programs is spent in only 10 percent of the code (Hennessy and Patterson, Computer Architecture: A Quantitative Approach, Fifth Edition, 2011, Morgan Kaufmann). If the library code you intend to use falls in the oft-exercised 10 percent category of your code, you should make sure to analyze its performance characteristics carefully. On the other hand, if it falls into the oft-ignored 90 percent of the code, you should not spend much time analyzing its performance because it will not benefit the overall program performance very much. Chapter 29, “Writing Efficient C++,” discusses profilers, tools to help you find performance bottlenecks in your code.
+需要考虑如何频繁地使用特定的一块库代码。有些人发现90/10规则很有帮助：大多数程序的90\%的运行时间花费在代码的10\%中（Hennessy和Patterson，《计算机系统结构：一种定量的方法》，第五版，2011年，Morgan Kaufmann）。若打算使用的库代码属于代码中经常使用的10\%部分，应该仔细分析其性能特征。另一方面，若属于经常忽视的90\%代码，就不应该花太多时间分析其性能，因为它不会对整体程序性能产生太大影响。第29章讨论了性能分析器，这是一种工具，可以帮助您找到代码中的性能瓶颈。
 
 \item
-Don’t rely purely on the documentation. Always run performance tests to determine if library code provides acceptable performance characteristics for your specific use case.
+不要过度依赖文档。始终运行性能测试，以确定库代码是否提供了可接受的性能。
 \end{itemize}
 
-\mySamllsection{Understand Platform Limitations}
+\mySamllsection{了解平台的局限性}
 
-Before you start using library code, make sure that you understand on which platforms it runs. If you want to write a cross-platform application, make sure the libraries you choose are also cross-platform portable. That might sound obvious, but even libraries that claim to be cross-platform might contain subtle differences on different platforms.
+开始使用库代码之前，确保了解它在哪些平台上运行。如果想编写一个跨平台应用程序，确保选择的库也可跨平台。这听起来可能很简单，但即使声称是跨平台的库也可能在不同平台上存在细微差异。
 
-Also, platforms include not only different operating systems but different versions of the same operating system. If you write an application that should run on the operating systems Solaris 8, 9, and 10, ensure that any libraries you use also support all those releases. You cannot assume either forward or backward compatibility across operating system versions. That is, just because a library runs on Solaris 9 doesn’t mean that it will run on Solaris 10 and vice versa.
+此外，平台不仅包括不同的操作系统，还包括同一操作系统的不同版本。如果编写一个应在Solaris 8、9和10操作系统上运行的应用程序，确保使用的库也支持所有这些操作系统。若不能假设跨操作系统版本的前向或后向兼容性。也就是说，一个库能在Solaris 9上运行，并不意味着起也能在Solaris 10上运行，反之亦然。
 
-\mySamllsection{Understand Licensing}
+\mySamllsection{理解许可}
 
-Using third-party libraries often introduces complicated licensing issues. You must sometimes pay license fees to third-party vendors for the use of their libraries. There may also be other licensing restrictions, including international export restrictions. Additionally, open-source libraries are sometimes distributed under licenses that require any code that links with them to be open-source as well.
-A number of licenses commonly used by open-source libraries are discussed later in this chapter.
+使用第三方库通常会引入复杂的许可问题,有时需要向第三方供应商支付许可费以使用他们的库。也可能存在其他许可限制，包括国际出口限制。此外，开源库有时以要求与之链接的代码也必须是开源的。
 
-\begin{myWarning}{WARNING}
-Make sure that you understand the license restrictions of any thirdparty libraries you use if you plan to distribute or sell the code you develop. When in doubt, consult a legal expert whose specialty is intellectual property.
-\end{myWarning}
-
-\mySamllsection{Understand Support and Know Where to Find Help}
-
-Before you use a library, make sure that you understand the process for submitting bugs and that you realize how long it will take for bugs to get fixed. If possible, determine how long the library will continue to be supported so that you can plan accordingly.
-
-Interestingly, even using libraries from within your own organization can introduce support issues. You may find it just as difficult to convince a co-worker in another part of your company to fix a bug in their library as you would to convince a stranger in another company to do the same thing. In fact, you may even find it harder, because you’re not a paying customer. Make sure that you understand the politics and organizational issues within your own organization before using internal libraries.
-
-For reusing entire applications, the support issue might even become more complex. If customers encounter a problem with your bundled web server, should they contact you or the web server vendor? Make sure that you resolve this issue before you release the software.
-
-Using libraries and frameworks can sometimes be daunting at first. Fortunately, there are many avenues of support available. First, consult the documentation that accompanies the library. If the library is widely used, such as the Standard Library or the MFC, you should be able to find a good book on the topic. In fact, for help with the Standard Library, you can consult Chapters 16 to 25. If you have specific questions not addressed by books and product documentation, try searching the Web. Type your question in your favorite search engine to find web pages that discuss the library. For example, when you search for the phrase introduction to C++ Standard Library, you will find hundreds of websites about C++ and the Standard Library. Also, many websites contain their own private newsgroups or forums on specific topics for which you can register.
+本章稍后将讨论开源库常用的几种许可。
 
 \begin{myWarning}{WARNING}
-A note of caution: don’t believe everything you read on the Web! Web pages do not necessarily undergo the same review process as printed books and documentation, and may contain inaccuracies.
+若计划发布或销售开发的代码，请确保已经了解所使用的任何第三方库的许可限制。如果有疑问，请咨询专业从事知识产权的律师。
 \end{myWarning}
 
-\mySamllsection{Prototype}
+\mySamllsection{了解哪里可以寻求帮助}
 
-When you first sit down with a new library or framework, it is often a good idea to write a quick prototype. Trying the code is the best way to familiarize yourself with the library’s capabilities. You should consider experimenting with the library even before you tackle your program design so that you are intimately familiar with the library’s capabilities and limitations. This empirical testing will allow you to determine the performance characteristics of the library as well.
+使用库之前，确保了解提交错误的流程，并且意识到修复错误需要多长时间。可能的话，确定库将支持多长时间，以便进行相应地计划。
 
-Even if your prototype application looks nothing like your final application, time spent prototyping is not a waste. Don’t feel compelled to write a prototype of your actual application. Write a dummy program that just tests the library capabilities you want to use. The point is only to familiarize yourself with the library.
+有趣的是，即使是从自己的组织内部使用库，也可能引入支持问题。可能会发现，说服公司另一部分的同事修复他们库中的错误，与说服另一家公司的陌生人做同样的事情一样困难。实际上，这可能更难，因为你不是付费的客户。在使用内部库之前，请确保了解自己的组织内部的政治和组织问题。
+
+对于重用整个应用程序，支持问题可能会变得更加复杂。如果客户遇到您捆绑的网络服务器的问题，他们应该联系您，还是网络服务器供应商？在发布软件之前，请明确解决了这个问题。
+
+使用库和框架有时一开始可能会感到可怖。幸运的是，有许多支持途径可供选择。首先，查阅随库提供的文档。如果该库广泛使用，例如标准库或MFC，应该能够找到一本关于该主题的书。实际上，对于标准库的帮助，可以参考第16至25章。如果有书和产品文档未涉及的具体问题，可以尝试在网上搜索。将的问题输入搜索引擎，以找到讨论该库的网页。例如，当搜索“C++标准库介绍”时，会发现数百个关于C++和标准库的网站。此外，许多网站包含它们自己的特定主题新闻组或论坛，可以进行注册。
 
 \begin{myWarning}{WARNING}
-Due to time constraints, programmers sometimes find their prototypes morphing into the final product. If you have hacked together a prototype that is insufficient as the basis for the final product, make sure that it doesn’t get used that way.
+请注意：不要完全相信你在网上读到的所有内容！网页不一定经过与印刷书籍和文档相同的审查过程，可能包含不准确的信息。
 \end{myWarning}
 
-\mySamllsection{Open-Source Libraries}
+\mySamllsection{原型}
 
-Open-source libraries are an increasingly popular class of reusable code. The general meaning of open-source is that the source code is available for anyone to look at. There are formal definitions and legal rules about including source code with all your distributions, but the important thing to remember about open-source software is that anyone (including you) can look at the source code. Note that open-source applies to more than just libraries. In fact, the most famous open-source product is probably the Android operating system. Linux is another open-source operating system. Google Chrome and Mozilla Firefox are two examples of famous open-source web browsers.
+当第一次坐下来使用一个新的库或框架时，写一个快速的示例原型通常是个好主意。尝试代码是熟悉库功能的最佳方式。应该考虑在开始设计程序之前就尝试使用该库，这样可以深入了解库的功能和局限性。这种实证测试还可以确定库的性能特征。
 
-\mySamllsection{The Open-Source Movements}
+即使原型应用程序与最终应用程序大相径庭，花费在原型上的时间也不是浪费。不要感到有压力去编写实际应用程序的原型。编写一个测试想要使用的库功能的示例程序，关键要来熟悉这个库。
 
-Unfortunately, there is some confusion in terminology in the open-source community. First, there are two competing names for the movement (some would say two separate, but similar, movements). Richard Stallman and the GNU project use the term free software. Note that the term free does not imply that the finished product must be available without cost. Developers are welcome to charge as much or as little as they want. Instead, the term free refers to the freedom for people to examine the source code, modify the source code, and redistribute the software. Think of the free in free speech rather than the free in free beer. You can read more about Richard Stallman and the GNU project at \url{www.gnu.org}.
+\begin{myWarning}{WARNING}
+由于时间的限制，有时开发者会发现他们的原型逐渐演变成最终产品。如果拼凑了一个作为最终产品基础的示例原型，请确保不要以这种方式使用。
+\end{myWarning}
 
-The Open Source Initiative uses the term open-source software to describe software in which the source code must be available. As with free software, open-source software does not require the product or library to be available without cost. However, an important difference with free software is that open-source software is not required to give you the freedom to use, modify, and redistribute it. You can read more about the Open Source Initiative at \url{www.opensource.org}.
+\mySamllsection{开源库}
 
-There are a lot of licensing options available for open-source projects. For example, a project could use one of the GNU Public License (GPL) versions. However, using a library under the GPL requires you to make your own product open-source under the GPL as well. On the other hand, an opensource project can use a license like Boost Software License, Berkeley Software Distribution (BSD) license, MIT License, Apache License, and so on, which allow using an open-source project in closedsource products. Some of these licenses have different versions. For example, there are actually four versions of the BSD license. Another option for an open-source project is to use one of the six flavors of the Creative Commons (CC) license.
+开源库是越来越受欢迎的可重用代码类别。开源的一般含义是，源码对任何人都可见。关于将源代码与所有分发捆绑的正式定义和法律规则，但关于开源软件最重要的要记住的是，任何人（包括您）都可以查看源代码。请注意，开源不仅仅适用于库。实际上，最著名的开源产品Android操作系统，是Linux是另一个开源操作系统，Google Chrome和Mozilla Firefox是两个著名的开源网络浏览器。
 
-Some licenses require you to include the library’s license with your final product. Some licenses require attribution when using the library. Bottom line, all licenses come with subtleties that are important to understand if you want to use libraries in closed-source projects. The \url{opensource.org/licenses} website gives a thorough overview of approved open-source licenses.
+\mySamllsection{开源运动}
 
-Because the name “open-source” is less ambiguous than “free software,” this book uses “open-source” to refer to products and libraries with which the source code is available. The choice of name is not intended to imply endorsement of the open-source philosophy over the free software philosophy: it is only for ease of comprehension.
+不幸的是，开源社区在术语上存在一些混淆。首先，关于这一运动有两种竞争性的名称（有些人会说这是两个不同但相似的运动）。理查德·斯托曼（Richard Stallman）和GNU项目使用“自由软件”这个术语。请注意，“自由”这个词并不意味着最终产品必须免费提供，开发者可以收取费用。相反，“自由”这个词指的是人们有权查看源代码、修改源代码并重新分发软件。将“自由”这个词与言论自由中的“自由”而不是免费啤酒中的“自由”相比较。您可以在\url{www.gnu.org}上阅读更多关于理查德·斯托曼和GNU项目的信息。
 
-\mySamllsection{Finding and Using Open-Source Libraries}
+开源倡议（Open Source Initiative）使用“开源软件”这个术语来描述源代码必须可用的软件。与自由软件一样，开源软件并不要求产品或库必须免费提供。然而，与自由软件的一个重要区别是，开源软件并不要求拥有使用、修改和重新分发它的自由。可以在\url{www.opensource.org}上了解更多关于开源倡议的信息。
 
-Regardless of the terminology, you can gain amazing benefits from using open-source software. The main benefit is functionality. There is a plethora of open-source C++ libraries available for varied tasks, from XML parsing and cross-platform error logging to deep learning and data mining using artificial neural networks.
+开源项目有许多可供选择的许可选项。例如，一个项目可以使用GNU公共许可（GPL）的一个版本。然而，在GPL下使用一个库意味着也需要将自己的产品作为GPL开源。另一方面，开源项目可以使用像Boost软件许可、伯克利软件分发（BSD）许可、MIT许可、Apache许可等，这些许可允许在闭源产品中使用开源项目。这些许可中有些有不同的版本。例如，实际上有四个版本的BSD许可。开源项目的另一种选择是使用Creative Commons（CC）许可的六种变体之一。
 
-Although open-source libraries are not required to provide free distribution and licensing, many open-source libraries are available without monetary cost. You will generally be able to save money in licensing fees by using open-source libraries.
-Finally, you are often but not always free to modify open-source libraries to suit your exact needs.
+一些许可要求你将库的许可与你的最终产品一起包含。一些许可要求在使用库时给予署名。总之，所有许可都有一些微妙之处，如果想在闭源项目中使用库，理解这些是非常重要的。\url{opensource.org/licenses}网站提供了批准的开源许可的全面概述。
 
-Most open-source libraries are available on the Web. For example, searching for open-source C++ library XML parsing results in a list of links to XML libraries for C++. There are also a few opensource portals where you can start your search, including the following:
+由于“开源”这个名称比“自由软件”更不模糊，因此本书使用“开源”来指代源代码可用的产品和库。选择这个名字并不是为了暗示对开源哲学的赞同超过自由软件哲学：只是为了便于理解。
+
+\mySamllsection{寻找和使用开源库}
+
+无论使用哪种术语，都可以从使用开源软件中获得好处，主要是功能。有许多开源C++库可用于各种任务，从XML解析、跨平台错误日志到使用人工神经网络的深度学习和数据挖掘。
+
+虽然开源库不必提供免费分发和许可，但许多开源库都是免费的。通常，通过使用开源库，可以节省许可费用。最后，通常但并非总是可以自由修改开源库以满足您的特定需求。
+
+大多数开源库都可以在网上找到。例如，搜索开源C++库XML解析会列出用于C++的XML库的链接。还有一些开源门户网站，可以从这里开始搜索，比如以下几个：
 
 \begin{itemize}
 \item
@@ -343,27 +343,27 @@ Most open-source libraries are available on the Web. For example, searching for 
 \url{www.sourceforge.net}
 \end{itemize}
 
-\mySamllsection{Guidelines for Using Open-Source Code}
+\mySamllsection{使用开源代码指南}
 
-Open-source libraries present several unique issues and require new strategies. First, open-source libraries are usually written by people in their “free” time. The source base is generally available for any programmer who wants to pitch in and contribute to development or bug fixing. As a good programming citizen, you should try to contribute to open-source projects if you find yourself reaping the benefits of open-source libraries. If you work for a company, you may find resistance to this idea from your management because it does not lead directly to revenue for your company. However, you might be able to convince management that indirect benefits, such as exposure of your company name and perceived support from your company for the open-source movement, should allow you to pursue this activity.
+开源库也会带来了一些问题，并需要新的策略。首先，开源库通常是由人们在“业余”时间编写的。源代码通常对任何想要参与开发或修复错误的开发者都是可用的。作为一个好的编程公民，如果发现自己正在从开源库中受益，应该尝试为开源项目做出贡献。如果正为一家公司工作，可能会发现管理层对这一想法持反对态度，因为它不会直接为公司带来收入。然而，你可能会从间接利益的层面说服管理层，如提升公司名称的曝光度和公司对开源运动的认可支持，应该允许你参与这一活动。
 
-Second, because of the distributed nature of their development and lack of single ownership, opensource libraries often present support issues. If you desperately need a bug fixed in a library, it is often more efficient to make the fix yourself than to wait for someone else to do it. If you do fix bugs, make sure to put those fixes back into the public codebase for the library. Some licenses even require you to do so. Even if you don’t fix any bugs, make sure to report problems that you find so that other programmers don’t waste time encountering the same issues.
+其次，由于其分布式开发和缺乏单一所有权的特性，开源库往往在支持问题上存在挑战。如果迫切需要修复一个库中的错误，通常自己动手修复比等待别人做更有效率。如果确实修复了错误，确保将这些修复推回到库的公共代码库中。一些许可甚至要求你这样做。即使没有修复任何错误，也要确保报告你发现的问题，这样其他开发者就不会浪费时间遇到同样的问题。
 
-\mySamllsection{The C++ Standard Library}
+\mySamllsection{C++标准库}
 
-The most important library that you will use as a C++ programmer is the C++ Standard Library. As its name implies, this library is part of the C++ standard, so any standards-conforming compiler must include it. The Standard Library is not monolithic: it includes several disparate components, some of which you have been using already. You may even have assumed they were part of the core language. Chapters 16 to 25 go into more detail about the Standard Library.
+作为C++程序员，将使用最重要的库是C++标准库。正如其名称所暗示的，这个库是C++标准的一部分，因此符合标准的编译器都必须包含。标准库不是单一的：包括几个不同的组件，其中一些已经在使用您甚至可能已经假设它们是核心语言的一部分。第16至25章将更详细地介绍标准库。
 
-\mySamllsection{C Standard Library}
+\mySamllsection{C标准库}
 
-Because C++ is mostly a superset of C, the C Standard Library is still available. Its functionality includes mathematical functions such as abs(), sqrt(), and pow(), and error-handling helpers such as assert() and errno. Additionally, the C Standard Library facilities for manipulating character arrays as strings, such as strlen() and strcpy(), and the C-style I/O functions, such as printf() and scanf(), are all available in C++. For details on the C libraries, consult a Standard Library Reference; see Appendix B.
+因为C++主要是C的超集，所以C标准库仍然可用。其功能包括数学函数，如abs()、sqrt()和pow()，以及错误处理助手，如assert()和errno。此外，C标准库还包括用于操作字符数组作为字符串的功能，如strlen()和strcpy()，以及C风格的I/O函数，如printf()和scanf()。有关C库的详细信息，请查阅标准库参考资料；见附录B。
 
 \begin{myNotic}{NOTE}
-C++ provides better strings and I/O support than C. Even though the C-style strings and I/O routines are available in C++, you should avoid them in favor of C++ strings and formatting (Chapter 2, “Working with Strings and String Views”) and I/O streams (Chapter 13, “Demystifying C++ I/O”).
+C++提供了比C更好的字符串和I/O支持。即使C++中提供了C风格的字符串和I/O例程，应该避免使用，而应选择C++字符串和格式化（第2章）以及I/O流（第13章）的支持。
 \end{myNotic}
 
-\mySamllsection{Deciding Whether or Not to Use the Standard Library}
+\mySamllsection{决定是否使用标准库}
 
-The Standard Library was designed with functionality, performance, and orthogonality as its priorities. The benefits of using it are substantial. Imagine having to track down pointer errors in linked list or balanced binary tree implementations or to debug a sorting algorithm that isn’t sorting properly. If you use the Standard Library correctly, you will rarely, if ever, need to perform that kind of coding or debugging yourself. Another benefit is that most C++ developers know how to work with the functionality provided by the Standard Library. Hence, when using the Standard Library in your projects, new team members will get up to speed faster compared to using third-party libraries that might have a substantial learning cost. Chapters 16 to 25 provide in-depth information on the Standard Library functionality.
+标准库的设计优先考虑功能、性能和对称性。想象一下，如果需要调试链表或平衡二叉树实现中的指针错误，或者调试一个排序算法，没有正确排序。如果正确使用标准库，几乎不需要自己进行那种编码或调试。另一个好处是，大多数C++开发者都知道如何使用标准库提供的功能。因此，在项目中使用标准库时，新团队成员将比使用可能具有显著学习成本的第三方库更快地熟悉工作。第16至25章提供了标准库功能的更多信息。
 
 
 
