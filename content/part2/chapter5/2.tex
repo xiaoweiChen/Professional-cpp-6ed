@@ -1,7 +1,7 @@
 
 Unlike the procedural approach, which is based on the question “What does this program do?” the object-oriented approach asks another question: “What real-world objects am I modeling?” OOP is based on the notion that you should divide your program not into tasks but into models of physical objects. While this seems abstract at first, it becomes clearer when you consider physical objects in terms of their classes, components, properties, and behaviors.
 
-\mySubsubsection{5.2.1.}{Classes}
+\mySubsubsection{5.2.1.}{类}
 
 A class helps distinguish an object from its definition. Consider the orange. There’s a difference between talking about oranges in general as tasty fruit that grows on trees and talking about a specific orange, such as the one that’s currently dripping juice on my keyboard.
 
@@ -13,13 +13,13 @@ As a more concrete example, reconsider the stock selection application from earl
 
 From a C background, think of classes and objects as analogous to types and variables. In fact, Chapter 1, “A Crash Course in C++ and the Standard Library,” shows that the syntax for classes is similar to the syntax for C structs.
 
-\mySubsubsection{5.2.2.}{Components}
+\mySubsubsection{5.2.2.}{对象}
 
 If you consider a complex real-world object, such as an airplane, it should be fairly easy to see that it is made up of smaller components. There’s the fuselage, the controls, the landing gear, the engines, and numerous other parts. The ability to think of objects in terms of their smaller components is essential to OOP, just as the breaking up of complicated tasks into smaller procedures is fundamental to procedural programming.
 
 A component is essentially the same thing as a class, just smaller and more specific. A good objectoriented program might have an Airplane class, but this class would be huge if it fully described an airplane. Instead, the Airplane class deals with many smaller, more manageable, components. Each of these components might have further subcomponents. For example, the landing gear is a component of an airplane, and the wheel is a component of the landing gear.
 
-\mySubsubsection{5.2.3.}{Properties}
+\mySubsubsection{5.2.3.}{属性}
 
 Properties are what distinguish one object from another. Going back to the Orange class, recall that all oranges are defined as having some shade of orange and a particular flavor. These two characteristics are properties. All oranges have the same properties, just with different values. My orange has a “mighty tasty” flavor, but yours may have a “terribly unpleasant” flavor.
 
@@ -29,7 +29,7 @@ In the stock selection example, a stock quote has several object properties, inc
 
 Properties are the characteristics that describe an object. They answer the question, “What makes this object different?”
 
-\mySubsubsection{5.2.4.}{Behaviors}
+\mySubsubsection{5.2.4.}{行为}
 
 Behaviors answer either of two questions: “What does this object do?” or “What can I do to this object?” In the case of an orange, it doesn’t do a whole lot, but we can do things to it. One behavior is that it can be eaten. Like properties, you can think of behaviors on the class level or the object level. All oranges can pretty much be eaten in the same way. However, they might differ in some other behavior, such as being rolled down an incline, where the behavior of a perfectly round orange would differ from that of a more oblate one.
 
@@ -39,7 +39,7 @@ In object-oriented programming, the bulk of functional code is moved out of proc
 
 As Chapter 4 explains, C++ is a multi-paradigm language supporting both object-oriented programming and procedural programming. Thus, C++ does not force you to put everything into classes, like languages such as Java do. In C++, you are free to use classes when OOP makes sense, but there is nothing wrong with combining it with procedural programming and keeping certain functionality in stand-alone functions. In fact, a lot of the functionality of the C++ Standard Library is provided as stand-alone functions, e.g., all its algorithms.
 
-\mySubsubsection{5.2.5.}{Bringing It All Together}
+\mySubsubsection{5.2.5.}{将一切放在一起}
 
 With these concepts, you could take another look at the stock selection program and redesign it in an object-oriented manner.
 
@@ -51,11 +51,11 @@ The stock quote class would have the properties discussed earlier—name, symbol
 
 It is often useful to create diagrams showing the relationship between components. Figure 5.1 uses the UML class diagram syntax, see Appendix D, “Introduction to UML,” to indicate that a StockQuoteCollection contains zero or more (0..*) StockQuote objects, and that a StockQuote object belongs to a single (1) StockQuoteCollection.
 
-\myGraphic{0.7}{content/part2/chapter5/images/1.png}{FIGURE 5.1}
+\myGraphic{0.7}{content/part2/chapter5/images/1.png}{图 5.1}
 
 Let’s look at a second example. As described earlier, an orange has properties such as its color and flavor, as well as behaviors such as being eaten and rolled. You can come up with many more behaviors such as being tossed, peeled, or squeezed. Another property of an orange could be a collection of its seeds. Figure 5.2 shows a possible UML class diagram for the Orange and Seed classes, including the relationship that an Orange contains zero or more (0..*) Seeds and that a Seed belongs to a single (1) Orange.
 
-\myGraphic{0.7}{content/part2/chapter5/images/2.png}{FIGURE 5.2}
+\myGraphic{0.5}{content/part2/chapter5/images/2.png}{图 5.2}
 
 
 

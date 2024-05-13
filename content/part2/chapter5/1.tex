@@ -1,16 +1,15 @@
-A procedural language, such as C, divides code into small pieces, each of which (ideally) accomplishes a single task. Without procedures in C, all your code would be lumped together inside main(). Your code would be difficult to read, and your co-workers would be annoyed, to say the least.
+在C这样的过程式语言中，代码划分为小块，每个小块（理想情况下）都完成一个单一的任务。如果没有在C中使用函数，所有代码都会合并在一起，位于main()函数中，这样的代码难以阅读。
 
-The computer doesn’t care if all your code is in main() or if it’s split into bite-sized pieces with descriptive names and comments. Procedures are an abstraction that exists to help you, the programmer, as well as those who read and maintain your code. The concept is built around a fundamental question about your program—What does this program do? By answering that question in English, you are thinking procedurally. For example, you might begin designing a stock selection program by answering as follows: First, the program obtains stock quotes from the Internet. Then, it sorts this data by specific metrics. Next, it performs analysis on the sorted data. Finally, it outputs a list of buy and sell recommendations. When you start coding, you might directly turn this mental model into C functions: retrieveQuotes(), sortQuotes(), analyzeQuotes(), and outputRecommendations().
-
+计算机不在乎代码是否全部在main()中，或者是否分割成具有描述性名称和注释的小块。函数是帮助程序员思考和维护代码的一种抽象。这个概念围绕着这样一个基本问题构建：“这个程序做什么？”用英语回答这个问题就是以过程式思维。例如，在设计一个股票选择程序时，可能会这样开始思考：首先，程序从互联网获取股票报价；然后，根据特定指标对数据进行排序；接着，对排序后的数据进行分析；最后，输出买入和卖出的建议。开始编码时，可能会直接将这个心理模型转换为C函数：retrieveQuotes()、sortQuotes()、analyzeQuotes()和outputRecommendations()。
 
 \begin{myNotic}{NOTE}
-Even though C refers to procedures as “functions,” C is not a functional language. The term functional is different from procedural and refers to languages like Lisp, which use an entirely different abstraction.
+尽管C将函数称为“函数”，但C并不是一个函数式语言。在像Lisp这样的语言中，函数式指的是完全不同的抽象。
 \end{myNotic}
 
 
-The procedural approach tends to work well when your program follows a specific list of steps. However, in large, modern applications, there is rarely a linear sequence of events. Often a user is able to perform any command at any time. Procedural thinking also says nothing about data representation. In the previous example, there was no discussion of what a stock quote actually is.
+过程式方法在程序遵循特定步骤列表时，往往工作得很好。然而，在大型现代应用程序中，通常不存在一个线性的事件序列。用户通常可以在任何时间执行任何命令，过程式思维也不涉及数据表示。在之前的例子中，没有讨论股票报价实际上是什么。
 
-If the procedural mode of thought sounds like the way you approach a program, don’t worry. Once you realize that OOP is simply an alternative, more flexible way of thinking about software, it’ll come naturally.
+如果过程式思维模式符合您对程序的思维方式，不要担心。当意识到面向对象编程（OOP）只是另一种更灵活的思考软件的方式，就会很自然地使用了。
 
 
 

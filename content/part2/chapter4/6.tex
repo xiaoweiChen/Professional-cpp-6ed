@@ -1,43 +1,43 @@
 
-This section introduces a systematic approach to designing a C++ program in the context of a simple chess game application. To provide a complete example, some of the steps refer to concepts covered in later chapters. You should read this example now to obtain an overview of the design process, but you might also consider rereading it after you have finished later chapters.
+本节介绍了一种使用C++系统性方法设计的国际象棋。为了提供一个完整的示例，其中一些步骤涉及后面章节中介绍的概念。可以先了解一下这个示例，以获得设计过程的大致了解，之后再去了解那些还未涉及的概念。
 
 \mySubsubsection{4.6.1.}{前置信息}
 
-Before embarking on the design, it is important to possess clear requirements for the program’s functionality and efficiency. Ideally, these requirements would be documented in the form of a requirements specification. The requirements for the chess program would contain the following types of specifications, although in more detail and greater number:
+开始设计之前，清晰了解程序的功能和效率的需求非常重要。理想情况下，这些要求将以需求规范的形式记录下来。国际象棋需要包含以下类型的规范：
 
 \begin{itemize}
 \item
-The program shall support the standard rules of chess.
+支持国际象棋的标准规则。
 
 \item
-The program shall support two human players. The program shall not provide an artificially intelligent computer player.
+支持两名人类玩家，不提供计算机玩家。
 
 \item
-The program shall provide a text-based interface:
+提供一个基于文本的界面：
 \begin{itemize}
 \item
-The program shall render the game board and pieces in plain text.
+以纯文本形式渲染棋盘和棋子。
 
 \item
-Players shall express their moves by entering numbers representing locations on the chessboard.
+通过输入代表棋盘位置的数字来表示棋子的移动。
 \end{itemize}
 \end{itemize}
 
-The requirements ensure that you design your program so that it performs as its users expect.
+这些需求确保设计的程序能够满足用户期望。
 
 \mySubsubsection{4.6.2.}{设计步骤}
 
-You should take a systematic approach to designing your program, working from the general to the specific. The following steps do not always apply to all programs, but they provide a general guideline. Your design should include diagrams and tables as appropriate. UML is an industry standard for making diagrams. You can refer to Appendix D for a brief introduction, but in short, UML defines a multitude of standard diagrams you can use for documenting software designs, for example, class diagrams, sequence diagrams, and so on. I recommend using UML or at least UML-like diagrams where applicable. However, I don’t advocate strictly adhering to the UML syntax because having a clear, understandable diagram is more important than having a syntactically correct one.
+设计程序时，应该采取一种系统化的方法，从一般到具体逐步进行。以下步骤并不适用于所有程序，但提供了一种一般性指导原则。设计应包括适当的图表和表格，UML是行业标准。可以参考附录D了解简要介绍，UML定义了多种标准的图，可以使用它们来记录软件设计，例如类图、序列图等。我建议在适用的情况下使用UML或类似UML的图。然而，我不主张严格遵循UML语法，因为一个清晰、易于理解的图，比拥有一个语法正确的图更为重要。
 
 \mySamllsection{将程序划分为子系统}
 
-Your first step is to divide your program into its general functional subsystems and to specify the interfaces and interactions between the subsystems. At this point, you should not worry about specifics of data structures and algorithms, or even classes. You are only trying to obtain a general feel for the various parts of the program and their interactions. You can list the subsystems in a table that expresses the high-level behaviors or functionality of the subsystem, the interfaces exported from the subsystem to other subsystems, and the interfaces consumed, or used, by this subsystem from other subsystems.
+第一步是将程序划分为功能性子系统，并指定子系统之间的接口和交互。这一点上，不要担心数据结构和算法的具体细节，甚至是类。只是在尝试了解程序的各个部分，以及它们之间如何交互。可以在一个表格中列出子系统，该表格表达子系统的高层行为或功能，子系统向其他子系统导出接口，以及使用其他子系统消的接口。
 
-The recommended design for this chess game is to have a clear separation between storing the data and displaying the data by using the Model-View-Controller (MVC) paradigm. This paradigm models the notion that many applications commonly deal with a set of data, one or more views on that data, and manipulation of the data. In MVC, a set of data is called the model, a view is a particular visualization of the model, and the controller is the piece of code that changes the model in response to some event. The three components of MVC interact in a feedback loop: actions are handled by the controller, which adjusts the model, resulting in a change to the view or views. The controller can also directly modify the view, for example UI elements. Figure 4.4 visualizes this interaction. Using this paradigm, the different components are clearly separated, allowing you to modify one component without having to modify others. For example, without having to touch the underlying data model or logic, you can easily switch between having a text-based interface and a graphical user interface, or between an interface for running on a desktop PC and an interface for running on a phone.
+对于这个国际象棋游戏，推荐的设计是使用模型-视图-控制器（MVC）范式，以清晰地区分存储数据和显示数据。这个范式模拟了这样一个概念：许多应用程序通常处理一组数据，该数据的一个或多个视图，以及该数据的操作。 MVC 中，一组数据称为模型，视图是模型的特定可视化，控制器是响应某些事件而改变模型的代码片段。MVC 的三个组件相互作用形成一个反馈循环：动作由控制器处理，控制器调整模型，导致视图或视图的变化。控制器也可以直接修改视图，例如 UI 元素。图 4.4 可视化这种交互。使用这个范式，清晰地分离不同的组件，允许修改一个组件而不影响其他组件。例如，可以轻松地在基于文本的界面和图形用户界面之间切换，或者在桌面 PC 上运行的界面和手机上运行的界面之间切换，而不必触及底层的数据模型或逻辑。
 
 \myGraphic{0.7}{content/part2/chapter4/images/4.png}{图4.4}
 
-The following table shows how the possible subsystems for the chess game could look like:
+下表显示了象棋游戏的可能子系统:
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -47,83 +47,84 @@ The following table shows how the possible subsystems for the chess game could l
 \textbf{子系统名称} &
 \textbf{实例} &
 \textbf{功能} &
-\textbf{\begin{tabular}[c]{@{}l@{}}导出接口\end{tabular}} &
-\textbf{\begin{tabular}[c]{@{}l@{}}使用接口\end{tabular}} \\ \hline
+\textbf{\begin{tabular}[c]{@{}l@{}}导出的接口\end{tabular}} &
+\textbf{\begin{tabular}[c]{@{}l@{}}使用的接口\end{tabular}} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 GamePlay &
 1 &
-\begin{tabular}[c]{@{}l@{}}Starts game\\ Controls game flow\\ Controls drawing\\ Declares winner\\ Ends game\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}开始游戏\\ 控制游戏流程\\ 控制绘图\\ 宣布获胜者\\ 结束游戏\end{tabular} &
 Game Over &
 \begin{tabular}[c]{@{}l@{}}Take Turn (on\\ Player)\\ Draw (on\\ ChessBoardView)\end{tabular} \\ \hline
 ChessBoard &
 1 &
-\begin{tabular}[c]{@{}l@{}}Stores chess pieces\\ Checks for ties and\\ checkmates\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}储存棋子\\ 检查棋局状态\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}Get Piece At\\ Set Piece At\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}Game Over (on\\ GamePlay)\end{tabular} \\ \hline
 ChessBoardView &
 1 &
-\begin{tabular}[c]{@{}l@{}}Draws the associated\\ ChessBoard\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}绘制相关的ChessBoard\end{tabular} &
 Draw &
 \begin{tabular}[c]{@{}l@{}}Draw (on\\ ChessPieceView)\end{tabular} \\ \hline
 ChessPiece &
 32 &
-\begin{tabular}[c]{@{}l@{}}Moves itself\\ Checks for legal\\ moves\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}移动\\ 检查移动是否符合规则\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}Move\\ Check Move\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}Get Piece At (on\\ ChessBoard)\\ Set Piece At (on\\ ChessBoard)\end{tabular} \\ \hline
 ChessPieceView &
 32 &
-\begin{tabular}[c]{@{}l@{}}Draws the associated\\ ChessPiece\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}绘制相关的ChessPiece\end{tabular} &
 Draw &
-None \\ \hline
+无 \\ \hline
 Player &
 2 &
-\begin{tabular}[c]{@{}l@{}}Interacts with the user\\ by prompting the\\ user for a move, and\\ obtaining the user’s\\ move\\ Moves pieces\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}通过提示用户移动，\\并获取用户的移动信息进行交互\\ 移动棋子\end{tabular} &
 Take Turn &
 \begin{tabular}[c]{@{}l@{}}Get Piece At (on\\ ChessBoard)\\ Move (on\\ ChessPiece)\\ Check Move (on\\ ChessPiece)\end{tabular} \\ \hline
 ErrorLogger &
 1 &
-\begin{tabular}[c]{@{}l@{}}Writes error messages\\ to a log file\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}将错误消息写入日志文件\end{tabular} &
 Log Error &
-None \\ \hline
+无 \\ \hline
 \end{longtable}
 
-As this table shows, the functional subsystems of this chess game include a GamePlay subsystem, a ChessBoard and ChessBoardView, 32 ChessPieces and ChessPieceViews, two Players, and one ErrorLogger. However, that is not the only reasonable approach. In software design, as in programming itself, there are often many different ways to accomplish the same goal. Not all solutions are equal; some are certainly better than others. However, there are often several equally valid solutions.
+如表所示，这个国际象棋游戏的功能子系统，包括一个 GamePlay 子系统，一个 ChessBoard 和 ChessBoardView，32 个 ChessPieces 和 ChessPieceViews，两个 Players 和一个 ErrorLogger。然而，这并不是唯一合理的方法。在软件设计，就像编程本身一样，通常有许多不同的方法可以实现相同的目标。并非所有解决方案都是平等的；有些显然比其他的更好，通常有多个有效的解决方案。
 
-A good division into subsystems separates the program into its basic functional parts. For example, a Player is a subsystem distinct from the ChessBoard, ChessPieces, or GamePlay. It wouldn’t make sense to lump the players into the GamePlay subsystem, because they are logically separate subsystems. Other choices might not be as obvious.
+好的子系统划分将程序划分为其基本的功能部分。例如，玩家是与 ChessBoard、ChessPieces 或 GamePlay 不同的子系统。将玩家归入 GamePlay 子系统是没有意义的，因为它们在逻辑上是独立的子系统。其他选择可能没有那么明显。
 
-In this MVC design, the ChessBoard and ChessPiece subsystems are part of the Model. The ChessBoardView and ChessPieceView are part of the View, and the Player is part of the Controller.
+这个 MVC 设计中，ChessBoard 和 ChessPiece 子系统是模型的一部分。ChessBoardView 和 ChessPieceView 是视图的一部分，而 Player 是控制器的一部分。
 
-Because it is often difficult to visualize subsystem relationships from tables, it is usually helpful to show the subsystems of a program in a diagram where lines represent calls from one subsystem to another. Figure 4.5 shows the chess game subsystems visualized as a diagram loosely based on a UML communication diagram.
+由于通常很难从表格中可视化子系统关系，因此在图中显示程序的子系统通常很有帮助，其中线条代表从一个子系统到另一个子系统的调用。图 4.5 显示了国际象棋游戏子系统，可视化为一个基于 UML 的图。
 
 \myGraphic{0.9}{content/part2/chapter4/images/5.png}{图 4.5}
 
 \mySamllsection{选择线程模型}
 
-It’s too early in the design phase to think about how to multithread specific loops in algorithms you will write. However, in this step, you choose the number of high-level threads in your program and specify their interactions. Examples of high-level threads are a UI thread, an audio-playing thread, a network communication thread, and so on.
-In multithreaded designs, you should try to avoid shared data as much as possible because it will make your designs simpler and safer. If you cannot avoid shared data, you should specify locking requirements.
+设计的早期阶段，考虑如何编写算法中实现特定循环的多线程还为时过早。然而，在这一步中，应该选择程序中的高级线程数量，并指定它们的交互。高级线程的例子包括 UI 线程、音频播放线程、网络通信线程等。
 
-If you are unfamiliar with multithreaded programs or your platform does not support multithreading, then you should make your programs single-threaded. However, if your program has several distinct tasks, each of which could work in parallel, it might be a good candidate for multiple threads. For example, graphical user interface applications often have one thread performing the main application work and another thread waiting for the user to press buttons or select menu items. Multithreaded programming is covered in Chapter 27, “Multithreaded Programming with C++.”
+多线程设计中，应尽可能避免共享数据，这会使设计更简单、更安全。如果无法避免共享数据，应使用锁。
 
-The chess program needs only one thread to control the game flow.
+如果不熟悉多线程程序，或者平台不支持多线程，则应该使程序单线程运行。然而，如果程序有多个不同的任务，每个任务都可以并行工作，那么将有可能是多线程化。例如，图形用户界面应用程序通常有一个线程执行主要的应用程序工作，另一个线程等待用户按下按钮或选择菜单项。多线程编程在第 27 章中涉及。
+
+国际象棋程序只需要一个线程来控制游戏流程。
 
 \mySamllsection{指定类层次结构}
 
-In this step, you determine the class hierarchies that you intend to write in your program. The chess program could use a class hierarchy to represent the chess pieces. This hierarchy could work as shown in Figure 4.6. The generic ChessPiece class serves as the abstract base class. A similar hierarchy is required for the ChessPieceView classes.
+这一步中，需要确定在程序中编写的类层次结构。国际象棋程序可以使用一个类层次结构来表示棋子。这个层次结构可以如图 4.6 所示那样工作，通用的 ChessPiece 类作为抽象基类。ChessPieceView 类也需要一个类似的层次结构。
 
 \myGraphic{0.8}{content/part2/chapter4/images/6.png}{图 4.6}
 
-Another class hierarchy can be used for the ChessBoardView class to make it possible to have a text-based interface or a graphical user interface for the game. Figure 4.7 shows an example hierarchy that allows the chessboard to be displayed as text on a console, or with a 2D or 3D graphical user interface. A similar hierarchy is required for the individual classes of the ChessPieceView hierarchy.
+另一个类层次结构可以用于 ChessBoardView 类，以使其能够具有基于文本的界面或游戏的图形用户界面。图 4.7 展示了一个示例层次结构，棋盘以文本形式显示在控制台上，或者使用 2D 或 3D 图形用户界面显示。ChessPieceView 层次结构的各个类也需要一个类似的层次结构。
 
 \myGraphic{0.8}{content/part2/chapter4/images/7.png}{图 4.7}
 
-Chapter 5 explains the details of designing classes and class hierarchies.
+第 5 章解释了设计和类层次结构的细节。
 
 \mySamllsection{指定类、数据结构、算法和模式}
 
-In this step, you consider a greater level of detail, and specify the particulars of each subsystem, including the specific classes that you’ll write for each subsystem. It may well turn out that you model each subsystem itself as a class. This information can again be summarized in a table.
+这一步中，需要考虑更详细的层次，并指定每个子系统的具体细节，包括将为每个子系统编写的具体类。很可能会发现自己将每个子系统本身建模为一个类。这些信息可以再次总结在一个表格中。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -140,55 +141,55 @@ In this step, you consider a greater level of detail, and specify the particular
 \endhead
 %
 GamePlay &
-GamePlay class &
-\begin{tabular}[c]{@{}l@{}}GamePlay\\ object\\ includes one\\ ChessBoard\\ object and\\ two Player\\ objects.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Gives each\\ player a turn\\ to play.\end{tabular} &
-None \\ \hline
+GamePlay类 &
+\begin{tabular}[c]{@{}l@{}}GamePlay对\\象包括一个\\ChessBoard、\\对象和两个\\Player 对象\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}每个玩家一个回合\end{tabular} &
+无 \\ \hline
 ChessBoard &
-ChessBoard class &
-\begin{tabular}[c]{@{}l@{}}ChessBoard\\ object stores\\ a two\\ dimensional\\ 8x8 grid\\ containing\\ up to 32\\ ChessPieces.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Checks for\\ a win or tie\\ after each\\ move.\end{tabular} &
-None \\ \hline
+ChessBoard类 &
+\begin{tabular}[c]{@{}l@{}}ChessBoard对\\象存储一个二\\维的8x8网格，\\包含32个\\ChessPieces\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}走棋后判断胜负\end{tabular} &
+无 \\ \hline
 ChessBoardView &
-\begin{tabular}[c]{@{}l@{}}ChessBoardView abstract\\ base class\\ Concrete derived classes\\ ChessBoardViewConsole,\\ ChessBoardViewGUI2D,\\ and so on\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Stores\\ information on\\ how to draw a\\ chessboard.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Draws a\\ chessboard.\end{tabular} &
-Observer \\ \hline
+\begin{tabular}[c]{@{}l@{}}抽象基类:\\ChessBoardView\\ 具体的派生类：\\ChessBoardViewConsole，\\ChessBoardViewGUI2D等\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}存储有关\\如何绘制\\棋盘的信息\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}画个棋盘\end{tabular} &
+观察者 \\ \hline
 ChessPiece &
-\begin{tabular}[c]{@{}l@{}}ChessPiece abstract base\\ class\\ Rook, Bishop, Knight,\\ King, Pawn, and Queen\\ derived classes\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Each piece\\ stores its\\ location on the\\ chessboard.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Checks\\ for a legal\\ move by\\ querying the\\ chessboard\\ for pieces\\ at various\\ locations.\end{tabular} &
-None \\ \hline
+\begin{tabular}[c]{@{}l@{}}抽象基类：\\ChessPiece\\ 具体的派生类:\\Rook, Bishop, Knight,\\ King, Pawn和Queen\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}每个棋子\\都将其位\\置存储在\\棋盘上\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}通过检查盘上的\\棋子在不同的\\位置确定移动是\\否符合规则。\end{tabular} &
+无 \\ \hline
 ChessPieceView &
-\begin{tabular}[c]{@{}l@{}}ChessPieceView abstract\\ base class\\ Derived classes RookView,\\ BishopView, and so on,\\ and concrete derived\\ classes RookViewConsole,\\ RookViewGUI2D, and so\\ on\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Stores\\ information on\\ how to draw a\\ chess piece.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Draws a\\ chess piece.\end{tabular} &
-Observer \\ \hline
+\begin{tabular}[c]{@{}l@{}}抽象基类：\\ChessPieceView\\ 派生类:\\ RookView,\\ BishopView等\\具体派生类:\\RookViewConsole,\\ RookViewGUI2D等\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}存储关于\\如何绘制\\棋子的信息\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}画一个棋子。\end{tabular} &
+观察者 \\ \hline
 Player &
-\begin{tabular}[c]{@{}l@{}}Player abstract base class\\ Concrete derived\\ classes PlayerConsole,\\ PlayerGUI2D, and so on\end{tabular} &
-None. &
-\begin{tabular}[c]{@{}l@{}}Prompts\\ the user\\ for a move,\\ checks if\\ the move is\\ legal, and\\ moves the\\ piece.\end{tabular} &
-Mediator \\ \hline
+\begin{tabular}[c]{@{}l@{}}抽象基类:\\Player\\ 具体派生类:\\PlayerConsole,\\ PlayerGUI2D等\end{tabular} &
+无 &
+\begin{tabular}[c]{@{}l@{}}提示用户走棋，\\检查这一步棋\\是否符合规则，\\然后移动棋子。\end{tabular} &
+中介者 \\ \hline
 ErrorLogger &
-ErrorLogger class &
-\begin{tabular}[c]{@{}l@{}}A queue of\\ messages to\\ log.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Buffers\\ messages\\ and writes\\ them to a\\ log file.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Strategy\\ using\\ dependency\\ injection\end{tabular} \\ \hline
+ErrorLogger类 &
+\begin{tabular}[c]{@{}l@{}}要记录的\\消息队列\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}缓冲消息并将\\其写入日志文件。\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}依赖注入策略\end{tabular} \\ \hline
 \end{longtable}
 
-Such a table already gives some information about the different classes in a software design, but it doesn’t clearly describe the interactions between them. A UML sequence diagram can be used to model such interactions. Figure 4.8 shows such a diagram visualizing the interactions of some of the classes from the previous table.
+表中已经提供了一些关于软件设计中的不同类的信息，但它并没有清晰地描述它们之间的交互。UML 序列图可以用来模型化这样的交互。图 4.8 展示了这样一个图，可视化了前一个表格中一些类之间的关系。
 
 \myGraphic{0.9}{content/part2/chapter4/images/8.png}{图 4.8}
 
-The diagram in Figure 4.8 shows only a single iteration, a single TakeTurn call from GamePlay to Player; hence, it’s only a partial sequence diagram. After a TakeTurn call is finished, the GamePlay object should ask the ChessBoardView to draw itself, which in turn should ask different ChessPieceViews to draw themselves. Furthermore, you should extend the sequence diagram to visualize how a chess piece takes an opponent’s piece and to include support for a castling move, a move involving a player’s king and either of the player’s rooks. Castling is the only move for which a player moves two pieces at the same time.
+图 4.8 中的图表只展示了单一的迭代，从 GamePlay 到 Player 的 TakeTurn 调用，这只是一个部分序列图。在 TakeTurn 完成后，GamePlay 对象应该请求 ChessBoardView 绘制自身，这反过来又应该请求不同的 ChessPieceViews 进行绘制。此外，应该扩展序列图，以可视化棋子如何吃掉对方的棋子，并包括对王车易位（castling move）的支持，这是一种涉及玩家的王和任意一个车（rook）的移动。王车易位是唯一一种玩家同时移动两个棋子的走法。
 
-This section of the design document would normally present the actual interfaces for each class, but this example will forgo that level of detail.
+设计文档的这一部分通常会呈现每个类的实际接口，但这个例子将省略那个层次的细节。
 
-Designing classes and choosing data structures, algorithms, and patterns can be tricky. You should always keep in mind the rules of abstraction and reuse discussed earlier in this chapter. For abstraction, the key is to consider the interface and the implementation separately. First, specify the interface from the perspective of the user. Decide what you want the component to do. Then decide how the component will do it by choosing data structures and algorithms. For reuse, familiarize yourself with standard data structures, algorithms, and patterns, and make sure you are aware of the Standard Library in C++, as well as any proprietary code available at your workplace.
+设计类并选择数据结构、算法和模式可能会很棘手。应该始终牢记本章前面讨论的抽象和复用原则。对于抽象，关键是要将接口和实现分开考虑。首先，从用户的角度指定接口，决定组件做什么。然后，通过选择数据结构和算法来决定组件将如何做到这一点。对于复用，熟悉标准的数据结构、算法和模式，并确保了解 C++ 的标准库，以及可用的代码。
 
 \mySamllsection{如何进行错误处理}
 
-In this design step, you delineate the error handling in each subsystem. The error handling should include both system errors, such as network access failures, and user errors, such as invalid entries. You should specify whether each subsystem uses exceptions. You can again summarize this information in a table.
+这一设计步骤中，需要界定每个子系统的错误处理。错误处理应包括系统错误（如网络访问失败）和用户错误（如无效输入）。应该指定每个子系统是否使用异常，可以将这些信息总结在一个表格中。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -203,23 +204,24 @@ In this design step, you delineate the error handling in each subsystem. The err
 \endhead
 %
 GamePlay &
-\begin{tabular}[c]{@{}l@{}}Logs an error with the\\ ErrorLogger, shows a message\\ to the user, and gracefully shuts\\ down the program when an\\ unexpected error occurs.\end{tabular} &
-Not applicable (no direct user interface). \\ \hline
+\begin{tabular}[c]{@{}l@{}}用ErrorLogger记录错误，\\向用户显示一条消息，\\并在发生意外错误时关闭程序。\end{tabular} &
+不适用(无直接用户界面)。 \\ \hline
 \begin{tabular}[c]{@{}l@{}}ChessBoard\\ ChessPiece\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Logs an error with the\\ ErrorLogger and throws an\\ exception when an unexpected\\ error occurs.\end{tabular} &
-Not applicable (no direct user interface). \\ \hline
+\begin{tabular}[c]{@{}l@{}}使用ErrorLogger记录错误，\\并在发生意外错误时抛出异常。\end{tabular} &
+不适用(无直接用户界面)。 \\ \hline
 \begin{tabular}[c]{@{}l@{}}ChessBoardView\\ ChessPieceView\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Logs an error with the\\ ErrorLogger and throws an\\ exception if something goes\\ wrong during drawing.\end{tabular} &
-Not applicable (no direct user interface). \\ \hline
+\begin{tabular}[c]{@{}l@{}}用ErrorLogger记录错误，\\并在绘制过程中出现错误时抛出异常。\end{tabular} &
+不适用(无直接用户界面)。 \\ \hline
 Player &
-\begin{tabular}[c]{@{}l@{}}Logs an error with the\\ ErrorLogger and throws an\\ exception when an unexpected\\ error occurs.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Sanity checks a user’s move entry to\\ ensure that it is not off the board; it\\ then prompts the user for another entry.\\ This subsystem checks each move’s\\ legality before moving the piece; if\\ illegal, it prompts the user for another\\ move.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}使用ErrorLogger记录错误，\\并在发生意外错误时抛出异常。\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}检查用户移动的棋子，\\确保棋子没有离开棋盘;\\然后，提示用户输入另一个条目。\\这个子系统需要在移动棋子前，\\检查每一步棋的合法性;\\如果不合规则，\\会提示用户进行另一次移动。\end{tabular} \\ \hline
 ErrorLogger &
-\begin{tabular}[c]{@{}l@{}}Attempts to log an error; informs\\ the user when an unexpected\\ error occurs.\end{tabular} &
-Not applicable (no direct user interface). \\ \hline
+\begin{tabular}[c]{@{}l@{}}尝试记录错误;\\当发生意外错误时通知用户。\end{tabular} &
+不适用(无直接用户界面)。 \\ \hline
 \end{longtable}
 
-The general rule for error handling is to handle everything. Think hard about all possible error conditions. If you forget one possibility, it will show up as a bug in your program! Don’t treat anything as an “unexpected” error. Expect all possibilities: memory allocation failures, invalid user entries, disk failures, and network failures, to name a few. However, as the table for the chess game shows, you should handle user errors differently from internal errors. For example, a user entering an invalid move should not cause your chess program to terminate. Chapter 14, “Handling Errors,” discusses error handling in more depth.
+错误处理的通用规则是处理所有事情,仔细考虑所有可能的错误情况。如果忘记了一个可能性，它将作为程序中的错误出现！不要将任何东西视为“意外”错误。期待所有可能性：内存分配失败、无效用户输入、磁盘故障和网络故障，仅举几例。然而，正如国际象棋游戏的表格所示，应该以不同的方式处理用户错误和内部错误。例如，用户输入一个无效的移动，不应该导致的国际象棋程序终止。第 14 章会更深入地介绍错误处理。
+
 
 
 

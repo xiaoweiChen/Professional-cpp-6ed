@@ -11,7 +11,7 @@ Often, thinking about user interface scenarios is helpful in understanding class
 
 Figure 5.3 shows a real-world and a user interface has-a relationship.
 
-\myGraphic{0.7}{content/part2/chapter5/images/3.png}{FIGURE 5.3}
+\myGraphic{0.7}{content/part2/chapter5/images/3.png}{图 5.3}
 
 There are two types of has-a relationships:
 
@@ -31,7 +31,7 @@ Fundamentally, inheritance follows the pattern A is a B or A is really quite a b
 
 What this means for the programmer is that you can define an Animal class that encapsulates all of the properties (size, location, diet, and so on) and behaviors (move, eat, sleep) that pertain to every animal. The specific animals, such as monkeys, become derived classes of Animal because a monkey contains all the characteristics of an animal. Remember, a monkey is an animal plus some additional characteristics that make it distinct. Figure 5.4 shows an inheritance diagram for animals. The arrows indicate the direction of the is-a relationship.
 
-\myGraphic{0.9}{content/part2/chapter5/images/4.png}{FIGURE 5.4}
+\myGraphic{0.5}{content/part2/chapter5/images/4.png}{图 5.4}
 
 Just as monkeys and giraffes are different types of animals, a user interface often has different types of buttons. A checkbox, for example, is a button.
 Assuming that a button is simply a UI element that can be clicked to perform an action, a Checkbox extends the Button class by adding state—whether the box is checked or unchecked.
@@ -158,11 +158,11 @@ Messing around with a collection instead of a string is tedious and requires a l
 
 To start with the is-a relationship, imagine that MultiAssociativeArray is a derived class of AssociativeArray. This will turn out to be a bad idea, but let’s run with it as an example of a bad design. MultiAssociativeArray would have to override the member function that adds an entry into the array so that it would either create a collection and add the new element or retrieve the existing collection and add the new element to it. It would also have to override the member function that retrieves a value. There is a complication, though: the overridden get() member function should return a single value, not a collection. Which value should a MultiAssociativeArray return? One option is to return the first value associated with a given key. An additional getAll() member function could be added to retrieve all values associated with a key. This might seem like a reasonable design. Even though it overrides all the member functions of the base class, it still makes use of the base class’s member functions from within the derived class. Figure 5.5 shows this approach as a UML class diagram.
 
-\myGraphic{0.7}{content/part2/chapter5/images/5.png}{FIGURE 5.5}
+\myGraphic{0.3}{content/part2/chapter5/images/5.png}{图 5.5}
 
 Now consider it as a has-a relationship. MultiAssociativeArray is its own class, but it contains an AssociativeArray object. It probably has an interface similar to AssociativeArray, but it need not be the same. Behind the scenes, when a user adds something to the MultiAssociativeArray, it is really wrapped in a collection and put in an AssociativeArray object. This seems perfectly reasonable and is shown in Figure 5.6.
 
-\myGraphic{0.7}{content/part2/chapter5/images/6.png}{FIGURE 5.6}
+\myGraphic{0.7}{content/part2/chapter5/images/6.png}{图 5.6}
 
 So, which solution is right? There seems to be no clear answer, but decades of experience have taught us that has-a is usually the better of the two alternatives. The main reason is to allow modifications to the exposed interface without worrying about maintaining associative array functionality. For example, in Figure 5.6, the get() member function is changed to getAll(), making it clear that this gets all the values for a particular key in a MultiAssociativeArray. Additionally, with a has-a relationship, you don’t have to worry about any associative array functionality bleeding through. For example, with an is-a relationship, if the associative array class supported a member function that would get the total number of values, it would report the number of collections unless MultiAssociativeArray knew to override it.
 
@@ -207,7 +207,7 @@ As you consider what type of relationship classes have, you should consider whet
 
 One pitfall occurs when things are obviously related in the real world but have no actual relationship in code. Object-oriented hierarchies need to model functional relationships, not artificial ones. Figure 5.7 shows relationships that are meaningful as ontologies or hierarchies but are unlikely to represent meaningful relationships in code.
 
-\myGraphic{0.7}{content/part2/chapter5/images/7.png}{FIGURE 5.7}
+\myGraphic{0.7}{content/part2/chapter5/images/7.png}{图 5.7}
 
 The best way to avoid needless inheritance is to sketch out your design first. For every class and derived class, write down what properties and member functions you’re planning on putting into the class. You should rethink your design if you find that a class has no particular properties or member functions of its own, or if all of those properties and member functions are completely overridden by its derived classes, except when working with abstract base classes as mentioned earlier.
 
@@ -215,11 +215,11 @@ The best way to avoid needless inheritance is to sketch out your design first. F
 
 Just as a class A can be a base class of B, B can also be a base class of C. Object-oriented hierarchies can model multilevel relationships like this. A zoo simulation with more animals might be designed with every animal as a derived class of a common Animal class, as shown in Figure 5.8.
 
-\myGraphic{0.7}{content/part2/chapter5/images/8.png}{FIGURE 5.8}
+\myGraphic{0.5}{content/part2/chapter5/images/8.png}{图 5.8}
 
 As you code each of these derived classes, you might find that a lot of them are similar. When this occurs, you should consider putting in a common parent. Realizing that Lion and Panther both move the same way and have the same diet might indicate a need for a possible BigCat class. You could further subdivide the Animal class to include WaterAnimal and Marsupial. Figure 5.9 shows a more hierarchical design that leverages this commonality.
 
-\myGraphic{0.7}{content/part2/chapter5/images/9.png}{FIGURE 5.9}
+\myGraphic{0.7}{content/part2/chapter5/images/9.png}{图 5.9}
 
 A biologist looking at this hierarchy may be disappointed—a penguin isn’t really in the same family as a dolphin. However, it underlines a good point—in code, you need to balance real-world relationships with shared-functionality relationships. Even though two things might be closely related in the real world, they might have a not-a relationship in code because they really don’t share functionality. You could just as easily divide animals into mammals and fish, but that wouldn’t factor any commonality to the base class.
 
@@ -244,11 +244,11 @@ Every example so far has had a single inheritance chain. In other words, a given
 
 Figure 5.10 shows a multiple inheritance design. There is still a base class called Animal, which is further divided by size. A separate hierarchy categorizes by diet, and a third takes care of movement. Each type of animal is then a derived class of all three of these classes, as shown by different lines.
 
-\myGraphic{0.8}{content/part2/chapter5/images/10.png}{FIGURE 5.10}
+\myGraphic{0.8}{content/part2/chapter5/images/10.png}{图 5.10}
 
 In a user interface context, imagine an image that the user can click. This class seems to be both a button and an image so the implementation might involve inheriting from both the Image class and the Button class, as shown in Figure 5.11.
 
-\myGraphic{0.8}{content/part2/chapter5/images/11.png}{FIGURE 5.11}
+\myGraphic{0.4}{content/part2/chapter5/images/11.png}{图 5.11}
 
 Multiple inheritance can be useful in certain cases, but it also has a number of disadvantages that you should always keep in mind. Many programmers dislike multiple inheritance. C++ has explicit support for such relationships, though the Java language does away with them altogether, except for inheriting from multiple interfaces (abstract base classes). There are several reasons to which multiple inheritance critics point.
 
