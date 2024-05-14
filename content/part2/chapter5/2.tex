@@ -1,59 +1,59 @@
 
-Unlike the procedural approach, which is based on the question “What does this program do?” the object-oriented approach asks another question: “What real-world objects am I modeling?” OOP is based on the notion that you should divide your program not into tasks but into models of physical objects. While this seems abstract at first, it becomes clearer when you consider physical objects in terms of their classes, components, properties, and behaviors.
+与“程序做什么？”的方法不同，面向对象提出另一个问题：“我正在建模哪些现实世界的对象？” OOP 基于这样的观念：应该将程序划分成物理对象的模型，而不是任务。尽管这最初听起来有些抽象，但当从类、组件、属性和行为的角度考虑对象时，就会变得很清晰。
 
 \mySubsubsection{5.2.1.}{类}
 
-A class helps distinguish an object from its definition. Consider the orange. There’s a difference between talking about oranges in general as tasty fruit that grows on trees and talking about a specific orange, such as the one that’s currently dripping juice on my keyboard.
+类有助于区分对象与其定义，以橙子为例。橙子作为美味的水果，生长在树上，其含义与我现在正在吃的那一个不同。
 
-When answering the question “What are oranges?” you are talking about the class of things known as oranges. All oranges are fruit. All oranges grow on trees. All oranges are some shade of orange. All oranges have some particular flavor. A class is simply the encapsulation of what defines a classification of objects.
+回答“橙子是什么？”时，是在谈论称为“橙子”的类。所有的橙子都是水果，并且所有的橙子都生长在树上，可能所有的橙子都是橙色，所有的橙子都有某种特定的味道。所以，类定义的是一类对象。
 
-When describing a specific orange, you are talking about an object. All objects belong to a particular class. Because the object on my desk is an orange, I know that it belongs to the orange class. Thus, I know that it is a fruit that grows on trees. I can further say that it is a medium shade of orange and ranks “mighty tasty” in flavor. An object is an instance of a class—a particular item with characteristics that distinguish it from other instances of the same class.
+当描述一个特定的橙子时，是在谈论一个对象。所有的对象都属于一个特定的类。因为桌上的那个橙子是橙子，我知道它属于橙子类。因此，我知道它是长在树上的水果。还可以进一步说它是中等橙色，味道“相当美味”。一个对象是类的实例——具有区分同一类其他实例的特征。
 
-As a more concrete example, reconsider the stock selection application from earlier. In OOP, “stock quote” is a class because it defines the abstract notion of what makes up a quote. A specific quote, such as “current Microsoft stock quote,” would be an object because it is a particular instance of the class.
+作为一个更具体的例子，再考虑之前的股票选择应用程序。在 OOP 中，“股票报价”是一个类，因为它定义了报价的抽象概念。特定的报价，比如“当前微软股票报价”，是一个对象，因为这是一类特定实例。
 
-From a C background, think of classes and objects as analogous to types and variables. In fact, Chapter 1, “A Crash Course in C++ and the Standard Library,” shows that the syntax for classes is similar to the syntax for C structs.
+从 C 背景出发，将类和对象视为类型和变量的类似物。实际上，第1章展示了类的语法与 C 结构体的语法相似。
 
 \mySubsubsection{5.2.2.}{对象}
 
-If you consider a complex real-world object, such as an airplane, it should be fairly easy to see that it is made up of smaller components. There’s the fuselage, the controls, the landing gear, the engines, and numerous other parts. The ability to think of objects in terms of their smaller components is essential to OOP, just as the breaking up of complicated tasks into smaller procedures is fundamental to procedural programming.
+如果考虑一个复杂的现实世界对象，比如飞机，应该很容易就能看出它是由更小的组件组成的，包括机身、控制、起落架、引擎和其他许多部分。将对象视为其更小组件的能力是面向对象编程的关键，正如将复杂任务分解为更小的过程是程序化编程的基础一样。
 
-A component is essentially the same thing as a class, just smaller and more specific. A good objectoriented program might have an Airplane class, but this class would be huge if it fully described an airplane. Instead, the Airplane class deals with many smaller, more manageable, components. Each of these components might have further subcomponents. For example, the landing gear is a component of an airplane, and the wheel is a component of the landing gear.
+组件本质上与类相同，只是更小、更具体。一个好的面向对象的程序可能有一个 Airplane 类，但若完全描述了一架飞机，这个类会非常大。相反，Airplane 类处理许多更小、更可管理的部分。每个这些组件可能还有进一步的子组件。例如，起落架是飞机的一个组件，而轮子是起落架中的一个组件。
 
 \mySubsubsection{5.2.3.}{属性}
 
-Properties are what distinguish one object from another. Going back to the Orange class, recall that all oranges are defined as having some shade of orange and a particular flavor. These two characteristics are properties. All oranges have the same properties, just with different values. My orange has a “mighty tasty” flavor, but yours may have a “terribly unpleasant” flavor.
+属性是区分一个对象与其他对象的特征。回到橙子类，回想一下所有橙子都定义为具有某种橙色和特定的味道。这两个特征是属性。所有的橙子都有相同的属性，只是值不同。我的橙子味道“非常美味”，而你的味道可能“非常糟糕”。
 
-You can also think about properties on the class level. As recognized earlier, all oranges are fruit and grow on trees. These are properties of the fruit class, whereas the specific shade of orange is determined by the particular fruit object. Class properties are shared by all objects of a class, while object properties are present in all objects of the class, but with different values.
+这也可以在类层面上考虑属性，所有的橙子都是水果，都生长在树上。这些都是水果类的属性，而具体的橙色则由特定的水果对象决定。类的所有对象共享属性，而对象属性存在于类的所有对象中，但具有不同的值。
 
-In the stock selection example, a stock quote has several object properties, including the name of the company, its ticker symbol, the current price, and other statistics.
+在股票选择示例中，股票报价有几个对象属性，包括公司名称、股票代码、当前价格和其他统计数据。
 
-Properties are the characteristics that describe an object. They answer the question, “What makes this object different?”
+属性描述了一个对象的特征，其回答了“是什么使这个对象与众不同？”。
 
 \mySubsubsection{5.2.4.}{行为}
 
-Behaviors answer either of two questions: “What does this object do?” or “What can I do to this object?” In the case of an orange, it doesn’t do a whole lot, but we can do things to it. One behavior is that it can be eaten. Like properties, you can think of behaviors on the class level or the object level. All oranges can pretty much be eaten in the same way. However, they might differ in some other behavior, such as being rolled down an incline, where the behavior of a perfectly round orange would differ from that of a more oblate one.
+行为回答以下两个问题之一：“这个对象做什么？”或“能对这个对象做什么？”以橙子为例，它本身并没有做很多事，但我们可以对它做些事情，一种情况是被吃掉。就像属性一样，可以在类层面或对象层面上考虑行为。所有的橙子基本上都可以以相同的方式吃掉。然而，它们在某些其他行为上可能会有所不同，例如滚下斜坡，其中完美圆形的橙子的行为与更扁平的橙子会有所不同。
 
-The stock selection example provides some more practical behaviors. If you recall, when thinking procedurally, I determined that my program needed to analyze stock quotes as one of its functions. Thinking in OOP, you might decide that a stock quote object can analyze itself. Analysis becomes a behavior of the stock quote object.
+股票选择示例提供了一些更实用的行为。回想一下，当我从程序的角度思考时，我确定了我的程序需要分析股票报价作为其功能之一。从面向对象的角度思考，可能会决定股票报价对象可以分析自己。分析成为股票报价对象的一个行为。
 
-In object-oriented programming, the bulk of functional code is moved out of procedures and into classes. By building classes that have certain behaviors and defining how they interact, OOP offers a much richer mechanism for attaching code to the data on which it operates. Behaviors for classes are implemented in class member functions.
+面向对象编程中，大部分功能代码被从过程移出，放入类中。通过构建具有某些行为的类并定义它们如何交互，面向对象编程提供了一种更丰富的机制，将代码附加到它操作的数据上。类的行为在类成员函数中实现。
 
-As Chapter 4 explains, C++ is a multi-paradigm language supporting both object-oriented programming and procedural programming. Thus, C++ does not force you to put everything into classes, like languages such as Java do. In C++, you are free to use classes when OOP makes sense, but there is nothing wrong with combining it with procedural programming and keeping certain functionality in stand-alone functions. In fact, a lot of the functionality of the C++ Standard Library is provided as stand-alone functions, e.g., all its algorithms.
+如第4章所述，C++ 是一种支持多范式的语言，既支持面向对象编程，也支持程序化编程。因此，C++ 不会强迫将所有东西都放入类中，就像 Java 一样。在 C++ 中，当认为面向对象编程有意义时，可以自由地使用类，但与程序化编程结合使用并没有什么不对，而且可以将某些功能保持在独立的函数中。事实上，C++ 标准库的大部分功能都是以独立的函数形式提供的，例如：所有的算法。
 
 \mySubsubsection{5.2.5.}{将一切放在一起}
 
-With these concepts, you could take another look at the stock selection program and redesign it in an object-oriented manner.
+有了这些概念，可以再次审视股票选择程序，以面向对象的方式重新设计它。
 
-As discussed, “stock quote” would be a fine class to start with. To obtain the list of quotes, the program needs the notion of a group of stock quotes, which is often called a collection. So, a better design might be to have a class that represents a “collection of stock quotes,” which is made up of smaller components that represent a single “stock quote.”
+正如所讨论的，“股票报价”可以作为一个很好的类开始。为了获取报价列表，程序需要一个表示一组股票报价的概念，这通常称为集合。因此，一个更好的设计可能是创建一个表示“股票报价集合”的类，由代表单个“股票报价”的较小组件组成。
 
-Moving on to properties, the collection class would have at least one property—the actual list of quotes received. It might also have additional properties, such as the exact date and time of the most recent retrieval. As for behaviors, the “collection of stock quotes” would be able to talk to a server to get the quotes and provide a sorted list of quotes. These are the “retrieve quotes” and “sort quotes” behaviors.
+继续考虑属性，集合类将至少有一个属性——实际接收的报价列表。还可能有其他属性，例如最近一次检索的确切日期和时间。至于行为，“股票报价集合”能够与服务器通信以获取报价，并提供一个排序后的报价列表，这些都是“获取报价”和“排序报价”的行为。
 
-The stock quote class would have the properties discussed earlier—name, symbol, current price, and so on. Also, it would have an analyze behavior. You might consider other behaviors, such as buying and selling the stock.
+股票报价类将具有前面讨论的属性——名称、代码、当前价格等。此外，它还将有一个分析行为。还需要考虑其他行为，例如购买和出售股票。
 
-It is often useful to create diagrams showing the relationship between components. Figure 5.1 uses the UML class diagram syntax, see Appendix D, “Introduction to UML,” to indicate that a StockQuoteCollection contains zero or more (0..*) StockQuote objects, and that a StockQuote object belongs to a single (1) StockQuoteCollection.
+创建显示组件之间关系图是个好习惯。图 5.1 使用 UML 类图语法，见附录 D，来表示 StockQuoteCollection 包含零个或多个（0…*）StockQuote 对象，并且一个 StockQuote 对象属于一个（1）StockQuoteCollection。
 
 \myGraphic{0.7}{content/part2/chapter5/images/1.png}{图 5.1}
 
-Let’s look at a second example. As described earlier, an orange has properties such as its color and flavor, as well as behaviors such as being eaten and rolled. You can come up with many more behaviors such as being tossed, peeled, or squeezed. Another property of an orange could be a collection of its seeds. Figure 5.2 shows a possible UML class diagram for the Orange and Seed classes, including the relationship that an Orange contains zero or more (0..*) Seeds and that a Seed belongs to a single (1) Orange.
+来看一个第二个例子。如前所述，橙子具有颜色、味道等属性，以及被吃掉、滚动等行为。可以想出更多行为，例如抛掷、剥皮或挤汁。另一个橙子的属性可能是其种子的集合。图 5.2 显示了橙子和种子类的可能 UML 类图，包括一个橙子包含零个或多个（0…*）种子，并且一个种子属于一个（1）橙子的关系。
 
 \myGraphic{0.5}{content/part2/chapter5/images/2.png}{图 5.2}
 
