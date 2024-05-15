@@ -1,93 +1,93 @@
 
-Reusable code fulfills two main goals:
+可重用代码的两个主要目标：
 
 \begin{itemize}
 \item
-First, it is general enough to use for slightly different purposes or in different application domains. Program components with details of a specific application are difficult to reuse in other programs.
+首先，是通用性，可以在不同的应用程序域中使用。具有特定场景的应用程序组件，难以在其他程序中重用。
 
 \item
-Second, reusable code is also easy to use. It doesn’t require significant time to understand its interface or functionality. Programmers must be able to incorporate it readily into their applications.
+其次，可重用代码也易于使用，不需要花费大量时间来理解其接口或功能。开发者能够轻松地将它整合到自己的应用程序中。
 \end{itemize}
 
-The means of delivering your library to clients is also important. You can deliver it in source form, and clients just incorporate your source into their project. Another option is to deliver binaries in the form of static libraries, which they link into their application, or in the form of Dynamic Link Libraries (.dll) for Windows clients, or shared objects (.so) for Linux clients. Each of these delivery mechanisms can impose additional constraints on how you design your reusable code.
+向客户交付库的方式也很重要。可以以源代码形式交付，客户只需将源代码整合到他们的项目中。另一种选择是以静态库的形式交付二进制文件，他们将这些库链接到他们的应用程序中，或者以动态链接库 (.dll) 的形式交付给 Windows 客户，或者以共享对象 (.so) 的形式交付给 Linux 客户。这些交付机制中的每一种都可能对设计可重用代码的方式有一些限制。
 
 \begin{myNotic}{NOTE}
-This chapter uses the term client to refer to a programmer who uses your interfaces. Don’t confuse clients with users who run your programs. This chapter also uses the phrase client code to refer to code that is written to use your interfaces.
+本章使用术语“客户”来指代使用接口的开发者。不要将“客户”与运行程序的用户混淆。本章还会使用短语“客户代码”来指代使用接口的代码。
 \end{myNotic}
 
-The most important strategy for designing reusable code is abstraction.
+而设计可重用代码的最重要策略是抽象。
 
-\mySubsubsection{6.2.1.}{Use Abstraction}
+\mySubsubsection{6.2.1.}{抽象}
 
-The key to abstraction is effectively separating the interface from the implementation. The implementation is the code you’re writing to accomplish the task you set out to accomplish. The interface is the way that other people use your code. In C, the header file that describes the functions in a library you’ve written is an interface. In object-oriented programming, the collection of publicly accessible class member functions and class properties is the interface of the class. However, a good interface should contain only public member functions. Properties of a class should never be made public but can be exposed through public member functions, also called getters and setters.
+抽象的关键是有效地将接口与实现分离。实现是编写的代码，用于完成任务，接口是其他人使用你的代码的方式。在 C 中，描述库中函数的头文件是一个接口。在面向对象编程中，公共可访问的类成员函数和类属性集合是类的接口。然而，好的接口应该只包含公共成员函数。类的属性永远不应该公开，但可以通过公共成员函数（也称为 getter 和 setter）获取。
 
-Chapter 4 introduces the principle of abstraction and presents a real-world analogy of a television, which you can use through its interfaces without understanding how it works inside. Similarly, when you design code, you should clearly separate the interface from the implementation. This separation makes the code easier to use, primarily because clients do not need to understand the internal implementation details to use the functionality.
+第 4 章介绍了抽象原则，并通过电视机的类比，展示了可以通过其接口使用电视，而无需了解其内部工作原理。同样，当设计代码时，应该清楚地分离接口和实现。这种分离使得代码更易于使用，主要是因为客户端不需要了解内部实现细节。
 
-Using abstraction benefits both you and the clients who use your code. Clients benefit because they don’t need to worry about the implementation details; they can take advantage of the functionality you offer without understanding how the code really works. You benefit because you can modify the underlying code without changing the interface to the code. Thus, you can provide upgrades and fixes without requiring clients to change their use. With dynamically linked libraries, clients might not even need to rebuild their executables. Finally, you both benefit because you, as the library writer, can specify in the interface exactly what interactions you expect and what functionality you support. Consult Chapter 3, “Coding with Style,” for a discussion on how to write documentation. A clear separation of interfaces and implementations will prevent clients from using the library in ways that you didn’t intend, which can otherwise cause unexpected behaviors and bugs.
+使用抽象对客户也有好处，因为他们不需要了解实现细节，就可以利用提供的功能。对于设计者也有好处，可以修改底层代码，而无需改变代码的接口。因此，可以提供升级和修复补丁，而不需要客户更改其使用方式。对于动态链接库，客户甚至可能不需要重新构建他们的可执行文件。因为作为库编写者，可以明确指定接口中期望的交互和提供支持的功能。清晰的接口和实现分离将防止客户以未预期的方法使用库，否则可能会导致意外的行为和错误。
 
 \begin{myWarning}{WARNING}
-When designing your interface, do not expose implementation details to your clients.
+设计接口时，不要向客户暴露实现细节。
 \end{myWarning}
 
-Sometimes libraries require client code to keep information returned from one interface to pass it to another. This information is sometimes called a handle and is often used to keep track of specific instances that require state to be remembered between calls. A real-world example of this is OpenGL, a 2D/3D rendering library. Many functions of OpenGL return and work with handles, which are represented by the type GLuint. For example, if you use the OpenGL function glGenBuffers() to create a buffer, it returns you the buffer as a GLuint handle. Whenever you want to call another function to do something with that buffer, you must pass the GLuint handle to that function.
+有时库需要客户端代码将从接口返回的信息保留下来，以便传递给另一个接口。这种信息有时称为句柄，通常用于在调用之间记住特定实例的状态。例如OpenGL，一个 2D/3D 渲染库。OpenGL 的许多函数返回和处理句柄，由类型 GLuint 表示。例如，如果使用 OpenGL 函数 glGenBuffers() 来创建一个缓冲区，会将缓冲区作为 GLuint 句柄返回。无论何时想调用另一个函数来对那个缓冲区执行某些操作，都必须将 GLuint 句柄传递给那个函数。
 
-If your library design requires a handle, don’t expose its internals. Make that handle into an opaque class, in which the programmer can’t access the internal data members, neither directly nor through public getters or setters. Don’t require the client code to tweak variables inside this handle. An example of a bad design would be a library that requires you to set a specific member of a structure in a supposedly opaque handle in order to turn on error logging
+如果库设计需要一个句柄，不要暴露其内部细节。将这个句柄变成一个不透明的类，开发者不能直接访问也不可以通过公共的 getter 或 setter 访问内部数据成员。不要要求客户端代码修改这个句柄内部的变量。一个糟糕设计的例子是要求在一个所谓的不可见句柄中设置一个特定结构成员，以打开错误日志。
 
 \begin{myNotic}{NOTE}
-Unfortunately, C++ is fundamentally unfriendly to the principle of good abstraction when writing classes. The syntax requires you to combine your public interfaces and non-public (private or protected) data members and member functions together in one class definition, thereby exposing some of the internal implementation details of the class to its clients. Chapter 9, “Mastering Classes and Objects,” describes some techniques for working around this in order to present clean interfaces.
+不幸的是，C++ 在编写类时就不友好于良好的抽象原则。语法要求公共接口和非公共（私有或受保护）数据成员和成员函数组合在一起，在一个类定义中，会向客户端暴露了类的某些内部实现细节。第 9 章描述了一些技术，以绕过这一点，以提供干净的接口。
 \end{myNotic}
 
-Abstraction is so important that it should guide your entire design. As part of every decision you make, ask yourself whether your choice fulfills the principle of abstraction. Put yourself in your clients’ shoes and determine whether you’re requiring knowledge of the internal implementation in the interface. You should rarely, if ever, make exceptions to this rule.
+抽象是如此重要，以至于应该指导整个设计。在做的每一个决定中，都要问自己选择是否符合抽象原则。站在客户的立场上，确定是否在接口中要求了解内部实现。
 
-While designing reusable code using abstraction, you should focus on the following:
+使用抽象设计可重用代码时，应该关注以下几点：
 
 \begin{itemize}
 \item
-First, you must structure the code appropriately. What class hierarchies will you use? Should you use templates? How should you divide the code into subsystems?
+首先，必须正确地组织代码。将使用哪种类层次结构？使用模板吗？如何将代码划分为子系统？
 
 \item
-Second, you must design the interfaces, which are the “entries” into your library to access the functionality you provide.
+其次，必须设计接口。
 \end{itemize}
 
-Both topics are discussed in the upcoming sections.
+这两个主题将在接下来的部分中讨论。
 
-\mySubsubsection{6.2.2.}{Structure Your Code for Optimal Reuse}
+\mySubsubsection{6.2.2.}{重用结构化代码}
 
-You must consider reuse from the beginning of your design on all levels, that is, from a single function, over a class, to entire libraries and frameworks. In the text that follows, all these different levels are called components. The following strategies will help you organize your code properly. Note that all of these strategies focus on making your code general purpose. The second aspect of designing reusable code, providing ease of use, is more relevant to your interface design and is discussed later in this chapter.
+必须在设计的所有层面上考虑重用，从单个函数、类，到整个库和框架，所有这些不同的层面都称为组件。以下策略将帮助你正确地组织代码，所有策略都集中在代码的通用性上。设计可重用代码的第二个方面，即提供易用性，更多与接相关的口设计，将在本章的后面部分讨论。
 
-\mySamllsection{Avoid Combining Unrelated or Logically Separate Concepts}
+\mySamllsection{避免组合不相关或逻辑上分离的概念}
 
-When you design a component, you should keep it focused on a single task or group of tasks, that is, you should strive for high cohesion. This is also known as the single responsibility principle (SRP). Don’t combine unrelated concepts such as a random number generator and an XML parser.
+当设计一个组件时，应该专注于单个任务或一组任务，努力实现高内聚，这称为单一职责原则（SRP）。不要组合不相关的概念，例如：随机数生成器和 XML 解析器。
 
-Even when you are not designing code specifically for reuse, keep this strategy in mind. Entire programs are rarely reused on their own. Instead, pieces or subsystems of the programs are incorporated directly into other applications or are adapted for slightly different uses. Thus, you should design your programs so that you divide logically separate functionality into distinct components that can be reused in different programs. Each such component should have well-defined responsibilities.
+即使不是专门为重用设计代码，也要记住这个策略。整个程序很少单独重用，但程序的片段或子系统会直接整合到其他应用程序中，或者被稍加修改以适应不同的用途。因此，将逻辑上分离的功能划分为可以独立重用的独立组件，每个这样的组件都应该有明确的责任。
 
-This program strategy models the real-world design principle of discrete, interchangeable parts. For example, you could write a Car class and put all properties and behaviors of the engine into it. However, engines are separable components that are not tied to other aspects of the car. The engine could be removed from one car and put into another car. A proper design would include an Engine class that contains all engine-specific functionality. A Car instance then just contains an instance of Engine.
+这个策略模仿了实际设计原则中的离散、可互换的部件。例如，编写一个 Car 类，并将所有发动机的属性和行为都放在其中。然而，发动机是可分离的组件，它们与其他汽车方面没有联系。发动机可以从一辆汽车上取下并放入另一辆汽车。一个适当的设计，应该包括一个包含所有与发动机相关的功能的 Engine 类。然后，Car 实例只需包含 Engine 类的实例。
 
-\mySamllsection{Divide Your Programs into Logical Subsystems}
+\mySamllsection{将程序划分为逻辑子系统}
 
-You should design your subsystems as discrete components that can be reused independently, that is, strive for low coupling. For example, if you are designing a networked game, keep the networking and graphical user interface aspects in separate subsystems. That way, you can reuse either component without dragging in the other one. For example, you might want to write a non-networked game, in which case you could reuse the graphical interface subsystem but wouldn’t need the networking aspect. Similarly, you could design a peer-to-peer file-sharing program, in which case you could reuse the networking subsystem but not the graphical user interface functionality.
+应该设计子系统作为可以独立重用的离散组件，努力实现低耦合。例如，如果正在设计一个网络游戏，应该将网络和图形用户界面方面分开。这样，可以不带其他组件而重用其中一个组件。例如，可能想写一个非网络游戏，可以重用图形界面子系统，而不需要网络方面。同样，可以设计一个对等文件共享程序，可以重用网络子系统，而不需要图形用户界面功能。
 
-Make sure to follow the principle of abstraction for each subsystem. Think of each subsystem as a miniature library for which you must provide a coherent and easy-to-use interface. Even if you’re the only programmer who ever uses these miniature libraries, you will benefit from well-designed interfaces and implementations that separate logically distinct functionality.
+确保为每个子系统遵循抽象原则。将每个子系统视为一个小型库，必须提供连贯且易于使用的接口。即使是唯一使用这些小型库的开发者，也会从良好设计的接口和实现中受益，这些接口和实现将逻辑上分离的功能分离出来。
 
-\mySamllsection{Use Class Hierarchies to Separate Logical Concep}
+\mySamllsection{使用类层次结构来分离逻辑概念}
 
-In addition to dividing your program into logical subsystems, you should avoid combining unrelated concepts at the class level. For example, suppose you want to write a class for a self-driving car. You decide to start with a basic class for a car and incorporate all the self-driving logic directly into it. However, what if you just want a non-self-driving car in your program? In that case, all the logic related to self-driving is useless and might require your program to link with libraries that it could otherwise avoid, such as vision libraries, LIDAR libraries, and so on. One possible solution is to create a class hierarchy (introduced in Chapter 5) in which a self-driving car is a derived class of a generic car. That way, you can use the car base class in programs that do not need self-driving capabilities without incurring the cost of such algorithms. Figure 6.1 shows this hierarchy.
+除了将程序划分为逻辑子系统之外，还应该避免在类层面上组合不相关的概念。例如，想为自动驾驶汽车编写一个类。决定从一个基本的汽车类开始，并直接将其自动驾驶逻辑合并进去。然而，如果只想在程序中编写一个非自动驾驶汽车呢？与自动驾驶相关的所有逻辑都无用，并且可能会使程序链接到它本可以避免的库，例如视觉库、LIDAR 库等。一个可能的解决方案是创建一个类层次结构（在第 5 章中介绍），其中自动驾驶汽车是通用汽车的派生类。这样，可以在不需自动驾驶功能的程序中使用汽车基类。图 6.1 显示了这种层次结构。
 
-\myGraphic{0.7}{content/part2/chapter6/images/1.png}{FIGURE 6.1}
+\myGraphic{0.2}{content/part2/chapter6/images/1.png}{图 6.1}
 
-This strategy works well when there are two logical concepts, such as self-driving and cars. It becomes more complicated when there are three or more concepts. For example, suppose you want to provide both a truck and a car, each of which could be self-driving or not. Logically, both the truck and the car are a special case of a vehicle, and so they could be derived classes of a vehicle class, as shown in Figure 6.2.
+这种策略在有两个逻辑概念时（例如，自动驾驶和汽车）效果很好。当有三个或更多的概念时，就会变得更加复杂。例如，假设想提供卡车和汽车，每种都可以是自动驾驶或不自动驾驶。从逻辑上讲，卡车和汽车都是车辆的一种特例，因此它们可以是车辆类的派生类，如图 6.2 所示。
 
-\myGraphic{0.7}{content/part2/chapter6/images/2.png}{FIGURE 6.2}
+\myGraphic{0.4}{content/part2/chapter6/images/2.png}{图 6.2}
 
-Similarly, self-driving classes could be derived classes of non-self-driving classes. You can’t provide these separations with a linear hierarchy. One possibility is to make the self-driving aspect a mixin class instead. The previous chapter shows one way to implement mixins in C++ by using multiple inheritance. For example, a PictureButton could inherit from both an Image class and a Clickable mixin class. However, for the self-driving design, it’s better to use a different kind of mixin implementation, one using class templates.
+同样，自动驾驶类可以是非自动驾驶类的派生类，不能使用线性层次结构提供这些分离。一种可能性是将自动驾驶方面作为一个混合类，上一章展示了在 C++ 中使用多重继承实现混合类的一种方式。例如，一个 PictureButton 可以从 Image 类和 Clickable 混合类同时继承。然而，对于自动驾驶设计，最好使用一种不同的混合实现，即类模板。
 
-This example jumps ahead a bit on class template syntax, which is discussed in detail in Chapter 12, “Writing Generic Code with Templates,” but those details are not important to follow this discussion. It also jumps ahead a bit on the syntax of inheritance. Chapter 10, “Discovering Inheritance Techniques,” discusses inheritance in detail; however, those details are not important to understand this example. For now, you need to know only that the following syntax specifies that the Derived class inherits/derives from the Base class:
+这个例子在类模板语法上跳得有点远，该语法在第 12 章中进行了详细讨论，但这些细节对于理解这个讨论并不重要。第 10 章详细讨论了继承；然而，这些细节对于理解这个例子并不重要。目前，只需要知道以下语法完成了从基类进行继承/派生：
 
 \begin{cpp}
 class Derived : public Base {};
 \end{cpp}
 
-The SelfDrivable mixin class template can then be defined as follows:
+SelfDrivable混合类模板可以这样定义:
 
 \begin{cpp}
 template <typename T>
@@ -96,54 +96,54 @@ class SelfDrivable : public T
 };
 \end{cpp}
 
-This SelfDrivable mixin class provides all the necessary algorithms for implementing the selfdriving functionality. Once you have this SelfDrivable mixin class template, you can instantiate one for a car and one for a truck as follows:
+这个 SelfDrivable 混合类模板提供了实现自动驾驶功能所需的所有必要算法。有了这个 SelfDrivable 混合类模板，就可以为实例化汽车和卡车，如下所示：
+
 
 \begin{cpp}
 SelfDrivable<Car> selfDrivingCar;
 SelfDrivable<Truck> selfDrivingTruck;
 \end{cpp}
 
-The result of these two lines is that the compiler uses the SelfDrivable mixin class template to create one instantiation where all T’s of the class template are replaced by Car and hence is derived from Car, and another where the T’s are replaced by Truck and thus derives from Truck. Chapter 32, “Incorporating Design Techniques and Frameworks,” goes into more detail on mixin classes.
+这两行代码的结果是编译器使用 SelfDrivable 混合类模板创建了两个实例。在第一个实例中，类模板中所有的 T 都使用 Car 替换，因此从 Car 派生；在第二个实例中，所有的 T 都使用 Truck 替换，因此从 Truck 派生。
 
-This solution requires you to write four different classes (Vehicle, Car, Truck, and SelfDrivable), but the clear separation of functionality is worth the effort.
+这个解决方案需要编写四个不同的类（Vehicle、Car、Truck 和 SelfDrivable），但需要功能分离上下功夫。
 
-Similarly, you should avoid combining unrelated concepts, that is, strive for high cohesion, at any level of your design, not only at the class level. For example, at the level of member functions, a single member function should not perform logically unrelated things, mix mutation (set) and inspection (get), and so on.
+同样，应该在任何设计层面上避免组合不相关的概念，即努力实现高内聚。例如，在成员函数层面，一个成员函数不应该执行逻辑上不相关的事情，混合修改（set）和检查（get）等。
 
-\mySamllsection{Use Aggregation to Separate Logical Concepts}
+\mySamllsection{使用聚合分离逻辑概念}
 
-Aggregation, discussed in Chapter 5, models the has-a relationship: objects contain other objects to perform some aspects of their functionality. As Chapter 5 explains, if you have a choice, prefer using has-a relationships over is-a relationships.
+聚合，在第 5 章中讨论，模拟了 has-a 关系：对象包含其他对象以执行其功能的某些方面。如第 5 章所述，如果有选择，应优先使用 has-a 关系而不是 is-a 关系。
 
-For example, suppose you want to write a FamilyTree class to store the members of a family. Obviously, a tree data structure would be ideal for storing this information. Instead of integrating the tree structure code directly in the FamilyTree class, you should write a separate Tree class. The FamilyTree class can then contain and use a Tree instance. To use the object-oriented terminology, FamilyTree has-a Tree. With this technique, the tree data structure could be reused more easily in another program.
+例如，想编写一个 FamilyTree 类来存储家庭成员。显然，树数据结构是存储此信息的理想选择。不需要将树结构代码直接集成到 FamilyTree 类中，应该编写一个单独的 Tree 类。然后，FamilyTree 类可以包含并使用一个 Tree 实例。从面向对象的角度来说，FamilyTree 中有 Tree。使用这种技术，树数据结构可以更容易地在其他程序中重用。
 
-\mySamllsection{Eliminate User Interface Dependencies}
+\mySamllsection{消除用户界面的依赖}
 
-If your library is a data manipulation library, you want to separate data manipulation from the user interface. This means that for those kinds of libraries you should never assume in which type of user interface the library will be used. The library should not use any of the standard console output and input functionality, such as std::println() or cin, because if the library is used in the context of a graphical user interface, doing so may make no sense. For example, a Windows GUI-based application usually will not have any form of console I/O. If you think your library will only be used in GUI-based applications, you should still never pop up any kind of message box or other kind of notification to the end user, because that is the responsibility of the client code. It’s the client code that decides how messages are displayed to the user. These kinds of dependencies not only result in poor reusability, but they also prevent client code from properly responding to an error, for example, to handle it silently.
+如果是一个数据操作库，希望将数据操作与用户界面分开，则永远不应该假设库将在哪种类型的用户界面中使用。库不应该使用任何标准控制台输出和输入功能，例如 std::println() 或 cin，因为如果库在图形用户界面上下文中使用，这样做可能没有意义。例如，基于 Windows 的 GUI 应用程序通常不会有控制台 I/O。如果认为该库只会在基于 GUI 的应用程序中使用，仍然不应该弹出任何类型的消息框或其他类型的通知给最终用户，因为这是客户端代码的责任。客户端代码决定如何向用户显示消息。这些依赖不仅导致可重用性差，而且还阻止客户端代码正确响应错误，例如，以静默方式处理它。
 
-The Model-View-Controller (MVC) paradigm, introduced in Chapter 4, is a well-known design pattern to separate storing data from visualizing that data. With this paradigm, the model can be in the library, while the client code can provide the view and the controller.
+模型-视图-控制器（MVC）模式，在第 4 章中介绍，用于将存储数据与可视化数据分开。根据这个模式，模型可以放在库中，而客户端代码可以提供视图和控制器。
 
-\mySamllsection{Use Templates for Generic Data Structures and Algorithms}
+\mySamllsection{使用模板进行泛型数据结构和算法的设计}
 
-C++ has a concept called templates that allows you to create structures that are generic with respect to a type or class. For example, you might have written code for an array of integers. If you subsequently would like an array of doubles, you need to rewrite and replicate all the code to work with doubles. The notion of a template is that the type becomes a parameter to the specification, and you can create a single body of code that can work on any type. Templates allow you to write both data structures and algorithms that work on any types.
+C++ 有一个概念叫做模板，允许创建相对于类型或类的泛型结构。例如，编写了一段用于整数数组的代码。如果后来想使用双精度浮点数数组，需要重新编写并复制所有代码以使其与双精度浮点数一起工作。模板的概念是类型成为规格的一个参数，可以创建一个可以处理任何类型的单一代码体。模板允许编写适用于任何类型的数据结构和算法。
 
-The simplest example of this is the in Chapter 1, “A Crash Course in C++ and the Standard Library,” introduced std::vector class, which is part of the C++ Standard Library. To create a vector of integers, you write std::vector<int>; to create a vector of doubles, you write std::vector<double>. Template programming is, in general, extremely powerful but can be very complex. Luckily, it is possible to create rather simple usages of templates that parameterize according to a type. Chapters 12 and 26, “Advanced Templates,” explain the techniques to write your own templates, while this section discusses some of their important design aspects.
+这个概念的最简单例子是第 1 章中介绍的 std::vector 类，是 C++ 标准库的一部分。要创建一个整数vector， std::vector<int>；要创建一个双精度浮点数vector，std::vector<double>。模板编程一般来说非常强大，也会非常复杂。幸运的是，可以创建一些简单的模板用法，根据类型参数化。
 
-Whenever possible, you should use a generic design for data structures and algorithms instead of encoding specifics of a particular program. Don’t write a balanced binary tree structure that stores only book objects. Make it generic, so that it can store objects of any type. That way, you could use it in a bookstore, a music store, an operating system, or anywhere that you need a balanced binary tree.
-This strategy underlies the Standard Library, which provides generic data structures and algorithms that work on any types.
+在可能的情况下，应该为数据结构和算法使用泛型设计，而不是为特定程序编码特定的细节。不要编写只能存储书对象的平衡二叉树结构。使它变得通用，以便它可以存储任何类型的对象。这样，可以在书店、音乐店、操作系统或任何需要平衡二叉树的地方使用它。这种策略是标准库的基础，提供了适用于任何类型的泛型数据结构和算法。
 
-However, at the same time, keep in mind that implementing a generic data structure takes more time compared to a non-generic implementation. You will need to think more about requirements, and you will need to test your generic implementation more extensively with many different types. If your data structure is very specific for a specific use case, this extra effort might not pay off, and you might be better off starting with a simple non-generic implementation.
+同时，请记住，实现泛型数据结构需要比非泛型实现花费更多的时间。需要更多地考虑需求，并且需要更广泛地测试泛型实现，因为它可以处理许多不同的类型。如果数据结构特定于某些用例，这写努力可能不会带来回报，最好从简单的非泛型实现开始。
 
-\mySamllsection{Why Templates Are Better Than Other Generic Programming Techniques}
+\mySamllsection{为什么模板比其他泛型编程技术更好}
 
-Templates are not the only mechanism for writing generic data structures. Another, albeit older and no longer recommended approach to write generic structures in C and C++ is to store void* pointers instead of pointers of a specific type. Clients can use this structure to store anything they want by casting it to a void*. However, the main problem with this approach is that it is not type safe: the containers are unable to check or enforce the types of the stored elements. You can cast any type to a void* to store in the structure, and when you remove the pointers from the data structure, you must cast them back to what you think they are. Because there are no checks involved, the results can be disastrous. Imagine a scenario where one programmer stores pointers to int in a data structure by first casting them to void*, but another programmer thinks they are pointers to Process objects. The second programmer will blithely cast the void* pointers to Process* pointers and try to use them as Process* objects. Needless to say, the program will not work as expected.
+模板并不是编写泛型数据结构的唯一方式。另一种方法，尽管已经过时且不再推荐，是使用 void* 指针存储特定类型。客户端可以通过将其转换为 void* 来存储任何他们想要的东西。然而，这种方法的主要问题是类型不安全：容器无法检查或强制存储元素的类型。可以将任何类型转换为 void* 来存储在结构中，当从数据结构中移除指针时，必须将它们转换回实际可用的东西。由于没有检查，结果可能是灾难性的。想象一下，一个开发者通过首先将其转换为 void* 来在数据结构中存储指向 int 的指针，但另一个开发者认为它们是指向 Process 对象的指针。第二个程序员将盲目地将 void* 指针转换为 Process* 指针，并尝试将其当作 Process* 对象。显然，程序不会按预期工作。
 
-Instead of directly using void* pointers in your generic non-template-based data structures, you could use the std::any class, available since C++17. The any class is discussed in Chapter 24, “Additional Vocabulary Types,” but for this discussion it’s enough to know that you can store any type of object in an instance of the any class. The underlying implementation of std::any does use a void* pointer in certain cases, but it also keeps track of the type stored, so everything remains type safe.
+相反，在泛型的非模板数据结构中，可以直接使用 void* 指针，但也可以使用从 C++17 开始提供的 std::any 类。any 类在第 24 章中进行了讨论，但在这里只需要知道你可以在 any 类的实例中存储任何类型的对象。std::any 的底层实现确实在某些情况下使用 void* 指针，但它也记录了存储的类型，因此一切都保持类型安全。
 
-Yet another approach is to write the data structure for a specific class. Through polymorphism, any derived class of that class can be stored in the structure. Java takes this approach to an extreme: it specifies that every class derives directly or indirectly from the Object class. The containers in earlier versions of Java store Objects, so they can store objects of any type. However, this approach is also not type safe. When you remove an object from the container, you must remember what it really is and down-cast it to the appropriate type. Down casting means casting it to a more specific class in a class hierarchy, that is, casting it downward in the hierarchy.
+另一种方法是为特定类编写数据结构。通过多态，该类的任何派生类都可以存储在该结构中。Java 采取了这种方法的一个极端：指定每个类直接或间接从 Object 类派生。早期版本的 Java 中的容器存储 Object，因此可以存储任何类型的对象。然而，这种方法也不是类型安全的。当从容器中移除一个对象时，必须记住它是什么，并将其向下转换为适当的类型。向下转换意味着将对象转换为类层次结构中的更具体类，即在层次结构中向下转换。
 
-Templates, on the other hand, are type safe when used correctly. Each instantiation of a template stores only one type. Your program will not compile if you try to store different types in the same template instantiation. Additionally, templates allow the compiler to generate highly optimized code for each template instantiation. Compared to void* and std::any based data structures, templates can also avoid allocations on the free store, and hence have better performance. Newer versions of Java do support the concept of generics that are type safe just like C++ templates.
+相比之下，模板在使用正确时是类型安全的。每个模板实例只存储一个类型。如果的程序尝试在同一个模板实例中存储不同类型的对象，程序将无法编译。此外，模板允许编译器为每个模板实例生成高度优化的代码。与基于 void* 和 std::any 的数据结构相比，模板还可以避免在自由存储上分配，因此性能更好。最新版本的 Java 支持与 C++ 模板类似的安全泛型概念。
 
 \begin{myNotic}{NOTE}
-Templates are ideal for generic programming. They are type safe and result in highly optimized code for each instantiation of the template.
+模板是泛型编程的理想选择。它们是类型安全的，并且为每个模板实例生成了高度优化的代码。
 \end{myNotic}
 
 \mySamllsection{Problems with Templates}
@@ -335,7 +335,7 @@ C++ provides a language feature called operator overloading that can help you de
 Fraction f1 { 3, 4 };
 Fraction f2 { 1, 2 };
 Fraction sum { f1 + f2 };
-Fraction diff { f1 – f2 };
+Fraction diff { f1 - f2 };
 println("{} {}", f1, f2);
 \end{cpp}
 

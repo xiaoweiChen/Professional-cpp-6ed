@@ -1,37 +1,37 @@
-You should design code that both you and other programmers can reuse. This rule applies not only to libraries and frameworks that you specifically intend for other programmers to use but also to any class, subsystem, or component that you design for a program. You should always keep in mind the following mottos:
+应该设计可以重用的代码。这条规则不仅适用于专门为其他程序员设计的库和框架，也适用于为程序设计的任何类、子系统或组件。请始终应该铭记以下几点：
 
 \begin{itemize}
 \item
-“Write once, use often.”
+“一次编写，多次使用。”
 
 \item
-“Try to avoid code duplication.”
+“尽量避免代码重复。”
 
 \item
-“DRY—Don’t Repeat Yourself.”
+“DRY——不要重复自己。”
 \end{itemize}
 
-There are several reasons for this:
+有几点原因：
 
 \begin{itemize}
 \item
-Code is rarely used in only one program. You can be sure that your code will be used again somehow, so design it correctly to begin with.
+代码很少只在一个程序中使用。可以肯定现在的代码将以某种方式再次使用，所以需要从一开始就正确设计。
 
 \item
-Designing for reuse saves time and money. If you design your code in a way that precludes future use, you ensure that you or your partners will spend time reinventing the wheel later when you encounter a need for a similar piece of functionality.
+重用设计代码可以节省时间和金钱。如果以一种排除未来使用的方式设计代码，在遇到类似功能需求时，将来会花时间重新发明轮子。
 
 \item
-Other programmers in your group must be able to use the code that you write. You are probably not working alone on a project. Your co-workers will appreciate your efforts to offer them well-designed, functionality-packed libraries and pieces of code to use. Designing for reuse can also be called cooperative coding.
+所在团队的其它开发者必须能够使用你编写的代码，很可能不是在单人项目中工作。同事会欣赏你为他们提供功能丰富、设计良好的库和代码的努力，重用设计也可以称为合作编码。
 
 \item
-Lack of reuse leads to code duplication; code duplication leads to a maintenance nightmare. If a bug is found in duplicated code, it has to be fixed in all places where it got duplicated. Whenever you find yourself copy-pasting a piece of code, you have to at least consider moving it out to a helper function or class.
+缺乏重用会导致代码重复；代码重复会导致维护噩梦。如果重复的代码中发现了一个错误，必须在所有重复的地方进行修复。当发现自己复制粘贴代码时，要考虑将其移动到一个帮助函数或类中。
 
 \item
-You will be the primary beneficiary of your own work. Experienced programmers never throw away code. Over time, they build a personal library of evolving tools. You never know when you will need a similar piece of functionality in the future.
+设计者是主要受益者，有经验的程序员永远不会丢弃代码。随着时间的推移，他们会构建了个人库，其中包含不断进化的工具。因为永远不知道将来什么时候，会需要类似的功能。
 \end{itemize}
 
 \begin{myWarning}{WARNING}
-When you design or write code as an employee of a company, the company, not you, generally owns the intellectual property rights. It is often illegal to retain copies of your designs or code when you terminate your employment with the company. The same is also true when you are self-employed and working for clients.
+当你作为公司的员工设计或编写代码时，公司通常拥有知识产权。通常，在与公司终止雇佣关系时，保留设计或代码的副本是非法的。如果是自由职业者并为客户工作，也是一样的。
 \end{myWarning}
 
 
