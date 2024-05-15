@@ -1,53 +1,50 @@
 
-Programmers who transition from a procedural thought process to the object-oriented paradigm often experience an epiphany about the combination of properties and behaviors into classes. Some programmers find themselves revisiting the design of programs they’re working on and rewriting certain pieces as classes. Others might be tempted to throw all the code away and restart the project as a fully object-oriented application.
+从程序化思维过程过渡到面向对象，常常需要将属性和行为组合成类。一些开发者会回顾自己程序的设计，并将某些部分重写为类。其他人可能会受到诱惑，将所有代码扔掉，并重新开始编写一个完全面向对象的程序。
 
-There are two major approaches to developing software with classes. To some people, classes simply represent a nice encapsulation of data and functionality. These programmers sprinkle classes throughout their programs to make the code more readable and easier to maintain. Programmers taking this approach slice out isolated pieces of code and replace them with classes like a surgeon implanting a pacemaker. There is nothing inherently wrong with this approach. These people see classes as a tool that is beneficial in many situations. Certain parts of a program just “feel like a class,” like the stock quote. These are the parts that can be isolated and described in real-world terms.
+使用类开发软件有两种主要方法，类仅仅是数据和功能的优雅封装。开发者的程序中使用类，以使代码更具可读性和易于维护。采取这种方法的程序员会像外科医生植入起搏器一样，将孤立的部分代码替换为类。这种方法并没有本质上的错误。这些人认为，类是一个有益的工具。程序的某些部分“感觉就像一个类”，比如股票报价。这是可以隔离，并用现实的描述。
 
-Other programmers adopt the OOP paradigm fully and turn everything into a class. In their minds, some classes correspond to real-world things, such as an orange or a stock quote, while others encapsulate more abstract concepts, such as a sorter or an undo class.
+还有一些开发者完全采用面向对象编程范式，并将所有内容都转换为类。在他们看来，一些类对应于现实世界中的事物，比如橙子或股票报价，而其他类则封装了更抽象的概念，比如排序器或还原类。
 
-The ideal approach is probably somewhere in between these extremes. Your first object-oriented program might really have been a traditional procedural program with a few classes sprinkled in. Or perhaps you went whole hog and made everything a class, from a class representing an int to a class representing the main application. Over time, you will find a happy medium.
+两种极端并非理想的方式。我们第一个面向对象的程序，可能真的只是一个带有几个类的传统程序化程序。或者，可能会全力以赴，将一切都变成一个类，从代表 int 的类到代表主应用程序的类。随着时间的推移，会找到其中的平衡点。
 
-\mySubsubsection{5.3.1.}{Over-Classification}
+\mySubsubsection{5.3.1.}{过度分类}
 
-There is often a fine line between designing a creative object-oriented system and annoying everybody else on your team by turning every little thing into a class. As Freud used to say, sometimes a variable is just a variable. Okay, that’s a paraphrase of what he said.
+设计面向对象系统时，往往有一条界限，就是是否将每一件小事都变成一个类，从而让团队中的其他人感到烦恼。正如弗洛伊德曾经说过的那样，有时候一个变量就是一个变量。好吧，这是对他的话的转述。
 
-Perhaps you’re designing the next bestselling tic-tac-toe game. You’re going all-out OOP on this one, so you sit down with a cup of coffee and a notepad to sketch out your classes and objects. In games like this, there’s often a class that oversees game play and is able to detect the winner. To represent the game board, you might envision a Grid class that will keep track of the markers and their locations.
+也许正在设计下一个畅销的井字游戏，对这个游戏采用了全面的面向对象设计，所以坐下来，拿着一杯咖啡和一张便签纸，开始规划类和对象。像这样的游戏中，通常有一个类负责监督游戏玩法，并能够检测获胜者。为了表示游戏板，可能会涉及一个 Grid 类，它会跟踪标记及其位置。
 
-In fact, a component of the grid could be the Piece class that represents an X or an O.
-Wait, back up! This design proposes to have a class that represents an X or an O. That is perhaps class overkill. After all, can’t a char represent an X or an O just as well? Better yet, why can’t the Grid just use a two-dimensional array of an enumeration type? Does a Piece class just complicate the code? Take a look at the following table representing the proposed piece class:
+事实上，网格的组成部分可能是 Piece 类，代表一个 X 或一个 O。 稍等，请退一步！这个设计提出要有一个类来代表一个 X 或一个 O。这可能是一种过度设计。毕竟，一个 char 不是同样可以代表一个 X 或一个 O 吗？更好的是，为什么 Grid 不能简单地使用一个二维枚举类型的数组？一个 Piece 类真的会使代码复杂化吗？看看下面 Piece 类的表格：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|l|}
 \hline
-\textbf{CLASS} & \textbf{ASSOCIATED COMPONENTS} & \textbf{PROPERTIES} & \textbf{BEHAVIORS} \\ \hline
+\textbf{类} & \textbf{相关组件} & \textbf{属性} & \textbf{行为} \\ \hline
 \endfirsthead
 %
 \endhead
 %
-Piece          & None                           & X or O              & None               \\ \hline
+Piece          & 无                           & X 或 O              & 无               \\ \hline
 \end{longtable}
 
-The table is a bit sparse, strongly hinting that what we have here may be too granular to be a fullfledged class.
+这个表格有点空，暗示这里粒度太细，其无法成为一个完整的类。
 
-On the other hand, a forward-thinking programmer might argue that while Piece is a pretty meager class as it currently stands, making it into a class allows future expansion without any real penalty.
+另一方面，一个有远见的开发者可能会争辩说，尽管 Piece 类目前看起来相当单薄，但将其做成一个类，可以降低未来的扩展成本。
 
-Perhaps down the road, additional properties could be added such as the color of the Piece or whether the Piece was the most recently moved.
+也许在将来，可以添加额外的属性，比如 Piece 的颜色或 Piece 是否是最新的移动。
 
-Another solution might be to think about the state of a grid square instead of using pieces. The state of a square can be Empty, X, or O. To make the design future-proof, you could design an abstract base class State with concrete derived classes StateEmpty, StateX, and StateO. With this design, extra properties can be added in the future to the base class or to the individual classes.
+另一种解决方案可能是考虑网格方格的状态，而不是使用棋子。方格的状态可以是空、X或O。为了使设计具有前瞻性，可以设计一个抽象基类 State，以及具体的派生类 StateEmpty、StateX 和 StateO。采用这种设计，将来可以在基类或派生类中添加其他属性。
 
-Obviously, there is no right answer. The important point is that these are issues that you should consider when designing your application. Remember that classes exist to help programmers manage their code. If classes are being used for no reason other than to make the code “more object-oriented,” something is wrong.
+显然，这里没有正确答案。重要的是，这些是在设计应用程序时应该考虑的问题。请记住，类存在是为了帮助开发者管理代码。如果仅因“更面向对象”而使用类，那么本末倒置了。
 
-\mySubsubsection{5.3.2.}{Overly General Classes}
+\mySubsubsection{5.3.2.}{过于泛化的类}
 
-Perhaps a worse annoyance than classes that shouldn’t be classes is classes that are too general. All OOP students start with examples like “orange”—things that are classes, no question about it. In real-life coding, classes can get pretty abstract. Many OOP programs have an “application class,” despite that an application isn’t really something you can envision in material form. Yet it may be useful to represent the application as a class because the application itself has certain properties and behaviors.
+另一个更令人烦恼的是过于泛化的类。所有面向对象编程的学生都以“橙子”为例——这是毋庸置疑的类。在现实生活中的编码中，类可以相当抽象。许多面向对象的程序都有一个“应用程序类”。因为应用程序本身具有一些属性和行为，所以将应用程序表示为一个类可能有用。
 
-An overly general class is a class that doesn’t represent a particular thing at all. The programmer may be attempting to make a class that is flexible or reusable, but ends up with one that is confusing. For example, imagine a program that organizes and displays media. It can catalog your photos, organize your digital music and movie collection, and serve as a personal journal. The overly general approach is to think of all these things as “media” objects and build a single class that can accommodate all of the supported formats. This single class might have a property called “data” that contains the raw bits of the image, song, movie, or journal entry, depending on the type of media. The class might have a behavior called “perform” that appropriately draws the image, plays the song, plays the movie, or brings up the journal entry for editing.
+过于泛化的类是一个根本不表示特定事物的类。开发者可能试图创建一个灵活或可重用的类，但最终得到的却是一个令人困惑的类。例如，想象一个程序，它组织和显示媒体。它可以对照片进行分类，组织数字音乐和电影收藏，并作为个人日记。过于泛化的方法是将所有这些事物都视为“media”对象，并构建一个可以容纳所有支持的格式的单类。这个单一类可能有一个名为“data”的属性，包含图像、歌曲、电影或日记条目的原始位，具体取决于媒体的类型。该类可能有一个名为“perform”的行为，根据不同类型的媒体适当绘制图像、播放歌曲、播放电影或打开日记条目以进行编辑。
 
-The clues that this single class is too general are in the names of the properties and behaviors. The word data has little meaning by itself—you have to use a general term here because this class has been overextended to three very different uses. Similarly, perform will do very different things for the different types of media. Clearly, this class is trying to do too much.
-
-Nevertheless, when designing a program to organize media, there for sure will be a Media class in your application. This Media class will contain the common properties that all types of media have, such as a name, a preview, a link to the corresponding media file, and so on. What this Media class should not contain though is the details about handling specific media. It should not contain code to display an image, or to play a song or a movie. Instead, there should be other classes in your design such as a Picture class and a Movie class. Those specific classes then contain the actual mediaspecific functionality such as displaying a picture or playing a movie. Obviously, those media-specific classes are somehow related to the Media class, and that’s exactly the topic of the next section on how to express relationships between classes.
+这个单类过于泛化的线索在于属性和行为的名称。单词 data 本身没有意义——需要在这里使用一个通用的术语，因为这个类可扩展为三种不同的用途。同样，perform 对于不同的类型将执行不同的操作。显然，这个类试图做的事情太多了。
 
 
 

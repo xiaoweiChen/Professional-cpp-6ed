@@ -1,84 +1,81 @@
 
-As a programmer, you will certainly encounter cases where different classes have characteristics in common, or seem somehow related to each other. Object-oriented languages provide a number of mechanisms for dealing with such relationships between classes. The tricky part is to understand what the relationship actually is. There are two main types of class relationships—a has-a relationship and an is-a relationship.
+作为开发者，无疑会遇到不同类之间具有共同特征，或者在某种程度上相互关联的情况。面向对象的语言为处理类之间的这种关系提供了多种机制。难点在于理解这种关系实际上是什么。类之间有两种主要的关系类型——一种 has-a 关系和一种 is-a 关系。
 
-\mySubsubsection{5.4.1.}{The Has-a Relationship}
+\mySubsubsection{5.4.1.}{Has-a关系}
 
-Classes engaged in a has-a relationship follow the pattern A has a B, or A contains a B. In this type of relationship, you can envision one class as part of another. Components, as defined earlier, generally represent a has-a relationship because they describe classes that are made up of other classes.
+具有 has-a 关系的类遵循 “A 中有一个 B” 或 “A 包含一个 B” 的模式。在这种关系中，可以将一个类视为另一个类的部分。如前所述，因为它们描述由其他类组成的类，所以组件通常代表 has-a 关系。
 
-A real-world example of this might be the relationship between a zoo and a monkey. You could say that a zoo has a monkey or a zoo contains a monkey. A simulation of a zoo in code would have a zoo class, which has a monkey component.
+实际的例子可能是动物园和猴子之间的关系。可以说是动物园有一个猴子，或动物园包含一个猴子。在代码中的动物园模拟将有一个动物园类，该类有一个猴子组件。
 
-Often, thinking about user interface scenarios is helpful in understanding class relationships. This is so because even though not all UIs are implemented in OOP (though these days, most are), the visual elements on the screen translate well into classes. One UI analogy for a has-a relationship is a window that contains a button. The button and the window are clearly two separate classes, but they are obviously related in some way. Because the button is inside the window, you say that the window has a button.
+经常考虑用户界面场景有助于理解类之间的关系。尽管不是所有的用户界面都是用面向对象编程实现的（尽管现在大多数都是），屏幕上的视觉元素很容易转换为类。has-a 关系的 UI 类是一个包含按钮的窗口，按钮和窗口显然是两个不同的类，但它们在某种程度上相关（按钮在窗口内），所以你说窗口有一个按钮。
 
-Figure 5.3 shows a real-world and a user interface has-a relationship.
+图 5.3 展示了现实世界和用户界面的 has-a 关系。
 
 \myGraphic{0.7}{content/part2/chapter5/images/3.png}{图 5.3}
 
-There are two types of has-a relationships:
+有两种类型的has-a关系:
 
 \begin{itemize}
 \item
-Aggregation: With aggregation, the aggregated objects (components) can continue to live when the aggregator is destroyed. For example, suppose a zoo object contains a bunch of animal objects. When the zoo object is destroyed because it went bankrupt, the animal objects are (ideally) not destroyed; they are moved to another zoo.
+聚合：聚合的对象（组件）在聚合者销毁时仍然可以继续存在。例如，假设一个动物园对象包含了一群动物对象。当动物园对象因为破产而销毁时，动物对象（理想情况下）并不会销毁；它们会转移到另一个动物园。
 
 \item
-Composition: With composition, if an object composed of other objects is destroyed, those other objects are destroyed as well. For example, if a window object containing buttons is destroyed, those button objects are destroyed as well.
+组合：如果销毁一个由其他对象组成的对象，那些其他对象也会销毁。例如，如果销毁一个包含按钮的窗口对象，那些按钮对象也会销毁。
 \end{itemize}
 
-\mySubsubsection{5.4.2.}{The Is-a Relationship (Inheritance)}
+\mySubsubsection{5.4.2.}{Is-a关系(继承)}
 
-The is-a relationship is such a fundamental concept of object-oriented programming that it has many names, including deriving, subclassing, extending, and inheriting. Classes model the fact that the real world contains objects with properties and behaviors. Inheritance models the fact that these objects tend to be organized in hierarchies. These hierarchies indicate is-a relationships.
+is-a 关系是面向对象编程的一个基本概念，因此它有多个名称，包括派生、子类化、扩展和继承。类模拟了现实世界中具有属性和行为的对象。继承模拟了这些对象倾向于组织成层次结构，这些层次结构表示了 is-a 关系。
 
-Fundamentally, inheritance follows the pattern A is a B or A is really quite a bit like B—it can get tricky. To stick with the simple case, revisit the zoo, but assume that there are other animals besides monkeys. That statement alone has already constructed the relationship—a monkey is an animal. Similarly, a giraffe is an animal, a kangaroo is an animal, and a penguin is an animal. So what? Well, the magic of inheritance comes when you realize that monkeys, giraffes, kangaroos, and penguins have certain things in common. These commonalities are characteristics of animals in general.
+从根本上讲，继承遵循 “A 是 B” 或 “A 确实有点像 B” 的模式——这可能有些棘手。简单起见，再次回到动物园，但假设除了猴子之外还有其他动物。这个陈述本身已经构建了关系——一只猴子是一种动物。同样，长颈鹿是一种动物，袋鼠是一种动物，企鹅是一种动物，这又意味着什么呢？当猴子、长颈鹿、袋鼠和企鹅有一些共同点时，继承的魔力就显现出来了。这些共同点是动物共有的特性。
 
-What this means for the programmer is that you can define an Animal class that encapsulates all of the properties (size, location, diet, and so on) and behaviors (move, eat, sleep) that pertain to every animal. The specific animals, such as monkeys, become derived classes of Animal because a monkey contains all the characteristics of an animal. Remember, a monkey is an animal plus some additional characteristics that make it distinct. Figure 5.4 shows an inheritance diagram for animals. The arrows indicate the direction of the is-a relationship.
+对于程序员来说，可以定义一个 Animal 类，它封装了所有适用于每种动物的属性（大小、位置、饮食等）和行为（移动、进食、睡觉）。特定的动物，如猴子，成为 Animal 的派生类，因为一只猴子包含了一切动物的特性。记住，一只猴子是一种动物，加上一些使它独特的额外特性。图 5.4 显示了动物的继承图。箭头表示 is-a 关系的方向。
 
 \myGraphic{0.5}{content/part2/chapter5/images/4.png}{图 5.4}
 
-Just as monkeys and giraffes are different types of animals, a user interface often has different types of buttons. A checkbox, for example, is a button.
-Assuming that a button is simply a UI element that can be clicked to perform an action, a Checkbox extends the Button class by adding state—whether the box is checked or unchecked.
+正如猴子和大象是不同类型的动物一样，用户界面往往有不同的按钮类型。例如，复选框是一种按钮。假设按钮只是一个可以点击以执行操作的 UI 元素，复选框通过添加状态（复选框是选中还是未选中）来扩展 Button 类。
 
-When relating classes in an is-a relationship, one goal is to factor common functionality into the base class, the class that other classes extend. If you find that all of your derived classes have code that is similar or exactly the same, consider how you could move some or all of that code into the base class. That way, any changes that need to be made only happen in one place and future derived classes get the shared functionality “for free.”
+当相关联的类在 is-a 关系中时，一个目标是将共同的功能性因素提取到基类中，即其他类继承的类。如果发现所有派生类都有类似的或完全相同的代码，考虑如何将一些或所有代码移动到基类中。这样，任何需要做出的更改只发生在同一个地方，未来的派生类可以“免费”获得共享功能。
 
 \begin{myNotic}{NOTE}
-Sometimes, it is clear whether a relationship represents a has-a or an is-a relationship. Other times, it is not so clear. If you can choose, has-a is preferred over is-a, as explained with an example later in this section.
+有时，关系代表 has-a 或 is-a 关系是明确的。在其他时候，这并不那么清楚。如果你可以选择，has-a 关系优于 is-a 关系，如本节后面一个例子所解释的。
 \end{myNotic}
 
-\mySamllsection{Inheritance Techniques}
+\mySamllsection{继承}
 
-The preceding examples cover a few of the techniques used in inheritance without formalizing them. When deriving classes, there are several ways that the programmer can distinguish a class from its parent class, also called base class or superclass. A derived class may use one or more of these techniques, and they are recognized by completing the sentence, “A is a B that is . . . .”
+前面的例子涵盖了在继承中使用的几种技术。使用派生类时，开发者可以通过几种方式区分一个类与其父类，也称为基类或超类。派生类可以使用这些技术中的一种或多种，并且通过完成句子“A是B，则……”来鉴别。
 
-\mySamllsection{Adding Functionality}
+\mySamllsection{增加功能}
 
-A derived class can augment its parent by adding additional functionality. For example, a monkey is an animal that can swing from trees. In addition to having all of the member functions of Animal, the Monkey class also has a swingFromTrees() member function, which is specific to only the Monkey class.
+派生类可以通过添加额外的功能来增强父类。例如，猴子是一种动物，能够从树上荡秋千。除了具有 Animal 类的所有成员函数之外，Monkey 类还具有 swingFromTrees() 成员函数，这是 Monkey 类特有的行为。
 
+\mySamllsection{替换功能}
 
-\mySamllsection{Replacing Functionality}
+派生类可以完全替换或重写其父类的成员函数。例如，大多数动物通过行走来移动，可以给 Animal 类一个模拟行走的 move() 成员函数。如果这是真的，袋鼠是一种动物，它是通过跳跃，而非行走来移动。 Animal 基类的所有其他属性和成员函数仍然适用，但 Kangaroo 派生类只是改变了 move() 成员函数的工作方式。当然，如果发现自己替换了基类所有的功能，这可能表明继承并不是正确的做法，除非基类是一个抽象基类。抽象基类迫使每个派生类实现所有在抽象基类中没有实现的成员函数，不能创建抽象基类的实例。抽象基类在第10章中讨论。
 
-A derived class can replace or override a member function of its parent entirely. For example, most animals move by walking, so you might give the Animal class a move() member function that simulates walking. If that’s the case, a kangaroo is an animal that moves by hopping instead of walking. All the other properties and member functions of the Animal base class still apply, but the Kangaroo derived class simply changes the way that the move() member function works. Of course, if you find yourself replacing all of the functionality of your base class, it may be an indication that inheriting was not the correct thing to do after all, unless the base class is an abstract base class. An abstract base class forces each of the derived classes to implement all member functions that do not have an implementation in the abstract base class. You cannot create instances of an abstract base class. Abstract base classes are discussed in Chapter 10, “Discovering Inheritance Techniques.”
+\mySamllsection{添加属性}
 
-\mySamllsection{Adding Properties}
+派生类还可以向从基类继承的属性中添加新的属性。例如，企鹅具有动物的所有属性，但也具有喙的长短属性。
 
-A derived class can also add new properties to the ones that are inherited from the base class. For example, a penguin has all the properties of an animal but also has a beak size property.
+\mySamllsection{替换属性}
 
-\mySamllsection{Replacing Properties}
+C++ 提供了一种类似于覆盖成员函数的方式来覆盖属性。但这样做通常不太合适，因为它隐藏了基类的属性；也就是说，基类可以为具有特定名称的属性指定一个特定的值，而派生类可以为另一个具有相同名称的属性指定另一个值。重要的是区分替换属性与派生类具有不同值属性是两个概念。例如，所有动物都有一个饮食属性，表示它们吃什么。猴子吃香蕉，企鹅吃鱼，但它们都没有替换饮食属性——只是在属性上分配了不同的值。
 
-C++ provides a way of overriding properties similar to the way you can override member functions.
-However, doing so is rarely appropriate, because it hides the property from the base class; that is, the base class can have a specific value for a property with a certain name, while the derived class can have another value for another property but with the same name. Hiding is explained in more detail in Chapter 10. It’s important not to get the notion of replacing a property confused with the notion of derived classes having different values for properties. For example, all animals have a diet property that indicates what they eat. Monkeys eat bananas and penguins eat fish, but neither of these is replacing the diet property—they simply differ in the value assigned to the property.
+\mySamllsection{多态性}
 
-\mySamllsection{Polymorphism}
+多态性是指遵循一组标准属性和成员函数的对象可以互换使用。类定义就像对象和与之交互的代码之间的合同。根据定义，任何 Monkey 对象都必须支持 Monkey 类的属性和成员函数。
 
-Polymorphism is the notion that objects that adhere to a standard set of properties and member functions can be used interchangeably. A class definition is like a contract between objects and the code that interacts with them. By definition, any Monkey object must support the properties and member functions of the Monkey class.
+这个概念也适用于基类。因为所有的猴子都是动物，所有的 Monkey 对象也支持 Animal 类的属性和成员函数。
 
-This notion extends to base classes as well. Because all monkeys are animals, all Monkey objects support the properties and member functions of the Animal class as well.
+多态性是面向对象编程的一个美丽部分，因为它真正利用了继承所提供的东西。动物园模拟中，可以编程地遍历动物园中的所有动物，并让每个动物移动一次。因为所有的动物都是 Animal 类的成员，都知道如何移动。一些动物已经重写了移动成员函数，但这正是最好的部分——因为每个动物都以它知道的方式移动，所以代码只是告诉每个动物移动，而不知道或关心具体是哪种动物。
 
-Polymorphism is a beautiful part of object-oriented programming because it truly takes advantage of what inheritance offers. In a zoo simulation, you could programmatically loop through all of the animals in the zoo and have each animal move once. Because all animals are members of the Animal class, they all know how to move. Some of the animals have overridden the move member function, but that’s the best part—your code simply tells each animal to move without knowing or caring what type of animal it is. Each one moves whichever way it knows how.
+\mySubsubsection{5.4.3.}{Has-a和Is-a的区别}
 
-\mySubsubsection{5.4.3.}{The Fine Line Between Has-a and Is-a}
+现实中，很容易区分对象之间的 has-a 和 is-a 关系。没有人会说一个橙子有一个水果——橙子是一种水果。代码中，事情有时并不那么清楚。
 
-In the real world, it’s pretty easy to classify has-a and is-a relationships between objects. Nobody would claim that an orange has a fruit—an orange is a fruit. In code, things sometimes aren’t so clear.
+考虑一个假设的类，代表一个关联数组，这是一种数据结构，可有效地将键映射到值。例如，一个保险公司可以使用 AssociativeArray 类将会员 ID 映射到名称，以便给定一个 ID，可以轻松地找到相应的会员名称。会员 ID 是键，会员名称是值。
 
-Consider a hypothetical class that represents an associative array, a data structure that efficiently maps a key to a value. For example, an insurance company could use an AssociativeArray class to map member IDs to names so that given an ID, it’s easy to find the corresponding member name. The member ID is the key, and the member name is the value.
-
-In a standard associative array implementation, a key is associated with a single value. If the ID 14534 maps to the member name “Kleper, Scott,” it cannot also map to the member name “Kleper, Marni.” In most implementations, if you tried to add a second value for a key that already has a value, the first value would go away. In other words, if the ID 14534 mapped to “Kleper, Scott” and you then assigned the ID 14534 to “Kleper, Marni,” then Scott would effectively be uninsured. This is demonstrated in the following sequence, which shows two calls to a hypothetical insert() member function and the resulting contents of the associative array:
+在标准的关联数组实现中，键与一个值相关联。如果 ID 14534 映射到会员名称“Kleper, Scott”，就不能同时映射到会员名称“Kleper, Marni”。在大多数实现中，如果尝试为已经有一个值的键添加第二个值，第一个值就会消失。换句话说，如果 ID 14534 映射到“Kleper, Scott”并且你然后将 ID 14534 分配给“Kleper, Marni”，那么 Scott 实际上就没有保险了。这在以下序列中得到了演示，该序列展示了两个假设的 insert() 成员函数的调用以及关联数组的结果内容：
 
 \begin{cpp}
 myArray.insert(14534, "Kleper, Scott");
@@ -89,7 +86,7 @@ myArray.insert(14534, "Kleper, Scott");
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{KEYS} & \textbf{VALUES}              \\ \hline
+\textbf{键} & \textbf{值}              \\ \hline
 \endfirsthead
 %
 \endhead
@@ -106,7 +103,7 @@ myArray.insert(14534, "Kleper, Marni");
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{KEYS} & \textbf{VALUES}              \\ \hline
+\textbf{键} & \textbf{值}              \\ \hline
 \endfirsthead
 %
 \endhead
@@ -114,7 +111,7 @@ myArray.insert(14534, "Kleper, Marni");
 14534         & “Kleper, Marni” {[}string{]} \\ \hline
 \end{longtable}
 
-It’s not difficult to imagine uses for a data structure that’s like an associative array but allows multiple values for a given key. In the insurance example, a family might have several names that correspond to the same ID. Because such a data structure is similar to an associative array, it would be nice to leverage that functionality somehow. An associative array can have only a single value as a key, but that value can be anything. Instead of a string, the value could be a collection (such as a vector) containing the multiple values for the key. Every time you add a new member for an existing ID, you add the name to the collection. This would work as shown in the following sequence:
+不难想象一种数据结构，它类似于关联数组，但允许为给定键设置多个值。保险示例中，一个家庭可能有几个与同一个 ID 对应的名称。因为这样的数据结构类似于关联数组，所以能够以某种方式利用该功能是很不错的。关联数组只能有一个值作为键，但这个值可以是任何东西。值可以是包含多个键值对的集合（例如vector）。每次为现有 ID 添加新成员时，可将名称添加到集合中：
 
 \begin{cpp}
 Collection collection; // Make a new collection.
@@ -127,7 +124,7 @@ myArray.insert(14534, collection); // Insert the collection into the array.
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{KEYS} & \textbf{VALUES}                      \\ \hline
+\textbf{键} & \textbf{值}                      \\ \hline
 \endfirsthead
 %
 \endhead
@@ -146,7 +143,7 @@ myArray.insert(14534, collection); // Replace the collection with the updated on
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{KEYS} & \textbf{VALUES}                                       \\ \hline
+\textbf{键} & \textbf{值}                                       \\ \hline
 \endfirsthead
 %
 \endhead
@@ -154,21 +151,21 @@ myArray.insert(14534, collection); // Replace the collection with the updated on
 14534         & \{“Kleper, Scott”, “Kleper, Marni”\} {[}Collection{]} \\ \hline
 \end{longtable}
 
-Messing around with a collection instead of a string is tedious and requires a lot of repetitive code. It would be preferable to wrap up this multiple-value functionality in a separate class, perhaps called a MultiAssociativeArray. The MultiAssociativeArray class would work just like AssociativeArray except that behind the scenes, it would store each value as a collection of strings instead of a single string. Clearly, MultiAssociativeArray is somehow related to Associative Array because it is still using an associative array to store the data. What might be unclear is whether that constitutes an is-a or a has-a relationship.
+与字符串打交道比与集合打交道更麻烦，而且需要编写大量重复的代码。更可取的是将这种多值功能封装在一个单独的类中，可能称之为 MultiAssociativeArray。MultiAssociativeArray 类与 AssociativeArray 类的工作方式完全相同，只是它背后存储每个值的方式不同，而是将每个值存储为一个字符串集合。显然，MultiAssociativeArray 与 Associative Array 之间有某种关系，因为它仍在使用关联数组来存储数据，但不太清楚这构成了一个 is-a 关系还是一个 has-a 关系。
 
-To start with the is-a relationship, imagine that MultiAssociativeArray is a derived class of AssociativeArray. This will turn out to be a bad idea, but let’s run with it as an example of a bad design. MultiAssociativeArray would have to override the member function that adds an entry into the array so that it would either create a collection and add the new element or retrieve the existing collection and add the new element to it. It would also have to override the member function that retrieves a value. There is a complication, though: the overridden get() member function should return a single value, not a collection. Which value should a MultiAssociativeArray return? One option is to return the first value associated with a given key. An additional getAll() member function could be added to retrieve all values associated with a key. This might seem like a reasonable design. Even though it overrides all the member functions of the base class, it still makes use of the base class’s member functions from within the derived class. Figure 5.5 shows this approach as a UML class diagram.
+首先，考虑 is-a 关系。假设 MultiAssociativeArray 是 AssociativeArray 的派生类。这将证明是一个糟糕的想法，MultiAssociativeArray 必须重写添加数组条目的成员函数，以便它要么创建一个集合并添加新元素，要么检索现有的集合并将其添加到其中，还须重写检索值的成员函数。但有一个问题：重写的 get() 成员函数应该返回一个单一的值，而不是一个集合。MultiAssociativeArray 应该返回哪个值？一个选项是返回与给定键相关联的第一个值。可以添加一个额外的 getAll() 成员函数来检索与键相关联的所有值。这可能看起来是一个合理的设计。尽管它重写了基类的所有成员函数，但仍然在派生类中使用了基类的成员函数。图 5.5 展示了这种方法的 UML 图。
 
 \myGraphic{0.3}{content/part2/chapter5/images/5.png}{图 5.5}
 
-Now consider it as a has-a relationship. MultiAssociativeArray is its own class, but it contains an AssociativeArray object. It probably has an interface similar to AssociativeArray, but it need not be the same. Behind the scenes, when a user adds something to the MultiAssociativeArray, it is really wrapped in a collection and put in an AssociativeArray object. This seems perfectly reasonable and is shown in Figure 5.6.
+现在考虑 has-a 关系。MultiAssociativeArray 是一个独立的类，但它包含一个 AssociativeArray 对象。可能有一个与 AssociativeArray 类似的接口，但不必相同。在幕后，当用户向 MultiAssociativeArray 添加某些内容时，实际上会包裹在一个集合中，并放入一个 AssociativeArray 对象中。这看起来完全合理，如图 5.6 所示。
 
 \myGraphic{0.7}{content/part2/chapter5/images/6.png}{图 5.6}
 
-So, which solution is right? There seems to be no clear answer, but decades of experience have taught us that has-a is usually the better of the two alternatives. The main reason is to allow modifications to the exposed interface without worrying about maintaining associative array functionality. For example, in Figure 5.6, the get() member function is changed to getAll(), making it clear that this gets all the values for a particular key in a MultiAssociativeArray. Additionally, with a has-a relationship, you don’t have to worry about any associative array functionality bleeding through. For example, with an is-a relationship, if the associative array class supported a member function that would get the total number of values, it would report the number of collections unless MultiAssociativeArray knew to override it.
+那么，哪种解决方案是正确的？似乎没有明确的答案，但几十年的经验告诉我们，has-a 通常是这两种选择中更好的一个。主要原因是允许修改公开的接口，而不用担心维护关联数组功能。例如，在图 5.6 中，get() 成员函数更改为 getAll()，清楚地表明这个函数获取 MultiAssociativeArray 中特定键的所有值。此外，具有 has-a 关系的类，不必担心任何关联数组功能渗透进来。例如，具有 is-a 关系的类，如果关联数组类支持一个可以获取值总数的成员函数，它将报告集合的数量，除非 MultiAssociativeArray 知道要重写它。
 
-That said, one could try to make an argument that a MultiAssociativeArray actually is an AssociativeArray with some new functionality, and it should have been an is-a relationship. The point is that there is sometimes a fine line between the two relationships, and you will need to consider how the class is going to be used and whether what you are building just leverages some functionality from another class or really is that class with modified or new functionality.
+然而，有人可能会尝试论证，MultiAssociativeArray 实际上是一个具有某些新功能的 AssociativeArray，它应该是一个 is-a 关系。要点是，这两种关系之间有时有一条界限，需要考虑这个类将如何使用，以及所构建的是否只是利用了另一个类的某些功能，还是真的就是那个类，但具有修改或新功能。
 
-The following table represents the arguments for and against taking either approach for the MultiAssociativeArray class:
+以下表格代表了对 MultiAssociativeArray 类采用两种方法的正反论据：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -182,95 +179,96 @@ The following table represents the arguments for and against taking either appro
 %
 \endhead
 %
-Reasons For &
-\begin{tabular}[c]{@{}l@{}}Fundamentally, it‘s the same\\ abstraction with different\\ characteristics.\\ It provides (almost) the\\ same member functions as\\ AssociativeArray.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}MultiAssociativeArray can have\\ whatever member functions are useful\\ without needing to worry about what\\ member functions AssociativeArray\\ has.\\ The implementation could change\\ to something other than an\\ AssociativeArray without changing\\ the exposed member functions.\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}Reasons\\ Against\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}An associative array by definition\\ has one value per key. To say\\ MultiAssociativeArray is an\\ associative array is blasphemy!\\ MultiAssociativeArray\\ overrides both member functions of\\ AssociativeArray, a strong sign\\ that something about the design is\\ wrong.\\ Unknown or inappropriate\\ properties or member functions\\ of AssociativeArray\\ could “bleed through” to\\ MultiAssociativeArray.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}In a sense, MultiAssociativeArray\\ reinvents the wheel by coming up with\\ new member functions.\\ Some additional properties and member\\ functions of AssociativeArray might\\ have been useful.\end{tabular} \\ \hline
+同意的原因 &
+\begin{tabular}[c]{@{}l@{}}从根本上说，它是具有不同特征的\\相同抽象。提供(几乎)与\\AssociativeArray相同的成员函数。\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}MultiAssociativeArray可以有成员函数，\\而不必担心AssociativeArray有什么成\\员函数。\\ 实现可以更改为AssociativeArray以外\\的其他内容，而无需更改公开的成员\\函数。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}反对的原因\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}根据定义，关联数组每个键有\\一个值。说MultiAssociativeArray\\是一个关联数组是亵渎神明!\\MultiAssociativeArray覆盖\\AssociativeArray的两个成员函数，\\这是一个强烈的信号，表明设计\\有问题。\\ AssociativeArray的未知或不适当\\的属性或成员函数可能“溢出”到\\MultiAssociativeArray。\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}从某种意义上说，MultiAssociativeArray\\通过提出新的成员函数，是在重新发明\\了轮子。\\ AssociativeArray的一些附加属性和成员\\函数则可能是有用的。\end{tabular} \\ \hline
 \end{longtable}
 
-The reasons against using an is-a relationship in this case are very strong. Additionally, the Liskov substitution principle (LSP) can help you decide between an is-a and a has-a relationship. This principle states that you should be able to use a derived class instead of a base class without altering the behavior. Applied to this example, it states that this must be a has-a relationship, because you cannot just start using a MultiAssociativeArray where before you were using an AssociativeArray. If you would do so, the behavior would change. For example, the insert() member function of AssociativeArray removes an earlier value with the same key that is already in the array, while MultiAssociativeArray does not remove such values.
-The two solutions explained in detail in this section are actually not the only two possible solutions.
+在这种情况下，反对使用 is-a 关系的理由非常强烈。此外，Liskov 替换原则（LSP）可以帮助决定是使用 is-a 关系，还是 has-a 关系。这个原则指出，应该能够使用派生类代替基类而不改变行为。应用于这个例子，表明这必须是一个 has-a 关系，不能简单地使用 MultiAssociativeArray 代替之前使用的 AssociativeArray。如果这样做，行为将会改变。例如，AssociativeArray 的 insert() 成员函数会删除数组中已有的具有相同键的早期值，而 MultiAssociativeArray 不会删除这样的值。
 
-Other options could be for AssociativeArray to contain a MultiAssociativeArray, or both AssociativeArray and MultiAssociativeArray could inherit from a common base class, and so on. There are often a multitude of solutions that you can come up with for a certain design.
+本节中详细解释的两种解决方案，实际上并不是仅有的两种可能解决方案。
+
+其他选项可以是让 AssociativeArray 包含一个 MultiAssociativeArray，或者让 AssociativeArray 和 MultiAssociativeArray 都继承自一个共同的基类等。对于一个特定的设计，通常可以想出多种解决方案。
 
 \begin{myWarning}{WARNING}
-If you do have a choice between the two types of relationships, I recommend, after years of experience, opting for a has-a relationship over an is-a relationship.
+如果确实有选择两种关系类型的机会，根据多年的经验，我建议，选择 has-a 关系，而非 is-a 关系。
 \end{myWarning}
 
-Note that the AssociativeArray and MultiAssociativeArray are used here to demonstrate the difference between the is-a and has-a relationships. In your own code, it is recommended to use one of the standard associative array classes instead of writing your own. The C++ Standard Library provides std::map, which you should use instead of AssociativeArray, and std::multimap, which you should use instead of MultiAssociativeArray. Both of these standard classes are discussed in Chapter 18, “Standard Library Containers.”
+请注意，AssociativeArray 和 MultiAssociativeArray 是在这里用来演示 is-a 和 has-a 关系之间的区别。在自己的代码中，建议使用标准关联数组类。C++ 标准库提供了 使用std::map代替 AssociativeArray。 应该使用std::multimap代替 MultiAssociativeArray。
 
-\mySubsubsection{5.4.4.}{The Not-a Relationship}
+\mySubsubsection{5.4.4.}{Not-a关系}
 
-As you consider what type of relationship classes have, you should consider whether they actually have a relationship at all. Don’t let your zeal for object-oriented design turn into a lot of needless class/derived-class relationships.
+考虑类之间具有哪种类型的关系时，应该考虑它们是否具有关系。不要让面向对象设计的热情变成许多不必要的类/派生类关系。
 
-One pitfall occurs when things are obviously related in the real world but have no actual relationship in code. Object-oriented hierarchies need to model functional relationships, not artificial ones. Figure 5.7 shows relationships that are meaningful as ontologies or hierarchies but are unlikely to represent meaningful relationships in code.
+一个陷阱发生在明显相关的事物在代码中，实际上没有关系。面向对象的层次结构需要模拟功能关系，而不是人为的关系。图 5.7 显示了作为本体或层次结构的有意义的联系，但在代码中的联系可能无意义。
 
 \myGraphic{0.7}{content/part2/chapter5/images/7.png}{图 5.7}
 
-The best way to avoid needless inheritance is to sketch out your design first. For every class and derived class, write down what properties and member functions you’re planning on putting into the class. You should rethink your design if you find that a class has no particular properties or member functions of its own, or if all of those properties and member functions are completely overridden by its derived classes, except when working with abstract base classes as mentioned earlier.
+避免不必要的继承的最佳方法是，首先绘制出你的设计。对于每个类和派生类，写下打算放入类的属性和成员函数。如果发现一个类没有特别的属性和成员函数，或者其所有属性和成员函数都可使用派生类完全覆盖，除了前面提到的抽象基类之外，应该考虑重新设计。
 
-\mySubsubsection{5.4.5.}{Hierarchies}
+\mySubsubsection{5.4.5.}{层次结构}
 
-Just as a class A can be a base class of B, B can also be a base class of C. Object-oriented hierarchies can model multilevel relationships like this. A zoo simulation with more animals might be designed with every animal as a derived class of a common Animal class, as shown in Figure 5.8.
+就像类 A 可以是类 B 的基类一样，B 也可以是类 C 的基类。面向对象的层次结构可以模拟这种多级关系。一个动物园模拟程序可能会为每个动物设计公共 Animal 类的派生类，如图 5.8 所示。
 
 \myGraphic{0.5}{content/part2/chapter5/images/8.png}{图 5.8}
 
-As you code each of these derived classes, you might find that a lot of them are similar. When this occurs, you should consider putting in a common parent. Realizing that Lion and Panther both move the same way and have the same diet might indicate a need for a possible BigCat class. You could further subdivide the Animal class to include WaterAnimal and Marsupial. Figure 5.9 shows a more hierarchical design that leverages this commonality.
+当为这些派生类编写代码时，可能会发现它们中有有很多相似。这种情况下，应该考虑将相同的部分放入一个共同的父类中。狮子和豹子都以相同的方式移动，并具有相同的饮食可能会表明需要一个可能的 BigCat 类。可以进一步将 Animal 类细分为 WaterAnimal 和 Marsupial。图 5.9 展示了一个更层次化的设计，利用了这种共同性。
 
 \myGraphic{0.7}{content/part2/chapter5/images/9.png}{图 5.9}
 
-A biologist looking at this hierarchy may be disappointed—a penguin isn’t really in the same family as a dolphin. However, it underlines a good point—in code, you need to balance real-world relationships with shared-functionality relationships. Even though two things might be closely related in the real world, they might have a not-a relationship in code because they really don’t share functionality. You could just as easily divide animals into mammals and fish, but that wouldn’t factor any commonality to the base class.
+一位生物学家看着这个层次结构可能会感到失望——企鹅实际上并不和海豚在同一个家族。然而，这强调了一个重要观点——代码中，需要平衡与现实世界的关系。即使两件事在现实世界中可能密切相关，但在代码中可能是一个 not-a 的关系。可以将动物分为哺乳动物和鱼类，但这不会为基类带来任何共同性。
 
-Another important point is that there could be other ways of organizing the hierarchy. The preceding design is organized mostly by how the animals move. If it were instead organized by the animals’ diet or height, the hierarchy could be very different. In the end, what matters is how the classes will be used. The needs will dictate the design of the class hierarchy.
+另一个重要观点是，可能有其他组织层次结构的方法。前面的设计主要按照动物的运动方式来组织。如果按照动物的饮食或身高来组织，层次结构可能会非常不同。最终，重要的是类将如何被使用。需求将决定类层次结构的设计。
 
-A good object-oriented hierarchy accomplishes the following:
+一个好的面向对象层次结构实现了以下目标：
 
 \begin{itemize}
 \item
-Organizes classes into meaningful functional relationships
+将类组织成有意义的功能关系
 
 \item
-Supports code reuse by factoring common functionality to base classes
+通过将常见功能因素到基类中，支持代码重用
 
 \item
-Avoids having derived classes that override much of the parent’s functionality, unless the parent is an abstract base class
+避免派生类覆盖大部分父类的功能，除非父类是抽象基类
 \end{itemize}
 
-\mySubsubsection{5.4.6.}{Multiple Inheritance}
+\mySubsubsection{5.4.6.}{多重继承}
 
-Every example so far has had a single inheritance chain. In other words, a given class has, at most, one immediate parent class. This does not have to be the case. Through multiple inheritance, a class can have more than one base class.
+到目前为止的所有示例都只有一个继承链，给定的类最多只有一个直接父类。这并不一定非得这样。通过多重继承，一个类可以有多个基类。
 
-Figure 5.10 shows a multiple inheritance design. There is still a base class called Animal, which is further divided by size. A separate hierarchy categorizes by diet, and a third takes care of movement. Each type of animal is then a derived class of all three of these classes, as shown by different lines.
+图 5.10 显示了一个多重继承设计。仍然有一个名为 Animal 的基类，根据大小进一步细分为不同的类。另一个层次结构根据饮食进行分类，第三个则处理运动。每种动物都是这三个类的派生类，如图中不同线条所示
 
-\myGraphic{0.8}{content/part2/chapter5/images/10.png}{图 5.10}
+\myGraphic{0.9}{content/part2/chapter5/images/10.png}{图 5.10}
 
-In a user interface context, imagine an image that the user can click. This class seems to be both a button and an image so the implementation might involve inheriting from both the Image class and the Button class, as shown in Figure 5.11.
+用户界面的上下文中，想象一个用户可以点击的图像。这个类看起来既是按钮又是图像，所以实现可能涉及从 Image 类和 Button 类同时继承，如图 5.11 所示。
 
-\myGraphic{0.4}{content/part2/chapter5/images/11.png}{图 5.11}
+\myGraphic{0.3}{content/part2/chapter5/images/11.png}{图 5.11}
 
-Multiple inheritance can be useful in certain cases, but it also has a number of disadvantages that you should always keep in mind. Many programmers dislike multiple inheritance. C++ has explicit support for such relationships, though the Java language does away with them altogether, except for inheriting from multiple interfaces (abstract base classes). There are several reasons to which multiple inheritance critics point.
+多重继承在某些情况下是有用的，但应该始终记住它也有许多缺点。许多开发者不喜欢多重继承。C++ 支持多重继承，尽管 Java 语言完全去除了它，除非从多个接口（抽象基类）继承。多重继承的批评者指出了几个原因。
 
-First, visualizing multiple inheritance is complicated. As you can see in Figure 5.10, even a simple class diagram can become complicated when there are multiple hierarchies and crossing lines.
+首先，多重继承的视觉化很复杂。如图 5.10 所示，即使是一个简单的类图，当有多个层次结构和交叉线时，会变得复杂。
 
-Class hierarchies are supposed to make it easier for the programmer to understand the relationships between code. With multiple inheritance, a class could have several parents that are in no way related to each other. With so many classes contributing code to your object, can you really keep track of what’s going on?
+类层次结构本应使开发者更容易理解代码之间的关系，但多重继承意味着一个类可能有几个毫无关系的父类。由于这么多类都为对象贡献代码，能确定发生了什么吗？
 
-Second, multiple inheritance can destroy otherwise clean hierarchies. In the animal example, switching to a multiple inheritance approach means that the Animal base class is less meaningful because the code that describes animals is now separated into three separate hierarchies. While the design illustrated in Figure 5.10 shows three clean hierarchies, it’s not difficult to imagine how they could get messy. For example, what if you realize that all Jumpers not only move in the same way, but they also eat the same things? Because there are separate hierarchies, there is no way to join the concepts of movement and diet without adding yet another derived class.
+其次，多重继承可能会破坏原本干净的层次结构。在动物示例中，切换到多重继承方法意味着 Animal 基类变得不那么有意义，因为描述动物的代码现在被分成了三个单独的层次结构。尽管图 5.10 所示的设计展示了三个干净的层次结构，就可能会变得混乱。例如，如果意识到所有跳跃者不仅以相同的方式移动，而且也吃相同的东西，因为存在单独的层次结构，所以无法将运动和饮食的概念结合起来，除非添加另一个派生类。
 
-Third, implementation of multiple inheritance is complicated. What if two of your base classes implement the same member function in different ways? Can you have two base classes that are themselves a derived class of a common base class? These possibilities complicate the implementation because structuring such intricate relationships in code is difficult both for the author and a reader.
+第三，多重继承的实现很复杂。如果两个基类以不同的方式实现同一个成员函数，有两个基类，它们本身就是从一个共同基类派生的吗？这些可能性使得实现变得复杂，因为编写这样的复杂关系代码对作者和读者来说都很难。
 
-The reason that other languages can leave out multiple inheritance is that it is usually avoidable. By rethinking your hierarchies, you can often avoid introducing multiple inheritance when you have control over the design of a project.
+其他语言可以完全去掉多重继承，通过重新思考你的层次结构，可以在项目设计时避免引入多重继承。
 
-\mySubsubsection{5.4.7.}{Mixin Classes}
+\mySubsubsection{5.4.7.}{混合类}
 
-Mixin classes represent another type of relationship between classes. In C++, one way to implement a mixin class is syntactically just like multiple inheritance, but the semantics are refreshingly different. A mixin class answers the question, “What else is this class able to do?” and the answer often ends with “-able.” Mixin classes are a way that you can add functionality to a class without committing to a full is-a relationship. You can think of it as a shares-with relationship.
+混合类代表了类之间另一种类型的关系。在 C++ 中，实现混合类的方法在语法上与多重继承相似，但语义上有很大的不同。混合类回答了“这个类还能做什么？”的问题，答案往往以“-able”结尾。混合类是一种你可以向类添加功能，而不必以 is-a 关系的方式，可以将其视为一种共享关系。
 
-Going back to the zoo example, you might want to introduce the notion that some animals are “pettable.” That is, there are some animals that visitors to the zoo can pet, presumably without being bitten or mauled. You might want all pettable animals to support the behavior “be pet.” Because pettable animals don’t have anything else in common and you don’t want to break the existing hierarchy you’ve designed, Pettable makes a great mixin class.
+回到动物园的例子，你能想引入一种动物可以“抚摸”的概念。也就是说，有一些动物游客可以在动物园抚摸，前提是他们不会被咬伤或攻击。可能希望所有可抚摸的动物都支持“被抚摸”的行为。由于可抚摸的动物没有什么其他共同点，而且不想破坏设计好的层次结构，那么Pettable 就是一个很好的混合类。
 
-Mixin classes are used frequently in user interfaces. Instead of saying that a PictureButton class is both an Image and a Button, you might say that it’s an Image that is Clickable. A folder icon on your desktop could be an Image that is Draggable and Clickable. Software developers tend to make up a lot of fun adjectives.
+混合类在用户界面中经常使用。与其说 PictureButton 类既是 Image 又是 Button，不如说它是一个可以点击的 Image。桌面上的文件夹图标可能是一个可以拖动和点击的 Image。软件开发人员倾向于编造很多有趣的形容词。
 
-The difference between a mixin class and a base class has more to do with how you think about the class than any code difference. In general, mixin classes are easier to digest than multiple inheritance because they are very limited in scope. The Pettable mixin class just adds one behavior to any existing class. The Clickable mixin class might just add “mouse down” and “mouse up” behaviors. Additionally, mixin classes rarely have a large hierarchy so there’s no cross-contamination of functionality. Chapter 32, “Incorporating Design Techniques and Frameworks,” goes into more detail on mixin classes.
+混合类与基类之间的区别更多地在于如何思考类，而不是任何代码差异。一般来说，混合类比多重继承更容易理解，因为其范围非常有限。Pettable 混合类只是向任何现有类添加一个行为，Clickable 混合类可能只添加“鼠标按下”和“鼠标释放”行为。此外，混合类很少有大的层次结构，所以没有功能上的交叉污染。
 
 
 
