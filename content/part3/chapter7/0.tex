@@ -1,34 +1,35 @@
 \noindent
-\textbf{WHAT’S IN THIS CHAPTER?}
+\textbf{内筒概要}
 
 \begin{itemize}
 \item
-Different ways to use and manage memory
+使用和管理内存
 
 \item
-The often-perplexing relationship between arrays and pointers
+数组和指针之间令人困惑的关系
 
 \item
-A low-level look at working with memory
+了解内存工作的底层实现
 
 \item
-Common memory pitfalls
+常见的内存陷阱
 
 \item
-Smart pointers and how to use them
+智能指针以及如何使用
 \end{itemize}
 
-\noindent
-\textbf{WILEY.COM DOWNLOADS FOR THIS CHAPTER}
+本章的所有代码示例都可以在\url{https://github.com/Professional-CPP/edition-6/}获得。
 
-Please note that all the code examples for this chapter are available as part of this chapter’s code download on the book’s website at \url{www.wiley.com/go/proc++6e} on the Download Code tab.
+C++ 是一个安全的语言，该语言提供了许多道路、行车道和交通灯，例如 C++ 核心指南（见附录 B），静态代码分析器来分析代码的正确性。
 
-When you use modern constructs, such as std::vector, std::string, and so on, as is done starting from Chapter 1, “A Crash Course in C++ and the Standard Library,” and throughout all the other chapters of this book, then C++ is a safe language. The language provides many roads, lines, and traffic lights, such as the C++ Core Guidelines (see Appendix B, “Annotated Bibliography”), static code analyzers to analyze the correctness of code, and many more.
+然而，C++ 确实允许离开行车道。一种离开行车道的方式是手动内存管理（分配和释放），这种方式是 C++ 编程中特别容易出错的一个领域。为了编写高质量的 C++ 程序，专业的 C++ 程序员需要理解内存工作背后的原理。第 3 部分的第一个章节探讨了内存管理的细节。将了解动态内存的陷阱，以及一些避免和消除它们的技术。
 
-However, C++ does allow you to drive off-road. One example of driving off-road is manual memory management (allocation and deallocation). Such manual memory management is a particularly error-prone area of C++ programming. To write high-quality C++ programs, professional C++ programmers need to understand how memory works behind the scenes. This first chapter of Part III explores the ins and outs of memory management. You will learn about the pitfalls of dynamic memory and some techniques for avoiding and eliminating them.
-
-This chapter discusses low-level memory handling because professional C++ programmers will encounter such code. However, in modern C++ code you should avoid low-level memory operations as much as possible. For example, instead of dynamically allocated C-style arrays, you should use Standard Library containers, such as vector, which handle all memory management automatically for you. Instead of raw pointers, you should use smart pointers, such as unique\_ptr and shared\_ptr both discussed later in this chapter, which automatically free the underlying resource, such as memory, when it’s not needed anymore. Basically, the goal is to avoid having calls to memory allocation routines such as new/new[] and delete/delete[] in your code. Of course, it might not always be possible, and in existing code it will most likely not be the case, so as a professional C++ programmer, you still need to know how memory works behind the scenes.
+本章讨论了底层内存处理，因为专业的 C++ 开发则会遇到这样的代码。现代 C++ 代码中，应尽可能避免底层内存操作。例如，应使用标准库容器，如 vector，而不是动态分配的 C 风格数组，后者会自动为处理所有内存管理。应使用智能指针，如 unique\_ptr 和 shared\_ptr，这些将在本章后面讨论，它们会在不再需要时自动释放底层资源，如内存。基本目标是避免在代码中出现内存分配例程，如 new/new[] 和 delete/delete[]。当然，这可能并非总是可能的，而且在现有代码中很可能不是这样，因此作为专业的 C++ 开发者，仍然需要知道内存工作的原理。
 
 \begin{myWarning}{WARNING}
-In modern C++ code you should avoid low-level memory operations as much as possible, avoid raw pointers when ownership is involved, and avoid using old C-style constructs and functions. Instead, use safe C++ alternatives, such as objects that automatically manage their memory, like the C++ string class, the vector container, smart pointers, and so on!
+现代 C++ 代码中，应尽可能避免底层内存操作，当涉及所有权时避免使用原始指针，并避免使用旧的 C 风格构造和函数。相反，使用安全的 C++ 替代品，如自动管理其内存的对象，如 C++ 字符串类、vector 容器、智能指针等！
 \end{myWarning}
+
+
+
+

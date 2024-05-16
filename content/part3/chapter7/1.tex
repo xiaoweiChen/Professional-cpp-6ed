@@ -12,7 +12,7 @@ For example, Figure 7.1 shows the state of memory after the following line of co
 int i { 7 };
 \end{cpp}
 
-\myGraphic{0.7}{content/part3/chapter7/images/1.png}{FIGURE 7.1}
+\myGraphic{0.5}{content/part3/chapter7/images/1.png}{图 7.1}
 
 i is called an automatic variable allocated on the stack. It is automatically deallocated when the program flow leaves the scope in which the variable is declared.
 
@@ -29,7 +29,7 @@ This can also be written as a one-liner:
 int* ptr { new int };
 \end{cpp}
 
-\myGraphic{0.7}{content/part3/chapter7/images/2.png}{FIGURE 7.2}
+\myGraphic{0.5}{content/part3/chapter7/images/2.png}{图 7.2}
 
 Figure 7.2 shows the state of memory after this code is executed. Notice that the variable ptr is still on the stack even though it points to memory on the free store. A pointer is just a variable and can live on either the stack or the free store, although this fact is easy to forget. Dynamic memory, however, is always allocated on the free store.
 
@@ -47,7 +47,7 @@ handle = new int*;
 
 This code first declares a pointer to a pointer to an integer as the variable handle. It then dynamically allocates enough memory to hold a pointer to an integer, storing the pointer to that new memory in handle. Next, that memory (*handle) is assigned a pointer to another section of dynamic memory that is big enough to hold the integer. Figure 7.3 shows the two levels of pointers with one pointer residing on the stack (handle) and the other residing on the free store (*handle).
 
-\myGraphic{0.7}{content/part3/chapter7/images/3.png}{FIGURE 7.3}
+\myGraphic{0.5}{content/part3/chapter7/images/3.png}{图 7.3}
 
 \mySubsubsection{7.1.2.}{Allocation and Deallocation}
 
@@ -59,7 +59,7 @@ When you want to allocate a block of memory, you call new with the type of varia
 
 For example, the following code orphans enough memory to hold an int. Figure 7.4 shows the state of memory after the code is executed. When there are blocks of data on the free store with no access, direct or indirect, from the stack, the memory is orphaned or leaked.
 
-\myGraphic{0.7}{content/part3/chapter7/images/4.png}{FIGURE 7.4}
+\myGraphic{0.5}{content/part3/chapter7/images/4.png}{图 7.4}
 
 \begin{cpp}
 void leaky()
@@ -134,7 +134,7 @@ int myArray[5];
 
 The individual elements of such a primitive type array are uninitialized; that is, they contain whatever is at that location in memory. Figure 7.5 shows the state of memory after the array is created. When creating arrays on the stack, the size must be a constant value known at compile time.
 
-\myGraphic{0.7}{content/part3/chapter7/images/5.png}{FIGURE 7.5}
+\myGraphic{0.5}{content/part3/chapter7/images/5.png}{图 7.5}
 
 \begin{myNotic}{NOTE}
 Some compilers allow variable-sized arrays on the stack. This is not a standard feature of C++, so I recommend cautiously backing away when you see it.
@@ -178,7 +178,7 @@ As with the new operator, new[] accepts a nothrow argument to return nullptr ins
 int* myArrayPtr { new(nothrow) int[5] };
 \end{cpp}
 
-\myGraphic{0.7}{content/part3/chapter7/images/6.png}{FIGURE 7.6}
+\myGraphic{0.5}{content/part3/chapter7/images/6.png}{图 7.6}
 
 Dynamically created arrays on the free store can also be initialized with an initializer list:
 
@@ -241,7 +241,7 @@ Simple* mySimpleArray { new Simple[4] };
 
 Figure 7.7 shows the memory diagram for this array. As you can see, it is no different than an array of basic types.
 
-\myGraphic{0.7}{content/part3/chapter7/images/7.png}{FIGURE 7.7}
+\myGraphic{0.5}{content/part3/chapter7/images/7.png}{图 7.7}
 
 \mySamllsection{Deleting Arrays}
 
@@ -303,7 +303,7 @@ You may be wondering whether the first subscript in a two-dimensional array is t
 
 In memory, the three-by-three stack-based two-dimensional board array looks like Figure 7.8. Because memory doesn’t have two axes (addresses are merely sequential), the computer represents a two-dimensional array just like a one-dimensional array. The difference is in the size of the array and the method used to access it.
 
-\myGraphic{0.7}{content/part3/chapter7/images/8.png}{FIGURE 7.8}
+\myGraphic{0.5}{content/part3/chapter7/images/8.png}{图 7.8}
 
 The size of a multidimensional array is all of its dimensions multiplied together and then multiplied by the size of a single element in the array. In Figure 7.8, the three-by-three board is 3 × 3 × 1 = 9 bytes, assuming that a character is 1 byte. For a four-by-seven board of characters, the array would be 4 × 7 × 1 = 28 bytes.
 
@@ -311,9 +311,9 @@ To access a value in a multidimensional array, the computer treats each subscrip
 
 These techniques are extended to N-dimensional arrays, though dimensions higher than three tend to be difficult to conceptualize and are rarely used.
 
-\myGraphic{0.7}{content/part3/chapter7/images/9.png}{FIGURE 7.9}
+\myGraphic{0.5}{content/part3/chapter7/images/9.png}{图 7.9}
 
-\myGraphic{0.7}{content/part3/chapter7/images/10.png}{FIGURE 7.10}
+\myGraphic{0.5}{content/part3/chapter7/images/10.png}{图 7.10}
 
 \mySamllsection{Multidimensional Free Store Arrays}
 
@@ -325,7 +325,7 @@ char** board { new char[i][j] }; // BUG! Doesn't compile
 
 This code doesn’t compile because multidimensional free store-based arrays don’t work like stack-based arrays. Their memory layout isn’t contiguous. Instead, you start by allocating a single contiguous array for the first subscript dimension of a free store-based array. Each element of that array is actually a pointer to another array that stores the elements for the second subscript dimension. Figure 7.11 shows this layout for a two-bytwo dynamically allocated board.
 
-\myGraphic{0.7}{content/part3/chapter7/images/11.png}{FIGURE 7.11}
+\myGraphic{0.5}{content/part3/chapter7/images/11.png}{图 7.11}
 
 Unfortunately, the compiler doesn’t allocate memory for the subarrays on your behalf. You can allocate the first-dimension array just like a single-dimensional free store-based array, but the individual subarrays must be explicitly allocated. The following function properly allocates memory for a two-dimensional array:
 
@@ -378,7 +378,7 @@ This line builds a pointer to the memory address 7, which is likely to be random
 
 There are two ways to think about pointers. More mathematically minded readers might view pointers as addresses. This view makes pointer arithmetic, covered later in this chapter, a bit easier to understand. Pointers aren’t mysterious pathways through memory; they are numbers that happen to correspond to a location in memory. Figure 7.12 illustrates a two-by-two grid in the address-based view of the world.(The addresses in Figure 7.12 are just for illustrative purpose. Addresses on a real system are highly dependent on the hardware and operating system.)
 
-\myGraphic{0.7}{content/part3/chapter7/images/12.png}{FIGURE 7.12}
+\myGraphic{0.5}{content/part3/chapter7/images/12.png}{图 7.12}
 
 Readers who are more comfortable with spatial representations might derive more benefit from the “arrow” view of pointers. A pointer is a level of indirection that says to the program, “Hey! Look over there.” With this view, multiple levels of pointers become individual steps on the path to the data. Figure 7.11 shows a graphical view of pointers in memory.
 
