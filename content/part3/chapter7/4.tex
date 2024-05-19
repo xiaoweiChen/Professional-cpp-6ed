@@ -1,11 +1,11 @@
 
-Handling dynamic memory using new/delete/new[]/delete[], and low-level memory operations are prone to errors. It is difficult to pinpoint the exact situations that can lead to a memory-related bug. Every memory leak or bad pointer has its own nuances. There is no magic bullet for resolving memory issues. This section discusses several common categories of problems and some tools you can use to detect and resolve them.
+处理动态内存使用 new/delete/new[]/delete[] 以及其他底层内存操作，这些操作非常容易出错。很难准确指出哪些情况会导致与内存相关的错误，每个内存泄漏或错误指针都有差别，解决内存问题没有万能的方法。本节讨论了一些常见的问题类别以及一些可用于检测和解决问题的工具。
 
-\mySubsubsection{7.4.1.}{Underallocating Data Buffers and Out-of-Bounds Memory Access}
+\mySubsubsection{7.4.1.}{数据缓冲区分配不足和越界内存访问}
 
-Underallocation is a common problem with C-style strings, where it arises when the programmer fails to allocate an extra character for the trailing '\verb|\|0' sentinel. Underallocation of strings also occurs when programmers assume a certain fixed maximum size. The basic built-in C-style string functions do not adhere to a fixed size—they will happily write off the end of the string into uncharted memory.
+分配不足是C字符串中的一个常见问题，发生在开发者未能为尾部的 '\verb|\|0' 终止符分配额外的字符时。当开发者假设一个固定的最大大小时，字符串的分配不足也会发生。基本的内置C字符串函数并不遵循固定大小——它们会愉快地将字符串写入未知的内存区域。
 
-The following code demonstrates underallocation. It reads data off a network connection and puts it in a C-style string. This is done in a loop because the network connection receives only a small amount of data at a time. On each loop, getMoreData() is called, which returns a pointer to dynamically allocated memory. When nullptr is returned from getMoreData(), all of the data has been received. strcat() is a C function that concatenates the C-style string given as a second argument to the end of the C-style string given as a first argument. It expects the destination buffer to be big enough.
+以下代码演示了分配不足，从网络连接读取数据并将其放入C字符串中。这是在一个循环中完成的，网络连接一次只能接收少量数据。每次循环中，调用 getMoreData()，返回指向动态分配内存的指针。当 getMoreData() 返回 nullptr 时，表示所有数据都已接收完毕。strcat() 是一个C函数，将第二个参数给定的C字符串连接到第一个参数给定的C字符串的末尾，并期望目标缓冲区足够大。
 
 \begin{cpp}
 char buffer[1024] { 0 }; // Allocate a whole bunch of memory.
@@ -20,22 +20,21 @@ while (true) {
 }
 \end{cpp}
 
-There are three ways to resolve the possible underallocation problem in this example. In decreasing order of preference, they are as follows:
+解决这个示例中可能出现的分配不足问题的三种方法，按优先级递减：
 
 \begin{enumerate}
 \item
-Use C++-style strings, which handle the memory associated with concatenation on your behalf.
+使用C++字符串，会在你进行连接时自动处理与连接相关的内存。
 
 \item
-Instead of allocating a buffer as a global variable or on the stack, allocate it on the free store. When there is insufficient space left, allocate a new buffer large enough to hold at least the current contents plus the new chunk, copy the original buffer into the new buffer, append the new contents, and delete the original buffer.
+将缓冲区分配作为全局变量或栈上的变量，改为在堆上分配。当剩余空间不足时，分配一个新的足够大的缓冲区来至少容纳当前内容加上新的一块，将原始缓冲区复制到新缓冲区，添加新内容，然后删除原始缓冲区。
 
 \item
-Create a version of getMoreData() that takes a maximum count (including the '\verb|\|0' character) and returns no more characters than that; then track the amount of space left, and the current position, in the buffer.
+创建一个版本的 getMoreData()，它接受一个最大计数（包括 '\verb|\|0' 字符）并返回不超过该计数字符的数量；然后，跟踪缓冲区中剩余的空间和当前位置。
 \end{enumerate}
+数据缓冲区分配不足通常会导致越界内存访问。例如，如果您正在用数据填充内存缓冲区，当您假设缓冲区比实际大时，您可能会开始在缓冲区之外写入。这只是时间问题，直到重要的内存部分被覆盖，程序崩溃。考虑如果程序中的对象关联的内存突然被覆盖会发生什么。那可不好看！
 
-Underallocation of data buffers usually leads to out-of-bounds memory access. For example, if you are filling a memory buffer with data, you might start writing outside the allocated data buffer when you assume the buffer is bigger than it actually is. It is only a matter of time before an essential part of memory is overwritten and the program crashes. Consider what might happen if the memory associated with the objects in your program is suddenly overwritten. It’s not pretty!
-
-Out-of-bounds memory access also occurs when handling C-style strings that have somehow lost their ''\verb|\|0' termination character. For example, if an improperly terminated string is handed to the following function, it will fill the string with 'm' characters and will happily continue to fill the contents of memory after the string with 'm's, overwriting memory outside the bounds of the string.
+越界内存访问还发生在处理丢失了 '\verb|\|0' 终止字符的C风格字符串时。例如，一个不正确终止的字符串传递给以下函数，将用 ‘m’ 字符填充字符串，并愉快地继续用 ‘m’ 填充字符串后面的内存内容，覆盖字符串范围外的内存。
 
 \begin{cpp}
 void fillWithM(char* text)
@@ -48,19 +47,19 @@ void fillWithM(char* text)
 }
 \end{cpp}
 
-Bugs that result in writing to memory past the end of an array are often called buffer overflow errors. These bugs have been exploited by several high-profile malware programs such as viruses and worms. A devious hacker can take advantage of the ability to overwrite portions of memory to inject code into a running program.
+导致在数组末尾之外写入内存的错误，通常称为缓冲区溢出错误。这些错误已被多种高知名度的恶意软件程序（如病毒和蠕虫）利用，狡猾的黑客可以利用覆盖内存部分的能力将代码注入正在运行的程序。
 
 \begin{myWarning}{WARNING}
-Avoid using old C-style strings and arrays that offer no protection whatsoever. Instead, use modern and safe constructs such as C++ strings and vectors that manage all their memory for you.
+避免使用旧的C风格字符串和数组，这些字符串和数组完全不提供任何保护。相反，使用现代安全的构造，如C++字符串和vector，可管理所有内存。
 \end{myWarning}
 
-\mySubsubsection{7.4.2.}{Memory Leaks}
+\mySubsubsection{7.4.2.}{内存泄漏}
 
-In modern C++, there are no memory leaks. All memory management is handled by higher-level classes, such as std::vector, string, and so on. Only when you drive off-road and perform manual memory allocation and deallocation can memory leaks crop up.
+现代C++中，没有内存泄漏。所有的内存管理都由更高级的类，如 std::vector、string 等处理。只有手动内存分配和释放时，才会出现内存泄漏。
 
-Finding and fixing such memory leaks can be frustrating. Your program finally works and appears to give the correct results. Then, you start to notice that your program gobbles up more and more memory as it runs. Your program has a memory leak.
+找到并修复这样的内存泄漏可能会让人感到沮丧。程序终于运行良好，看起来给出了正确的结果。然后，开始注意到，随着程序的运行，程序会吞噬越来越多的内存——程序有内存泄漏。
 
-Memory leaks occur when you allocate memory and neglect to release it. At first, this sounds like the result of careless programming that could easily be avoided. After all, if every new has a corresponding delete in every class you write, there should be no memory leaks, right? Actually, that’s not always true. For example, in the following code, the Simple class is properly written to release any memory that it allocates. However, when doSomething() is called, the outSimplePtr pointer is changed to another Simple object without deleting the old one to demonstrate a memory leak. Once you lose a pointer to an object, it’s nearly impossible to delete it.
+内存泄漏发生在分配内存之后，忘记释放。起初，这听起来像是由于粗心编程的结果。如果每个新类都有一个对应的 delete，应该就不会有内存泄漏，对吗？实际上，这并不总是正确的。例如，在以下代码中，Simple 类正确地编写以释放它分配的内存。但当调用 doSomething() 时，outSimplePtr 指针改变为另一个 Simple 对象，而没有删除旧的 Simple 对象，出现内存泄漏。当失去了对一个对象的引用，则不可能删除它。
 
 \begin{cpp}
 class Simple
@@ -87,10 +86,10 @@ int main()
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-Keep in mind that this code is only for demonstration purposes! In production-quality code, both m\_intPtr and simplePtr should not be raw pointers, but should be smart pointers discussed later in this chapter.
+这段代码仅用于演示目的！生产质量的代码中，m\_intPtr 和 simplePtr 都不应该使用原始指针，而应该使用智能指针。
 \end{myWarning}
 
-In cases like the previous example, the memory leak probably arose from poor communication between programmers or poor documentation of the code. The caller of doSomething() may not have realized that the variable was passed by reference and thus had no reason to expect that the pointer would be reassigned. If they did notice that the parameter was a reference-to-non-const pointer, they may have suspected that something strange was happening, but there is no comment around doSomething() that explains this behavior.
+在前一个示例的情况下，内存泄漏可能源于开发者之间的沟通不畅或代码文档不足。doSomething() 的调用者可能没有意识到变量通过引用传递，因此没有理由期望指针会重新分配。如果注意到参数是一个指向非常量指针的引用，可能会怀疑有什么奇怪的事情发生，但是 doSomething() 附近没有任何注释来解释这种行为。
 
 \mySamllsection{Finding and Fixing Memory Leaks in Windows with Visual C++}
 

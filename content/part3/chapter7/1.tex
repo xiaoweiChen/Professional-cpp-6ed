@@ -1,12 +1,11 @@
 
-Memory is a low-level component of the computer that sometimes unfortunately rears its head even in a high-level programming language like C++. A solid understanding of how dynamic memory really works in C++ is essential to becoming a professional C++ programmer.
+内存是计算机的底层组件，即使在像 C++ 这样的高级编程语言中，也需要面对如此底层的东西。对 C++ 中动态内存真正的工作原理有一个坚实的理解，是成为一名专业 C++ 程序员的必要条件。
 
-\mySubsubsection{7.1.1.}{How to Picture Memory}
+\mySubsubsection{7.1.1.}{如何理解内存}
 
-Understanding dynamic memory is much easier if you have a mental model for what objects look like in memory. In this book, a unit of memory is shown as a box with a label next to it. The label indicates a variable name that corresponds to the memory.
-The data inside the box displays the current value of the memory.
+如果有一个关于内存中对象看起来是什么样的概念，理解动态内存就会容易得多。本书中，内存单位表示为一个带有标签的盒子。标签表示与内存对应的变量名，而盒子内的数据显示了内存的当前值。
 
-For example, Figure 7.1 shows the state of memory after the following line of code is executed. The line should be in a function, so that i is a local variable:
+例如，图 7.1 显示了以下代码行执行后内存的状态。这行代码应该在函数中，所以 i 是一个局部变量：
 
 \begin{cpp}
 int i { 7 };
@@ -14,16 +13,16 @@ int i { 7 };
 
 \myGraphic{0.5}{content/part3/chapter7/images/1.png}{图 7.1}
 
-i is called an automatic variable allocated on the stack. It is automatically deallocated when the program flow leaves the scope in which the variable is declared.
+i 称为自动变量，在栈上分配。程序流程离开变量声明的作用域时，就会自动释放。
 
-When you use the new keyword, memory is allocated on the free store. If not explicitly initialized, memory allocated by a call to new is uninitialized; i.e., it contains whatever random data is left at that location in memory. This uninitialized state is represented with a question mark in diagrams in this chapter. The following code creates a variable ptr on the stack initialized with nullptr and then allocates memory on the free store to which ptr points:
+使用 new 关键字时，内存在自由存储上分配。如果没有显式初始化，new 调用的内存分配不进行初始化，会那个位置内存存储随机数据。这种未初始化的状态在本章的图表中用问号表示。以下代码在栈上创建了一个初始化为 nullptr 的变量 ptr，然后为 ptr 指向的自由存储上的内存分配内存：
 
 \begin{cpp}
 int* ptr { nullptr };
 ptr = new int;
 \end{cpp}
 
-This can also be written as a one-liner:
+这也可以这样写：
 
 \begin{cpp}
 int* ptr { new int };
@@ -31,13 +30,13 @@ int* ptr { new int };
 
 \myGraphic{0.5}{content/part3/chapter7/images/2.png}{图 7.2}
 
-Figure 7.2 shows the state of memory after this code is executed. Notice that the variable ptr is still on the stack even though it points to memory on the free store. A pointer is just a variable and can live on either the stack or the free store, although this fact is easy to forget. Dynamic memory, however, is always allocated on the free store.
+图 7.2 展示了执行此代码后内存的状态。请注意，尽管 ptr 指向自由存储上的内存，但它仍然位于栈上。指针只是变量，可以存在于栈上或堆上，但动态内存总是分配在堆上。
 
 \begin{myWarning}{WARNING}
-As mandated by the C++ Core Guidelines(Guideline ES.20 of the C++ Core Guidelines, see Appendix B, states “Always initialize an object.”), every time you declare a pointer variable, you should immediately initialize it with either a proper pointer or nullptr. Don’t leave it uninitialized!
+根据 C++ 核心指南（C++ 核心指南的 ES.20 指南：“切记初始化对象。”），每次声明指针变量时，应该立即用一个适当的指针或 nullptr 初始化。不要让它保持未初始化状态！
 \end{myWarning}
 
-The next example shows that pointers can exist both on the stack and on the free store:
+接下来的例子显示，指针既可以存在于栈上，也可以存在于堆上：
 
 \begin{cpp}
 int** handle { nullptr };
@@ -45,19 +44,19 @@ handle = new int*;
 *handle = new int;
 \end{cpp}
 
-This code first declares a pointer to a pointer to an integer as the variable handle. It then dynamically allocates enough memory to hold a pointer to an integer, storing the pointer to that new memory in handle. Next, that memory (*handle) is assigned a pointer to another section of dynamic memory that is big enough to hold the integer. Figure 7.3 shows the two levels of pointers with one pointer residing on the stack (handle) and the other residing on the free store (*handle).
+这段代码首先声明了一个指向整型指针的指针作为变量 handle。然后，动态地分配足够的内存来存储一个指向整型的指针，并将指向新内存的指针存储在 handle 中。接下来，内存 (*handle) 分配了一个指向另一个足够大的动态内存区域的指针，该区域可以存储整数。图 7.3 显示了两个指针级别，其中一个指针位于栈上（handle），另一个位于堆上 (*handle)。
 
 \myGraphic{0.5}{content/part3/chapter7/images/3.png}{图 7.3}
 
-\mySubsubsection{7.1.2.}{Allocation and Deallocation}
+\mySubsubsection{7.1.2.}{分配和释放}
 
-To create space for a variable, you use the new keyword. To release that space for use by other parts of the program, you use the delete keyword.
+为变量创建空间，需要使用 new 操作符。要将该空间释放给程序的其他部分使用，需要使用 delete 操作符。
 
-\mySamllsection{Using new and delete}
+\mySamllsection{使用 new 和 delete}
 
-When you want to allocate a block of memory, you call new with the type of variable for which you need space. new returns a pointer to that memory, although it is up to you to store that pointer in a variable. If you ignore the return value of new or if the pointer variable goes out of scope, the memory becomes orphaned because you no longer have a way to access it. This is called a memory leak.
+想要分配一个内存块时，调用 new 并传入需要空间的变量类型。new 返回该内存的指针，尽管需要将这个指针存储在一个变量中。如果忽略 new 的返回值，或者指针变量超出作用域，内存就变得“无家可归”，无法再访问，这称为内存泄漏。
 
-For example, the following code orphans enough memory to hold an int. Figure 7.4 shows the state of memory after the code is executed. When there are blocks of data on the free store with no access, direct or indirect, from the stack, the memory is orphaned or leaked.
+例如，以下代码遗弃了足够存储一个 int 的内存。图 7.4 显示了代码执行后内存的状态。当自由存储上有数据块，且无法从栈上直接或间接访问时，内存就会悬吊或泄漏。
 
 \myGraphic{0.5}{content/part3/chapter7/images/4.png}{图 7.4}
 
@@ -69,7 +68,7 @@ void leaky()
 }
 \end{cpp}
 
-Until they find a way to make computers with an infinite supply of fast memory, you will need to tell the compiler when the memory associated with an object can be released and reused for another purpose. To free memory on the free store, you use the delete keyword with a pointer to the memory, as shown here:
+在找到一种方法来制造具有无限快速内存的计算机之前，将需要告诉编译器何时可以释放与对象关联的内存并用于其他目的。为了在自由存储上释放内存，使用 delete 关键字，并提供指向该内存的指针：
 
 \begin{cpp}
 int* ptr { new int };
@@ -78,101 +77,101 @@ ptr = nullptr;
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-As a rule of thumb, every line of code that allocates memory with new, and that uses a raw pointer instead of storing the pointer in a smart pointer, should correspond to another line of code that releases the same memory with delete.
+作为一条经验法则，每一行使用 new 分配内存的代码，以及使用原始指针而不是存储在智能指针中的指针，都应该对应于释放相同内存的另一行代码，即 delete。
 \end{myWarning}
 
 \begin{myNotic}{NOTE}
-It is recommended to set a pointer to nullptr after having freed its memory. That way, you do not accidentally use a pointer to memory that has already been deallocated. It’s also worth noting that you are allowed to call delete on a nullptr pointer; it simply will not do anything.
+建议在释放内存后将其指针设置为 nullptr。这样，就不会意外地使用一个已经释放的内存的指针。值得注意的是，可以对 nullptr 指针调用 delete——什么也会不做。
 \end{myNotic}
 
-\mySamllsection{What About My Good Friend malloc?}
+\mySamllsection{malloc 怎么样？}
 
-If you are a C programmer, you may be wondering what is wrong with the malloc() function. In C, malloc() is used to allocate a given number of bytes of memory. For the most part, using malloc() is simple and straightforward. The malloc() function still exists in C++, but you should avoid it. The main advantage of new over malloc() is that new doesn’t just allocate memory, it constructs objects!
+如果是 C 语言开发者，可能会想知道 malloc() 函数有什么问题。在 C 中，malloc() 用于分配指定数量的字节的内存，使用 malloc() 简单直接。在 C++ 中，malloc() 函数仍然存在，但应该避免使用。new 相对于 malloc() 的主要优势在于，new 不仅仅分配内存，还会构造对象！
 
-For example, consider the following two lines of code, which use a hypothetical class called Foo:
+例如，考虑以下两行代码，使用一个假设的类 Foo：
 
 \begin{cpp}
 Foo* myFoo { (Foo*)malloc(sizeof(Foo)) };
 Foo* myOtherFoo { new Foo{} };
 \end{cpp}
 
-After executing these lines, both myFoo and myOtherFoo point to areas of memory on the free store that are big enough for a Foo object. Data members and member functions of Foo can be accessed using both pointers. The difference is that the Foo object pointed to by myFoo isn’t a proper object because its constructor was never called. The malloc() function only sets aside a piece of memory of a certain size. It doesn’t know about or care about objects. In contrast, the call to new allocates the appropriate size of memory and also calls an appropriate constructor to construct the object.
+执行这些行之后，myFoo 和 myOtherFoo 都指向堆中的内存区域，这些区域足够大以容纳一个 Foo 对象。可以使用这两个指针访问 Foo 的数据成员和成员函数。区别在于，myFoo 指向的 Foo 对象不是一个真正的对象，因为从未调用其构造函数。malloc() 函数只是为指定的大小分配了一块内存，不知道也不关心对象。相反，new 调用会分配适当的内存大小，并调用适当的构造函数来构造对象。
 
-A similar difference exists between the free() function and the delete operator. With free(), the object’s destructor is not called. With delete, the destructor is called and the object is properly cleaned up.
+类似地，free() 函数和 delete 运算符之间也存在类似的区别。使用 free() 时，不会调用对象的析构函数。使用 delete 时，会调用析构函数，并且会正确清理对象。
 
 \begin{myWarning}{WARNING}
-Avoid the use of malloc() and free() in C++.
+C++ 中避免使用 malloc() 和 free()。
 \end{myWarning}
 
-\mySamllsection{When Memory Allocation Fails}
+\mySamllsection{内存分配失败时}
 
-Many, if not most, programmers write code with the assumption that new will always be successful. The rationale is that if new fails, it means that memory is very low and life is very, very bad. It is often an unfathomable state to be in because it’s unclear what your program could possibly do in this situation.
+许多开发者编写代码时都假设 new 总是成功的。理由是如果 new 失败，则内存不足，这种情况非常糟糕。这通常是一个难以理解的状态，这种情况下，程序可能不知道能做什么。
 
-By default, an exception is thrown when new fails, for example if there is not enough memory available for the request. If this exception is not caught, the program will be terminated. In many programs, this behavior is acceptable. Chapter 1 introduces exceptions, and Chapter 14, “Handling Errors,” explains exceptions in more details and provides possible approaches to recover gracefully from an out-of-memory situation.
+默认情况下，当 new 失败时会抛出一个异常，例如如果请求的内存不足。这个异常没有捕捉，程序将终止。许多程序中，这种行为是可以接受的。第 1 章介绍了异常，第 14 章更详细地解释了异常，并提供了一些方法来优雅地从内存不足的情况中恢复。
 
-There is also an alternative version of new, which does not throw an exception. Instead, it returns nullptr if allocation fails, similar to the behavior of malloc() in C. The syntax for using this version is as follows:
+还有一种 new 的替代版本，不会抛出异常。如果分配失败，它会返回 nullptr，类似于 C 中 malloc() 的行为。使用这种版本的语法如下：
 
 \begin{cpp}
 int* ptr { new(nothrow) int };
 \end{cpp}
 
-The syntax is a little strange: you really do write “nothrow” as if it’s an argument to new (which it is).
+语法有点奇怪：真的会写“nothrow”作为 new 的一个参数（实际上就是）。
 
-Of course, you still have the same problem as the version that throws an exception—what do you do when the result is nullptr? The compiler doesn’t require you to check the result, so the nothrow version of new is more likely to lead to other bugs than the version that throws an exception. For this reason, it’s suggested that you use the standard version of new. If out-of-memory recovery is important to your program, the techniques covered in Chapter 14 give you all the tools you need.
+当然，仍然面临与抛出异常版本相同的問題——当结果为 nullptr 时该怎么办？编译器不检查该结果，所以nothrow 版本的 new 比抛出异常更容易导致其他错误。出于这个原因，建议你使用标准的 new。如果程序需要从内存不足的情况中恢复，第 14 章中的技术应足以满足需求。
 
-\mySubsubsection{7.1.3.}{Arrays}
+\mySubsubsection{7.1.3.}{数组}
 
-Arrays package multiple variables of the same type into a single variable with indices. Working with arrays quickly becomes natural to a novice programmer because it is easy to think about values in numbered slots. The in-memory representation of an array is not far off from this mental model.
+数组将多个相同类型的变量打包成一个单一的变量，并带有索引。对初学者来说，与数组一起工作很快就会变得自然，很容易想象值在编号的槽位中。数组在内存中的表示与这种方式差不多。
 
-\mySamllsection{Arrays of Primitive Types}
+\mySamllsection{原始类型数组}
 
-When your program allocates memory for an array, it is allocating contiguous pieces of memory, where each piece is large enough to hold a single element of the array. For example, a local array of five ints can be declared on the stack as follows:
+当程序为数组分配内存时，它是在分配连续的内存块，其中每个块都足够大以存储数组的一个元素。例如，一个本地包含五个 int 的数组可以在栈上声明如下：
 
 \begin{cpp}
 int myArray[5];
 \end{cpp}
 
-The individual elements of such a primitive type array are uninitialized; that is, they contain whatever is at that location in memory. Figure 7.5 shows the state of memory after the array is created. When creating arrays on the stack, the size must be a constant value known at compile time.
+这种原始类型数组的单个元素是未初始化的，包含内存中的那个位置的任意内容。图 7.5 显示了数组创建后的内存状态。在栈上创建数组时，大小必须是编译时已知的常量值。
 
 \myGraphic{0.5}{content/part3/chapter7/images/5.png}{图 7.5}
 
 \begin{myNotic}{NOTE}
-Some compilers allow variable-sized arrays on the stack. This is not a standard feature of C++, so I recommend cautiously backing away when you see it.
+一些编译器允许在栈上创建变尺寸的数组。这不是 C++ 的标准特性，所以我建议谨慎使用。
 \end{myNotic}
 
-When creating an array on the stack, an initializer list can be used to provide initial elements:
+当在栈上创建数组时，可以使用初始化列表为提供初始元素：
 
 \begin{cpp}
 int myArray[5] { 1, 2, 3, 4, 5 };
 \end{cpp}
 
-If the initializer list contains less elements than the size of the array, the remaining elements of the array are zero-initialized (see Chapter 1), for example:
+如果初始化列表包含的元素少于数组的大小，数组中剩余的元素将被零初始化（见第 1 章），例如：
 
 \begin{cpp}
 int myArray[5] { 1, 2 }; // 1, 2, 0, 0, 0
 \end{cpp}
 
-To zero-initialize all elements, you can simply write:
+要对所有元素进行零初始化，可以这样写:
 
 \begin{cpp}
 int myArray[5] { }; // 0, 0, 0, 0, 0
 \end{cpp}
 
-When using an initializer list, the compiler can deduce the number of elements automatically, removing the need to explicitly state the size of the array:
+使用初始化列表时，编译器可以自动推断出元素的数量，从而无需显式声明数组的大小:
 
 \begin{cpp}
 int myArray[] { 1, 2, 3, 4, 5 };
 \end{cpp}
 
-Declaring arrays on the free store is no different, except that you use a pointer to refer to the location of the array. The following code allocates memory for an array of five uninitialized ints and stores a pointer to the memory in a variable called myArrayPtr:
+在堆上声明数组没有什么不同，只是使用一个指针来引用数组的位置。下面的代码为5个未初始化的int型数组分配内存，并将指向该内存的指针存储在myArrayPtr变量:
 
 \begin{cpp}
 int* myArrayPtr { new int[5] };
 \end{cpp}
 
-As Figure 7.6 illustrates, the free store-based array is similar to a stack-based array, but in a different location. The myArrayPtr variable points to the 0th element of the array.
+如图7.6所示，基于存储的空数组类似于基于堆栈的数组，但位于不同的位置。myArrayPtr指向数组的第0个元素。
 
-As with the new operator, new[] accepts a nothrow argument to return nullptr instead of throwing an exception if allocation fails:
+与new操作符一样，new[]接受一个nothrow参数来返回nullptr，而不是在分配失败时抛出异常:
 
 \begin{cpp}
 int* myArrayPtr { new(nothrow) int[5] };
@@ -180,20 +179,20 @@ int* myArrayPtr { new(nothrow) int[5] };
 
 \myGraphic{0.5}{content/part3/chapter7/images/6.png}{图 7.6}
 
-Dynamically created arrays on the free store can also be initialized with an initializer list:
+在堆区动态创建的数组，也可以用初始化列表进行初始化:
 
 \begin{cpp}
 int* myArrayPtr { new int[] { 1, 2, 3, 4, 5 } };
 \end{cpp}
 
-Each call to new[] should be paired with a call to delete[] to clean up the memory. Note the empty square brackets, [], behind delete[]!
+每次对new[]的调用都应该与delete[]的调用配对以清理内存。注意delete[]后面的方括号[]!
 
 \begin{cpp}
 delete [] myArrayPtr;
 myArrayPtr = nullptr;
 \end{cpp}
 
-The advantage of putting an array on the free store is that you can define its size at run time. For example, the following code snippet receives a desired number of documents from a hypothetical function named askUserForNumberOfDocuments() and uses that result to create an array of Document objects.
+将数组放在自由存储上的优势在于，可以根据运行时的情况定义其大小。例如，以下代码片段从假设的函数 askUserForNumberOfDocuments() 接收想要的文档数量，并使用该结果创建一个 Document 对象的数组。
 
 \begin{cpp}
 Document* createDocumentArray()
@@ -204,48 +203,48 @@ Document* createDocumentArray()
 }
 \end{cpp}
 
-Remember that each call to new[] should be paired with a call to delete[], so in this example, it’s important that the caller of createDocumentArray() uses delete[] to clean up the returned memory. Another problem is that C-style arrays don’t know their size; thus, callers of createDocumentArray() have no idea how many elements there are in the returned array!
+记住，每次调用 new[] 都应该与一次调用 delete[] 配对。createDocumentArray() 的调用者使用 delete[] 来清理返回的内存是非常重要的。另一个问题是 C 风格的数组不知道它们的大小；因此，createDocumentArray() 的调用者不知道返回数组中有多少个元素！
 
-In the preceding function, documents is a dynamically allocated array. Do not get this confused with a dynamic array. The array itself is not dynamic because its size does not change once it is allocated. Dynamic memory lets you specify the size of an allocated block at run time, but it does not automatically adjust its size to accommodate the data.
+前面的函数中，documents 是一个动态分配的数组。不要将这个与动态数组混淆。数组本身不是动态的，因为一旦分配，大小就不会改变。动态内存允许在运行时指定已分配块的大小，但不会自动调整其大小以适应数据。
 
 \begin{myNotic}{NOTE}
-There are data structures that do dynamically adjust their size and that do know their actual size, for example Standard Library containers. You should use such containers instead of C-style arrays because they are much safer to use.
+有一些数据结构会动态调整大小，并且知道它们实际的大小，例如标准库容器。因为它们更安全，应该使用这样的容器而不是 C 风格数组。
 \end{myNotic}
 
-There is a function in C++ called realloc(), which is a holdover from the C language. Do not use it! In C, realloc() is used to effectively change the size of an array by allocating a new block of memory of the new size, copying all of the old data to the new location, and deleting the original block. This approach is extremely dangerous in C++ because user-defined objects will not respond well to bitwise copying.
+C++ 中有一个函数叫做 realloc()，这是 C 语言保留下来的。不要使用它！在 C 中，realloc() 用于有效地改变数组的大小，通过分配一个新块的内存，其大小为新大小，将所有旧数据复制到新位置，并删除原始块。这种方法在 C++ 中极其危险，因为用户定义的对象对位复制不会做出很好的响应。
 
 \begin{myWarning}{WARNING}
-Never use realloc() in C++! It is not your friend.
+在 C++ 中永远不要使用 realloc()！它不是你的朋友。
 \end{myWarning}
 
-\mySamllsection{Arrays of Objects}
+\mySamllsection{对象数组}
 
-Arrays of objects are no different than arrays of primitive/fundamental types, except for how their elements are initialized. When you use new[N] to allocate an array of N objects, enough space is allocated for N contiguous blocks where each block is large enough for a single object. For an array of objects, new[] automatically calls the zero-argument (= default) constructor for each of the objects, while an array of primitive types by default has uninitialized elements. In this way, allocating an array of objects using new[] returns a pointer to an array of fully constructed and initialized objects.
+对象数组与原始/基本类型数组没有不同，除了元素初始化。当使用 new[N] 分配一个 N 个对象的数组时，为 N 个连续的块分配了足够的空间，每个块都足够大以容纳一个单独的对象。对于对象数组，new[] 会自动为每个对象调用零参数（= default）构造函数，而原始类型数组默认具有未初始化的元素，所以使用 new[] 分配对象数组，会返回一个指向完全构造和初始化对象的数组的指针。
 
-For example, consider the following class:
+例如，考虑以下类：
 
 \begin{cpp}
 class Simple
 {
     public:
         Simple() { println("Simple constructor called!"); }
-        ˜Simple() { println("Simple destructor called!"); }
+        ~Simple() { println("Simple destructor called!"); }
 };
 \end{cpp}
 
-If you allocate an array of four Simple objects, the Simple constructor is called four times.
+如果分配一个包含四个Simple对象的数组，则调用Simple构造函数四次。
 
 \begin{cpp}
 Simple* mySimpleArray { new Simple[4] };
 \end{cpp}
 
-Figure 7.7 shows the memory diagram for this array. As you can see, it is no different than an array of basic types.
+图7.7展示了这个数组的内存图，它与基本类型的数组没有什么不同。
 
 \myGraphic{0.5}{content/part3/chapter7/images/7.png}{图 7.7}
 
-\mySamllsection{Deleting Arrays}
+\mySamllsection{删除数组}
 
-When you allocate memory with new[] (i.e., the array version of new), you must release it with delete[] (i.e., the array version of delete). This version automatically destructs the objects in the array in addition to releasing the memory associated with them.
+使用 new[]（即 new 的数组版本）分配内存时，必须使用 delete[]（即 delete 的数组版本）来释放。这个版本会自动销毁数组中的对象，并释放相关内存。
 
 \begin{cpp}
 Simple* mySimpleArray { new Simple[4] };
@@ -255,13 +254,13 @@ delete [] mySimpleArray;
 mySimpleArray = nullptr;
 \end{cpp}
 
-If you do not use the array version of delete, your program may behave in odd ways. With some compilers, only the destructor for the first element of the array will be called because the compiler only knows that you are deleting a pointer to an object, and all the other elements of the array will become orphaned objects. With other compilers, memory corruption may occur because new and new[] can use completely different memory allocation schemes.
+如果不使用数组版本的delete，程序可能会以奇怪的方式运行。对于某些编译器，只调用数组第一个元素的析构函数，编译器只知道正在删除指向对象的指针，而数组的所有其他元素将成为孤立对象。对于其他编译器，因为new和new[]可以使用完全不同的内存分配方案，很可能会发生内存损坏。
 
 \begin{myWarning}{WARNING}
-Always use delete on anything allocated with new, and always use delete[] on anything allocated with new[].
+对分配new的对象使用delete，对分配new[]的对象使用delete[]。
 \end{myWarning}
 
-Of course, the destructors are called only if the elements of the array are objects. If you have an array of pointers, you still need to delete each object pointed to individually just as you allocated each object individually, as shown in the following code:
+当然，只有当数组的元素是对象时才调用析构函数。如果有一个指针数组，仍然需要删除每个单独指向的对象，就像单独分配每个对象一样:
 
 \begin{cpp}
 const size_t size { 4 };
@@ -283,12 +282,12 @@ mySimplePtrArray = nullptr;
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-In modern C++ you should avoid using raw C-style pointers when ownership is involved. Instead of storing raw pointers in C-style arrays, you should store smart pointers in modern Standard Library containers, such as std::vector. Smart pointers, discussed later in this chapter, automatically deallocate the memory associated with them at the right time.
+现代C++中，当涉及所有权时，应避免使用原始C风格的指针。相比于在C风格的数组中存储原始指针，应该在现代标准库容器（如std::vector）中存储智能指针。智能指针会在适当的时候自动释放内存。
 \end{myWarning}
 
-\mySamllsection{Multidimensional Arrays}
+\mySamllsection{多维数组}
 
-Multidimensional arrays extend the notion of indexed values to multiple indices. For example, a tic-tac-toe game might use a two-dimensional array to represent a three-by-three grid. The following example shows such an array declared on the stack, zero-initialized, and accessed with some test code:
+多维数组将索引值的概念扩展到多个索引上。例如，井字游戏可能会使用二维数组来表示一个3x3的网格。下面的例子展示了如何在栈上声明这样一个数组，进行零初始化，并通过一些测试代码访问：
 
 \begin{cpp}
 char board[3][3] {};
@@ -297,37 +296,37 @@ board[0][0] = 'X'; // X puts marker in position (0,0).
 board[2][1] = 'O'; // O puts marker in position (2,1).
 \end{cpp}
 
-You may be wondering whether the first subscript in a two-dimensional array is the x-coordinate or the y-coordinate. The truth is that it doesn’t really matter, as long as you are consistent. A four-byseven grid could be declared as char board[4][7] or char board[7][4]. For most applications, it is easiest to think of the first subscript as the x-axis and the second as the y-axis.
+在二维数组中，第一个下标代表的是x坐标还是y坐标。实际上，这并不重要，只要保持一致即可。一个4x7的网格可以声明为char board[4][7]或char board[7][4]。对于大多数应用来说，将第一个下标视为x轴，第二个下标视为y轴最为直观。
 
-\mySamllsection{Multidimensional Stack Arrays}
+\mySamllsection{基于栈的多维数组}
 
-In memory, the three-by-three stack-based two-dimensional board array looks like Figure 7.8. Because memory doesn’t have two axes (addresses are merely sequential), the computer represents a two-dimensional array just like a one-dimensional array. The difference is in the size of the array and the method used to access it.
+内存中，基于栈的3x3二维board数组看起来像图7.8所示。因为内存没有两个轴（地址仅仅是顺序的），计算机将二维数组就像一维数组一样表示,不同之处在于数组的大小和访问的方法。
 
 \myGraphic{0.5}{content/part3/chapter7/images/8.png}{图 7.8}
 
-The size of a multidimensional array is all of its dimensions multiplied together and then multiplied by the size of a single element in the array. In Figure 7.8, the three-by-three board is 3 × 3 × 1 = 9 bytes, assuming that a character is 1 byte. For a four-by-seven board of characters, the array would be 4 × 7 × 1 = 28 bytes.
+多维数组的大小是其所有维度相乘，然后再乘以数组中单个元素的大小。图7.8中，3x3的board是3 × 3 × 1 = 9字节，假设字符占1字节。对于4x7的字符数组，数组将是4 × 7 × 1 = 28字节。
 
-To access a value in a multidimensional array, the computer treats each subscript as if it were accessing another subarray within the multidimensional array. For example, in the three-by-three grid, the expression board[0] actually refers to the subarray highlighted in Figure 7.9. When you add a second subscript, such as board[0][2], the computer is able to access the correct element by looking up the second subscript within the subarray, as shown in Figure 7.10.
+访问多维数组中的值时，计算机将每个下标视为如果正在访问多维数组内的另一个子数组。例如，在3x3的网格中，表达式board[0]实际上指的是图7.9中高亮显示的子数组。当添加第二个下标，比如board[0][2]，就能够通过在子数组中查找第二个下标来访问正确的元素，如图7.10所示。
 
-These techniques are extended to N-dimensional arrays, though dimensions higher than three tend to be difficult to conceptualize and are rarely used.
+这些技术可扩展到N维数组，高于三维的维度往往难以理解，并且很少使用。
 
 \myGraphic{0.5}{content/part3/chapter7/images/9.png}{图 7.9}
 
 \myGraphic{0.5}{content/part3/chapter7/images/10.png}{图 7.10}
 
-\mySamllsection{Multidimensional Free Store Arrays}
+\mySamllsection{基于堆的多维数组}
 
-If you need to determine the dimensions of a multidimensional array at run time, you can use a free store-based array. Just as a single-dimensional dynamically allocated array is accessed through a pointer, a multidimensional dynamically allocated array is also accessed through a pointer. The only difference is that in a two-dimensional array, you need to start with a pointer-to-a-pointer; and in an N-dimensional array, you need N levels of pointers. At first, it might seem as if the correct way to declare and allocate a dynamically allocated multidimensional array is as follows:
+如果需要在运行时确定多维数组的维度，可以使用基于堆的数组。如通过指针访问单一维度动态分配的数组一样，多维度动态分配的数组也可通过指针访问的。唯一的区别在于，在二维数组中，需要从指向指针的指针开始；而在N维数组中，需要N级指针。起初，似乎声明和分配动态多维数组的正确方式如下：
 
 \begin{cpp}
 char** board { new char[i][j] }; // BUG! Doesn't compile
 \end{cpp}
 
-This code doesn’t compile because multidimensional free store-based arrays don’t work like stack-based arrays. Their memory layout isn’t contiguous. Instead, you start by allocating a single contiguous array for the first subscript dimension of a free store-based array. Each element of that array is actually a pointer to another array that stores the elements for the second subscript dimension. Figure 7.11 shows this layout for a two-bytwo dynamically allocated board.
+这段代码无法编译，因为基于堆的多维数组工作方式与基于栈的数组不同，其内存布局不是连续的。相反，需要首先为基于自由存储器数组的第一个下标维度分配一个连续的数组。该数组的每个元素实际上是另一个指针，指向存储第二个下标维度元素的数组。图7.11展示了这种针对2x2动态分配board的布局。
 
 \myGraphic{0.5}{content/part3/chapter7/images/11.png}{图 7.11}
 
-Unfortunately, the compiler doesn’t allocate memory for the subarrays on your behalf. You can allocate the first-dimension array just like a single-dimensional free store-based array, but the individual subarrays must be explicitly allocated. The following function properly allocates memory for a two-dimensional array:
+不幸的是，编译器不会自动分配子数组的内存。可以像单一维度的自由存储器数组一样分配第一维数组，但各个子数组必须显式分配。以下函数正确地为二维数组分配了内存：
 
 \begin{cpp}
 char** allocateCharacterBoard(size_t xDimension, size_t yDimension)
@@ -340,7 +339,7 @@ char** allocateCharacterBoard(size_t xDimension, size_t yDimension)
 }
 \end{cpp}
 
-Similarly, when you want to release the memory associated with a multidimensional free store-based array, the array delete[] syntax will not clean up the subarrays on your behalf. Your code to release an array should mirror the code to allocate it, as in the following function:
+同样地，想要释放与基于堆的多维数组相关的内存时，数组delete[]语法并不会清理子数组。释放数组的代码应该与分配数组的代码相呼应，如下所示：
 
 \begin{cpp}
 void releaseCharacterBoard(char**& myArray, size_t xDimension)
@@ -355,54 +354,54 @@ void releaseCharacterBoard(char**& myArray, size_t xDimension)
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-This example of allocating a multidimensional array is not the most efficient solution. It first allocates memory for the first dimension, followed by allocating memory for each subarray. This results in memory blocks scattered around in memory, which will have a performance impact on algorithms working on such data structures. Algorithms run much faster if they can work with contiguous memory. A better solution is to allocate a single block of memory large enough to store xDimension * yDimension elements, and to access an element at position (x,y) with a formula such as x * yDimension + y.
+这个分配多维数组的例子并不是最有效的解决方案。它首先为第一个维度分配内存，然后为每个子数组分配内存。这导致内存中的内存块分散，这会影响在这样数据结构上工作的算法的性能。如果算法可以处理连续的内存，会运行得更快。一个更好的解决方案是分配一个足够大的单块内存来存储 xDimension * yDimension 个元素，并通过公式 x * yDimension + y 访问位置 (x,y) 的元素。
 \end{myNotic}
 
-Now that you know all the details to work with arrays, it is recommended to avoid these old C-style arrays as much as possible because they do not provide any memory safety. They are explained here because you will encounter them in legacy code. In new code, you should use the C++ Standard Library containers such as std::array and vector. For example, use vector<T> for a one-dimensional dynamic array. For a two-dimensional dynamic array, you could use vector<vector<T>{}>, and similar for higher dimensions. Of course, working directly with data structures such as vector<vector<T>{}> is still tedious, especially for constructing them, and they suffer from the same memory fragmentation problem as discussed in the previous note. So, if you do need N-dimensional dynamic arrays in your application, consider writing helper classes that provide an easier to use interface. For example, to work with two-dimensional data with equally long rows, you should consider writing (or reusing of course) a Matrix<T> or Table<T> class template that hides the memory allocation/deallocation and element access algorithms from the user. See Chapter 12, “Writing Generic Code with Templates,” for details on writing class templates.
+现在了解了所有关于数组工作的细节，建议尽可能避免使用这些旧的 C 风格数组，它们没有提供任何内存安全性。新代码中，应该使用 C++ 标准库容器，如 std::array 和 vector。例如，使用 vector<T> 作为一维动态数组。对于二维动态数组，可以使用 vector<vector<T>{}>，对于更高维度也是如此。当然，直接使用像 vector<vector<T>{}> 这样的数据结构仍然很麻烦，尤其是在构建时，它们也受到与前述注释中讨论的相同内存碎片问题的影响。因此，如果应用程序确实需要 N 维动态数组，考虑编写辅助类，以提供更容易使用的接口。例如，为了与具有等长行的二维数据一起工作，应该考虑编写（或当然重新使用）一个 Matrix<T> 或 Table<T> 类模板，该模板隐藏了用户内存分配/释放和元素访问算法。有关编写类模板的详细信息，请参见第 12 章。
 
 \begin{myWarning}{WARNING}
-Use C++ Standard Library containers such as std::array, vector, and so on, instead of C-style arrays!
+使用 C++ 标准库容器，如 std::array、vector 等，而不是 C 风格数组！
 \end{myWarning}
 
-\mySubsubsection{7.1.4.}{Working with Pointers}
+\mySubsubsection{7.1.4.}{使用指针}
 
-Pointers get their bad reputation from the relative ease with which you can abuse them. Because a pointer is just a memory address, you could theoretically change that address manually, even doing something as scary as the following line of code:
+指针的坏名声来自于滥用。因为指针只是一个内存地址，理论上可以手动改变这个地址，甚至做一些像下面这行代码一样可怕的事情:
 
 \begin{cpp}
 char* scaryPointer { (char*)7 };
 \end{cpp}
 
-This line builds a pointer to the memory address 7, which is likely to be random garbage or memory used elsewhere in the application. If you start to use areas of memory that weren’t set aside on your behalf, for example with new or on the stack, eventually you will corrupt the memory associated with an object, or the memory involved with the management of the free store, and your program will malfunction. Such a malfunction can manifest itself in several ways. For example, it can reveal itself as invalid results because the data has been corrupted, or as hardware exceptions being triggered due to accessing non-existent memory, or attempting to write to protected memory. If you are lucky, you will get one of the serious errors that usually result in program termination by the operating system or the C++ runtime library; if you are unlucky, you will just get wrong results.
+这行代码构建了一个指向内存地址 7 的指针，这很可能是随机的垃圾或应用程序中其他地方使用的内存。如果开始使用没有保留，例如通过 new 或在栈上，最终会破坏与对象相关的内存，或者涉及堆管理的内存，并且程序将出现故障。这种故障可能以几种方式表现出来。例如，因为数据破坏而导致的无效结果，或者由于访问不存在的内存或尝试写入受保护的内存而触发的硬件异常。如果很幸运，可能会得到通常导致操作系统或 C++ 运行时库终止程序的严重错误；如果不走运，只会得到错误的结果。
 
-\mySamllsection{A Mental Model for Pointers}
+\mySamllsection{指针的概念}
 
-There are two ways to think about pointers. More mathematically minded readers might view pointers as addresses. This view makes pointer arithmetic, covered later in this chapter, a bit easier to understand. Pointers aren’t mysterious pathways through memory; they are numbers that happen to correspond to a location in memory. Figure 7.12 illustrates a two-by-two grid in the address-based view of the world.(The addresses in Figure 7.12 are just for illustrative purpose. Addresses on a real system are highly dependent on the hardware and operating system.)
+有两种方式可以思考指针，更数学思维的读者可能会将指针视为地址。这种观点使得在本书稍后部分介绍的指针算术更容易理解。指针并不是内存中神秘的路径；它们是恰好对应于内存位置的数字。图 7.12 描述了基于地址的世界中的一个两乘二网格。（图 7.12 中的地址仅用于说明目的。真实系统中的地址高度依赖于硬件和操作系统。）
 
 \myGraphic{0.5}{content/part3/chapter7/images/12.png}{图 7.12}
 
-Readers who are more comfortable with spatial representations might derive more benefit from the “arrow” view of pointers. A pointer is a level of indirection that says to the program, “Hey! Look over there.” With this view, multiple levels of pointers become individual steps on the path to the data. Figure 7.11 shows a graphical view of pointers in memory.
+对于更擅长空间像想的读者来说，指针的“箭头”视图可能更有益。指针是一种间接性，告诉程序，“嘿！看那里。”在这个视图中，多个指针级别成为到达数据的路径上的单个步骤。图 7.11 展示了内存中的指针。
 
-When you dereference a pointer, by using the * operator, you are telling the program to look one level deeper in memory. In the address-based view, think of a dereference as a jump in memory to the address indicated by the pointer. With the graphical view, every dereference corresponds to following an arrow from its base to its head.
+使用 * 运算符解引用一个指针时，是在告诉程序在内存中查看更深一层。基于地址的图中，将解引用视为一个跳转到指针指示的地址。在图中，每次解引用都对应于从其基础到其头部跟随箭头。
 
-When you take the address of a location, using the \& operator, you are adding a level of indirection in memory. In the address-based view, the program is noting the numerical address of the location, which can be stored as a pointer. In the graphical view, the \& operator creates a new arrow whose head ends at the location designated by the expression. The base of the arrow can be stored as a pointer.
+当获取一个位置的地址，使用 \& 运算符时，就是在内存中添加一个间接性引用。在基于地址的图中，程序是在记录位置的数字地址，可以存储为指针。在图中，\& 运算符创建了一个新箭头，其头部结束于表达式指定的位置，箭头的基部也可以存储为指针。
 
-\mySamllsection{Casting with Pointers}
+\mySamllsection{使用指针进行强制转换}
 
-Because pointers are just memory addresses (or arrows to somewhere), they are somewhat weakly typed. A pointer to an XML document is the same size as a pointer to an integer. The compiler lets you easily cast any pointer type to any other pointer type using a C-style cast:
+因为指针只是内存地址（或指向某处），所以它们在某种程度上是弱类型的。指向 XML 文档的指针与指向整数的指针大小相同。编译器允许使用 C 风格强制类型转换，地将指针类型转换为其他指针类型：
 
 \begin{cpp}
 Document* documentPtr { getDocument() };
 char* myCharPtr { (char*)documentPtr };
 \end{cpp}
 
-Of course, using the resulting pointer can result in catastrophic run-time errors. A static cast offers a bit more safety. The compiler refuses to perform a static cast on pointers to unrelated data types:
+当然，使用结果指针可能会导致灾难性的运行时错误。静态类型转换提供了一定程度的安全性。编译器拒绝在无关数据类型的指针之间执行静态类型转换：
 
 \begin{cpp}
 Document* documentPtr { getDocument() };
 char* myCharPtr { static_cast<char*>(documentPtr) }; // BUG! Won't compile
 \end{cpp}
 
-Chapter 10, “Discovering Inheritance Techniques,” discusses the different styles of casts in detail.
+第 10 章讨论了不同类型的强制类型转换。
 
 
 

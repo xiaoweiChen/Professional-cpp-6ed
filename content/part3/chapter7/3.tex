@@ -1,85 +1,85 @@
 
-One of the great advantages of C++ over C is that you don’t need to worry quite as much about memory. If you code using objects, you just need to make sure that each individual class properly manages its own memory. Through construction and destruction, the compiler helps you manage memory by telling you when to do it. Hiding the management of memory within classes makes a huge difference in usability, as demonstrated by the Standard Library classes. However, with some applications or with legacy code, you may encounter the need to work with memory at a lower level. Whether for legacy, efficiency, debugging, or curiosity, knowing some techniques for working with raw bytes can be helpful.
+C++相对于C的巨大优势在于，不需要过多地担心内存问题。如果使用对象进行编码，只需确保每个单独的类正确管理自己的内存。通过构造和析构，编译器会来进行内存管理。将内存管理隐藏在类中极大地提高了可用性，这一点通过标准库类得到了证明。然而，某些应用程序或遗留代码中，可能需要以更底层的方式处理内存。无论是因为历史遗留问题、效率、调试还是出于好奇，了解一些处理底层技术可能会有帮助。
 
-\mySubsubsection{7.3.1.}{Pointer Arithmetic}
+\mySubsubsection{7.3.1.}{指针算术}
 
-The C++ compiler uses the declared types of pointers to allow you to perform pointer arithmetic. If you declare a pointer to an int and increase it by 1, the pointer moves ahead in memory by the size of an int, not by a single byte. This type of operation is most useful with arrays, because they contain homogeneous data that is sequential in memory. For example, assume you declare an array of ints on the free store:
+C++编译器使用指针的声明类型来执行指针算术。如果声明了一个指向int的指针并使其增加1，指针将在内存中向前移动int的大小，而不是一个字节。这种操作在数组中最有用，因为数组包含在内存中连续的同类数据。例如，声明了一个int数组：
 
 \begin{cpp}
 int* myArray { new int[8] };
 \end{cpp}
 
-You are already familiar with the following syntax for setting the value at index 2:
+以下用于设置索引2处的值：
 
 \begin{cpp}
 myArray[2] = 33;
 \end{cpp}
 
-With pointer arithmetic, you can equivalently use the following syntax, which obtains a pointer to the memory that is “2 ints ahead” of myArray and then dereferences it to set the value:
+使用指针算术，可以等价地使用以下语法，获取指向myArray“向前2个int”的内存的指针，然后解引用，并设置值：
 
 \begin{cpp}
 *(myArray + 2) = 33;
 \end{cpp}
 
-As an alternative syntax for accessing individual elements, pointer arithmetic doesn’t seem too appealing. Its real power lies in the fact that an expression like myArray+2 is still a pointer to an int and thus can represent a smaller int array.
+作为访问单个元素的替代语法，指针算术似乎并不太吸引人。其真正的强大之处在于，myArray+2这样的表达式仍然是一个指向int的指针，因此可以表示一个较小的int数组。
 
-Let’s look at an example using wide strings. Wide strings are discussed in Chapter 21, “String Localization and Regular Expressions,” but the details are not important at this point. For now, it is enough to know that wide strings support Unicode characters to represent, for example, Japanese strings. The wchar\_t type is a character type that can accommodate such Unicode characters, and it is usually bigger than a char; i.e., it’s more than one byte. To tell the compiler that a string literal is a widestring literal, prefix it with an L. For example, suppose you have the following wide string:
+看一个使用宽字符串的例子。宽字符串在第21章中讨论，但在此处细节并不重要。目前，知道宽字符串支持Unicode字符就足够了，例如，可以表示日文字符串。wchar\_t类型是一种可以容纳此类Unicode字符的类型，通常比char大，它不止一个字节。要告诉编译器字符串文字是宽字符串文字，请在其前面加上L。例如，有以下宽字符串：
 
 \begin{cpp}
 const wchar_t* myString { L"Hello, World" };
 \end{cpp}
 
-Suppose further that you have a function that takes in a wide string and returns a new string that contains a capitalized version of the input:
+有一个函数，它接受宽字符串并返回一个包含输入大写版本的新字符串：
 
 \begin{cpp}
 wchar_t* toCaps(const wchar_t* text);
 \end{cpp}
 
-You can capitalize myString by passing it into this function. However, if you only want to capitalize part of myString, you can use pointer arithmetic to refer to only a latter part of the string. The following code calls toCaps() on the World part of the wide string by just adding 7 to the pointer, even though wchar\_t is usually more than 1 byte:
+可以通过将myString传递给此函数来大写myString，但只想大写myString的一部分，可以使用指针算术只引用字符串的后者部分。以下代码通过只将指针加7来获取toCaps()宽字符串的“World”，即使wchar\_t通常大于1个字节：
 
 \begin{cpp}
 toCaps(myString + 7);
 \end{cpp}
 
-Another useful application of pointer arithmetic involves subtraction. Subtracting one pointer from another of the same type gives you the number of elements of the pointed-to type between the two pointers, not the absolute number of bytes between them.
+指针算术的另一个有用的应用涉及减法。从一个指针减去另一个相同类型的指针，会得到两个指针之间指向的类型元素的数量，而不是它们之间的绝对字节数。
 
-\mySubsubsection{7.3.2.}{Custom Memory Management}
+\mySubsubsection{7.3.2.}{自定义内存管理}
 
-For 99 percent of the cases you will encounter (some might say 100 percent of the cases), the built-in memory allocation facilities in C++ are adequate. Behind the scenes, new and delete do all the work of handing out memory in properly sized chunks, maintaining a list of available areas of memory and releasing chunks of memory back to that list upon deletion.
+对于99％的情况（有些人可能会说100％的情况），C++内置的内存分配设施是足够的。new和delete完成了在适当大小的内存块中分配内存、维护可用内存区域列表，以及在删除时将内存块释放回该列表等所有工作。
 
-When resource constraints are extremely tight, or under very special conditions, such as managing shared memory, implementing custom memory management may be a viable option. Don’t worry— it’s not as scary as it sounds. Basically, managing memory yourself means that classes allocate a large chunk of memory and dole out that memory in pieces as it is needed. How is this approach any better? Managing your own memory can potentially reduce overhead.
+当资源非常紧张，或者在非常特殊的情况下，如管理共享内存，实现自定义内存管理可能是一个可行的选项。别担心——这没有听起来那么可怕。基本上，自己管理内存意味着类分配一大块内存，并在需要时分配那块内存。这种方法有什么好处？自己管理内存可以减少开销。
 
-When you use new to allocate memory, the program also needs to set aside a small amount of space to record how much memory was allocated. That way, when you call delete, the proper amount of memory can be released. For most objects, the overhead is so much smaller than the memory allocated that it makes little difference. However, for small objects or programs with enormous numbers of objects, the overhead can have an impact.
+当使用new分配内存时，程序还需要保留一小部分空间来记录分配了多少内存。这样，调用delete时，可以释放正确的内存量。对于大多数对象，开销比分配的内存小得多，因此影响不大。然而，对于大对象或大量小对象的程序，可能会有影响。
 
-When you manage memory yourself, you might know the size of each object a priori, so you might be able to avoid the overhead for each object. The difference can be enormous for large numbers of small objects. Performing custom memory management requires overloading the operators new and delete, a topic for Chapter 15, “Overloading C++ Operators.”
+自己管理内存时，可能事先知道每个对象的大小，因此能够避免每个对象的开销。对于大量的小对象，差异可能非常大。执行自定义内存管理需要重载运算符new和delete，这是第15章的内容。
 
-\mySubsubsection{7.3.3.}{Garbage Collection}
+\mySubsubsection{7.3.3.}{垃圾收集}
 
-With environments that support garbage collection, the programmer rarely, if ever, explicitly frees memory associated with an object. Instead, objects to which there are no longer any references will be cleaned up automatically at some point by the runtime library.
+支持垃圾收集的环境中，开发人员很少（如果有的话）显式释放与对象关联的内存。引用对象不再使用时，将在某个时间点由运行时库自动清理。
 
-Garbage collection is not built into the C++ language as it is in C\# and Java. In modern C++, you use smart pointers to manage memory, while in legacy code you will see memory management at the object level through new and delete. Smart pointers such as shared\_ptr (discussed later in this chapter) provide something very similar to garbage-collected memory; that is, when the last shared\_ptr instance for a certain resource is destroyed, at that point in time the resource is destroyed as well. It is possible but not easy to implement true garbage collection in C++, but freeing yourself from the task of releasing memory would probably introduce new headaches.
+垃圾收集并不是C++语言内置的功能，而C\#和Java语言中内置了这个功能。现代C++ 中，可以使用智能指针来管理内存，而在历史遗留代码中，会通过 new 和 delete 在对象层面上进行内存管理。诸如 shared\_ptr（本章后面讨论）之类的智能指针提供了与垃圾收集内存非常相似的功能；当一个资源的最后一个 shared\_ptr 实例销毁时，该资源也会销毁。C++中可以实现垃圾收集是可能的，但并不容易，可能会带来新的问题。
 
-One approach to garbage collection is called mark and sweep. With this approach, the garbage collector periodically examines every single pointer in your program and annotates the fact that the referenced memory is still in use. At the end of the cycle, any memory that hasn’t been marked is deemed to be not in-use and is freed. Implementing such an algorithm in C++ is not trivial, and if done wrongly, it can be even more error-prone than using delete!
+垃圾收集的一种方法称为标记清除。在这种方法中，垃圾收集器定期检查程序中的每一个指针，并标注所引用的内存仍在使用的事实。在周期结束时，任何未标记的内存都认为是未在使用，并进行释放。在C++中实现这样的算法并不简单，如果做得不对，可能比使用 delete 更容易出现错误！
 
-Attempts at safe and easy mechanisms for garbage collection have been made in C++, but even if a perfect implementation of garbage collection in C++ came along, it wouldn’t necessarily be appropriate to use for all applications. Among the downsides of garbage collection are the following:
+在C++中已经尝试了实现安全且简单的垃圾收集机制，但即使出现了C++中完美的垃圾收集实现，也不一定适合所有应用程序使用。垃圾收集有如下几个缺点：
 
 \begin{itemize}
 \item
-When the garbage collector is actively running, the program might become unresponsive.
+当垃圾收集器正运行时，程序可能会无响应。
 
 \item
-With garbage collectors, you have non-deterministic destructors. Because an object is not destroyed until it is garbage-collected, the destructor is not executed immediately when the object leaves its scope. This means that cleaning up resources (such as closing a file, releasing a lock, and so on), which is done by the destructor, is not performed until some indeterminate time in the future.
+使用垃圾收集器时，将拥有非确定性的析构函数。一个对象直到收集时才会销毁，所以析构函数不会在对象离开其作用域时立即执行。这意味着清理资源（如关闭文件、释放锁等），这些由析构函数完成的操作，将推迟到未来某个不确定的时间点进行。
 \end{itemize}
 
-Writing a garbage collection mechanism is very hard. You will undoubtedly do it wrong, it will be error prone, and more than likely it will be slow. So, if you do want to use garbage-collected memory in your application, I recommend you to research existing specialized garbage-collection libraries that you can reuse.
+编写垃圾收集机制非常困难，很容易出错，而且性能很差。因此，如果确实想在的应用程序中使用垃圾收集内存，我建议研究并使用现有已有的专用垃圾收集库。
 
-\mySubsubsection{7.3.4.}{Object Pools}
+\mySubsubsection{7.3.4.}{对象池}
 
-Garbage collection is like buying plates for a picnic and leaving any used plates out in the yard where someone at some point will pick them up and throw them away. Surely, there must be a more ecological approach to memory management.
+垃圾收集就像为野餐购买盘子，然后将用过的盘子放在院子里，某位清洁工会在某个时间点捡起并扔掉。显然，一定有更环保的内存管理方法。
 
-Object pools are the equivalent of recycling. You buy a reasonable number of plates, and after using a plate, you clean it so that it can be reused later. Object pools are ideal for situations where you need to use many objects of the same type over time, and creating each one incurs overhead.
+对象池就是回收利用的等效物。购买合理数量的盘子，并在使用盘子后清洗它，以便稍后可以再次使用。对象池适用于需要在一段时间内使用许多相同类型对象的情况，创建每个对象都会产生开销。
 
-Chapter 29, “Writing Efficient C++,” contains further details on using object pools for performance efficiency.
+第29章包含了对象池提高性能效率的更多内容。
 
 
 

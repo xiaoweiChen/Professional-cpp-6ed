@@ -1,9 +1,9 @@
 
-You have already seen some of the overlap between pointers and arrays. Free store-allocated arrays are referred to by a pointer to their first element. Stack-based arrays are referred to by using the array syntax ([]) with an otherwise normal variable declaration. As you are about to learn, however, the overlap doesn’t end there. Pointers and arrays have a complicated relationship.
+已经了解了指针和数组之间的一些交集，堆分配的数组通过指向其第一个元素的指针来引用。基于栈的数组使用带有变量声明的数组语法（[]）来引用，然而，这种重叠并没有结束。指针和数组还有着复杂的关系。
 
-\mySubsubsection{7.2.1.}{Arrays Decay to Pointers}
+\mySubsubsection{7.2.1.}{数组退化为指针}
 
-A free store-based array is not the only place where you can use a pointer to refer to an array. You can also use the pointer syntax to access elements of a stack-based array. The address of an array is really the address of the first element (index 0). The compiler knows that when you refer to an array in its entirety by its variable name, you are really referring to the address of the first element. In this way, the pointer works just like with a free store-based array. The following code creates a zeroinitialized array on the stack, and uses a pointer to access it:
+基于堆的数组可以使用指针来引用数组，还可以使用指针语法来访问基于栈的数组的元素。数组的地址实际上是第一个元素（索引0）的地址。编译器知道，当通过变量名整体引用数组时，实际上是在引用第一个元素的地址，指针就像基于堆的数组一样工作。以下代码在栈上创建了一个零初始化的数组，并使用指针来访问：
 
 \begin{cpp}
 int myIntArray[10] {};
@@ -14,7 +14,7 @@ int* myIntPtr { myIntArray };
 myIntPtr[4] = 5;
 \end{cpp}
 
-The ability to refer to a stack-based array through a pointer is useful when passing arrays into functions. The following function accepts an array of integers as a pointer. Note that the caller needs to explicitly pass in the size of the array because the pointer implies nothing about size. That is another reason why you should use modern containers such as those provided by the Standard Library.
+通过指针引用基于栈的数组的能力，在将数组传递给函数时很有用。以下函数接受一个整数数组作为指针。请注意，因为指针没有说明长度，所以调用者需要显式传入数组的长度，这是应该使用现代容器（如标准库提供的容器）的另一个原因。
 
 \begin{cpp}
 void doubleInts(int* theArray, size_t size)
@@ -23,7 +23,7 @@ void doubleInts(int* theArray, size_t size)
 }
 \end{cpp}
 
-The caller of this function can pass a stack-based or free store-based array. In the case of a free storebased array, the pointer already exists and is passed by value into the function. In the case of a stackbased array, the caller can pass the array variable, and the compiler automatically treats the array variable as a pointer to the array, or you can explicitly pass the address of the first element. All three forms are shown here:
+此函数的调用者可以传递基于栈的数组或基于堆的数组。堆数组，指针已经存在，并且按值传递给函数。栈数组，调用者可以传递数组变量，编译器自动将数组变量视为指向数组的指针，或者显式传递第一个元素的地址。以下展示了这三种形式：
 
 \begin{cpp}
 size_t arrSize { 4 };
@@ -40,7 +40,7 @@ doubleInts(stackArray, arrSize);
 doubleInts(&stackArray[0], arrSize);
 \end{cpp}
 
-The parameter-passing semantics of arrays is uncannily similar to that of pointers, because the compiler treats an array as a pointer when it is passed to a function. A function that takes an array as an argument and changes values inside the array is actually changing the original array, not a copy. Just like a pointer, passing an array effectively mimics pass-by-reference functionality because what you really pass to the function is the address of the original array, not a copy. The following implementation of doubleInts() changes the original array even though the parameter is an array, not a pointer:
+数组的参数传递语义与指针的非常相似，编译器在将数组传递给函数时，将数组视为指针。接受数组作为参数并更改数组内值的函数，实际上是在更改原始数组，而不是其副本。就像指针一样，传递数组实际上模仿了按引用传递的功能，因为实际传递给函数的是原始数组的地址，而不是副本。以下doubleInts()的实现即使参数是数组而不是指针，也会更改原始数组：
 
 \begin{cpp}
 void doubleInts(int theArray[], size_t size)
@@ -49,7 +49,7 @@ void doubleInts(int theArray[], size_t size)
 }
 \end{cpp}
 
-Any number between the square brackets after theArray in the function prototype is simply ignored. The following three versions are identical:
+函数原型中theArray后面的方括号内的数字都会忽略。以下三个是相同的：
 
 \begin{cpp}
 void doubleInts(int* theArray, size_t size);
@@ -57,15 +57,15 @@ void doubleInts(int theArray[], size_t size);
 void doubleInts(int theArray[2], size_t size);
 \end{cpp}
 
-You may be wondering why things work this way. Why doesn’t the compiler just copy the array when array syntax is used in the function definition? This is done for efficiency—it takes time to copy the elements of an array, and they potentially take up a lot of memory. By always passing a pointer, the compiler doesn’t need to include the code to copy the array.
+可能会想知道为什么会这样。为什么编译器在函数定义中使用数组语法时，不直接复制数组呢？这是为了效率——复制数组的元素需要时间，并且可能占用大量的内存。通过始终传递指针，编译器不需要包含复制数组的代码。
 
-There is a way to pass known-length stack-based arrays “by reference” to a function, although the syntax is non-obvious. This does not work for free store-based arrays. For example, the following doubleIntsStack() accepts only stack-based arrays of size 4:
+有一种方法可以将已知长度的基于栈的数组“按引用”传递给函数，尽管语法不太明显。这不起作用基于堆的数组。例如，以下doubleIntsStack()只接受大小为4的栈数组：
 
 \begin{cpp}
 void doubleIntsStack(int (&theArray)[4]);
 \end{cpp}
 
-A function template, discussed in detail in Chapter 12, can be used to let the compiler deduce the size of the stack-based array automatically:
+函数模板，可以让编译器自动推导基于栈的数组的大小：
 
 \begin{cpp}
 template <size_t N>
@@ -76,23 +76,23 @@ void doubleIntsStack(int (&theArray)[N])
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Instead of passing a C-style array directly to a function, it is recommended for the function to have a parameter of type std::span, discussed in Chapter 18, “Standard Library Containers.” span wraps a pointer to an array and its size!
+建议函数接受类型为std::span的参数，而不是直接传递C风格数组，std::span在第18章中介绍，其包装了指向数组的指针及其大小！
 \end{myNotic}
 
-\mySubsubsection{7.2.2.}{Not All Pointers Are Arrays!}
+\mySubsubsection{7.2.2.}{不是所有指针都是数组！}
 
-Because the compiler lets you pass in an array where a pointer is expected, as in the doubleInts() function in the previous section, you may be led to believe that pointers and arrays are the same. In fact, there are subtle, but important, differences. Pointers and arrays share many properties and can sometimes be used interchangeably (as shown earlier), but they are not the same.
+因为编译器允许预期指针的地方传递数组，比如上一节中的 doubleInts() 函数，可能会误以为指针和数组相同。实际上，它们之间有微妙的区别。指针和数组共享许多属性，有时可以互换使用（如前所示），但它们并不相同。
 
-A pointer by itself is meaningless. It may point to random memory, a single object, or an array. You can always use array syntax with a pointer, but doing so is not always appropriate because pointers aren’t always arrays. For example, consider the following line of code:
+一个单独的指针没有意义，可能指向随机内存、单个对象或数组。可以使用数组语法与指针，但并不总合适的，因为指针并不总是数组。例如，考虑以下代码：
 
 \begin{cpp}
 int* ptr { new int };
 \end{cpp}
 
-The pointer ptr is a valid pointer, but it is not an array. You can access the pointed-to value using array syntax (ptr[0]), but doing so is stylistically questionable and provides no real benefit. In fact, using array syntax with non-array pointers is an invitation for bugs. The memory at ptr[1] could be anything!
+指针 ptr 是一个指针，但它不是一个数组。可以使用数组语法（ptr[0]）访问所指的值，但这样做在风格上有问题。实际上，将数组语法用于非数组指针是引发错误的导火索。ptr[1] 处的内存可能是任何内容！
 
 \begin{myWarning}{WARNING}
-Arrays automatically decay to pointers, but not all pointers are arrays.
+数组会自动退化为指针，但并非所有指针都是数组。
 \end{myWarning}
 
 
