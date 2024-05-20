@@ -1,9 +1,8 @@
-By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at www.wiley.com/go/ proc++6e. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
-
+通过解决下面的练习，可以练习本章讨论的内容。所有练习的解决方案都可以在本书的网站\url{www.wiley.com/go/proc++6e}下载到源码。然而，若在练习中卡住了，在从网站上寻找解决方案之前，可以考虑先重读本章的部分内容，试着自己找到答案。
 
 \begin{itemize}
 \item
-Exercise 7-1: Analyze the following code snippet. Can you list any problems you find with it? You don’t need to fix the problems in this exercise; that will be for Exercise 7-2.
+\textbf{练习 7-1}: 分析下面的代码片段。能列出其中发现的问题吗？这个练习中，不需要修复这些问题；这将是练习 7-2 的任务。
 
 \begin{cpp}
 const size_t numberOfElements { 10 };
@@ -21,13 +20,13 @@ for (int index { 0 }; index <= numberOfElements; ++index) {
 \end{cpp}
 
 \item
-Exercise 7-2: Rewrite the code snippet from Exercise 7-1 to use modern and safe C++ constructs.
+\textbf{练习 7-2}: 使用现代安全的 C++ 构造重写练习 7-1 中的代码片段。
 
 \item
-Exercise 7-3: Write a basic class to store a 3-D point with x, y, and z coordinates. Include a constructor accepting x, y, and z arguments. Write a function that accepts a 3-D point and prints out its coordinates using std::print(). In your main() function, dynamically allocate an instance of your class and subsequently call your function.
+\textbf{练习 7-3}: 编写一个基本的类来存储一个具有 x、y 和 z 坐标的 3D 点,包括一个接受 x、y 和 z 参数的构造函数，还有一个函数，它接受一个 3D 点并使用 std::print() 打印出其坐标。在的 main() 函数中，动态分配类的实例，然后调用函数。
 
 \item
-Exercise 7-4: Earlier in this chapter, the following function is shown in the context of out-of-bounds memory access. Can you modernize this function using safe C++ alternatives? Test your solution in your main() function.
+\textbf{练习 7-4}: 本章中展示了以下函数，用于处理越界内存访问。能用安全的 C++ 替代方案现代化这个函数吗？在 main() 函数中测试你的解决方案。
 
 \begin{cpp}
 void fillWithM(char* text)

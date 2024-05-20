@@ -91,9 +91,9 @@ int main()
 
 在前一个示例的情况下，内存泄漏可能源于开发者之间的沟通不畅或代码文档不足。doSomething() 的调用者可能没有意识到变量通过引用传递，因此没有理由期望指针会重新分配。如果注意到参数是一个指向非常量指针的引用，可能会怀疑有什么奇怪的事情发生，但是 doSomething() 附近没有任何注释来解释这种行为。
 
-\mySamllsection{Finding and Fixing Memory Leaks in Windows with Visual C++}
+\mySamllsection{在 Windows 中使用 Visual C++ 查找和修复内存泄漏}
 
-Memory leaks are hard to track down because you can’t easily look at memory and see what objects are not in use and where they were originally allocated. However, there are programs that can do this for you. Memory leak detection tools range from expensive professional software packages to free downloadable tools. If you work with Microsoft Visual C++, its debug library has built-in support for memory leak detection. This memory leak detection is not enabled by default, unless you create an MFC project. To enable it in other projects, you need to start by including the following three lines at the beginning of your code. These use the \#define preprocessor macro, explained in Chapter 11, “Modules, Header Files, and Miscellaneous Topics.” However, for now, just use the three lines verbatim as they are.
+内存泄漏很难追踪，因为无法查看内存并查看哪些对象未使用，以及最初在哪里分配。然而，有一些工具可以做这件事。内存泄漏检测工具有昂贵的专业软件包，也有可免费下载的工具。如果使用 Microsoft Visual C++，其调试库内置了对内存泄漏检测的支持。默认情况下，除非创建 MFC 项目，否则不会启用此功能。要在其他项目中启用它，需要从代码的开头开始包含以下三行。这些使用了 \#define 预处理器宏，会在第 11 章中解释。不过，现在只需这三行即可。
 
 \begin{cpp}
 #define _CRTDBG_MAP_ALLOC
@@ -101,7 +101,7 @@ Memory leaks are hard to track down because you can’t easily look at memory an
 #include <crtdbg.h>
 \end{cpp}
 
-These lines should be in the exact order as shown. Next, you need to redefine the new operator as follows. This uses a few other preprocessor macros, all explained in Chapter 11. Again, just use them as is for now.
+顺序按如上所示。接下来，需要将 new 运算符重新定义。这使用了几个其他的预处理器宏，所有这些宏都会在第 11 章中解释。
 
 \begin{cpp}
 #ifdef _DEBUG
@@ -112,15 +112,15 @@ These lines should be in the exact order as shown. Next, you need to redefine th
 #endif // _DEBUG
 \end{cpp}
 
-The \#ifdef \_DEBUG statement makes sure that the redefinition of new is done only when compiling a debug version of your application. This is what you normally want. Release builds usually do not do any memory leak detection, because of the performance penalty.
+\#ifdef \_DEBUG 确保在编译应用程序的调试版本时才重新定义 new。通常情况下，发布版本不会进行内存泄漏检测（因为有性能惩罚）。
 
-The last thing you need to do is to add the following line as the first line in your main() function:
+最后，需要在 main() 函数中添加以行作为第一行：
 
 \begin{cpp}
 _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 \end{cpp}
 
-This tells the Visual C++ CRT (C RunTime) library to write all detected memory leaks to the debug output console when the application exits. For the earlier leaky program, the debug console will contain lines similar to the following:
+这告诉 Visual C++ CRT（C 运行时）库在应用程序退出时，将所有检测到的内存泄漏写入调试输出控制台。对于之前的泄漏程序，调试控制台将包含(类似)以下内容的行：
 
 \begin{shell}
 Detected memory leaks!
@@ -132,21 +132,21 @@ c:\leaky\leaky.cpp(33) : {146} normal block at 0x014F5048, 4 bytes long.
 Object dump complete.
 \end{shell}
 
-The output clearly shows in which file and on which line memory was allocated but never deallocated. The line number is between parentheses immediately behind the filename. The number between the curly braces is a counter for the memory allocations. For example, {147} means the 147th allocation in your program since it started. You can use the VC++ \_CrtSetBreakAlloc() function to tell the VC++ debug runtime to break into the debugger when a certain allocation is performed. For example, you can add the following line to the beginning of your main() function to instruct the debugger to break on the 147th allocation:
+输出清楚地显示了在哪个文件和哪一行内存分配但从未释放。行号在文件名后面的括号中立即出现。花括号之间的数字是对程序启动以来内存分配的计数器。例如，\{147\} 表示程序自启动以来的第 147 次分配。可以使用 VC++ \_CrtSetBreakAlloc() 函数告诉 VC++ 调试运行时在执行特定分配时中断调试器。例如，可以在 main() 函数的开头添加以下行，指示调试器在执行第 147 次分配时中断：
 
 \begin{cpp}
 _CrtSetBreakAlloc(147);
 \end{cpp}
 
-In this leaky program, there are two leaks: the first Simple object that is never deleted (line 33) and the integer on the free store that it creates (line 15). In the Visual C++ debugger output window, you can simply double-click one of the memory leaks, and it will automatically jump to that line in your code.
+这个泄漏程序中，有两个泄漏：第一个 Simple 对象从未删除（第 33 行）和它创建的自由存储上的整数（第 15 行）。在 Visual C++ 调试器输出窗口中，只需双击其中一个内存泄漏，就会自动跳转到代码中的那一行。
 
-Of course, programs like Microsoft Visual C++ (discussed in this section) and Valgrind (discussed in the next section) can’t actually fix the leak for you—what fun would that be? These tools provide information that you can use to find the actual problem. Normally, that involves stepping through the code to find out where the pointer to an object was overwritten without the original object being released. Most debuggers provide “watch point” functionality that can break execution of the program when this occurs.
+当然，像 Microsoft Visual C++（本节讨论）和 Valgrind（下一节讨论）这样的程序不能实际修复泄漏。这些工具提供信息，可以使用这些信息来找到实际的问题。通常，这涉及通过代码找出修改指向的原始对象的对象指针，并使其无法释放的地方。大多数调试器都提供“监视点”功能，可以在发生这种情况时中断程序的执行。
 
-\mySamllsection{Finding and Fixing Memory Leaks in Linux with Valgrind}
+\mySamllsection{在 Linux 中使用 Valgrind 查找和修复内存泄漏}
 
-Valgrind is an example of a free open-source tool for Linux that, among other things, pinpoints the exact line in your code where a leaked object was allocated.
+Valgrind 是一个免费的开源工具，适用于 Linux，可以为定位代码中泄漏对象的确切行。
 
-The following output, generated by running Valgrind on the earlier leaky program, pinpoints the exact locations where memory was allocated but never released. Valgrind finds the same two memory leaks—the first Simple object never deleted and the integer on the free store that it creates:
+以下输出是由在之前的泄漏程序上运行 Valgrind 生成的，定位了内存分配但从未释放的确切位置。Valgrind 发现了相同的两个内存泄漏——第一个 Simple 对象从未删除，以及其创建的整数对象：
 
 \begin{shell}
 ==15606== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
@@ -177,20 +177,20 @@ The following output, generated by running Valgrind on the earlier leaky program
 \end{shell}
 
 \begin{myWarning}{WARNING}
-It is strongly recommended to use std::vector, array, string, smart pointers (discussed later in this chapter), and other modern C++ constructs to avoid memory leaks.
+强烈建议使用 std::vector、array、string、智能指针（本章后面讨论）和其他现代 C++ 组件来避免内存泄漏。
 \end{myWarning}
 
-\mySubsubsection{7.4.3.}{Double-Deletion and Invalid Pointers}
+\mySubsubsection{7.4.3.}{双重释放和无效指针}
 
-Once you release memory associated with a pointer using delete, the memory is available for use by other parts of your program. Nothing stops you, however, from attempting to continue to use the pointer, which is now a dangling pointer. Double deletion is also a problem. If you use delete a second time on a pointer, the program could be releasing memory that has since been assigned to another object.
+使用 delete 释放与指针关联的内存，该内存就可以在程序的其他部分使用。然而，这并不意味着无法继续使用该指针，现在它是一个悬空指针。双重释放也是一个问题。如果第二次使用 delete 对指针进行操作，程序可能会释放已经分配给另一个对象的内存。
 
-Double deletion and use of already released memory are both difficult problems to track down because the symptoms may not show up immediately. If two deletions occur within a relatively short amount of time, the program potentially could work indefinitely because the associated memory might not have been reused that quickly. Similarly, if a deleted object is used immediately after being deleted, most likely it will still be intact.
+双重释放和使用已释放的内存都是难以追踪的问题，因为问题可能不会立即出现。如果两次释放在相对较短的时间内发生，程序可能会无限期地工作，因为相关的内存可能还没有那么快就重新使用。同样，如果一个已删除的对象在删除后立即使用，很可能会保持完整。
 
-Of course, there is no guarantee that such behavior will work or continue to work. The memory allocator is under no obligation to preserve any object once it has been deleted. Even if it does work, it is extremely poor programming style to use objects that have been deleted.
+当然，这种行为是否能够工作或继续工作并没有保证。内存分配器在删除后没有义务保留对象。即使有效，使用已删除对象的编程风格也非常糟糕。
 
-To avoid double deletion and use of already released memory, you should set your pointers to nullptr after deallocating their memory.
+为了避免双重释放和使用已释放的内存，应该在释放内存后将指针置为 nullptr。
 
-Many memory leak-detection programs are also capable of detecting double deletion and use of released objects.
+许多内存泄漏检测程序也具备检测双重释放和使用已释放对象的能力。
 
 
 

@@ -1,35 +1,35 @@
 
-As the previous section demonstrated, memory management in C++ is a perennial source of errors and bugs. Many of these bugs arise from the use of dynamic memory allocation and pointers. When you extensively use dynamic memory allocation in your program and pass many pointers between objects, it’s difficult to remember to call delete on each pointer exactly once and at the right time.
+C++中的内存管理是持续错误和bug的来源，许多这些bug源于动态内存分配和指针的使用。当程序中广泛使用动态内存分配，并将许多指针传递给对象时，很难记住在每个指针上精确地调用一次 delete 并恰当地执行。
 
-The consequences of getting it wrong are severe: when you free dynamically allocated memory more than once or use a pointer to memory that was already free, you can cause memory corruption or a fatal run-time error; when you forget to free dynamically allocated memory, you cause memory leaks.
+做错事情的后果很严重：当多次释放动态分配的内存，或使用一个指向已经释放的内存的指针时，可能会导致内存损坏或致命的运行时错误；当忘记释放动态分配的内存时，会导致内存泄漏。
 
-Smart pointers help you manage your dynamically allocated memory and are the recommended technique for avoiding memory leaks. Conceptually, a smart pointer can hold a dynamically allocated resource, such as memory. When a smart pointer goes out of scope or is reset, it can automatically free the resource it holds. Smart pointers can be used to manage dynamically allocated resources in the scope of a function, or as data members in classes. They can also be used to pass ownership of dynamically allocated resources through function arguments.
+智能指针可以管理动态分配内存，并且是避免内存泄漏推荐的方式。智能指针可以持有动态分配的资源，如内存。当智能指针超出作用域或重置时，可以自动释放它所持有的资源。智能指针可以在函数的作用域内管理动态分配的资源，或者作为类的数据成员，还可以用于通过函数参数传递动态分配资源的拥有权。
 
-C++ provides several language features that make smart pointers attractive. First, you can write a type-safe smart pointer class for any pointer type using templates; see Chapter 12. Second, you can provide an interface to the smart pointer objects using operator overloading (see Chapter 15) that allows code to use the smart pointer objects as if they were dumb raw pointers. Specifically, you can overload the *, –>, and [] operators such that client code can dereference a smart pointer object the same way it dereferences a normal pointer.
+C++为智能指针提供了几个极具吸引力的特性。首先，可以使用模板为任何指针类型编写一个类型安全的智能指针类（请参阅第12章）。其次，可以通过重载运算符（请参阅第15章）为智能指针对象提供接口，允许代码像使用普通原始指针一样使用智能指针对象。具体来说，可以重载 *, –>, 和 [] 运算符，使得客户端代码像使用普通指针一样使用智能指针对象。
 
-There are several types of smart pointers. The simplest type takes sole/unique ownership of a resource. Being the single owner of a resource, the smart pointer can automatically free the referenced resource when it goes out of scope or is reset. The Standard Library provides std::unique\_ptr, which is a smart pointer with unique ownership semantics.
+有几种不同类型的智能指针，最简单的类型对资源具有独占/唯一的所有权。作为一个资源的唯一所有者，智能指针可以在超出作用域或重置时自动释放所引用的资源。标准库提供了 std::unique\_ptr，这是一个具有唯一所有权语义的智能指针。
 
-A slightly more advanced type of smart pointer allows for shared ownership; that is, several of these smart pointers can refer to the same resource. When such a smart pointer goes out of scope or is reset, it frees the referenced resource only if it’s the last smart pointer referring to that resource. The Standard Library provides std::shared\_ptr supporting shared ownership.
+一个稍微高级一点的智能指针类型允许共享所有权；也就是说，几个这样的智能指针可以指向同一个资源。当这样的智能指针超出作用域或被重置时，只有在最后一个指向该资源的智能指针释放时，才释放所引用的资源。标准库提供了支持共享所有权的 std::shared\_ptr。
 
-Both standard smart pointers, unique\_ptr and shared\_ptr, are defined in <memory> and are discussed in detail in the next sections.
+这两种标准智能指针，unique\_ptr 和 shared\_ptr，都定义在<memory>头文件中，并在下一节中进行了详细讨论。
 
 \begin{myNotic}{NOTE}
-Your default smart pointer should be unique\_ptr. Use shared\_ptr only when you really need to share the resource.
+默认使用的智能指针应该是 unique\_ptr，只有在需要共享时才使用 shared\_ptr。
 \end{myNotic}
 
 \begin{myWarning}{WARNING}
-Never assign the result of a resource allocation to a raw pointer! Whatever resource allocation method you use, always immediately store the resource pointer in a smart pointer, either unique\_ptr or shared\_ptr, or use other RAII classes. RAII stands for Resource Acquisition Is Initialization. An RAII class takes ownership of a certain resource and handles its deallocation at the right time. It’s a design technique discussed in Chapter 32, “Incorporating Design Techniques and Frameworks.”
+永远不要将资源分配的结果分配给原始指针！无论使用什么资源分配方法，都要立即将资源指针存储在一个智能指针中，无论是 unique\_ptr 还是 shared\_ptr，或者使用其他 RAII 类(RAII 代表资源获取是初始化)。一个 RAII 类可以持有某种资源，并在适当的时候处理其释放，会在第32章中详细讨论。
 \end{myWarning}
 
 \mySubsubsection{7.5.1.}{unique\_ptr}
 
-A unique\_ptr has sole ownership of a resource. When the unique\_ptr is destroyed or reset, the resource is automatically freed. One advantage is that memory and resources are always freed, even when return statements are executed or when exceptions are thrown. This, for example, simplifies coding when a function has multiple return statements, because you don’t have to remember to free resources before each return statement.
+unique\_ptr 对资源具有独占所有权。当 unique\_ptr 销毁或重置时，将自动释放资源。其优点是，内存和资源总是在执行 return 语句或抛出异常时释放。例如，当一个函数有多个 return 语句时，这简化了编码，因为不需要记住在每个 return 语句之前释放资源。
 
-As a rule of thumb, always store dynamically allocated resources having a single owner in instances of unique\_ptr.
+作为一个一般规则，总是将具有单一所有者的动态分配资源存储在 unique\_ptr 实例中。
 
-\mySamllsection{Creating unique\_ptrs}
+\mySamllsection{创建 unique\_ptr}
 
-Consider the following function that blatantly leaks memory by allocating a Simple object on the free store and neglecting to release it:
+以下函数，通过在堆上分配一个 Simple 对象并忽视释放，来演示泄漏内存：
 
 \begin{cpp}
 void leaky()
@@ -39,7 +39,7 @@ void leaky()
 }
 \end{cpp}
 
-Sometimes you might think that your code is properly deallocating dynamically allocated memory. Unfortunately, it most likely is not correct in all situations. Take the following function:
+有时可能认为代码已经正确地释放了动态分配的内存，但这很可能在所有情况下都不正确。考虑以下函数：
 
 \begin{cpp}
 void couldBeLeaky()
@@ -50,11 +50,11 @@ void couldBeLeaky()
 }
 \end{cpp}
 
-This function dynamically allocates a Simple object, uses the object, and then properly calls delete. However, you can still have memory leaks in this example! If the go() member function throws an exception, the call to delete is never executed, causing a memory leak.
+这个函数动态分配了一个 Simple 对象，使用了该对象，然后正确地调用了 delete。然而，仍然可以在这个例子中看到内存泄漏！如果 go() 成员函数抛出异常，调用 delete 就不会执行，导致内存泄漏。
 
-Instead, you should use a unique\_ptr, created using the std::make\_unique() helper function. unique\_ptr is a generic smart pointer that can point to any kind of memory. That’s why it is a class template, and make\_unique() a function template. Both require a template parameter between angle brackets, < >, specifying the type of memory you want the unique\_ptr to point to. Templates are discussed in detail in Chapter 12, but those details are not important to understand how to use smart pointers.
+相反，应该使用 unique\_ptr，它使用 std::make\_unique() 工厂函数创建。unique\_ptr 是一个泛型的智能指针，可以指向任何类型的内存。这就是为什么它是一个类模板，而 make\_unique() 是一个函数模板。两者都需要在尖括号 < > 之间指定一个模板参数，指定 unique\_ptr 所需指向的内存类型。
 
-The following function uses a unique\_ptr instead of a raw pointer. The Simple object is not explicitly deleted; but when the unique\_ptr instance goes out of scope (at the end of the function, or because an exception is thrown), it automatically deallocates the Simple object in its destructor.
+以下函数使用 unique\_ptr 而不是原始指针。Simple 对象没有显式删除，但当 unique\_ptr 实例超出作用域（函数结束时，或者因为异常抛出）时，会在其析构函数中自动释放 Simple 对象。
 
 \begin{cpp}
 void notLeaky()
@@ -64,63 +64,63 @@ void notLeaky()
 }
 \end{cpp}
 
-This code uses make\_unique(), in combination with the auto keyword, so that you only have to specify the type of the pointer, Simple in this case, once. This is the recommended way to create a unique\_ptr. If the Simple constructor requires parameters, you pass them as arguments to make\_unique().
+这段代码使用了 make\_unique()，结合了 auto 关键字，因此只需要指定指针的类型，在本例中是 Simple。这是创建 unique\_ptr 的推荐方法。如果 Simple 构造函数需要参数，可以将它们作为 make\_unique() 的参数传递。
 
-make\_unique() uses value initialization. Primitive types, for example, are initialized to zero, and objects are default constructed. If you don’t need this value initialization, for instance because you will overwrite the initial value anyway, then you can skip the value initialization and improve performance by using the make\_unique\_for\_overwrite() function, which uses default initialization. For primitive types, this means they are not initialized at all and contain whatever is in memory at their location, while objects are still default constructed.
+make\_unique() 使用值初始化。例如，基本类型被初始化为零，而对象默认构造。如果不需要这种值初始化，例如会覆盖初始值，则可以跳过值初始化，通过使用 make\_unique\_for\_overwrite() 函数来提高性能，该函数会使用默认初始化。对于基本类型，则根本不初始化，而对象仍会默认构造。
 
-You can also create a unique\_ptr by directly calling its constructor as follows. Note that Simple must now be mentioned twice:
+也可以通过直接调用其构造函数来创建 unique\_ptr。请注意，必须两次提到 Simple：
 
 \begin{cpp}
 unique_ptr<Simple> mySimpleSmartPtr { new Simple{} };
 \end{cpp}
 
-As discussed earlier in this book, class template argument deduction (CTAD) can often be used to let the compiler deduce the template type arguments for class templates based on the arguments passed to a constructor of the class template. For example, it allows you to write vector v\{1,2\} instead of vector<int> v\{1,2\}. CTAD does not work with unique\_ptr, so you cannot omit the template type argument.
+正如本书前面所讨论的，类模板参数推断（CTAD）可以让编译器根据传递给类模板构造函数的参数来推断类模板的模板类型参数。例如， 使用vector v\{1,2\} 而替换 vector<int> v\{1,2\}。CTAD 对 unique\_ptr 不起作用，不能省略模板类型参数。
 
-Before C++17, you had to use make\_unique() not only because it meant specifying the type only once, but also because of safety reasons! Consider the following call to a function called foo():
+C++17 之前，必须使用 make\_unique() 不仅是因为其只指定类型一次，而且还因为安全原因！考虑以下调用 foo() 函数的示例：
 
 \begin{cpp}
 foo(unique_ptr<Simple> { new Simple{} }, unique_ptr<Bar> { new Bar { data() } });
 \end{cpp}
 
-If the constructor of Simple or Bar, or the data() function, throws an exception, depending on your compiler optimizations, it was possible that either a Simple or a Bar object would be leaked. With make\_unique(), nothing would leak:
+如果 Simple 或 Bar 的构造函数，或者 data() 函数抛出异常，根据编译器优化，可能会有一个 Simple 或 Bar 对象泄露。而使用 make\_unique() 就不会有泄露产生：
 
 \begin{cpp}
 foo(make_unique<Simple>(), make_unique<Bar>(data()))
 \end{cpp}
 
-Since C++17, both calls to foo() are safe, but I still recommend using make\_unique() as it results in code that is easier to read.
+自 C++17 之后，对 foo() 的两次调用都是安全的，但我仍然推荐使用 make\_unique()，因为它生成的代码更容易阅读。
 
 \begin{myNotic}{NOTE}
-Always use make\_unique() to create a unique\_ptr.
+始终使用 make\_unique() 来创建 unique\_ptr。
 \end{myNotic}
 
-\mySamllsection{Using unique\_ptrs}
+\mySamllsection{使用 unique\_ptr}
 
-One of the greatest characteristics of the standard smart pointers is that they provide enormous benefit without requiring the user to learn a lot of new syntax. Smart pointers can still be dereferenced (using * or ->) just like standard pointers. For example, in the earlier example, the -> operator is used to call the go() member function:
+智能指针最伟大的特性之一是，无需用户学习大量新的语法。智能指针仍然可以像标准指针一样解引用（使用 * 或 ->）。例如，在之前的示例中，使用 -> 运算符调用了 go() 成员函数：
 
 \begin{cpp}
 mySimpleSmartPtr->go();
 \end{cpp}
 
-Just as with standard pointers, you can also write this as follows:
+就像标准指针一样，也可以这样写：
 
 \begin{cpp}
 (*mySimpleSmartPtr).go();
 \end{cpp}
 
-The get() member function can be used to get direct access to the underlying pointer. This can be useful to pass the pointer to a function that requires a raw pointer. For example, suppose you have the following function:
+get() 成员函数可以用来直接访问底层指针，需要将指针传递给需要原始指针的函数时非常有用。例如，有一个这样的函数：
 
 \begin{cpp}
 void processData(Simple* simple) { /* Use the simple pointer... */ }
 \end{cpp}
 
-Then you can call it as follows:
+可以这样调用:
 
 \begin{cpp}
 processData(mySimpleSmartPtr.get());
 \end{cpp}
 
-You can free the underlying pointer of a unique\_ptr and optionally change it to another pointer using reset(). Here’s an example:
+可以使用 reset() 方法释放 unique\_ptr 底层的指针，并可以选择将指针设置为另一个：
 
 \begin{cpp}
 mySimpleSmartPtr.reset(); // Free resource and set to nullptr
@@ -128,7 +128,7 @@ mySimpleSmartPtr.reset(new Simple{}); // Free resource and set to a new
 // Simple instance
 \end{cpp}
 
-You can disconnect the underlying pointer from a unique\_ptr with release() which returns the underlying pointer to the resource and then sets the smart pointer to nullptr. Effectively, the smart pointer loses ownership of the resource, and as such, you become responsible for freeing the resource when you are done with it! Here’s an example:
+可以使用 release() 方法将 unique\_ptr 底层的指针与 unique\_ptr 分离，这会返回资源的底层指针并设置智能指针为 nullptr。这样做实际上会使智能指针失去对资源的拥有权，因此调用者负责在完成使用后释放资源！这里有一个例子：
 
 \begin{cpp}
 Simple* simple { mySimpleSmartPtr.release() }; // Release ownership
@@ -137,7 +137,7 @@ delete simple;
 simple = nullptr;
 \end{cpp}
 
-Because a unique\_ptr represents unique ownership, it cannot be copied! But, spoiler alert, it is possible to move one unique\_ptr to another one using move semantics, as discussed in detail in Chapter 9, “Mastering Classes and Objects.” As a sneak preview, the std::move() utility function can be used to explicitly move ownership of a unique\_ptr, as in the following code snippet. Don’t worry about the syntax for now; Chapter 9 makes it all clear.
+由于 unique\_ptr 表示唯一所有权，不能复制！但有一个小提示，可以使用移动语义将一个 unique\_ptr 移动到另一个 unique\_ptr 上，这在第 9 章中有详细讨论。作为一个预览，std::move() 实用函数可以用来显式地移动 unique\_ptr 的所有权，就像以下代码片段所示。现在不要担心语法问题，第 9 章会解释清楚。
 
 \begin{cpp}
 class Foo
@@ -152,77 +152,77 @@ auto myIntSmartPtr { make_unique<int>(42) };
 Foo f { move(myIntSmartPtr) };
 \end{cpp}
 
-\mySamllsection{unique\_ptr and C-Style Arrays}
+\mySamllsection{unique\_ptr和 C 风格数组}
 
-A unique\_ptr can store a dynamically allocated old C-style array. The following example creates a unique\_ptr that holds a dynamically allocated C-style array of ten integers:
+unique\_ptr 可以存储一个动态分配的旧 C 风格数组。以下示例创建了一个 unique\_ptr，持有10个整数的动态分配的 C 风格数组：
 
 \begin{cpp}
 auto myVariableSizedArray { make_unique<int[]>(10) };
 \end{cpp}
 
-The type of myVariableSizedArray is unique\_ptr<int[]> and supports access to its elements using array notation. Here’s an example:
+myVariableSizedArray 的类型是 unique\_ptr<int[]>，并支持使用数组语法访问其元素。例如：
 
 \begin{cpp}
 myVariableSizedArray[1] = 123;
 \end{cpp}
 
-Just as for the non-array case, make\_unique() uses value initialization for all elements of an array, similarly as std::vector does. For primitive types, this means initialization to zero. The make\_unique\_for\_overwrite() function can be used instead to create an array with default-initialized values, which means uninitialized for primitive types. Keep in mind, though, that uninitialized data should be avoided as much as possible, so use this judiciously.
+就像非数组情况一样，make\_unique() 对数组中的所有元素使用值初始化，这与 std::vector 一样。对于基本类型，初始化为零。可以使用 make\_unique\_for\_overwrite() 函数创建一个带有默认初始化值的数组，这样基本类型就未初始化。不过，应该尽量避免使用未初始化的数据，所以要谨慎地使用这个功能。
 
-Even though it is possible to use a unique\_ptr to store a dynamically allocated C-style array, it’s recommended to use a Standard Library container instead, such as std::array or vector.
+尽管可以使用 unique\_ptr 来存储一个动态分配的 C 风格数组，但还是建议使用标准库容器，如 std::array 或 std::vector。
 
-\mySamllsection{Custom Deleters}
+\mySamllsection{自定义删除器}
 
-By default, unique\_ptr uses the standard new and delete operators to allocate and deallocate memory. You can change this behavior to use your own allocation and deallocation functions. This can come in handy when you are working with third-party C libraries. For example, suppose you have a C library that requires you to use my\_alloc() for allocation and my\_free() for deallocation:
+默认情况下，unique\_ptr 使用标准 new 和 delete 运算符来分配和释放内存。可以改变这种行为，使用自己的分配和释放函数，在使用第三方 C 库时非常有用。例如，有一个 C 库，要求使用 my\_alloc() 进行分配和 my\_free() 进行释放：
 
 \begin{cpp}
 int* my_alloc(int value) { return new int { value }; }
 void my_free(int* p) { delete p; }
 \end{cpp}
 
-To properly call my\_free() on an allocated resource at the right time, you can use a unique\_ptr with a customer deleter:
+为了在适当的时候调用 my\_free() 释放已分配的资源，可以使用带有自定义删除器的 unique\_ptr：
 
 \begin{cpp}
 unique_ptr<int, decltype(&my_free)> myIntSmartPtr { my_alloc(42), my_free };
 \end{cpp}
 
-This code allocates memory for an integer with my\_alloc(), and the unique\_ptr deallocates the memory by calling the my\_free() function. This feature of unique\_ptr is also useful to manage other resources instead of just memory. For example, it can be used to automatically close a file or network socket or anything when the unique\_ptr goes out of scope.
+这段代码使用 my\_alloc() 为整数分配内存，而 unique\_ptr 通过调用 my\_free() 函数来释放内存。unique\_ptr 的这个特性也可以用来管理其他资源，不仅仅是内存。例如，可以用来在 unique\_ptr 超出作用域时自动关闭文件或网络套接字。
 
-Unfortunately, the syntax for a custom deleter with unique\_ptr is a bit clumsy. You need to specify the type of your custom deleter as a template type argument, which should be the type of a pointer to a function accepting a single pointer as argument and returning void. In this example, decltype(\&my\_free) is used, which returns the type of a pointer to the function my\_free(). Using a custom deleter with shared\_ptr is easier. The following section on shared\_ptr demonstrates how to use a shared\_ptr to automatically close a file when it goes out of scope.
+不幸的是，与 unique\_ptr 一起使用自定义删除器的语法有点笨拙。需要指定自定义删除器的类型作为模板类型参数，这应该是一个接受单个指针作为参数并返回 void 的函数指针类型。这个例子中，使用decltype(\&my\_free) ，返回 my\_free() 函数的指针类型。shared\_ptr 使用自定义删除器更容易，接下来的 shared\_ptr 部分将展示如何使用 shared\_ptr 在超出作用域时自动关闭文件。
 
 \mySubsubsection{7.5.2.}{shared\_ptr}
 
-Sometimes, several objects or pieces of code need copies of the same pointer. A unique\_ptr cannot e copied and hence cannot be used for such cases. Instead, std::shared\_ptr is a smart pointer upporting shared ownership that can be copied. But, if there are multiple instances of shared\_ptr eferring to the same resource, how can they know when to actually free the resource? This is solved hrough reference counting, the topic of an upcoming section: “The Need for Reference Counting.” ut first, let’s look at how you can construct and use shared\_ptrs.
+有时，几个对象或代码片段需要相同的指针的副本。unique\_ptr 不能复制，因此不适用于这种情况。相反，std::shared\_ptr 是一个支持共享所有权的智能指针，可以复制。但如果有多个 shared\_ptr 实例指向同一个资源，如何知道何时实际释放资源呢？这通过引用计数来解决，这是即将讨论的主题：“引用计数的必要性”。首先，来看看如何构造和使用 shared\_ptr。
 
-\mySamllsection{Creating and Using shared\_ptrs}
+\mySamllsection{创建和使用shared\_ptrs}
 
-You use shared\_ptr in a similar way as unique\_ptr. To create one, you use make\_shared(), which s more efficient than creating a shared\_ptr directly. Here’s an example:
+使用 shared\_ptr 的方式与 unique\_ptr 类似。创建一个 shared\_ptr，使用 make\_shared()，比直接创建一个 shared\_ptr 更有效率。例如：
 
 \begin{cpp}
 auto mySimpleSmartPtr { make_shared<Simple>() };
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-Always use make\_shared() to create a shared\_ptr.
+始终使用 make\_shared() 来创建 shared\_ptr
 \end{myWarning}
 
-Just as with unique\_ptr, class template argument deduction does not work for shared\_ptr, so you ave to specify the template type.
+就像 unique\_ptr 一样，类模板参数推断在 shared\_ptr 上不起作用，必须指定模板类型。
 
-make\_shared() uses value initialization, similar to make\_unique(). If this is not desired, you can se make\_shared\_for\_overwrite() for default initialization, analogous to make\_unique\_for\_verwrite().
+make\_shared() 使用值初始化，类似于 make\_unique()。如果这不符合要求，可以使用 make\_shared\_for\_overwrite() 进行默认初始化，类似于 make\_unique\_for\_verwrite()。
 
-A shared\_ptr can be used to store a pointer to a dynamically allocated C-style array, just as you can o with a unique\_ptr. You can use make\_shared() for this, just as you can use make\_unique(). However, even though it is now possible to store C-style arrays in a shared\_ptr, I still recommend to se Standard Library containers instead of C-style arrays.
+shared\_ptr 可以用来存储指向动态分配的 C 风格数组的指针，就像使用 unique\_ptr 一样。可以使用 make\_shared() 进行此类操作，就像使用 make\_unique() 一样。然而，尽管现在可以将 C 风格数组存储在 shared\_ptr 中，我仍然建议使用标准库容器，而非 C 风格数组。
 
-A shared\_ptr also supports the get() and reset() member functions, just as a unique\_ptr. The nly difference is that when calling reset(), the underlying resource is freed only when the last shared\_ptr is destroyed or reset. Note that shared\_ptr does not support release(). You can use he use\_count() member function to retrieve the number of shared\_ptr instances that are sharing he same resource.
+shared\_ptr 也支持 get() 和 reset() 成员函数，就像 unique\_ptr 一样。唯一的区别是，调用 reset() 时，只有当最后一个 shared\_ptr 销毁或重置时，底层的资源才会释放。请注意，shared\_ptr 不支持 release()。可以使用 use\_count() 成员函数来获取共享同一资源的 shared\_ptr 实例的数量。
 
-Just like unique\_ptr, shared\_ptr by default uses the standard new and delete operators to allocate nd deallocate memory, or new[] and delete[] when storing a C-style array. You can change this ehavior as follows:
+与 unique\_ptr 一样，shared\_ptr 默认使用标准 new 和 delete 运算符来分配和释放内存，或者使用 new[] 和 delete[] 来存储 C 风格数组。可以按照以下方式更改这种行为：
 
 \begin{cpp}
 // Implementations of my_alloc() and my_free() as before.
 shared_ptr<int> myIntSmartPtr { my_alloc(42), my_free };
 \end{cpp}
 
-As you can see, you don’t have to specify the type of the custom deleter as a template type argument, o this makes it easier than a custom deleter with unique\_ptr.
+如上，不必将自定义删除器的类型指定为模板类型参数，因此这比 unique\_ptr 中的自定义删除器更容易。
 
-The following example uses a shared\_ptr to store a file pointer. When the shared\_ptr is destroyed in this case when it goes out of scope), the file pointer is automatically closed with a call to close().Note that C++ has proper object-oriented classes to work with files (see Chapter 13, “Demystifying ++ I/O”). Those classes already automatically close their files. This example using the old C-style open() and fclose() functions is just to give a demonstration of what shared\_ptrs can be used or besides pure memory. For example, it comes in handy if you have to use a C-style library, for hich there is no C++ alternative, and that has similar functions to open and close resources. You ould wrap them in shared\_ptrs as in this example.
+以下示例使用 shared\_ptr 来存储文件指针。这个例子中，当 shared\_ptr 在其超出作用域时销毁，文件指针会自动通过调用 close() 函数来关闭。请注意，C++ 有适当面向对象的类来处理文件（参见第 13 章），这些类已经自动关闭它们的文件。这个使用旧 C 风格 open() 和 fclose() 函数的示例只是为了展示 shared\_ptrs 除了纯粹的内存之外还能用于什么。例如，必须使用一个 C 风格库，而没有 C++ 替代品，并且具有类似于 open 和 close 资源的类似函数，可以像这个示例中一样将其封装在 shared\_ptr 中。
 
 \begin{cpp}
 void close(FILE* filePtr)
@@ -244,38 +244,38 @@ int main()
 }
 \end{cpp}
 
-\mySamllsection{The Need for Reference Counting}
+\mySamllsection{引用计数的必要性}
 
-As briefly mentioned earlier, when a smart pointer with shared ownership, such as shared\_ptr, goes ut of scope or is reset, it should only free the referenced resource if it’s the last smart pointer referring to it. How is this accomplished? One solution, used by the shared\_ptr Standard Library smart ointer, is reference counting.
+如前所述，当一个具有共享所有权的智能指针，如 shared\_ptr，超出作用域或重置时，应该只在最后一个引用的智能指针释放时，才释放所引用的资源。这是如何实现的？一种解决方案，如 shared\_ptr 标准库智能指针所使用的，是引用计数。
 
-As a general concept, reference counting is a technique for keeping track of the number of instances f a class or particular object in use. A reference-counting smart pointer is one that keeps track of ow many smart pointers have been constructed to refer to a single real pointer, or single object.Every time such a reference-counted smart pointer is copied, a new instance is created pointing to the ame resource, and the reference count is incremented. When such a smart pointer instance goes out f scope or is reset, the reference count is decremented. When the reference count drops to zero, there re no other owners of the resource anymore, so the smart pointer frees the resource.
+作为一个通用概念，引用计数是一种跟踪类或特定对象实例使用次数的技术。引用计数的智能指针会跟踪有多少智能指针，指向单个实际指针或单个对象指针。每当这样的引用计数智能指针复制时，都会创建一个新实例，并指向同一资源，并且引用计数会增加。当这样的智能指针实例超出作用域或重置时，引用计数会减少。当引用计数降至零时，没有其他所有者拥有该资源，智能指针会释放资源。
 
-Reference-counted smart pointers solve a lot of memory management issues, such as double deletion.For example, suppose you have the following two raw pointers pointing to the same memory. The imple class is introduced earlier in this chapter and simply prints out messages when an instance is reated and destroyed.
+引用计数的智能指针解决了许多内存管理问题，例如双重删除。例如，有两个指向相同内存的原始指针。imple 类在本书的这一章中首次介绍，当实例创建和销毁时，会打印出消息。
 
 \begin{cpp}
 Simple* mySimple1 { new Simple{} };
 Simple* mySimple2 { mySimple1 }; // Make a copy of the pointer.
 \end{cpp}
 
-Deleting both raw pointers will result in a double deletion:
+删除这两个原始指针会导致双重释放：
 
 \begin{cpp}
 delete mySimple2;
 delete mySimple1;
 \end{cpp}
 
-Of course, you’ll (ideally) never find code like this, but it can happen when there are several layers of function calls involved, where one function deletes the memory, while another function has lready done so.
+当然，（理想上）永远不会找到这样的代码，但在涉及多个函数调用层时，其中一个函数删除内存，而另一个函数已经做了，可能会发生这种情况。
 
-By using the shared\_ptr reference-counted smart pointer, such double deletions are avoided:
+通过使用引用计数的 shared\_ptr 智能指针，可以避免双重释放：
 
 \begin{cpp}
 auto smartPtr1 { make_shared<Simple>() };
 auto smartPtr2 { smartPtr1 }; // Make a copy of the pointer.
 \end{cpp}
 
-In this case, when both smart pointers go out of scope or are reset, only then is the Simple instance reed, exactly once.
+这种情况下，两个智能指针超出作用域或重置时，Simple 实例只释放一次。
 
-All this works correctly only when there are no raw pointers involved! For example, suppose you llocate some memory using new and then create two shared\_ptr instances referring to the same aw pointer:
+这一切只有在没有原始指针参与时才能正确工作！例如，使用 new 定位一些内存，然后创建两个指向同一原始指针的 shared\_ptr 实例：
 
 \begin{cpp}
 Simple* mySimple { new Simple{} };
@@ -283,7 +283,7 @@ shared_ptr<Simple> smartPtr1 { mySimple };
 shared_ptr<Simple> smartPtr2 { mySimple };
 \end{cpp}
 
-Both these smart pointers will attempt to delete the same object when they are destroyed. Depending n your compiler, this piece of code might crash! If you do get output, it could be as follows:
+这两个智能指针在销毁时都会尝试删除同一个对象。根据编译器，这段代码可能会崩溃！如果得到输出，可能会是以下内容：
 
 \begin{shell}
 Simple constructor called!
@@ -291,17 +291,17 @@ Simple destructor called!
 Simple destructor called!
 \end{shell}
 
-Yikes! One call to the constructor and two calls to the destructor? You get the same problem with nique\_ptr. You might be surprised that even the reference-counted shared\_ptr class behaves this ay. However, this is correct behavior. The only safe way to have multiple shared\_ptr instances oint to the same memory is to simply copy such shared\_ptrs.
+天哪！一个构造函数调用和两个析构函数调用？惊讶于即使具有引用计数的 shared\_ptr 类也会以这种方式行为。然而，这是正确的行为。拥有多个 shared\_ptr 实例指向同一内存的唯一安全方法就是，简单地复制这些 shared\_ptr。
 
-\mySamllsection{Casting a shared\_ptr}
+\mySamllsection{转换shared\_ptr}
 
-Just as a raw pointer of a certain type can be cast to a pointer of a different type, a shared\_ptr toring a certain type can be cast to a shared\_ptr of another type. Of course, there are restrictions f what type can be cast to what type. Not all casts are valid. The functions that are available to cast shared\_ptrs are const\_pointer\_cast(), dynamic\_pointer\_cast(), static\_pointer\_cast(), nd reinterpret\_pointer\_cast(). These behave and work similar to the non-smart pointer casting unctions const\_cast(), dynamic\_cast(), static\_cast(), and reinterpret\_cast(), which are iscussed in detail with examples in Chapter 10.
+正如某个类型的原始指针可以强制转换为另一个类型的指针一样，存储特定类型的 shared\_ptr 也可以强制转换为存储另一种类型的 shared\_ptr。当然，可以转换的类型有限制，但并非所有转换都是有效的。用于转换 shared\_ptr 的函数包括 const\_pointer\_cast(), dynamic\_pointer\_cast(), static\_pointer\_cast()和 reinterpret\_pointer\_cast()。这些行为和工作方式与非智能指针转换函数 const\_cast(), dynamic\_cast(), static\_cast()和 reinterpret\_cast() 类似，这些函数在第 10 章中有详细讨论和示例。
 
-Note that these casts work only with shared\_ptr and not with unique\_ptr.
+注意，这些转换只适用于 shared\_ptr 而不适用于 unique\_ptr。
 
-\mySamllsection{Aliasing}
+\mySamllsection{别名}
 
-A shared\_ptr supports aliasing. This allows a shared\_ptr to share ownership over a pointer owned pointer) with another shared\_ptr, but pointing to a different object (stored pointer). It can, or example, be used to have a shared\_ptr pointing to a member of an object while owning the bject itself. Here’s an example:
+shared\_ptr 支持别名，这允许 shared\_ptr 与另一个拥有相同资源的 shared\_ptr（拥有指针）共享所有权，但指向不同的对象（存储指针）。例如，可用于 shared\_ptr 指向对象的成员，同时拥有对象本身。以下是示例：
 
 \begin{cpp}
 class Foo
@@ -315,27 +315,27 @@ auto foo { make_shared<Foo>(42) };
 auto aliasing { shared_ptr<int> { foo, &foo->m_data } };
 \end{cpp}
 
-The Foo object is only destroyed when both shared\_ptrs (foo and aliasing) are destroyed.
+只有当shared\_ptrs (Foo和别名)都销毁时，Foo对象才会销毁。
 
-The owned pointer is used for reference counting, while the stored pointer is returned when you ereference the pointer or when you call get() on it.
+拥有的指针用于引用计数，存储的指针在引用指针或对其调用get()时返回。
 
 \begin{myWarning}{WARNING}
-In modern C++ code, raw pointers are allowed only if there is no wnership involved! If there is ownership involved, use unique\_ptr by default, nd shared\_ptr if ownership needs to be shared. Additionally, use make\_unique() and make\_shared() to create these smart pointers. By doing so, there hould be almost no need to directly call the new operator, and there should never e a need to call delete.
+在现代C++编码中，只有在不涉及所有权的情况下才允许使用原始指针！如果涉及到所有权，通常应使用unique\_ptr，如果需要共享所有权，则使用shared\_ptr。此外，应使用make\_unique()和make\_shared()来创建这些智能指针。这样，几乎不需要直接调用new操作符，并且不需要delete。
 \end{myWarning}
 
 \mySubsubsection{7.5.3.}{weak\_ptr}
 
-There is one more smart pointer class in C++ that is related to shared\_ptr, called weak\_ptr. A weak\_ptr can contain a reference to a resource managed by a shared\_ptr. The weak\_ptr does not wn the resource, so the shared\_ptr is not prevented from deallocating the resource. A weak\_ptr oes not destroy the pointed-to resource when the weak\_ptr is destroyed (for example when it goes ut of scope); however, it can be used to determine whether the resource has been freed by the associated shared\_ptr or not. The constructor of a weak\_ptr requires a shared\_ptr or another weak\_ptr s argument. To get access to the pointer stored in a weak\_ptr, you need to convert it to a shared\_ptr. There are two ways to do this:
+C++ 中还有一种与 shared\_ptr 相关的智能指针类，称为 weak\_ptr。weak\_ptr 可以包含一个由 shared\_ptr 管理的资源的引用。weak\_ptr 不拥有资源，所以 shared\_ptr 不会阻止释放资源。weak\_ptr 在 weak\_ptr 销毁（例如超出作用域）时，就不会销毁指向的资源；然而，它可以用来确定关联的 shared\_ptr 是否已经释放了资源。weak\_ptr 的构造函数需要一个 shared\_ptr 或另一个 weak\_ptr 作为参数。要获取 weak\_ptr 中存储的指针，需要将其转换为 shared\_ptr。有两种方法可以做到这一点：
 
 \begin{itemize}
 \item
-Use the lock() member function on a weak\_ptr instance, which returns a shared\_ptr. The eturned shared\_ptr is nullptr if the shared\_ptr associated with the weak\_ptr has been eallocated in the meantime.
+使用 weak\_ptr 实例上的 lock() 成员函数，该函数返回一个 shared\_ptr。如果在此期间关联的 shared\_ptr 已经释放，返回的 shared\_ptr 将为 nullptr。
 
 \item
-Create a new shared\_ptr instance and give a weak\_ptr as argument to the shared\_ptr constructor. This throws an std::bad\_weak\_ptr exception if the shared\_ptr associated ith the weak\_ptr has been deallocated.
+创建一个新的 shared\_ptr 实例，并将 weak\_ptr 作为 shared\_ptr 构造函数的参数传递。如果关联的 shared\_ptr 已经释放，这将抛出 std::bad\_weak\_ptr 异常。
 \end{itemize}
 
-The following example demonstrates the use of weak\_ptr:
+以下示例展示了 weak\_ptr 的使用方式：
 
 \begin{cpp}
 void useResource(weak_ptr<Simple>& weakSimple)
@@ -363,7 +363,7 @@ int main()
 }
 \end{cpp}
 
-The output of this code is as follows:
+这段代码的输出：
 
 \begin{shell}
 Simple constructor called!
@@ -372,17 +372,17 @@ Simple destructor called!
 Resource has been freed!
 \end{shell}
 
-weak\_ptr also supports C-style arrays, just as shared\_ptr.
+weak\_ptr 也支持 C 风格数组，就像 shared\_ptr 一样。
 
-\mySubsubsection{7.5.4.}{Passing to Functions}
+\mySubsubsection{7.5.4.}{传递给函数}
 
-A function accepting a pointer as one of its parameters should accept a smart pointer only if there s ownership transfer or ownership sharing involved. To share ownership of a shared\_ptr, simply ccept a shared\_ptr by value as parameter. Similarly, to transfer ownership of a unique\_ptr, simply ccept a unique\_ptr by value as parameter. The latter requires using move semantics, discussed in etail in Chapter 9.
+在函数接受指针作为其参数之一时，当涉及所有权转移或共享时，函数才应接受智能指针。要共享shared\_ptr的所有权，只需按值接受一个shared\_ptr作为参数。类似地，要转移unique\_ptr的所有权，只需按值接受一个unique\_ptr作为参数。后者需要使用第9章详细讨论的移动语义。
 
-If neither ownership transfer nor ownership sharing is involved, then the function should simply have  reference-to-non-const or reference-to-const parameter referring to the underlying resource, or  raw pointer to it if nullptr is a valid value for the parameter. Having a parameter type such as onst shared\_ptr<T>\& or const unique\_ptr<T>\& never makes much sense.
+如果不涉及所有权转移或共享，则函数应简单地具有对底层资源的非const引用或const引用参数，或者如果nullptr是参数的有效值，则为原始指针。具有诸如const shared\_ptr<T>\&或const unique\_ptr<T>\&的参数类型通常没有太多意义。
 
-\mySubsubsection{7.5.5.}{Returning from Functions}
+\mySubsubsection{7.5.5.}{从函数返回}
 
-The standard smart pointers, shared\_ptr, unique\_ptr, and weak\_ptr, can easily and efficiently be eturned from functions by value, thanks to mandatory and non-mandatory copy elision, discussed in hapter 1, and move semantics, discussed in Chapter 9. Details of move semantics are not important at this time. What is important is that all this means it is efficient to return a smart pointer from a unction. For example, you can write the following create() function and use it as demonstrated in main():
+标准智能指针 shared\_ptr、unique\_ptr 和 weak\_ptr 可以通过值轻松且高效地从函数返回，这要归功于第 1 章中的强制性和非强制性复制消除，以及第 9 章中讨论的移动语义。重要的是，所有这些意味着从函数返回智能指针是高效的。例如，您以编写以下 create() 函数，并在 main() 中使用它：
 
 \begin{cpp}
 unique_ptr<Simple> create()
@@ -401,17 +401,17 @@ int main()
 
 \mySubsubsection{7.5.6.}{enable\_shared\_from\_this}
 
-Deriving a class from std::enable\_shared\_from\_this allows a member function called on an object to safely return a shared\_ptr or weak\_ptr to itself. Without this base class, one way to return a valid shared\_ptr or weak\_ptr to this is by adding a weak\_ptr as a member to the class, and to return copies of it or return shared\_ptrs constructed from it. The enable\_shared\_from\_this class adds the following two member functions to a class deriving from it:
+从 std::enable\_shared\_from\_this 派生一个类允许一个成员函数在对象上调用时，安全地返回指向自己的 shared\_ptr 或 weak\_ptr。如果没有这个基类，一种返回有效 shared\_ptr 或 weak\_ptr 到这个的方法是添加一个 weak\_ptr 作为类的成员，然后返回它的副本或返回从它构造的 shared\_ptr。enable\_shared\_from\_this 类为从它派生的类添加了以下两个成员函数：
 
 \begin{itemize}
 \item
-shared\_from\_this(): Returns a shared\_ptr that shares ownership of the object
+shared\_from\_this(): 返回一个与对象共享所有权的 shared\_ptr
 
 \item
-weak\_from\_this(): Returns a weak\_ptr that tracks ownership of the object
+weak\_from\_this(): 返回一个跟踪对象所有权的 weak\_ptr
 \end{itemize}
 
-This is an advanced feature not discussed in detail, but the following code briefly demonstrates its use. Both shared\_from\_this() and weak\_from\_this() are public member functions. However, maybe you find the from\_this part confusing in your public interface, so just as a demonstration, the following Foo class defines its own member function called getPointer():
+这是一个高级特性，就不详细讨论了，但以下代码简要展示了它的使用。shared\_from\_this() 和 weak\_from\_this() 都是公共成员函数。可能在公共接口中对这个from\_this部分感到困惑，所以作为一个演示，下面的 Foo 类定义了自己的成员函数 getPointer()：
 
 \begin{cpp}
 class Foo : public enable_shared_from_this<Foo>
@@ -430,9 +430,9 @@ int main()
 
 \end{cpp}
 
-Note that you can use shared\_from\_this() on an object only if its pointer has already been stored in a shared\_ptr; otherwise, a bad\_weak\_ptr exception is thrown. In the example, make\_shared() is used in main() to create a shared\_ptr called ptr1, which contains an instance of Foo. After this shared\_ptr creation, it is allowed to call shared\_from\_this() on that Foo instance. On the other hand, it is always allowed to call weak\_from\_this(), but it might return an empty weak\_ptr if it is called on an object for which its pointer has not been stored in a shared\_ptr yet.
+注意，只有在对象的指针已经存储在 shared\_ptr 中后，才能对对象调用 shared\_from\_this();否则，会抛出 bad\_weak\_ptr 异常。示例中，make\_shared() 在 main() 中用于创建一个包含 Foo 实例的 shared\_ptr，称为 ptr1。创建这个 shared\_ptr 之后，可以允许对那个 Foo 实例调用 shared\_from\_this()。另一方面，总是允许调用 weak\_from\_this()，但如果在尚未将指针存储在 shared\_ptr 中的对象上调用 weak\_from\_this()，可能会返回一个空的 weak\_ptr。
 
-The following would be a completely wrong implementation of the getPointer() member function:
+以下是对 getPointer() 成员函数的完全错误实现：
 
 \begin{cpp}
 class Foo
@@ -444,13 +444,13 @@ class Foo
 };
 \end{cpp}
 
-If you use the same code for main() as shown earlier, this implementation of Foo causes a double deletion. You have two completely independent shared\_ptrs (ptr1 and ptr2) pointing to the same object, which will both try to delete the object when they go out of scope.
+如果使用前面展示的 main() 代码，这个 Foo 的实现会导致双重释放。两个完全独立的 shared\_ptr (ptr1 和 ptr2) 指向同一个对象，都会在超出作用域时尝试删除该对象。
 
 \CXXTwentythreeLogo{-40}{-50}
 
-\mySubsubsection{7.5.7.}{Interoperability of Smart Pointers with C-Style Functions}
+\mySubsubsection{7.5.7.}{智能指针与 C 风格函数的互动性}
 
-Often, C-style functions use the return type to indicate whether a function executed correctly or whether there was any error. Since the return type is already used for reporting errors, additional output parameters are used to return other data from the function. For example:
+通常，C 风格函数使用返回类型来指示函数是否正确执行或是否发生错误。由于返回类型已经用于报告错误，因此使用额外的输出参数来从函数返回其他数据。例如：
 
 \begin{cpp}
 using errorcode = int;
@@ -458,7 +458,7 @@ errorcode my_alloc(int value, int** data) { *data = new int { value }; return 0;
 errorcode my_free(int* data) { delete data; return 0; }
 \end{cpp}
 
-With this C-style API, the my\_alloc() function returns an errorcode and returns the allocated data in the output parameter called data. Before C++23, you could not directly use a smart pointer, such as unique\_ptr, with my\_alloc(). Instead, you could do something like this:
+使用这种 C 风格 API，my\_alloc() 函数返回一个 errorcode，并在名为 data 的输出参数中返回已分配的数据。在 C++23 之前，不能直接使用智能指针，如 unique\_ptr与 my\_alloc() 一起使用。相反，可以这样做：
 
 \begin{cpp}
 unique_ptr<int, decltype(&my_free)> myIntSmartPtr(nullptr, my_free);
@@ -467,20 +467,19 @@ my_alloc(42, &data);
 myIntSmartPtr.reset(data);
 \end{cpp}
 
-That’s rather involved for something relatively easy. C++23 introduces the std::out\_ptr() and inout\_ptr() functions to help with this, both defined in <memory>. Using these, the code snippet can be written more elegantly as follows:
+这相对简单，但相当繁琐。C++23 引入了 std::out\_ptr() 和 inout\_ptr() 函数来解决这个问题，这两个函数都定义在<memory>中。使用这些函数，代码片段可以更优雅地编写如下：
 
 \begin{cpp}
 unique_ptr<int, decltype(&my_free)> myIntSmartPtr(nullptr, my_free);
 my_alloc(42, inout_ptr(myIntSmartPtr));
 \end{cpp}
 
-If you’re sure that the pointer passed to inout\_ptr() is nullptr, then you can use out\_ptr instead.
+如果确定传递给 inout\_ptr() 的指针是 nullptr，则可以使用 out\_ptr 代替。
 
+\mySubsubsection{7.5.8.}{已删除的auto\_ptr}
 
-\mySubsubsection{7.5.8.}{The Old and Removed auto\_ptr}
-
-The old, pre-C++11 Standard Library included a basic implementation of a smart pointer, called auto\_ptr. Unfortunately, auto\_ptr has some serious shortcomings. One of these shortcomings is that it does not work correctly when used inside Standard Library containers such as vectors. C++11 officially deprecated auto\_ptr, and since C++17, it has been removed entirely from the Standard Library. It is replaced with unique\_ptr and shared\_ptr. auto\_ptr is mentioned here to make sure you know about it and to make sure you never use it.
+在 C++11 之前的旧标准库中包含了一个基本的智能指针实现，称为 auto\_ptr。不幸的是，auto\_ptr 存在一些严重的问题。其中一个问题是，当它在标准库容器（如 vectors）中使用时，不能正确工作。C++11 正式弃用了 auto\_ptr，并且从 C++17 开始，已经完全从标准库中移除，被 unique\_ptr 和 shared\_ptr 所取代。在这里提到 auto\_ptr仅是为了了解它，并确保永远不会使用。
 
 \begin{myWarning}{WARNING}
-Never use the old auto\_ptr smart pointer! Instead, use unique\_ptr by default or shared\_ptr if you need shared ownership.
+永远不要使用旧的 auto\_ptr 智能指针！相反，默认使用 unique\_ptr，如果需要共享所有权，则使用 shared\_ptr。
 \end{myWarning}
