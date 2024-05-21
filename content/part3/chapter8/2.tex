@@ -1,12 +1,11 @@
 
-When you write a class, you specify the behaviors, or member functions, that will apply to objects of that class, and you specify the properties, or data members, that each object will contain.
+编写一个类时，需要指定将应用于该类对象的行为（或成员函数），以及每个对象将包含的属性（或数据成员）。
 
-There are two components in the process of writing classes: defining the classes themselves and defining their member functions.
+编写类的过程包含两个部分：定义类本身和其成员函数。
 
+\mySubsubsection{8.2.1.}{类的定义}
 
-\mySubsubsection{8.2.1.}{Class Definitions}
-
-Here is a first attempt at a simple SpreadsheetCell class in a spreadsheet\_cell module, in which each cell can store only a single number:
+这里是对一个名为spreadsheet\_cell的模块中一个简单的SpreadsheetCell类的进行尝试，每个单元格只能存储一个数字：
 
 \begin{cpp}
 export module spreadsheet_cell;
@@ -21,36 +20,36 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-As described in Chapter 1, the first line specifies that this is the definition of a module named spreadsheet\_cell. Every class definition begins with the keyword class followed by the name of the class. If the class is defined in a module and the class must become visible to clients importing the module, then the class keyword is prefixed with export. A class definition is a declaration and ends with a semicolon.
+如第1章所述，第一行指定这是一个名为spreadsheet\_cell的模块的定义。每个类定义都以关键字class开始，后跟类名。如果类在模块中定义，并且必须对导入模块的客户端可见，那么类关键字前缀为export。类定义是一个声明，以分号结束。
 
-Class definitions usually go in a file named after the class. For example, the SpreadsheetCell class definition is put in a file called SpreadsheetCell.cppm. Some compilers require the use of a specific extension; others allow you to choose any extension.
+类定义通常放在与类同名的文件中。例如，SpreadsheetCell类定义放在名为SpreadsheetCell.cppm的文件中，会一些编译器要求使用特定的扩展名。
 
-\mySamllsection{Class Members}
+\mySamllsection{类成员}
 
-A class can have several members. A member can be a member function (which in turn is a function, constructor, or destructor), a member variable (also called a data member), member enumerations, type aliases, nested classes, and so on.
+类可以有多个成员。成员可以是成员函数（函数、构造函数或析构函数）、成员变量（也称为数据成员）、成员枚举、类型别名、嵌套类等。
 
-The two lines that look like function prototypes declare the member functions that this class supports:
+下面函数原型的两行，声明了这个类支持的成员函数：
 
 \begin{cpp}
 void setValue(double value);
 double getValue() const;
 \end{cpp}
 
-Chapter 1 points out that it is always a good idea to declare member functions that do not change the object as const, like the getValue() member function.
+第1章指出，将不会改变对象的成员函数声明为const，比如getValue()成员函数。
 
-The line that looks like a variable declaration declares the data member for this class:
+变量声明的一行声明了这个类的数据成员：
 
 \begin{cpp}
 double m_value;
 \end{cpp}
 
-A class defines the member functions and data members that apply. They apply only to a specific instance of the class, which is an object. The only exceptions to this rule are static members, which are explained in Chapter 9. Classes define concepts; objects contain real bits. So, each object contains its own value for the m\_value data member. The implementation of the member functions is shared across all objects. Classes can contain any number of member functions and data members. You can not give a data member the same name as a member function.
+一个类定义了将应用于其对象的成员函数和数据成员，这仅适用于类的特定实例，即对象。唯一的例外是静态成员，这在第9章中解释。类定义了概念；对象包含实际成员。所以，每个对象都包含自己的m\_value数据成员的值，对象共享成员函数的实现。类可以包含任意数量的成员函数和数据成员，但不能给数据成员和成员函数起相同的名字。
 
-\mySamllsection{Access Control}
+\mySamllsection{访问控制}
 
-Every member in a class is subject to one of three access specifiers: public, private, or protected. The protected access specifier is explained in the context of inheritance in Chapter 10, “Discovering Inheritance Techniques.” An access specifier applies to all member declarations that follow it, until the next access specifier. In the SpreadsheetCell class, the setValue() and getValue() member functions have public access, while the m\_value data member has private access.
+类中的每个成员都受以下三种访问说明符之一：public、private或protected。受保护访问说明符在继承的上下文中在第10章中解释。访问说明符适用于其之后的所有成员声明，直到下一个访问说明符。SpreadsheetCell类中，setValue()和getValue()成员函数为public，而m\_value数据成员问为private。
 
-The default access specifier for classes is private: all member declarations before the first access specifier have the private access specification. For example, moving the public access specifier to after the setValue() member function declaration gives the setValue() member function private access instead of public:
+类的默认访问说明符是private：第一个访问说明符之前的所有成员声明都为private。例如，将public访问说明符移动到setValue()成员函数声明之后，则setValue()成员函数问private，而非public：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -63,9 +62,9 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-In C++, a struct can have member functions just like a class. In fact, there is only one difference: for a struct, the default access specifier is public, while it’s private for a class.
+在C++中，struct可以有与class相同的成员函数。只有一个区别：对于struct，默认访问说明符是public，而class是private。
 
-For example, the SpreadsheetCell class could be rewritten using a struct as follows:
+例如，SpreadsheetCell类可以改写为使用struct：
 
 \begin{cpp}
 export struct SpreadsheetCell
@@ -77,7 +76,7 @@ export struct SpreadsheetCell
 };
 \end{cpp}
 
-However, it’s unconventional to do so. A struct is usually used only if you just need a collection of publicly accessible data members and no member functions. The following is an example of such a simple struct to store 2-D point coordinates:
+然而，这样做是不合常规的。struct通常用于，需要一组公开可访问的数据成员(没有成员函数)。以下是一个简单的struct示例，用于存储2D点坐标：
 
 \begin{cpp}
 export struct Point
@@ -87,9 +86,9 @@ export struct Point
 };
 \end{cpp}
 
-\mySamllsection{Order of Declarations}
+\mySamllsection{声明的顺序}
 
-You can declare your members and access control specifiers in any order: C++ does not impose any restrictions, such as member functions before data members or public before private. Additionally, you can repeat access specifiers. For example, the SpreadsheetCell definition could look like this:
+可以按任何顺序声明成员和访问控制说明符：C++不强制任何限制，比如成员函数在前，数据成员在后，或者public在前，private在后。此外，可以重复访问说明符。例如，SpreadsheetCell定义可以如下所示：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -103,12 +102,11 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-However, for clarity it is a good idea to group declarations based on their access specifier and to group member functions and data members within those declarations.
+然而，为了清晰起见，最好根据访问说明符对声明进行分组，并在那些声明内对成员函数和数据成员进行分组。
 
+\mySamllsection{类内成员初始化器}
 
-\mySamllsection{In-Class Member Initializers}
-
-Data members can be initialized directly in the class definition. For example, the SpreadsheetCell class can, by default, initialize m\_value to 0 directly in the class definition as follows:
+数据成员可以直接在类定义中进行初始化。例如，SpreadsheetCell类可以直接在类定义中将m\_value默认初始化为0：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -120,14 +118,14 @@ export class SpreadsheetCell
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-It is recommended to always initialize data members of a class.
+建议始终初始化类的数据成员。
 \end{myNotic}
 
-\mySubsubsection{8.2.2.}{Defining Member Functions}
+\mySubsubsection{8.2.2.}{定义成员函数}
 
-The preceding definition for the SpreadsheetCell class is enough for you to create objects of the class. However, if you try to call the setValue() or getValue() member function, your linker will complain that those member functions are not defined. That’s because these member functions only have prototypes so far, but no implementations yet. Usually, a class definition goes in a module interface file. For the member function definitions, you have a choice: they can go in the module interface file or in a module implementation file.
+前面的SpreadsheetCell类定义足以创建该类的对象。然而，如果尝试调用setValue()或getValue()成员函数，链接器会抱怨成员函数尚未定义。这是因为这些成员函数目前只有原型，而没有实现。通常，类定义放在模块接口文件中。对于成员函数的定义，可以选择将其放在模块接口文件中或模块实现文件中。
 
-Here is the SpreadsheetCell class with in-class member function implementations:
+以下是在类内实现成员函数的SpreadsheetCell类：
 
 \begin{cpp}
 export module spreadsheet_cell;
@@ -142,9 +140,9 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-Unlike with header files, with C++ modules there is no harm in putting member function definitions in module interface files. This is discussed in more detail in Chapter 11, “Modules, Header Files, and Miscellaneous Topics.” However, this book often puts member function definitions in module implementation files, in the interest of keeping module interface files clean and without any implementation details.
+与头文件不同，在C++模块中，将成员函数定义放在模块接口文件中并无害处。这在第11章中有更详细的讨论。然而，为了保持模块接口文件的清洁和不含任何实现细节，本书通常将成员函数定义放在模块实现文件中。
 
-The first line of a module implementation file specifies which module the implementations are for. Here are the definitions for the two member functions of the SpreadsheetCell class in the spreadsheet\_cell module:
+模块实现文件的第一行指定实现属于哪个模块。以下是spreadsheet\_cell模块,SpreadsheetCell类中两个成员函数的定义：
 
 \begin{cpp}
 module spreadsheet_cell;
@@ -161,27 +159,27 @@ double SpreadsheetCell::getValue() const
 
 \end{cpp}
 
-Note that the name of the class followed by two colons precedes each member function name:
+注意，每个成员函数名前都跟着类名和两个冒号：
 
 \begin{cpp}
 void SpreadsheetCell::setValue(double value)
 \end{cpp}
 
-The :: is called the scope resolution operator. In this context, the syntax tells the compiler that the coming definition of the setValue() member function is part of the SpreadsheetCell class. Note also that you do not repeat the access specification when you define the member function.
+双冒号称为作用域解析运算符。在这个上下文中，这个语法告诉编译器即将到来的setValue()成员函数的定义属于SpreadsheetCell类。还要注意，定义成员函数时，不需要访问说明符。
 
-\mySamllsection{Accessing Data Members}
+\mySamllsection{访问数据成员}
 
-Non-static member functions of a class, such as setValue() and getValue(), are always executed on behalf of a specific object of that class. Inside a member function’s body, you have access to all data members of the class for that object. In the previous definition for setValue(), the following line changes the m\_value variable inside whatever object calls the member function:
+类的非静态成员函数，如setValue()和getValue()，总是代表该类的特定对象执行。成员函数体内，可以访问该对象的所有数据成员。前面setValue()的定义中，修改了对象内的m\_value变量：
 
 \begin{cpp}
 m_value = value;
 \end{cpp}
 
-If setValue() is called for two different objects, the same line of code (executed once for each object) changes the variable in two different objects.
+如果为两个不同的对象调用setValue()，相同的代码行（每个对象执行一次）会更改两个不同对象中的变量。
 
-\mySamllsection{Calling Other Member Functions}
+\mySamllsection{调用其他成员函数}
 
-You can call member functions of a class from inside another member function. For example, consider an extension to the SpreadsheetCell class to allow setting and retrieving the value of a cell as a string or as a number. When you try to set the value of a cell with a string, the cell tries to convert the string to a number. If the string does not represent a valid number, the cell value is ignored. In this program, strings that are not numbers will generate a cell value of 0. Here is a first stab at such a class definition for a SpreadsheetCell:
+可以从一个成员函数内部调用类的其他成员函数。例如，考虑对SpreadsheetCell类进行扩展，将单元格的值设置为字符串或数字。尝试将字符串设置为单元格的值时，单元格会尝试将字符串转换为数字。如果字符串不代表有效的数字，则忽略单元格值。这个程序中，不是数字的字符串将生成单元格值为0。以下是对SpreadsheetCell类定义的首次尝试：
 
 \begin{cpp}
 export module spreadsheet_cell;
@@ -201,7 +199,7 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-This version of the class stores the data only as a double. If the client sets the data as a string, it is converted to a double. If the text is not a valid number, the double value is set to 0. The class definition shows two new member functions to set and retrieve the text representation of the cell, and two new private helper member functions to convert a double to a string and vice versa. Here are the implementations of all the member functions:
+这个版本的类只将数据存储为double。如果客户端将数据设置为字符串，则会将其转换为double。如果文本不是有效的数字，则double值设置为0。类定义展示了两个新的成员函数，用于设置和检索单元格的文本表示，以及两个新的私有辅助成员函数，用于将double转换为字符串以及反之。以下是所有成员函数的实现：
 
 \begin{cpp}
 module spreadsheet_cell;
@@ -241,20 +239,19 @@ double SpreadsheetCell::stringToDouble(string_view value) const
 }
 \end{cpp}
 
-The std::to\_string() and from\_chars() functions are explained in Chapter 2, “Working with Strings and String Views.”
+std::to\_string()和from\_chars()函数在第2章中进行了解释。
 
-Note that with this implementation of the doubleToString() member function, a value of, for example, 6.1 is converted to 6.100000. However, because it is a private helper member function, you are free to modify the implementation without having to modify any client code.
+使用此doubleToString()成员函数的实现，例如6.1的值转换为6.100000。因为它是一个私有的辅助成员函数，可以自由修改实现，而无需修改任何客户端(调用)代码。
 
+\mySubsubsection{8.2.3.}{使用对象}
 
-\mySubsubsection{8.2.3.}{Using Objects}
+前面的类定义说明，SpreadsheetCell包含一个数据成员、四个公共成员函数和两个私有成员函数。类定义实际上并没有创建任何SpreadsheetCell对象，只是指定了其外貌和行为。类就像建筑蓝图，蓝图指定房子应该是什么样子，但是绘制蓝图的行为并不会建造房子，而房子必须根据制定的蓝图来建造。
 
-The previous class definition says that a SpreadsheetCell consists of one data member, four public member functions, and two private member functions. However, the class definition does not actually create any SpreadsheetCells; it just specifies their shape and behavior. In that sense, a class is like architectural blueprints. The blueprints specify what a house should look like, but drawing the blueprints doesn’t build any houses. Houses must be constructed later based on the blueprints.
+C++中可以从SpreadsheetCell类定义构造一个SpreadsheetCell“对象”，通过声明一个类型为SpreadsheetCell的变量。就像一个建筑商可以根据一套给定的蓝图建造多套房子一样，开发者也可以使用一个SpreadsheetCell类，创建多个SpreadsheetCell对象。有两种创建和使用对象的方式：栈和堆。
 
-Similarly, in C++ you can construct a SpreadsheetCell “object” from the SpreadsheetCell class definition by declaring a variable of type SpreadsheetCell. Just as a builder can build more than one house based on a given set of blueprints, a programmer can create more than one SpreadsheetCell object from a SpreadsheetCell class. There are two ways to create and use objects: on the stack and on the free store.
+\mySamllsection{栈上对象}
 
-\mySamllsection{Objects on the Stack}
-
-Here is some code that creates and uses SpreadsheetCell objects on the stack:
+以下是一些在栈上创建和使用SpreadsheetCell对象的代码：
 
 \begin{cpp}
 SpreadsheetCell myCell, anotherCell;
@@ -264,20 +261,18 @@ println("cell 1: {}", myCell.getValue());
 println("cell 2: {}", anotherCell.getValue());
 \end{cpp}
 
-You create objects just as you declare simple variables, except that the variable type is the class name. The . in lines like myCell.setValue(6); is called the “dot” operator, also called the member access operator; it allows you to call public member functions on the object. If there were any public data members in the object, you could access them with the dot operator as well. Remember that public data members are not recommended.
+创建对象的方式和声明简单变量的方式一样，只不过变量的类型是类名。像myCell.setValue(6);中的点称为“点”运算符，也称为成员访问运算符；允许调用对象的公共成员函数。如果对象中有任何公共数据成员，也可以用点运算符访问。记住，不推荐使用公共数据成员。
 
-The output of the program is as follows:
+程序的输出如下：
 
 \begin{shell}
 cell 1: 6
 cell 2: 3.2
 \end{shell}
 
+\mySamllsection{堆上对象}
 
-\mySamllsection{Objects on the Free Store}
-
-You can also dynamically allocate objects by using new:
-
+也可以通过使用new来动态分配对象：
 
 \begin{cpp}
 SpreadsheetCell* myCellp { new SpreadsheetCell { } };
@@ -287,7 +282,7 @@ delete myCellp;
 myCellp = nullptr;
 \end{cpp}
 
-When you create an object on the free store, you access its members through the “arrow” operator: ->. The arrow combines dereferencing (*) and member access (.). You could use those two operators instead, but doing so would be stylistically awkward:
+当创建一个堆区对象时，可通过“箭头”运算符：->来访问它的成员。箭头运算符结合了解引用(*)和成员访问(.)。也可以使用这两个运算符，但这在风格上会显得笨拙：
 
 \begin{cpp}
 SpreadsheetCell* myCellp { new SpreadsheetCell { } };
@@ -297,7 +292,7 @@ delete myCellp;
 myCellp = nullptr;
 \end{cpp}
 
-Just as you must free other memory that you allocate on the free store, you must free the memory for objects that you allocate on the free store by calling delete on them, as is done in the previous code snippets! To guarantee safety and to avoid memory problems, you really should use smart pointers, as in the following example:
+必须释放在堆区上分配的内存，通过调用delete来释放在堆区上为对象分配的内存。为了确保安全并避免内存问题，应该使用智能指针，如下例所示：
 
 \begin{cpp}
 auto myCellp { make_unique<SpreadsheetCell>() };
@@ -307,20 +302,19 @@ myCellp->setValue(3.7);
 println("cell 1: {} {}", myCellp->getValue(), myCellp->getString());
 \end{cpp}
 
-With smart pointers you don’t need to manually free the memory; it happens automatically.
+使用智能指针，不需要手动释放内存。
 
 \begin{myWarning}{WARNING}
-When you allocate an object with new, free it with delete after you are finished with it, or, better yet, use smart pointers to manage the memory automatically!
+使用new分配一个对象时，在完成使用后，要么用delete释放，要么使用智能指针自动管理内存！
 \end{myWarning}
 
 \begin{myNotic}{NOTE}
-If you don’t use smart pointers, it is always a good idea to reset a pointer to nullptr after deleting the object to which it pointed. You are not required to do so, but it will make debugging easier in case the pointer is accidentally used after deleting the object
+如果不使用智能指针，在删除指向的对象后，将指针重置为nullptr是一个好主意。虽然这不是必需的，但这将使调试更容易。
 \end{myNotic}
 
+\mySubsubsection{8.2.4.}{this指针}
 
-\mySubsubsection{8.2.4.}{The this Pointer}
-
-Every normal member function call implicitly passes a pointer to the object for which it is called as a “hidden” parameter with the name this. You can use this pointer to access data members or call member functions, and you can pass it to other member functions or functions. It is sometimes also useful for disambiguating names. For example, you could have defined the SpreadsheetCell class with a value data member instead of m\_value. In that case, setValue() would look like the following:
+每个正常的成员函数调用都会隐式传递一个指向调用对象的指针，作为名为this的“隐藏”参数。可以使用this指针来访问数据成员或调用成员函数，也可以将其传递给其他成员函数或函数。有时它也有助于消除名称歧义。例如，可以定义SpreadsheetCell类使用value数据成员而不是m\_value。这时，setValue()看起来如下：
 
 \begin{cpp}
 void SpreadsheetCell::setValue(double value)
@@ -329,13 +323,13 @@ void SpreadsheetCell::setValue(double value)
 }
 \end{cpp}
 
-That line is confusing. Which value do you mean: the value that was passed as a parameter or the value that is a member of the object?
+这行代码令人困惑。指的是作为参数传递的value，还是对象成员的value？
 
 \begin{myNotic}{NOTE}
-With some compilers or compiler settings, the preceding confusing line compiles without any warnings or errors, but it will not produce the results that you are expecting.
+使用某些编译器或编译器设置，上述混淆的行可能会编译，而没有任何警告或错误，但不会产生预期的结果。
 \end{myNotic}
 
-To disambiguate the names, you can use the this pointer:
+为了消除名称歧义，你可以使用this指针：
 
 \begin{cpp}
 void SpreadsheetCell::setValue(double value)
@@ -344,9 +338,9 @@ void SpreadsheetCell::setValue(double value)
 }
 \end{cpp}
 
-However, if you use the naming conventions described in Chapter 3, “Coding with Style,” you will never encounter this type of name collision.
+然而，如果使用第3章中描述的命名约定，就永远不会遇到这种名称冲突。
 
-You can also use the this pointer to call a function that takes, as a parameter, a pointer to an object from within a member function of that object. For example, suppose you write a printCell() standalone function (not a member function) like this:
+还可以使用this指针从对象的成员函数中调用一个接受对象指针作为参数的函数。例如，编写了一个独立的printCell()函数（不是成员函数）：
 
 \begin{cpp}
 void printCell(const SpreadsheetCell& cell)
@@ -355,7 +349,7 @@ void printCell(const SpreadsheetCell& cell)
 }
 \end{cpp}
 
-If you want to call printCell() from the setValue() member function, you must pass *this as the argument to give printCell() a reference to the SpreadsheetCell on which setValue() operates:
+如果想从setValue()成员函数中调用printCell()，必须传递*this作为参数，以便printCell()引用setValue()操作的SpreadsheetCell：
 
 \begin{cpp}
 void SpreadsheetCell::setValue(double value)
@@ -366,24 +360,24 @@ void SpreadsheetCell::setValue(double value)
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Instead of writing a printCell() function, it would be more convenient to write a custom formatter, as explained in Chapter 2. You can then use the following line to print a SpreadsheetCell called myCell:
+与其编写printCell()函数，不如编写自定义格式化器，如第2章所述。然后，可以使用以下行来打印名为myCell的SpreadsheetCell：
 
 \begin{cpp}
 std::println("{}", myCell);
 \end{cpp}
 
-Alternatively, you can overload the <{}< operator, as explained in Chapter 15, “Overloading C++ Operators.” You can then write the following:
+或者，可以重载<{}<运算符。然后，可以编写如下内容：
 
 \begin{cpp}
 cout << myCell << endl;
 \end{cpp}
 \end{myNotic}
 
-\CXXTwentythreeLogo{-40}{-50}
+\mySubsubsection{8.2.5.}{明确的对象参数}
 
-\mySubsubsection{8.2.5.}{Explicit Object Parameter}
+\CXXTwentythreeLogo{-40}{15}
 
-Starting with C++23, instead of relying on the compiler to provide an implicit this parameter, you can use an explicit object parameter, usually of a reference type. The following code snippet implements the setValue() member function of SpreadsheetCell from the previous section using an explicit object parameter:
+从C++23开始，可以使用显式的对象参数，而不是依赖于编译器提供隐式的this参数。通常，这个显式的对象参数是一个引用类型。以下代码段使用显式对象参数，实现了前面部分的SpreadsheetCell的setValue()成员函数：
 
 \begin{cpp}
 void SpreadsheetCell::setValue(this SpreadsheetCell& self, double value)
@@ -393,26 +387,26 @@ void SpreadsheetCell::setValue(this SpreadsheetCell& self, double value)
 }
 \end{cpp}
 
-The first parameter of setValue() is now the explicit object parameter, usually called self, but you can use any name you want. The type of self is prefixed with the this keyword. This explicit object parameter must be the first parameter of the member function. Once you use an explicit object parameter, the function no longer has an implicitly defined this; hence, in the body of setValue(), you now must explicitly use self to access anything from the SpreadsheetCell.
+现在，setValue()的第一个参数是显式的对象参数，通常称为self，但也可以使用其他名称。self的类型前缀为this关键字。这个显式的对象参数必须是成员函数的第一个参数。使用显式的对象参数，函数就不再有隐式定义的this；因此，在setValue()的函数体内，必须明确使用self来访问SpreadsheetCell。
 
-Calling a member function that uses an explicit object parameter is no different than calling one with an implicit this parameter. Even though setValue() now specifies two parameters, self and value, you still call it by passing just a single argument, the value that you want to set:
+调用使用显式对象参数的成员函数与调用使用隐式this参数的成员函数没有区别。现在setValue()指定了两个参数，self和value，但仍然可以通过传递一个参数（想要设置的值）来调用：
 
 \begin{cpp}
 SpreadsheetCell myCell;
 myCell.setValue(6);
 \end{cpp}
 
-Using explicit object parameters as demonstrated in this section has no benefits at all, it even makes the code more verbose. However, they are useful in the following situations:
+如本节所示，使用显式对象参数，会使代码更加冗长。然而，在以下情况下它们很有用：
 
 \begin{itemize}
 \item
-To provide a more explicit syntax for writing ref-qualified member functions, discussed in Chapter 9.
+提供更明确的语法来编写返回类型引用成员函数。
 
 \item
-For member function templates where the type of the explicit object parameter is a template type parameter. This can be useful to avoid code duplication when implementing const and non-const overloads of member functions and is discussed in Chapter 12, “Writing Generic Code with Templates.”
+对于成员函数模板，其中显式对象参数的类型是模板类型参数。这在实现成员函数的const和非const重载时避免代码重复，如第12章所述。
 
 \item
-To write recursive lambda expressions, explained in Chapter 19, “Function Pointers, Function Objects, and Lambda Expressions.”
+用于编写第19章中解释的递归Lambda表达式。
 \end{itemize}
 
 

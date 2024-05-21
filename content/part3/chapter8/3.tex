@@ -1,9 +1,9 @@
 
-The object life cycle involves three activities: creation, destruction, and assignment. It is important to understand how and when objects are created, destroyed, and assigned, and how you can customize these behaviors.
+对象生命周期涉及三个行为：创建、销毁和赋值。了解对象如何以及何时创建、销毁和赋值，以及如何自定义这些行为非常重要。
 
-\mySubsubsection{8.3.1.}{Object Creation}
+\mySubsubsection{8.3.1.}{创建}
 
-Objects are created at the point you declare them (if they’re on the stack) or when you explicitly allocate space for them with a smart pointer, new, or new[]. When an object is created, all its embedded objects are also created. Here is an example:
+对象在声明它们（如果在栈上）时创建，或者当使用智能指针、new或new[]显式为它们分配空间时创建。当一个对象创建时，其所有的嵌入对象也会创建。以下是一个例子：
 
 \begin{cpp}
 import std;
@@ -20,26 +20,25 @@ int main()
 }
 \end{cpp}
 
-The embedded string object is created at the point where the MyClass object is created in the main() function and is destroyed when its containing object is destroyed.
+string对象在main()函数中创建MyClass对象时创建，并在其包含对象销毁时销毁。
 
-It is often helpful to give variables initial values as you declare them, as so:
+声明变量时给出初始值通常很有帮助，如下所示：
 
 \begin{cpp}
 int x { 0 };
 \end{cpp}
 
-Similarly, you could give initial values to objects. You can provide this functionality by declaring and writing a special member function called a constructor, in which you can perform initialization work for the object. Whenever an object is created, one of its constructors is executed.
+同样，也可以为对象提供初始值。可以通过声明并编写一个特殊的成员函数来实现这个功能，这个函数称为构造函数，可以在其中为对象执行初始化工作。每当创建一个对象时，都会执行造函数。
 
 \begin{myNotic}{NOTE}
-C++ programmers sometimes call a constructor a ctor (pronounced “seetor”).
+C++开发者有时将构造函数称为“tor”(发音为“seetor”)。
 \end{myNotic}
 
-\mySamllsection{Writing Constructors}
+\mySamllsection{编写构造函数}
 
-Syntactically, a constructor is specified by a member function name that is the same as the class name.
-A constructor never has a return type and may or may not have parameters. A constructor that can be called without any arguments is called a default constructor. This can be a constructor that does not have any parameters, or a constructor for which all parameters have default values. There are certain contexts in which you may have to provide a default constructor, and you will get compilation errors if you have not provided one. Default constructors are discussed later in this chapter.
+从语法上讲，构造函数通过一个与类名相同的成员函数名来指定。 构造函数没有返回类型，可以有参数，也可以没有参数。一个可以不带参数调用的构造函数称为默认构造函数。这可能是一个没有任何参数的构造函数，或者一个所有参数都有默认值的构造函数。某些情况下，可能需要提供一个默认构造函数，如果没有提供，将收获编译错误。默认构造函数会在本章后面进行讨论。
 
-Here is a first attempt at adding a constructor to the SpreadsheetCell class:
+以下是对SpreadsheetCell类添加构造函数的首次尝试：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -50,7 +49,7 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-Just as you must provide implementations for normal member functions, you must provide an implementation for the constructor:
+必须为普通成员函数提供实现一样，也必须为构造函数提供实现：
 
 \begin{cpp}
 SpreadsheetCell::SpreadsheetCell(double initialValue)
@@ -59,15 +58,15 @@ SpreadsheetCell::SpreadsheetCell(double initialValue)
 }
 \end{cpp}
 
-The SpreadsheetCell constructor is a member of the SpreadsheetCell class, so C++ requires the normal SpreadsheetCell:: scope resolution before the constructor name. The constructor name itself is also SpreadsheetCell, so the code ends up with the funny-looking SpreadsheetCell::SpreadsheetCell. The implementation simply makes a call to setValue().
+SpreadsheetCell构造函数是SpreadsheetCell类的一个成员，所以C++要求在构造函数名前使用正常的SpreadsheetCell::作用域解析。构造函数名本身也是SpreadsheetCell，所以代码最终呈现出奇怪的SpreadsheetCell::SpreadsheetCell，而实现只调用了setValue()。
 
-\mySamllsection{Using Constructors}
+\mySamllsection{使用构造函数}
 
-Using the constructor creates an object and initializes its values. You can use constructors with both stack-based and free store-based allocation.
+使用构造函数可以创建对象并为其初始化值，可以使用构造函数来进行栈上和堆上的分配。
 
-\mySamllsection{Constructors for Objects on the Stack}
+\mySamllsection{栈上对象的构造函数}
 
-When you allocate a SpreadsheetCell object on the stack, you use the constructor like this:
+当在栈上分配一个SpreadsheetCell对象时，可以像这样使用构造函数：
 
 \begin{cpp}
 SpreadsheetCell myCell(5), anotherCell(4);
@@ -75,28 +74,28 @@ println("cell 1: {}", myCell.getValue());
 println("cell 2: {}", anotherCell.getValue());
 \end{cpp}
 
-Alternatively, you can use the uniform initialization syntax:
+或者，可以使用统一初始化语法：
 
 \begin{cpp}
 SpreadsheetCell myCell { 5 }, anotherCell { 4 };
 \end{cpp}
 
-Note that you do not call the SpreadsheetCell constructor explicitly. For example, do not do something as follows:
+注意，不需要显式调用SpreadsheetCell构造函数。例如，不要这样做：
 
 \begin{cpp}
 SpreadsheetCell myCell.SpreadsheetCell(5); // WILL NOT COMPILE!
 \end{cpp}
 
-Similarly, you cannot call the constructor later. The following is also incorrect:
+同样，也不能调用构造函数。这也不正确：
 
 \begin{cpp}
 SpreadsheetCell myCell;
 myCell.SpreadsheetCell(5); // WILL NOT COMPILE!
 \end{cpp}
 
-\mySamllsection{Constructors for Objects on the Free Store}
+\mySamllsection{堆区对象的构造函数}
 
-When you dynamically allocate a SpreadsheetCell object, you use the constructor like this:
+当动态分配一个SpreadsheetCell对象时，可以像这样使用构造函数：
 
 \begin{cpp}
 auto smartCellp { make_unique<SpreadsheetCell>(4) };
@@ -113,15 +112,15 @@ delete myCellp; myCellp = nullptr;
 delete anotherCellp; anotherCellp = nullptr;
 \end{cpp}
 
-Note that you can declare a pointer to a SpreadsheetCell object without calling the constructor immediately, which is different from objects on the stack, where the constructor is called at the point of declaration.
+注意，可以声明一个SpreadsheetCell对象的指针而不立即调用构造函数，这与栈上的对象不同，栈上的对象在声明时调用构造函数。
 
-Remember to always initialize pointers, either with a proper pointer or with nullptr.
+请记住始终初始化指针，要么是正确的指针，要么是nullptr。
 
-\mySamllsection{Providing Multiple Constructors}
+\mySamllsection{提供多个构造函数}
 
-You can provide more than one constructor in a class. All constructors have the same name (the name of the class), but different constructors must take a different number of arguments or different argument types. In C++, if you have more than one function with the same name, the compiler selects the one whose parameter types match the types at the call site. This is called overloading and is discussed in detail in Chapter 9.
+可以在一个类中提供多个构造函数。所有构造函数都有相同的名称（类的名称），但不同的构造函数必须接受不同数量或不同类型的参数。在C++中，如果有多个具有相同名称的函数，编译器会选择参数类型与调用站点匹配的一个。这称为重载，在第9章中有详细讨论。
 
-In the SpreadsheetCell class, it is helpful to have two constructors: one to take an initial double value and one to take an initial string value. Here is the new class definition:
+在SpreadsheetCell类中，提供两个构造函数是有帮助的：一个接受初始double值，另一个接受初始string值。以下是新的类定义：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -133,7 +132,7 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-Here is the implementation of the second constructor:
+这是第二个构造函数的实现：
 
 \begin{cpp}
 SpreadsheetCell::SpreadsheetCell(string_view initialValue)
@@ -142,7 +141,7 @@ SpreadsheetCell::SpreadsheetCell(string_view initialValue)
 }
 \end{cpp}
 
-Here is some code that uses the two different constructors:
+以下是使用两个不同构造函数的代码：
 
 \begin{cpp}
 SpreadsheetCell aThirdCell { "test" }; // Uses string-arg ctor
@@ -153,7 +152,7 @@ println("aFourthCell: {}", aFourthCell.getValue());
 println("aFifthCellp: {}", aFifthCellp->getValue());
 \end{cpp}
 
-When you have multiple constructors, it is tempting to try to implement one constructor in terms of another. For example, you might want to call the double constructor from the string constructor as follows:
+当有多个构造函数时，可能会试图在构造函数初始化器中实现一个构造函数在另一个构造函数的基础上。例如，想从string构造函数调用double构造函数，如下所示：
 
 \begin{cpp}
 SpreadsheetCell::SpreadsheetCell(string_view initialValue)
@@ -162,35 +161,35 @@ SpreadsheetCell::SpreadsheetCell(string_view initialValue)
 }
 \end{cpp}
 
-That seems to make sense. After all, you can call normal class member functions from within other member functions. The code will compile, link, and run, but will not do what you expect! The explicit call to the SpreadsheetCell constructor actually creates a new temporary unnamed object of type SpreadsheetCell. It does not call the constructor for the object that you are supposed to be initializing.
+这看起来很有道理，可以在其他成员函数中调用正常的类成员函数。代码将编译、链接并运行，但不会做期望的事情！显式调用SpreadsheetCell构造函数实际上创建了一个新的临时无名SpreadsheetCell对象，并没有调用应该初始化对象的构造函数。
 
-However, all is not lost. C++ does support delegating constructors. These allow you to call other constructors of the same class from inside the ctor-initializer, but for this, you’ll have to wait until later in this chapter after the introduction of ctor-initializers.
+然而，C++确实支持委托构造函数。这些允许在构造函数初始化器中调用同一类的其他构造函数，本章稍后会介绍构造函数初始化器。
 
-\mySamllsection{Default Constructors}
+\mySamllsection{默认构造函数}
 
-A default constructor is a constructor that requires no arguments. It is also called a zero-argument constructor.
+默认构造函数是一个不接受参数的构造函数，也称为无参数构造函数。
 
-\mySamllsection{When You Need a Default Constructor}
+\mySamllsection{何时需要默认构造函数}
 
-Consider arrays of objects. The act of creating an array of objects accomplishes two tasks: it allocates contiguous memory space for all the objects, and it calls the default constructor on each object. C++ fails to provide any syntax to tell the array creation code directly to call a different constructor. For example, if you do not define a default constructor for the SpreadsheetCell class, the following code does not compile:
+考虑对象数组。创建对象数组执行两个任务：为所有对象分配连续的内存空间，并在每个对象上调用默认构造函数。C++没有提供语法来直接告诉数组创建代码调用不同的构造函数。例如，如果没有为SpreadsheetCell类定义默认构造函数，以下代码将无法编译：
 
 \begin{cpp}
 SpreadsheetCell cells[3]; // FAILS compilation without default constructor
 SpreadsheetCell* myCellp { new SpreadsheetCell[10] }; // Also FAILS
 \end{cpp}
 
-You can circumvent this restriction by using initializers like these:
+可以通过使用这些初始化器来规避这个限制：
 
 \begin{cpp}
 SpreadsheetCell cells[3] { SpreadsheetCell { 0 }, SpreadsheetCell { 23 },
     SpreadsheetCell { 41 } };
 \end{cpp}
 
-However, it is usually easier to ensure that your class has a default constructor if you intend to create arrays of objects of that class. If you haven’t defined your own constructors, the compiler automatically creates a default constructor for you. This compiler-generated constructor is discussed in a later section.
+然而，如果打算创建SpreadsheetCell类的对象数组，通常需要确保类有一个默认构造函数。如果没有定义自己的构造函数，编译器会自动创建一个默认构造函数。这个编译器生成的构造函数在后面的章节中讨论。
 
-\mySamllsection{How to Write a Default Constructor}
+\mySamllsection{如何编写默认构造函数}
 
-Here is part of the SpreadsheetCell class definition with a default constructor:
+这里是带有默认构造函数的SpreadsheetCell类定义的一部分：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -201,7 +200,7 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-Here is a first crack at an implementation of the default constructor:
+这是默认构造函数的第一次尝试实现：
 
 \begin{cpp}
 SpreadsheetCell::SpreadsheetCell()
@@ -210,14 +209,14 @@ SpreadsheetCell::SpreadsheetCell()
 }
 \end{cpp}
 
-If you use an in-class member initializer for m\_value, then the single statement in this default constructor can be left out.
+如果在类定义中使用了m\_value的内联成员初始化器，则这个默认构造函数中的单个语句可以省略。
 
 \begin{cpp}
 SpreadsheetCell::SpreadsheetCell()
 {}
 \end{cpp}
 
-You use the default constructor on the stack like this:
+栈上使用默认构造函数的方式如下所示：
 
 \begin{cpp}
 SpreadsheetCell myCell;
@@ -225,7 +224,7 @@ myCell.setValue(6);
 println("cell 1: {}", myCell.getValue());
 \end{cpp}
 
-The preceding code creates a new SpreadsheetCell called myCell, sets its value, and prints out its value. Unlike other constructors for stack-based objects, you do not call the default constructor with function-call syntax. Based on the syntax for other constructors, you might be tempted to call the default constructor like this:
+上述代码创建了一个新的SpreadsheetCell对象myCell，设置其值，并打印出其值。与栈上对象的其它构造函数不同，不需要用函数调用语法调用默认构造函数。根据其他构造函数的语法，可能会像这样调用默认构造函数：
 
 \begin{cpp}
 SpreadsheetCell myCell(); // WRONG, but will compile.
@@ -233,19 +232,19 @@ myCell.setValue(6); // However, this line will not compile.
 println("cell 1: {}", myCell.getValue());
 \end{cpp}
 
-Unfortunately, the line attempting to call the default constructor compiles. The line following it does not compile. This problem is commonly known as the most vexing parse, and it means that your compiler thinks the first line is actually a function declaration for a function with the name myCell that takes zero arguments and returns a SpreadsheetCell object. When it gets to the second line, it thinks that you’re trying to use a function name as an object!
+不幸的是，尝试调用默认构造函数的行可以编译，但后面的代码无法编译。这个问题通常称为“C++最令人烦恼的解析”，编译器认为第一行实际上是具有零个参数并返回SpreadsheetCell对象的函数声明。当它到达第二行时，认为是在尝试使用一个函数名作为一个对象！
 
-Of course, instead of using function-call-style parentheses, you can use the uniform initialization syntax as follows:
+当然，可以使用统一初始化语法，而不是函数调用风格的括号：
 
 \begin{cpp}
 SpreadsheetCell myCell { }; // Calls the default constructor.
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-When creating an object on the stack with a default constructor, either use curly brackets for the uniform initialization syntax or omit any parentheses.
+使用默认构造函数在堆栈上创建对象时，要么使用花括号进行统一初始化语法，要么省略任何括号。
 \end{myWarning}
 
-For free store-based object allocation, the default constructor can be used as follows:
+对于堆区对象分配，可以使用以下默认构造函数：
 
 \begin{cpp}
 auto smartCellp { make_unique<SpreadsheetCell>() };
@@ -259,9 +258,9 @@ SpreadsheetCell* myCellp { new SpreadsheetCell { } };
 delete myCellp; myCellp = nullptr;
 \end{cpp}
 
-\mySamllsection{Compiler-Generated Default Constructor}
+\mySamllsection{编译器生成的默认构造函数}
 
-The first SpreadsheetCell class definition in this chapter looked like this:
+本章中第一个SpreadsheetCell类定义如下：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -274,14 +273,14 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-This definition does not declare a default constructor, but still, the code that follows works fine:
+这个定义没有声明默认构造函数，但接下来的代码仍然可以正常工作：
 
 \begin{cpp}
 SpreadsheetCell myCell;
 myCell.setValue(6);
 \end{cpp}
 
-The following definition is the same as the preceding definition except that it adds an explicit constructor, accepting a double. It still does not explicitly declare a default constructor.
+以下定义与前面的定义相同，只是添加了一个显式构造函数，接受一个double。仍然没有显式声明一个默认构造函数：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -292,24 +291,24 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-With this definition, the following code does not compile anymore:
+使用这个定义，以下代码不再编译：
 
 \begin{cpp}
 SpreadsheetCell myCell;
 myCell.setValue(6);
 \end{cpp}
 
-What’s going on here? The reason it is not compiling is that if you don’t specify any constructors, the compiler writes one for you that doesn’t take any arguments. This compiler-generated default constructor calls the default constructor on all object members of the class but does not initialize the language primitives such as int and double. Nonetheless, it allows you to create objects of that class. However, if you declare any constructor yourself, the compiler no longer generates a default constructor for you.
+这是怎么回事？原因是没有声明构造函数时，编译器生成了一个不带参数的构造函数。这个编译器生成的默认构造函数，会调用该类所有对象成员的默认构造函数，但不初始化语言原生类型如int和double。尽管如此，它仍然可以创建该类的对象。如果自己声明了构造函数，编译器就不再为生成默认构造函数了。
 
 \begin{myNotic}{NOTE}
-A default constructor is the same as a zero-argument constructor. The term default constructor does not refer only to the constructor that is automatically generated if you fail to declare any constructors yourself. It also refers to the constructor that is defaulted to if no arguments are required.
+默认构造函数与零参数构造函数相同。默认构造函数不仅指如果你没有自己声明构造函数，编译器会为你自动生成的构造函数。它还指如果不需要任何参数，则默认的构造函数。
 \end{myNotic}
 
-\mySamllsection{Explicitly Defaulted Default Constructors}
+\mySamllsection{显式声明默认构造函数}
 
-Before C++11, if your class required a number of explicit constructors accepting arguments but also a default constructor that did nothing, you still had to explicitly write your own empty default constructor as shown earlier.
+C++11之前，如果类需要几个显式接受参数的构造函数，但也需要一个默认构造函数，该构造函数什么也不做，仍然必须显式编写自己的空默认构造函数，如之前所示。
 
-To avoid having to write empty default constructors manually, C++ supports the concept of explicitly defaulted default constructors. This allows you to write the class definition as follows without having to provide an empty implementation for the default constructor:
+为了避免手动编写空默认构造函数，C++支持显式默认的默认构造函数的概念。可以像下面这样编写类定义，而不需要为默认构造函数提供空实现：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -322,11 +321,11 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-SpreadsheetCell defines two custom constructors. However, the compiler still generates a standard compiler-generated default constructor because one is explicitly defaulted using the default keyword. You are free to put the = default either directly in the class definition or in an implementation file.
+SpreadsheetCell定义了两个自定义构造函数。然而，编译器仍然生成一个标准的默认构造函数，因为其中一个使用了default关键字显式地进行了默认设置。可以将=default直接放在类定义中，或者放在实现文件中。
 
-\mySamllsection{Explicitly Deleted Default Constructors}
+\mySamllsection{显式删除默认构造函数}
 
-The opposite of explicitly defaulted default constructors is also possible and is called explicitly deleted default constructors. For example, you can define a class with only static member functions (see Chapter 9) for which you do not want to write any constructors, and you also do not want the compiler to generate the default constructor. In that case, you need to explicitly delete the default constructor.
+与显式默认的默认构造函数相反，也可以显式删除默认构造函数，在某些情况下必要。例如，可以定义一个只有静态成员函数的类（请参见第9章），不想编写构造函数，也不希望编译器生成默认构造函数。这种情况下，需要显式删除默认构造函数。
 
 \begin{cpp}
 export class MyClass
@@ -337,12 +336,12 @@ export class MyClass
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-If a class has data members that have a deleted default constructor, then the default constructor for the class is automatically deleted as well.
+如果类的数据成员具有删除的默认构造函数，则该类的默认构造函数也将自动删除。
 \end{myNotic}
 
-\mySamllsection{Constructor Initializers aka Ctor-Initializers}
+\mySamllsection{构造函数初始化器（ctor-initializer）}
 
-Up to now, this chapter initialized data members in the body of a constructor, as in this example:
+目前为止，本章在构造函数体内初始化了数据成员，例如：
 
 \begin{cpp}
 SpreadsheetCell::SpreadsheetCell(double initialValue)
@@ -351,7 +350,7 @@ SpreadsheetCell::SpreadsheetCell(double initialValue)
 }
 \end{cpp}
 
-C++ provides an alternative method for initializing data members in the constructor, called the constructor initializer, also known as the ctor-initializer or member initializer list. Here is the same SpreadsheetCell constructor, rewritten to use the ctor-initializer syntax:
+C++提供了一种替代方法来在构造函数中初始化数据成员，称为构造函数初始化器，也称为ctor-initializer或成员初始化列表。以下是使用ctor-initializer语法的相同SpreadsheetCell构造函数的重写：
 
 \begin{cpp}
 SpreadsheetCell::SpreadsheetCell(double initialValue)
@@ -359,13 +358,13 @@ SpreadsheetCell::SpreadsheetCell(double initialValue)
 {}
 \end{cpp}
 
-As you can see, the ctor-initializer appears syntactically between the constructor parameter list and the opening brace for the body of the constructor. The list starts with a colon and is separated by commas. Each element in the list is an initialization of a data member using function notation or the uniform initialization syntax, a call to a base class constructor (see Chapter 10), or a call to a delegated constructor, discussed later in this chapter.
+ctor-initializer在构造函数参数列表和构造函数体和括号之间具有语法上的位置。列表以冒号开始，由逗号分隔。列表中的每个元素都是使用函数表示法或统一初始化语法初始化数据成员，对基类构造函数的调用（请参见第10章），或者是对委托构造函数的调用，这在本书本章稍后讨论。
 
-Initializing data members with a ctor-initializer provides different behavior than does initializing data members inside the constructor body itself. When C++ creates an object, it must create all the data members of the object before calling the constructor. As part of creating these data members, it must call a constructor on any of them that are themselves objects. By the time you assign a value to an object inside your constructor body, you are not actually constructing that object. You are only modifying its value. A ctor-initializer allows you to provide initial values for data members as they are created, which is more efficient than assigning values to them later.
+使用ctor-initializer初始化数据成员，与在构造函数体内初始化数据成员的行为不同。当C++创建一个对象时，必须在调用构造函数之前创建该对象的所有数据成员。创建这些数据成员的过程中，必须调用自身的构造函数。在构造函数体内为对象分配值时，实际上并没有构造该对象，只是在修改它的值。ctor-initializer允许在创建数据成员时提供初始值，这比稍后分配值更有效率。
 
-If your class has as data member an object of a class that has a default constructor, then you do not have to explicitly initialize that object in the ctor-initializer. For example, if you have an std::string as data member, its default constructor initializes the string to the empty string, so initializing it to "" in the ctor-initializer is superfluous.
+如果类有一个默认构造函数的数据成员，那么不需要在ctor-initializer中显式初始化那个对象。例如，如果数据成员是一个std::string，默认构造函数会将字符串初始化为空字符串，所以ctor-initializer中初始化为""是多余的。
 
-On the other hand, if your class has as a data member an object of a class without a default constructor, you must use the ctor-initializer to properly construct that object. For example, take the following SpreadsheetCell class:
+另一方面，如果类有一个没有默认构造函数的数据成员，必须使用ctor-initializer来正确构造那个对象。例如，考虑以下SpreadsheetCell类：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -375,7 +374,7 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-This class has only one constructor accepting a double and does not include a default constructor. You can use this class as a data member of another class as follows:
+这个类只有一个接受double的构造函数，没有默认构造函数。可以将这个类作为另一个类的数据成员使用，如下所示：
 
 \begin{cpp}
 class SomeClass
@@ -387,33 +386,33 @@ class SomeClass
 };
 \end{cpp}
 
-You can implement the SomeClass constructor as follows:
+SomeClass构造函数可以实现如下：
 
 \begin{cpp}
 SomeClass::SomeClass() { }
 \end{cpp}
 
-However, with this implementation, the code does not compile. The compiler does not know how to initialize the m\_cell data member of SomeClass because it does not have a default constructor.
+然而，使用这个实现，代码无法编译。因为编译器不知道如何初始化SomeClass的m\_cell数据成员，所以它没有默认构造函数。
 
-You must initialize the m\_cell data member in the ctor-initializer as follows:
+必须使用ctor-initializer在SomeClass的构造函数中初始化m\_cell数据成员：
 
 \begin{cpp}
 SomeClass::SomeClass() : m_cell { 1.0 } { }
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Ctor-initializers allow initialization of data members at the time of their creation.
+ctor-initializers允许在创建数据成员时初始化数据成员。
 \end{myNotic}
 
-Some programmers prefer to assign initial values in the body of the constructor, even though this might be less efficient. However, several data types must be initialized in a ctor-initializer or with an in-class initializer. The following table summarizes them:
+一些开发者更喜欢在构造函数体内分配初始值，尽管这可能效率较低。然而，某些数据类型必须在ctor-initializer中或在类定义中初始化。以下表格做了个总结：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{DATA TYPE} &
-\textbf{EXPLANATION} \\ \hline
+\textbf{数据类型} &
+\textbf{解释} \\ \hline
 \endfirsthead
 %
 \endhead
