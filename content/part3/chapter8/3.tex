@@ -404,7 +404,7 @@ SomeClass::SomeClass() : m_cell { 1.0 } { }
 ctor-initializers允许在创建数据成员时初始化数据成员。
 \end{myNotic}
 
-一些开发者更喜欢在构造函数体内分配初始值，尽管这可能效率较低。然而，某些数据类型必须在ctor-initializer中或在类定义中初始化。以下表格做了个总结：
+一些开发者更喜欢在构造函数体内分配初始值，尽管这可能效率较低。然而，某些数据类型必须在ctor-initializer中或在类定义中初始化。在这里做一下总结：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -417,17 +417,17 @@ ctor-initializers允许在创建数据成员时初始化数据成员。
 %
 \endhead
 %
-const data members &
-\begin{tabular}[c]{@{}l@{}}You cannot legally assign a value to a const variable after it is\\ created. Any value must be supplied at the time of creation.\end{tabular} \\ \hline
-Reference data members &
-\begin{tabular}[c]{@{}l@{}}References cannot exist without referring to something, and once\\ created, a reference cannot be changed to refer to something\\ else.\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}Object data members for\\ which there is no default\\ constructor\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}C++ attempts to initialize member objects using a default\\ constructor. If no default constructor exists, it cannot initialize the\\ object, and you must tell it explicitly which constructor to call.\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}Base classes without default\\ constructors\end{tabular} &
-These are covered in Chapter 10. \\ \hline
+const数据成员 &
+\begin{tabular}[c]{@{}l@{}}const变量创建后，不能为其赋值，值都必须在创建时提供。\end{tabular} \\ \hline
+引用数据成员 &
+\begin{tabular}[c]{@{}l@{}}需要引用存在的对象，并且一旦创建，引用就不能更改。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}无默认构造函数的\\对象数据成员\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}C++尝试使用默认构造函数初始化成员对象。如果不存在默\\认构造函数，则不能初始化对象，必须显式地说明调用哪个\\构造函数。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}无默认构造函数的\\基类\end{tabular} &
+将在第10章介绍。 \\ \hline
 \end{longtable}
 
-There is one important caveat with ctor-initializers: they initialize data members in the order that they appear in the class definition, not their order in the ctor-initializer! Take the following definition for a class called Foo. Its constructor simply stores a double value and prints out the value to the console.
+使用构造函数初始化列表时有一个重要的注意事项：按照类定义中出现的顺序初始化数据成员，而不是构造函数初始化列表中的顺序！以下是一个名为 Foo 的类的定义。其构造函数只是存储一个 double 类型的值，并将其打印到控制台。
 
 \begin{cpp}
 class Foo
@@ -444,7 +444,7 @@ Foo::Foo(double value) : m_value { value }
 }
 \end{cpp}
 
-Suppose you have another class, MyClass, that contains a Foo object as one of its data members.
+假设有另一个名为 MyClass 的类，包含一个 Foo 对象作为其数据成员之一。
 
 \begin{cpp}
 class MyClass
@@ -457,7 +457,7 @@ class MyClass
 };
 \end{cpp}
 
-Its constructor could be implemented as follows:
+其构造函数的实现：
 
 \begin{cpp}
 MyClass::MyClass(double value) : m_value { value }, m_foo { m_value }
@@ -466,20 +466,20 @@ MyClass::MyClass(double value) : m_value { value }, m_foo { m_value }
 }
 \end{cpp}
 
-The ctor-initializer first stores the given value in m\_value and then calls the Foo constructor with m\_value as argument. You can create an instance of MyClass as follows:
+构造函数初始化列表首先将给定的值存储在 m\_value 中，然后使用 m\_value 作为参数调用 Foo 构造函数。可以创建一个 MyClass 的实例：
 
 \begin{cpp}
 MyClass instance { 1.2 };
 \end{cpp}
 
-Here is the output of the program:
+程序的输出：
 
 \begin{cpp}
 Foo::m_value = 1.2
 MyClass::m_value = 1.2
 \end{cpp}
 
-So, everything looks fine. Now make one tiny change to the MyClass definition; just reverse the order of the m\_value and m\_foo data members. Nothing else is changed.
+看起来一切正常。现在对 MyClass 定义做一个微小的更改，只需反转 m\_value 和 m\_foo 数据成员的顺序，其他不变。
 
 \begin{cpp}
 class MyClass
@@ -492,18 +492,18 @@ class MyClass
 };
 \end{cpp}
 
-The output of the program now depends on your system. It could, for example, be as follows:
+现在程序的输出取决于执行程序的系统。输出可能是这样的：
 
 \begin{shell}
 Foo::m_value = -9.255963134931783e+61
 MyClass::m_value = 1.2
 \end{shell}
 
-This is far from what you expected. You might assume, based on your ctor-initializer, that m\_value is initialized before using m\_value in the call to the Foo constructor. But C++ doesn’t work that way. The data members are initialized in the order they appear in the definition of the class, not the order in the ctor-initializer! So, in this case, the Foo constructor is called first with an uninitialized m\_value.
+这并非期望的结果。基于构造函数初始化列表假设在调用 Foo 构造函数之前会初始化 m\_value，但 C++ 并非如此。数据成员是按照类定义中顺序初始化，而不是构造函数初始化列表中的顺序！因此，Foo 构造函数首先调用，但 m\_value 还未初始化。
 
-Note that some compilers issue a warning when the order in the ctor-initializer does not match the order in the class definition.
+注意，当构造函数初始化列表中的顺序与类定义中的顺序不匹配时，一些编译器会发出警告。
 
-For this example, there is an easy fix. Don’t pass m\_value to the Foo constructor, but simply pass the value parameter:
+对于这个例子，有一个简单的修复方法。不要将 m\_value 传递给 Foo 构造函数，只需传递 value：
 
 \begin{cpp}
 MyClass::MyClass(double value) : m_value { value }, m_foo { value }
@@ -513,12 +513,12 @@ MyClass::MyClass(double value) : m_value { value }, m_foo { value }
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-Ctor-initializers initialize data members in their declared order in the class definition, not their order in the ctor-initializer list.
+构造函数初始化列表按照类定义中声明的顺序初始化数据成员，而不是在构造函数初始化列表中的顺序。
 \end{myWarning}
 
-\mySamllsection{Copy Constructors}
+\mySamllsection{复制构造函数}
 
-There is a special constructor in C++ called a copy constructor that allows you to create an object that is an exact copy of another object. Here is the declaration for a copy constructor in the SpreadsheetCell class:
+C++ 中，有一种特殊的构造函数称为复制构造函数，允许创建一个与另一个对象完全相同的副本。以下是在 SpreadsheetCell 类中声明复制构造函数的方式：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -529,7 +529,7 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-The copy constructor takes a reference-to-const to the source object. Like other constructors, it does not return a value. The copy constructor should copy all the data members from the source object. Technically, of course, you can do whatever you want in a copy constructor, but it’s generally a good idea to follow expected behavior and initialize the new object to be a copy of the old one. Here is an example implementation of the SpreadsheetCell copy constructor. Note the use of the ctorinitializer.
+复制构造函数接受一个对源对象的常量引用。与其他构造函数一样，不返回值。复制构造函数应该复制源对象的所有数据成员。从技术上讲，当然可以在复制构造函数中做任何想做的事情，但最好遵循预期行为，将新对象初始化为旧对象的副本。以下是一个 SpreadsheetCell 复制构造函数的实现示例。注意对构造函数初始化列表的使用。
 
 \begin{cpp}
 SpreadsheetCell::SpreadsheetCell(const SpreadsheetCell& src)
@@ -537,22 +537,22 @@ SpreadsheetCell::SpreadsheetCell(const SpreadsheetCell& src)
 {}
 \end{cpp}
 
-If you don’t write a copy constructor yourself, C++ generates one for you that initializes each data member in the new object from its equivalent data member in the source object. For object data members, this initialization means that their copy constructors are called. Given a set of data members, called m1, m2, . . . mn, this compiler-generated copy constructor can be expressed as follows:
+如果不自己编写复制构造函数，C++ 会生成一个，将新对象中的每个数据成员从源对象中相应的数据成员初始化。对于对象数据成员，将调用复制构造函数。给定一组数据成员，m1、m2、… mn，编译器生成的复制构造函数可以表示为如下实现：
 
 \begin{cpp}
 classname::classname(const classname& src)
 : m1 { src.m1 }, m2 { src.m2 }, ... mn { src.mn } { }
 \end{cpp}
 
-Therefore, in most circumstances, there is no need for you to specify a copy constructor!
+因此，在大多数情况下，不需要指定复制构造函数！
 
 \begin{myNotic}{NOTE}
-The SpreadsheetCell copy constructor is shown only for demonstration purposes. In fact, in this case, the copy constructor can be omitted because the default compiler-generated one is good enough. However, under certain conditions, this compiler-generated copy constructor is not sufficient. These conditions are covered in Chapter 9.
+SpreadsheetCell 复制构造函数仅用于演示目的。实际上，因为默认的编译器生成的复制构造函数已经足够好，所以可以省略复制构造函数。某些条件下，编译器生成的复制构造函数会不够用。这些将在第 9 章中详细介绍。
 \end{myNotic}
 
-\mySamllsection{When the Copy Constructor Is Called}
+\mySamllsection{何时调用复制构造函数}
 
-The default semantics for passing arguments to functions in C++ is pass-by-value. That means that the function receives a copy of the value or object. Thus, whenever you pass an object to a function, the compiler calls the copy constructor of the new object to initialize it. For example, suppose you have the following printString() function accepting an std::string parameter by value:
+C++ 中向函数传递参数的默认语义是按值传递，所以函数接收到的是值或对象的副本。因此，每当将对象传递给函数时，编译器都会调用新对象的复制构造函数。例如，有一个按值接受 std::string 参数的 printString() 函数：
 
 \begin{cpp}
 void printString(string value)
@@ -561,67 +561,67 @@ void printString(string value)
 }
 \end{cpp}
 
-Recall that std::string is actually a class, not a built-in type. When your code makes a call to printString() passing a string argument, the string parameter value is initialized with a call to its copy constructor. The argument to the copy constructor is the string you passed to printString(). In the following example, the string copy constructor is executed for the value object in printString() with name as its argument:
+std::string 实际上是一个类，而不是内置类型。当代码调用 printString() 并传递一个字符串参数时，字符串参数 value 通过调用其复制构造函数进行初始化。复制构造函数的参数是传递给 printString() 的字符串。在以下示例中，字符串复制构造函数为 printString() 中的 value 对象执行，其参数为 name：
 
 \begin{cpp}
 string name { "heading one" };
 printString(name); // Copies name
 \end{cpp}
 
-When the printString() member function finishes, value is destroyed. Because it was only a copy of name, name remains intact. Of course, you can avoid the overhead of copy constructors by passing parameters as references-to-const, discussed in an upcoming section.
+当 printString() 成员函数结束时，value 销毁。它只是 name 的副本，所以 name 不变。当然，可以通过按“引用转常量”的方式，传递参数来避免复制构造函数的开销。
 
-When returning objects by value from a function, the copy constructor might also get called. This is discussed in the section “Objects as Return Values” later in this chapter.
+当从函数按值返回对象时，也可能会调用复制构造函数。这将在本章后面的章节中讨论。
 
-\mySamllsection{Calling the Copy Constructor Explicitly}
+\mySamllsection{显式调用复制构造函数}
 
-You can use the copy constructor explicitly as well. It is often useful to be able to construct one object as an exact copy of another. For example, you might want to create a copy of a SpreadsheetCell object like this:
+以显式使用复制构造函数，将一个对象构造为另一个对象的副本。例如，创建一个 SpreadsheetCell 对象的副本：
 
 \begin{cpp}
 SpreadsheetCell myCell1 { 4 };
 SpreadsheetCell myCell2 { myCell1 }; // myCell2 has the same values as myCell1
 \end{cpp}
 
-\mySamllsection{Passing Objects by Reference}
+\mySamllsection{通过引用传递对象}
 
-To avoid copying objects when you pass them to functions, you should declare that the function takes a reference to the object. Passing objects by reference is usually more efficient than passing them by value, because only the address of the object is copied, not the entire contents of the object.
+为了避免将对象传递给函数时复制对象，应该声明函数接受对象的引用。通过引用传递对象通常比按值传递更有效，只复制了对象的地址，而不是整个对象。
 
-Additionally, pass-by-reference avoids problems with dynamic memory allocation in objects, which is discussed in Chapter 9.
+此外，通过引用传递避免了对象中动态内存分配的问题，这将在第 9 章讨论。
 
-When you pass an object by reference, the function using the object reference could change the original object. When you are only using pass-by-reference for efficiency, you should preclude this possibility by declaring the object const as well. This is known as passing objects by reference-to-const and has been done in examples throughout this book.
+通过引用传递对象时，使用对象引用的函数可能会更改原始对象。当为了效率而使用引用传递时，应该通过将对象声明为 const ，称为以“引用转常量”的方式传递对象。
 
 \begin{myNotic}{NOTE}
-For performance reasons, it is best to pass objects by reference-to-const instead of by value. Chapter 9 slightly modifies this rule after the introduction of move semantics, allowing pass-by-value of objects in certain cases.
+出于性能原因，最好通过“引用转常量”传递对象。第 9 章引入移动语义后，稍微修改了这条规则，允许在某些情况下按值传递对象。
 \end{myNotic}
 
-Note that the SpreadsheetCell class has a number of member functions accepting an std::string\_view as parameter. As discussed in Chapter 2, a string\_view is basically just a pointer and a length. So, it is cheap to copy and is usually passed by value.
+请注意，SpreadsheetCell 类有许多接受 std::string\_view 作为参数的成员函数。如第 2 章所述，string\_view 实际上只是一个指针和长度。因此，复制它的成本很低，通常按值传递。
 
-Also primitive types, such as int, double, and so on, should just be passed by value. You don’t gain anything by passing such types as reference-to-const.
+同样，基本类型，如 int、double 等也应该按值传递。将此类类型作为“引用转常量”传递并不会有任何好处。
 
-The doubleToString() member function of the SpreadsheetCell class always returns a string by value because the implementation of the member function creates a local string object that at the end of the member function is returned to the caller. Returning a reference to this string wouldn’t work because the string to which it refers to will be destroyed when the function exits.
+SpreadsheetCell 类的 doubleToString() 成员函数总是按值返回一个字符串，因为该成员函数的实现创建了一个局部字符串对象，在成员函数结束时将该字符串返回给调用者。不能返回对此字符串的引用不起作用，因为当函数退出时，将销毁所引用的字符串。
 
-\mySamllsection{Explicitly Defaulted and Deleted Copy Constructors}
+\mySamllsection{显式默认和删除复制构造函数}
 
-Just as you can explicitly default or delete a compiler-generated default constructor for a class, you can also explicitly default or delete a compiler-generated copy constructor as follows:
+可以为类显式默认或删除编译器生成的默认构造函数一样，也可以显式默认或删除编译器生成的复制构造函数，如下所示：
 
 \begin{cpp}
 SpreadsheetCell(const SpreadsheetCell& src) = default;
 \end{cpp}
 
-or
+或者
 
 \begin{cpp}
 SpreadsheetCell(const SpreadsheetCell& src) = delete;
 \end{cpp}
 
-By deleting the copy constructor, the object cannot be copied anymore. This can be used to disallow passing the object by value, as discussed in Chapter 9.
+通过删除复制构造函数，就不能再复制对象了，可以用来禁止按值传递对象。
 
 \begin{myNotic}{NOTE}
-If a class has data members that have a deleted or private copy constructor, then the copy constructor for the class is automatically deleted as well, even if you explicitly default one.
+如果类具有已删除或私有的复制构造函数的数据成员，即使显式地默认(=default)一个，类的复制构造函数也会自动删除。
 \end{myNotic}
 
-\mySamllsection{Initializer-List Constructors}
+\mySamllsection{初始化列表构造函数}
 
-An initializer-list constructor is a constructor with an std::initializer\_list<T> (see Chapter 1) as the first parameter and without any additional parameters or with additional parameters having default values. The initializer\_list<T> class template is defined in <initializer\_list>. The following class demonstrates its use. The class accepts only an initializer\_list<double> with an even number of elements; otherwise, it throws an exception. Chapter 1 introduces exceptions.
+初始化列表构造函数是一个构造函数，其第一个参数是 std::initializer\_list（参见第 1 章），并且没有其他参数或只有具有默认值的参数。initializer\_list 类模板定义在 <initializer\_list> 中。下面演示了其使用方式，该类只接受一个包含偶数个元素的 initializer\_list；否则，它将抛出异常。
 
 \begin{cpp}
 class EvenSequence
@@ -651,9 +651,9 @@ class EvenSequence
 };
 \end{cpp}
 
-Inside the initializer-list constructor you can access the elements of the initializer-list with a rangebased for loop. You can get the number of elements in an initializer-list with the size() member function.
+初始化列表构造函数内部，可以使用基于范围的 for 循环访问初始化列表的元素，也可以使用 size() 成员函数获取 初始化列表 中的元素数量。
 
-The EvenSequence initializer-list constructor uses a range-based for loop to copy elements from the given initializer\_list<T>. You can also use the assign() member function of vector. The different member functions of vector, including assign(), are discussed in detail in Chapter 18, “Standard Library Containers.” As a sneak preview, to give you an idea of the power of a vector, here is the initializer-list constructor using assign():
+EvenSequence 初始化列表构造函数使用基于范围的 for 循环将元素从给定的 initializer\_list 复制到 m\_sequence，可以使用 vector 的 assign() 成员函数。vector 的不同成员函数，包括 assign()，会在第 18 章中详细讨论。作为预览，先了解 vector 的功能，这里用了 assign() 的初始化列表构造函数：
 
 \begin{cpp}
 EvenSequence(initializer_list<double> values)
@@ -666,7 +666,7 @@ EvenSequence(initializer_list<double> values)
 }
 \end{cpp}
 
-EvenSequence objects can be constructed as follows:
+EvenSequence对象可以使用以下方式构造:
 
 \begin{cpp}
 try {
@@ -678,15 +678,15 @@ try {
 }
 \end{cpp}
 
-The construction of p2 throws an exception because it has an odd number of elements in the initializer-list.
+p2 的构造将抛出异常，因为其初始化列表中有奇数个元素。
 
-The Standard Library has full support for initializer-list constructors. For example, the std::vector container can be initialized with an initializer-list:
+标准库完全支持初始化列表构造函数。例如，std::vector 容器可以使用初始化列表初始化：
 
 \begin{cpp}
 vector<string> myVec { "String 1", "String 2", "String 3" };
 \end{cpp}
 
-Without initializer-list constructors, one way to initialize this vector is by using several push\_back() calls:
+如果没有初始化列表构造函数，初始化 vector 的方法是通过多个 push\_back() ：
 
 \begin{cpp}
 vector<string> myVec;
@@ -695,10 +695,10 @@ myVec.push_back("String 2");
 myVec.push_back("String 3");
 \end{cpp}
 
-Initializer lists are not limited to constructors and can also be used with normal functions as explained in Chapter 1.
+初始化列表不仅限于构造函数，也可以用于普通函数，如第 1 章所解释的。
 
 \begin{myNotic}{NOTE}
-When a class has both an initializer-list constructor and another singleargument constructor, then you should be careful to call the correct one. For example, std::vector has an initializer-list constructor to initialize a vector with a given set of elements. It also has a constructor accepting a single argument, the desired size of the new vector. You call the initializer-list constructor using a braced initializer, \{\}, and call the other single-argument constructor using parentheses, (). For example:
+当一个类既有初始化列表构造函数，又有另一个单参数构造函数时，应该谨慎，确定使用了正确的构造函数。例如，std::vector 有一个初始化列表构造函数，用于用给定的元素集初始化vector。它还有一个接受单个参数的构造函数，即新vector的期望大小。使用大括号 \{\} 调用初始化列表构造函数，使用小括号 () 调用其他单参数构造函数。例如：
 
 \begin{cpp}
 vector<int> v1 { 6 }; // Constructs a vector with a single element, 6.
@@ -707,9 +707,9 @@ vector<int> v2 ( 6 ); // Constructs a vector with 6 default-
 \end{cpp}
 \end{myNotic}
 
-\mySamllsection{Delegating Constructors}
+\mySamllsection{委托构造函数}
 
-Delegating constructors allow constructors to call another constructor from the same class. However, this call cannot be placed in the constructor body; it must be in the ctor-initializer, and it must be the only member-initializer in the list. The following is an example:
+委托构造函数允许构造函数调用同一类中的另一个构造函数，这个调用不能放在构造函数体中；必须位于构造函数初始化列表中，并且必须是列表中唯一的成员初始化器。以下是一个示例：
 
 \begin{cpp}
 SpreadsheetCell::SpreadsheetCell(string_view initialValue)
@@ -717,9 +717,9 @@ SpreadsheetCell::SpreadsheetCell(string_view initialValue)
 {}
 \end{cpp}
 
-When this string\_view constructor (the delegating constructor) is called, it first delegates the call to the target constructor, which is the double constructor in this example. When the target constructor returns, the body of the delegating constructor is executed.
+当调用这个 string\_view 构造函数（委托构造函数）时，首先将调用委托给目标构造函数，在本例中是 double 构造函数。当目标构造函数返回时，将执行委托构造函数。
 
-Make sure you avoid constructor recursion while using delegating constructors. Here is an example:
+使用委托构造函数时，请确保避免构造函数的递归调用。例如：
 
 \begin{cpp}
 class MyClass
@@ -729,11 +729,11 @@ class MyClass
 };
 \end{cpp}
 
-The first constructor delegates to the second constructor, which delegating back to the first one. The behavior of such code is undefined by the standard and depends on your compiler.
+第一个构造函数将调用第二个构造函数，后者又委托回第一个构造函数。这种代码为标准中的“未定义行为”，并且结果依赖于编译器。
 
-\mySamllsection{Converting Constructors and Explicit Constructors}
+\mySamllsection{转换构造函数和显式构造函数}
 
-The current set of constructors for SpreadsheetCell is as follows:
+SpreadsheetCell 类的构造函数如下所示：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -747,7 +747,7 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-The single-parameter double and string\_view constructors can be used to convert a double or a string\_view into a SpreadsheetCell. Such constructors are called converting constructors. The compiler can use such constructors to perform implicit conversions for you. Here’s an example:
+单参数 double 和 string\_view 构造函数可以用来将 double 或 string\_view 转换为 SpreadsheetCell。这样的构造函数称为转换构造函数。编译器可以使用这样的构造函数执行隐式转换。例如：
 
 \begin{cpp}
 SpreadsheetCell myCell { 4 };
@@ -755,7 +755,7 @@ myCell = 5;
 myCell = "6"sv; // A string_view literal (see Chapter 2).
 \end{cpp}
 
-This might not always be the behavior you want. You can prevent the compiler from doing such implicit conversions by marking constructors as explicit. The explicit keyword goes only in the class definition. Here’s an example:
+这可能不是预期的行为。可以通过将构造函数标记为explicit，避免编译器执行这样的隐式转换。explicit关键字只能放在类定义中。例如：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -769,13 +769,13 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-With this change, a line as follows no longer compiles:
+有了这个改变，以下行将无法通过编译：
 
 \begin{cpp}
 myCell = "6"sv; // A string_view literal (see Chapter 2).
 \end{cpp}
 
-Prior to C++11, converting constructors could have only a single parameter, as in the SpreadsheetCell example. Since C++11, converting constructors can have multiple parameters because of support for list initialization. Let’s look at an example. Suppose you have the following class:
+C++11 之前，转换构造函数只能有一个参数，如 SpreadsheetCell 示例所示。自 C++11 之后，由于支持列表初始化，转换构造函数可以有多个参数。来看一个例子：
 
 \begin{cpp}
 class MyClass
@@ -786,7 +786,7 @@ class MyClass
 };
 \end{cpp}
 
-This class has two constructors, and since C++11, both are converting constructors. The following example shows that the compiler automatically converts arguments such as 1, \{1\}, and \{1,2\}, to instances of MyClass using these converting constructors:
+这个类有两个构造函数，自 C++11 以来，两者都是转换构造函数。以下示例显示编译器如何自动将 1、\{1\} 和 \{1,2\} 等参数转换为 MyClass 实例，并使用这些转换构造函数：
 
 \begin{cpp}
 void process(const MyClass& c) { }
@@ -799,7 +799,7 @@ int main()
 }
 \end{cpp}
 
-To prevent these implicit conversions, both converting constructors can be marked as explicit:
+为了避免这些隐式转换，两个转换构造函数都可以标记为explicit：
 
 \begin{cpp}
 class MyClass
@@ -810,69 +810,69 @@ class MyClass
 };
 \end{cpp}
 
-With this change, you have to perform these conversions explicitly; here’s an example:
+现在，必须显式执行这些转换：
 
 \begin{cpp}
 process(MyClass{ 1 });
 process(MyClass{ 1, 2 });
 \end{cpp}
 
-It is possible to pass a Boolean argument to explicit to turn it into a conditional explicit. The syntax is as follows:
+将布尔参数传递给explicit，将其转换为条件explicit：
 
 \begin{cpp}
 explicit(true) MyClass(int);
 \end{cpp}
 
-Of course, just writing explicit(true) is equivalent to explicit, but it becomes more useful in the context of generic template code using type traits. With type traits you can query certain properties of given types, such as whether a certain type is convertible to another type. The result of such a type trait can be used as argument to explicit(). Type traits allow for writing advanced generic code and are discussed in Chapter 26, “Advanced Templates.”
+当然， explicit(true) 就等同于写 explicit，但在使用类型特性进行泛型编程时，这会更加实用。通过类型特性，可以查询给定类型的某些属性，例如一个类型是否可以转换为另一个类型。这样的类型特性的输出可以作为 explicit() 的参数使用。类型特质允许编写高级的泛型代码，这在第 26 章中会进行讨论。
 
 \begin{myNotic}{NOTE}
-It is recommended to mark at least any constructor that can be called with a single argument as explicit to avoid accidental implicit conversions. If there is a real use case for implicit conversions, you can mark the constructor with explicit(false). Doing so explains to users of your class that the implicit conversion is consciously allowed.
+建议将可以接受单个参数调用的构造函数标记为explicit，以避免意外的隐式转换。如果有隐式转换的实际用例，可以将构造函数标记为 explicit(false)。这样做可以向类的用户解释，隐式转换是有意识允许的。
 \end{myNotic}
 
-\mySamllsection{Summary of Compiler-Generated Constructors}
+\mySamllsection{总结——编译器生成的构造函数}
 
-The compiler can automatically generate a default constructor and a copy constructor for every class. However, the constructors that the compiler automatically generates depend on the constructors that you define yourself according to the rules in the following table:
+编译器可以为每个类，自动生成默认构造函数和复制构造函数。然而，编译器自动生成的构造函数，取决于按以下表格规则定义的构造函数。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{IF YOU DEFINE. . .} &
-\textbf{\begin{tabular}[c]{@{}l@{}}THEN THE COMPILER\\ GENERATES. . .\end{tabular}} &
-\textbf{AND YOU CAN CREATE AN OBJECT. . .} \\ \hline
+\textbf{如果定义…} &
+\textbf{\begin{tabular}[c]{@{}l@{}}编译器生成…\end{tabular}} &
+\textbf{可以创建对象…} \\ \hline
 \endfirsthead
 %
 \endhead
 %
-{[}no constructors{]} &
-\begin{tabular}[c]{@{}l@{}}A default\\ constructor\\ A copy constructor\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}With no arguments: SpreadsheetCell a;\\ As a copy: SpreadsheetCell b\{a\};\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}A default\\ constructor only\end{tabular} &
-A copy constructor &
-\begin{tabular}[c]{@{}l@{}}With no arguments: SpreadsheetCell a;\\ As a copy: SpreadsheetCell b\{a\};\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}A copy constructor\\ only\end{tabular} &
-No constructors &
-\begin{tabular}[c]{@{}l@{}}Theoretically, as a copy of another object\\ (practically, you can’t create any objects, because\\ there are no non-copy constructors)\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}A single- or multi\\ argument non-copy\\ constructor only\end{tabular} &
-A copy constructor &
-\begin{tabular}[c]{@{}l@{}}With arguments: SpreadsheetCell a\{6\};\\ As a copy: SpreadsheetCell b\{a\};\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}A default\\ constructor as well\\ as a single- or multi\\ argument non-copy\\ constructor\end{tabular} &
-A copy constructor &
-\begin{tabular}[c]{@{}l@{}}With no arguments: SpreadsheetCell a;\\ With arguments: SpreadsheetCell b\{5\};\\ As a copy: SpreadsheetCell c\{a\};\end{tabular} \\ \hline
+{[}没有构造函数{]} &
+\begin{tabular}[c]{@{}l@{}}默认构造函数\\复制构造函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}无参数: SpreadsheetCell a;\\ 复制: SpreadsheetCell b\{a\};\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}只有默认构造函数\end{tabular} &
+复制构造函数 &
+\begin{tabular}[c]{@{}l@{}}无参数: SpreadsheetCell a;\\ 复制: SpreadsheetCell b\{a\};\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}只有复制构造函数\end{tabular} &
+没有构造函数 &
+\begin{tabular}[c]{@{}l@{}}理论上没有构造函数，可构\\造另一个对象的副本(因为\\没有非复制构造函数，不能\\创建任何对象)。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}单参数或多参数非\\复制构造函数\end{tabular} &
+复制构造函数 &
+\begin{tabular}[c]{@{}l@{}}有参数: SpreadsheetCell a\{6\};\\ 复制: SpreadsheetCell b\{a\};\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}默认构造函数，以\\及单参数或多参数非复制构造函数\end{tabular} &
+复制构造函数 &
+\begin{tabular}[c]{@{}l@{}}无参数: SpreadsheetCell a;\\ 有参数: SpreadsheetCell b\{5\};\\ 复制: SpreadsheetCell c\{a\};\end{tabular} \\ \hline
 \end{longtable}
 
-Note the lack of symmetry between the default constructor and the copy constructor. As long as you don’t define a copy constructor explicitly, the compiler creates one for you. On the other hand, as soon as you define any constructor, the compiler stops generating a default constructor.
+注意默认构造函数和复制构造函数之间的不对称性。只要没有显式定义复制构造函数，编译器就会为您创建一个。另一方面，定义了构造函数，编译器就会停止生成默认构造函数。
 
-As mentioned before in this chapter, the automatic generation of a default constructor and a default copy constructor can be influenced by defining them as explicitly defaulted or explicitly deleted.
+默认构造函数和默认复制构造函数的自动生成，可以受到将它们显式定义为默认(=default)或显式删除(=delete)的影响。
 
 \begin{myNotic}{NOTE}
-A final type of constructor is a move constructor, required to implement move semantics. Move semantics is used to increase performance in certain situations and is discussed in detail in Chapter 9.
+还有一种最终类型的构造函数，即移动构造函数，是实现移动语义所必需的。移动语义在某些情况下用于提高性能，并在第 9 章中进行了详细介绍。
 \end{myNotic}
 
-\mySubsubsection{8.3.2.}{Object Destruction}
+\mySubsubsection{8.3.2.}{销毁对象}
 
-When an object is destroyed, two events occur: the object’s destructor member function is called, and the memory it was taking up is freed. The destructor is your chance to perform any cleanup work for the object, such as freeing dynamically allocated memory or closing file handles. If you don’t declare a destructor, the compiler writes one for you that does recursive member-wise destruction and allows the object to be deleted. A destructor of a class is a member function with as name the name of the class prefixed with a tilde (~). A destructor does not return anything and does not have any parameters. Here is an example of a destructor that simply writes something to standard output:
+当销毁一个对象时，会发生两件事：调用对象的析构函数成员函数，所占用的内存会释放。析构函数是为对象执行清理工作的机会，例如：释放动态分配的内存或关闭文件句柄。如果没有声明析构函数，编译器会生成，递归销毁成员，并删除对象。类的析构函数是一个成员函数，其名称是类名前缀一个波浪号 (~)。析构函数不返回值，也没有参数。以下是一个简单的析构函数示例，只是向标准输出写入一些内容：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -888,7 +888,7 @@ SpreadsheetCell::~SpreadsheetCell()
 }
 \end{cpp}
 
-Objects on the stack are destroyed when they go out of scope, which means whenever the current function or other execution block ends. In other words, whenever the code encounters an ending curly brace, any objects created on the stack within those curly braces are destroyed. The following program shows this behavior:
+每当当前函数或其他执行块结束时，栈上的对象在它们的作用域结束时销毁。换句话说，每当代码遇到一个结束的花括号，在这个花括号内创建的所有栈对象都会销毁。以下程序演示了这种行为：
 
 \begin{cpp}
 int main()
@@ -901,7 +901,7 @@ int main()
 } // myCell is destroyed as this block ends.
 \end{cpp}
 
-Objects on the stack are destroyed in the reverse order of their declaration (and construction). For example, in the following code fragment, myCell2 is created before anotherCell2, so anotherCell2 is destroyed before myCell2 (note that you can start a new code block at any point in your program with an opening curly brace):
+栈上的对象是以声明（和构造）的逆序销毁。例如，以下代码片段中，myCell2 在 anotherCell2 之前创建，所以 anotherCell2 在 myCell2 之前销毁（请注意，可以在程序的任何地方开始一个新的代码块，使用一个打开的花括号）：
 
 \begin{cpp}
 {
@@ -910,12 +910,12 @@ Objects on the stack are destroyed in the reverse order of their declaration (an
 } // anotherCell2 destroyed before myCell2
 \end{cpp}
 
-This ordering also applies to objects that are data members of other objects. Recall that data members are initialized in the order of their declaration in the class. Thus, following the rule that objects are destroyed in the reverse order of their construction, data member objects are destroyed in the reverse order of their declaration order in the class.
+这种顺序也适用于类的数据成员对象，数据成员按类中的声明顺序初始化。因此，遵循对象按构造逆序销毁的规则，数据成员对象按类中的声明顺序逆序销毁。
 
-Objects allocated on the free store without the help of smart pointers are not destroyed automatically. You must call delete on the object pointer to call its destructor and free its memory. The following program shows this behavior.
+没有智能指针帮助的情况下，在堆上分配的对象不会自动销毁。必须通过调用 delete 或 delete[] 来调用其析构函数并释放其内存，这取决于内存是通过 new 还是 new[] 分配的。或者，使用智能指针！
 
 \begin{myWarning}{WARNING}
-Do not write programs like the next example where cellPtr2 is not deleted. Make sure you always free dynamically allocated memory by calling delete or delete[] depending on whether the memory was allocated using new or new[]. Or better yet, use smart pointers as discussed earlier!
+以下示例是个反例。没有删除 cellPtr2 。确保是通过调用 delete 或 delete[] 释放动态分配的内存，这取决于内存是通过 new 还是 new[] 分配的。或者，更好的做法是使用智能指针！
 \end{myWarning}
 
 \begin{cpp}
@@ -929,29 +929,28 @@ int main()
 } // cellPtr2 is NOT destroyed because delete was not called on it.
 \end{cpp}
 
+\mySubsubsection{8.3.3.}{赋值于对象}
 
-\mySubsubsection{8.3.3.}{Assigning to Objects}
-
-Just as you can assign the value of one int to another in C++, you can assign the value of one object to another. For example, the following code assigns the value of myCell to anotherCell:
+可以在 C++ 中将一个 int 的值赋给另一个 int，也可以将一个对象的值赋给另一个对象。例如，以下代码将 myCell 的值赋给 anotherCell：
 
 \begin{cpp}
 SpreadsheetCell myCell { 5 }, anotherCell;
 anotherCell = myCell;
 \end{cpp}
 
-You might be tempted to say that myCell is “copied” to anotherCell. However, in the world of C++, “copying” occurs only when an object is being initialized. If an object already has a value that is being overwritten, the more accurate term is “assigned to.” Note that the facility that C++ provides for copying is the copy constructor. Because it is a constructor, it can only be used for object creation, not for later assignments to the object.
+可能会认为 myCell 会“复制”到 anotherCell。然而，在 C++ 的世界里，“复制”只发生在对象初始化时。如果一个对象已经有值并且正在覆盖，更准确的术语是“赋于”。请注意，C++ 提供用于复制的设施是复制构造函数。由于它是一个构造函数，只能用于对象创建，而不能用于对象后来的赋值。
 
-Therefore, C++ provides another member function in every class to perform assignment. This member function is called the assignment operator. Its name is operator= because it is actually an overload of the = operator for that class. In the preceding example, the assignment operator for anotherCell is called, with myCell as the argument.
+因此，C++ 在每个类中提供另一个成员函数来执行赋值。这个成员函数称为赋值运算符。它的名称是 operator=，因为它实际上是该类的 = 运算符的重载。上面的例子中，就是调用anotherCell 的赋值运算符，而myCell 是参数。
 
 \begin{myNotic}{NOTE}
-The assignment operator as explained in this section is sometimes called the copy assignment operator because data is copied from the right-hand side object to the left-hand side object. Chapter 9 discusses another kind of assignment operator, the move assignment operator, in which data is moved instead of copied, which improves performance for certain use cases.
+本节中解释的赋值运算符有时被称为复制赋值运算符，因为数据是从右操作数对象复制到左操作数对象。第 9 章讨论了另一种赋值运算符，即移动赋值运算符，其中数据是移动而不是复制，这在某些用例中可以提高性能。
 \end{myNotic}
 
-As usual, if you don’t write your own assignment operator, C++ writes one for you to allow objects to be assigned to one another. The default C++ assignment behavior is almost identical to its default copying behavior: it recursively assigns each data member from the source to the destination object.
+通常，如果不编写赋值运算符，C++ 会为生成一个，以便对象可以相互赋值。默认的 C++ 赋值行为与默认的复制行为相同：递归地将源对象中的每个数据成员赋值给目标对象。
 
-\mySamllsection{Declaring an Assignment Operator}
+\mySamllsection{声明赋值运算符}
 
-Here is the assignment operator for the SpreadsheetCell class:
+以下是 SpreadsheetCell 类的赋值运算符：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -962,40 +961,40 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-The assignment operator usually takes a reference-to-const to the source object, like the copy constructor. In this case, the source object is called rhs, which stands for right-hand side of the equal sign, but you are of course free to call it whatever you want. The object on which the assignment operator is called is the left-hand side of the equal sign.
+赋值运算符通常接受一个对源对象的常量引用，就像复制构造函数一样。这时，源对象称为 rhs，它代表等号右侧，但可以随意命名。调用赋值运算符的对象是等号左侧。
 
-Unlike a copy constructor, the assignment operator returns a reference to a SpreadsheetCell object. The reason is that assignments can be chained, as in the following example:
+与复制构造函数不同，赋值运算符返回一个 SpreadsheetCell 对象的引用。原因是赋值可以链式调用，例如：
 
 \begin{cpp}
 myCell = anotherCell = aThirdCell;
 \end{cpp}
 
-When that line is executed, the first thing that happens is the assignment operator for anotherCell is called with aThirdCell as its “right-hand side” argument. Next, the assignment operator for myCell is called. However, its argument is not anotherCell; its right-hand side is the result of the assignment of aThirdCell to anotherCell. The equal sign is simply just shorthand for what is really a member function call. When you look at the line in its full functional syntax shown here, you can see the problem:
+当执行该行时，首先发生的是以 aThirdCell 作为“右操作数”参数调用 anotherCell 的赋值运算符。接下来，调用 myCell 的赋值运算符。但是，参数不是 anotherCell；它的右操作数是 aThirdCell 赋值给 anotherCell 的结果。等号只是简写，实际是成员函数调用为：
 
 \begin{cpp}
 myCell.operator=(anotherCell.operator=(aThirdCell));
 \end{cpp}
 
-Now, you can see that the operator= call from anotherCell must return a value, which is passed to the operator= call for myCell. The correct value to return is a reference to anotherCell itself, so it can serve as the source for the assignment to myCell.
+现在，可以看到 anotherCell 的 operator= 调用必须返回一个值，这个值传递给 myCell 的 operator= 调用。正确返回的值是对 anotherCell 本身的引用，这样它就可以作为赋值给 myCell 。
 
 \begin{myWarning}{WARNING}
-You could actually declare the assignment operator to return whatever type you wanted, including void. However, you should always return a reference to the object on which it is called because that’s what clients expect.
+可以声明赋值运算符返回想要的类型，包括 void。应该返回调用对象的引用，这是客户端期望的。
 \end{myWarning}
 
-\mySamllsection{Defining an Assignment Operator}
+\mySamllsection{定义赋值运算符}
 
-The implementation of the assignment operator is similar to that of a copy constructor but with several important differences. First, a copy constructor is called only for initialization, so the destination object does not yet have valid values. An assignment operator can overwrite the current values in an object. This consideration doesn’t really come into play until you have dynamically allocated resources, such as memory, in your objects. See Chapter 9 for details.
+赋值运算符的实现类似于复制构造函数，但存在一些重要差异。首先，复制构造函数仅用于初始化，所以目标对象还没有有效值，赋值运算符可以覆盖对象中的当前值。这种考虑在您的对象中拥有动态分配的资源时(如内存)，才会真正发挥作用。请参阅第 9 章以获取详细信息。
 
-Second, it’s legal in C++ to assign an object to itself. For example, the following code compiles and runs:
+其次，在 C++ 中，将一个对象赋值给自己完全合法。例如，以下代码可以编译并运行：
 
 \begin{cpp}
 SpreadsheetCell cell { 4 };
 cell = cell; // Self-assignment
 \end{cpp}
 
-Your assignment operator needs to take the possibility of self-assignment into account. In the SpreadsheetCell class, this is not important, as its only data member is a primitive type, double. However, when your class has dynamically allocated memory or other resources, it’s paramount to take self-assignment into account, as is discussed in detail in Chapter 9. To prevent problems in such cases, the first thing assignment operators usually do is check for self-assignment and return immediately if that’s the case.
+赋值运算符需要考虑到自赋值的可能性。在 SpreadsheetCell 类中，这并不重要，因为它唯一数据成员是基本类型 double。然而，当类拥有动态分配的内存或其他资源时，考虑自赋值至关重要。为了避免在这种情况下出现问题，赋值运算符通常首先检查自赋值，并在那是情况时立即返回。
 
-Here is the start of the definition of the assignment operator for the SpreadsheetCell class:
+以下是 SpreadsheetCell 类的赋值运算符的定义的开始部分：
 
 \begin{cpp}
 SpreadsheetCell& SpreadsheetCell::operator=(const SpreadsheetCell& rhs)
@@ -1003,14 +1002,14 @@ SpreadsheetCell& SpreadsheetCell::operator=(const SpreadsheetCell& rhs)
     if (this == &rhs) {
 \end{cpp}
 
-This first line checks for self-assignment, but it might be a bit cryptic. Self-assignment occurs when the left-hand side and the right-hand side of the equal sign are the same. One way to tell whether two objects are the same is if they occupy the same memory location—more explicitly, if pointers to them are equal. Recall that this is a pointer to an object accessible from any member function called on the object. Thus, this is a pointer to the left-hand side object. Similarly, \&rhs is a pointer to the righthand side object. If these pointers are equal, the assignment must be self-assignment, but because the return type is SpreadsheetCell\&, a correct value must still be returned. All assignment operators return *this as follows, and the self-assignment case is no exception:
+这第一行检查自赋值，但可能有些难以理解。自赋值发生在等号左侧和右侧相同时。判断两个对象是否相同的一种方法是，是否占用相同的内存位置——更具体地说，如果指向它们的指针相等。回忆一下，this 是一个指向对象的可从任何成员函数访问的指针。因此，this 是左侧对象的指针。类似地，\&rhs 是右侧对象的指针。如果这些指针相等，赋值必须是自我赋值，但返回类型是 SpreadsheetCell\&，因此必须正确返回一个值。所有赋值运算符都以以下方式返回 *this：
 
 \begin{cpp}
         return *this;
     }
 \end{cpp}
 
-this is a pointer to the object on which the member function executes, so *this is the object itself. The compiler returns a reference to the object to match the declared return type. Now, if it is not selfassignment, you have to do an assignment to every member:
+this 是成员函数执行的对象的指针，因此 *this 是对象本身。编译器返回对象的引用以匹配声明的返回类型。现在，如果它不是自赋值，就需要对每个成员进行赋值：
 
 \begin{cpp}
     m_value = rhs.m_value;
@@ -1018,72 +1017,72 @@ this is a pointer to the object on which the member function executes, so *this 
 }
 \end{cpp}
 
-Here the member function copies the values, and finally, it returns *this, as explained earlier.
+这里，成员函数复制了值，最后返回了 *this。
 
-Astute readers will notice there’s some code duplication between the copy assignment operator and the copy constructor; they both need to copy all data members. Chapter 9 introduces the copy-andswap idiom to prevent such code duplication.
+细心的读者可能会注意到，复制赋值运算符和复制构造函数之间存在一些代码重复；都需要复制所有数据成员。第 9 章介绍了复制和交换模式，以防止此类代码重复。
 
 \begin{myNotic}{NOTE}
-The SpreadsheetCell assignment operator is shown only for demonstration purposes. In fact, in this case, the assignment operator can be omitted because the default compiler-generated one is good enough; it does simple member-wise assignments of all data members. However, under certain conditions, this compilergenerated assignment operator is not sufficient. These conditions are covered in Chapter 9.
+SpreadsheetCell 赋值运算符仅用于演示目的。实际上，可以省略赋值运算符，因为默认的编译器生成的赋值运算符已经足够好；对所有数据成员进行了简单的成员逐个赋值。然而，在某些条件下，这个编译器生成的赋值运算符是不够的。这些条件会在第 9 章节中进行讨论。
 \end{myNotic}
 
 \begin{myWarning}{WARNING}
-If your class requires special handling for copy operations, always implement both the copy constructor and the copy assignment operator.
+如果类需要对复制操作进行特殊处理，请始终自行实现复制构造函数和复制赋值运算符。
 \end{myWarning}
 
-\mySamllsection{Explicitly Defaulted and Deleted Assignment Operator}
+\mySamllsection{显式默认和删除赋值运算符}
 
-You can explicitly default or delete a compiler-generated assignment operator as follows:
+可以显式默认或删除编译器生成的赋值运算符，如下所示：
 
 \begin{cpp}
 SpreadsheetCell& operator=(const SpreadsheetCell& rhs) = default;
 \end{cpp}
 
-or
+或
 
 \begin{cpp}
 SpreadsheetCell& operator=(const SpreadsheetCell& rhs) = delete;
 \end{cpp}
 
-\mySubsubsection{8.3.4.}{Compiler-Generated Copy Constructor and Copy Assignment Operator}
+\mySubsubsection{8.3.4.}{编译器生成的复制构造函数和复制赋值运算符}
 
-C++11 deprecated the generation of a copy constructor if the class has a user-declared copy assignment operator or destructor. If you still need a compiler-generated copy constructor in such a case, you can explicitly default one:
+C++11 在类具有用户声明的复制赋值运算符或析构函数时，不会生成复制构造函数。如果在这种情况下仍然需要编译器生成的复制构造函数，可以使用=default告诉编译器：
 
 \begin{cpp}
 MyClass(const MyClass& src) = default;
 \end{cpp}
 
-C++11 also deprecated the generation of a copy assignment operator if the class has a user-declared copy constructor or destructor. If you still need a compiler-generated copy assignment operator in such a case, you can explicitly default one:
+C++11 在类具有用户声明的复制赋值运算符或析构函数时，不会生成复制赋值运算符。如果在这种情况下仍然需要编译器生成的复制赋值运算符，可以使用=default告诉编译器：
 
 \begin{cpp}
 MyClass& operator=(const MyClass& rhs) = default;
 \end{cpp}
 
-\mySubsubsection{8.3.5.}{Distinguishing Copying from Assignment}
+\mySubsubsection{8.3.5.}{复制和赋值的区别}
 
-It is sometimes difficult to tell when objects are initialized with a copy constructor rather than assigned to with the assignment operator. Essentially, things that look like a declaration are going to be using copy constructors, and things that look like assignment statements are handled by the assignment operator. Consider the following code:
+有时很难判断对象是通过复制构造函数初始化，还是通过赋值运算符赋值。看起来像声明的东西会使用复制构造函数，而看起来像赋值语句的东西会由赋值运算符处理。来看看以下代码：
 
 \begin{cpp}
 SpreadsheetCell myCell { 5 };
 SpreadsheetCell anotherCell { myCell };
 \end{cpp}
 
-AnotherCell is constructed with the copy constructor. Now consider the following:
+AnotherCell 使用复制构造函数构造。
 
 \begin{cpp}
 SpreadsheetCell aThirdCell = myCell;
 \end{cpp}
 
-aThirdCell is also constructed with the copy constructor, because this is a declaration. The operator= is not called for this line! This syntax is just another way to write SpreadsheetCell aThirdCell\{myCell\};. However, consider the following code:
+aThirdCell 也使用复制构造函数构造，因为这是一个声明，没有调用operator= ！这种语法等价于 SpreadsheetCell aThirdCell\{myCell\} 。
 
 \begin{cpp}
 anotherCell = myCell; // Calls operator= for anotherCell
 \end{cpp}
 
-Here, anotherCell has already been constructed, so the compiler calls operator=.
+这里，anotherCell 已经构造好了，所以编译器调用 operator=。
 
-\mySamllsection{Objects as Return Values}
+\mySamllsection{对象作为返回值}
 
-When you return objects from functions, it is sometimes difficult to see exactly what copying and assigning is happening. For example, the implementation of SpreadsheetCell::getString() looks like this:
+当从函数返回对象时，有时很难清楚地看到发生了哪些复制和赋值操作。例如，SpreadsheetCell::getString() 的实现如下：
 
 \begin{cpp}
 string SpreadsheetCell::getString() const
@@ -1092,7 +1091,7 @@ string SpreadsheetCell::getString() const
 }
 \end{cpp}
 
-Now consider the following code:
+看看如下代码：
 
 \begin{cpp}
 SpreadsheetCell myCell2 { 5 };
@@ -1100,26 +1099,26 @@ string s1;
 s1 = myCell2.getString();
 \end{cpp}
 
-When getString() returns the string, the compiler actually creates an unnamed temporary string object by calling a string copy constructor. When you assign this result to s1, the assignment operator is called for s1 with the temporary string as a parameter. Then, the temporary string object is destroyed. Thus, the single line of code could invoke the copy constructor and the assignment operator (for two different objects).
+当 getString() 返回字符串时，编译器实际上通过调用字符串复制构造函数创建了一个无名的临时字符串对象。将这个结果赋值给 s1 时，调用赋值运算符，参数是临时字符串。然后，销毁临时字符串对象。因此，这一行代码可能会调用复制构造函数和赋值运算符（针对两个不同的对象）。
 
-In case you’re not confused enough, consider this code:
+如果还没有感到困惑，再看看这里：
 
 \begin{cpp}
 SpreadsheetCell myCell3 { 5 };
 string s2 = myCell3.getString();
 \end{cpp}
 
-In this case, getString() still creates a temporary unnamed string object when it returns. But now, s2 gets its copy constructor called, not its assignment operator.
+getString() 仍然在返回时创建了一个临时字符串对象，但现在 s2 调用的是它的复制构造函数，而不是赋值运算符。
 
-With move semantics, the compiler can use a move constructor or move assignment operator instead of a copy constructor or copy assignment operator to return the string from getString(). This can be more efficient in certain cases and is discussed in Chapter 9. However, even better, compilers are free to (and often even required to) implement copy elision to optimize away costly copy operations or move operations when returning values; see Chapter 1.
+有了移动语义，编译器可以使用移动构造函数或移动赋值运算符返回字符串。这在某些情况下可能更有效率，更好的消息是，编译器可以自由地（并且通常甚至是要求）实现复制消除，来优化返回值中的昂贵的复制操作或移动操作。
 
-If you ever forget the order in which these things happen or which constructor or operator is called, you can easily figure it out by temporarily including helpful output in your code or by stepping through your code with a debugger.
+如果忘记了这些事情发生的顺序或调用了哪个构造函数或运算符，可以在代码中临时包含有用的输出或使用调试器逐行执行代码来找出答案。
 
-\mySamllsection{Copy Constructors and Object Members}
+\mySamllsection{复制构造函数和对象成员}
 
-You should also note the difference between assignment operator and copy constructor calls in constructors. If an object contains other objects, the compiler-generated copy constructor calls the copy constructors of each of the contained objects recursively. When you write your own copy constructor, you can provide the same semantics by using a ctor-initializer, as shown previously. If you omit a data member from the ctor-initializer, the compiler performs default initialization on it (a call to the default constructor for objects) before executing your code in the body of the constructor. Thus, by the time the body of the constructor executes, all object data members have already been initialized.
+还应该注意在构造函数中复制构造函数调用和赋值运算符调用的区别。如果一个对象包含其他对象，编译器生成的复制构造函数会递归地调用每个包含对象的复制构造函数。当编写自己的复制构造函数时，可以通过使用构造函数初始化列表来提供相同的语义，如之前所示。如果从构造函数初始化列表中省略了一个数据成员，编译器会在执行构造函数体中的代码之前对其进行默认初始化（对对象调用默认构造函数）。因此，在构造函数体执行时，所有对象数据成员都已经初始化完毕。
 
-For example, you could write the SpreadsheetCell copy constructor like this:
+例如，这样编写 SpreadsheetCell 的复制构造函数：
 
 \begin{cpp}
 SpreadsheetCell::SpreadsheetCell(const SpreadsheetCell& src)
@@ -1128,9 +1127,9 @@ SpreadsheetCell::SpreadsheetCell(const SpreadsheetCell& src)
 }
 \end{cpp}
 
-However, when you assign values to data members in the body of the copy constructor, you are using the assignment operator on them, not the copy constructor, because they have already been initialized.
+然而，当在复制构造函数体中给数据成员赋值时，因为它们已经初始化了，所以使用的是赋值运算符，而不是复制构造函数。
 
-If you write the copy constructor as follows, then m\_value is initialized using the copy constructor:
+如果这样编写复制构造函数，那么 m\_value 就需要使用复制构造函数进行初始化：
 
 \begin{cpp}
 SpreadsheetCell::SpreadsheetCell(const SpreadsheetCell& src)

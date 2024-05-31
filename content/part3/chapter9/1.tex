@@ -1,4 +1,4 @@
-C++ allows classes to declare that other classes, member functions of other classes, or non-member functions are friends, and can access protected and private data members and member functions. For example, suppose you have two classes called Foo and Bar. You can specify that the Bar class is a friend of Foo as follows:
+在 C++ 中，可以声明其他类、其他类的成员函数或非成员函数为朋友，并可以访问这些类的受保护（protected）和私有（private）数据成员和成员函数。例如，有两个类，分别称为 Foo 和 Bar，可以指定 Bar 类为 Foo 类的友元：
 
 \begin{cpp}
 class Foo
@@ -8,9 +8,9 @@ class Foo
 };
 \end{cpp}
 
-Now all the member functions of Bar can access the private and protected data members and member functions of Foo.
+现在，Bar 类的所有成员函数都可以访问 Foo 类的private和protected数据成员，以及成员函数。
 
-If you only want to make a specific member function of Bar a friend, you can do that as well. Suppose the Bar class has a member function processFoo(const Foo\&). The following syntax is used to make this member function a friend of Foo:
+如果只想使 Bar 类的特定成员函数成为 Foo 类的友元。假设 Bar 类有一个名为 processFoo 的成员函数，其参数为 const Foo\&。要使这个成员函数成为 Foo 类的友元，可以这样写：
 
 \begin{cpp}
 class Foo
@@ -20,7 +20,7 @@ class Foo
 };
 \end{cpp}
 
-Stand-alone functions can also be friends of classes. You might, for example, want to write a function that prints all data of a Foo object to the console. You might want this function to be outside the Foo class because printing is not core functionality of Foo, but the function should be able to access the internal data members of the object to print them all. Here is the Foo class definition with printFoo() as a friend:
+独立的函数也可以成为类的友元。例如，编写一个函数，将 Foo 对象的所有数据打印到控制台。可能希望这个函数位于 Foo 类之外，因为打印不是 Foo 的核心功能，但该函数应该能够访问对象内部的数据成员以打印它们。以下是将 printFoo() 作为 Foo 类的友元声明的 Foo 类定义：
 
 \begin{cpp}
 class Foo
@@ -30,9 +30,9 @@ class Foo
 };
 \end{cpp}
 
-The friend declaration in the class serves as the function’s prototype. There’s no need to write the prototype elsewhere (although it’s harmless to do so).
+类中的友元声明作为函数的原型，不需要在其他地方声明（就是声明了也无所谓）。
 
-Here is the function definition:
+函数的定义：
 
 \begin{cpp}
 void printFoo(const Foo& foo)
@@ -42,11 +42,11 @@ void printFoo(const Foo& foo)
 }
 \end{cpp}
 
-You write this function outside the class definition just like any other function, except that you can directly access private and protected members of Foo. You don’t repeat the friend keyword in the function definition.
+可以在类定义之外编写这个函数，就像编写其他函数一样，可以直接访问 Foo 的私有和受保护成员。在函数定义中不需要重复 friend 关键字。
 
-Note that a class needs to know which other classes, member functions, or functions want to be its friends; a class, member function, or function cannot declare itself to be a friend of some other class to gain access to non-public members of that class.
+注意，一个类需要知道哪些其他类、成员函数或函数想要成为它的朋友；一个类、成员函数或函数不能声明自己为某个类的友元，以获取该类的非公共成员的访问权限。
 
-friend classes and functions are easy to abuse; they allow you to violate the principle of encapsulation by exposing internals of your class to other classes or functions. Thus, you should use them only in limited circumstances. Some use cases are shown throughout this chapter.
+friend 类和函数容易滥用；它们允许通过将类的内部暴露给其他类或函数来违反封装原则。因此，应该在有限的情况下使用友元。
 
 
 

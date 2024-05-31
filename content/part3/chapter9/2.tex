@@ -1,31 +1,31 @@
 
-Sometimes you don’t know how much memory you will need before your program actually runs. As you read in Chapter 7, “Memory Management,” the solution is to dynamically allocate as much space as you need during program execution. Classes are no exception. Sometimes you don’t know how much memory an object will need when you write the class. In that case, the object should dynamically allocate memory. Dynamically allocated memory in objects provides several challenges, including freeing the memory, handling object copying, and handling object assignment.
+C++ 中，有时在编写程序之前不知道需要多少内存。正如在第 7 章所言，解决方案是在程序执行期间动态分配所需的空间，类也不例外。有时，编写类时，不知道一个对象需要多少内存。在这种情况下，对象应该动态分配内存。对象中的动态分配内存带来了几个挑战，包括释放内存、处理对象复制和处理对象赋值。
 
-\mySubsubsection{9.2.1.}{The Spreadsheet Class}
+\mySubsubsection{9.2.1.}{Spreadsheet类}
 
-Chapter 8 introduces the SpreadsheetCell class. This chapter moves on to write the Spreadsheet class. As with the SpreadsheetCell class, the Spreadsheet class evolves throughout this chapter. Thus, the various attempts do not always illustrate the best way to do every aspect of class writing.
+第 8 章介绍了 SpreadsheetCell 类。本章将编写 Spreadsheet 类。与 SpreadsheetCell 类一样，Spreadsheet 类在本章中不断发展，各种尝试并不是展示编写类的最佳方式。
 
-To start, a Spreadsheet is simply a two-dimensional array of SpreadsheetCells, with member functions to set and retrieve cells at specific locations in the Spreadsheet. Although most spreadsheet applications use letters in one direction and numbers in the other to refer to cells, this Spreadsheet uses numbers in both directions.
+首先，Spreadsheet 是一个二维数组，其中包含 SpreadsheetCells，具有设置和检索 Spreadsheet 中特定位置的单元格的成员函数。虽然大多数电子表格应用程序使用一个方向上的字母和另一个方向上的数字来引用单元格，但 Spreadsheet 使用两个方向上的数字。
 
-The first line of the Spreadsheet.cppm module interface file defines the name of the module:
+Spreadsheet.cppm 模块接口文件第一行定义了模块的名称：
 
 \begin{cpp}
 export module spreadsheet;
 \end{cpp}
 
-The Spreadsheet class needs access to the SpreadsheetCell class, so it needs to import the spreadsheet\_cell module. Additionally, to make the SpreadsheetCell class visible to users of the spreadsheet module, the spreadsheet\_cell module is imported and exported with the following funny-looking syntax:
+Spreadsheet 类需要访问 SpreadsheetCell 类，因此需要导入 spreadsheet\_cell 模块。此外，为了让 SpreadsheetCell 类对 spreadsheet 模块的用户可见，需要导入并导出 spreadsheet\_cell 模块，如下所示：
 
 \begin{cpp}
 export import spreadsheet_cell;
 \end{cpp}
 
-The Spreadsheet class uses the std::size\_t type, which is defined in the C header called <cstddef>. You can get access to it with the following import:
+Spreadsheet 类使用 std::size\_t 类型，该类型定义在名为<cstddef>的 C 头文件中。可以通过以下导入来获取：
 
 \begin{cpp}
 import std;
 \end{cpp}
 
-Finally, here is a first attempt at a definition of the Spreadsheet class:
+这里是 Spreadsheet 类定义的第一次尝试：
 
 \begin{cpp}
 export class Spreadsheet
@@ -43,12 +43,12 @@ export class Spreadsheet
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-The Spreadsheet class uses normal pointers for the m\_cells array. This is done throughout this chapter to show the consequences and to explain how to handle resources, such as dynamic memory, in classes. In production code, you should use one of the standard C++ containers, like std::vector, which greatly simplifies the implementation of Spreadsheet, but then you wouldn’t learn how to correctly handle dynamic memory using raw pointers. In modern C++, you should never use raw pointers with ownership semantics, but you might come across them in existing code, in which case you need to know how to work with them.
+Spreadsheet 类使用普通指针作为 m\_cells 数组。这是本章中为了展示后果，并解释如何在类中正确处理资源（如动态内存）而采用的做法。在生产代码中，应该使用标准 C++ 容器，如 std::vector，这极大地简化了 Spreadsheet 的实现，但这样就无法学习如何正确使用原始指针处理动态内存。在现代 C++ 中，永远不应该使用具有所有权语义的原始指针，但可能会在已有代码中遇到它们，在这种情况下，需要知道如何与它们一起工作。
 \end{myNotic}
 
-Note that the Spreadsheet class does not contain a standard two-dimensional array of SpreadsheetCells. Instead, it contains a SpreadsheetCell** data member, which is a pointer to a pointer representing an array of arrays. This is because each Spreadsheet object might have different dimensions, so the constructor of the class must dynamically allocate the two-dimensional array based on the client-specified height and width.
+请注意，Spreadsheet 类不包含标准的二维 SpreadsheetCell 数组。相反，它包含一个 SpreadsheetCell** 数据成员，这是一个指向指针的指针，表示一个数组的数组。这是因为每个 Spreadsheet 对象可能有不同的维度，所以类的构造函数必须根据客户端指定的高度和宽度动态分配二维数组。
 
-To dynamically allocate a two-dimensional array, you need to write the following code. Note that in C++, unlike in Java, it’s not possible to simply write new SpreadsheetCell[m\_width][m\_height].
+为了动态分配二维数组，需要编写以下代码。请注意， C++ 不像在 Java，不能简单地写成 new SpreadsheetCell[m\_width][m\_height]。
 
 \begin{cpp}
 Spreadsheet::Spreadsheet(size_t width, size_t height)
@@ -61,9 +61,11 @@ Spreadsheet::Spreadsheet(size_t width, size_t height)
 }
 \end{cpp}
 
-Figure 9.1 shows the resulting memory layout for a Spreadsheet called s1 on the stack with width 4 and height 3.
+图 9.1 显示了名为 s1 的 Spreadsheet 在栈上具有宽度 4 和高度 3 的内存布局。
 
-The implementations of the inRange() and the set and retrieval member functions are straightforward:
+\myGraphic{0.7}{content/part3/chapter9/images/1.png}{图 9.1}
+
+inRange() 和 set 和检索成员函数的实现很简单：
 
 \begin{cpp}
 bool Spreadsheet::inRange(size_t value, size_t upper) const
@@ -98,17 +100,15 @@ SpreadsheetCell& Spreadsheet::getCellAt(size_t x, size_t y)
 }
 \end{cpp}
 
-\myGraphic{0.7}{content/part3/chapter9/images/1.png}{FIGURE 9.1}
+setCellAt() 和 getCellAt() 都使用一个名为 inRange() 的辅助函数来检查 x 和 y 是否代表 Spreadsheet 中的有效坐标，尝试访问数组中一个越界的索引会导致程序异常。
 
-setCellAt() and getCellAt() both use a helper function called inRange() to check that x and y represent valid coordinates in the spreadsheet. Attempting to access an array element at an out-ofrange index will cause the program to malfunction. This example uses exceptions, which are introduced in Chapter 1, “A Crash Course in C++ and the Standard Library,” and described in detail in Chapter 14, “Handling Errors.”
-
-If you look at the setCellAt() and getCellAt() implementations, you see there is some clear code duplication. Chapter 6, “Designing for Reuse,” explains that code duplication should be avoided at all costs. So, let’s follow that guideline. Instead of a helper function called inRange(), let’s define the following verifyCoordinate() member function:
+看下 setCellAt() 和 getCellAt() 的实现，会看到有一些明显的代码重复。第6章解释说，应该不惜一切代价避免代码重复。因此，不再使用名为 inRange() 的辅助函数，而是定义 verifyCoordinate() 成员函数：
 
 \begin{cpp}
 void verifyCoordinate(std::size_t x, std::size_t y) const;
 \end{cpp}
 
-The implementation checks the given coordinate and throws an exception if the coordinate is invalid:
+实现检查给定的坐标，并在坐标无效时抛出异常：
 
 \begin{cpp}
 void Spreadsheet::verifyCoordinate(size_t x, size_t y) const
@@ -124,7 +124,7 @@ void Spreadsheet::verifyCoordinate(size_t x, size_t y) const
 }
 \end{cpp}
 
-The setCellAt() and getCellAt() implementations can now be simplified:
+现在，setCellAt() 和 getCellAt() 的实现可以简化为：
 
 \begin{cpp}
 void Spreadsheet::setCellAt(size_t x, size_t y, const SpreadsheetCell& cell)
@@ -140,9 +140,9 @@ SpreadsheetCell& Spreadsheet::getCellAt(size_t x, size_t y)
 }
 \end{cpp}
 
-\mySubsubsection{9.2.2.}{Freeing Memory with Destructors}
+\mySubsubsection{9.2.2.}{使用析构函数释放内存}
 
-Whenever you are finished with dynamically allocated memory, you should free it. If you dynamically allocate memory in an object, the place to free that memory is in the destructor. The compiler guarantees that the destructor is called when the object is destroyed. The following is the destructor added to the Spreadsheet class definition:
+完成对动态分配内存的使用时，都应该对其进行释放。如果在对象中动态分配内存，释放该内存的位置应该在析构函数中。编译器保证当对象销毁时，会调用析构函数。以下是 Spreadsheet 类定义中的析构函数：
 
 \begin{cpp}
 export class Spreadsheet
@@ -154,9 +154,9 @@ export class Spreadsheet
 };
 \end{cpp}
 
-The destructor has the same name as the name of the class (and of the constructors), preceded by a tilde (~). The destructor takes no arguments, and there can be only one of them. Destructors should never throw any exceptions for reasons explained in detail in Chapter 14.
+析构函数具有与类名（以及构造函数）相同的名称，前面有一个波浪号 (~)。析构函数不接受参数，并且只能有一个。析构函数绝不应该抛出异常，原因在第14章中详细解释。
 
-Here is the implementation of the Spreadsheet class destructor:
+以下是 Spreadsheet 类析构函数的实现：
 
 \begin{cpp}
 Spreadsheet::˜Spreadsheet()
@@ -169,11 +169,11 @@ Spreadsheet::˜Spreadsheet()
 }
 \end{cpp}
 
-This destructor frees the memory that was allocated in the constructor. However, no rule requires you to free memory in the destructor. You can write whatever code you want in the destructor, but it is generally a good idea to use it only for freeing memory or disposing of other resources.
+这个析构函数释放了在构造函数中分配的内存，但没有规则要求必须在析构函数中释放内存。可以编写任何代码在析构函数中，但最好只用它来释放内存或处理其他资源。
 
-\mySubsubsection{9.2.3.}{Handling Copying and Assignment}
+\mySubsubsection{9.2.3.}{复制和赋值}
 
-Recall from Chapter 8 that if you don’t write a copy constructor and a copy assignment operator yourself, C++ writes them for you. These compiler-generated member functions recursively call the copy constructor or copy assignment operator on object data members. However, for primitives, such as int, double, and pointers, they provide shallow or bitwise copying or assignment: they just copy or assign the data members from the source object directly to the destination object. That presents problems when you dynamically allocate memory in your object. For example, the following code copies the spreadsheet s1 to initialize s when s1 is passed to the printSpreadsheet() function:
+从第 8 章回顾一下，如果没有编写自己的复制构造函数和复制赋值运算符，C++ 会生成它们。这些编译器生成的成员函数递归地调用对象数据成员的复制构造函数或复制赋值运算符。然而，对于基本类型（如 int、double 和指针），提供浅层或位操作复制或赋值：它们会直接从源对象复制或赋值数据成员到目标对象，这在对象动态分配内存时会带来问题。例如，以下代码复制了 spreadsheet s1 来初始化 s，当 s1 传递给 printSpreadsheet() 函数时：
 
 \begin{cpp}
 import spreadsheet;
@@ -187,42 +187,42 @@ int main()
 }
 \end{cpp}
 
-The Spreadsheet contains one pointer variable: m\_cells. A shallow copy of a Spreadsheet gives the destination object a copy of the m\_cells pointer, but not a copy of the underlying data. Thus, you end up with a situation where both s and s1 have a pointer to the same data, as shown in Figure 9.2.
+Spreadsheet 包含一个指针变量：m\_cells。Spreadsheet 的浅层复制只给了目标对象 m\_cells 指针的副本，而不是底层数据的副本。因此，s 和 s1 都指向相同的数据，如图 9.2 所示。
 
-\myGraphic{0.7}{content/part3/chapter9/images/2.png}{FIGURE 9.2}
+\myGraphic{0.7}{content/part3/chapter9/images/2.png}{图 9.2}
 
-If s changes something to which m\_cells points, that change shows up in s1 as well. Even worse, when the printSpreadsheet() function exits, s’s destructor is called, which frees the memory pointed to by m\_cells. That leaves the situation where m\_cells in s1 no longer points to valid memory, as shown in Figure 9.3. This is called a dangling pointer.
+如果 s 更改了 m\_cells 指向的内容，也会在 s1 中显示出来。更糟糕的是，当 printSpreadsheet() 函数退出时，调用s 的析构函数，它释放了 m\_cells 指向的内存。这使得 m\_cells 在 s1 中不再指向有效的内存，如图 9.3 所示，这称为悬挂指针。
 
-\myGraphic{0.7}{content/part3/chapter9/images/3.png}{FIGURE 9.3}
+\myGraphic{0.7}{content/part3/chapter9/images/3.png}{图 9.3}
 
-Unbelievably, the problem is even worse with assignment. Suppose that you have the following code:
+令人难以置信的是，使用赋值时问题甚至更糟。假设有以下代码：
 
 \begin{cpp}
 Spreadsheet s1 { 2, 2 }, s2 { 4, 3 };
 s1 = s2;
 \end{cpp}
 
-After the first line, when both the s1 and s2 Spreadsheet objects are constructed, you have the memory layout shown in Figure 9.4.
+第一条语句之后，当构造 s1 和 s2 Spreadsheet 对象时，得到了如图 9.4 所示的内存布局。
 
-\myGraphic{0.7}{content/part3/chapter9/images/4.png}{FIGURE 9.4}
+\myGraphic{0.7}{content/part3/chapter9/images/4.png}{图 9.4}
 
-After the assignment statement, you have the layout shown in Figure 9.5.
+赋值语句之后，得到了如图 9.5 所示的布局。
 
-\myGraphic{0.7}{content/part3/chapter9/images/5.png}{FIGURE 9.5}
+\myGraphic{0.7}{content/part3/chapter9/images/5.png}{图 9.5}
 
-Now, not only do the m\_cells pointers in s1 and s2 point to the same memory, but you have also orphaned the memory to which m\_cells in s1 previously pointed to. This is called a memory leak.
+现在，s1 和 s2 中的 m\_cells 指针不仅指向相同的内存，而且遗弃了 s1 之前指向的内存，这称为内存泄漏。
 
-It should be clear by now that copy constructors and copy assignment operators must do a deep copy; that is, they must not just copy pointer data members, but must copy the actual data to which such pointers point to.
+现在，复制构造函数和复制赋值运算符必须执行深度复制；也就是说，不仅应该复制指针数据成员，还应该复制这些指针指向的实际数据。
 
-As you can see, relying on C++’s default copy constructor and default copy assignment operator is not always a good idea.
+所以，依赖于 C++ 的默认复制构造函数和默认复制赋值运算符并不总是一个好主意。
 
 \begin{myWarning}{WARNING}
-Whenever you have dynamically allocated resources in a class, you should write your own copy constructor and copy assignment operator to provide a deep copy of the memory.
+每当在类中动态分配资源时，应该编写自己的复制构造函数和复制赋值运算符，以提供内存的深度复制。
 \end{myWarning}
 
-\mySamllsection{The Spreadsheet Copy Constructor}
+\mySamllsection{Spreadsheet的复制构造函数}
 
-Here is a declaration for a copy constructor in the Spreadsheet class:
+这是 Spreadsheet 类中复制构造函数的声明：
 
 \begin{cpp}
 export class Spreadsheet
@@ -233,7 +233,7 @@ export class Spreadsheet
 };
 \end{cpp}
 
-The definition is as follows:
+定义如下：
 
 \begin{cpp}
 Spreadsheet::Spreadsheet(const Spreadsheet& src)
@@ -247,13 +247,13 @@ Spreadsheet::Spreadsheet(const Spreadsheet& src)
 }
 \end{cpp}
 
-Note the use of a delegating constructor. The ctor-initializer of this copy constructor delegates first to the non-copy constructor to allocate the proper amount of memory. The body of the copy constructor then copies the actual values. Together, this process implements a deep copy of the m\_cells dynamically-allocated two-dimensional array.
+这里使用了委托构造函数。这个复制构造函数的构造函数初始化列表，首先委托给非复制构造函数来分配适当的内存量。复制构造函数的体然后复制实际的值，这两个过程共同实现了对 m\_cells 动态分配的二维数组的深度复制。
 
-There is no need to delete any existing m\_cells because this is a copy constructor, and therefore there is no existing m\_cells yet in this object.
+不需要删除现有的 m\_cells，因为这是复制构造函数，因此在这个对象中还没有m\_cells。
 
-\mySamllsection{The Spreadsheet Assignment Operator}
+\mySamllsection{Spreadsheet的赋值运算符}
 
-The following shows the Spreadsheet class definition with an assignment operator:
+下面展示了带有赋值运算符的 Spreadsheet 类定义：
 
 \begin{cpp}
 export class Spreadsheet
@@ -264,7 +264,7 @@ export class Spreadsheet
 };
 \end{cpp}
 
-A naïve implementation could be as follows:
+一个简单的实现如下所示：
 
 \begin{cpp}
 Spreadsheet& Spreadsheet::operator=(const Spreadsheet& rhs)
@@ -301,11 +301,11 @@ Spreadsheet& Spreadsheet::operator=(const Spreadsheet& rhs)
 }
 \end{cpp}
 
-The code first checks for self-assignment, then frees the current memory of the this object, allocates new memory, and finally copies the individual elements. There is a lot going on in this function, and a lot can go wrong! It is possible that the this object gets into an invalid state.
+代码首先检查自我赋值，然后释放 this 对象的当前内存，分配新内存，最后复制各个元素。函数中发生了很多事情，可能会出很多问题！this 对象可能会变得无效状态。
 
-For example, suppose that the memory is successfully freed, that m\_width and m\_height are properly set, but that an exception is thrown in the loop that is allocating the memory. When that happens, execution of the remainder of the function is skipped, and the function is exited. Now the Spreadsheet instance is corrupt; its m\_width and m\_height data members state a certain size, but the m\_cells data member does not point to the right amount of memory. Basically, this code is not exception-safe!
+例如，内存成功释放，m\_width 和 m\_height 正确设置，但在分配内存的循环中抛出了异常。这时，执行会跳过函数的其余部分退出。现在 Spreadsheet 实例已经损坏，m\_width 和 m\_height 数据成员表示一定的大小，但 m\_cells 数据成员不再指向正确的内存。所以，代码异常不安全！
 
-What we need is an all-or-nothing mechanism; either everything succeeds or the this object remains untouched. To implement such an exception-safe assignment operator, the copy-and-swap idiom is used. For this, a swap() member function is added to the Spreadsheet class. Additionally, it’s recommended to provide a non-member swap() function so that it can also be used by various Standard Library algorithms. Here is the definition of the Spreadsheet class with an assignment operator, and the swap() member function and non-member function:
+我们需要一个全有或全无的机制；要么一切顺利，要么 this 对象保持不变。为了实现这样的异常安全的赋值运算符，使用了复制和交换模式。为此，在 Spreadsheet 类中添加了 swap() 成员函数。此外，建议提供非成员 swap() 函数，以便各种标准库算法使用。以下是带有赋值运算符、swap() 成员函数和非成员函数的 Spreadsheet 类定义：
 
 \begin{cpp}
 export class Spreadsheet
@@ -318,19 +318,19 @@ export class Spreadsheet
 export void swap(Spreadsheet& first, Spreadsheet& second) noexcept;
 \end{cpp}
 
-A requirement for implementing the exception-safe copy-and-swap idiom is that swap() never throws any exceptions, so it is marked as noexcept.
+实现交换运算符的要求是 swap() 永远不会抛出异常，所以标记为 noexcept。
 
 \begin{myNotic}{NOTE}
-A function can be marked with the noexcept keyword to specify that it won’t throw any exceptions. The noexcept specifier must appear after any const keyword. Here’s an example:
+一个函数可以使用 noexcept 关键字来指定它不会抛出任何异常。noexcept 修饰符必须出现在 const 关键字之后。例如：
 
 \begin{cpp}
 void myNonThrowingConstFunction() const noexcept { /* ... */ }
 \end{cpp}
 
-If a noexcept function does throw an exception, the program is terminated. More details about noexcept are discussed in Chapter 14, but those details are not important for the remainder of the current chapter.
+如果一个标记为 noexcept 的函数确实抛出了异常，程序将终止。关于 noexcept 的更多细节在第 14 章中讨论。
 \end{myNotic}
 
-The implementation of the swap() member function swaps each data member using the std::swap() utility function provided by the Standard Library in <utility>, which efficiently swaps two values:
+成员函数 swap() 使用标准库中 <utility> 提供的 std::swap()，该函数可高效地交换两个值：
 
 \begin{cpp}
 void Spreadsheet::swap(Spreadsheet& other) noexcept
@@ -341,7 +341,7 @@ void Spreadsheet::swap(Spreadsheet& other) noexcept
 }
 \end{cpp}
 
-The non-member swap() function simply forwards to the swap() member function:
+非成员 swap() 函数简单地将交换操作转发给成员函数：
 
 \begin{cpp}
 void swap(Spreadsheet& first, Spreadsheet& second) noexcept
@@ -350,7 +350,7 @@ void swap(Spreadsheet& first, Spreadsheet& second) noexcept
 }
 \end{cpp}
 
-Now that we have an exception-safe swap(), it can be used to implement the assignment operator:
+现在我们有了一个异常安全的 swap()，可以用来实现赋值运算符：
 
 \begin{cpp}
 Spreadsheet& Spreadsheet::operator=(const Spreadsheet& rhs)
@@ -361,20 +361,20 @@ Spreadsheet& Spreadsheet::operator=(const Spreadsheet& rhs)
 }
 \end{cpp}
 
-The implementation uses the copy-and-swap idiom. First, a copy of the right-hand side is made, called temp. Then the current object is swapped with this copy. This pattern is the recommended way of implementing assignment operators because it guarantees strong exception safety, meaning that if any exception occurs, then the state of the current Spreadsheet object remains unchanged. The idiom is implemented in three phases:
+该实现使用了复制和交换模式。首先，将右侧值复制到一个临时实例中，称为 temp。然后，当前对象与这个副本进行交换。这种模式是实现赋值运算符的推荐方式，保证了强异常安全性，即发生异常，当前 Spreadsheet 对象的状态将保持不变。这个模式分为三个阶段：
 
 \begin{itemize}
 \item
-The first phase makes a temporary copy. This does not modify the state of the current Spreadsheet object, and so there is no problem if an exception is thrown during this phase.
+第一个阶段创建一个临时副本。这个阶段不会修改当前 Spreadsheet 对象的状态，如果在这个阶段抛出异常，没有问题。
 
 \item
-The second phase uses the swap() function to swap the created temporary copy with the current object. The swap() function shall never throw exceptions.
+第二个阶段使用 swap() 函数与当前对象交换创建的临时副本。swap() 函数绝不应抛出异常。
 
 \item
-The third phase is the destruction of the temporary object, which now contains the original object (because of the swap), to clean up any memory.
+第三个阶段是临时对象的销毁，现在它包含原始对象（因为进行了交换）。
 \end{itemize}
 
-When you do not use the copy-and-swap idiom for implementing an assignment operator, then for efficiency and sometimes also for correctness, the first line of code in an assignment operator usually checks for self-assignment. Here’s an example:
+当不使用复制和交换模式来实现赋值运算符时，为了效率和有时为了正确性，赋值运算符的第一行代码通常会检查自我赋值。例如：
 
 \begin{cpp}
 Spreadsheet& Spreadsheet::operator=(const Spreadsheet& rhs)
@@ -386,19 +386,19 @@ Spreadsheet& Spreadsheet::operator=(const Spreadsheet& rhs)
 }
 \end{cpp}
 
-With the copy-and-swap idiom, such a self-assignment test is not needed.
+使用复制和交换模式，不需要自我赋值测试。
 
 \begin{myWarning}{WARNING}
-When implementing an assignment operator, use the copy-and-swap idiom to avoid code duplication and to guarantee strong exception safety.
+在实现赋值运算符时，使用复制和交换模式来避免代码重复，必须保证异常安全性。
 \end{myWarning}
 
 \begin{myNotic}{NOTE}
-The copy-and-swap idiom can be used for more than just assignment operators. It can be used for any operation that takes multiple steps and that you want to turn into an all-or-nothing operation: first, make a copy; then, do all the modifications on the copy; and finally, if there are no errors, perform a non-throwing swap operation.
+复制和交换模式不仅可以用于赋值运算符，可用于其他步骤。并且若希望将其转换为全有或全无操作的操作：首先，创建一个副本；然后，在副本上进行所有修改；最后，如果没有错误，执行一个非抛出异常的交换操作。
 \end{myNotic}
 
-\mySamllsection{Disallowing Assignment and Pass-by-Value}
+\mySamllsection{禁止赋值和按值传递}
 
-Sometimes when you dynamically allocate memory in your class, it’s easiest just to prevent anyone from copying or assigning to your objects. You can do this by explicitly deleting your operator= and copy constructor. That way, if anyone tries to pass the object by value, return it from a function, or assign to it, the compiler will complain. Here is a Spreadsheet class definition that prevents assignment and pass-by-value:
+有时，当在类中动态分配内存时，最简单的方法就是避免复制或赋值对象。可以通过显式删除 operator= 和复制构造函数来实现这一点。这样，如果尝试按值传递对象、从函数返回对象或赋值对象，编译器会发出警告。以下是一个防止赋值和按值传递的 Spreadsheet 类定义：
 
 \begin{cpp}
 export class Spreadsheet
@@ -412,37 +412,36 @@ export class Spreadsheet
 };
 \end{cpp}
 
-You don’t provide implementations for deleted member functions. The linker will never look for them because the compiler won’t allow code to call them. When you now write code to copy or assign to a Spreadsheet object, the compiler will complain with a message like this:
+不需要为删除的成员函数提供实现。因为编译器不会允许代码调用它们，所以链接器永远不会寻找它们。现在，当编写复制或赋值 Spreadsheet 对象的代码时，编译器则会报错：
 
 \begin{shell}
 'Spreadsheet &Spreadsheet::operator =(const Spreadsheet &)': attempting to
 reference a deleted function
 \end{shell}
 
-\mySubsubsection{9.2.4.}{Handling Moving with Move Semantics}
+\mySubsubsection{9.2.4.}{使用移动语义}
 
-Move semantics for classes requires a move constructor and a move assignment operator. These can be used by the compiler when the source object is a temporary object that will be destroyed after the operation is finished or, as you will see, explicitly when using std::move(). Moving moves ownership of memory and other resources from one object to another object. It basically does a shallow copy of data members combined with switching ownership of allocated memory and other resources to prevent dangling pointers or resources and to prevent memory leaks.
+类的移动语义需要移动构造函数和移动赋值运算符，编译器可将其用于对象的临时对象，该对象在操作完成后将销毁，或显式使用 std::move()移动。移动将内存和其他资源的所有权从一个对象转移到另一个对象，是数据成员的浅层复制与已分配内存和其他资源所有权切换的组合，以防止悬挂指针或资源，并防止内存泄漏。
 
-Both the move constructor and the move assignment operator move the data members from a source object to a new object, leaving the source object in some valid but otherwise indeterminate state. Often, data members of the source object are reset to “null” values, but this is not a strict requirement. I do recommend, however, that you make sure your source objects are in a clearly defined empty state after a move operation. To be safe, never use any objects that have been moved from, as this could trigger undefined behavior. Some notable exceptions from the Standard Library are std::unique\_ptr and shared\_ptr. The Standard Library explicitly states that these smart pointers must reset their internal pointer to nullptr when moving from them, which makes it safe to reuse such smart pointers after a move operation.
+移动构造函数和移动赋值运算符将源对象的数据成员移动到新对象中，使源对象处于某种不确定的状态。通常，源对象的数据成员重置为“null”值，但这不是严格的要求。我确实建议，确保您的源对象在移动操作后处于明确定义的空状态。为了安全起见，因为可能会触发未定义的行为，所以永远不要使用已移动的对象。标准库中的一些例外是 std::unique\_ptr 和 shared\_ptr。标准库明确声明，这些智能指针在移动后必须将其内部指针重置为 nullptr，这使得在移动操作后安全地重用此类智能指针成为可能。
 
-Before you can implement move semantics, you need to learn about rvalues and rvalue references.
+实现移动语义之前，先来了解一下 右值 和 右值引用。
 
-\mySamllsection{Rvalue References}
+\mySamllsection{右值引用}
 
-In C++, an lvalue is something of which you can take an address, for example, a named variable. The name comes from the fact that lvalues can appear on the left-hand side of an assignment. An rvalue, on the other hand, is anything that is not an lvalue, such as a literal, or a temporary object or value(Technically, the C++ standard defines three more categories (xvalues, prvalues, and glvalues), but those details are not important for the current discussion.). Typically, an rvalue is on the right-hand side of an assignment operator. For example, take the following statement:
+C++ 中，左值是可以取地址的某种东西，例如，一个有名字的变量。这个名字来源于左值可以出现在赋值运算符的左侧。相反，右值是指不是左值的东西，比如一个字面量，或者一个临时对象或值（从技术上讲，C++ 标准定义了三个更多类别（xvalues、prvalues 和 glvalues），但那些细节对于当前讨论并不重要）。通常，右值出现在赋值运算符的右侧。例如，考虑以下语句：
 
 \begin{cpp}
 int a { 4 * 2 };
 \end{cpp}
 
-In this statement, a is an lvalue, it has a name, and you can take the address of it with \&a. The result of the expression 4*2, on the other hand, is an rvalue. It is a temporary value that is destroyed when the statement finishes execution. In this example, a copy of this temporary value is stored in the variable with name a.
-If a function returns something by value, the result of calling that function is an rvalue, a temporary.
+这个语句中，a 是一个左值，它有名字，并且可以用 \&a 来取它的地址。另一方面，表达式 4*2 的结果是一个右值。它是一个临时值，语句执行完毕时销毁。这个例子中，这个临时值的副本存储在名为 a 的变量中。 如果一个函数通过值返回某个结果，调用该函数的结果是一个临时右值。
 
-If the function returns a reference-to-non-const, then the result of calling the function is an lvalue, as you will be able to use the result on the left-hand side of an assignment.
+如果函数返回一个对非常量的引用，那么调用该函数的结果是一个左值，因为可以使用这个结果作为赋值运算符左侧的表达式。
 
-An rvalue reference is a reference to an rvalue. In particular, it is a concept that is applied when the rvalue is a temporary object or an object that is explicitly moved using std::move(), explained later in this section. The purpose of an rvalue reference is to make it possible for a particular function overload to be chosen when an rvalue is involved. This allows certain operations that normally involve copying large values to instead copy pointers to those values.
+右值引用是一个引用到右值。具体来说，当右值是一个临时对象或一个通过 std::move() 显式移动的对象。右值引用的目的是使得当涉及到右值时，可以有选择地选择特定的函数重载。这使得某些通常涉及复制大值的操作可以改为复制这些值的指针。
 
-A function can specify an rvalue reference parameter by using \&\& as part of the parameter specification, for example, type\&\& name. Normally, a temporary object will be seen as a const type\&, but when there is a function overload that uses an rvalue reference, a temporary object can be resolved to that overload. The following example demonstrates this. The code first defines two handleMessage() functions, one accepting an lvalue reference and one accepting an rvalue reference:
+函数可以通过在其参数说明中使用 \&\& 来指定一个右值引用参数，例如，type\&\& name。通常，临时对象会视为 const type\&，但是当有一个使用右值引用的函数重载时，临时对象可以解析为那个重载。以下示例展示了这一点。代码首先定义了两个 handleMessage() 函数，一个接受一个左值引用，另一个接受一个右值引用：
 
 \begin{cpp}
 void handleMessage(string& message) // lvalue reference parameter
@@ -456,59 +455,59 @@ void handleMessage(string&& message) // rvalue reference parameter
 }
 \end{cpp}
 
-You can call handleMessage() with a named variable as an argument:
+可以用一个命名变量作为参数来调用 handleMessage()：
 
 \begin{cpp}
 string a { "Hello " };
 handleMessage(a); // Calls handleMessage(string& value)
 \end{cpp}
 
-Because a is a named variable, the handleMessage() function accepting an lvalue reference is called. Any changes handleMessage() does through its reference parameter will change the value of a.
+因为 a 是一个命名变量，所以调用了接受左值引用的 handleMessage() 函数。通过其引用参数所做的更改都会改变 a 的值。
 
-You can also call handleMessage() with an expression as an argument:
+也可以用一个表达式作为参数来调用 handleMessage()：
 
 \begin{cpp}
 string b { "World" };
 handleMessage(a + b); // Calls handleMessage(string&& value)
 \end{cpp}
 
-The handleMessage() function accepting an lvalue reference cannot be used, because the expression a + b results in a temporary, which is not an lvalue. In this case, the rvalue reference overload is called. Because the argument is a temporary, any changes handleMessage() does through its reference parameter will be lost after the call returns.
+因为 a + b 表达式产生一个临时对象，而临时对象不是一个左值，所以不能使用接受左值引用的 handleMessage() 函数。这种情况下，调用了接受右值引用的重载。因为参数是一个临时对象，handleMessage() 通过其引用参数所做的更改在函数返回后都会丢失。
 
-A literal can also be used as argument to handleMessage(). This also triggers a call to the rvalue reference overload because a literal cannot be an lvalue (though a literal can be passed as argument to a reference-to-const parameter):
+字面量也可以作为 handleMessage() 的参数使用。这也会触发对接受右值引用的重载的调用，因为字面量不能是一个左值（尽管字面量可以作为对常量引用的参数传递）：
 
 \begin{cpp}
 handleMessage("Hello World"); // Calls handleMessage(string&& value)
 \end{cpp}
 
-If you remove the handleMessage() function accepting an lvalue reference, calling handleMessage() with a named variable like handleMessage(b) will result in a compilation error because an rvalue reference parameter (string\&\&) will never be bound to an lvalue (b). You can force the compiler to call the rvalue reference overload of handleMessage() by using std::move(). The only thing move() does is cast an lvalue to an rvalue reference; that is, it does not do any actual moving. However, by returning an rvalue reference, it allows the compiler to find an overload of handleMessage() accepting an rvalue reference, which can then perform the moving. Here is an example of using move():
+如果删除了接受左值引用的 handleMessage() 函数，调用 handleMessage() 并传递一个命名的变量，如 handleMessage(b)，将会导致编译错误，因为一个右值引用参数（string\&\&）永远不会绑定到一个左值（b）。可以通过使用 std::move() 来强制编译器调用 handleMessage() 的右值引用重载。move() 所做的唯一事情就是将一个左值转换为一个右值引用；也就是说，它不执行任何实际的移动操作。然而，通过返回一个右值引用，编译器找到一个接受右值引用的 handleMessage() 的重载，该重载可以执行移动操作。以下是一个使用 move() 的示例：
 
 \begin{cpp}
 handleMessage(std::move(b)); // Calls handleMessage(string&& value)
 \end{cpp}
 
-As I said before, but it’s worth repeating, a named variable is an lvalue. So, inside the handleMessage(string\&\& message) function, the message rvalue reference parameter itself is an lvalue because it has a name! If you want to forward this rvalue reference parameter to another function as an rvalue, then you need to use std::move() to cast the lvalue to an rvalue reference. For example, suppose you add the following function with an rvalue reference parameter:
+正如我之前所说，一个命名的变量是一个左值。因此，在 handleMessage(string\&\& message) 函数内部，message 右值引用参数本身是一个左值，因为它有名字！如果想将这个右值引用参数作为右值传递给另一个函数，则需要使用 std::move() 将左值转换为右值引用。例如，添加了以下具有右值引用参数的函数：
 
 \begin{cpp}
 void helper(string&& message) { }
 \end{cpp}
 
-Calling it as follows does not compile:
+像下面这样使用无法通过编译:
 
 \begin{cpp}
 void handleMessage(string&& message) { helper(message); }
 \end{cpp}
 
-The helper() function needs an rvalue reference, while handleMessage() passes message, which has a name, so it’s an lvalue, causing a compilation error. Here is the correct way using std::move():
+helper()函数需要一个右值引用，而handleMessage()传递的message因为有命名，所以是一个左值，这会导致编译错误。下面是使用std::move()的正确方法:
 
 \begin{cpp}
 void handleMessage(string&& message) { helper(std::move(message)); }
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-A named rvalue reference, such as an rvalue reference parameter, itself is an lvalue because it has a name!
+一个命名的右值引用，比如右值引用形参，本身就是一个左值!
 \end{myWarning}
 
-Rvalue references are not limited to parameters of functions. You can declare a variable of an rvalue reference type and assign to it, although this usage is uncommon. Consider the following code, which is illegal in C++:
+右值引用不仅限于函数的参数，也可以声明一个右值引用类型的变量，并给它赋值，但这种用法不常见。以下代码在 C++ 中非法：
 
 \begin{cpp}
 int& i { 2 }; // Invalid: reference to a constant
@@ -516,7 +515,7 @@ int a { 2 }, b { 3 };
 int& j { a + b }; // Invalid: reference to a temporary
 \end{cpp}
 
-Using rvalue references, the following is perfectly legal:
+使用右值引用，下面的代码完全合法:
 
 \begin{cpp}
 int&& i { 2 };
@@ -524,48 +523,48 @@ int a { 2 }, b { 3 };
 int&& j { a + b };
 \end{cpp}
 
-However, such stand-alone rvalue references are rarely used in this way.
+然而，这种独立的右值引用很少这样使用。
 
 \begin{myNotic}{NOTE}
-If a temporary is assigned to an rvalue reference, the lifetime of the temporary is extended for as long as the rvalue reference is in scope.
+如果将临时变量赋值给右值引用，则只要右值引用在作用域中，临时变量的生命周期就会延长。
 \end{myNotic}
 
 \CXXTwentythreeLogo{-40}{-50}
 
-\mySamllsection{Decay Copy}
+\mySamllsection{副本退化}
 
-If you have an object x, writing “auto y\{x\}” creates a copy of x and gives it a name y; thus, it is an lvalue.
+如果有一个对象 x，写成 “auto y\{x\}” 会创建 x 的一个副本并给命名为 y；因此，它是一个左值。
 
-C++23 introduces the auto(x) or auto\{x\} syntax to create a copy of an object x as an rvalue, not an lvalue.
+C++23 引入了 auto(x) 或 auto\{x\} 语法，以创建一个作为右值的 x 的副本，而不是左值。
 
-As an example, assume you have only the rvalue reference handleMessage(string\&\&) function from the previous section, not the lvalue reference overload. You know that the following won’t work in that case:
+假设只有一个前面部分中的右值引用 handleMessage(string\&\&) 函数，没有左值引用重载。这种情况下，下面的代码将不起作用：
 
 \begin{cpp}
 string value { "Hello " };
 handleMessage(value); // Error
 \end{cpp}
 
-You could use std::move(), as in:
+可以使用std::move():
 
 \begin{cpp}
 handleMessage(std::move(value));
 \end{cpp}
 
-But, after this operation, you should not use the value object any longer, as it might have been moved.
+但在这个操作之后，因为已经移动了，所以不应该再使用这个值。
 
-Using C++23 decay-copy syntax, you can write:
+使用 C++23 的副本退化语法：
 
 \begin{cpp}
 handleMessage(auto { value });
 \end{cpp}
 
-This makes a temporary copy of object value as an rvalue and passes that rvalue to handleMessage(). If handleMessage() moves from the copy, the original object, value, is retained and not impacted
+这使得将对象 value 作为一个右值进行临时复制，并将这个右值传递给 handleMessage()。如果 handleMessage() 从这个副本中移动，那么原始对象 value 将保留，不受影响。
 
-\mySamllsection{Implementing Move Semantics}
+\mySamllsection{实现移动语义}
 
-Move semantics is implemented using rvalue references. To add move semantics to a class, you need to implement a move constructor and a move assignment operator. Move constructors and move assignment operators should be marked with the noexcept specifier to tell the compiler that they don’t throw any exceptions. This is particularly important for compatibility with the Standard Library, as fully compliant implementations of, for example, the Standard Library containers will only move stored objects if, having move semantics implemented, they also guarantee not to throw. This is done to be able to provide strong exception safety.
+移动语义通过使用右值引用实现。为了向类中添加移动语义，需要实现一个移动构造函数和一个移动赋值运算符。移动构造函数和移动赋值运算符应该标记为 noexcept，说明其不会抛出任何异常。这对于与标准库的兼容性尤为重要，因为标准库容器的完全符合规定的实现将只在实现移动语义的同时保证不会抛出异常，以提供强异常安全性。
 
-The following is the Spreadsheet class definition with a move constructor and move assignment operator. Two helper member functions are introduced as well: cleanup(), which is used from the destructor and the move assignment operator, and moveFrom(), which moves the data members from a source to a destination and then resets the source object.
+以下是带有移动构造函数和移动赋值运算符的 Spreadsheet 类定义。此外，还引入了两个辅助成员函数：cleanup()，用于析构函数和移动赋值运算符中；moveFrom()，将源对象的数据成员移动到目标对象，然后重置源对象。
 
 \begin{cpp}
 export class Spreadsheet
@@ -581,7 +580,7 @@ export class Spreadsheet
 };
 \end{cpp}
 
-The implementations are as follows:
+实现如下所示:
 
 \begin{cpp}
 void Spreadsheet::cleanup() noexcept
@@ -628,27 +627,27 @@ Spreadsheet& Spreadsheet::operator=(Spreadsheet&& rhs) noexcept
 }
 \end{cpp}
 
-Both the move constructor and the move assignment operator are moving ownership of the memory for m\_cells from a source object to a new object. They reset the m\_cells pointer of the source object to a null pointer and set m\_width and m\_height of the source object to zero to prevent the source object’s destructor from deallocating any memory because the new object is now the owner of it.
+移动构造函数和移动赋值运算符是将 m\_cells 内存的所有权，从一个源对象转移到一个新的对象。它们将源对象的 m\_cells 指针置为空指针，并将源对象的 m\_width 和 m\_height 设置为零，以防止源对象的析构函数释放内存。
 
-Obviously, move semantics is useful only when you know that the source object is not needed anymore.
+显然，只有在知道源对象不再需要时，移动语义才有用。
 
-Note that this implementation includes a self-assignment test in the move assignment operator. Depending on your class and depending on how you are moving one instance of your class to another instance, this self-assignment test might not always be necessary. However, you should always include it, just as the C++ Core Guidelines recommend(Guideline C.65 of the C++ Core Guidelines (see Appendix B, “Annotated Bibliography”) states, “Make move assignment safe for self-assignment.”), to make sure that code as follows never causes a crash at run time:
+注意，这个实现包括在移动赋值运算符中的自我赋值测试。根据前面的实例，这个自我赋值测试可能并不总是必要的。然而，应该始终包括它，就像 C++ 核心指南所建议的那样（C++ 核心指南 C.65 条目（见附录 B）指出，“使移动赋值对自我赋值安全。”），以确保以下代码不会在运行时崩溃：
 
 \begin{cpp}
 sheet1 = std::move(sheet1);
 \end{cpp}
 
-Move constructors and move assignment operators can be explicitly deleted or defaulted, just like copy constructors and copy assignment operators, as explained in Chapter 8.
+移动构造函数和移动赋值运算符可以显式删除或默认，就像复制构造函数和复制赋值运算符一样。
 
-The compiler automatically generates a default move constructor for a class if and only if the class has no user-declared copy constructor, copy assignment operator, move assignment operator, or destructor. A default move assignment operator is generated for a class if and only if the class has no user-declared copy constructor, move constructor, copy assignment operator, or destructor.
+如果一个类没有用户声明的复制构造函数、复制赋值运算符、移动构造函数或析构函数，编译器会自动为该类生成一个默认的移动构造函数。如果一个类没有用户声明的复制构造函数、移动构造函数、复制赋值运算符或析构函数，编译器也会为该类生成一个默认的移动赋值运算符。
 
 \begin{myWarning}{WARNING}
-When you declare one or more of the special member functions (destructor, copy constructor, move constructor, copy assignment operator, and move assignment operator), then it’s recommended to declare all of them. This is called the rule of five. You either provide explicit implementations for them or explicitly default (=default) or delete (=delete) them.
+当您声明一个或多个特殊成员函数（析构函数、复制构造函数、移动构造函数、复制赋值运算符和移动赋值运算符）时，建议声明所有这些函数。这被称为五法则。您要么为它们提供显式实现，要么显式默认（=default）或删除（=delete）它们。
 \end{myWarning}
 
-\mySamllsection{Using std::exchange}
+\mySamllsection{std::exchange}
 
-You can use std::exchange(), defined in <utility>, to replace a value with a new value and return the old value, as in this example:
+可以使用定义在  <utility> 中的 std::exchange() 来用新值替换一个值并返回旧值，如下例所示：
 
 \begin{cpp}
 int a { 11 };
@@ -659,7 +658,7 @@ println("After exchange(): a = {}, b = {}", a, b);
 println("exchange() returned: {}", returnedValue);
 \end{cpp}
 
-The output is as follows:
+输出为：
 
 \begin{shell}
 Before exchange(): a = 11, b = 22
@@ -667,7 +666,7 @@ After exchange(): a = 22, b = 22
 exchange() returned: 11
 \end{shell}
 
-The exchange() function is useful in implementing move assignment operators. A move assignment operator needs to move the data from a source object to a destination object, after which the data in the source object is usually nullified. In the previous section, this is done as follows:
+exchange() 函数在实现移动赋值运算符时非常有用。移动赋值运算符需要将数据从源对象移动到目标对象，之后源对象中的数据会清除。上一节中，这是这样做的：
 
 \begin{cpp}
 void Spreadsheet::moveFrom(Spreadsheet& src) noexcept
@@ -684,7 +683,7 @@ void Spreadsheet::moveFrom(Spreadsheet& src) noexcept
 }
 \end{cpp}
 
-This member function copies the m\_width, m\_height, and m\_cells data members from the source object and then sets them to either 0 or nullptr, because ownership has been moved. With exchange() this can be written more compactly as follows:
+这个成员函数复制了源对象的数据成员 m\_width、m\_height 和 m\_cells，然后将它们设置为 0 或 nullptr。使用 exchange()，这可以更紧凑地写为：
 
 \begin{cpp}
 void Spreadsheet::moveFrom(Spreadsheet& src) noexcept
@@ -695,9 +694,9 @@ void Spreadsheet::moveFrom(Spreadsheet& src) noexcept
 }
 \end{cpp}
 
-\mySamllsection{Moving Object Data Members}
+\mySamllsection{移动数据成员}
 
-The moveFrom() member function uses direct assignments of the three data members because they are primitive types. If your object contains other objects as data members, then you should move these objects using std::move(). Suppose the Spreadsheet class has an std::string data member called m\_name. The moveFrom() member function should then be implemented as follows:
+因为它们是基本类型，所以moveFrom() 成员函数使用直接赋值来处理三个数据成员。如果对象包含其他对象作为数据成员，应该使用 std::move() 来移动这些对象。假设 Spreadsheet 类有一个名为 m\_name 的 std::string 数据成员。moveFrom() 成员函数应该这样实现：
 
 \begin{cpp}
 void Spreadsheet::moveFrom(Spreadsheet& src) noexcept
@@ -712,11 +711,11 @@ void Spreadsheet::moveFrom(Spreadsheet& src) noexcept
 }
 \end{cpp}
 
-\mySamllsection{Move Constructor and Move Assignment Operator in Terms of Swap}
+\mySamllsection{移动构造函数和移动赋值操作符的使用}
 
-The previous implementation of the move constructor and the move assignment operator both use the moveFrom() helper function, which moves all data members by performing shallow copies. With this implementation, if you add a new data member to the Spreadsheet class, you have to modify both the swap() function and the moveFrom() function. If you forget to update one of them, you introduce a bug. To avoid such bugs, you can write the move constructor and the move assignment operator in terms of the swap() function.
+之前的移动构造函数和移动赋值运算符都使用了 moveFrom() ，该函数通过执行浅复制来移动所有数据成员。如果向 Spreadsheet 类添加一个新的数据成员，就必须修改 swap() 函数和 moveFrom() 函数。如果忘记更新其中一个，就会引入错误。为了避免这样的错误，可以用移动构造函数和移动赋值运算符替代 swap() 函数。
 
-First, the cleanup() and moveFrom() helper functions can be removed. The code from the cleanup() function is moved to the destructor. The move constructor and move assignment operator can then be implemented as follows:
+首先，可以删除 cleanup() 和 moveFrom() 辅助函数。将 cleanup() 函数中的代码移到析构函数中。然后，移动构造函数和移动赋值运算符可以按照以下方式实现：
 
 \begin{cpp}
 Spreadsheet::Spreadsheet(Spreadsheet&& src) noexcept
@@ -732,13 +731,13 @@ Spreadsheet& Spreadsheet::operator=(Spreadsheet&& rhs) noexcept
 }
 \end{cpp}
 
-The move constructor simply swaps the default constructed *this with the given source object. The move assignment operator uses the move-and-swap idiom, which is similar to the copy-and-swap idiom discussed before.
+移动构造函数简单地将默认构造的 *this 与给定的源对象进行交换。移动赋值运算符使用移动-交换模式，这与之前讨论的复制-交换模式类似。
 
 \begin{myNotic}{NOTE}
-Implementing a move constructor and move assignment operator in terms of swap() requires less code. It is also less likely bugs are introduced when data members are added, because you only have to update your swap() implementation to include those new data members.
+使用 swap() 实现移动构造函数和移动赋值运算符可以减少代码量。当添加数据成员时，引入错误的概率也较低，只需要更新 swap() 实现来包含这些新数据成员。
 \end{myNotic}
 
-The Spreadsheet move assignment operator could also be implemented as follows:
+Spreadsheet 的移动赋值运算符也可以如下实现：
 
 \begin{cpp}
 Spreadsheet& Spreadsheet::operator=(Spreadsheet&& rhs) noexcept
@@ -748,11 +747,11 @@ Spreadsheet& Spreadsheet::operator=(Spreadsheet&& rhs) noexcept
 }
 \end{cpp}
 
-However, doing so does not guarantee that the contents of this is immediately cleaned up. Instead, the contents of this escapes through rhs to the caller of the move assignment operator and thus might stay alive longer than expected.
+然而，这样做并不能保证立即清理 this 的内容。相反，this 的内容会通过 rhs 转移到移动赋值运算符的调用者处，可能比预期存活得更久。
 
-\mySamllsection{Testing the Spreadsheet Move Operations}
+\mySamllsection{测试 Spreadsheet 的移动操作}
 
-The Spreadsheet move constructor and move assignment operator can be tested with the following code:
+Spreadsheet 的移动构造函数和移动赋值运算符可以通过以下代码进行测试：
 
 \begin{cpp}
 Spreadsheet createObject()
@@ -779,9 +778,9 @@ int main()
 }
 \end{cpp}
 
-Chapter 1 introduces the vector. A vector grows dynamically in size to accommodate new objects. This is done by allocating a bigger chunk of memory and then copying or moving the objects from the old vector to the new and bigger vector. If the compiler finds a noexcept move constructor, the objects are moved instead of copied. Because they are moved, there is no need for any deep copying, making it much more efficient.
+第 1 章介绍了 vector。一个 vector 动态地增长其大小以适应新的对象。这是通过分配更大的内存块并然后将对象从旧 vector 复制或移动到新的更大的 vector 实现的。如果编译器发现一个 noexcept 移动构造函数，则使用移动而不是复制。因为移动，所以不需要深度复制，更有效率。
 
-After adding print statements to all constructors and assignment operators of the Spreadsheet class, the output of the preceding test program can be as follows. The numbers to the right of each line are not part of the actual output but added in this text to make it easier to refer to specific lines in the discussion that follows. This output and the following discussion are based on the version of the Spreadsheet class using the move-and-swap idiom to implement its move operations, and on the Microsoft Visual C++ 2022 compiler for a release build of the code. The C++ standard does not specify the initial capacity of a vector nor its growth strategy, so the output can be different on different compilers.
+在 Spreadsheet 类的所有构造函数和赋值运算符中添加打印语句后，前面测试程序的输出可能如下所示。每行右侧的数字不是实际输出的一部分，而是添加到本文字中，以便更容易地引用以下讨论中的特定行。此输出和以下讨论基于使用移动和交换模式实现其移动操作的 Spreadsheet 类版本，以及使用 Microsoft Visual C++ 2022 编译器的代码的发布构建。C++ 标准没有指定 vector 的初始容量及其增长策略，因此不同编译器的输出可能会有所不同。
 
 \begin{shell}
 Iteration 0
@@ -804,25 +803,25 @@ Normal constructor         (12)
 Copy constructor           (13)
 \end{shell}
 
-On the first iteration of the loop, the vector is still empty. Take the following line of code from the loop:
+循环的第一次迭代中，vector 仍然为空。考虑循环中的以下代码行：
 
 \begin{cpp}
 vec.push_back(Spreadsheet { 100, 100 });
 \end{cpp}
 
-With this line, a new Spreadsheet object is created, invoking the normal constructor (1). The vector resizes itself to make space for the new object being pushed in. The created Spreadsheet object is then moved into the vector, invoking the move constructor (2).
+执行此行代码时，创建一个新的 Spreadsheet 对象，调用正常构造函数（1）。vector 调整大小以为新对象腾出空间。然后，创建的 Spreadsheet 对象移动到 vector 中，调用移动构造函数（2）。
 
-On the second iteration of the loop, a second Spreadsheet object is created with the normal constructor (3). At this point, the vector can hold one element, so it’s again resized to make space for a second object. Because the vector is resized, the previously added elements need to be moved from the old vector to the new and bigger vector. This triggers a call to the move constructor for each previously added element. There is one element in the vector, so the move constructor is called one time (4). Finally, the new Spreadsheet object is moved into the vector with its move constructor (5).
+循环的第二次迭代中，使用正常构造函数创建了第二个 Spreadsheet 对象（3）。此时，vector 可以容纳一个元素，再次调整大小以为新对象腾出空间。因为 vector 调整大小，之前添加的元素需要从旧 vector 移动到新的更大的 vector 中。这触发了对之前每个添加元素的移动构造函数的调用。vector 中有一个元素，所以调用移动构造一次（4）。最后，新的 Spreadsheet 对象移动到 vector 中，调用移动构造函数（5）。
 
-Next, a Spreadsheet object s is created using the normal constructor (6). The createObject() function creates a temporary Spreadsheet object with its normal constructor (7), which is then returned from the function and assigned to the variable s. Because the temporary object returned from createObject() ceases to exist after the assignment, the compiler invokes the move assignment operator (8) instead of the copy assignment operator. The move assignment operator uses the moveand-swap idiom, so it delegates work to the move constructor (9).
+接下来，使用正常构造函数创建了一个 Spreadsheet 对象 s（6）。createObject() 函数创建了一个临时 Spreadsheet 对象，调用正常构造函数（7），然后该临时对象从函数返回并赋值给变量 s。因为 createObject() 返回的临时对象在赋值后不再存在，编译器调用移动赋值运算符（8）而不是复制赋值运算符。移动赋值运算符使用移动和交换模式，因此委托给移动构造函数（9）。
 
-Another Spreadsheet object is created, s2, using the normal constructor (10). The assignment s2 = s invokes the copy assignment operator (11) because the right-hand side object is not a temporary object, but a named object. This copy assignment operator uses the copy-and-swap idiom, which creates a temporary copy, triggering a call to the copy constructor, which first delegates to the normal constructor (12 and 13).
+另一个 Spreadsheet 对象 s2 使用正常构造函数创建（10）。赋值 s2 = s 调用复制赋值运算符（11），因为右侧对象不是临时对象，而是一个命名对象。这个复制赋值运算符使用复制和交换模式，创建了一个临时副本，触发了对复制构造函数的调用，该复制构造函数首先委托给正常构造函数（12 和 13）。
 
-If the Spreadsheet class did not implement move semantics, all the calls to the move constructor and move assignment operator would be replaced with calls to the copy constructor and copy assignment operator. In the previous example, the Spreadsheet objects in the loop have 10,000 (100 × 100) elements. The implementations of the Spreadsheet move constructor and move assignment operator don’t require any memory allocation, while the copy constructor and copy assignment operator require 101 allocations each. So, using move semantics can increase performance a lot in certain situations.
+如果 Spreadsheet 类没有实现移动语义，所有对移动构造函数和移动赋值运算符的调用都会替换为对复制构造函数和复制赋值运算符的调用。之前的示例中，循环中的 Spreadsheet 对象有 10,000（100 × 100）个元素。Spreadsheet 移动构造函数和移动赋值运算符的实现不需要任何内存分配，而复制构造函数和复制赋值运算符每次都需要 101 次分配。某些情况下，使用移动语义可以显著提高性能。
 
-\mySamllsection{Implementing a Swap Function with Move Semantics}
+\mySamllsection{使用移动语义实现交换函数}
 
-As another example where move semantics increases performance, take a swap() function that swaps two Objects. The following swapCopy() implementation does not use move semantics:
+作为另一个示例 swap() 函数，该函数交换两个 Object。以下 swapCopy() 实现不使用移动语义：
 
 \begin{cpp}
 void swapCopy(Object& a, Object& b)
@@ -833,7 +832,7 @@ void swapCopy(Object& a, Object& b)
 }
 \end{cpp}
 
-First, a is copied to temp, then b is copied to a, and finally temp is copied to b. This implementation will hurt performance if Object is expensive to copy. With move semantics, the implementation can avoid all copying:
+首先，将 a 复制到 temp，然后将 b 复制到 a，最后将 temp 复制到 b。如果 Object 复制成本较高，这种实现会严重影响性能。使用移动语义，可以避免所有复制：
 
 \begin{cpp}
 void swapMove(Object& a, Object& b)
@@ -844,51 +843,51 @@ void swapMove(Object& a, Object& b)
 }
 \end{cpp}
 
-This is how std::swap() from the Standard Library is implemented.
+这就是标准库中的 std::swap() 的实现方式。
 
-\mySamllsection{Using std::move() in Return Statements}
+\mySamllsection{返回语句中使用 std::move()}
 
-As Chapter 1 states, since C++17, a compiler is not allowed to perform any copying or moving of objects for statements of the form return object; where object is a nameless temporary. This is called mandatory elision of copy/move operations and means that there’s no performance penalty at all by returning object by value. If object is a local variable that is not a function parameter, nonmandatory elision of copy/move operations is allowed, an optimization also known as named return value optimization (NRVO). This optimization is not guaranteed by the standard. Some compilers perform this optimization only for release builds but not for debug builds. With mandatory and nonmandatory elision, compilers can avoid any copying of objects that are returned from functions. This results in zero-copy pass-by-value semantics.
+正如第 1 章所述，从 C++17 开始，编译器不允许对 return object; 的语句中的匿名临时对象 object 执行复制或移动操作。这称为强制省略复制/移动操作，所以按值返回 object 没有性能开销。如果 object 是一个不是函数参数的局部变量，则允许非强制性省略复制/移动操作，也称为命名返回值优化（NRVO）。这种优化不是标准保证的。一些编译器仅在发布构建中执行此优化，而不在调试构建中执行。通过强制性和非强制性省略，编译器可以避免从函数返回对象的复制，这就是零拷贝按值传递语义。
 
 \begin{myWarning}{WARNING}
- Note that for NRVO, even though the copy/move constructors won’t be called, they still need to be accessible; otherwise, the program is ill-formed according to the standard.
+请注意，对于 NRVO，即使不再调用复制/移动构造函数，仍然需要可访问；否则，根据标准，程序不正确。
 \end{myWarning}
 
-Now, what happens when using std::move() to return an object? Consider you write the following:
+现在，当在返回语句中使用 std::move() 时会发生什么？例如编写以下代码：
 
 \begin{cpp}
 return std::move(object);
 \end{cpp}
 
-With this code, compilers cannot apply mandatory nor non-mandatory (NRVO) elision of copy/move operations anymore, as that works only for statements of the form return object;. Since copy/ move elision cannot be applied anymore, the next option for the compiler is to use move semantics if the object supports it, and if not, fall back to copy semantics.
+使用此代码，编译器无法再应用强制性省略（NRVO）或非强制性省略复制/移动操作，因为这些仅适用于形式为 return object; 的语句。由于无法再应用复制/移动省略，编译器的下一个选项是，如果对象支持移动语义，则使用移动语义；如果不支持，则退回到复制语义。
 
-Compared to NRVO, falling back to move semantics has a small performance impact, but falling back to copy semantics can have a big performance impact! So, keep the following warning in mind:
+与 NRVO 相比，退回到移动语义会有轻微的性能影响，但退回到复制语义可能会产生巨大的性能影响！因此，请记住以下警告：
 
 \begin{myWarning}{WARNING}
-When returning a local variable or nameless temporary from a function, simply write return object; and do not use std::move().
+当从一个函数返回局部变量或匿名临时对象时，只需写 return object; 而不使用 std::move()。
 \end{myWarning}
 
-Note that if you want to return a data member of a class from one of its member functions, then you need to use std::move() if you want to move it out instead of returning a copy.
+请注意，如果想要从一个类的成员函数返回其数据成员，那么想要移动它(而不是返回其副本)，则需要使用 std::move()。
 
-Additionally, be careful with expressions such as the following:
+此外，对于以下表达式要小心：
 
 \begin{cpp}
 return condition ? obj1 : obj2;
 \end{cpp}
 
-This is not of the form return object;, so the compiler cannot apply copy/move elision. Even worse, an expression of the form condition ? obj1 : obj2 is an lvalue, so the compiler uses a copy constructor instead to return one of the objects. To at least trigger move semantics, you can rewrite the return statement as follows:
+这不符合形式 return object;，所以编译器无法应用复制/移动省略。更糟糕的是，条件 ? obj1 : obj2 形式的表达式是一个左值，所以编译器使用复制构造函数来返回其中一个对象。为了至少触发移动语义，可以将返回语句重写如下：
 
 \begin{cpp}
 return condition ? std::move(obj1) : std::move(obj2);
 \end{cpp}
 
-or
+或
 
 \begin{cpp}
 return std::move(condition ? obj1 : obj2);
 \end{cpp}
 
-However, it’s clearer to rewrite the return statement as follows for which a compiler can automatically use move semantics without explicitly using std::move():
+然而，更清晰的做法是将返回语句重写为以下形式，编译器可以自动使用移动语义而无需显式使用 std::move():
 
 \begin{cpp}
 if (condition) {
@@ -898,9 +897,9 @@ if (condition) {
 }
 \end{cpp}
 
-\mySamllsection{Optimal Way to Pass Arguments to Functions}
+\mySamllsection{向函数传递参数的最优方式}
 
-Up to now, the advice has been to use reference-to-const parameters for non-primitive function parameters to avoid unnecessary expensive copying of an argument passed to a function. However, with rvalues in the mix, things change slightly. Imagine a function that anyways copies an argument passed as one of its parameters. This situation often pops up with class member functions. Here is a simple example:
+到目前为止，建议使用引用为常量参数来避免非基本函数参数的冗余昂贵的复制。然而，当右值介入时，情况略有变化。想象一个函数无论如何都会复制作为其参数传递的对象。这种情况经常出现在类成员函数中：
 
 \begin{cpp}
 class DataHolder
@@ -912,7 +911,7 @@ class DataHolder
 };
 \end{cpp}
 
-setData() makes a copy of the data passed in. Now that you are fluent with rvalues and rvalue references, you might want to add an overload to optimize setData() to avoid any copying in case of rvalues. Here’s an example:
+etData() 复制传入的数据。现在您熟悉了右值和右值引用，可能想为 setData() 添加一个重载，以优化避免在右值的情况下进行复制：
 
 \begin{cpp}
 class DataHolder
@@ -925,9 +924,9 @@ class DataHolder
 };
 \end{cpp}
 
-When setData() is called with a temporary, no copies are made; the data is moved instead.
+当传递临时对象为setData()的参数时，不进行复制；数据移动了。
 
-The code in the following code snippet triggers a call to the reference-to-const overload of setData(), and hence a copy of the data is made:
+以下代码片段触发了对 setData() 的引用为常量重载的调用，因此进行了数据的复制：
 
 \begin{cpp}
 DataHolder wrapper;
@@ -935,13 +934,13 @@ vector myData { 11, 22, 33 };
 wrapper.setData(myData);
 \end{cpp}
 
-On the other hand, the following code snippet calls setData() with a temporary, which triggers a call to the rvalue reference overload of setData(). The data is subsequently moved instead of copied.
+另一方面，以下代码片段以临时对象调用 setData()，这触发了对 setData() 的右值引用重载的调用。随后数据是移动，而不是复制：
 
 \begin{cpp}
 wrapper.setData({ 22, 33, 44 });
 \end{cpp}
 
-Unfortunately, this way to optimize setData() for both lvalues and rvalues requires an implementation of two overloads. Luckily, there is a better way that involves a single member function using pass-by-value. Yes, pass-by-value! Up to now, it has been advised to always pass objects using reference-to-const parameters to avoid any unnecessary copying, but now we advise to use pass-byvalue. Let’s clarify. For parameters that are not copied, passing by reference-to-const is still the way to go. The pass-by-value advice is suitable only for parameters that the function would copy anyway. In that case, by using pass-by-value semantics, the code is optimal for both lvalues and rvalues. If an lvalue is passed in, it’s copied exactly one time, just as with a reference-to-const parameter. And, if an rvalue is passed in, no copy is made, just as with an rvalue reference parameter. Let’s look at some code:
+不幸的是，为了优化 setData() 以适应左值和右值，需要实现两个重载。幸运的是，有一个更好的方法，涉及使用按值传递的单个成员函数——按值传递！到目前为止，建议总是使用引用为常量的参数来传递对象，以避免不必要的复制，但现在建议使用按值传递。对于那些不会复制的参数，使用引用为常量的参数仍然是正确的做法。按值传递的建议只适用于函数会无论如何复制的参数。这种情况下，使用按值传递语义，代码对于左值和右值都最优。如果传递了一个左值，将精确地复制一次，就像使用引用为常量参数一样。如果传递了一个右值，则不会进行复制，就像使用右值引用参数一样。来看一些代码：
 
 \begin{cpp}
 class DataHolder
@@ -953,25 +952,25 @@ class DataHolder
 };
 \end{cpp}
 
-If an lvalue is passed to setData(), it is copied into the data parameter and subsequently moved to m\_data. If an rvalue is passed to setData(), it is moved into the data parameter, and moved again to m\_data.
+如果传递了一个左值给 setData()，将复制到 data 参数中，然后移动到 m\_data。如果传递了一个右值给 setData()，将移动到 data 参数中，然后再移动到 m\_data。
 
 \begin{myNotic}{NOTE}
-Prefer pass-by-value for parameters that a function inherently would copy, but only if the parameter is of a type that supports move semantics and only if you don’t need polymorphic behavior on the parameter. Otherwise, use reference-toconst parameters. Passing polymorphic types by value can result in slicing. This is explained in Chapter 10, “Discovering Inheritance Techniques.”
+对于函数内在会复制的参数，建议使用按值传递，但仅当参数类型支持移动语义，并且当不需要参数上的多态行为时。否则，请使用引用为常量的参数。按值传递多态类型可能导致切片，这将在第10章进行介绍。
 \end{myNotic}
 
-\mySubsubsection{9.2.5.}{Rule of Zero}
+\mySubsubsection{9.2.5.}{零法则}
 
-Earlier in this chapter, the rule of five was introduced. It states that once you declare one of the five special member functions (destructor, copy constructor, move constructor, copy assignment operator, and move assignment operator), then you should declare all of them by either implementing, defaulting, or deleting them. The reason is that there are complicated rules that compilers follow to decide whether to automatically provide a compiler-generated version of those special member functions. By declaring all of them yourself, you don’t leave anything for the compiler to decide, making your intent much clearer.
+本章早些时候，介绍了五法则。复习一下，声明了五个特殊成员函数中的一个（析构函数、复制构造函数、移动构造函数、复制赋值运算符和移动赋值运算符），那么应该声明所有这些函数，要么实现它们，要么显式默认（=default）或删除（=delete）。原因是编译器遵循复杂的规则来决定，是否自动生成这些特殊成员函数。通过自己声明所有这些函数，不会让编译器决定任何事情，并且将使类的意图更加明确。
 
-All the discussions so far have been to explain how to write those five special member functions.
+目前为止的所有讨论，都解释了如何编写这五个特殊成员函数。
 
-However, in modern C++, you should adopt the rule of zero. The rule of zero states that you should design your classes in such a way that they do not require any of those five special member functions. How do you do that? You can do that for non-polymorphic types in which you avoid using old-style dynamically allocated memory or other resources. Instead, use modern constructs such as Standard Library containers and smart pointers. For example, you can use a vector<vector<SpreadsheetCell>{}> instead of the SpreadsheetCell** data member in the Spreadsheet class. Or even better, use a vector<SpreadsheetCell> storing a linearized representation of a spreadsheet. The vector handles memory automatically, so there is no need for any of those five special member functions.
+现代 C++ 中，应该采用零法则。零法则指出，应该去设计类，使它们不需要这五个特殊成员函数。怎么做到这点呢？可以为非多态类型做到这一点，避免使用旧式的动态分配内存或其他资源，而使用现代构造，如标准库容器和智能指针。例如，可以使用 vector<vector<SpreadsheetCell>{}> 而不是 Spreadsheet 类中的 SpreadsheetCell** 数据成员，或者使用一个 vector<SpreadsheetCell> 来存储电子表格的线性化表示。vector 会自动处理内存，所以不需要这五个特殊成员函数。
 
 \begin{myWarning}{WARNING}
-In modern C++, adopt the rule of zero!
+现代 C++ 中，采用零法则！
 \end{myWarning}
 
-The rule of five should be limited to custom resource acquisition is initialization (RAII) classes. An RAII class takes ownership of a resource and handles its deallocation at the right time. It’s a design technique used, for example, by vector and unique\_ptr and discussed further in Chapter 32, “Incorporating Design Techniques and Frameworks.” Additionally, Chapter 10 explains that polymorphic types require you to follow the rule of five as well.
+五法则应该限制在自定义资源获取即初始化（RAII）类中。RAII 类拥有资源，并在正确的时间处理其释放。这是一种设计技术，例如 vector 和 unique\_ptr 使用了这种技术，会在第 32 章中进行了进一步介绍。此外，第 10 章会说明多态类型也需要遵循五法则。
 
 
 

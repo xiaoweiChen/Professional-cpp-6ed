@@ -1,21 +1,21 @@
-By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+通过解决下面的练习，可以练习本章讨论的内容。所有练习的解决方案都可以在本书的网站\url{www.wiley.com/go/proc++6e}下载到源码。然而，若在练习中卡住了，在从网站上寻找解决方案之前，可以考虑先重读本章的部分内容，试着自己找到答案。
 
 \begin{itemize}
 \item
-Exercise 8-1: Implement a Person class storing a first and last name as data members. Add a single constructor accepting two parameters, the first and last name. Provide appropriate getters and setters. Write a small main() function to test your implementation by creating a Person object on the stack and on the free store.
+\textbf{练习 8-1}: 实现一个 Person 类，存储一个首字母和姓作为数据成员。添加一个接受两个参数的单构造函数，首字母和姓。提供适当的 getters 和 setters。编写一个小的 main() 函数来测试您的实现，通过在栈上和堆上创建 Person 对象。
 
 \item
-Exercise 8-2: With the set of member functions implemented in Exercise 8-1, the following line of code does not compile:
+\textbf{练习 8-2}: 基于练习 8-1 中的实现，以下代码行不能编译：
 
 \begin{cpp}
 Person persons[3];
 \end{cpp}
 
-Can you explain why this does not compile? Modify the implementation of your Person class to make this work.
+能解释为什么这行代码不能编译吗？修改 Person 类的实现，使其可以工作。
 
 \item
-Exercise 8-3: Add the following member functions to your Person class implementation: a copy constructor, a copy assignment operator, and a destructor. In all of these member functions, implement what you think is necessary, and additionally, output a line of text to the console so you can trace when they are executed. Modify your main() function to test these new member functions. Note: technically, these new member functions are not strictly required for this Person class, because the compiler-generated versions are good enough, but this exercise is to practice writing them.
+\textbf{练习 8-3}: 在 Person 类实现中添加以下成员函数：一个复制构造函数、一个复制赋值运算符和一个析构函数。在这些所有成员函数中，实现您认为必要的部分，并添加输出一行文本到控制台的代码，以便追踪它们何时执行，修改 main() 函数来测试这些新的成员函数。注意：因为编译器生成的版本已经足够好，这些新的成员函数对于这个 Person 类并不必需，这里只是为了练习。
 
 \item
-Exercise 8-4: Remove the copy constructor, copy assignment operator, and destructor from your Person class, because the default compiler-generated versions are exactly what you need for this simple class. Next, add a new data member to store the initials of a person, and provide a getter and setter. Add a new constructor that accepts three parameters, a first and last name, and a person’s initials. Modify the original two-parameter constructor to automatically generate initials for a given first and last name, and delegate the actual construction work to the new three-parameter constructor. Test this new functionality in your main() function.
+\textbf{练习 8-4}: 从 Person 类中删除复制构造函数、复制赋值运算符和析构函数，因为默认的编译器生成的版本正好是这个简单类所需要的。接下来，添加一个新数据成员来存储一个人的缩写名，并提供一个 getter 和 setter。添加一个新的构造函数，接受三个参数，一个首字母和姓，以及一个人的缩写名。修改原始的两个参数构造函数，为给定的首字母和姓自动生成缩写名，并将实际的构造工作委托给新的三个参数构造函数。在 main() 函数中测试这个新功能。
 \end{itemize}
