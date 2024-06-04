@@ -1,9 +1,9 @@
 
-In modern C++, it’s possible to easily perform computations at compile time instead of at run time. This improves the run-time performance of your code. Two important keywords are used to accomplish this: constexpr and consteval.
+现代 C++ 中，可以在编译时执行计算，这可以提高代码的运行时性能。与之相关的有两个重要的关键字：constexpr 和 consteval。
 
-\mySubsubsection{9.4.1.}{The constexpr Keyword}
+\mySubsubsection{9.4.1.}{constexpr 关键字}
 
-C++ always had the notion of constant expressions, which are expressions evaluated at compile time. In some circumstances, constant expressions are a requirement. For example, when defining an array, the size of the array needs to be a constant expression. Because of this restriction, the following piece of code is not valid in C++:
+C++ 有常量表达式，这些表达式在编译时进行评估。某些情况下，必须是常量表达式。例如，当定义一个数组时，数组的大小需要是常量表达式。因此，以下代码在 C++ 中无效：
 
 \begin{cpp}
 const int getArraySize() { return 32; }
@@ -15,7 +15,7 @@ int main()
 }
 \end{cpp}
 
-Using the constexpr keyword, getArraySize() can be redefined to allow it to be called from within a constant expression:
+使用 constexpr 关键字，可以重新定义getArraySize() ，使其能够在常量表达式中使用：
 
 \begin{cpp}
 constexpr int getArraySize() { return 32; }
@@ -27,15 +27,15 @@ int main()
 }
 \end{cpp}
 
-You can even do something like this:
+也可以这样：
 
 \begin{cpp}
 int myArray[getArraySize() + 1]; // OK
 \end{cpp}
 
-Constant expressions can only use constexpr entities and integer, Boolean, character, and enumeration constants.
+常量表达式只能用于 constexpr 和整数、布尔、字符和枚举常量。
 
-Declaring a function as constexpr imposes restrictions on what the function can do because the compiler has to be able to evaluate the function at compile time. For example, a constexpr function is not allowed to have any side effects, nor can it let any exceptions escape the function. Throwing exceptions and catching them in try blocks inside the function is allowed. A constexpr function is allowed to unconditionally call other constexpr functions. It is also allowed to call non-constexpr functions, but only if those calls are triggered during evaluation at run time, and not during constant evaluation. For example:
+函数声明为 constexpr 时，会有一些限制，编译器必须在编译时评估该函数。例如， constexpr 函数不允许有副作用，也不允许有异常从函数中逸出，可以在函数内的 try 块中抛出和捕获异常。constexpr 函数可以无条件地使用其他 constexpr 函数，也可以调用非 constexpr 函数，但只有在运行时才会触发这些调用，而不是在编译时。例如：
 
 \begin{cpp}
 void log(string_view message) { print("{}", message); }
@@ -50,19 +50,19 @@ constexpr int computeSomething(bool someFlag)
 }
 \end{cpp}
 
-The computeSomething() function is constexpr and includes a call to log(), which is nonconstexpr, but that call is executed only when someFlag is true. As long as computeSomething() is called with someFlag set to false, it can be called within a constant expression, for example:
+constexpr函数computeSomething()，包括了对 log() 的使用，log()是一个非 constexpr 的函数，这个调用仅在 someFlag 为 true 时执行。 computeSomething() 在 someFlag 参数为 false 时，就可以在常量表达式中使用，例如：
 
 \begin{cpp}
 constexpr auto value1 { computeSomething(false) };
 \end{cpp}
 
-Calling the function with someFlag set to true cannot be done in a constant expression. The following does not compile:
+将 someFlag 设置为 true ，将无法在常量表达式中完成。以下代码片段无法通过编译：
 
 \begin{cpp}
 constexpr auto value2 { computeSomething(true) };
 \end{cpp}
 
-The following works fine, as the evaluation now happens at run time instead of at compile time:
+以下代码工作正常，会在运行时进行，而非编译时：
 
 \begin{cpp}
 const auto value3 { computeSomething(true) };
@@ -70,39 +70,39 @@ const auto value3 { computeSomething(true) };
 
 \CXXTwentythreeLogo{-40}{-40}
 
-C++23 relaxes the restrictions for constexpr functions a bit: goto statements, labels (besides case labels), and static and static constexpr variables are now allowed in constexpr functions, but were not allowed before.
+C++23 放宽了对 constexpr 函数的限制：允许 goto 语句、标签（除了 case 标签）和静态和静态 constexpr 变量存在于在 constexpr 函数中。C++23之前这些都不可以。
 
-\mySubsubsection{9.4.2.}{The consteval Keyword}
+\mySubsubsection{9.4.2.}{consteval 关键字}
 
-The constexpr keyword specifies that a function could be executed at compile time, but it does not guarantee compile-time execution. Take the following constexpr function:
+constexpr 关键字指定一个函数可能在编译时执行，但这并不能完全保证。比如下面的 constexpr 函数：
 
 \begin{cpp}
 constexpr double inchToMm(double inch) { return inch * 25.4; }
 \end{cpp}
 
-If called as follows, the function is evaluated at compile time as desired:
+如果这样使用，函数将在编译时按预期执行：
 
 \begin{cpp}
 constexpr double const_inch { 6.0 };
 constexpr double mm1 { inchToMm(const_inch) }; // at compile time
 \end{cpp}
 
-However, if called as follows, the function is not evaluated at compile time, but at run time!
+然而，如果像这样调用，函数将在运行时执行！
 
 \begin{cpp}
 double dynamic_inch { 8.0 };
 double mm2 { inchToMm(dynamic_inch) }; // at run time
 \end{cpp}
 
-If you really want the guarantee that a function is always evaluated at compile time, you need to use the consteval keyword to turn a function into an immediate function. The inchToMm() function can be changed as follows:
+如果要保证函数总是在编译时执行的保证，需要使用 consteval 关键字将一个函数转换为立即函数。inchToMm() 函数可以按照以下方式进行修改：
 
 \begin{cpp}
 consteval double inchToMm(double inch) { return inch * 25.4; }
 \end{cpp}
 
-Now, the call to inchToMm() in the definition of mm1 earlier still compiles fine and results in compiletime evaluation. However, the call in the definition of mm2 now results in a compilation error because it cannot be evaluated at compile time.
+现在，在 mm1 的定义中使用 inchToMm() 可以编译，并会在编译时进行计算。然而，在 mm2 的定义中使用 inchToMm() 会导致编译错误，其无法在编译时进行计算。
 
-An immediate function can be called only during constant evaluation. For example, suppose you have the following immediate function:
+一个立即函数只能在计算常量期间调用。例如，以下立即函数：
 
 \begin{cpp}
 consteval int f(int i) { return i; }
@@ -110,7 +110,7 @@ consteval int f(int i) { return i; }
 
 \CXXTwentythreeLogo{-40}{-40}
 
-This immediate function can be called from a constexpr function, but only when the constexpr function is being executed during constant evaluation. For example, the following function uses an if consteval statement to check if constant evaluation is happening in which case it can call f(). In the else branch, f() cannot be called.
+这个立即函数可以在一个 constexpr 函数中调用，但只有在 constexpr 函数在计算常量期间执行时才能调用。例如，以下函数使用 if consteval 语句来检查是否在计算常量期间，如果是，则可以调用 f()；否则，在 else 分支中， 不能调用f()。
 
 \begin{cpp}
 constexpr int g(int i)
@@ -120,11 +120,11 @@ constexpr int g(int i)
 }
 \end{cpp}
 
-\mySubsubsection{9.4.3.}{constexpr and consteval Classes}
+\mySubsubsection{9.4.3.}{constexpr 和 consteval 类}
 
-By defining a constexpr or consteval constructor, you can create constant-expression variables of user-defined types. Just as constexpr functions, constexpr classes may or may not be evaluated at compile time, while consteval classes are guaranteed to be evaluated at compile time.
+通过定义一个 constexpr 或 consteval 构造函数，可以创建用户定义类型的常量表达式变量。与 constexpr 函数一样，constexpr 类可能不会在编译时执行，而 consteval 类则保证在编译时执行。
 
-The following Matrix class defines a constexpr constructor. It also defines a constexpr getSize() member function that is performing some calculation.
+以下 Matrix 类定义了一个 constexpr 构造函数，还定义了一个 constexpr getSize() 成员函数，该函数会进行一些计算。
 
 \begin{cpp}
 class Matrix
@@ -141,25 +141,25 @@ class Matrix
 };
 \end{cpp}
 
-Using this class to declare constexpr objects is straightforward:
+直接使用这个类来声明 constexpr 对象：
 
 \begin{cpp}
 constexpr Matrix matrix { 8, 2 };
 constexpr Matrix matrixDefault;
 \end{cpp}
 
-Such a constexpr object can now be used, e.g., to create an array big enough to store the matrix in linear form:
+现在，就可以使用 constexpr 对象了，例如，创建一个足够大的数组以线性形式存储矩阵：
 
 \begin{cpp}
 int linearizedMatrix[matrix.getSize()]; // OK
 \end{cpp}
 
-Compiler-generated (either implicitly or explicitly using =default) member functions, such as default constructors, destructors, assignment operators, and so on, are automatically constexpr unless the class contains data members where those member functions are not constexpr.
+编译器生成的（无论是隐式还是显式使用 =default）成员函数，如默认构造函数、析构函数、赋值运算符等，都为 constexpr ，除非类中操作数据成员的成员函数不是 constexpr 函数。
 
-The definition of constexpr and consteval member functions must be available for the compiler so they can be evaluated at compile time. This means that if the class is defined in a module, such member functions must be defined in the module interface file, not in a module implementation file.
+constexpr 和 consteval 成员函数的定义对编译器可用，以便在编译时计算。若类在模块中定义，这样的成员函数必须在模块接口文件中定义，而不是在模块实现文件中。
 
 \begin{myNotic}{NOTE}
-Several classes from the Standard Library are constexpr and so can be used within other constexpr functions and classes. Examples are std::vector (Chapter 1), optional (Chapter 1), string (Chapter 2, “Working with Strings and String Views”), unique\_ptr (Chapter 7, since C++23), bitset (Chapter 18, “Standard Library Containers”), and variant (Chapter 24, “Additional Vocabulary Types”).
+标准库中有几个类是 constexpr ，可以用于其他 constexpr 函数和类中。例如，std::vector（第 1 章）、optional（第 1 章）、string（第 2 章）、unique\_ptr（第 7 章，C++23 起）、bitset（第 18 章）和 variant（第 24 章）。
 \end{myNotic}
 
 
