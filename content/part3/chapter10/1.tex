@@ -1,28 +1,27 @@
 
-In Chapter 5, you learned that an is-a relationship recognizes the pattern that real-world objects tend to exist in hierarchies. In programming, that pattern becomes relevant when you need to write a class that builds on, or slightly changes, another class. One way to accomplish this aim is to copy code from one class and paste it into the other. By changing the relevant parts or amending the code, you can achieve the goal of creating a new class that is slightly different from the original. This approach, however, leaves an OOP programmer feeling sullen and highly annoyed for the following reasons:
+第5章中，了解到is-a关系描述了现实世界事物间的层次结构模式。在编程中，需要编写一个建立在另一个类之上或稍微改变另一个类的类时，可以使用这种模式。实现这一目标的一种方式是，从一个类复制代码并将其粘贴到另一个类中。通过更改相关部分或修改代码，可以实现创建一个与原始类略有不同的新类。然而，这种方法会让面向对象开发者感到沮丧和非常烦恼，原因如下：
 
 \begin{itemize}
 \item
-A bug fix to the original class will not be reflected in the new class because the two classes contain completely separate code.
+因为这两个类包含完全独立的代码，原始类的错误修复不会反映在新类中。
 
 \item
-The compiler does not know about any relationship between the two classes, so they are not polymorphic (see Chapter 5)—they are not just different variations on the same thing.
+编译器不知道两个类之间的关系，所以它们不是多态的（参见第5章）——它们不是同一事物的不同变体。
 
 \item
-This approach does not build a true is-a relationship. The new class is similar to the original because it has similar code, not because it really is the same type of object.
+这种方法没有建立真正的is-a关系。新类与原始类相似，只有相似的代码，而不是同一类型的对象。
 
 \item
-The original code might not be obtainable. It may exist only in a precompiled binary format, so copying and pasting the code might be impossible.
+原始代码可能无法获得，可能只存在于预编译的二进制格式中，所以复制和粘贴代码可能不可行。
 \end{itemize}
 
-Not surprisingly, C++ provides built-in support for defining a true is-a relationship. The characteristics of C++ is-a relationships are described in the following section.
+毫不奇怪，C++提供了内置支持来定义真正的is-a关系。C++中is-a关系的特征将在下一节描述。
 
-\mySubsubsection{10.1.1.}{Extending Classes}
+\mySubsubsection{10.1.1.}{扩展类}
 
-When you write a class definition in C++, you can tell the compiler that your class is inheriting from, deriving from, or extending an existing class. By doing so, your class automatically contains the data members and member functions of the original class, which is called the parent class, base class, or superclass. Extending an existing class gives your class (which is now called a child class, derived class, or subclass) the ability to describe only the ways in which it is different from the parent class.
-To extend a class in C++, you specify the class you are extending when you write the class definition.
+在C++中编写类定义时，可以告诉编译器类正在继承、派生或扩展一个已存在的类。这样，类会自动包含原始类的数据成员和成员函数，这个原始类称为父类、基类或超类。扩展一个已存在的类让其（称为子类、派生类或子类）有能力仅描述它与父类的不同之处。 要在C++中扩展一个类，需要在编写类定义时指定要扩展的类。
 
-To show the syntax for inheritance, two classes are used, Base and Derived. Don’t worry—more interesting examples are coming later. To begin, consider the following definition for the Base class:
+为了展示继承语法，我们使用了两个类，Base和Derived。别担心——后面会有更有趣的例子。首先，看看Base类的定义：
 
 \begin{cpp}
 class Base
@@ -36,7 +35,7 @@ class Base
 };
 \end{cpp}
 
-If you want to build a new class, called Derived, which inherits from Base, you use the following syntax:
+如果想要构建一个新类，称为Derived，继承自Base，可以使用以下语法：
 
 \begin{cpp}
 class Derived : public Base
@@ -46,25 +45,25 @@ class Derived : public Base
 };
 \end{cpp}
 
-Derived is a full-fledged class that just happens to share the characteristics of the Base class. Don’t worry about the word public for now—its meaning is explained later in this chapter. Figure 10.1 shows the simple relationship between Derived and Base. You can declare objects of type Derived just like any other object. You could even define a third class that inherits from Derived, forming a chain of classes, as shown in Figure 10.2.
+Derived是一个完整的类，共享了Base类的特性。现在先别担心public——其含义会在后面进行解释。图10.1展示了Derived和Base之间的简单关系。可以像声明任何其他对象一样声明Derived类型的对象，甚至可以定义一个从Derived继承的第三个类，形成一个类链，如图10.2所示。
 
-\myGraphic{0.2}{content/part3/chapter10/images/1.png}{FIGURE 10.1}
+\myGraphic{0.2}{content/part3/chapter10/images/1.png}{图 10.1}
 
-\myGraphic{0.25}{content/part3/chapter10/images/2.png}{FIGURE 10.2}
+\myGraphic{0.25}{content/part3/chapter10/images/2.png}{图 10.2}
 
-Derived doesn’t have to be the only derived class of Base. Additional classes can also inherit from Base, effectively becoming siblings to Derived, as shown in Figure 10.3.
+Derived不必是Base的唯一派生类。其他类也可以从Base继承，并成为Derived的兄弟类，如图10.3所示。
 
-\myGraphic{0.35}{content/part3/chapter10/images/3.png}{FIGURE 10.3}
+\myGraphic{0.35}{content/part3/chapter10/images/3.png}{图 10.3}
 
-Internally, a derived class contains an instance of the base class as a subobject. Graphically this can be represented as in Figure 10.4.
+内部，派生类包含一个基类的实例作为子对象，关系可以表示为图10.4。
 
-\myGraphic{0.3}{content/part3/chapter10/images/4.png}{FIGURE 10.4}
+\myGraphic{0.3}{content/part3/chapter10/images/4.png}{图 10.4}
 
-\mySamllsection{A Client’s View of Inheritance}
+\mySamllsection{客户端对继承的看法}
 
-To a client, or another part of your code, an object of type Derived is also an object of type Base because Derived inherits from Base. This means that all the public member functions and data members of Base and all the public member functions and data members of Derived are available.
+对于客户端或代码的其他部分来说，因为Derived继承自Base，Derived类型的对象也是一个Base类型的对象。所以Base的所有public成员函数和数据成员，以及Derived的所有public成员函数和数据成员都可用。
 
-Code that uses the derived class does not need to know which class in your inheritance chain has defined a member function in order to call it. For example, the following code calls two member functions of a Derived object, even though one of the member functions is defined by the Base class:
+使用派生类的代码不需要知道，在继承链中哪个类定义了成员函数就可以调用。例如，以下代码调用了Derived对象的两个成员函数，即使其中一个成员函数由Base类定义：
 
 \begin{cpp}
 Derived myDerived;
@@ -72,9 +71,9 @@ myDerived.someFunction();
 myDerived.someOtherFunction();
 \end{cpp}
 
-It is important to understand that inheritance works in only one direction. The Derived class has a clearly defined relationship to the Base class, but the Base class, as written, doesn’t know anything about the Derived class. That means objects of type Base do not have access to member functions and data members of Derived because Base is not a Derived.
+要理解继承只在一个方向上起作用。Derived类与Base类有一个明确的关系，但Base类，对Derived类一无所知，所以Base类型的对象不能访问Derived的成员函数和数据成员，因为Base不是Derived。
 
-The following code does not compile because the Base class does not contain a public member function called someOtherFunction():
+以下代码不能编译，因为Base类不包含一个名为someOtherFunction()的public成员函数：
 
 \begin{cpp}
 Base myBase;
@@ -82,30 +81,30 @@ myBase.someOtherFunction(); // Error! Base doesn't have a someOtherFunction().
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-From the perspective of code using an object, the object belongs to its defined class as well as to any base classes.
+从使用对象的角度来看，对象属于其定义的类以及基类。
 \end{myNotic}
 
-A pointer or reference to a class type can refer to an object of the declared class type or any of its derived classes. This tricky subject is explained in detail later in this chapter. The concept to understand now is that a pointer to Base can actually be pointing to a Derived object. The same is true for a reference. The client can still access only the member functions and data members that exist in Base, but through this mechanism, any code that operates on a Base can also operate on a Derived.
+指向类类型的指针或引用，可以引用声明类类型的对象或其任何派生类的对象，这个棘手的问题会在本章后面详细解释。现在要理解的是，指向Base的指针实际上可以指向Derived对象，引用也是如此。客户端仍然只能访问Base中存在的成员函数和数据成员，但通过这种机制，操作Base的代码也可以操作Derived。
 
-For example, the following code compiles and works just fine, even though it initially appears that there is a type mismatch:
+例如，以下代码编译并运行良好，即使看起来类型并不匹配：
 
 \begin{cpp}
 Base* base { new Derived {} }; // Create Derived, store in Base pointer.
 \end{cpp}
 
-However, you cannot call member functions from the Derived class through the Base pointer. The following does not work:
+然而，不能通过Base指针调用Derived类的成员函数。以下代码无法工作：
 
 \begin{cpp}
 base->someOtherFunction();
 \end{cpp}
 
-This is flagged as an error by the compiler because, although the object is of type Derived and therefore does have someOtherFunction() defined, the compiler can only think of it as type Base, which does not have someOtherFunction() defined.
+编译器将其标记为错误，因为尽管对象是Derived类型，确实有someOtherFunction()的定义，但编译器只能将其视为Base类型，而Base类型没有定义someOtherFunction()。
 
-\mySamllsection{A Derived Class’s View of Inheritance}
+\mySamllsection{派生类对继承的看法}
 
-To the derived class, nothing much has changed in terms of how it is written or how it behaves. You can still define member functions and data members on a derived class just as you would on a regular class. The previous definition of Derived declares a member function called someOtherFunction(). Thus, the Derived class augments the Base class by adding an additional member function.
+对于派生类来说，在编写方式或行为方面并没有太大变化。仍可以在派生类中定义成员函数和数据成员，就像在常规类中一样。前面Derived的定义声明了一个名为someOtherFunction()的成员函数，Derived类可以通过添加成员函数来增强Base类。
 
-A derived class can access public and protected member functions and data members declared in its base class as though they were its own, because technically they are. For example, the implementation of someOtherFunction() on Derived could make use of the data member m\_protectedInt, which is declared as part of Base. The following code shows this. Accessing a base class member is no different than if the member were declared as part of the derived class.
+派生类可以访问其基类中声明的public和protected的成员函数和数据成员，就像是自己的成员一样，从技术上讲确实是。例如，Derived上someOtherFunction()的实现可以利用在Base中，声明为一部分的数据成员m\_protectedInt。访问基类成员与在派生类中声明成员没有什么不同：
 
 \begin{cpp}
 void Derived::someOtherFunction()
@@ -115,7 +114,7 @@ void Derived::someOtherFunction()
 }
 \end{cpp}
 
-If a class declares members as protected, derived classes have access to them. If they are declared as private, derived classes do not have access. The following implementation of someOtherFunction() does not compile because the derived class attempts to access a private data member from the base class:
+如果一个类将成员声明为protected，派生类可以访问它们。如果声明为private，派生类则无法访问。以下someOtherFunction()的实现无法编译，因为派生类试图访问基类中的private数据成员：
 
 \begin{cpp}
 void Derived::someOtherFunction()
@@ -126,58 +125,64 @@ void Derived::someOtherFunction()
 }
 \end{cpp}
 
-The private access specifier gives you control over how a potential derived class could interact with your class.
+private访问说明符可以控制潜在的派生类如何与基类交互。
 
-Chapter 4, “Designing Professional C++ Programs,” gives the following rule: all data members should be private; provide public getters and setters if you want to provide access to data members from outside the class. This rule can now be extended to include the protected access specifier.
+第4章给出了以下规则：所有数据成员都应该是private；如果希望从类外部访问数据成员，请提供公共的getter和setter。现在这个规则可以扩展到protected访问说明符。
 
 \begin{myWarning}{WARNING}
-All data members should be private. Provide public getters and setters if you want to provide access to data members from outside the class and provide protected getters and setters if you want only derived classes to access them.
+所有数据成员都应该是private。如果希望从类外部访问数据成员，请提供公共的getter和setter；如果只想让派生类访问，请提供protected的getter和setter。
 \end{myWarning}
 
-The reason to make data members private by default is that this provides the highest level of encapsulation. This means that you can change how you represent your data while keeping the public and protected interfaces unchanged. Additionally, without giving direct access to data members, you can easily add checks on the input data in your public and protected setters. Member functions should also be private by default. Only make those member functions public that are designed to be public and make member functions protected if you want only derived classes to have access to them.
+默认将数据成员设为private的原因是，提供了最高级别的封装。可以更改表示数据的方式，同时保持公共和受保护的接口不变。此外，在不直接访问数据成员的情况下，可以在public和protected的setter中轻松添加对输入数据的检查。成员函数也应该默认为private。只公开那些设计为公共的成员函数，如果只想让派生类访问，请将成员函数设为protected。
 
 \begin{myNotic}{NOTE}
-From the perspective of a derived class, all public and protected data members and member functions from the base class are available for use.
+从派生类的角度来看，基类中的所有public和protected的数据成员和成员函数都可用。
 \end{myNotic}
 
-The following table summarizes the meaning of all three access specifiers:
+下表总结了所有三种访问说明符的含义：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{\begin{tabular}[c]{@{}l@{}}ACCESS\\ SPECIFIER\end{tabular}} &
-\textbf{MEANING} &
-\textbf{WHEN TO USE} \\ \hline
+\textbf{\begin{tabular}[c]{@{}l@{}}访问说明符\end{tabular}} &
+\textbf{含义} &
+\textbf{何时使用} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 public &
-\begin{tabular}[c]{@{}l@{}}Any code can call a public member\\ function or access a public data\\ member of an object.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Behaviors (member functions) that you\\ want clients to use.\\ Access member functions (getters and\\ setters) for private and protected\\ data members.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}可以调用一个对象的public成员函数\\或访问其public数据成员。
+\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}希望客户端进行的操作（成员函数）。\\可访问对private和protected数据成\\员进行操作的成员函数（getter和\\setter）。
+\end{tabular} \\ \hline
 protected &
-\begin{tabular}[c]{@{}l@{}}Any member function of the class can\\ call protected member functions and\\ access protected data members.\\ Member functions of derived classes\\ can access protected members of a\\ base class.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}“Helper” member functions that you\\ do not want clients to use.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}类中的任何成员函数都可以调用protected\\的成员函数和protected的数据成员。派生\\类的成员函数可以访问基类的protected成员。
+\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}不想让客户端使用的成员函数。
+\end{tabular} \\ \hline
 private &
-\begin{tabular}[c]{@{}l@{}}Only member functions of the class\\ can call private member functions\\ and access private data members.\\ Member functions in derived classes\\ cannot access private members of a\\ base class.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Everything should be private by\\ default, especially data members.\\ You can provide protected getters\\ and setters if you only want to allow\\ derived classes to access them, and\\ provide public getters and setters if\\ you want clients to access them.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}只有类中的成员函数可以调用private成员\\函数和private数据成员。派生类中的成员\\函数不能访问基类的private成员。
+\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}默认情况下，一切都应该是private，\\尤其是数据成员。如果只想允许派生\\类访问，可以提供protected的getter\\和setter；如果希望客户端访问，可\\以提供public的getter和setter。
+\end{tabular} \\ \hline
 \end{longtable}
 
-\mySamllsection{Preventing Inheritance}
+\mySamllsection{防止继承}
 
-C++ allows you to mark a class as final, which means trying to inherit from it will result in a compilation error. A class can be marked as final with the final keyword right behind the name of the class. For example, if a class tries to inherit from the following Foo class, the compiler will produce an error:
+C++允许将一个类标记为final，当尝试继承时将出现编译错误。一个类可以通过在类名后面直接使用final关键字来标记“不可继承”。例如，一个类尝试从下面的Foo类继承，编译器将报错：
 
 \begin{cpp}
 class Foo final { };
 \end{cpp}
 
-\mySubsubsection{10.1.2.}{Overriding Member Functions}
+\mySubsubsection{10.1.2.}{重载成员函数}
 
 The main reasons to inherit from a class are to add or replace functionality. The definition of Derived adds functionality to its parent class by providing an additional member function, someOtherFunction(). The other member function, someFunction(), is inherited from Base and behaves in the derived class exactly as it does in the base class. In many cases, you will want to modify the behavior of a class by replacing, or overriding, a member function.
 
-\mySamllsection{The virtual Keyword}
+\mySamllsection{ virtual 关键字}
 
 Simply defining a member function from a base class in a derived class does not properly override that member function. To correctly override a member function, we need a new C++ keyword called virtual. Only member functions that are declared as virtual in the base class can be overridden properly by derived classes. The keyword goes at the beginning of a member function declaration as shown in the modified version of Base that follows:
 
@@ -412,7 +417,7 @@ Derived myDerived;
 
 Figure 10.5 shows a high-level view of the vtables of both instances. The myBase object contains a pointer to its vtable. This vtable has two entries, one for func1() and one for func2(). Those entries point to the implementations of Base::func1() and Base::func2().
 
-\myGraphic{0.7}{content/part3/chapter10/images/5.png}{FIGURE 10.5}
+\myGraphic{0.7}{content/part3/chapter10/images/5.png}{图 10.5}
 
 myDerived also contains a pointer to its vtable, which also has two entries, one for func1() and one for func2(). Its func1() entry points to Base::func1() because Derived does not override func1(). On the other hand, its func2() entry points to Derived::func2().
 

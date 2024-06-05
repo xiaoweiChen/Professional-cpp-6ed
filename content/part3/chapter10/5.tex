@@ -30,7 +30,7 @@ Deleting a Baz object automatically calls the destructors for the Foo and Bar cl
 
 The following example shows a class, DogBird, that has two parent classes—a Dog class and a Bird class, as shown in Figure 10.9. The fact that a dog-bird is a ridiculous example should not be viewed as a statement that multiple inheritance itself is ridiculous. Honestly, I leave that judgment up to you.
 
-\myGraphic{0.3}{content/part3/chapter10/images/9.png}{FIGURE 10.9}
+\myGraphic{0.3}{content/part3/chapter10/images/9.png}{图 10.9}
 
 \begin{cpp}
 class Dog
@@ -138,7 +138,7 @@ class DogBird : public Dog, public Bird
 
 Another way to provoke ambiguity is to inherit from the same class twice. This can happen if multiple parents themselves have a common parent. For example, perhaps both Bird and Dog are inheriting from an Animal class, as shown in Figure 10.10.
 
-\myGraphic{0.3}{content/part3/chapter10/images/10.png}{FIGURE 10.10}
+\myGraphic{0.3}{content/part3/chapter10/images/10.png}{图 10.10}
 
 This type of class hierarchy is permitted in C++, though name ambiguity can still occur. For example, if the Animal class has a public member function called sleep(), that member function cannot be called on a DogBird object because the compiler does not know whether to call the version inherited by Dog or by Bird.
 

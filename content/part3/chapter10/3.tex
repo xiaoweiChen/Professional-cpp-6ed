@@ -195,7 +195,7 @@ return __super::getTemperature() + "\u00B0F";
 Calling the parent version of the current member function is a commonly used pattern in C++. If you have a chain of derived classes, each might want to perform the operation already defined by the base class but add their own additional functionality as well.
 Let’s look at another example. Imagine a class hierarchy of book types, as shown in Figure 10.6.
 
-\myGraphic{0.3}{content/part3/chapter10/images/6.png}{FIGURE 10.6}
+\myGraphic{0.3}{content/part3/chapter10/images/6.png}{图 10.6}
 
 Because each lower class in the hierarchy further specifies the type of book, a member function that gets the description of a book really needs to take all levels of the hierarchy into consideration. This can be accomplished by chaining to the parent member function. The following code illustrates this pattern:
 
