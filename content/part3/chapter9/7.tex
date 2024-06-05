@@ -1,4 +1,4 @@
-Enumerations can also be data members of a class. For example, you can add support for cell coloring to the SpreadsheetCell class as follows:
+枚举也可以是类的数据成员。例如，为 SpreadsheetCell 类添加对单元格的上色支持：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -14,14 +14,14 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-The implementations of the setColor() and getColor() member functions are straightforward:
+setColor() 和 getColor() 成员函数的实现：
 
 \begin{cpp}
 void SpreadsheetCell::setColor(Color color) { m_color = color; }
 SpreadsheetCell::Color SpreadsheetCell::getColor() const { return m_color; }
 \end{cpp}
 
-The new member functions can be used as follows:
+新的成员函数可以这样使用：
 
 \begin{cpp}
 SpreadsheetCell myCell { 5 };

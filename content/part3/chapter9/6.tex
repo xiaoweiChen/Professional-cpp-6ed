@@ -1,6 +1,6 @@
-Class definitions can contain more than just member functions and data members. They can also contain nested classes and structs, type aliases, and enumerations. Anything declared inside a class is in the scope of that class. If it is public, you can access it outside the class by scoping it with the ClassName:: scope resolution syntax.
+类定义不仅可以包含成员函数和数据成员，还可以包含嵌套类和结构体、类型别名和枚举。在类中声明的内容，都在该类的范围内。如果是public的，可以通过使用 类名和作用域解析语法在外部访问。
 
-You can provide a class definition inside another class definition. For example, you might decide that the SpreadsheetCell class is really part of the Spreadsheet class. And since it becomes part of the Spreadsheet class, you might as well rename it to Cell. You could define both of them like this:
+也可以在另一个类定义中提供类定义。例如， SpreadsheetCell 类实际上是 Spreadsheet 类的一部分。由于它是 Spreadsheet 类的一部分，不妨将其重命名为 Cell：
 
 \begin{cpp}
 export class Spreadsheet
@@ -20,7 +20,7 @@ export class Spreadsheet
 };
 \end{cpp}
 
-Now, the Cell class is defined inside the Spreadsheet class, so anywhere you refer to a Cell outside of the Spreadsheet class, you must qualify the name with the Spreadsheet:: scope. This applies even to the member function definitions. For example, the double constructor of Cell now looks like this:
+Cell 类在 Spreadsheet 类中定义，在 Spreadsheet 类外部引用 Cell 时，必须使用 Spreadsheet:: 作用域限定名称。这也适用于成员函数的定义，例如：Cell 的 double 构造函数为：
 
 \begin{cpp}
 Spreadsheet::Cell::Cell(double initialValue)
@@ -28,7 +28,7 @@ Spreadsheet::Cell::Cell(double initialValue)
 {}
 \end{cpp}
 
-You must even use the syntax for return types (but not parameters) of member functions in the Spreadsheet class itself:
+必须对 Spreadsheet 类成员函数的返回类型使用这种语法（但不适用于参数）：
 
 \begin{cpp}
 const Spreadsheet::Cell& Spreadsheet::getCellAt(size_t x, size_t y) const
@@ -38,7 +38,7 @@ const Spreadsheet::Cell& Spreadsheet::getCellAt(size_t x, size_t y) const
 }
 \end{cpp}
 
-Fully defining the nested Cell class directly inside the Spreadsheet class makes the definition of the Spreadsheet class a bit bloated. You can alleviate this by only including a forward declaration for Cell in the Spreadsheet class and then defining the Cell class separately, as follows:
+直接在 Spreadsheet 类中完全定义嵌套的 Cell 类会使 Spreadsheet 类的定义变得有些臃肿。可以只在 Spreadsheet 类中包含 Cell 的声明，然后分别定义 Cell 类来缓解这种情况：
 
 \begin{cpp}
 export class Spreadsheet
@@ -58,7 +58,7 @@ class Spreadsheet::Cell
 };
 \end{cpp}
 
-Normal access control applies to nested class definitions. If you declare a private or protected nested class, you can only use it from inside the outer class. A nested class has access to all protected and private members of the outer class. The outer class on the other hand can only access public members of the nested class.
+正常的访问控制也适用于嵌套类。如果声明了一个私有的或受保护的嵌套类，只能在外部类内部使用。嵌套类可以访问外部类的所protected和private成员。另一方面，外部类只能访问嵌套类的public成员。
 
 
 

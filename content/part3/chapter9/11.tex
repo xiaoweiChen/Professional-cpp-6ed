@@ -1,21 +1,21 @@
 
-By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+通过解决下面的练习，可以练习本章讨论的内容。所有练习的解决方案都可以在本书的网站\url{www.wiley.com/go/proc++6e}下载到源码。然而，若在练习中卡住了，在从网站上寻找解决方案之前，可以考虑先重读本章的部分内容，试着自己找到答案。
 
 \begin{itemize}
 \item
-Exercise 9-1: Take your implementation of the Person class from Exercise 8-3 and adapt it to pass strings in the most optimal way you can think of. Additionally, add a move constructor and move assignment operator to it. In both member functions, write a message to the console so you can track when they get called. Implement any additional member functions you need for implementing the move member functions and for improving the implementation of other member functions from Exercise 8-3 to avoid code duplication. Modify main() to test your member functions.
+\textbf{练习 9-1}: 请使用在练习 8-3 中实现的 Person 类，并尽可能以最佳方式传递字符串。同时，为该类添加移动构造函数和移动赋值运算符。两个成员函数中，编写一条消息到控制台，以便了解它们何时调用。实现其他的成员函数，实现移动成员函数并改进练习 8-3 中其他成员函数的实现，以避免代码重复。修改 main() 函数并测试新的成员函数。
 
 \item
-Exercise 9-2: Take the Person class from Exercise 8-4. Just as for Exercise 9-1, make changes to pass strings in the most optimal way. Then add full support for all six comparison operators to compare two Person objects. Try to implement this support in the least amount of code. Test your implementation by performing all kinds of comparisons in main(). How are Persons ordered? Is the ordering happening based on the first name, based on the last name, or based on a combination?
+\textbf{练习 9-2}: 使用练习 8-4 中的 Person 类。与练习 9-1 类似，以最佳方式传递字符串，并为比较两个 Person 对象添加完整的六个比较运算符支持。尽量以最少的代码实现此支持。在 main() 中执行各种比较测试，以验证实现。Person 是如何排序的？排序是基于姓氏、姓氏还是基于姓氏和名字的组合？
 
 \item
-Exercise 9-3: Before C++20, adding support for all six comparison operators required a bit more lines of code. Start from the Person class from Exercise 9-2, remove the operator<=>, and add the necessary code to add all comparison operators to compare two Person objects without using <=>. Perform the same set of tests as you’ve implemented for Exercise 9-2.
+\textbf{练习 9-3}:  C++20 之前，为六个比较运算符添加支持需要编写更多的代码。从练习 9-2 中的 Person 类开始，移除 operator<=>，并添加必要的代码，以不使用 <=> 添加所有比较运算符，以便比较两个 Person 对象。执行与练习 9-2 相同的测试集。
 
 \item
-Exercise 9-4: In this exercise, you’ll practice writing stable interfaces. Take your Person class from Exercise 8-4 and split it into a stable public interface class and a separate implementation class.
+\textbf{练习 9-4}: 练习编写稳定的接口。使用练习 8-4 中的 Person 类，将其拆分为一个稳定的公共接口类和一个单独的实现类。
 
 \item
-Exercise 9-5: Start from your solution for Exercise 9-2, and optimize the getFirstName(), getLastName(), and getInitials() member functions for when these are called on rvalues.
+\textbf{练习 9-5}: 从练习 9-2 的解决方案开始，在参数为右值时，优化 getFirstName(), getLastName()和 getInitials() 成员函数。
 \end{itemize}
 
 

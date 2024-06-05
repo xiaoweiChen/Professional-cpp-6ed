@@ -1,13 +1,11 @@
+本章与第 8 章一起提供了编写稳健、设计良好的类，并介绍了有效使用对象所需的全部工具。
 
-This chapter, along with Chapter 8, provided all the tools you need to write solid, well-designed classes, and to use objects effectively.
+您发现对象中的动态内存分配带来了新的挑战：需要实现一个析构函数、复制构造函数、复制赋值运算符、移动构造函数和移动赋值运算符，它们正确地复制、移动和释放内存。学会了如何通过显式删除复制构造函数和赋值运算符，来避免按值传递和赋值。发现了使用复制和交换模式来实现复制赋值运算符，以及使用移动和交换模式来实现移动赋值运算符，同时还学习了零规则。
 
-You discovered that dynamic memory allocation in objects presents new challenges: you need to implement a destructor, copy constructor, copy assignment operator, move constructor, and move assignment operator, which properly copy, move, and free your memory. You learned how to prevent pass-by-value and assignment by explicitly deleting the copy constructor and assignment operator. You discovered the copy-and-swap idiom to implement copy assignment operators and the move-andswap idiom to implement move assignment operators, as well as learned about the rule of zero.
+阅读了更多有关不同类型的数据成员，包括静态、常量、常量引用和可变成员。还学习了静态、内联和常量成员函数、成员函数重载和默认参数。本章还描述了嵌套类定义，以及友元类、函数和成员函数。
 
-You read more about different kinds of data members, including static, const, reference-to-const, and mutable members. You also learned about static, inline, and const member functions, member function overloading, and default arguments. This chapter also described nested class definitions, and friend classes, functions, and member functions.
+还遇到了运算符重载，并学会了如何重载算术和比较运算符，既作为全局函数也作为类成员函数。还发现了如何使用三向比较运算符，可使类添加比较支持变得如此简单。
 
-You encountered operator overloading and learned how to overload the arithmetic and comparison operators, both as global functions and as class member functions. You also discovered how the three-way comparison operator makes adding comparison support to your classes so much easier.
+最后，学习了如何通过提供单独的接口和实现类来实现极端的抽象。
 
-Finally, you learned how to take abstraction to the extreme by providing separate interface and implementation classes.
-
-Now that you’re fluent in the language of object-oriented programming, it’s time to tackle inheritance, which is covered next in Chapter 10, “Discovering Inheritance Techniques.”
-
+现在，已经掌握了面向对象编程的语言，是时候解决继承问题了，这将在下一章中进行介绍。
