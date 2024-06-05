@@ -11,7 +11,7 @@ That does not have to be the case, however. In C++, an overriding member functio
 
 For example, consider a basic car simulator. You might have two hierarchies of classes that model different real-world objects but are obviously related. The first is the Car hierarchy. The base class, Car, has derived classes GasolineCar and ElectricalCar. Similarly, there is another hierarchy of classes with a base class called PowerSource and derived classes GasolinePowerSource and ElectricalPowerSource. Figure 10.11 shows the two class hierarchies.
 
-\myGraphic{0.7}{content/part3/chapter10/images/11.png}{FIGURE 10.11}
+\myGraphic{0.8}{content/part3/chapter10/images/11.png}{FIGURE 10.11}
 
 Let’s assume a power source can print its own type and that a gasoline power source has a member function fillTank(), while an electrical power source has a member function chargeBatteries():
 
@@ -172,7 +172,7 @@ In the previous section, you saw the use of a using declaration to explicitly in
 class Base
 {
     public:
-        virtual ˜Base() = default;
+        virtual ~Base() = default;
         Base() = default;
         explicit Base(int i) {}
 };
@@ -221,7 +221,7 @@ The Derived class can define a constructor with the same parameter list as one o
 class Base
 {
     public:
-        virtual ˜Base() = default;
+        virtual ~Base() = default;
         Base() = default;
         explicit Base(std::string_view str) {}
         explicit Base(float f) {}
@@ -261,7 +261,7 @@ Another restriction with inheriting constructors is related to multiple inherita
 class Base1
 {
     public:
-        virtual ˜Base1() = default;
+        virtual ~Base1() = default;
         Base1() = default;
         explicit Base1(float f) {}
 };
@@ -269,7 +269,7 @@ class Base1
 class Base2
 {
     public:
-        virtual ˜Base2() = default;
+        virtual ~Base2() = default;
         Base2() = default;
         explicit Base2(std::string_view str) {}
         explicit Base2(float f) {}
@@ -322,7 +322,7 @@ When using inherited constructors, make sure that all data members are properly 
 class Base
 {
     public:
-        virtual ˜Base() = default;
+        virtual ~Base() = default;
         explicit Base(std::string_view str) : m_str { str } {}
     private:
         std::string m_str;
@@ -437,7 +437,7 @@ When you override a member function by specifying a name and a set of parameters
 class Base
 {
     public:
-        virtual ˜Base() = default;
+        virtual ~Base() = default;
         virtual void overload() { println("Base's overload()"); }
         virtual void overload(int i) { println("Base's overload(int i)"); }
 };
@@ -493,7 +493,7 @@ For example, the following class is part of a car simulator that estimates the n
 export class MilesEstimator
 {
     public:
-        virtual ˜MilesEstimator() = default;
+        virtual ~MilesEstimator() = default;
         int getMilesLeft() const { return getMilesPerGallon() * getGallonsLeft(); }
         virtual void setGallonsLeft(int gallons) { m_gallonsLeft = gallons; }
         virtual int getGallonsLeft() const { return m_gallonsLeft; }
@@ -781,7 +781,7 @@ For the most part, you shouldn’t ever need to use typeid because any code that
 The following code uses typeid to print a message based on the type of the object:
 
 \begin{cpp}
-class Animal { public: virtual ˜Animal() = default; };
+class Animal { public: virtual ~Animal() = default; };
 class Dog : public Animal {};
 class Bird : public Animal {};
 
@@ -857,7 +857,7 @@ Non-public inheritance is rare, and I recommend using it cautiously, if for no o
 
 Earlier in this chapter, you learned about ambiguous base classes, a situation that arises when multiple parents each have a parent in common, as shown again in Figure 10.12. The solution recommended earlier was to make sure that the shared parent doesn’t have any functionality of its own. That way, its member functions can never be called, and there is no ambiguity problem.
 
-\myGraphic{0.7}{content/part3/chapter10/images/12.png}{FIGURE 10.12}
+\myGraphic{0.3}{content/part3/chapter10/images/12.png}{FIGURE 10.12}
 
 C++ has another mechanism, called virtual base classes, for addressing this problem if you do want the shared parent to have its own functionality. If the shared parent is marked as a virtual base class, there will not be any ambiguity. The following code adds a sleep() member function, including an implementation, to the Animal base class, and modifies the Dog and Bird classes to inherit from Animal as a virtual base class. Without using a virtual base class, a call to sleep() on a DogBird object would be ambiguous and would generate a compiler error because DogBird would have two subobjects of class Animal, one coming from Dog and one coming from Bird. However, when Animal is inherited virtually, DogBird has only one subobject of class Animal, so there will be no ambiguity with calling sleep().
 

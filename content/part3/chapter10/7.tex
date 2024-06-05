@@ -23,13 +23,13 @@ Another use for static\_cast() is to perform downcasts in an inheritance hierarc
 class Base
 {
     public:
-        virtual ˜Base() = default;
+        virtual ~Base() = default;
 };
 
 class Derived : public Base
 {
     public:
-        virtual ˜Derived() = default;
+        virtual ~Derived() = default;
 };
 
 int main()

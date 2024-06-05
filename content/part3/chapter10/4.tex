@@ -25,11 +25,11 @@ In a real spreadsheet application, cells can store different things. A cell coul
 
 The SpreadsheetCell class is screaming out for a hierarchical makeover. A reasonable approach would be to narrow the scope of the SpreadsheetCell to cover only strings, perhaps renaming it to StringSpreadsheetCell in the process. To handle doubles, a second class, DoubleSpreadsheetCell, would inherit from the StringSpreadsheetCell and provide functionality specific to its own format. Figure 10.7 illustrates such a design. This approach models inheritance for reuse because the DoubleSpreadsheetCell would be deriving from StringSpreadsheetCell only to make use of some of its built-in functionality.
 
-\myGraphic{0.7}{content/part3/chapter10/images/7.png}{FIGURE 10.7}
+\myGraphic{0.3}{content/part3/chapter10/images/7.png}{FIGURE 10.7}
 
 If you were to implement the design shown in Figure 10.7, you might discover that the derived class would override most, if not all, of the functionality of the base class. Because doubles are treated differently from strings in almost all cases, the relationship may not be quite as it was originally understood. Yet, there clearly is a relationship between a cell containing strings and a cell containing doubles. Rather than using the model in Figure 10.7, which implies that somehow a DoubleSpreadsheetCell “is-a” StringSpreadsheetCell, a better design would make these classes peers with a common parent, SpreadsheetCell. Figure 10.8 shows such a design.
 
-\myGraphic{0.7}{content/part3/chapter10/images/8.png}{FIGURE 10.8}
+\myGraphic{0.6}{content/part3/chapter10/images/8.png}{FIGURE 10.8}
 
 The design in Figure 10.8 shows a polymorphic approach to the SpreadsheetCell hierarchy. Because DoubleSpreadsheetCell and StringSpreadsheetCell both inherit from a common parent, SpreadsheetCell, they are interchangeable in the view of other code. In practical terms, that means the following:
 
@@ -62,7 +62,7 @@ import std;
 export class SpreadsheetCell
 {
     public:
-        virtual ˜SpreadsheetCell() = default;
+        virtual ~SpreadsheetCell() = default;
         virtual void set(std::string_view value);
         virtual std::string getString() const;
 };
@@ -82,7 +82,7 @@ There is a special syntax for designating a pure virtual member function. The me
 export class SpreadsheetCell
 {
     public:
-        virtual ˜SpreadsheetCell() = default;
+        virtual ~SpreadsheetCell() = default;
         virtual void set(std::string_view value) = 0;
         virtual std::string getString() const = 0;
 };

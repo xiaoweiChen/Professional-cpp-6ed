@@ -48,17 +48,17 @@ class Derived : public Base
 
 Derived is a full-fledged class that just happens to share the characteristics of the Base class. Don’t worry about the word public for now—its meaning is explained later in this chapter. Figure 10.1 shows the simple relationship between Derived and Base. You can declare objects of type Derived just like any other object. You could even define a third class that inherits from Derived, forming a chain of classes, as shown in Figure 10.2.
 
-\myGraphic{0.7}{content/part3/chapter10/images/1.png}{FIGURE 10.1}
+\myGraphic{0.2}{content/part3/chapter10/images/1.png}{FIGURE 10.1}
 
-\myGraphic{0.7}{content/part3/chapter10/images/2.png}{FIGURE 10.2}
+\myGraphic{0.25}{content/part3/chapter10/images/2.png}{FIGURE 10.2}
 
 Derived doesn’t have to be the only derived class of Base. Additional classes can also inherit from Base, effectively becoming siblings to Derived, as shown in Figure 10.3.
 
-\myGraphic{0.7}{content/part3/chapter10/images/3.png}{FIGURE 10.3}
+\myGraphic{0.35}{content/part3/chapter10/images/3.png}{FIGURE 10.3}
 
 Internally, a derived class contains an instance of the base class as a subobject. Graphically this can be represented as in Figure 10.4.
 
-\myGraphic{0.7}{content/part3/chapter10/images/4.png}{FIGURE 10.4}
+\myGraphic{0.3}{content/part3/chapter10/images/4.png}{FIGURE 10.4}
 
 \mySamllsection{A Client’s View of Inheritance}
 
@@ -483,7 +483,7 @@ class Base
 {
     public:
         Base() = default;
-        virtual ˜Base() = default;
+        virtual ~Base() = default;
 };
 \end{cpp}
 
@@ -506,7 +506,7 @@ Earlier in this chapter it was advised to use the override keyword on member fun
 class Derived : public Base
 {
     public:
-        virtual ˜Derived() override = default;
+        virtual ~Derived() override = default;
 };
 \end{cpp}
 
@@ -518,7 +518,7 @@ Besides marking an entire class as final, C++ also allows you to mark individual
 class Base
 {
     public:
-        virtual ˜Base() = default;
+        virtual ~Base() = default;
         virtual void someFunction();
 };
 class Derived : public Base
