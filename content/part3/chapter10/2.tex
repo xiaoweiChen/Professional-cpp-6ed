@@ -1,34 +1,31 @@
 
-Now that you are familiar with the basic syntax for inheritance, it’s time to explore one of the main reasons that inheritance is an important feature of the C++ language. Inheritance is a vehicle that allows you to leverage existing code. This section presents an example of inheritance for the purpose of code reuse.
+已经熟悉了继承的基本语法，现在是时候探索继承是C++语言的一个重要特性的主要原因。继承是一种允许利用现有代码的工具。本节介绍了一个继承的示例，目的是为了复用代码。
 
-\mySubsubsection{10.2.1.}{The WeatherPrediction Class}
+\mySubsubsection{10.2.1.}{WeatherPrediction类}
 
-Imagine that you are given the task of writing a program to issue simple weather predictions, working with both Fahrenheit and Celsius. Weather predictions may be a little bit out of your area of expertise as a programmer, so you obtain a third-party class library that was written to make weather predictions based on the current temperature and the current distance between Jupiter and Mars (hey, it’s plausible). This third-party package is distributed as a compiled library to protect the intellectual property of the prediction algorithms, but you do get to see the class definition. The weather\_prediction module interface file looks as follows:
+目前有一个编程任务，该程序能够发布简单的天气预报，处理华氏度和摄氏度。天气预报可能超出了你作为开发者的擅长领域，所以去找了一个第三方类库，该类库是根据当前温度和木星与火星之间的当前距离编写，用于预测天气（嘿，这是可能的）。这个第三方包作为编译库分发，需要保护预测算法的知识产权，但确实可以看到类的定义。weather\_prediction模块接口文件如下所示：
 
 \begin{cpp}
 export module weather_prediction;
 import std;
-// Predicts the weather using proven new-age techniques given the current
-// temperature and the distance from Jupiter to Mars. If these values are
-// not provided, a guess is still given but it's only 99% accurate.
+// 使用当前温度和木星与火星之间的距离，使用经过验证的新技术预测天气。如果这些值没有提供，仍然会给出一个猜测，但准确度只有99%。
 export class WeatherPrediction
 {
     public:
         // Virtual destructor
         virtual ~WeatherPrediction();
-        // Sets the current temperature in Fahrenheit
+        // 设置当前华氏温度
         virtual void setCurrentTempFahrenheit(int temp);
-        // Sets the current distance between Jupiter and Mars
+        // 设置木星与火星之间的当前距离
         virtual void setPositionOfJupiter(int distanceFromMars);
-        // Gets the prediction for tomorrow's temperature
+        // 获取明天温度的预测
         virtual int getTomorrowTempFahrenheit() const;
-        // Gets the probability of rain tomorrow. 1 means
-        // definite rain. 0 means no chance of rain.
+        // 获取明天降雨的概率。1表示确定降雨。0表示没有降雨的可能。
         virtual double getChanceOfRain() const;
-        // Displays the result to the user in this format:
+        // 以这种格式向用户显示结果：
         // Result: x.xx chance. Temp. xx
         virtual void showResult() const;
-        // Returns a string representation of the temperature
+        // 返回温度的字符串表示
         virtual std::string getTemperature() const;
     private:
         int m_currentTempFahrenheit { 0 };
@@ -36,13 +33,13 @@ export class WeatherPrediction
 };
 \end{cpp}
 
-Note that this class marks all member functions as virtual, because the class presumes that they might get overridden in derived classes.
+注意，这个类将所有成员函数设置为虚，因为该类假定它们可能在派生类中覆写。
 
-This class solves most of the problems for your program. However, as is usually the case, it’s not exactly right for your needs. First, all the temperatures are given in Fahrenheit. Your program needs to operate in Celsius as well. Also, the showResult() member function might not display the result in a way you require.
+这个类解决了程序的大部分问题。然而，它并不完全符合需求。首先，所有的温度都是用华氏度给出的，你的程序还需要以摄氏度进行。此外，showResult()成员函数可能不会以要求的方式显示结果。
 
-\mySubsubsection{10.2.2.}{Adding Functionality in a Derived Class}
+\mySubsubsection{10.2.2.}{派生类中添加功能}
 
-When you learned about inheritance in Chapter 5, adding functionality was the first technique described. Fundamentally, your program needs something just like the WeatherPrediction class but with a few extra bells and whistles. Sounds like a good case for inheritance to reuse code. To begin, define a new class, MyWeatherPrediction, that inherits from WeatherPrediction:
+在第5章中学习继承时，添加功能是第一个介绍的。本质上，程序需要一个类似于WeatherPrediction类的类，但带有一些额外的功能。听起来继承是一个很好的重用代码的案例。首先，定义一个新类MyWeatherPrediction，继承自WeatherPrediction：
 
 \begin{cpp}
 import weather_prediction;
@@ -52,9 +49,9 @@ export class MyWeatherPrediction : public WeatherPrediction
 };
 \end{cpp}
 
-The preceding class definition compiles just fine. The MyWeatherPrediction class can already be used in place of WeatherPrediction. It provides the same functionality, but nothing new yet. For the first modification, you might want to add knowledge of the Celsius scale to the class. There is a bit of a quandary here because you don’t know what the class is doing internally. If all of the internal calculations are made using Fahrenheit, how do you add support for Celsius? One way is to use the derived class to act as a go-between, interfacing between the user, who can use either scale, and the base class, which only understands Fahrenheit.
+前面的类定义编译没问题。MyWeatherPrediction类可以用来代替WeatherPrediction，提供相同的功能，但目前还没有新的功能。为了这个修改，需要在类中添加摄氏度的相关内容。这里有一个难题，因为不知道类内部是如何工作的。如果所有的内部计算都用华氏度进行，你么添加对摄氏度的支持？一种方法是让派生类作为一个中介，在用户（可以使用其他单位）和基类（只理解华氏度）之间进行接口。
 
-The first step in supporting Celsius is to add new member functions that allow clients to set the current temperature in Celsius instead of Fahrenheit and to get tomorrow’s prediction in Celsius instead of Fahrenheit. You also need private helper functions that convert between Celsius and Fahrenheit in both directions. These functions can be static because they are the same for all instances of the class.
+支持摄氏度的第一步是在类中添加新的成员函数，允许客户端以摄氏度设置当前温度，并以摄氏度获取明天的预测。还需要私有的辅助函数，在两个方向上进行摄氏度和华氏度的转换。因为它们对所有实例都是相同的，所以这些函数可以是静态的。
 
 \begin{cpp}
 export class MyWeatherPrediction : public WeatherPrediction
@@ -68,9 +65,9 @@ export class MyWeatherPrediction : public WeatherPrediction
 };
 \end{cpp}
 
-The new member functions follow the same naming convention as the parent class. Remember that from the point of view of other code, a MyWeatherPrediction object has all of the functionality defined in both MyWeatherPrediction and WeatherPrediction. Adopting the parent class’s naming convention presents a consistent interface.
+新成员函数遵循与父类相同的命名约定。请记住，从其他代码的角度来看，MyWeatherPrediction对象具有MyWeatherPrediction和WeatherPrediction中定义的所有功能，采用父类的命名约定可以提供一致的接口。
 
-The implementation of the Celsius/Fahrenheit conversion functions is left as an exercise for the reader—and a fun one at that! The other two member functions are more interesting. To set the current temperature in Celsius, you need to convert the temperature first and then present it to the parent class in units that it understands:
+摄氏度/华氏度转换函数的实现留给读者作为练习——这是一个有趣的练习！另外两个成员函数更有趣。为了以摄氏度设置当前温度，首先转换温度，然后以基类理解的单位呈现给基类：
 
 \begin{cpp}
 void MyWeatherPrediction::setCurrentTempCelsius(int temp)
@@ -80,7 +77,7 @@ void MyWeatherPrediction::setCurrentTempCelsius(int temp)
 }
 \end{cpp}
 
-As you can see, once the temperature is converted, the member function calls the existing functionality from the base class. Similarly, the implementation of getTomorrowTempCelsius() uses the parent’s existing functionality to get the temperature in Fahrenheit, but converts the result before returning it:
+温度转换时，成员函数就会调用基类的现有功能。类似地，getTomorrowTempCelsius()的实现使用父类的现有功能，来获取华氏度，但需要在返回结果前进行转换：
 
 \begin{cpp}
 int MyWeatherPrediction::getTomorrowTempCelsius() const
@@ -90,16 +87,15 @@ int MyWeatherPrediction::getTomorrowTempCelsius() const
 }
 \end{cpp}
 
-The two new member functions effectively reuse the parent class because they “wrap” the existing functionality in a way that provides a new interface for using it.
+因为它们以提供新接口的方式“包装”了现有的功能，可以说这两个新成员函数有效地重用了父类。
 
-You can also add new functionality completely unrelated to existing functionality of the parent class.
-For example, you could add a member function that retrieves alternative forecasts from the Internet or a member function that suggests an activity based on the predicted weather.
+也可以完全添加与父类现有功能无关的新功能。例如，添加一个成员函数，从互联网获取其他预报，或者根据预测的天气添加一个建议活动的成员函数。
 
-\mySubsubsection{10.2.3.}{Replacing Functionality in a Derived Class}
+\mySubsubsection{10.2.3.}{派生类中替换功能}
 
-The other major technique for inheritance is replacing existing functionality. The showResult() member function in the WeatherPrediction class is in dire need of a facelift. MyWeatherPrediction can override this member function to replace the behavior with its own implementation.
+继承的另一个主要技术是替换现有功能。WeatherPrediction类中的showResult()成员函数急需改头换面，MyWeatherPrediction可以覆写这个成员函数，用自己的实现来替换其行为。
 
-The new class definition for MyWeatherPrediction is as follows:
+MyWeatherPrediction的新类定义如下：
 
 \begin{cpp}
 export class MyWeatherPrediction : public WeatherPrediction
@@ -114,7 +110,7 @@ export class MyWeatherPrediction : public WeatherPrediction
 };
 \end{cpp}
 
-Here is a new, user-friendlier implementation of the overridden showResult() member function:
+这是覆写的showResult()成员函数：
 
 \begin{cpp}
 void MyWeatherPrediction::showResult() const
@@ -126,7 +122,7 @@ void MyWeatherPrediction::showResult() const
 }
 \end{cpp}
 
-To clients using this class, it’s as if the old version of showResult() never existed. As long as the object is a MyWeatherPrediction object, the new version is called. As a result of these changes, MyWeatherPrediction has emerged as a new class with new functionality tailored to a more specific purpose. Yet, it did not require much code because it leveraged its base class’s existing functionality.
+对于使用这个类的使用者来说，好像旧版本的showResult()从未存在过。只要对象是MyWeatherPrediction对象，就会调用新版本。因此，MyWeatherPrediction作为一个新类，具有针对更具体目的的新功能，因为它利用了其基类的现有功能，所以无需编写大量代码。
 
 
 

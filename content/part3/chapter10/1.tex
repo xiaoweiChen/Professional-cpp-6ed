@@ -180,11 +180,11 @@ class Foo final { };
 
 \mySubsubsection{10.1.2.}{重载成员函数}
 
-The main reasons to inherit from a class are to add or replace functionality. The definition of Derived adds functionality to its parent class by providing an additional member function, someOtherFunction(). The other member function, someFunction(), is inherited from Base and behaves in the derived class exactly as it does in the base class. In many cases, you will want to modify the behavior of a class by replacing, or overriding, a member function.
+继承的主要原因是添加或替换功能。派生类可通过定义成员函数someOtherFunction()，为其父类添加功能。另一个成员函数someFunction()是从Base类继承的，在派生类中的行为与在基类中一样。许多情况下，可能希望通过替换或覆盖成员函数来修改类的行为。
 
 \mySamllsection{ virtual 关键字}
 
-Simply defining a member function from a base class in a derived class does not properly override that member function. To correctly override a member function, we need a new C++ keyword called virtual. Only member functions that are declared as virtual in the base class can be overridden properly by derived classes. The keyword goes at the beginning of a member function declaration as shown in the modified version of Base that follows:
+简单地在派生类中定义基类的成员函数，并不能正确地覆盖该成员函数。为了正确覆盖成员函数，需要一个新的关键字，称为virtual。只有基类中声明为virtual的成员函数，派生类才能正确覆盖。关键字放在成员函数声明的开头，如下面的Base类的修改版本所示：
 
 \begin{cpp}
 class Base
@@ -195,7 +195,7 @@ class Base
 };
 \end{cpp}
 
-The same holds for the Derived class. Its member functions should also be marked virtual if you want to override them in further derived classes:
+对于Derived类也是如此。如果希望在派生类中覆盖其成员函数，也应该将其成员函数标记为virtual：
 
 \begin{cpp}
 class Derived : public Base
@@ -205,7 +205,7 @@ class Derived : public Base
 };
 \end{cpp}
 
-The virtual keyword is not repeated in front of the member function definition, e.g.:
+成员函数定义前不重复virtual关键字：
 
 \begin{cpp}
 void Base::someFunction()
@@ -215,12 +215,12 @@ void Base::someFunction()
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-Attempting to override a non-virtual member function from a base class hides the base class definition, and it will be used only in the context of the derived class.
+尝试覆盖基类中的非virtual成员函数，会隐藏基类的定义，并且只能在派生类的上下文中使用。
 \end{myWarning}
 
-\mySamllsection{Syntax for Overriding a Member Function}
+\mySamllsection{覆盖成员函数的语法}
 
-To override a member function, you redeclare it in the derived class definition exactly as it was declared in the base class, but you add the override keyword and remove the virtual keyword. For example, if you want to provide a new definition for someFunction() in the Derived class, you must first add it to the class definition for Derived, as follows:
+在派生类中覆盖一个成员函数，需要在派生类的定义中重新声明，其方式与基类中的声明一样，但是要添加override关键字，并移除virtual关键字。例如，在Derived类中为someFunction()提供一个新的定义，首先需要在Derived的类定义中添加声明：
 
 \begin{cpp}
 class Derived : public Base
@@ -231,7 +231,7 @@ class Derived : public Base
 };
 \end{cpp}
 
-The new definition of someFunction() is specified along with the rest of Derived’s member functions. Just as with the virtual keyword, you do not repeat the override keyword in the member function definition:
+someFunction()的新定义与Derived的其他成员函数一起指定，成员函数定义中不需要重复override关键字：
 
 \begin{cpp}
 void Derived::someFunction()
@@ -240,7 +240,7 @@ void Derived::someFunction()
 }
 \end{cpp}
 
-If you want, you are allowed to add the virtual keyword in front of overridden member functions, but it’s redundant. Here’s an example:
+可以在覆盖的成员函数前添加virtual关键字，但这很多余：
 
 \begin{cpp}
 class Derived : public Base
@@ -250,41 +250,41 @@ class Derived : public Base
 };
 \end{cpp}
 
-Once a member function or destructor is marked as virtual, it is virtual for all derived classes even if the virtual keyword is removed from derived classes.
+当成员函数或析构函数标记为虚函数，其对所有派生类来说都是虚函数，即使在派生类中移除了virtual关键字。
 
-\mySamllsection{A Client’s View of Overridden Member Functions}
+\mySamllsection{客户端对覆写成员函数的看法}
 
-With the preceding changes, other code still calls someFunction() the same way it did before. Just as before, the member function could be called on an object of class Base or an object of class Derived. Now, however, the behavior of someFunction() varies based on the class of the object.
+在前面所做的更改之后，其他代码仍然可以以之前相同的方式调用someFunction()，成员函数可以在Base类的对象或Derived类对象上调用该函数。然而，someFunction()的行为会根据对象的类型的变化而变化。
 
-For example, the following code works just as it did before, calling Base’s version of someFunction():
+以下代码的工作方式与之前相同，调用Base的someFunction()：
 
 \begin{cpp}
 Base myBase;
 myBase.someFunction(); // Calls Base's version of someFunction().
 \end{cpp}
 
-The output of this code is as follows:
+输出如下：
 
 \begin{shell}
 This is Base's version of someFunction().
 \end{shell}
 
-If the code declares an object of class Derived, the other version is automatically called:
+如果代码声明为Derived类对象，则会自动调用另一个：
 
 \begin{cpp}
 Derived myDerived;
 myDerived.someFunction(); // Calls Derived's version of someFunction()
 \end{cpp}
 
-The output this time is as follows:
+这次的输出如下：
 
 \begin{shell}
 This is Derived's version of someFunction().
 \end{shell}
 
-Everything else about objects of class Derived remains the same. Other member functions that might have been inherited from Base still have the definition provided by Base unless they are explicitly overridden in Derived.
+Derived类对象其他部分保持不变，从Base继承的其他成员函数。
 
-As you learned earlier, a pointer or reference can refer to an object of a class or any of its derived classes. The object itself “knows” the class of which it is actually a member, so the appropriate member function is called as long as it was declared virtual. For example, if you have a Base reference that refers to an object that is really a Derived, calling someFunction() actually calls the derived class’s version, as shown next. This aspect of overriding does not work properly if you omit the virtual keyword in the base class.
+正如您之前学到的，指针或引用可以引用一个类的对象或其任何派生类的对象。对象本身“知道”它实际是哪个类的成员，所以只要声明为虚函数，就会调用适当的成员函数。例如，如果您有一个Base引用，它引用了一个实际上是Derived的对象，调用someFunction()实际上会调用派生类的版本，如下所示。如果您省略了基类中的virtual关键字，覆盖的这个方面就不能正常工作。
 
 \begin{cpp}
 Derived myDerived;
@@ -292,7 +292,7 @@ Base& ref { myDerived };
 ref.someFunction(); // Calls Derived's version of someFunction()
 \end{cpp}
 
-Remember that even though a Base reference or pointer knows that it is referring to a Derived instance, you cannot access Derived class members that are not defined in Base. The following code does not compile because a Base reference does not have a member function called someOtherFunction():
+请记住，即使Base引用或指针知道其正在引用一个Derived实例，也无法访问在Base中未定义的Derived类成员。以下代码无法编译，因为Base引用没有名为someOtherFunction()的成员函数：
 
 \begin{cpp}
 Derived myDerived;
@@ -301,7 +301,7 @@ myDerived.someOtherFunction(); // This is fine.
 ref.someOtherFunction(); // Error
 \end{cpp}
 
-This derived class knowledge characteristic is not true for nonpointer or nonreference objects. You can cast or assign a Derived to a Base because a Derived is a Base. However, the object loses any knowledge of the Derived class at that point.
+这种派生类特性对于非指针或非引用对象不可用，因为Derived也是Base类型，所以可以将Derived赋值或转换为Base。这样，对象将会失去Derived类的所有特性。
 
 \begin{cpp}
 Derived myDerived;
@@ -309,15 +309,15 @@ Base assignedObject { myDerived }; // Assigns a Derived to a Base.
 assignedObject.someFunction(); // Calls Base's version of someFunction()
 \end{cpp}
 
-One way to remember this seemingly strange behavior is to imagine what the objects look like in memory. Picture a Base object as a box taking up a certain amount of memory. A Derived object is a box that is slightly bigger because it has everything a Base has plus a bit more. Whether you have a Derived or Base reference or pointer to a Derived, the box doesn’t change—you just have a new way of accessing it. However, when you cast a Derived into a Base, you are throwing out all the “uniqueness” of the Derived class to fit it into a smaller box.
+记住这种看似奇怪的行为。可以将Base对象想象成一个占据一定内存的盒子，因为Derived拥有Base的所有内容，所以Derived对象是一个稍大的盒子。无论是通过Base引用或指针，还是Derived引用或指针访问Derived，盒子都不会改变——只是有了一种新的访问方式。然而，将Derived转换为Base时，就会丢弃Derived类的所有“特性”，以使其成为一个更小的盒子。
 
 \begin{myNotic}{NOTE}
-Derived classes retain all their data members and member functions when referred to by base class pointers or references. They lose their uniqueness when cast to a base class object. The loss of the derived class’s data members and member functions is called slicing.
+通过基类指针或引用引用派生类时，派生类保留所有数据成员和成员函数。当将派生类强制转换为基类对象时，会失去其独特性。派生类数据成员和成员函数的丢失的现象，称为切片。
 \end{myNotic}
 
-\mySamllsection{The override Keyword}
+\mySamllsection{override关键字}
 
-The use of the override keyword is optional, but highly recommended. Without the keyword, it is possible to accidentally create a new (virtual) member function in a derived class instead of overriding a member function from the base class, effectively hiding the member function from the base class. Take the following Base and Derived classes where Derived is properly overriding someFunction(), but is not using the override keyword:
+可以选择性使用override关键字，但这里强烈推荐。没有这个关键字，可能会不小心在派生类中创建一个新的（虚）成员函数，而不是覆写基类中的成员函数，从而有效地隐藏了基类中的成员函数。以下Base和Derived类，其中Derived正确地覆写了someFunction()，但没有使用override关键字：
 
 \begin{cpp}
 class Base
@@ -333,7 +333,7 @@ class Derived : public Base
 };
 \end{cpp}
 
-You can call someFunction() through a reference as follows:
+可以通过引用调用someFunction()：
 
 \begin{cpp}
 Derived myDerived;
@@ -341,7 +341,7 @@ Base& ref { myDerived };
 ref.someFunction(1.1); // Calls Derived's version of someFunction()
 \end{cpp}
 
-This correctly calls the overridden someFunction() from the Derived class. Now, suppose you accidentally use an integer parameter instead of a double while overriding someFunction(), as follows:
+正确地调用了来自Derived类的覆写的someFunction()。假设在覆写someFunction()时，不小心使用了整数参数，而不是双精度浮点数：
 
 \begin{cpp}
 class Derived : public Base
@@ -351,7 +351,7 @@ class Derived : public Base
 };
 \end{cpp}
 
-This code does not override someFunction() from Base, but instead creates a new virtual member function. If you try to call someFunction() through a Base reference as in the following code, someFunction() of Base is called instead of the one from Derived!
+这段代码并没有覆写Base的someFunction()，而是创建了新的虚成员函数。如果通过Base引用调用someFunction()，调用的是Base的someFunction()，而不是Derived的someFunction()！
 
 \begin{cpp}
 Derived myDerived;
@@ -359,9 +359,9 @@ Base& ref { myDerived };
 ref.someFunction(1.1); // Calls Base's version of someFunction()
 \end{cpp}
 
-This type of problem can happen when you start to modify the Base class but forget to update all derived classes. For example, maybe your first version of the Base class has a member function called someFunction() accepting an integer. You then write the Derived class overriding this someFunction() accepting an integer. Later you decide that someFunction() in Base needs a double instead of an integer, so you update someFunction() in the Base class. It could happen that at that time, you forget to update overrides of someFunction() in derived classes to also accept a double instead of an integer. By forgetting this, you are now actually creating a new virtual member function instead of properly overriding the base member function.
+开始修改Base类，但忘记更新所有派生类时，可能会发生这种问题。例如，Base类的第一个版本可能有一个名为someFunction()的成员函数，接受一个整数。然后编写了Derived类，覆盖了这个接受整数的someFunction()。后来决定Base中的someFunction()需要接受双精度浮点数而不是整数，所以更新了Base类中的someFunction()。可能在更新的时候，忘记更新派生类中的someFunction()，也改为接受双精度浮点数的参数。由于这一点疏忽，实际上是创建了一个新的虚成员函数，而不是覆写基成员函数。
 
-You can prevent this situation by using the override keyword as follows:
+可以通过使用override关键字来避免这种情况：
 
 \begin{cpp}
 class Derived : public Base
@@ -371,25 +371,25 @@ class Derived : public Base
 };
 \end{cpp}
 
-This definition of Derived generates a compilation error, because with the override keyword you are saying that someFunction() is supposed to be overriding a member function from a base class, but the Base class has no someFunction() accepting an integer, only one accepting a double.
+因为使用override关键字意味着someFunction()应该覆盖基类中的一个成员函数，所以这个Derived的定义会产生编译错误，但Base类中的someFunction()只接受双精度浮点数，不接受整数。
 
-The problem of accidentally creating a new member function instead of properly overriding one can also happen when you rename a member function in the base class and forget to rename the overriding member functions in derived classes.
+当在基类中重命名一个成员函数，并忘记在派生类中重命名覆写的成员函数时，也可能发生意外创建新成员函数的问题。
 
 \begin{myWarning}{WARNING}
-Always use the override keyword on member functions that are meant to be overriding member functions from a base class.
+始终在将要覆写基类成员函数的成员函数上使用override关键字。
 \end{myWarning}
 
-\mySamllsection{The Truth about virtual}
+\mySamllsection{虚函数的真相}
 
-By now you know that if a member function is not virtual, trying to override it in a derived class will hide the base class’s version of that member function. This section explores how virtual member functions are implemented by the compiler and what their performance impact is, as well as discussing the importance of virtual destructors.
+如果一个成员函数不是虚函数，尝试在派生类中进行覆写后，将隐藏基类中相应的成员函数。本节探讨了编译器如何实现虚成员函数，以及它们对性能的影响，同时还讨论了虚析构函数的重要性。
 
-\mySamllsection{How virtual Is Implemented}
+\mySamllsection{如何实现虚函数}
 
-To understand how member function hiding is avoided, you need to know a bit more about what the virtual keyword actually does. When a class is compiled in C++, a binary object is created that contains all member functions for the class. In the non-virtual case, the code to transfer control to the appropriate member function is hard-coded directly where the member function is called based on the compile-time type. This is called static binding, also known as early binding.
+要理解如何避免隐藏成员函数，需要更多地了解virtual关键字实际上做了什么。在C++中编译一个类时，会创建一个二进制对象，其中包含该类的所有成员函数。函数非虚时，根据编译时类型，直接在调用成员函数的地方硬编码。这称为静态绑定，也称为早期绑定。
 
-If the member function is declared virtual, the correct implementation is called through the use of a special area of memory called the vtable, or “virtual table.” Each class that has one or more virtual member functions has a vtable, and every object of such a class contains a pointer to said vtable. This vtable contains pointers to the implementations of the virtual member functions. In this way, when a member function is called on a pointer or reference to an object, its vtable pointer is followed, and the appropriate version of the member function is executed based on the actual type of the object at run time. This is called dynamic binding, also known as late binding. It’s important to remember that this dynamic binding works only when using pointers or references to objects. If you call a virtual member function directly on an object, then that call will use static binding resolved at compile time.
+如果成员函数声明为虚函数，则通过使用一个特殊的内存区域，称为vtable（“虚表”）来调用正确的实现。有一个或多个虚成员函数的类都有一个vtable，该类的每个对象都包含一个指向该vtable的指针。这个vtable包含指向虚成员函数实现的指针。当在指向或引用对象的指针或引用上调用成员函数时，会跟随其vtable指针，并根据运行时对象的实际类型调用适当的成员函数。这称为动态绑定，也称为晚期绑定。重要的是，这种动态绑定仅在使用指向对象的指针或引用时有效。如果直接在对象上调用虚成员函数，那么该调用将使用编译时解析的静态绑定。
 
-To better understand how vtables make overriding of member functions possible, take the following Base and Derived classes as an example:
+为了更好地理解vtable如何使成员函数的覆写成为可能，以以下Base和Derived类为例：
 
 \begin{cpp}
 class Base
@@ -408,36 +408,36 @@ class Derived : public Base
 };
 \end{cpp}
 
-For this example, assume that you have the following two instances:
+假设有以下两个实例：
 
 \begin{cpp}
 Base myBase;
 Derived myDerived;
 \end{cpp}
 
-Figure 10.5 shows a high-level view of the vtables of both instances. The myBase object contains a pointer to its vtable. This vtable has two entries, one for func1() and one for func2(). Those entries point to the implementations of Base::func1() and Base::func2().
+图10.5展示了两个实例的vtable的鸟瞰视图。myBase对象包含一个指向其vtable的指针。这个vtable有两个条目，一个用于func1()，一个用于func2()。这些条目指向Base::func1()和Base::func2()的实现。
 
 \myGraphic{0.7}{content/part3/chapter10/images/5.png}{图 10.5}
 
-myDerived also contains a pointer to its vtable, which also has two entries, one for func1() and one for func2(). Its func1() entry points to Base::func1() because Derived does not override func1(). On the other hand, its func2() entry points to Derived::func2().
+myDerived也包含一个指向其vtable的指针，该vtable也有两个条目，一个用于func1()，一个用于func2()。因为Derived没有覆盖func1()，所以func1()条目指向Base::func1()。另外，func2()条目指向Derived::func2()。
 
-Note that both vtables do not contain any entry for the nonVirtualFunc() member function because that member function is not virtual.
+请注意，两个vtable都不包含针对nonVirtualFunc()成员函数的条目，因为该成员函数不是虚函数。
 
-\mySamllsection{The Justification for virtual}
+\mySamllsection{使用virtual的理由}
 
-In some languages, such as Java, all member functions are automatically virtual so they can be overridden properly. In C++ that’s not the case. The argument against making everything virtual in C++, and the reason that the keyword was created in the first place, has to do with the overhead of the vtable. To call a virtual member function, the program needs to perform an extra operation by dereferencing the pointer to the appropriate code to execute. This is a miniscule performance hit in most cases, but the designers of C++ thought that it was better, at least at the time, to let the programmer decide if the performance hit was necessary. If the member function was never going to be overridden, there was no need to make it virtual and take the performance hit. However, with today’s CPUs, the performance hit is measured in fractions of a nanosecond, and this will keep getting smaller with future CPUs. In most applications, you will not have a measurable performance difference between using virtual member functions and avoiding them.
+一些语言中，比如Java，所有成员函数都是自动虚化的，因此可以正确地覆写。C++并非如此，反对在C++中使所有内容虚化的论据，以及创建关键字的原因，与vtable的开销有关。要调用虚拟成员函数，程序需要通过取消引用指向要执行的正确代码的指针来执行一个额外的操作。大多数情况下，这是一个微不足道的性能损失，但C++的设计者认为，让开发者决定是否需要性能损失会更好。如果成员函数永远不会覆写，就没有必要使其虚拟并承担性能损失。随着当今的CPU的发展，性能损失以纳秒甚至更小的数值来衡量，并且随着未来CPU的发展，这个数值将不断减小。大多数应用程序中，使用虚成员函数和不使用相比较，不会有可观的性能差异。
 
-Still, in certain specific use cases, the performance overhead might be too costly, and you may need to have an option to avoid the hit. For example, suppose you have a Point class that has a virtual member function. If you have another data structure that stores millions or even billions of Points, calling a virtual member function on each point creates significant overhead. In that case, it’s probably wise to avoid any virtual member functions in your Point class.
+尽管如此，在某些特定的用例中，性能开销会很高，可能需要有一个选项来避免这种开销。例如，有一个带有虚成员函数的Point类。如果有另一个数据结构存储了数百万甚至数十亿个Point，那么在每个点上调用虚成员函数会产生显著的开销。这种情况下，避免在Point类中使用虚成员函数可能是明智之举。
 
-There is also a tiny hit to memory usage for each object. In addition to the implementation of the member function, each object also needs a pointer for its vtable, which takes up a tiny amount of space. This is not an issue in the majority of cases. However, sometimes it does matter. Take again the Point class and the container storing billions of Points. In that case, the additional required memory becomes significant.
+每个对象的内存使用也会有一点增加。除了成员函数的实现之外，每个对象还需要一个指向其vtable的指针，这会占用一点空间。大多数情况下，这并不是问题，但有时确实很重要。再次以Point类和存储数十亿个Point的容器为例。在这种情况下，所需的额外内存变得很可观。
 
-\mySamllsection{The Need for virtual Destructors}
+\mySamllsection{虚析构函数的必要性}
 
-Destructors should almost always be virtual. Making your destructors non-virtual can easily result in situations in which memory is not freed by object destruction. Only for a class that is marked as final could you make its destructor non-virtual.
+析构函数总是应该是虚的。如果析构函数不为虚，很容易导致对象销毁时内存没有释放。只有在标记为final的类中，才可以让其析构函数设置为非虚。
 
-For example, if a derived class uses memory that is dynamically allocated in the constructor and deleted in the destructor, it will never be freed if the destructor is never called. Similarly, if your derived class has members that are automatically deleted when an instance of the class is destroyed, such as std::unique\_ptrs, then those members will not get deleted either if the destructor is never called.
+例如，一个派生类在构造函数中动态分配内存，并在析构函数中删除它。如果析构函数从未调用，则内存将永远不会释放。同样，如果派生类有在类实例销毁时自动删除的成员，比如std::unique\_ptr，那么如果析构函数从未调用，这些成员也不会删除。
 
-As the following code shows, it is easy to “trick” the compiler into skipping the call to the destructor if it is non-virtual:
+正如以下代码所示，如果析构函数不为虚，很容易“欺骗”编译器跳过对析构函数的调用：
 
 \begin{cpp}
 class Base
@@ -473,15 +473,15 @@ int main()
 }
 \end{cpp}
 
-As you can see from the following output, the destructor of the Derived object is never called, that is, the “m\_string deallocated” message is never displayed:
+从以下输出中可以看出，Derived对象的析构函数从未调用，也就是说，“m\_string deallocated”消息从未显示：
 
 \begin{cpp}
 m_string allocated
 \end{cpp}
 
-Technically, the behavior of the delete call in the preceding code is undefined by the standard. A C++ compiler could do whatever it wants in such undefined situations. However, most compilers simply call the destructor of the base class, and not the destructor of the derived class.
+从技术上讲，前面代码中的delete调用的行为在标准中是未定义的。C++编译器在这种未定义的情况下可以做任何事情。然而，大多数编译器只是调用基类的析构函数，而不调用派生类的析构函数。
 
-The fix is to mark the destructor in the base class as virtual. If you don’t need to do any extra work in that destructor but want to make it virtual, you can explicitly default it. Here’s an example:
+修复这个问题的方法是在基类中标记析构函数为虚。如果不在那个析构函数中做额外的工作，但想要使其为虚，可以标记为显式默认：
 
 \begin{cpp}
 class Base
@@ -492,20 +492,20 @@ class Base
 };
 \end{cpp}
 
-With this change, the output is as expected:
+有了这个改变，输出就和预期一样了：
 
 \begin{shell}
 m_string allocated
 m_string deallocated
 \end{shell}
 
-Note that since C++11, the generation of a copy constructor and copy assignment operator is deprecated if the class has a user-declared destructor. Basically, once you have a user-declared destructor, the rule of five kicks in. This means you need to declare a copy constructor, copy assignment operator, move constructor, and move assignment operator, possibly by explicitly defaulting them. This is not done in the examples in this chapter in the interest of keeping them concise and to the point.
+请注意，自从C++11以来，如果一个类有用户声明的析构函数，那么生成复制构造函数和复制赋值操作符是被弃用的。基本上，当 有了一个用户声明的析构函数，规则五就会生效。所以需要声明一个复制构造函数、复制赋值操作符、移动构造函数和移动赋值操作符，可以显式默认它们。不过，为了保持本章中的例子简洁明了，没有这样做。
 
 \begin{myWarning}{WARNING}
-Unless you have a specific reason not to, or the class is marked as final, destructors should be marked as virtual. Constructors cannot and need not be virtual because you always specify the exact class being constructed when creating an object.
+除非有特殊的理由不这么做，或者类标记为final，否则析构函数应该为虚。构造函数不能，也不需要为虚，因为创建对象时，需要对确切具体的类进行构造。
 \end{myWarning}
 
-Earlier in this chapter it was advised to use the override keyword on member functions that are meant to override base class member functions. It’s also possible to use the override keyword on a destructor. This makes sure that the compiler will trigger an error if the destructor in the base class is not virtual. You can combine virtual, override, and default. Here’s an example:
+本章前面建议在打算覆写基类成员函数的成员函数上使用override关键字，也可以在析构函数上使用override关键字。如果基类中的析构函数不为虚，编译器将报错。也可以组合使用virtual、override和default：
 
 \begin{cpp}
 class Derived : public Base
@@ -515,9 +515,9 @@ class Derived : public Base
 };
 \end{cpp}
 
-\mySamllsection{Preventing Overriding}
+\mySamllsection{防止覆写}
 
-Besides marking an entire class as final, C++ also allows you to mark individual member functions as final. Such member functions cannot be overridden in a further derived class. For example, overriding someFunction() from the following Derived class in DerivedDerived results in a compilation error:
+除了将整个类标记为final之外，C++可以将单个成员函数标记为final。这样的成员函数不能在进一步的派生类中覆写。例如，从下面的Derived类覆盖someFunction()到DerivedDerived将导致编译错误：
 
 \begin{cpp}
 class Base
