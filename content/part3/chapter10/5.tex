@@ -1,34 +1,34 @@
 
-As you read in Chapter 5, multiple inheritance is often perceived as a complicated and unnecessary part of object-oriented programming. I’ll leave the decision of whether it is useful up to you and your co-workers. This section explains the mechanics of multiple inheritance in C++.
+正如第5章中所言，多重继承通常认为是面向对象编程中复杂且不必要的部分。关于它是否有用，我不做评论。不过，这一节会来介绍C++中多重继承的机制。
 
-\mySubsubsection{10.5.1.}{Inheriting from Multiple Classes}
+\mySubsubsection{10.5.1.}{继承于多个类}
 
-Defining a class to have multiple parent classes is simple from a syntactic point of view. All you need to do is list the base classes individually when declaring the class name.
+继承多个基类在语法上很简单，只需要在声明类名时列出基类即可。
 
 \begin{cpp}
 class Baz : public Foo, public Bar { /* Etc. */ };
 \end{cpp}
 
-By listing multiple parents, a Baz object has the following characteristics:
+通过列出多个基类，Baz对象具有以下特征：
 
 \begin{itemize}
 \item
-A Baz object supports the public member functions and contains the data members of both Foo and Bar.
+Baz对象支持Foo和Bar的public成员函数，并包含这两个类的数据成员。
 
 \item
-The member functions of the Baz class have access to protected data and member functions in both Foo and Bar.
+Baz类的成员函数可以访问Foo和Bar的protected的数据和成员函数。
 
 \item
-A Baz object can be upcast to either a Foo or a Bar.
+可以将Baz对象向上转换为Foo或Bar。
 
 \item
-Creating a new Baz object automatically calls the Foo and Bar default constructors, in the order in which the classes are listed in the class definition.
+创建新的Baz对象会自动调用Foo和Bar的默认构造函数，按照在类定义中的类的顺序。
 
 \item
-Deleting a Baz object automatically calls the destructors for the Foo and Bar classes, in the reverse order that the classes are listed in the class definition.
+删除Baz对象会自动调用Foo和Bar类的析构函数，按照在类定义中列出类的相反顺序。
 \end{itemize}
 
-The following example shows a class, DogBird, that has two parent classes—a Dog class and a Bird class, as shown in Figure 10.9. The fact that a dog-bird is a ridiculous example should not be viewed as a statement that multiple inheritance itself is ridiculous. Honestly, I leave that judgment up to you.
+以下示例显示了一个具有两个父类的类DogBird——一个Dog类和一个Bird类，如图10.9所示，这个例子确实有些荒谬。
 
 \myGraphic{0.3}{content/part3/chapter10/images/9.png}{图 10.9}
 
@@ -50,7 +50,7 @@ class DogBird : public Dog, public Bird
 };
 \end{cpp}
 
-Using objects of classes with multiple parents is no different from using objects without multiple parents. In fact, the client code doesn’t even have to know that the class has two parents. All that really matters are the properties and behaviors supported by the class. In this case, a DogBird object supports all of the public member functions of Dog and Bird.
+使用多个父类的类的对象与单个父类的对象的用法没有区别。实际上，客户端代码甚至不必知道类有两个父类。真正重要的是类支持的特性和行为。这种情况下，DogBird对象支持Dog和Bird的所有public成员函数。
 
 \begin{cpp}
 DogBird myConfusedAnimal;
@@ -58,23 +58,22 @@ myConfusedAnimal.bark();
 myConfusedAnimal.chirp();
 \end{cpp}
 
-The output of this program is as follows:
+程序的输出如下所示：
 
 \begin{shell}
 Woof!
 Chirp!
 \end{shell}
 
-\mySubsubsection{10.5.2.}{Naming Collisions and Ambiguous Base Classess}
+\mySubsubsection{10.5.2.}{命名冲突和歧义基类}
 
-It’s not difficult to construct a scenario where multiple inheritance would seem to break down. The following examples show some of the edg
+构建一个多重继承因会崩溃的场景并不困难。以下示例展示了必须考虑的“边缘”情况。
 
-\mySamllsection{Name Ambiguity}
+\mySamllsection{命名歧义}
 
-What if the Dog class and the Bird class both had a member function called eat()? Because Dog and Bird are not related in any way, one version of the member function does not override the other— they both continue to exist in the DogBird-derived class.
-As long as client code never attempts to call the eat() member function, that is not a problem.
+如果Dog类和Bird类都有一个名为eat()的成员函数，会发生什么？由于Dog和Bird没有关系，成员函数并不会覆写——它们在DogBird派生类中都继续存在。 只要客户端代码从不调用成员函数eat()，就没有问题。
 
-The DogBird class compiles correctly despite having two versions of eat(). However, if client code attempts to call the eat() member function on a DogBird, the compiler gives an error indicating that the call to eat() is ambiguous. The compiler does not know which version to call. The following code provokes this ambiguity error:
+尽管它有两个版本的eat()，DogBird类还是可以正确编译。然而，如果客户端代码尝试在DogBird上调用eat()成员函数，编译器将报错，指出调用eat()有歧义，编译器不知道调用哪个eat()：
 
 \begin{cpp}
 class Dog
@@ -102,16 +101,16 @@ int main()
 }
 \end{cpp}
 
-If you comment out the last line from main() calling eat(), the code compiles fine.
+如果注释掉从main()调用eat()的最后一行，代码可以正确编译。
 
-The solution to the ambiguity is either to explicitly upcast the object using a dynamic\_cast(), essentially hiding the undesired version of the member function from the compiler, or to use a disambiguation syntax. For example, the following code shows two ways to invoke the Dog version of eat():
+解决歧义的方法之一是，使用dynamic\_cast()显式向上转换对象，从而在编译器中隐藏不需要的成员函数版本，或者使用歧义消除语法。例如，以下代码展示了两种调用Dog的eat()：
 
 \begin{cpp}
 dynamic_cast<Dog&>(myConfusedAnimal).eat(); // Calls Dog::eat()
 myConfusedAnimal.Dog::eat(); // Calls Dog::eat()
 \end{cpp}
 
-Member functions of the derived class itself can also explicitly disambiguate between different member functions of the same name by using the same syntax used to access parent member functions, that is, the :: scope resolution operator. For example, the DogBird class could prevent ambiguity errors in other code by defining its own eat() member function. Inside this member function, it would determine which parent version to call.
+派生类的成员函数也可以通过使用访问父成员函数的相同语法，来明确消除对同名不同版本成员函数的歧义，即::作用域解析运算符。例如，DogBird类可以通过定义自己的eat()成员函数来防止其他代码中的歧义错误。在这个成员函数中，可以确定调用哪个父类eat()。
 
 \begin{cpp}
 class DogBird : public Dog, public Bird
@@ -124,7 +123,7 @@ class DogBird : public Dog, public Bird
 };
 \end{cpp}
 
-Yet another way to prevent the ambiguity error is to use a using declaration to explicitly state which version of eat() should be inherited in DogBird. Here’s an example:
+避免歧义错误的另一种方法是使用using声明，明确指出DogBird应该继承哪个版本的eat()。这是一个例子：
 
 \begin{cpp}
 class DogBird : public Dog, public Bird
@@ -134,17 +133,17 @@ class DogBird : public Dog, public Bird
 };
 \end{cpp}
 
-\mySamllsection{Ambiguous Base Classes}
+\mySamllsection{基类歧义}
 
-Another way to provoke ambiguity is to inherit from the same class twice. This can happen if multiple parents themselves have a common parent. For example, perhaps both Bird and Dog are inheriting from an Animal class, as shown in Figure 10.10.
+另一种引发歧义的方式是两次继承同一个类。如果多个父类本身有共同的父类，这就有可能会发生。例如，也许Bird和Dog都继承自一个Animal类，如图10.10所示。
 
 \myGraphic{0.3}{content/part3/chapter10/images/10.png}{图 10.10}
 
-This type of class hierarchy is permitted in C++, though name ambiguity can still occur. For example, if the Animal class has a public member function called sleep(), that member function cannot be called on a DogBird object because the compiler does not know whether to call the version inherited by Dog or by Bird.
+C++允许这种类型的类层次结构，仍可能发生命名歧义。例如，Animal类有一个public成员函数sleep()，这个成员函数不能在DogBird对象上调用，因为编译器不知道是调用Dog的，还是Bird的。
 
-The best way to use these “diamond-shaped” class hierarchies is to make the topmost class an abstract base class with all member functions declared as pure virtual. Because the class only declares member functions without providing definitions, there are no member functions in the base class to call, and thus there are no ambiguities at that level.
+使用这些“钻石形状”的类层次结构的最佳方式是，使最顶层的类成为一个纯虚抽象基类，其中所有成员函数都声明为纯虚。因为该类只声明成员函数而不提供定义，所以基类中没有成员函数可以调用，因此在这个层面上没有歧义。
 
-The following example implements a diamond-shaped class hierarchy in which the Animal abstract base class has a pure virtual eat() member function that must be defined by each derived class. The DogBird class still needs to be explicit about which parent’s eat() member function it uses, but any ambiguity is caused by Dog and Bird having the same member function, not because they inherit from the same class.
+以下示例实现了一个钻石形状的类层次结构，其中Animal抽象基类有一个必须由每个派生类定义的纯虚eat()成员函数。DogBird类仍然需要明确使用哪个父类的eat()成员函数，但歧义是因Dog和Bird具有相同的成员函数引起的，而不是因为它们继承自同一个类。
 
 \begin{cpp}
 class Animal
@@ -174,13 +173,13 @@ class DogBird : public Dog, public Bird
 };
 \end{cpp}
 
-A more refined mechanism for dealing with the top class in a diamond-shaped hierarchy, virtual base classes, is explained later in this chapter.
+对于钻石形状层次结构的顶部类，处理更精细的机制，即虚基类，将在后面介绍。
 
-\mySamllsection{Uses for Multiple Inheritance}
+\mySamllsection{多重继承的用途}
 
-At this point, you’re probably wondering why programmers would want to tackle multiple inheritance in their code. The most straightforward use case for multiple inheritance is to define a class of objects that is-a something and also is-a something else. As was said in Chapter 5, any real-world objects you find that follow this pattern are unlikely to translate well into code.
+现在，可能想知道为什么要在代码中使用多重继承。多重继承的最直接用途是定义一个既是某种东西又是另一种东西的对象类。正如第5章所说，遵循这种模式的真实世界对象，都不太好转换成代码。
 
-One of the most compelling and simple uses of multiple inheritance is for the implementation of mixin classes. Mixin classes are introduced in Chapter 5 and are discussed in more detail in Chapter 32, “Incorporating Design Techniques and Frameworks.” Another reason that people sometimes use multiple inheritance is to model a component-based class.
+多重继承最有说服力和简单的用途之一是实现混合类（mixin classes）。混合类在第5章中引入，并在第32章中进行了更详细的介绍。人们有时使用多重继承的另一个原因是模拟基于组件的类。
 
-Chapter 5 gives the example of an airplane simulator. The Airplane class has an engine, fuselage, controls, and other components. While the typical implementation of an Airplane class would make each of these components a separate data member, you could use multiple inheritance. The airplane class would inherit from engine, fuselage, and controls, in effect getting the behaviors and properties of all of its components. I recommend that you stay away from this type of code because it confuses a clear has-a relationship with inheritance, which should be used for is-a relationships. The recommended solution is to have an Airplane class that contains data members of type Engine, Fuselage, and Controls.
+第5章给出了一个飞机模拟器的例子。Airplane类有一个引擎、机身、控制装置和其他组件。虽然Airplane类的典型实现会让这些组件成为单独的数据成员，但也可以使用多重继承。飞机类将从Engine、Fuselage和Controls继承，实际上获取所有组件的行为和属性。不过，我建议远离这种类型的代码，因为它混淆了清晰的“has a”关系与继承，继承应该用于“is a”关系。推荐的解决方案是让Airplane类包含类型为Engine、Fuselage和Controls的数据成员。
 

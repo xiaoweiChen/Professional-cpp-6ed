@@ -1,19 +1,19 @@
 
-Extending a class opens up a variety of issues. What characteristics of the class can and cannot be changed? What is non-public inheritance? What are virtual base classes? These questions, and more, are answered in the following sections.
+扩展一个类会引发各种问题。可以改变类的哪些特性？不能改变哪些特性？什么是非公有继承？什么是虚基类？这些问题将在这里得到解答。
 
-\mySubsubsection{10.6.1.}{Changing the Overridden Member Function’s Return Type}
+\mySubsubsection{10.6.1.}{改变覆写成员函数的返回类型}
 
-For the most part, the reason you override a member function is to change its implementation. Sometimes, however, you may want to change other characteristics of the member function, such as its return type.
+通常，覆写一个成员函数的原因是改变其实现。然而，有时可能想改变成员函数的其他特性，比如返回类型。
 
-A good rule of thumb is to override a member function with the exact member function declaration, or member function prototype, that the base class uses. The implementation can change, but the prototype stays the same.
+经验法则是使用与基类中，使用的完全相同的成员函数声明或成员函数原型来覆写成员函数。实现可以改变，但原型保持不变。
 
-That does not have to be the case, however. In C++, an overriding member function can change the return type as long as the return type of the member function in the base class is a pointer or reference to a class, and the return type in the derived class is a pointer or reference to a descendant, i.e., more specialized class. Such types are called covariant return types. This feature sometimes comes in handy when the base class and derived class work with objects in a parallel hierarchy—that is, another group of classes that is tangential, but related, to the first class hierarchy.
+然而，这并非必须。在C++中，一个覆写的成员函数可以改变其返回类型，只要基类成员函数的返回类型是指向类的指针或引用，而在派生类中，返回类型是指向派生类的指针或引用，即更具体的类。这样的类型称为协变返回类型。当基类和派生类在并行层次结构中处理对象时，这种特性有时非常有用——即另一组与第一个类层次结构相关但稍显次要的类。
 
-For example, consider a basic car simulator. You might have two hierarchies of classes that model different real-world objects but are obviously related. The first is the Car hierarchy. The base class, Car, has derived classes GasolineCar and ElectricalCar. Similarly, there is another hierarchy of classes with a base class called PowerSource and derived classes GasolinePowerSource and ElectricalPowerSource. Figure 10.11 shows the two class hierarchies.
+例如，一个基本的汽车模拟器。可能有两个类层次结构来模拟不同但明显相关的真实对象。第一个是Car层次结构，基类Car有派生类GasolineCar和ElectricalCar。同样，还有一个类层次结构，基类称为PowerSource，派生类有GasolinePowerSource和ElectricalPowerSource。图10.11显示了这两个类层次结构。
 
 \myGraphic{0.8}{content/part3/chapter10/images/11.png}{图 10.11}
 
-Let’s assume a power source can print its own type and that a gasoline power source has a member function fillTank(), while an electrical power source has a member function chargeBatteries():
+假设电源可以打印自己的类型，而汽油电源有一个成员函数fillTank()，而电力电源有一个成员函数chargeBatteries():
 
 \begin{cpp}
 class PowerSource
@@ -37,7 +37,7 @@ class ElectricalPowerSource : public PowerSource
 };
 \end{cpp}
 
-Now assume that Car has a virtual member function called getFilledUpPowerSource() that returns a reference to the “filled-up” power source of a specific car:
+Car有一个名为getFilledUpPowerSource()的虚成员函数，该函数返回特定汽车的“加满”电源的引用：
 
 \begin{cpp}
 class Car
@@ -47,7 +47,7 @@ class Car
 };
 \end{cpp}
 
-This is a pure virtual, abstract member function, as it only makes sense to provide an actual implementation in concrete derived classes. Since a GasolinePowerSource is a PowerSource, the GasolineCar class can implement this member function as follows:
+这是一个纯虚、抽象的成员函数，只有在具体的派生类中提供实现才有意义。由于GasolinePowerSource是PowerSource，所以GasolineCar类可以按以下方式实现这个成员函数：
 
 \begin{cpp}
 class GasolineCar : public Car
@@ -63,7 +63,7 @@ class GasolineCar : public Car
 };
 \end{cpp}
 
-ElectricalCar can implement it as follows:
+ElectricalCar可以按以下方式实现：
 
 \begin{cpp}
 class ElectricalCar : public Car
@@ -79,7 +79,7 @@ class ElectricalCar : public Car
 };
 \end{cpp}
 
-These classes can be tested as follows:
+这些类可以按以下方式进行测试：
 
 \begin{cpp}
 GasolineCar gc;
@@ -89,7 +89,7 @@ ElectricalCar ev;
 ev.getFilledUpPowerSource().printType();
 \end{cpp}
 
-The output is:
+输出如下：
 
 \begin{shell}
 Gasoline tank filled up.
@@ -99,7 +99,7 @@ Batteries charged.
 ElectricalPowerSource
 \end{shell}
 
-This implementation is fine. However, because you know that the getFilledUpPowerSource() member function for GasolineCar always returns a GasolinePowerSource, and for ElectricalCar always an ElectricalPowerSource, you can indicate this fact to potential users of these classes by changing the return type, as shown here:
+这种实现是可行的，但我们知道GasolineCar的getFilledUpPowerSource()成员函数总是返回GasolinePowerSource，而ElectricalCar总是返回ElectricalPowerSource，可以通过改变返回类型来向使用这些类的用户表明这一点：
 
 \begin{cpp}
 class GasolineCar : public Car
@@ -117,9 +117,9 @@ class ElectricalCar : public Car
 };
 \end{cpp}
 
-A good way to figure out whether you can change the return type of an overridden member function is to consider whether existing code would still work; this is called the Liskov substitution principle (LSP). In the preceding example, changing the return type was fine because any code that assumed that the getFilledUpPowerSource() member function would always return a PowerSource would still compile and work correctly. Because an ElectricalPowerSource and a GasolinePowerSource are both PowerSources, any member functions that were called on the result of getFilledUpPowerSource() returning a PowerSource could still be called on the result of getFilledUpPowerSource() returning an ElectricalPowerSource or a GasolinePowerSource.
+确定是否可以更改重写的成员函数的返回类型的一个好方法是考虑现有代码是否仍然有效，这称为Liskov替换原则（LSP）。在前面的例子中，因为假设getFilledUpPowerSource()成员函数总是返回PowerSource的代码仍然可以编译并正确工作，所以可以更改返回类型。因为ElectricalPowerSource和GasolinePowerSource都是PowerSources，所以可以对getFilledUpPowerSource()返回的PowerSource调用的成员函数，同样可以对getFilledUpPowerSource()返回的ElectricalPowerSource或GasolinePowerSource调用相应的成员函数。
 
-You could not, for example, change the return type to something completely unrelated, such as int\&. The following code does not compile:
+例如，不能将返回类型更改为完全无关的类型，如int\&。以下代码无法编译：
 
 \begin{cpp}
 class ElectricalCar : public Car
@@ -130,19 +130,18 @@ class ElectricalCar : public Car
 };
 \end{cpp}
 
-This generates a compilation error, something like this:
+这会产生一个编译错误:
 
 \begin{shell}
 'ElectricalCar::getFilledUpPowerSource': overriding virtual function return type
 differs and is not covariant from 'Car::getFilledUpPowerSource'
 \end{shell}
 
-This example is using references to PowerSources and not smart pointers. Changing the return type does not work when using, for example, shared\_ptr as return type. Suppose Car::getFilledUpPowerSource() returns a shared\_ptr<PowerSource>. In that case, you cannot change the return type for ElectricalCar::getFilledUpPowerSource() to shared\_ ptr<ElectricalPowerSource>. The reason is that shared\_ptr is a class template. Two instantiations of the shared\_ptr class template are created, shared\_ptr<PowerSource> and shared\_ptr<ElectricalPowerSource>. Both these instantiations are completely different types and are in no way related to each other. You cannot change the return type of an overridden member function to return a completely different type.
+这个例子使用了PowerSource的引用，而不是智能指针。使用，例如shared\_ptr作为返回类型时，更改返回类型不起作用。假设Car::getFilledUpPowerSource()返回shared\_ptr<PowerSource>。因为shared\_ptr是一个类模板，所以不能将ElectricalCar::getFilledUpPowerSource()的返回类型改为shared\_ptr。需要创建了两个shared\_ptr类模板的实例，shared\_ptr<PowerSource>和shared\_ptr<ElectricalPowerSource>。这两个实例化是完全不同的类型，并且彼此没有任何关系。不能将覆写成员函数的返回类型，更改为完全不同的类型。
 
+\mySubsubsection{10.6.2.}{向派生类添加基类虚成员函数的重载}
 
-\mySubsubsection{10.6.2.}{Adding Overloads of virtual Base Class Member Functions to Derived Classes}
-
-It is possible to add new overloads of virtual base class member functions to derived classes. That is, you can add an overload of a virtual member function in the derived class with a new prototype but continue to inherit the base class version. This technique uses a using declaration to explicitly include the base class definition of the member function within the derived class. Here is an example:
+可以在派生类中添加基类虚成员函数的新重载，可以在派生类中添加一个虚成员函数的新重载，具有新的原型，但继续继承基类的版本。可以使用using声明，明确地在派生类中包含基类成员函数的定义。以下是一个例子：
 
 \begin{cpp}
 class Base
@@ -161,12 +160,12 @@ class Derived : public Base
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-It is rare to find a member function in a derived class with the same name as a member function in the base class but using a different parameter list.
+在派生类中找到与基类中成员函数同名，但参数列表不同的成员函数的情况很罕见。
 \end{myNotic}
 
-\mySubsubsection{10.6.3.}{Inherited Constructors}
+\mySubsubsection{10.6.3.}{继承的构造函数}
 
-In the previous section, you saw the use of a using declaration to explicitly include the base class definition of a member function within a derived class. This works for normal class member functions, but also for constructors, allowing you to inherit constructors from base classes. Take a look at the following definitions for the Base and Derived classes:
+前一节中，看到了使用using声明来明确包含基类中成员函数定义的示例。这适用于普通类成员函数，也适用于构造函数，允许从基类继承构造函数。看看Base和Derived类的定义：
 
 \begin{cpp}
 class Base
@@ -184,9 +183,9 @@ class Derived : public Base
 };
 \end{cpp}
 
-The only thing the Derived constructor is doing is passing its parameter to a Base constructor.
+Derived构造函数所做的唯一事情是，将其参数传递给Base构造函数。
 
-You can construct a Base object only with the provided Base constructors, either the default constructor or the constructor accepting an int. On the other hand, constructing a Derived object can happen only with the provided Derived constructor, which requires a single integer as argument. You cannot construct Derived objects using the default constructor from the Base class. Here is an example:
+只能使用Base提供的构造函数来构造Base对象，要么是默认构造函数，要么是接受一个int的构造函数。另一方面，构造Derived对象只能通过提供的Derived构造函数，需要一个整数作为参数。不能使用Base类的默认构造函数来构造Derived对象：
 
 \begin{cpp}
 Base base { 1 }; // OK, calls integer Base ctor.
@@ -194,7 +193,7 @@ Derived derived1 { 2 }; // OK, calls integer Derived ctor.
 Derived derived2; // Error, Derived does not have a default ctor.
 \end{cpp}
 
-As the Derived constructor is just passing its parameter to a Base constructor and isn’t doing anything else, you can simply inherit the Base constructors explicitly with a using declaration in the Derived class as follows:
+由于Derived构造函数只是将其参数传递给Base构造函数，并没有做其他事情，所以可以在Derived类中通过using声明显式继承Base构造函数：
 
 \begin{cpp}
 class Derived : public Base
@@ -204,18 +203,18 @@ class Derived : public Base
 };
 \end{cpp}
 
-The using declaration inherits all constructors from Base, so now you can construct Derived objects in the following ways:
+using声明继承了Base的所有构造函数，所以可以这样构造Derived对象：
 
 \begin{cpp}
 Derived derived1 { 2 }; // OK, calls inherited integer Base ctor.
 Derived derived2; // OK, calls inherited default Base ctor.
 \end{cpp}
 
-The inherited constructors in a derived class have the same access specifier (public, protected, or private) as the constructors in the base class. Inherited constructors that are explicitly deleted with =delete in the base class are deleted in the derived class as well.
+派生类中的继承构造函数，具有与基类构造函数相同的访问说明符（public、protected或private）。在基类中显式删除的继承构造函数，也会在派生类中删除。
 
-\mySamllsection{Hiding of Inherited Constructors}
+\mySamllsection{隐藏继承的构造函数}
 
-The Derived class can define a constructor with the same parameter list as one of the inherited constructors in the Base class. In this case, the constructor of the Derived class takes precedence over the inherited constructor. In the following example, the Derived class inherits all constructors, from the Base class with the using declaration. However, because the Derived class defines its own constructor with a single parameter of type float, the inherited constructor from the Base class with a single parameter of type float is hidden.
+派生类可以定义一个参数列表与基类中继承的构造函数相同。这种情况下，派生类的构造函数优先于继承的构造函数。以下示例中，Derived类继承了Base类的所有构造函数，使用using声明。然而，由于Derived类定义了自己的一个单参数类型为float的构造函数，隐藏了Base类中参数类型为float的继承构造函数。
 
 \begin{cpp}
 class Base
@@ -235,7 +234,7 @@ class Derived : public Base
 };
 \end{cpp}
 
-With this definition, objects of Derived can be created as follows:
+有了这个定义，可以创建Derived对象：
 
 \begin{cpp}
 Derived derived1 { "Hello" }; // OK, calls inherited string_view Base ctor.
@@ -243,19 +242,19 @@ Derived derived2 { 1.23f }; // OK, calls float Derived ctor.
 Derived derived3; // OK, calls inherited default Base ctor.
 \end{cpp}
 
-A few restrictions apply to inheriting constructors from a base class with a using declaration.
+使用using声明从基类继承构造函数时，有一些限制。
 
 \begin{itemize}
 \item
-When you inherit a constructor from a base class, you inherit all of them. It is not possible to inherit only a subset of the constructors of a base class.
+当从基类继承一个构造函数时，就继承了所有构造函数。不可能只继承基类构造函数的一个子集。
 
 \item
-When you inherit constructors, they are inherited with the same access specification as they have in the base class, irrespective of which access specification the using declaration is under.
+当继承构造函数时，其与基类中访问权限相同(直接继承)，不受using声明下的访问权限的限制。
 \end{itemize}
 
-\mySamllsection{Inherited Constructors and Multiple Inheritance}
+\mySamllsection{继承构造函数和多重继承}
 
-Another restriction with inheriting constructors is related to multiple inheritance. It’s not possible to inherit constructors from one of the base classes if another base class has a constructor with the same parameter list, because this leads to ambiguity. To resolve this, the Derived class needs to explicitly define the conflicting constructors. For example, the following Derived class tries to inherit all constructors from both Base1 and Base2, which results in an ambiguity for the float-based constructors.
+继承构造函数的另一个限制与多重继承有关。如果另一个基类有一个与第一个基类参数列表相同的构造函数，那么不可能从第一个基类继承构造函数，这会导致歧义。为了解决这个问题，派生类需要显式定义冲突的构造函数。例如，以下Derived类尝试从Base1和Base2继承所有构造函数，这导致了浮点数构造函数的歧义。
 
 \begin{cpp}
 class Base1
@@ -289,13 +288,13 @@ int main()
 }
 \end{cpp}
 
-The first using declaration in Derived inherits all constructors from Base1. This means that Derived gets the following constructor:
+Derived中的第一个using声明继承了Base1的所有构造函数，所以Derived有以下构造函数：
 
 \begin{cpp}
 Derived(float f); // Inherited from Base1.
 \end{cpp}
 
-The second using declaration in Derived tries to inherit all constructors from Base2. However, this means that Derived gets a second Derived(float) constructor. The problem is solved by explicitly declaring conflicting constructors in the Derived class as follows:
+Derived中的第二个using声明尝试从Base2继承所有构造函数，所以Derived得到了第二个Derived(float)构造函数。问题通过在Derived类中显式声明冲突的构造函数来解决，如下所示：
 
 \begin{cpp}
 class Derived : public Base1, public Base2
@@ -308,15 +307,15 @@ class Derived : public Base1, public Base2
 };
 \end{cpp}
 
-The Derived class now explicitly declares a constructor with a single parameter of type float, solving the ambiguity. If you want, this explicitly declared constructor in the Derived class accepting a float argument can still forward the call to both the Base1 and Base2 constructors in its ctorinitializer as follows:
+Derived类现在显式声明了一个单参数类型为float的构造函数，解决了歧义。Derived类中也接受浮点数参数的显式构造函数仍然可以在初始化器中转发调用Base1和Base2的构造函数，如下所示：
 
 \begin{cpp}
 Derived::Derived(float f) : Base1 { f }, Base2 { f } {}
 \end{cpp}
 
-\mySamllsection{Initialization of Data Members}
+\mySamllsection{数据成员的初始化}
 
-When using inherited constructors, make sure that all data members are properly initialized. For example, take the following new definitions for Base and Derived. These definitions do not properly initialize the m\_int data member in all cases, and, as you know, uninitialized data members are not recommended.
+使用继承的构造函数时，请确保所有数据成员都正确初始化。例如，以下Base和Derived的新定义。这些定义在所有情况下，都没有正确初始化m\_int数据成员。
 
 \begin{cpp}
 class Base
@@ -338,23 +337,23 @@ class Derived : public Base
 };
 \end{cpp}
 
-You can create a Derived object as follows:
+可以像这样创建一个Derived对象：
 
 \begin{cpp}
 Derived s1 { 2 };
 \end{cpp}
 
-This calls the Derived(int) constructor, which initializes the m\_int data member of the Derived class and calls the Base constructor with an empty string to initialize the m\_str data member.
+这调用了Derived(int)构造函数，初始化Derived类的m\_int数据成员，并用空字符串调用Base构造函数初始化了Base类的m\_str数据成员。
 
-Because the Base constructor is inherited in the Derived class, you can also construct a Derived object as follows:
+因为Base构造函数在Derived类中继承，也可以像这样构造一个Derived对象：
 
 \begin{cpp}
 Derived s2 { "Hello World" };
 \end{cpp}
 
-This calls the inherited Base constructor in the Derived class. However, this inherited Base constructor only initializes m\_str of the Base class and does not initialize m\_int of the Derived class, leaving it in an uninitialized state. This is not recommended! The solution in this case is to use in-class member initializers, which are discussed in Chapter 8.
+这调用Derived类中的继承Base构造函数，这个继承的Base构造函数只初始化Base类的m\_str，并没有初始化Derived类的m\_int，使其处于未初始化状态。这种情况下，解决方案是在类中使用成员初始化器，这在第8章中介绍过。
 
-The following code uses an in-class member initializer to initialize m\_int to 0. Of course, the Derived(int) constructor can still change this and initialize m\_int to the constructor parameter i.
+以下代码使用类内成员初始化器将m\_int初始化为0。当然，Derived(int)构造函数仍然可以改变这个值，并初始化m\_int为构造参数i。
 
 \begin{cpp}
 class Derived : public Base
@@ -367,17 +366,17 @@ class Derived : public Base
 };
 \end{cpp}
 
-\mySubsubsection{10.6.4.}{Special Cases in Overriding Member Functions}
+\mySubsubsection{10.6.4.}{重写成员函数的特殊情况}
 
-Several special cases require attention when overriding a member function. This section outlines the cases that you are likely to encounter.
+重写一个成员函数时，有几个特殊情况需要注意。本节概述了可能遇到的情况。
 
-\mySamllsection{The Base Class Member Function Is static}
+\mySamllsection{静态基类成员函数}
 
-In C++, you cannot override a static member function. For the most part, that’s all you need to know. There are, however, a few corollaries that you need to understand.
+在C++中，不能重写一个静态成员函数。大部分情况下，这就是需要知道的全部。
 
-First of all, a member function cannot be both static and virtual. This is the first clue that attempting to override a static member function will not do what you intend it to do. If you have a static member function in your derived class with the same name as a static member function in your base class, you actually have two separate member functions.
+首先，一个成员函数不能同时是静态和虚的。如果在派生类中有与基类中静态成员函数同名,且具有相同参数列表的静态成员函数，这样其实是两个独立的成员函数。
 
-The following code shows two classes that both happen to have static member functions called beStatic(). These two member functions are in no way related.
+以下代码展示了两个类都有名为beStatic()的静态成员函数。这两个成员函数没有任何关系。
 
 \begin{cpp}
 class BaseStatic
@@ -393,21 +392,21 @@ class DerivedStatic : public BaseStatic
 };
 \end{cpp}
 
-Because a static member function belongs to its class, calling the identically named member functions on the two different classes calls their respective member functions.
+因为静态成员函数属于其类，所以使用这两个不同类名调用同名的成员函数会调用各自的成员函数。
 
 \begin{cpp}
 BaseStatic::beStatic();
 DerivedStatic::beStatic();
 \end{cpp}
 
-This outputs the following:
+输出的结果是：
 
 \begin{shell}
 BaseStatic being static.
 DerivedStatic keepin' it static.
 \end{shell}
 
-Everything makes perfect sense as long as the member functions are accessed by their class names. The behavior is less clear when objects are involved. In C++, you can call a static member function using an object, but because the member function is static, it has no this pointer and no access to the object itself, so it is equivalent to calling it by its class name. Referring to the previous example classes, you can write code as follows, but the results may be surprising.
+只要通过类名访问成员函数，一切都非常合理。当涉及到对象时，行为就不那么清晰了。在C++中，可以使用对象调用静态成员函数，但由于成员函数是静态的，没有this指针，也没有访问对象本身，所以等价于通过其类名调用。参考前面的示例类，可以写如下代码，但结果可能令人惊讶。
 
 \begin{cpp}
 DerivedStatic myDerivedStatic;
@@ -416,9 +415,9 @@ myDerivedStatic.beStatic();
 ref.beStatic();
 \end{cpp}
 
-The first call to beStatic() obviously calls the DerivedStatic version because it is explicitly called on an object declared as a DerivedStatic. The second call might not work as you expect. The object is a BaseStatic reference, but it refers to a DerivedStatic object. In this case, BaseStatic’s version of beStatic() is called. The reason is that C++ doesn’t care what the object actually is when calling a static member function. It only cares about the compile-time type. In this case, the type is a reference to a BaseStatic.
+第一次调用beStatic()显然是DerivedStatic的版本，因为明确地在声明为DerivedStatic的对象上调用。第二次调用可能不会按预期的工作。对象是一个BaseStatic引用，但它引用一个DerivedStatic对象，调用的是BaseStatic的beStatic()版本。原因是C++在调用静态成员函数时不关心对象实际上是什么，只关心编译时的类型。这种情况下，类型是一个对BaseStatic的引用。
 
-The output of the previous example is as follows:
+前面的示例输出的结果：
 
 \begin{shell}
 DerivedStatic keepin' it static.
@@ -426,12 +425,12 @@ BaseStatic being static.
 \end{shell}
 
 \begin{myNotic}{NOTE}
-static member functions are scoped by the name of the class in which they are defined, but they are not member functions that apply to a specific object. When you call a static member function, the version determined by normal name resolution is called. When the member function is called syntactically by using an object, the object is not actually involved in the call, except to determine the type at compile time.
+静态成员函数按定义它们的类名进行作用域限定，但不适用于特定对象的成员函数。当调用静态成员函数时，由正常的名称解析可以确定相应的函数版本。当成员函数通过对象调用时，对象实际上并不参与调用，除了在编译时确定类型。
 \end{myNotic}
 
-\mySamllsection{The Base Class Member Function Is Overloaded}
+\mySamllsection{重载基类成员函数}
 
-When you override a member function by specifying a name and a set of parameters, the compiler implicitly hides all other instances of the same name in the base class. The idea is that if you have overridden one member function with a given name, you might have intended to override all the member functions with that name, but simply forgot, and therefore this should be treated as an error. It makes sense if you think about it—why would you want to change some overloads of a member function and not others? Consider the following Derived class, which overrides a member function without overriding its associated overloaded siblings:
+当通过指定名称和一组参数来覆写一个成员函数时，编译器隐式隐藏了基类中具有相同名称的其他实例。如果已经用给定名称覆写了一个成员函数，就可能有意覆写所有具有该名称的成员函数，但这应该视为是一个错误。考虑一下——为什么要改变一个成员函数的部分重载版本呢？考虑以下Derived类，它覆写了一个成员函数，但而没有覆盖其相关联的重载：
 
 \begin{cpp}
 class Base
@@ -449,14 +448,14 @@ class Derived : public Base
 };
 \end{cpp}
 
-If you attempt to call the version of overload() that takes an int parameter on a Derived object, your code will not compile because it was not explicitly overridden.
+如果尝试在Derived对象上调用接受int参数的overload()，代码将无法编译，因为它没有被显式覆写。
 
 \begin{cpp}
 Derived myDerived;
 myDerived.overload(2); // Error! No matching member function for overload(int).
 \end{cpp}
 
-It is possible, however, to access this version of the member function from a Derived object. All you need is a pointer or a reference to a Base object.
+然而，可以从Derived对象访问这个成员函数，只需要一个指向Base对象的指针或引用。
 
 \begin{cpp}
 Derived myDerived;
@@ -464,9 +463,9 @@ Base& ref { myDerived };
 ref.overload(7);
 \end{cpp}
 
-The hiding of unimplemented overloaded member functions is only skin deep in C++. Objects that are explicitly declared as instances of the derived class do not make the member functions available, but a simple cast to the base class brings them right back.
+C++中隐藏未实现的重载成员函数只是表面现象。明确声明为派生类实例的对象不会使这些成员函数可用，但简单的类型转换到基类就可以使它们可用。
 
-A using declaration can be employed to save you the trouble of overriding all the overloads when you really only want to change one. In the following code, the Derived class definition uses one version of overload() from Base and explicitly overrides the other:
+当只想改变其中一个时，使用using声明可以节省覆写所有重载的麻烦。在以下代码中，Derived类定义使用Base的一个overload()，并显式覆写了另一个：
 
 \begin{cpp}
 class Derived : public Base
@@ -477,10 +476,10 @@ class Derived : public Base
 };
 \end{cpp}
 
-The using declaration has certain risks. Suppose a third overload() member function is added to Base, which should have been overridden in Derived. This will now not be detected as an error, because with the using declaration, the designer of the Derived class has explicitly said, “I am willing to accept all other overloads of this member function from the parent class.”
+using声明存在一些风险。假设Base中添加了第三个overload()成员函数，应该在Derived中覆写。因为有using声明，这些现在不会检测为错误，Derived类的开发者已经明确表示，“我愿意接受父类中这个成员函数的所有重载。”
 
 \begin{myNotic}{NOTE}
-To avoid obscure bugs when overriding a member function from a base class, override all overloads of that member function as well.
+为了在覆写基类成员函数时避免难以发现的错误，最好也覆写该成员函数的所有重载。
 \end{myNotic}
 
 \mySamllsection{The Base Class Member Function Is private}
