@@ -482,11 +482,11 @@ using声明存在一些风险。假设Base中添加了第三个overload()成员�
 为了在覆写基类成员函数时避免难以发现的错误，最好也覆写该成员函数的所有重载。
 \end{myNotic}
 
-\mySamllsection{The Base Class Member Function Is private}
+\mySamllsection{private基类成员函数}
 
-There’s absolutely nothing wrong with overriding a private member function. Remember that the access specifier for a member function determines who is able to call the member function. Just because a derived class can’t call its parent’s private member functions doesn’t mean it can’t override them. In fact, the template member function pattern is a common pattern in C++ that is implemented by overriding private member functions. It allows derived classes to define their own “uniqueness” that is referenced in the base class. Note that, for example, Java and C\# only allow overriding public and protected member functions, not private member functions.
+覆写private成员函数绝对没有问题，成员函数的访问说明符决定了谁能调用该成员函数。仅仅因为派生类不能调用其父类的私有成员函数，并不意味着不能覆写它们。实际上，模板成员函数模式在C++中是一种常见模式，通过覆写private成员函数来实现。其允许派生类定义自己的函数，可在基类中引用。注意，Java和C\#只允许覆写public和protected的成员函数，而不允许覆写private成员函数。
 
-For example, the following class is part of a car simulator that estimates the number of miles the car can travel based on its gas mileage and the amount of fuel left. The getMilesLeft() member function is the template member function. Usually, template member functions are not virtual. They typically define some algorithmic skeleton in a base class, calling virtual member functions to query for information. A derived class can then override these virtual member functions to change aspects of the algorithm without having to modify the algorithm in the base class itself.
+例如，以下类是汽车模拟器的一部分，根据汽车的油耗和剩余燃料量估计汽车可以行驶的里程数。getMilesLeft()成员函数是模板成员函数，模板成员函数非虚。通常会在基类中定义一些算法骨架，调用虚成员函数来查询信息。派生类可以覆写这些虚成员函数以改变算法，而无需修改基类算法本身。
 
 \begin{cpp}
 export class MilesEstimator
@@ -502,7 +502,7 @@ export class MilesEstimator
 };
 \end{cpp}
 
-The getMilesLeft() member function performs a calculation based on the results of two of its own member functions: getGallonsLeft() which is public, and getMilesPerGallon() which is private. The following code uses the MilesEstimator to calculate how many miles can be traveled with two gallons of gas:
+getMilesLeft()成员函数根据自己的两个成员函数的结果进行计算：getGallonsLeft()是public，getMilesPerGallon()是private。以下代码使用MilesEstimator来计算两加仑汽油可以行驶多少英里：
 
 \begin{cpp}
 MilesEstimator myMilesEstimator;
@@ -511,13 +511,13 @@ println("Normal estimator can go {} more miles.",
     myMilesEstimator.getMilesLeft());
 \end{cpp}
 
-The output of this code is as follows:
+代码的输出如下：
 
 \begin{shell}
 Normal estimator can go 40 more miles.
 \end{shell}
 
-To make the simulator more interesting, you may want to introduce different types of vehicles, perhaps a more efficient car. The existing MilesEstimator assumes that all cars get 20 miles per gallon, but this value is returned from a separate member function specifically so that a derived class can override it. Such a derived class is shown here:
+为了使模拟器更有趣，会引入不同类型的车辆，也许是一辆更高效的汽车。现有的MilesEstimator，假设所有的汽车每加仑可以行驶20英里，但这个值从一个特定的成员函数返回，派生类就可以覆写它：
 
 \begin{cpp}
 export class EfficientCarMilesEstimator : public MilesEstimator
@@ -527,7 +527,7 @@ export class EfficientCarMilesEstimator : public MilesEstimator
 };
 \end{cpp}
 
-By overriding this one private member function, the new class completely changes the behavior of existing, unmodified, public member functions in the base class. The getMilesLeft() member function in the base class automatically calls the overridden version of the private getMilesPerGallon() member function. An example using the new class is shown here:
+通过覆盖这个private成员函数，新类完全改变了基类中现有、未修改的public成员函数的行为。基类中的getMilesLeft()成员函数调用private getMilesPerGallon()成员函数的覆写版本。使用新类的示例如下：
 
 \begin{cpp}
 EfficientCarMilesEstimator myEstimator;
@@ -536,20 +536,20 @@ println("Efficient estimator can go {} more miles.",
         myEstimator.getMilesLeft());
 \end{cpp}
 
-This time, the output reflects the overridden functionality:
+这次的输出：
 
 \begin{shell}
 Efficient estimator can go 70 more miles.
 \end{shell}
 
 \begin{myNotic}{NOTE}
-Overriding private and protected member functions is a good way to change certain features of a class without a major overhaul.
+覆写private和protected的成员函数，是改变类的某些特性，而不进行重大修改的好方法。
 \end{myNotic}
 
 
-\mySamllsection{The Base Class Member Function Has Default Arguments}
+\mySamllsection{基类成员函数的默认参数}
 
-An overridden member function in a derived class can have different default arguments than in the base class. The arguments that are used depend on the declared type of the variable, not the underlying object. The following is a simple example of a derived class that provides a different default argument in an overridden member function:
+派生类中，重写的成员函数可以具有与基类不同的默认参数。使用的参数取决于变量的声明类型，而不是底层对象。以下是一个派生类提供不同默认参数的重写成员函数的简单示例：
 
 \begin{cpp}
 class Base
@@ -566,7 +566,7 @@ class Derived : public Base
 };
 \end{cpp}
 
-If go() is called on a Derived object, Derived’s version of go() is executed with the default argument of 7. If go() is called on a Base object, Base’s version of go() is called with the default argument of 2. However (and this is the weird part), if go() is called on a Base pointer or Base reference that really points to a Derived object, Derived’s version of go() is called but with Base’s default argument of 2. This behavior is shown in the following example:
+如果在派生对象上调用 go()，则执行派生类的 go() ，并使用默认参数 7。如果在基对象上调用 go()，则调用基类的 go() ，并使用默认参数 2。然而（这是奇怪的部分），实际上指向派生对象的基指针或基引用上调用 go()，则调用派生类的 go() ，但使用基类的默认参数 2。以下示例展示了这种行为：
 
 \begin{cpp}
 Base myBase;
@@ -577,7 +577,7 @@ myDerived.go();
 myBaseReferenceToDerived.go();
 \end{cpp}
 
-The output of this code is as follows:
+代码的输出如下：
 
 \begin{shell}
 Base's go with i=2
@@ -585,17 +585,17 @@ Derived's go with i=7
 Derived's go with i=2
 \end{shell}
 
-The reason for this behavior is that C++ uses the compile-time type of the expression to bind default arguments, not the run-time type. Default arguments are not “inherited” in C++. If the Derived class in this example failed to provide a default argument for go() as its parent did, it would not be possible to call go() on a Derived object without passing an argument to it.
+这种行为的原因是 C++ 使用表达式的编译时类型，来绑定默认参数，而不是运行时类型。在 C++ 中，默认参数不“继承”。如果此示例中的派生类没有为其父类提供 go() 的默认参数，则在不对派生对象传递参数的情况下无法调用 go()。
 
 \begin{myNotic}{NOTE}
-When overriding a member function that has a default argument, you should provide a default argument as well, and it should probably be the same value. It is recommended to use a named constant for default values so that the same named constant can be used in derived classes.
+重写具有默认参数的成员函数时，应提供默认参数，并且它可能是相同的值。建议使用常量作为默认值，以便在派生类中使用相同的常量。
 \end{myNotic}
 
-\mySamllsection{The Base Class Member Function Has a Different Access Specification}
+\mySamllsection{基类成员函数具有不同的访问规格}
 
-There are two ways you may want to change the access specification of a member function: you could try to make it more restrictive or less restrictive. Neither case makes much sense in C++, but there are a few legitimate reasons for attempting to do so.
+可以以两种方式更改成员函数的访问规格：尝试使其有更多或少的限制性。在 C++ 中，这两种情况都没有太大意义，但有一些理由可以尝试这样做。
 
-To enforce tighter restrictions on a member function (or on a data member for that matter), there are two approaches you can take. One way is to change the access specifier for the entire base class. This approach is described later in this chapter. The other approach is simply to redefine the access in the derived class, as illustrated in the Shy class that follows:
+为了对成员函数（或数据成员）实施更严格的限制，可以采取两种方法。一种方法是更改整个基类的访问说明符。这种方法在本章后面描述。另一种方法是在派生类中简单地重新定义访问权限，如下面的 Shy 类所示：
 
 \begin{cpp}
 class Gregarious
@@ -611,14 +611,14 @@ class Shy : public Gregarious
 };
 \end{cpp}
 
-The protected version of talk() in Shy properly overrides the Gregarious::talk() member function. Any client code that attempts to call talk() on a Shy object gets a compilation error:
+Shy 中的 talk() 的protected版本正确地覆盖了 Gregarious::talk() 成员函数。尝试在 Shy 对象上调用 talk() 的客户端代码都会收到编译错误：
 
 \begin{cpp}
 Shy myShy;
 myShy.talk(); // Error! Attempt to access protected member function.
 \end{cpp}
 
-However, the member function is not fully protected. One only has to obtain a Gregarious reference or pointer to access the member function that you thought was protected:
+然而，成员函数并非完全受到保护。只需获取一个 Gregarious 引用或指针，即可访问protected的成员函数：
 
 \begin{cpp}
 Shy myShy;
@@ -626,23 +626,23 @@ Gregarious& ref { myShy };
 ref.talk();
 \end{cpp}
 
-The output of this code is as follows:
+代码的输出如下：
 
 \begin{shell}
 Shy reluctantly says hello.
 \end{shell}
 
-This proves that making the member function protected in the derived class did override the member function (because the derived class version is correctly called), but it also proves that the protected access can’t be fully enforced if the base class makes it public.
+这证明在派生类中将成员函数设置为protected确实覆写了成员函数（因为正确调用了派生类的版本），但也证明如果基类将其设置为 public，则无法对protected进行访问。
 
 \begin{myNotic}{NOTE}
-There is no reasonable way (or good reason) to restrict access to a public base class member function.
+没有合理的方法（或好的理由）来限制对public基类成员函数的访问。
 \end{myNotic}
 
 \begin{myNotic}{NOTE}
-The previous example redefined the member function in the derived class because it wants to display a different message. If you don’t want to change the implementation but instead only want to change the access specification of a member function, the preferred way is to simply add a using declaration in the derived class definition with the desired access specification.
+因为它想要显示不同的消息，所以前面的示例在派生类中重新定义了成员函数。如果不想更改实现，而只想更改成员函数的访问规格，首选方法是在派生类定义中简单地添加一个具有所需访问规格的 using 声明。
 \end{myNotic}
 
-It is much easier (and makes more sense) to lessen access restrictions in derived classes. The simplest way is to provide a public member function in the derived class that calls a protected member function from the base class, as shown here:
+派生类中放宽访问限制要容易得多（也更有意义）。最简单的方法是在派生类中提供一个public成员函数，该函数调用基类中的protected成员函数：
 
 \begin{cpp}
 class Secret
@@ -658,9 +658,9 @@ class Blabber : public Secret
 };
 \end{cpp}
 
-A client calling the public tell() member function of a Blabber object effectively accesses the protected member function of the Secret class. Of course, this doesn’t really change the access specification of dontTell(); it just provides a public way of accessing it.
+客户端调用 Blabber 对象的public tell() 成员函数实际上访问了 Secret 类的protected成员函数。当然，这实际上并没有改变 dontTell() 的访问规格，只是提供了访问相应函数的方式。
 
-You can also override dontTell() explicitly in Blabber and give it new behavior with public access. This makes a lot more sense than reducing the access specification because it is entirely clear what happens with a reference or pointer to the base class. For example, suppose that Blabber actually makes the dontTell() member function public:
+也可以在 Blabber 中显式覆写 dontTell()，并为其提供新的公共访问行为。这比减少访问规格更有意义，因为通过基类的引用或指针会发生什么完全清楚。例如，假设 Blabber 实际上使 dontTell() 成员函数成为public：
 
 \begin{cpp}
 class Blabber : public Secret
@@ -670,13 +670,13 @@ class Blabber : public Secret
 };
 \end{cpp}
 
-Now you can call dontTell() on a Blabber object:
+现在你可以在 Blabber 对象上调用 dontTell()：
 
 \begin{cpp}
 myBlabber.dontTell(); // Outputs "I'll tell all!"
 \end{cpp}
 
-If you don’t want to change the implementation of the overridden member function but only change the access specification, then you can use a using declaration. Here’s an example:
+如果不想更改覆盖的成员函数的实现，而只想更改访问规格，可以使用 using 声明。这里有一个例子：
 
 \begin{cpp}
 class Blabber : public Secret
@@ -686,13 +686,13 @@ class Blabber : public Secret
 };
 \end{cpp}
 
-This also allows you to call dontTell() on a Blabber object, but this time the output will be “I’ll never tell”:
+这也允许在 Blabber 对象上调用 dontTell()，但这次输出将是“I’ll never tell”：
 
 \begin{cpp}
 myBlabber.dontTell(); // Outputs "I'll never tell."
 \end{cpp}
 
-In both previous cases, however, the protected member function in the base class stays protected because any attempts to call Secret’s dontTell() member function through a Secret pointer or reference will not compile:
+在两种先前的情况下，基类中的protected成员函数仍然受保护，任何尝试通过 Secret 指针或引用，调用 Secret 的 dontTell() 成员函数的方法都无法编译：
 
 \begin{cpp}
 Blabber myBlabber;
@@ -703,16 +703,16 @@ ptr->dontTell(); // Error! Attempt to access protected member function.
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-The only useful way to change a member function’s access specification is by providing a less restrictive accessor to a protected member function.
+更改成员函数访问规格的唯一有用方法是，提供一个对protected成员函数较少限制的访问器。
 \end{myNotic}
 
-\mySubsubsection{10.6.5.}{Copy Constructors and Assignment Operators in Derived Classes}
+\mySubsubsection{10.6.5.}{派生类中的复制构造函数和赋值运算符}
 
-Chapter 9 explains that providing a copy constructor and assignment operator is a must when you have dynamically allocated memory in a class. When defining a derived class, you need to be careful about copy constructors and operator=.
+第9章解释了在类中拥有动态分配内存时，提供复制构造函数和赋值运算符的必要性。定义派生类时，需要谨慎处理复制构造函数和operator=。
 
-If your derived class does not have any special data (pointers, usually) that require a nondefault copy constructor or operator=, you don’t need to have one, regardless of whether the base class has one. If your derived class omits the copy constructor or operator=, a default copy constructor or operator= will be provided for the data members specified in the derived class, and the base class copy constructor or operator= will be used for the data members specified in the base class.
+如果派生类不需要非默认复制构造函数或operator=的特殊数据（通常是指针），则不需要有它们。如果派生类省略了复制构造函数或operator=，将为其在派生类中指定的数据成员，提供默认复制构造函数或operator=，并使用基类中的复制构造函数或operator=为其在基类中指定的数据成员。
 
-On the other hand, if you do specify a copy constructor in the derived class, you need to explicitly call the parent copy constructor, as shown in the following code. If you do not do this, the default constructor (not the copy constructor!) will be used for the parent portion of the object.
+另一方面，如果在派生类中指定了复制构造函数，则需要显式调用父复制构造函数，如下面的代码所示。如果不这样做，将使用默认构造函数（不是复制构造函数！）来构造对象的父类。
 
 \begin{cpp}
 class Base
@@ -731,7 +731,7 @@ class Derived : public Base
 };
 \end{cpp}
 
-Similarly, if the derived class overrides operator=, it is almost always necessary to call the parent’s version of operator= as well. The only case where you wouldn’t do this would be if there was some bizarre reason why you only wanted part of the object assigned when an assignment took place. The following code shows how to call the parent’s assignment operator from the derived class:
+同样，如果派生类覆盖了operator=，需要调用父类的operator=。唯一不需要这样做的情况是，希望在赋值时只赋值对象的一部分。以下代码显示了如何使用派生类调用父类的赋值运算符：
 
 \begin{cpp}
 Derived& Derived::operator=(const Derived& rhs)
@@ -744,40 +744,40 @@ Derived& Derived::operator=(const Derived& rhs)
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-If your derived class does not specify its own copy constructor or operator=, the base class functionality continues to work. However, if the derived class does provide its own copy constructor or operator=, it needs to explicitly call the base class versions.
+如果派生类没有指定自己的复制构造函数或operator=，基类的功能将继续有效。但是，如果派生类提供了自己的复制构造函数或operator=，则需要显式调用基类的。
 \end{myWarning}
 
 
 \begin{myNotic}{NOTE}
-When you need copy functionality in an inheritance hierarchy, a common idiom employed by professional C++ developers is to implement a polymorphic clone() member function, because relying on the standard copy constructor and copy assignment operators is not sufficient. The polymorphic clone() idiom is discussed in Chapter 12, “Writing Generic Code with Templates.”
+当需要在继承层次结构中具有复制功能时，因为依赖标准的复制构造函数和复制赋值运算符并不够，所以专业C++开发者常用的一个惯用法是实现多态的clone()成员函数。多态clone()惯用法将在第12章中介绍。
 \end{myNotic}
 
-\mySubsubsection{10.6.6.}{Run-Time Type Facilities}
+\mySubsubsection{10.6.6.}{运行时的类型工具}
 
-Relative to other object-oriented languages, C++ is very compile-time oriented. As you learned earlier, overriding member functions works because of a level of indirection between a member function and its implementation, not because the object has built-in knowledge of its own class.
+相对于其他面向对象语言，C++ 非常注重编译时。比如，覆写成员函数之所以有效，是因为成员函数及其实现之间的间接级别。
 
-There are, however, features in C++ that provide a run-time view of an object. These features are commonly grouped together under a feature set called run-time type information (RTTI). RTTI provides a number of useful features for working with information about an object’s class membership. One such feature is dynamic\_cast(), which allows you to safely convert between types within an object-oriented hierarchy; this was discussed earlier in this chapter. Using dynamic\_cast() on a class without a vtable, that is, without any virtual member functions, causes a compilation error.
+然而，C++ 中有一些特性提供了对象的运行时视图，这些特性通常称为运行时类型信息（RTTI）的特性集。RTTI 提供了许多特性，用于处理有关对象类成员资格的信息。这样的一个特性是 dynamic\_cast()，允许在面向对象层次结构内安全地在类型之间转换。在没有 vtable 的类上使用 dynamic\_cast()，若没有虚成员函数的类，则会导致编译错误。
 
-A second RTTI feature is the typeid operator, which lets you query for types at run time. The result of applying the operator is a reference to an std::type\_info object, defined in <typeinfo>. The type\_info class has a member function called name() returning the compiler-dependent name of the type. The typeid operator behaves as follows:
+第二个 RTTI 特性是 typeid 运算符，允许在运行时查询类型。应用该运算符的结果是对 中定义的 std::type\_info 对象的引用。type\_info 类有一个名为 name() 的成员函数，返回编译器依赖的类型名称。typeid 运算符的行为如下所示：
 
 \begin{itemize}
 \item
-typeid(type): Results in a reference to a type\_info object representing the given type.
+typeid(type): 结果是对表示给定类型的 type\_info 对象的引用。
 
 \item
 typeid(expression)
 \begin{itemize}
 \item
-If evaluating expression results in a polymorphic type, then expression is evaluated and the result of the typeid operator is a reference to a type\_info object representing the dynamic type of the evaluated expression.
+如果计算 expression 会导致类型多态化，则计算 expression，并且 typeid 运算符的结果是对表示对表达式动态类型的 type\_info 对象的引用。
 
 \item
-Otherwise, expression is not evaluated, and the result is a reference to a type\_info object representing the static type.
+否则，不计算expression，并且结果是静态类型 type\_info 对象的引用。
 \end{itemize}
 \end{itemize}
 
-For the most part, you shouldn’t ever need to use typeid because any code that is conditionally executed based on the type of the object would be better handled with, for example, virtual member functions.
+通常，不需要使用 typeid，而使用基于对象类型的条件执行代码。
 
-The following code uses typeid to print a message based on the type of the object:
+下面的代码使用 typeid 来基于对象的类型打印消息：
 
 \begin{cpp}
 class Animal { public: virtual ~Animal() = default; };
@@ -794,13 +794,13 @@ void speak(const Animal& animal)
 }
 \end{cpp}
 
-Whenever you see code like this, you should immediately consider reimplementing the functionality as a virtual member function. In this case, a better implementation would be to declare a virtual member function called speak() in the Animal base class. Dog would override the member function to print "Woof!", and Bird would override it to print "Chirp!". This approach better fits objectoriented programming, where functionality related to objects is given to those objects.
+每当看到这样的代码，应该立即考虑将功能重新实现为虚成员函数。这个例子中，更好的实现方法是在 Animal 基类中声明一个名为 speak() 的虚成员函数。Dog 将覆写该成员函数以打印 “Woof!”，而 Bird 将覆写以打印 “Chirp!”。这种方法更适合面向对象编程，其中将与对象相关的功能赋予对象。
 
 \begin{myWarning}{WARNING}
- The typeid operator works correctly only if the class has at least one virtual member function, that is, when the class has a vtable. Additionally, the typeid operator strips reference and const qualifiers from its argument.
+typeid 运算符仅在类至少有一个虚成员函数时，即类有 vtable 时，才能正确工作。此外，typeid 运算符会从其参数中去除引用和 const 限定符。
 \end{myWarning}
 
-One possible use case of the typeid operator is for logging and debugging purposes. The following code makes use of typeid for logging. The logObject() function takes a “loggable” object as a parameter. The design is such that any object that can be logged inherits from the Loggable class and supports a member function called getLogMessage().
+typeid 运算符的一个可能用例是用于日志记录和调试，下面的代码使用 typeid 进行日志记录。logObject() 函数接受一个“可记录”的对象作为参数。设计是这样的：可记录的对象都继承自 Loggable 类，并支持一个名为 getLogMessage() 的成员函数。
 
 \begin{cpp}
 class Loggable
@@ -823,42 +823,41 @@ void logObject(const Loggable& loggableObject)
 }
 \end{cpp}
 
-logObject() first prints the name of the object’s class to the console, followed by its log message.
-This way, when you read the log later, you can see which object was responsible for every written line. Here is the output generated by Microsoft Visual C++ 2022 when logObject() is called with an instance of Foo:
+logObject() 首先向控制台打印对象的类名，然后是其日志消息。 这样，稍后阅读日志时，可以看到每个写入行的对象。以下是使用 Microsoft Visual C++ 2022 调用 logObject() 时，Foo 实例生成的输出：
 
 \begin{shell}
 class Foo: Hello logger.
 \end{shell}
 
-As you can see, the name returned by the typeid operator is “class Foo”. However, this name depends on your compiler. For example, if you compile and run the same code with GCC, the output is as follows:
+typeid 运算符返回的名称是“class Foo”。然而，这个名称取决于你的编译器。例如，如果使用 GCC 编译和运行相同的代码，输出如下：
 
 \begin{cpp}
 3Foo: Hello logger.
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-If you are using typeid for purposes other than logging and debugging, consider changing your design, for example, by using virtual member functions.
+如果使用 typeid 的目的不是日志记录和调试，请考虑修改你的设计。例如，使用虚成员函数。
 \end{myNotic}
 
-\mySubsubsection{10.6.7.}{Non-public Inheritance}
+\mySubsubsection{10.6.7.}{非public继承}
 
-In all previous examples, parent classes were always listed using the public keyword. You may be wondering if a parent can be private or protected. In fact, it can, though neither is as common as public. If you don’t specify any access specifier for the parent, then it is private inheritance for a class, and public inheritance for a struct.
+之前的示例中，父类总是使用public关键字列出。读者们会想知道父类是否可以是private的protected的吗？实际上可以，尽管这两种方式都不像public继承那样常见。如果没有为父类指定访问说明符，那么对于类来说它是private继承，对于结构体来说是public继承。
 
-Declaring the relationship with the parent to be protected means that all public member functions and data members from the base class become protected in the context of the derived class. Similarly, specifying private inheritance means that all public and protected member functions and data members of the base class become private in the derived class.
+将父类的关系声明为protected，则基类中的所有public成员函数和数据成员在派生类的上下文中变为protected。类似地，指定private继承则在基类中的所有public和protected成员函数和数据成员在派生类中变为private。
 
-There are a handful of reasons why you might want to uniformly degrade the access level of the parent in this way, but most reasons imply flaws in the design of the hierarchy. Some programmers abuse this language feature, often in combination with multiple inheritance, to implement “components” of a class. Instead of making an Airplane class that contains an engine data member and a fuselage data member, they make an Airplane class that is a protected engine and a protected fuselage. In this way, the Airplane doesn’t look like an engine or a fuselage to client code (because everything is protected), but it is able to use all of that functionality internally.
+因为一些原因，想要以这种方式统一降低父类的访问级别，但大多数原因暗示了层次结构设计的缺陷。一些开发者滥用这种语言特性，通常与多重继承结合使用，来实现类的“组件”。他们不是创建一个包含引擎数据成员和机身数据成员的Airplane类，而是创建一个protected的引擎和protected的机身的Airplane类。通过这种方式，Airplane对客户端代码来说看起来不像引擎或机身（因为一切都是protected），但它能够使用所有内部功能。
 
 \begin{myNotic}{NOTE}
-Non-public inheritance is rare, and I recommend using it cautiously, if for no other reason than that most programmers are not familiar with it.
+非public继承很少见，我建议谨慎使用。如果没有其他原因，仅仅是因为大多数开发者对其不熟悉。
 \end{myNotic}
 
-\mySubsubsection{10.6.8.}{Virtual Base Classes}
+\mySubsubsection{10.6.8.}{虚基类}
 
-Earlier in this chapter, you learned about ambiguous base classes, a situation that arises when multiple parents each have a parent in common, as shown again in Figure 10.12. The solution recommended earlier was to make sure that the shared parent doesn’t have any functionality of its own. That way, its member functions can never be called, and there is no ambiguity problem.
+本章之前的内容中，已经提及了关于歧义基类的问题，当多个父类中每个都具有一个共同的基类时，会出现这种情况，如图 10.12 所示。之前推荐的方法是确保共享的基类没有相同的功能，则其成员函数就永远不会调用，也就没有歧义问题。
 
 \myGraphic{0.3}{content/part3/chapter10/images/12.png}{图 10.12}
 
-C++ has another mechanism, called virtual base classes, for addressing this problem if you do want the shared parent to have its own functionality. If the shared parent is marked as a virtual base class, there will not be any ambiguity. The following code adds a sleep() member function, including an implementation, to the Animal base class, and modifies the Dog and Bird classes to inherit from Animal as a virtual base class. Without using a virtual base class, a call to sleep() on a DogBird object would be ambiguous and would generate a compiler error because DogBird would have two subobjects of class Animal, one coming from Dog and one coming from Bird. However, when Animal is inherited virtually, DogBird has only one subobject of class Animal, so there will be no ambiguity with calling sleep().
+C++ 有一个机制，称为虚基类，用于解决如果确实希望共享基类的功能问题。如果共享的基类标记为虚基类，就不会有歧义。下面的代码在 Animal 基类中添加了一个 sleep() 成员函数及其实现，并修改了 Dog 和 Bird 类，使其从 Animal 虚继承。如果没有使用虚基类，对 DogBird 对象调用 sleep() 将会产生歧义，并且会导致编译错误，因为 DogBird 会有两个 Animal 子对象，一个来自 Dog，一个来自 Bird。然而，当 Animal 虚继承时，DogBird 只有一个 Animal 子对象，因此 sleep() 就不会有歧义。
 
 \begin{cpp}
 class Animal
@@ -895,7 +894,7 @@ int main()
 }
 \end{cpp}
 
-Be careful with constructors in such class hierarchies. For example, the following code adds some data members to the different classes, adds constructors to initialize those data members, and, for reasons explained after the code snippet, adds a protected default constructor to Animal.
+对于这样的类层次结构，要小心构造函数。例如，下面的代码在不同的类中添加了一些数据成员，添加了构造函数来初始化这些数据成员。并且，在 Animal 类中添加了一个protected的默认构造函数。
 
 \begin{cpp}
 class Animal
@@ -939,13 +938,13 @@ int main()
 }
 \end{cpp}
 
-When you run this code, the output is unexpected:
+运行此代码时，输出为：
 
 \begin{cpp}
 Weight: 0
 \end{cpp}
 
-It seems that the given weight of 22.33 when constructing the DogBird in main() is lost. Why? This code is using a virtual Animal base class; hence, a DogBird instance has only one Animal subobject. The DogBird constructor calls the constructors of both Dog and Bird, which both forward to their Animal base class constructor. This would mean that Animal is constructed twice. This is not allowed. In such cases, the compiler disables the call to the Animal constructor in the Dog and Bird constructors when it’s being called from a derived class’s constructor and, instead, calls a default constructor of the Animal base class, thus the need for the protected default constructor in Animal. All this means that the most derived class itself is responsible for calling a constructor of the shared base class. A correct implementation is as follows:
+main() 中构造 DogBird 时，给出的 22.33 重量丢失的原因是，这段代码使用了虚 Animal 基类。因此，DogBird 实例只有一个 Animal 子对象。DogBird 构造函数调用了 Dog 和 Bird 的构造函数，这两个构造函数转发给了 Animal 基类的构造函数，所以 Animal 构造了两次。这时，编译器禁用了在派生类的构造函数中，对 Animal 构造函数的调用，而是调用了 Animal 基类的默认构造函数，因此 Animal 需要一个protected的默认构造函数，所以派生类本身负责调用共享基类的构造函数。看看正确的实现：
 
 \begin{cpp}
 class Animal { /* Same as before. */ };
@@ -980,16 +979,16 @@ class DogBird : public Dog, public Bird
 };
 \end{cpp}
 
-In this implementation, protected single-argument constructors are added to Dog and Bird. They are protected as they should be used only by derived classes. Client code is allowed to construct Dogs and Birds only using the two-argument constructors.
+这个实现中，Dog 和 Bird 都添加了protected的单参数构造函数，因为它们应该只在派生类中使用。客户端代码只能使用两个参数的构造函数来构造 Dog 和 Bird。
 
-After these changes, the output is correct:
+修改之后，输出正确了：
 
 \begin{shell}
 Weight: 22.33
 \end{shell}
 
 \begin{myNotic}{NOTE}
-Virtual base classes are a great way to avoid ambiguity in class hierarchies. The only drawback is that many C++ programmers are unfamiliar with the concept.
+虚基类是避免类层次结构中歧义的一个很好的方法，但许多 C++ 开发者对这个概念不熟悉。
 \end{myNotic}
 
 

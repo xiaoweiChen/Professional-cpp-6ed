@@ -1,13 +1,13 @@
 
-The basic types in C++ are reviewed in Chapter 1, while Chapters 8 through 10 show how to write your own types with classes. This section explores some of the trickier aspects of casting one type to another type.
+在 C++ 中，基本类型在第 1 章中进行了回顾，而第 8 章至第 10 章展示了如何使用类编写自己的类型。本节探讨了将一种类型转换为另一种类型的复杂性。
 
-C++ provides five specific casts: const\_cast(), static\_cast(), reinterpret\_cast(), dynamic\_cast(), and std::bit\_cast(). The first one is discussed in Chapter 1. Chapter 1 also introduces static\_cast() for casting between certain primitive types, but there is more to say about it in the context of inheritance. Now that you are fluent in writing your own classes and understand class inheritance, it’s time to take a closer look at these casts.
+C++ 提供五种特定的类型转换：const\_cast(), static\_cast(), reinterpret\_cast(), dynamic\_cast(), 和 std::bit\_cast。第一种在第1章中介绍过，并且 static\_cast() 可用于在某些原始类型之间进行转换，但在继承的背景下这会更复杂。既然已经熟练地编写自己的类，并理解了类继承，现在是时候来了解一下这些转换了。
 
-Note that the old C-style casts such as (int)myFloat still work in C++ and are still used extensively in existing code bases. C-style casts cover all C++ casts except bit\_cast() and thus are more errorprone because it’s not always obvious what you are trying to achieve, and you might end up with unexpected results. I strongly recommend you only use the C++ style casts in new code because they are safer and stand out better syntactically and visually in your code.
+请注意，旧式的 C 风格类型转换，如 (int)myFloat，在 C++ 中仍然有效，并且在新代码库中仍然广泛使用。C 风格类型转换涵盖了除 bit\_cast() 之外的所有 C++ 类型转换，因此更易出错，可能会得到意外的结果。我强烈建议只在新的代码中使用 C++ 风格的类型转换，这样会更安全。
 
 \mySubsubsection{10.7.1.}{static\_cast()}
 
-You can use static\_cast() to perform explicit conversions that are supported directly by the language. For example, if you write an arithmetic expression in which you need to convert an int to a double to avoid integer division, use a static\_cast(). In this example, it’s enough to only use static\_cast() with i, because that makes one of the two operands a double, making sure C++ performs floating-point division.
+可以使用static\_cast()执行显式转换。例如，编写了一个算术表达式，需要将int转换为double以避免整数除法，请使用static\_cast()。这个例子中，因为这会使两个操作数中的一个成为double，所以只需要对i使用static\_cast()，确保C++执行浮点除法。
 
 \begin{cpp}
 int i { 3 };
@@ -15,9 +15,9 @@ int j { 4 };
 double result { static_cast<double>(i) / j };
 \end{cpp}
 
-You can also use static\_cast() to perform explicit conversions that are allowed because of userdefined constructors or conversion routines. For example, if class A has a constructor that takes an object of class B, you can convert a B object to an A object using a static\_cast(). In most situations where you want this behavior, however, the compiler performs the conversion automatically.
+还可以使用static\_cast()执行由用户定义的构造函数，或转换例程允许的显式转换。例如，类A有一个接受类B对象的构造函数，可以使用static\_cast()将B对象转换为A对象。在大多数情况下，编译器会自动执行转换。
 
-Another use for static\_cast() is to perform downcasts in an inheritance hierarchy, as in this example:
+static\_cast()的另一个用途是在继承层次结构中执行向下转换：
 
 \begin{cpp}
 class Base
@@ -46,22 +46,22 @@ int main()
 }
 \end{cpp}
 
-These casts work with both pointers and references. They do not work with objects themselves.
+这些强制转换适用于指针和引用，但不适用于对象本身。
 
-Note that casts using static\_cast() do not perform run-time type checking. They allow you to convert any Base pointer to a Derived pointer, or Base reference to a Derived reference, even if the Base really isn’t a Derived at run time. For example, the following code compiles and executes, but using the pointer d can result in potentially catastrophic failure, including memory overwrites outside the bounds of the object.
+请注意，使用static\_cast()进行的强制转换不执行运行时类型检查。允许将Base指针转换为Derived指针，或将Base引用转换为Derived引用，即使运行时Base实际上不是Derived。例如，以下代码编译并执行，但使用指针d可能会导致失败，包括访问超出对象边界的内存。
 
 \begin{cpp}
 Base* b { new Base {} };
 Derived* d { static_cast<Derived*>(b) };
 \end{cpp}
 
-To perform such casts safely with run-time type checking, use dynamic\_cast(), which is explained a bit later in this chapter.
+为了安全地执行这种带有运行时类型检查的强制转换，请使用dynamic\_cast()。
 
-static\_cast() is not all-powerful. You can’t static\_cast() pointers of one type to pointers of another unrelated type. You can’t directly static\_cast() objects of one type to objects of another type if there is no converting constructor available. You can’t static\_cast() a const type to a nonconst type. You can’t static\_cast() pointers to ints. Basically, you can only do things that make sense according to the type rules of C++.
+static\_cast()并不是万能的，不能将一种类型的指针static\_cast()到另一种不相关的类型指针。如果没有可用的转换构造函数，不能直接将一个类型的对象static\_cast()到另一个类型的对象。不能将const类型static\_cast()到非const类型，不能将指针static\_cast()到整数。基本上，只能做符合C++类型规则的事情。
 
 \mySubsubsection{10.7.2.}{reinterpret\_cast()}
 
-reinterpret\_cast() is a bit more powerful, and concomitantly less safe, than static\_cast(). You can use it to perform some casts that are not technically allowed by the C++ type rules but that might make sense to the programmer in some circumstances. For example, you can use reinterpret\_cast() to cast a reference to one type to a reference to another type, even if the types are unrelated. Similarly, you can use it to cast a pointer type to any other pointer type, even if they are unrelated by an inheritance hierarchy. However, casting a pointer to a void* can be done implicitly, without an explicit cast. To cast a void* back to a correctly typed pointer, a static\_cast() is enough. A void* pointer is just a pointer to some location in memory. No type information is associated with a void* pointer. Here are some examples:
+reinterpret\_cast()比static\_cast()更加强大，也更不安全。可以使用它执行一些技术上不被C++类型规则允许，但可能在某些情况下对开发者有意义的转换。例如，可以使用reinterpret\_cast()将一个类型的引用转换为另一个不相关类型的引用。同样，可以将一个指针类型转换为其他指针类型，即使它们在继承层次结构中并不相关。然而，将指针转换为void可以隐式进行，不需要显式转换。要将void转换回正确类型的指针，static\_cast()就足够了。void指针只是指向内存中某个位置的一个指针，没有与void指针关联的类型信息。这里有一些例子：
 
 \begin{cpp}
 class X {};
@@ -87,19 +87,19 @@ int main()
 }
 \end{cpp}
 
-reinterpret\_cast() is not all-powerful; it comes with quite a few restrictions on what can be cast to what. These restrictions are not further discussed in this text, as I recommend that you use these kinds of casts judiciously.
+reinterpret\_cast()并不是万能的，对可以强制转换的内容有很多限制。建议谨慎使用这些类型的强制转换，这些限制在本文中就不进一步讨论了。
 
-In general, you should be careful with reinterpret\_cast() because it allows you to do conversions without performing any type checking.
+通常，应该小心使用reinterpret\_cast()，因为它允许在没有进行类型检查的情况下进行转换。
 
 \begin{myWarning}{WARNING}
-You can also use reinterpret\_cast() to cast pointers to integral types and back. However, you can only cast a pointer to an integral type that is large enough to hold it. For example, trying to use reinterpret\_cast() to cast a 64-bit pointer to a 32-bit integer results in a compilation error.
+还可以使用reinterpret\_cast()将指针转换为整型类型，然后转换回来。但是，只能将指针转换为足够大的整型类型来容纳它。例如，尝试使用reinterpret\_cast()将64位指针转换为32位整数将导致编译错误。
 \end{myWarning}
 
 \mySubsubsection{10.7.3.}{dynamic\_cast()}
 
-dynamic\_cast() provides a run-time check on casts within an inheritance hierarchy. You can use it to cast pointers or references. dynamic\_cast() checks the run-time type information of the underlying object at run time. If the cast doesn’t make sense, dynamic\_cast() returns a null pointer (for the pointer version) or throws an std::bad\_cast exception (for the reference version).
+dynamic\_cast()在继承层次结构中提供了运行时检查，可以使用它来转换指针或引用。动态强制转换在运行时检查基础对象的运行时类型信息。如果转换没有意义，动态强制转换将返回一个空指针（对于指针版本）或抛出一个std::bad\_cast异常（对于引用版本）。
 
-For example, suppose you have the following class hierarchy:
+例如，有以下类层次结构：
 
 \begin{cpp}
 class Base
@@ -115,7 +115,7 @@ class Derived : public Base
 };
 \end{cpp}
 
-The following example shows a correct use of dynamic\_cast():
+以下示例显示了正确使用dynamic\_cast():
 
 \begin{cpp}
 Base* b;
@@ -124,7 +124,7 @@ b = d;
 d = dynamic_cast<Derived*>(b);
 \end{cpp}
 
-The following dynamic\_cast() on a reference will cause an exception to be thrown:
+以下对引用的 dynamic\_cast()将引发异常：
 
 \begin{cpp}
 Base base;
@@ -137,24 +137,23 @@ try {
 }
 \end{cpp}
 
-Note that you can perform the same casts down the inheritance hierarchy with a static\_cast() or reinterpret\_cast(). The difference with dynamic\_cast() is that it performs run-time (dynamic) type checking, while static\_cast() and reinterpret\_cast() perform the cast even if they are erroneous.
+请注意，可以使用static\_cast()或reinterpret\_cast()在继承层次结构中执行相同的向下转换。dynamic\_cast()与static\_cast()和reinterpret\_cast()的区别在于，执行运行时（动态）类型检查，而static\_cast()和reinterpret\_cast()即使在类型错误的情况下也会执行转换。
 
-Remember, the run-time type information is stored in the vtable of an object. Therefore, to use dynamic\_cast(), your classes must have at least one virtual member function. If your classes don’t have a vtable, trying to use dynamic\_cast() will result in a compilation error. Microsoft Visual C++, for example, gives the following error:
+记住，运行时类型信息存储在对象的虚表中。因此，为了使用dynamic\_cast()，类必须至少有一个虚成员函数。如果类没有虚表，尝试使用dynamic\_cast()将导致编译错误。例如，Microsoft Visual C++会给报以下错误：
 
 \begin{shell}
 error C2683: 'dynamic_cast' : 'Base' is not a polymorphic type.
 \end{shell}
 
-
 \mySubsubsection{10.7.4.}{std::bit\_cast()}
 
-std::bit\_cast() is defined in <bit>. It’s the only cast that’s part of the Standard Library; the other casts are part of the C++ language itself. bit\_cast() resembles reinterpret\_cast(), but it creates a new object of a given target type and copies the bits from a source object to this new object. It effectively interprets the bits of the source object as if they are the bits of the target object. bit\_cast() requires that the size of the source and target objects are the same and that both are trivially copyable.
+std::bit\_cast() 定义在<bit>中，是唯一属于标准库的类型转换；其他类型转换是 C++ 语言的一部分。bit\_cast() 类似于 reinterpret\_cast()，但它创建一个给定目标类型的新的对象，并将源对象的位复制到这个新对象中，有效地将源对象的位解释为目标对象的位序列。bit\_cast() 要求源对象和目标对象的尺寸相同，并且两者都是简单可复制的。
 
 \begin{myNotic}{NOTE}
-A trivially copyable type is a type of which the underlying bytes making up the object can be copied into an array of, for example, char. If the data of that array is then copied back into the object, the object keeps its original value.
+一个简单可复制的类型是一个类型的底层字节可以复制到例如 char 数组中。如果该数组的数据再复制回对象，对象将保持其原始值。
 \end{myNotic}
 
-Here is an example:
+举个栗子:
 
 \begin{cpp}
 float asFloat { 1.23f };
@@ -162,33 +161,33 @@ auto asUint { bit_cast<unsigned int>(asFloat) };
 if (bit_cast<float>(asUint) == asFloat) { println("Roundtrip success."); }
 \end{cpp}
 
-A use case for bit\_cast() is with binary I/O of trivially copyable types. For example, you can write the individual bytes of such types to a file. When you read the file back into memory, you can use bit\_cast() to correctly interpret the bytes read from the file.
+bit\_cast() 的一个用例是用于二进制 I/O 的简单可复制类型。例如，可以将这类类型的单个字节写入文件。将文件重新读取到内存时，可以使用 bit\_cast() 来正确解释从文件读取的字节。
 
-\mySubsubsection{10.7.5.}{Summary of Casts}
+\mySubsubsection{10.7.5.}{总结}
 
-The following table summarizes the casts you should use for different situations.
+下表总结了在不同场景下，应该如何使用的强制转换。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{SITUATION}                                                                                                          & \textbf{CAST}       \\ \hline
+\textbf{场景}                                                                                                          & \textbf{转换}       \\ \hline
 \endfirsthead
 %
 \endhead
 %
-Remove const-ness                                                                                                           & const\_cast()       \\ \hline
-\begin{tabular}[c]{@{}l@{}}Explicit cast supported by the language (for example,\\ int to double, int to bool)\end{tabular} & static\_cast()      \\ \hline
-\begin{tabular}[c]{@{}l@{}}Explicit cast supported by user-defined constructors\\ or conversions\end{tabular}               & static\_cast()      \\ \hline
-\begin{tabular}[c]{@{}l@{}}Object of one class to object of another\\ (unrelated) class\end{tabular}                        & bit\_cast()         \\ \hline
-\begin{tabular}[c]{@{}l@{}}Pointer-to-object of one class to pointer-to-object of\\ another class in the same inheritance hierarchy\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}dynamic\_cast() recommended, or\\ static\_cast()\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}Reference-to-object of one class to reference\\ to-object of another class in the same\\ inheritance hierarchy\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}dynamic\_cast() recommended, or\\ static\_cast()\end{tabular} \\ \hline
-Pointer-to-type to unrelated pointer-to-type                                                                                & reinterpret\_cast() \\ \hline
-Reference-to-type to unrelated reference-to-type                                                                            & reinterpret\_cast() \\ \hline
-Pointer-to-function to pointer-to-function                                                                                  & reinterpret\_cast() \\ \hline
+移除const                                                                                                           & const\_cast()       \\ \hline
+\begin{tabular}[c]{@{}l@{}}显式强制转换(例如，从int到double，从int到bool)\end{tabular} & static\_cast()      \\ \hline
+\begin{tabular}[c]{@{}l@{}}由用户定义的构造函数或转换支持的强制转换\end{tabular}               & static\_cast()      \\ \hline
+\begin{tabular}[c]{@{}l@{}}将类对象转换为另一个(不相关的)类的对象\end{tabular}                        & bit\_cast()         \\ \hline
+\begin{tabular}[c]{@{}l@{}}将指向类对象的指针，指向同一继承层次结构中另一个类对象的指针\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}推荐dynamic\_cast()\\或 static\_cast()\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}同一继承层次结构中，将类对象的引用转换为对另一个类对对象的引用\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}推荐dynamic\_cast()\\或 static\_cast()\end{tabular} \\ \hline
+将指针到类型转为不相关的指针到类型                                                                                & reinterpret\_cast() \\ \hline
+将引用到类型转为不相关的引用到类型                                                                            & reinterpret\_cast() \\ \hline
+将函数指针转为函数指针                                                                                  & reinterpret\_cast() \\ \hline
 \end{longtable}
 
 

@@ -1,22 +1,22 @@
-By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at www.wiley.com/go/ proc++6e. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+通过解决下面的练习，可以练习本章讨论的内容。所有练习的解决方案都可以在本书的网站\url{www.wiley.com/go/proc++6e}下载到源码。然而，若在练习中卡住了，在从网站上寻找解决方案之前，可以考虑先重读本章的部分内容，试着自己找到答案。
 
 \begin{itemize}
 \item
-Exercise 10-1: Take the Person class from Exercise 9-2 and add a derived class called Employee. You can omit the overload of operator<=> from Exercise 9-2. The Employee class adds one data member, an employee ID. Provide an appropriate constructor. From Employee, derive two more classes called Manager and Director.
+\textbf{练习 10-1}: 继续使用第 9 章练习 2 中的Person类，添加一个名为 Employee 的派生类。可以省略第 9 章练习 2 中的 operator<=> 重载。Employee 类添加了一个数据成员，即员工 ID。提供一个适当的构造函数。从 Employee 派生出两个更多的类，分别为 Manager 和 Director。
 
-Put all your classes, including the Person class, in a namespace called HR. Note that you can export everything in a namespace from a module as follows:
+将所有的类，包括 Person 类，放在一个名为 HR 的命名空间中，可以像以下这样从模块导出命名空间中的所有内容：
 
 \begin{cpp}
 export namespace HR { /* ... */ }
 \end{cpp}
 
 \item
-Exercise 10-2: Continuing with your solution from Exercise 10-1, add a toString() member function to the Person class returning a string representation of a person. Override this member function in the Employee, Manager, and Director classes to build up a complete string representation by delegating part of their work to parent classes.
+\textbf{练习 10-2}: 继续使用练习 10-1 中的解决方案，为 Person 类添加一个 toString() 成员函数，返回一个字符串表示。在 Employee、Manager 和 Director 类中重写这个成员函数，通过委托部分工作给父类来构建完整的字符串表示。
 
 \item
-Exercise 10-3: Practice polymorphic behavior of the classes in your Person hierarchy from Exercise 10-2. Define a vector to store a mix of persons, employees, managers, and directors, and fill it with some test data. Finally, use a single range-based for loop to call toString() on all of the elements in the vector.
+\textbf{练习 10-3}: 为练习 10-2 中的Person类的层次结构中添加多态行为。定义一个vector，用于混合存储员工、经理和董事，并用一些测试数据进行填充。最后，使用单个基于范围的 for 循环对vector中的所有元素使用 toString()。
 
 \item
-Exercise 10-4: In real companies, employees can get promoted to manager or director positions, and managers can get promoted to director. Do you see a way you can add support for this to your class hierarchy of Exercise 10-3?
+\textbf{练习 10-4}: 实际公司中，员工可以晋升为经理或董事职位，经理也可以晋升为董事。如何在类层次结构的实现中，添加晋升方式？
 \end{itemize}
 
