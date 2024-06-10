@@ -1,70 +1,69 @@
 
-Modules are introduced in Chapter 1, “A Crash Course in C++ and the Standard Library,” and you have already authored and consumed your own simple modules in previous chapters. However, there are quite a few more things to say about modules. Before the introduction of modules in C++20, header files, discussed later in this chapter, were used to provide the interface to a reusable piece of code. Header files do have a number of problems, though, such as avoiding multiple includes of the same header file and making sure header files are included in the correct order. Additionally, simply \#include’ing, for example, <iostream> adds tens of thousands of lines of code that the compiler has to crunch through. If several source files \#include <iostream>, all of those translation units grow much bigger. And that is with an include of just a single header file. Imagine if you need <iostream>, <vector>, <format>, and more. Modules solve all these issues, and more. The order in which modules are imported is not important.
+第1章中介绍了模块，并在前面的章节中，已经编写并使用过简单模块。C++20引入模块之前，头文件（本章后面将讨论）用来提供可重用代码块的接口。然而，头文件确实存在一些问题，比如:需要避免多次包含同一个头文件，确保头文件按正确的顺序包含。此外，\#include <iostream> 就会增加数万行代码，编译器需要处理这些代码。如果几个源文件都 \#include <iostream>，那么所有这些翻译单元都会变得更大，而这还只是一个头文件的情况。如果需要 <iostream>、<vector>、<format> 等多个头文件呢？模块就是用来解决这些问题的，甚至有更多其他作用，而模块导入的顺序并不重要。
 
-Modules are compiled once to a binary format, which the compiler can then use whenever a module is imported in another source file. This is in stark contrast with header files, which the compiler has to compile over and over again, every time it encounters an \#include of that header file. Hence, modules can drastically improve compilation times. Incremental compilation times also improve, as certain modifications in modules, for example, modifying an exported function’s implementation in a module interface file, do not trigger recompilation of users of that module (discussed in more details later in this chapter). Modules are not influenced by any externally defined macros, and any macros defined inside a module are never visible to any code outside the module, that is, modules are selfisolating. Hence, the following recommendation:
-
-\begin{myNotic}{NOTE}
-With all the discussed benefits, if your compiler supports modules, newly written code should use modules to structure code into building blocks that are logically separated.
-\end{myNotic}
-
-If possible, legacy code can slowly be transitioned to modules as well. However, there is a lot of legacy code in the world, and a lot of third-party libraries don’t embrace modules yet, as not all compilers fully support modules at the time of this writing. For these reasons it is still important to know how legacy header files work. That’s why this chapter still includes discussions on header files.
+模块会编译为二进制格式，然后编译器可以在另一个源文件导入模块时使用。这与头文件形成鲜明对比，编译器遇到包含该头文件的 \#include 时都需要重新编译，所以模块可以显著提高编译速度。增量编译得性能也会有所改善，因为模块中的某些修改（例如，修改模块接口文件中导出函数的实现）不会触发模块使用者的重新编译（本章后面将详细讨论）。模块不受外部宏的影响，模块内定义的宏对模块外的代码不可见，即模块自隔离。因此，有以下建议：
 
 \begin{myNotic}{NOTE}
-How to compile modules is compiler dependent. Consult your compiler’s documentation to learn how to work with modules with your specific compiler.
+考虑到所有讨论的优点，如果编译器支持模块，新编写的代码应该使用模块来将代码结构化为逻辑上独立的构建块。
 \end{myNotic}
 
+如果可能，遗留代码也可以逐渐过渡到模块。然而，世界上有很多遗留代码，而且很多第三方库还没有采用模块，因为截至本书编写时，并非所有编译器都完全支持模块，所以了解遗留头文件的工作方式仍然很重要。这就是为什么本章仍然会对头文件进行介绍的原因。
 
 \begin{myNotic}{NOTE}
-As mentioned, at the time of this writing, not all compilers fully support modules yet, though all major compilers do, at least partially. This book uses modules everywhere. If your compiler does not yet fully support modules, you can convert the modularized code to non-modularized code, as explained next.
+如何编译模块取决于编译器。请查阅编译器的文档，了解如何使用特定编译器处理模块。
 \end{myNotic}
 
-\mySubsubsection{11.1.1.}{Unmodularizing Code}
+\begin{myNotic}{NOTE}
+如前所述，截至本书编写时，并非所有编译器都完全支持模块，尽管所有主要编译器至少部分支持。本书到处使用模块。如果正在使用的编译器还不完全支持模块，可以将模块化代码转换为非模块化代码。
+\end{myNotic}
 
-If you want to compile code samples from this book with a compiler that does not yet fully support modules, you can unmodularize the code as follows:
+\mySubsubsection{11.1.1.}{非模块化代码}
+
+如果想使用不完全支持模块的编译器编译本书中的代码示例，可以按以下方式去模块化代码：
 
 \begin{itemize}
 \item
-Rename .cppm module interface files to .h header files.
+将.cppm模块接口文件重命名为.h头文件。
 
 \item
-Add a \#pragma once at the top of each .h header file
+在每个.h头文件顶部添加一个\#pragma once
 
 \item
-Remove export module xyz declarations.
+移除export module xyz声明。
 
 \item
-Replace module xyz declarations with an \#include to include the corresponding header file.
+用\#include指令替换module xyz声明，以包含相应的头文件。
 
 \item
-Replace import and export import declarations with proper \#include directives. If the code is using import std;, then those need to be replaced with \#include directives to include all necessary individual header files. See Appendix C, “Standard Library Header Files,” for a list of all Standard Library headers and a brief description of their contents.
+用\#include指令替换import和export import声明。如果代码中使用import std;，则需要用\#include指令替换，以包含所有必要的单个头文件。请参阅附录C，了解所有标准库头文件的列表及其内容的概述。
 
 \item
-Remove any export keywords.
+移除所有export关键字。
 
 \item
-Remove all occurrences of module;, which denotes the start of a global module fragment.
+移除所有module;的出现，其表示全局模块片段的开始。
 
 \item
-If a function definition or variable definition appears in a .h header file, add the inline keyword in front of it.
+如果函数定义或变量定义出现在.h头文件中，请在它前面添加inline关键字。
 \end{itemize}
 
 \CXXTwentythreeLogo{-40}{-60}
 
-\mySubsubsection{11.1.2.}{Standard Named Modules}
+\mySubsubsection{11.1.2.}{标准模块}
 
-As Chapter 1 explains, you get access to everything from the C++ Standard Library by importing the standard named module std. This named module makes the entire Standard Library available to you, including all C functionality, defined in such headers as <cstddef>. However, all C functionality is made available only through the std namespace. For legacy code, you can consider importing the std.compat named module instead, which imports everything std imports but makes all C functionality available both in the std namespace and the global namespace. The use of std.compat is not recommended in new code.
+如第1章所述，可以通过导入标准命名模块 std 来访问 C++ 标准库中的所有内容。这个模块使整个标准库可用，包括所有在诸如 <cstddef> 等头文件中定义的 C 函数。然而，所有 C 函数仅通过 std 命名空间提供。对于遗留代码，可以考虑导入 std.compat 模块，会导入 std 的所有内容，可使所有 C 函数在 std 命名空间和全局命名空间中可用。在新代码中不建议使用 std.compat。
 
-\mySubsubsection{11.1.3.}{Module Interface Files}
+\mySubsubsection{11.1.3.}{模块接口文件}
 
-A module interface file defines the interface for the functionality provided by a module and usually has .cppm as a file extension. A module interface file starts with a declaration stating that the file is defining a module with a certain name. This is called the module declaration. A module’s name can be any valid C++ identifier. The name can include dots but cannot start or end with a dot and cannot contain multiple dots in a row. Examples of valid names are datamodel, mycompany.datamodel, mycompany.datamodel.core, datamodel\_core, and so on.
+模块接口文件定义了模块提供的功能的接口，通常是具有 .cppm 扩展名的文件。模块接口文件以声明开始，声明该文件定义了一个模块的名称，这称为模块声明。模块的名称可以是任何 C++ 标识符，可以包含点，但不能以点开始或结束，也不能连续包含多个点。有效名称的示例包括 datamodel、mycompany.datamodel、mycompany.datamodel.core、datamodel\_core 等。
 
 \begin{myNotic}{NOTE}
-Currently, there is no standardized extension for module interface files. However, most compilers support the .cppm (C++ module) extension, so that’s what this book uses. Check the documentation of your compiler to learn which extension to use.
+目前，模块接口文件没有标准化的扩展名，而大多数编译器支持 .cppm（C++ 模块）扩展名，因此本书使用它。检查你的编译器的文档，了解应使用哪个扩展名。
 \end{myNotic}
 
-A module needs to explicitly state what to export, i.e., what should be visible when client code imports the module. A module can export any declaration, such as variable declarations, function declarations, type declarations, using directives, and using declarations. Additionally, import declarations can be exported as well. Exporting entities from a module is done with the export keyword. Anything that is not exported from a module is visible only from within the module itself. The collection of all exported entities is called the module interface.
+模块需要明确声明要导出什么，即客户端代码导入模块时可见的内容。模块可以导变量声明、函数声明、类型声明、using 指令和 using 声明。此外，导入声明也可以导出。从模块中导出实体使用 export 关键字完成，模块中没有导出的内容仅对模块本身可见。所有导出实体的集合称为模块接口。
 
-Here is an example of a module interface file called Person.cppm, defining a person module and exporting a Person class. Note that it imports the functionality provided by std.
+下面是一个名为 Person.cppm 的模块接口文件的示例，它定义了一个 person 模块，并导出了一个 Person 类。注意，它导入了 std 提供的功能。
 
 \begin{cpp}
 export module person; // Named module declaration
@@ -85,9 +84,9 @@ export class Person // Export declaration
 };
 \end{cpp}
 
-In standardese terms, everything starting from a named module declaration (the first line in the previous code snippet) until the end of the file is called the module purview.
+标准术语中，从命名模块声明（前一个代码片段中的第一行）开始直到文件结束的所有内容称为模块范围。
 
-This Person class can be made available for use by importing the person module as follows (test.cpp):
+可以通过以下方式导入 person 模块使用 Person 类（test.cpp）：
 
 \begin{cpp}
 import person; // Import declaration for person module
@@ -102,7 +101,7 @@ int main()
 }
 \end{cpp}
 
-Pretty much anything can be exported from a module, as long as it has a name. Examples are class definitions, function prototypes, class enumeration types, using declarations and directives, namespaces, and so on. If a namespace is explicitly exported with the export keyword, everything inside that namespace is automatically exported as well. For example, the following code snippet exports the entire DataModel namespace; hence, there is no need to explicitly export the individual classes and type alias:
+只要具有名称，可以从模块中导出任何内容。例如，类定义、函数原型、类枚举类型、using 声明和指令、命名空间等。如果使用 export 关键字显式导出命名空间，那么命名空间内的所有内容也会自动导出。例如，以下代码片段导出了整个 DataModel 命名空间，所以无需显式导出单个类和类型别名：
 
 \begin{cpp}
 export module datamodel;
@@ -115,7 +114,7 @@ export namespace DataModel
 }
 \end{cpp}
 
-You can also export a whole block of declarations using an export block. Here’s an example:
+还可以使用 export 块导出一整块声明：
 
 \begin{cpp}
 export
@@ -130,12 +129,11 @@ export
 \end{cpp}
 
 
-\mySubsubsection{11.1.4.}{Module Implementation Files}
+\mySubsubsection{11.1.4.}{模块实现文件}
 
-A module can be split into a module interface file and one or more module implementation files.
-Module implementation files usually have .cpp as their extension. You are free to decide which implementations you move to module implementation files and which implementations you leave in the module interface file. One option is to move all function and member function implementations to a module implementation file and leave only the function prototypes, class definitions, and so on in the module interface file. Another option is to leave the implementation of small functions and member functions in the interface file, while moving the implementations of other functions and member functions to an implementation file. You have a lot of flexibility here.
+模块可以分为模块接口文件和一个或多个模块实现文件，模块实现文件通常的扩展名为.cpp。开发者可以自由决定，哪些实现移动到模块实现文件中，哪些实现留在模块接口文件中。一种选择是将所有函数和成员函数的实现移动到模块实现文件中，而只在模块接口文件中留下函数声明、类定义等。另一种选择是在接口文件中留下小型函数和成员函数的实现，而将其他函数和成员函数的实现移动到实现文件中。
 
-A module implementation file again contains a named module declaration to specify for which module the implementations are for, but without the export keyword. For example, the previous person module can be split into an interface and an implementation file as follows. Here is the module interface file:
+模块实现文件包含一个命名模块声明，以指定实现是针对哪个模块的，但不包含 export 关键字。例如，之前的person模块，可以按以下方式拆分为接口和实现文件。这是模块接口文件：
 
 \begin{cpp}
 export module person; // Module declaration
@@ -154,7 +152,7 @@ export class Person
 };
 \end{cpp}
 
-The implementations now go in a Person.cpp module implementation file:
+现在，实现在 Person.cpp 中：
 
 \begin{cpp}
 module person; // Module declaration, but without the export keyword
@@ -169,29 +167,29 @@ const string& Person::getFirstName() const { return m_firstName; }
 const string& Person::getLastName() const { return m_lastName; }
 \end{cpp}
 
-Note that the implementation file does not have an import declaration for the person module. The module person declaration implicitly includes an import person declaration. Also note that the implementation file does not have any import declaration for std, even though it’s using std::string in the implementation of the member functions. Thanks to the implicit import person, and because this implementation file is part of the same person module, it implicitly inherits the std import declaration from the module interface file. In contrast, adding an import person declaration to the test.cpp file does not implicitly inherit the std import declaration because test.cpp is not part of the person module. There is more to be said about this, which is the topic of the “Visibility vs. Reachability” section later in this chapter.
+注意，实现文件没有为 person 模块提供导入声明。模块 person 声明隐式地包括了 import person 声明，尽管在成员函数的实现中使用了 std::string，实现文件并没有为 std 提供导入声明。由于隐式导入 person，并且这个实现文件是 person 模块的一部分，所以从模块接口文件中隐式继承了 std 的导入声明。相比之下，因为 test.cpp 不是 person 模块的一部分，所以向 test.cpp 文件添加 import person 声明并不会隐式继承 std 的导入声明。关于这一点，本章后面的“可见性与可达性”部分还有更详细的解释。
 
 \begin{myNotic}{NOTE}
-All import declarations in module interface and module implementation files must be at the top of the file, after the named module declaration, but before any other declarations.
+模块接口文件和模块实现文件中的所有导入声明必须位于文件的顶部，位于命名模块声明之后，其他声明之前。
 \end{myNotic}
 
 \begin{myWarning}{WARNING}
-Module implementation files cannot export anything; only module interface files can.
+模块实现文件不能导出，只有模块接口文件可以。
 \end{myWarning}
 
-\mySubsubsection{11.1.5.}{Splitting Interface from Implementation}
+\mySubsubsection{11.1.5.}{接口与实现分离}
 
-When using header files, discussed later in this chapter, instead of modules, it is strongly recommended to put only declarations in your header file (.h) and move all implementations to a source file (.cpp). One of the reasons is to improve compilation times. If you were to put your implementations in the header file, any change, even just changing a comment, would require you to recompile all other source files that include that header. For certain header files, this could ripple through the entire code base, causing a full recompile of the program. By putting your implementations in a source file instead, making changes to those implementations without touching the header file means that only that single source file needs to be recompiled.
+使用头文件（本章后面讨论）时，强烈建议只在头文件（.h）中放置声明，并将所有实现移动到源文件（.cpp），这样做的原因之一是为了减少编译时间。如果将实现放在头文件中，任何修改，即使是修改注释，都需要重新编译包含该头文件的所有源文件。对于某些头文件，这可能会波及整个代码库，导致程序需要完全重新编译。相反，如果将实现放在源文件中，不触及头文件而更改这些实现，则只需要重新编译那个单独的源文件即可。
 
-Modules work differently. A module interface consists only of class definitions, function prototypes, and so on, but does not include any function or member function implementations, even if those implementations are directly in the module interface file. This means that changing a function or member function implementation that is inside a module interface file does not require a recompilation of users of that module, as long as you do not touch the interface part, for example, the function header (= function name, parameter list, and return type). Two exceptions are functions marked with the inline keyword, and template definitions. For both of these, the compiler needs to know their complete implementations at the time client code using them is compiled. Hence, any change to inline functions or template definitions can trigger recompilation of client code.
+模块的工作方式不同。模块接口只包含类定义、函数声明等，但不包括函数或成员函数的实现，即使这些实现在模块接口文件中。所以，只要不触及接口部分，例如函数头（函数名称、参数列表和返回类型），更改模块接口文件中的函数或成员函数实现时，并不需要重新编译该模块。两个例外是带有inline关键字的函数和模板定义。这时，编译器需要客户端代码在使用它们时，知道其完整实现。因此，对内联函数或模板定义的更改，都可能需要重新编译客户端代码。
 
 \begin{myNotic}{NOTE}
-When class definitions in header files contain member function implementations, those member functions are implicitly inline, even without marking them with the inline keyword. This is not true for member function implementations in class definitions in module interface files. If these need to be inline, they need to be explicitly marked as such.
+头文件中的类定义，如果包含成员函数的实现，那么这些成员函数为隐式内联，即使没有用inline关键字标记它们，但这在模块接口文件中的类定义中是不成立的。如果需要内联，需要明确标记为inline。
 \end{myNotic}
 
-Even though technically, it is not required anymore to split the interface from the implementation, in some cases I still recommend doing so. The main goal should be to have clean and easy-to-read interfaces. Implementations of functions can stay in the interface, as long as they don’t obscure the interface and make it harder for users to quickly grasp what the public interface provides. For example, if a module has a rather big public interface, it might be better not to obscure that interface with implementations, so the user can have a better overview of what’s being offered. Still, small getter and setter functions can stay in the interface, as they don’t really impact the readability of the interface.
+尽管从技术上讲，不再需要将接口与实现分离，但在某些情况下，我仍然建议这样做。主要目标应该是拥有清晰易读的接口，要是实现比较简单，那么函数的实现可以留在接口中。例如，一个模块有一个相当大的公共接口，那么最好不要用实现遮掩这个接口，以便用户可以更好地了解提供了什么。不过，小的getter和setter函数可以留在接口中，它们实际上不会影响接口的可读性。
 
-Separating the interface from the implementation can be done in several ways. One option is to split a module into interface and implementation files, as discussed in the previous section. Another option is to separate the interface and the implementations within a single module interface file. For example, here is the Person class defined in a single module interface file (person.cppm), but with the implementations split from the interface:
+分离接口与实现可以通过几种方式完成。一种选择是将模块拆分为接口和实现文件，如前一节所述。另一种选择是在单个模块接口文件内分离接口和实现。例如，在单个模块接口文件（person.cppm）中定义的Person类，但实现与接口是分离的：
 
 \begin{cpp}
 export module person;
@@ -215,9 +213,9 @@ const std::string& Person::getLastName() const { return m_lastName; }
 \end{cpp}
 
 
-\mySubsubsection{11.1.6.}{Visibility vs. Reachability}
+\mySubsubsection{11.1.6.}{可见性与可达性}
 
-As mentioned earlier, when you import the person module in another source file that is not part of the person module, for example in a test.cpp file, then you are not implicitly inheriting the std import declaration from the person module interface file. Without an explicit import for std in test.cpp, the std::string name, for example, is not visible, meaning the following highlighted line of code does not compile:
+如前所述，当在另一个不属于 person 模块的非 test.cpp 文件中导入 person 模块时，并没有从 person 模块接口文件中隐式继承 std 的导入声明。如果没有在 test.cpp 中显式导入 std ，那么 std::string是不可见的，所以以下代码行无法编译：
 
 \begin{cpp}
 import person;
@@ -227,7 +225,7 @@ int main()
 }
 \end{cpp}
 
-Still, even without adding an explicit import for std to test.cpp, the following lines of code work just fine:
+然而，即使没有向 test.cpp 显式导入 std ，以下代码行也能正常工作：
 
 \begin{cpp}
 Person person { "Kole", "Webb" };
@@ -235,13 +233,13 @@ const auto& lastName { person.getLastName() };
 auto length { lastName.length() };
 \end{cpp}
 
-Why is this working? There is a difference between visibility and reachability of entities in C++. By importing the person module, the functionality from std becomes reachable but not visible. Member functions of reachable classes automatically become visible. All this means that you can use certain functionality from std, such as storing the result of getLastName() in a variable by using auto type deduction and calling member functions on it such as length().
+为什么这能正常工作？在 C++ 中，实体的可见性和可达性之间有区别。通过导入 person 模块，来自 std 的功能变得可达但不可见。可达类的成员函数自动变得可见。所以可以使用 std 中的某些功能，例如通过使用 auto 类型推导将 getLastName() 的结果存储在变量中，并对其调用成员函数，如 length()。
 
-To make the std::string name properly visible in test.cpp, an explicit import of std or <string> is required.
+要在 test.cpp 中使 std::string 名称正确可见，需要显式导入 std 或 <string>。
 
-\mySubsubsection{11.1.7.}{Submodules}
+\mySubsubsection{11.1.7.}{子模块}
 
-The C++ standard does not speak about submodules as such; however, it is allowed to use dots in a module’s name, and that makes it possible to structure your modules in any hierarchy you want. For example, earlier, the following example of a DataModel namespace was given:
+C++标准并没有明确提到子模块；然而，允许在模块名称中使用点号，这就可以按设想的层次结构来组织模块。例如，之前的DataModel命名空间：
 
 \begin{cpp}
 export module datamodel;
@@ -254,21 +252,21 @@ export namespace DataModel
 }
 \end{cpp}
 
-Both the Person and Address classes are inside the DataModel namespace and in the datamodel module. This can be restructured by defining two submodules: datamodel.person and datamodel .address. The module interface file for the datamodel.person submodule is as follows:
+Person和Address类都在DataModel命名空间中，且在datamodel模块中。可以通过定义两个子模块：datamodel.person和datamodel.address来进行重构。datamodel.person子模块的模块接口文件如下所示：
 
 \begin{cpp}
 export module datamodel.person; // datamodel.person submodule
 export namespace DataModel { class Person { /* ... */ }; }
 \end{cpp}
 
-Here is the module interface file for datamodel.address:
+这里是datamodel.address的模块接口文件：
 
 \begin{cpp}
 export module datamodel.address; // datamodel.address submodule
 export namespace DataModel { class Address { /* ... */ }; }
 \end{cpp}
 
-Finally, a datamodel module is defined as follows. It imports and immediately exports both submodules.
+最后，datamodel模块定义如下，导入并立即导出两个子模块。
 
 \begin{cpp}
 export module datamodel; // datamodel module
@@ -278,7 +276,7 @@ import std;
 export namespace DataModel { using Persons = std::vector<Person>; }
 \end{cpp}
 
-Of course, the member function implementations of classes in submodules can also go into module implementation files. For example, suppose the Address class has a default constructor that just prints a statement to standard output. That implementation could be in a file called datamodel .address.cpp:
+当然，子模块中类的成员函数实现也可以放入模块实现文件中。例如，Address类有一个默认构造函数，只向标准输出打印一条语句。该实现就可以放在名为datamodel.address.cpp的文件中：
 
 \begin{cpp}
 module datamodel.address; // datamodel.address submodule
@@ -287,32 +285,32 @@ using namespace std;
 DataModel::Address::Address() { println("Address::Address()"); }
 \end{cpp}
 
-A benefit of structuring your code with submodules is that clients can import either everything at once or only specific parts they want to use. For example, if client code needs access to everything in the datamodel module, then the following import declaration is the easiest:
+使用子模块结构化代码的好处是，客户端可以选择一次性导入所有内容，或者只导入他们想要使用的特定部分。例如，客户端代码需要访问datamodel模块中的所有内容，那么按以下方式导入声明是最简单的：
 
 \begin{cpp}
 import datamodel;
 \end{cpp}
 
-On the other hand, if client code is only interested in using the Address class, then the following import declaration suffices:
+另一方面，如果客户端代码只对使用Address类感兴趣，那么以下导入声明就足够了：
 
 \begin{cpp}
 import datamodel.address;
 \end{cpp}
 
-Importing everything at once is more convenient than selectively importing what you need, especially for stable modules that rarely change. However, by using selective imports for less stable modules, it might be possible to improve build times if changes are made to the module. For example, if a change is made to the interface of the datamodel.address submodule, then only those files that import that submodule need to be recompiled.
+一次性导入所有内容，比有选择地导入所需内容更方便，尤其是对于很少更改的稳定模块。然而，通过为不太稳定的模块使用选择性导入，如果对模块进行了更改，可能会增加构建时间。例如，对datamodel.address子模块的接口进行了更改，则只需要重新编译导入该子模块的文件。
 
-\mySubsubsection{11.1.8.}{Module Partitions}
+\mySubsubsection{11.1.8.}{模块分区}
 
-Another option to structure modules is to split them into separate partitions. The difference between submodules and partitions is that the submodule structuring is visible to users of the module, allowing users to selectively import only those submodules they want to use. Partitions, on the other hand, are used to structure a module internally. Partitions are not exposed to users of the module. All partitions declared in module interface partition files must ultimately be exported by the primary module interface file, either directly or indirectly. A module always has only one such primary module interface file, and that’s the interface file containing the export module name declaration.
+另一种模块结构化的选项是将其分割成单独的分区。子模块和分区的区别在于，子模块结构对模块的用户可见，允许用户仅导入想要使用的子模块。另一方面，分区用于在模块内部进行结构化，分区对模块的用户不可见。模块接口分区文件中声明的所有分区必须最终由主模块接口文件导出，可以直接或间接导出。一个模块只有一个这样的主模块接口文件，即包含 export module name 声明的接口文件。
 
-A module partition is created by separating the name of the module and the name of the partition with a colon. The name of a partition can be any legal identifier. For example, the DataModel module from the previous section can be restructured using partitions instead of submodules. Here is the person partition in a datamodel.person.cppm module interface partition file:
+通过将模块名称和分区名称用冒号分隔来创建模块分区，分区名称可以是任何合法标识符。例如，上一节中的 DataModel 模块可以使用分区而不是子模块进行重构。这是 datamodel.person.cppm 模块接口分区文件中的 person 分区：
 
 \begin{cpp}
 export module datamodel:person; // datamodel:person partition
 export namespace DataModel { class Person { /* ... */ }; }
 \end{cpp}
 
-Here is the address partition, including a default constructor:
+这是包含默认构造函数的 address 分区：
 
 \begin{cpp}
 export module datamodel:address; // datamodel:address partition
@@ -327,13 +325,13 @@ export namespace DataModel
 }
 \end{cpp}
 
-Unfortunately, there is a caveat when using implementation files in combination with partitions: there can be only one file with a certain partition name. So, having an implementation file that starts with the following declaration is ill-formed:
+遗憾的是，当分区结合实现文件使用时有一个注意事项：只能有一个具有特定分区名称的文件，所以以下声明的实现文件是错误的：
 
 \begin{cpp}
 module datamodel:address;
 \end{cpp}
 
-Instead, you can just put the address partition implementations in an implementation file for the datamodel module as follows:
+但可以将 address 分区的实现放在 datamodel 模块的实现文件中：
 
 \begin{cpp}
 module datamodel; // Not datamodel:address!
@@ -343,10 +341,10 @@ DataModel::Address::Address() { println("Address::Address()"); }
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-Multiple files cannot have the same partition name. Having multiple module interface partition files with the same partition name is illegal, and implementations for declarations in a module interface partition file cannot go in an implementation file with the same partition name. Instead, just put those implementations in a module implementation file for the module instead.
+多个文件不能具有相同的分区名称。具有相同分区名称的多个模块接口分区文件非法，模块接口分区文件中声明的实现与实现文件不能具有相同的分区名称。解决方法是，将这些实现放在模块的实现文件中即可。
 \end{myWarning}
 
-An important point to remember when authoring modules structured in partitions is that each module interface partition must ultimately be exported by the primary module interface file, either directly or indirectly. To import a partition, you just specify the name of the partition prefixed with a colon, for example import :person. It’s illegal to say something like import datamodel:person. Remember, partitions are not exposed to users of a module; partitions only structure a module internally. Hence, users cannot import a specific partition; they must import the entire module. Partitions can be imported only within the module itself, so it’s redundant (and illegal) to specify the name of the module before the colon. Here is the primary module interface file for the datamodel module:
+编写以分区结构化的模块时，需要记住的是，每个模块接口分区必须最终由主模块接口文件导出，可以直接或间接导出。要导入分区，只需指定以冒号前缀的分区名称，例如 import :person，而不能是 import datamodel:person。记住，分区对模块的用户不可见，分区仅用于在模块内部进行结构化。因此，用户不能导入特定分区，必须导入整个模块。分区只能在模块内部导入，指定模块名称前的冒号是多余的（并且非法）。这是 datamodel 模块的主模块接口文件：
 
 \begin{cpp}
 export module datamodel; // datamodel module (primary module interface file)
@@ -356,7 +354,7 @@ import std;
 export namespace DataModel { using Persons = std::vector<Person>; }
 \end{cpp}
 
-This partition-structured datamodel module can be used as follows:
+可以这样使用这个分区结构化的 datamodel 模块：
 
 \begin{cpp}
 import datamodel;
@@ -364,20 +362,20 @@ int main() { DataModel::Address a; }
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Partitions are used to structure modules internally and are not visible outside of a module. Thus, users of a module cannot import specific partitions; they must import the entire module. You can use submodules instead of partitions if you want to allow users to selectively import parts of a module.
+分区用于在模块内部进行结构化，并且对模块外部不可见。因此，模块的用户不能导入特定分区，必须导入整个模块。如果希望允许用户选择性地导入模块的部分，可以使用子模块。
 \end{myNotic}
 
-Earlier it is explained that a module name declaration implicitly includes an import name declaration. This is not the case for partitions.
+前面已经解释过，模块名称声明隐式地包括一个导入名称声明。但对于分区来说，情况并非如此。
 
-For example, the datamodel:person partition does not have an implicit import datamodel declaration. In this example, it’s even not allowed to add an explicit import datamodel to the datamodel:person interface partition file. Doing so would result in a circular dependency: the datamodel interface file contains an import :person declaration, while the datamodel:person interface partition file would contain an import datamodel declaration.
+例如，datamodel:person 分区没有隐式的导入 datamodel 声明。这个例子中，甚至不允许在 datamodel:person 接口分区文件中添加显式的导入 datamodel。这样做会导致循环依赖：datamodel 接口文件包含一个 import :person 声明，而 datamodel:person 接口分区文件将包含一个导入 datamodel 声明。
 
-To break such circular dependencies, you can move the functionality that the datamodel:person partition needs from the datamodel interface file to another partition, which subsequently can be imported by both the datamodel:person interface partition file and the datamodel interface file.
+为了打破循环依赖，可以将 datamodel:person 分区从 datamodel 接口文件中的功能移动到另一个分区，该分区随后可以从 datamodel:person 接口分区文件和 datamodel 接口文件导入。
 
-\mySamllsection{Implementation Partitions}
+\mySamllsection{实现分区}
 
-A partition does not need to be declared in a module interface partition file, it can also be declared in a module implementation partition file, a normal source code file with extension .cpp, in which case it’s an implementation partition, sometimes called an internal partition. Such partitions cannot be exported, compared to module interface partitions, which must be exported by the primary module interface file.
+分区不需要在模块接口分区文件中声明，可以在模块实现分区文件中声明、一个.cpp 扩展名的普通源代码文件，是一个实现分区，有时称为内部分区。与必须由主模块接口文件导出的模块接口分区不同，不能导出实现分区。
 
-For example, suppose you have the following math primary module interface file (math.cppm):
+例如，有一个名为 math 的主模块接口文件（math.cppm）：
 
 \begin{cpp}
 export module math; // math module declaration
@@ -388,14 +386,14 @@ export namespace Math
 }
 \end{cpp}
 
-Suppose further that the implementations of the math functions require some helper functions that must not be exported by the module. An implementation partition is the perfect place to put such helper functions. The following defines such an implementation partition in a file called math\_helpers.cpp:
+假设数学函数的实现需要一些不能导出的辅助函数，实现分区是放置此类辅助函数的完美位置。以下在名为 math\_helpers.cpp 的文件中定义了这样的实现分区：
 
 \begin{cpp}
 module math:details; // math:details implementation partition
 double someHelperFunction(double a) { return /* ... */ ; }
 \end{cpp}
 
-Other math module implementation files can get access to these helper functions by importing this implementation partition. For example, a math module implementation file (math.cpp) could look like this:
+其他 math 模块实现文件可以通过导入这个实现分区来获取这些辅助函数的访问权限。例如，一个 math 模块实现文件（math.cpp）可能看起来像这样：
 
 \begin{cpp}
 module math;
@@ -404,21 +402,21 @@ double Math::superLog(double z, double b) { return /* ... */; }
 double Math::lerchZeta(double lambda, double alpha, double s) { return /* ... */; }
 \end{cpp}
 
-With the import :details; declaration, the superLog() and lerchZeta() functions can call someHelperFunction().
+通过 import :details; 声明，superLog() 和 lerchZeta() 函数可以调用 someHelperFunction()。
 
-Of course, using such implementation partitions with helper functions makes sense only if multiple other source files use those helper functions.
+当然，使用这样的实现分区与辅助函数，只在多个其他源文件使用这些辅助函数时才有意义。
 
-\mySubsubsection{11.1.9.}{Private Module Fragment}
+\mySubsubsection{11.1.9.}{私有模块段}
 
-The primary module interface can include a private module fragment. This private module fragment starts with the following line:
+主模块接口可以包含一个私有模块段。这个私有模块片起始与下面这行代码：
 
 \begin{cpp}
 module :private;
 \end{cpp}
 
-Everything after this line is part of the private module fragment. Anything that is defined in this private module fragment is not exported and thus not visible to consumers of the module.
+此行之后的所有内容都是私有模块段的一部分，私有模块片段中定义的内容都不会导出，因此对模块的使用者不可见。
 
-Chapter 9, “Mastering Classes and Objects,” demonstrates the pimpl idiom, also known as the private implementation idiom. It hides all implementation details from consumers of a class. The solution in Chapter 9 requires two files: a primary module interface file and a module implementation file. Using a private module fragment, you can achieve this separation using a single file. Here is a concise example:
+第9章演示了pimpl习惯用法，也称为私有实现习惯用法，隐藏了类使用者所有的实现细节。第9章中的解决方案需要两个文件：主模块接口文件和模块实现文件。使用私有模块段，可以使用单个文件实现这种分离。下面是一个简洁的示例：
 
 \begin{cpp}
 export module adder;
@@ -439,23 +437,23 @@ module :private;
 class Adder::Impl
 {
     public:
-    ˜Impl() { std::println("Destructor of Adder::Impl"); }
+    ~Impl() { std::println("Destructor of Adder::Impl"); }
     int add(int a, int b) const { return a + b;}
 };
 
 Adder::Adder() : m_impl { std::make_unique<Impl>() } { }
-Adder::˜Adder() {}
+Adder::~Adder() {}
 int Adder::add(int a, int b) const { return m_impl->add(a, b); }
 \end{cpp}
 
-This class can be tested as follows:
+这个类可以按以下方式测试：
 
 \begin{cpp}
 Adder adder;
 println("Value: {}", adder.add(20, 22));
 \end{cpp}
 
-Now, to prove that everything in the private module fragment is truly hidden, let’s add a public member function getImplementation() at the end of the Adder class:
+现在，为了证明私有模块段中的所有内容确实已隐藏，我们在Adder类的末尾添加一个公共成员函数getImplementation()：
 
 \begin{cpp}
 export class Adder
@@ -469,22 +467,22 @@ export class Adder
 };
 \end{cpp}
 
-The following compiles and works fine:
+以下代码编译运行正常：
 
 \begin{cpp}
 Adder adder;
 auto impl { adder.getImplementation() };
 \end{cpp}
 
-From the point of view of consumers of the Adder module, getImplementation() returns a pointer to an incomplete type. The code snippet is storing that pointer in a variable called impl. Simply storing a pointer to an incomplete type is fine, as long as you use auto type deduction. However, you cannot do anything with that pointer. Calling add() on that incomplete pointer results in an error:
+从Adder模块的使用者角度来看，getImplementation()返回一个指向不完整类型的指针，代码段将该指针存储在一个名为impl的变量中。只要使用auto类型推导，可以存储指向不完整类型的指针。然而，不能对该指针执行操作，使用该不完整指针的add()会导致错误：
 
 \begin{cpp}
 auto result { impl->add(20, 22) }; // Error!
 \end{cpp}
 
-The error is something like: use of undefined type Adder::Impl. The reason is that the Adder::Impl class is part of the private module fragment and hence not accessible from consumers of the Adder module.
+错误信息类似于：使用未定义的类型Adder::Impl。原因是Adder::Impl类是私有模块段的一部分，因此无法从Adder模块的使用者那里访问。
 
-If you remove the module :private; line from the module interface file, then the previous code snippet compiles and runs fine. You might be surprised at first sight by this; after all, the Adder::Impl class is not explicitly exported. That’s correct—it’s not explicitly exported, but it is implicitly exported because the Adder class is exported and the Impl class is declared within the Adder class.
+如果从模块接口文件中删除module :private;行，则之前的代码片段将编译运行正常。读者们可能会对此感到惊讶；毕竟，Adder::Impl类没有明确导出。的确——它没有明确导出，但因导出了Adder类被且Impl类在Adder类中声明，所以隐式导出了Adder::Impl类。
 
 \mySubsubsection{11.1.10.}{Header Units}
 
