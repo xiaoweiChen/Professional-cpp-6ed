@@ -416,7 +416,7 @@ module :private;
 
 此行之后的所有内容都是私有模块段的一部分，私有模块片段中定义的内容都不会导出，因此对模块的使用者不可见。
 
-第9章演示了pimpl习惯用法，也称为私有实现习惯用法，隐藏了类使用者所有的实现细节。第9章中的解决方案需要两个文件：主模块接口文件和模块实现文件。使用私有模块段，可以使用单个文件实现这种分离。下面是一个简洁的示例：
+第9章演示了pimpl习惯用法，也称为私有实现习惯用法，隐藏了类使用者所有的实现细节。第9章中的解决方案需要两个文件：主模块接口文件和模块实现文件。使用私有模块段，可以使用单个文件实现这种分离。下面是一个示例：
 
 \begin{cpp}
 export module adder;
@@ -425,7 +425,7 @@ export class Adder
 {
     public:
     Adder();
-    virtual ˜Adder();
+    virtual ~Adder();
     int add(int a, int b) const;
     private:
     class Impl;
@@ -484,84 +484,86 @@ auto result { impl->add(20, 22) }; // Error!
 
 如果从模块接口文件中删除module :private;行，则之前的代码片段将编译运行正常。读者们可能会对此感到惊讶；毕竟，Adder::Impl类没有明确导出。的确——它没有明确导出，但因导出了Adder类被且Impl类在Adder类中声明，所以隐式导出了Adder::Impl类。
 
-\mySubsubsection{11.1.10.}{Header Units}
+\mySubsubsection{11.1.10.}{头文件单元}
 
-When importing a module, you use an import declaration such as the following:
+导入一个模块时，需要使用如下的导入声明：
 
 \begin{cpp}
 import person;
 \end{cpp}
 
-If you have legacy code, such as a person.h header file defining a Person class, then you can modularize it by converting it to a proper module, person.cppm, and use import declarations to make it available to client code. However, sometimes you cannot modularize such headers. Maybe your Person class should remain usable by compilers that do not yet have support for modules. Or maybe the person.h header is part of a third-party library that you cannot modify. In such cases, you can import your header file directly, as follows:
+如果有旧代码，例如一个定义了 Person 类的 person.h 头文件，则可以通过将其转换为适当的模块 person.cppm 来模块化它，并使用导入声明使其对客户代码可用。然而，有时不能模块化这样的头文件， 编译Person类得编译器可能不支持模块，或者 person.h 头文件可能是第三方库的一部分。这时，可以直接导入头文件：
 
 \begin{cpp}
 import "person.h";
 \end{cpp}
 
-With such a declaration, everything in the person.h header file becomes implicitly exported. Additionally, macros defined in the header become visible to client code, which is not the case for real modules, neither for your own modules nor for the named std and std.compat modules.
+有了这样的声明，person.h 头文件中的所有内容都会隐式导出，头文件中定义的宏对客户代码可见。
 
-Such an import declaration can include relative or absolute paths to header files, and you can use < > instead of "" to search in the system include directories:
+这样的导入声明可以包括到头文件的相对或绝对路径，并且可以使用 < > (而非 "" )在系统包含目录中搜索：
 
 \begin{cpp}
 import "include/person.h"; // Can include a relative or absolute path.
 import <person.h>; // Search in system include directories.
 \end{cpp}
 
-Compared to using \#include to add a header file, using import will improve build throughput, as the person.h header will implicitly be converted to a module and hence be compiled only once, instead of every time when the header is included in a source file. As such, it can be used as a standardized way to support precompiled header files, instead of using compiler-dependent precompiled header file support.
+与\#include 添加头文件相比，使用 import 将提高构建吞吐量，因为 person.h 头文件将隐式转换为模块，因此只编译一次，而不是每次在源文件中包含头文件时都编译，可以用作支持预编译头文件的标准方式。
 
-For each import declaration naming a header file, the compiler creates a module with an exported interface similar to what the header file defines, i.e., it implicitly exports everything from the header file. This is called a header unit. The procedure for this is compiler dependent, so check the documentation of your compiler to learn how to work with header units.
+对于每个命名头文件的导入声明，编译器都会创建一个模块，其导出的接口类似于头文件定义的接口，即隐式导出头文件中的所有内容，这称为头文件单元。这个过程依赖于编译器，请查阅编译器的文档，了解如何使用头文件单元。
 
 \begin{myNotic}{NOTE}
-By importing a header unit, the preprocessor definitions from that header unit become available to you. However, if you export import a header unit, its preprocessor definitions are not exported further. Any code that needs access to those preprocessor definitions needs to explicitly import the header unit.
+通过导入头文件单元，该头文件单元的预处理定义可用。然而，如果导出导入头文件单元，其预处理定义不会进一步导出。需要访问这些预处理定义的代码都需要显式导入头文件单元。
 \end{myNotic}
 
-\mySubsubsection{11.1.11.}{Importable Standard Library Headers}
+\mySubsubsection{11.1.11.}{可导入的标准库头文件}
 
-All C++ headers, such as <iostream>, <vector>, <string>, and so on, are importable headers that can be imported with an import declaration. That means you can, for example, write the following:
+所有的C++头文件，如<iostream>、<vector>、<string>等，都是可导入的头文件，可以通过导入声明来导入，所以可以这样写：
 
 \begin{cpp}
 import <vector>;
 \end{cpp}
 
-Of course, starting with C++23, it’s more convenient to simply import the named module called std, instead of manually importing those importable headers that you need. For example, the following makes everything in the Standard Library available for your use:
+从C++23开始，直接导入名为std的命名模块更为方便，不用手动导入那些需要的可导入头文件。例如，以下代码使标准库中的所有内容都可供使用：
 
 \begin{cpp}
 import std;
 \end{cpp}
 
-As you know by now, importable C++ Standard Library headers don’t have any .h extension, e.g., <vector>, and they define everything in the std namespace or a subnamespace of std.
+可导入的C++标准库头文件没有.h扩展名，例如<vector>，它们定义了std命名空间或std的子命名空间中的内容。
 
-In C, the names of Standard Library header files end with .h, such as <stdio.h>, and namespaces are not used.
+在C中，标准库头文件的名称以.h结尾，如<stdio.h>，不使用命名空间。
 
-Most of the Standard Library functionality from C is available in C++ but is provided through two different headers:
+C++中提供了C语言标准库的大部分功能，但通过两个不同的头文件提供：
 
 \begin{itemize}
 \item
-The recommended versions without the .h extension but with a c prefix, for example, <cstdio>. These put everything in the std namespace.
+建议使用不带.h扩展名，但有c前缀的版本，例如<cstdio>。这些将所有内容放在std命名空间中。
 
 \item
-The C-style versions with the .h extension, for example, <stdio.h>. These do not use namespaces. Their use is discouraged, except when you are writing code that needs to be both valid C++ and valid C at the same time. This use case is not further discussed in this C++ book.
+C语言风格的版本，带有.h扩展名，例如<stdio.h>。这些不使用命名空间。不鼓励使用它们，除非需要编写同时有效的C++和C代码。这种用例在本书中不再讨论。
 \end{itemize}
 
 \CXXTwentythreeLogo{-40}{-60}
 
 \begin{myNotic}{NOTE}
-Up until C++23, the use of <name.h> C Standard Library headers was deprecated. Starting with C++23, their use is no longer deprecated, but discouraged.
+C++23之前，C标准库头文件<name.h>的用法已弃用。从C++23开始，这种做法不再弃用，但仍然不鼓励使用。
 \end{myNotic}
 
-Technically, the old versions are allowed to put things in the std namespace as well, and the new versions are allowed to additionally put things in the global namespace. This behavior is not standardized, so you should not rely on it.
+从技术上讲，旧版本也允许将内容放入std命名空间，而新版本允许将内容放入全局命名空间。这种行为没有标准化，因此不应该依赖这种方式。
 
-As mentioned earlier, when using import std; you automatically get access to C-style functions, such as the mathematical functions defined in <cmath>. They will be in the std namespace, e.g., std::sqrt(). If you import std.compat; these C-style functions will additionally be available in the global namespace, e.g., ::sqrt().
+如前所述，使用import std;时，会自动获得对C风格函数的访问权限，例如在<cmath>中定义的数学函数。它们将位于std命名空间中，例如std::sqrt()。如果导入std.compat;这些C风格函数还将在全局命名空间中可用，例如::sqrt()。
 
-However, if you cannot use the std or std.compat named modules, then keep in mind that the C Standard Library headers are not guaranteed to be importable with an import declaration. In that case, to be safe, use \#include <cxyz> instead of import <cxyz>;.
+但是，如果不能使用std或std.compat命名模块，那么C标准库头文件不保证可以通过导入声明导入。这种情况下，为了安全起见，请使用\#include <cxyz>，而非import <cxyz>;。
 
-Additionally, as mentioned in the previous section, importing a proper module, e.g., std or std .compat, won’t make any C-style macros defined in the module available to the importing code. This is especially important to remember when you want to use C-style macros from the C Standard Library. Luckily, there aren’t many! One of them is <cassert>, a C Standard Library header that defines the assert() macro, which is explained in more detail in Chapter 31, “Conquering Debugging.” Since the named std and std.compat modules won’t make the assert() macro available to importing code, and since <cassert> is a C Standard Library header and thus not guaranteed to be importable, you must use \#include <cassert> to get access to assert().
+此外，导入一个适当的模块，例如std或std.compat，不会使模块中定义的C风格宏对导入代码可用。当想使用C标准库中的C风格宏时，这一点尤其重要。幸运的是，这样的宏并不多！其中之一是< cassert >，定义了assert()宏的C标准库头文件，在第31章中有更详细的介绍。由于std和std.compat模块不会使assert()宏对导入代码可用，并且<cassert>是一个C标准库头文件，因此不保证可导入，所以必须使用\#include <cassert>才能访问到assert()。
 
 \begin{myNotic}{NOTE}
-If you can import a header file, it’s recommended to do so. Only \#include a header file if it’s not importable, for instance, because the content of the header file is dependent on some preprocessor \#defines (see the next section).
+如果可以导入头文件，建议这样做。只有当头文件不可导入时，才\#include头文件，因为头文件的内容取决于预处理指令\#define（见下一节）。
 \end{myNotic}
 
-If you do need to \#include a header in a module interface or module implementation file, the \#include directives should be placed in the global module fragment, which must come before any named module declaration and starts with a nameless module declaration. A global module fragment can only contain preprocessing directives such as \#includes, \#defines, and so on. Such a global module fragment and comments are the only things that are allowed to appear before a named module declaration. For example, if you need to use functionality from the <cassert> C header file, you can make that available as follows:
+如果确实需要在模块接口或模块实现文件中包含一个头文件，\#include指令应该放在全局模块片段中，这必须位于模块声明之前，并以无名模块声明开始。全局模块段只能包含预处理指令，如\#include、\#define等。这样的全局模块段和注释，是唯一允许出现在命名模块声明之前的内容。
+
+例如，需要使用C头文件<cassert>的功能，可以按以下方式使其可用：
 
 \begin{cpp}
 module; // Start of the global module fragment
@@ -573,7 +575,7 @@ export class Person { /* ... */ };
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-Place all \#include directives in a module interface or module implementation file in the global module fragment.
+将所有\#include指令放在模块接口或模块实现文件的全局模块段中。
 \end{myWarning}
 
 
