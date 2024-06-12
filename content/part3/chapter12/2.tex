@@ -1,26 +1,26 @@
 
-A class template defines a blueprint (= template) for a family of class definitions where the types of some of the variables, return types of member functions, and/or parameters to member functions are specified as template type parameters. Class templates are like construction blueprints. They allow the compiler to build (also known as instantiate) concrete class definitions by replacing template type parameters with concrete types.
+类模板定义了一组类定义的蓝图（即模板），其中一些变量的类型、成员函数的返回类型、或成员函数的参数类型，指定为模板类型参数。类模板类似于建筑蓝图，允许编译器通过用具体类型，替换模板类型参数来构建（也称为实例化）具体的类定义。
 
-Class templates are useful primarily for containers, or data structures, that store objects. You already used class templates often earlier in this book, e.g., std::vector, unique\_ptr, string, and so on. This section discusses how to write your own class templates by using a running example of a Grid container. To keep the examples reasonable in length and simple enough to illustrate specific points, different sections of the chapter add features to the Grid container that are not used in subsequent sections.
+类模板主要用于存储对象的容器或数据结构，我们已经在本书的早些部分中多次使用过类模板，例如std::vector、unique\_ptr、string等。本节通过一个运行示例，即Grid容器，来讨论如何编写自己的类模板。为了保持示例的长度合理性，并且简单到足以说明具体点，章节的不同部分会为Grid容器添加不同的特性，但这些特性后续不会使用。
 
-\mySubsubsection{12.2.1.}{Writing a Class Template}
+\mySubsubsection{12.2.1.}{编写类模板}
 
-Suppose that you want a generic game board class that you can use as a chessboard, checkers board, tic-tac-toe board, or any other two-dimensional game board. To make it general-purpose, you should be able to store chess pieces, checkers pieces, tic-tac-toe pieces, or any type of game piece.
+假设想创建一个通用的游戏板类，可以作为棋盘、跳棋板、井字棋板，或其他二维游戏板使用。为了使其通用，应该能够存储棋子、跳棋子、井字棋子，或其他类型游戏的棋子。
 
-\mySamllsection{Coding Without Templates}
+\mySamllsection{不使用模板}
 
-Without templates, the best approach to build a generic game board is to employ polymorphism to store generic GamePiece objects. Then, you could let the pieces for each game inherit from the GamePiece class. For example, in a chess game, ChessPiece would be a derived class of GamePiece. Through polymorphism, the GameBoard, written to store GamePieces, could also store ChessPieces. Because it should be possible to copy a GameBoard, the GameBoard needs to be able to copy GamePieces. This implementation employs polymorphism, so one solution is to add a pure virtual clone() member function to the GamePiece base class, which derived classes must implement to return a copy of a concrete GamePiece. Here is the basic GamePiece interface:
+不使用模板时，构建通用GameBoard的最佳方法是，利用多态性来存储通用的GamePiece对象。然后，可以让每种游戏的对象继承自GamePiece类。例如，棋类游戏中，ChessPiece派生于GamePiece类。通过多态性，编写来存储GamePieces的GameBoard，也可以存储ChessPieces。因为可能需要复制游戏板，所以GameBoard需要能够复制GamePieces。这种实现利用了多态性，因此一种解决方案是在GamePiece基类中添加纯虚的clone()成员函数，派生类必须实现它，以返回一个具体GamePiece的副本。以下是GamePiece的基本接口：
 
 \begin{cpp}
 export class GamePiece
 {
     public:
-        virtual ˜GamePiece() = default;
+        virtual ~GamePiece() = default;
         virtual std::unique_ptr<GamePiece> clone() const = 0;
 };
 \end{cpp}
 
-GamePiece is an abstract base class. Concrete classes, such as ChessPiece, derive from it and implement the clone() member function:
+GamePiece是一个抽象基类。具体的类，如ChessPiece，从GamePiece派生并实现clone()成员函数：
 
 \begin{cpp}
 class ChessPiece : public GamePiece
@@ -34,7 +34,7 @@ class ChessPiece : public GamePiece
 };
 \end{cpp}
 
-A GameBoard represents a two-dimensional grid, so one option to store the GamePieces in GameBoard could be a vector of vectors of unique\_ptrs. However, that’s not an optimal representation of the data, as the data will be fragmented in memory. It’s better to store a linearized representation of the GamePieces as a single vector of unique\_ptrs. Converting a two-dimensional coordinate, say (x,y), to a one-dimensional location in the linearized representation is easily done using the formula x+y*width.
+一个GameBoard代表一个二维网格，存储GamePieces在GameBoard中的选项可以是unique\_ptr的vector。然而，这不是最优的数据表示，因为数据将在内存中碎片化呈现。更好的是将棋子表示为线性化存储。将二维坐标，例如(x,y)，转换为一维位置很容易，公式为x+y*width。
 
 \begin{cpp}
 export class GameBoard
@@ -69,19 +69,19 @@ export class GameBoard
 export void swap(GameBoard& first, GameBoard& second) noexcept;
 \end{cpp}
 
-In this implementation, at() returns a reference to the game piece at a given location instead of a copy of the piece. GameBoard serves as an abstraction of a two-dimensional array, so it should provide array access semantics by returning a reference to the actual object at any location, not a copy of the object. Client code should not store this reference for future use because it might become invalid, for example when the m\_cells vector needs to be resized. Instead, client code shall call at() right before using the returned reference. This follows the design philosophy of the Standard Library vector class.
+此实现中，at() 函数返回给定位置的游戏棋子的引用。GameBoard 类作为二维数组的抽象，应当提供数组访问语义，即返回位置对象的引用。客户端代码不应存储此引用以备将来使用，当 m\_cells 需要调整大小时，该引用可能会失效。相反，客户端代码应在使用位置信息之前直接调用 at()，这遵循了标准库 vector 类的设计哲学。
 
 \begin{myNotic}{NOTE}
-This implementation provides two versions of at(); one returns a reference-to-non-const while the other returns a reference-to-const.
+此实现提供了两个版本的 at() 函数；一个返回非常量引用，另一个返回常量引用。
 \end{myNotic}
 
 \CXXTwentythreeLogo{-40}{-60}
 
 \begin{myNotic}{NOTE}
-Starting with C++23, it is possible to provide a multidimensional subscripting operator for the GameBoard class. By providing such an operator, clients can write myGameBoard[x,y] instead of myGameBoard.at(x,y) to get access to a piece at location (x,y). This operator is discussed in Chapter 15, “Overloading C++ Operators.”
+从 C++23 开始，可以为 GameBoard 类提供多维下标运算符。通过提供这样的运算符，客户端可以编写 myGameBoard[x,y] 来代替 myGameBoard.at(x,y)，以获取位置 (x,y) 处的棋子。第 15 章中介绍了此运算符。
 \end{myNotic}
 
-Here are the member function definitions. Note that this implementation uses the copy-and-swap idiom for the assignment operator, and Scott Meyers’ const\_cast() pattern to avoid code duplication, both of which are discussed in Chapter 9, “Mastering Classes and Objects.”
+以下是成员函数定义。注意，此实现使用了复制并交换（copy-and-swap）习语作为赋值运算符，以及 Scott Meyers 的 const\_cast() 模式来避免代码重复，两者都在第 9 章中介绍过。
 
 \begin{cpp}
 GameBoard::GameBoard(size_t width, size_t height)
@@ -147,7 +147,7 @@ unique_ptr<GamePiece>& GameBoard::at(size_t x, size_t y)
 }
 \end{cpp}
 
-This GameBoard class works pretty well:
+这个 GameBoard 类工作得相当不错：
 
 \begin{cpp}
 GameBoard chessBoard { 8, 8 };
@@ -157,9 +157,9 @@ chessBoard.at(0, 1) = std::make_unique<ChessPiece>();
 chessBoard.at(0, 1) = nullptr;
 \end{cpp}
 
-\mySamllsection{A Template Grid Class}
+\mySamllsection{模板Grid类}
 
-The GameBoard class in the previous section is nice but insufficient. One problem is that you cannot use GameBoard to store elements by value; it always stores pointers. Another, more serious issue is related to type safety. Each cell in a GameBoard stores a unique\_ptr<GamePiece>. Even if you are storing ChessPieces, when you use at() to request a certain piece, you will get back a unique\_ptr<GamePiece>. This means you have to downcast the retrieved GamePiece to a ChessPiece to be able to make use of ChessPiece’s specific functionality. Additionally, nothing stops you from mixing all kinds of different GamePiece-derived objects in a GameBoard. For example, suppose there is not only a ChessPiece but also a TicTacToePiece:
+上一节中的 GameBoard 类不错，但还不够。一个问题是不能使用 GameBoard 来按值存储元素，其存储的是指针。另一个更严重的问题是与类型安全有关，GameBoard 中的每个单元格存储 unique\_ptr<GamePiece>。即使存储 ChessPieces，当使用 at() 请求某个棋子位置时，会得到一个 unique\_ptr<GamePiece>，所以必须将检索到的 GamePiece 向下转为 ChessPiece，才能使用 ChessPiece 的特定功能。此外，没有任何东西能阻止在 GameBoard 中混合所有类型的 GamePiece 派生对象。例如，不仅有 ChessPiece，还有 TicTacToePiece：
 
 \begin{cpp}
 class TicTacToePiece : public GamePiece
@@ -173,7 +173,7 @@ class TicTacToePiece : public GamePiece
 };
 \end{cpp}
 
-With the polymorphic solution from the previous section, nothing stops you from storing tic-tac-toe pieces and chess pieces on a single game board:
+使用上一节的多态解决方案，可以在单个GameBoard上存储井字棋棋子和国际象棋棋子：
 
 \begin{cpp}
 GameBoard gameBoard { 8, 8 };
@@ -181,17 +181,17 @@ gameBoard.at(0, 0) = std::make_unique<ChessPiece>();
 gameBoard.at(0, 1) = std::make_unique<TicTacToePiece>();
 \end{cpp}
 
-The big problem with this is that you somehow need to remember what is stored at a certain location so that you can perform the correct downcast when you call at().
+这个问题的麻烦在于，需要以某种方式记住某个位置上存储了什么，以便在调用 at() 时进行正确的向下转型。
 
-Another shortcoming of GameBoard is that it cannot be used to store primitive types, such as int or double, because the type stored in a cell must derive from GamePiece.
+GameBoard 的另一个缺点是不能用来存储基本类型，如 int 或 double，因为单元格中存储的类型必须派生自 GamePiece。
 
-It would be nice if you could write a generic Grid class that you could use for storing ChessPieces, SpreadsheetCells, ints, doubles, and so on. In C++, you can do this by writing a class template, which is a blueprint for class definitions. In a class template, not all types are known yet. Clients then instantiate the template by specifying the types they want to use. This is called generic programming. The biggest advantage of generic programming is type safety. The types used in instantiated class definitions and their member functions are concrete types, and not abstract base class types, as is the case with the polymorphic solution from the previous section.
+如果能编写一个通用 Grid 类模板，可以用来存储 ChessPiece、SpreadsheetCell、int、double 等就好了。在 C++ 中，可以通过编写一个类模板来实现这一点，类模板是类定义的蓝图。在类模板中，并非所有的类型都已知。然后客户端通过指定他们想要使用的类型来实例化模板，这称为泛型编程。泛型编程的最大优点是类型安全。在实例化的类定义，及其成员函数中使用的类型是具体类型，而不是像上一节多态解决方案中的抽象基类类型。
 
-Let’s start by looking at how such a Grid class template definition can be written.
+先看看如何编写一个 Grid 类模板定义。
 
-\mySamllsection{The Grid Class Template Definition}
+\mySamllsection{Grid类模板定义}
 
-To understand class templates, it is helpful to examine the syntax. The following example shows how you can modify the GameBoard class to make a parametrized Grid class template. The syntax is explained in detail following the code. Note that the name has changed from GameBoard to Grid. A Grid should also be usable with primitive types such as int and double. That’s why I opted to implement this solution using value semantics without polymorphism, compared to the polymorphic pointer semantics used in the GameBoard implementation. The m\_cells container stores actual objects, instead of pointers. A downside of using value semantics compared to pointer semantics is that you cannot have a true empty cell; that is, a cell must always contain some value. With pointer semantics, an empty cell stores nullptr. Luckily, std::optional, introduced in Chapter 1, “A Crash Course in C++ and the Standard Library,” comes to the rescue here. It allows you to use value semantics, while still having a way to represent empty cells.
+为了理解类模板，先了解其语法。以下示例展示了如何将 GameBoard 类修改为参数化的 Grid 类模板。请注意，名称已从 GameBoard 更改为 Grid。Grid 也应该能够与 int 和 double 等原始类型一起使用。这就是为什么我选择使用值语义，而不是 GameBoard 实现中使用的多态指针语义来实现这个解决方案。m\_cells 容器存储实际对象，而不是指针。与指针语义相比，使用值语义的缺点是不能有真正的空单元格；也就是说，单元格必须始终包含某些值。使用指针语义，空单元格存储的是 nullptr。幸运的是，第 1 章中介绍的 std::optional 此时派上了用场，其允许使用值语义，同时仍有一种表示空单元格的方式。
 
 \begin{cpp}
 export template <typename T>
@@ -226,42 +226,42 @@ class Grid
 };
 \end{cpp}
 
-Now that you’ve seen the full class template definition, take another look at it, starting with the first line.
+现在已经看到了完整的类模板定义，再从第一行开始看起。
 
 \begin{cpp}
 export template <typename T>
 \end{cpp}
 
-This first line says that the following class definition is a template on one type, T, and that it’s being exported from the module. The “template <typename T>” part is called the template header. Both template and typename are keywords in C++. As discussed earlier, templates “parameterize” types in the same way that functions “parameterize” values. Just as you use parameter names in functions to represent the arguments that the caller will pass, you use template type parameter names (such as T) in templates to represent the types that the caller will pass as template type arguments. There’s nothing special about the name T—you can use whatever name you want. Traditionally, when a single type is used, it is called T, but that’s just a historical convention, like calling the integer that indexes an array i or j. The template specifier holds for the entire statement, which in this case is the class template definition.
+这第一行说明以下类定义是一个模板，用于一个类型 T，并且它正在从模块中导出。 "template <typename T>" 部分称为模板头，模板和 typename 都是 C++ 的关键字。模板“参数化”类型，就像函数“参数化”值一样，就像在函数中使用参数名来代表调用者将传递的参数一样，在模板中使用模板类型参数名（如 T）来代表调用者将作为模板类型参数传递的类型。T 的名称没有什么特别的，可以使用想要的名称。通常，当使用单个类型时，称为 T，但这只是惯例而已，就像将索引数组的整数称为 i 或 j 一样。模板指定符适用于整个语句，即类模板定义。
 
 \begin{myNotic}{NOTE}
-For historical reasons, you can use the keyword class instead of typename to specify template type parameters. Thus, many books and existing programs use syntax like this: template <class T>. However, the use of the word class in this context is confusing because it implies that the type must be a class, which is not true. The type can be a class, a struct, a union, a primitive type of the language like int or double, and so on. To avoid such confusion, this book uses typename.
+由于历史原因，可以使用关键字 class，而不是 typename 来指定模板类型参数。因此，许多书籍和现有程序使用如下语法：template <class T>。在这个上下文中使用 class 这个词是有问题的，因为它暗示类型必须是类，这并不正确。类型可以是类、结构体、联合体、语言的原始类型，如 int 或 double 等。为了避免这种混淆，本书使用 typename。
 \end{myNotic}
 
-In the earlier GameBoard class, the m\_cells data member is a vector of pointers, which requires special code for copying—thus the need for a copy constructor and copy assignment operator. In the Grid class, m\_cells is a vector of optional values, so the compiler-generated copy constructor and assignment operator are fine. However, as explained in Chapter 8, “Gaining Proficiency with Classes and Objects,” once you have a user-declared destructor, it’s deprecated for the compiler to implicitly generate a copy constructor or copy assignment operator, so the Grid class template explicitly defaults them. It also explicitly defaults the move constructor and move assignment operator. Here is the explicitly defaulted copy assignment operator:
+之前的 GameBoard 类中，m\_cells 数据成员是一个指针vector，这需要特殊代码进行复制——因此需要复制构造函数和复制赋值运算符。Grid 类中，m\_cells 是一个optional的vector，所以编译器生成的复制构造函数和赋值运算符就足够了。然而，正如第 8 章中解释的那样，当有一个用户声明的析构函数，编译器隐式生成复制构造函数或复制赋值运算符就会过时，所以 Grid 类模板显式默认它们，还显式默认了移动构造函数和移动赋值运算符。以下是显式默认的复制赋值运算符：
 
 \begin{cpp}
 Grid& operator=(const Grid& rhs) = default;
 \end{cpp}
 
-As you can see, the type of the rhs parameter is no longer a const GameBoard\&, but a const Grid\&. Within a class definition, the compiler interprets Grid as Grid<T> where needed, but if you want, you can explicitly use Grid<T>:
+rhs 参数的类型不再是 const GameBoard\&，而是 const Grid\&。在类定义内部，编译器在需要时将 Grid 解释为 Grid<T>，也可以显式使用 Grid<T>：
 
 \begin{cpp}
 Grid<T>& operator=(const Grid<T>& rhs) = default;
 \end{cpp}
 
-However, outside a class definition you must use Grid<T>. When you write a class template, what you used to think of as the class name (Grid) is actually the template name. When you want to talk about actual Grid classes or types, you have to use the template ID, i.e., Grid<T>, which are instantiations of the Grid class template for a certain type, such as int, SpreadsheetCell, or ChessPiece.
+然而，在类定义外部，必须使用 Grid<T>。当编写一个类模板时，以前的类名（Grid）实际上是模板名。想要谈论实际的 Grid 类或类型时，必须使用模板 ID，即 Grid<T>，这是 Grid 类模板为特化类型（如 int、SpreadsheetCell 或 ChessPiece）的实例化。
 
-Because m\_cells is not storing pointers anymore, but optional values, the at() member functions now return optional<T>s instead of unique\_ptrs, that is, optionals that can either have a value of type T, or be empty:
+因为 m\_cells 不再存储指针，而是可选值，所以 at() 成员函数现在返回 optional<T> ，而不是 unique\_ptr。也就是说，值可以是类型 T 的值，也可以为空：
 
 \begin{cpp}
 std::optional<T>& at(std::size_t x, std::size_t y);
 const std::optional<T>& at(std::size_t x, std::size_t y) const;
 \end{cpp}
 
-\mySamllsection{The Grid Class Template Member Function Definitions}
+\mySamllsection{定义Grid类模板的成员函数}
 
-The template <typename T> template header must precede each member function definition for the Grid class template. The constructor looks like this:
+对于 Grid 类模板，模板头 <typename T> 必须出现在每个成员函数定义之前。构造函数如下所示：
 
 \begin{cpp}
 template <typename T>
@@ -273,10 +273,10 @@ Grid<T>::Grid(std::size_t width, std::size_t height)
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Member function definitions of class templates need to be visible to any client code using the class template. This places some restrictions on where such member function definitions can be placed. Usually, they are simply put in the same file as the class template definition itself. Some ways around this restriction are discussed later in this chapter.
+模板的成员函数定义,必须对任何使用该类模板的客户端代码可见。这限制了此类成员函数定义可以放置的位置。通常，只是简单地放在类模板定义本身的同一个文件中。关于绕过此限制的一些方法,将在本章后面讨论。
 \end{myNotic}
 
-Note that the name before the :: is Grid<T>, not Grid. The body of the constructor is identical to the GameBoard constructor. The rest of the member function definitions are also similar to their equivalents in the GameBoard class with the exception of the appropriate template header and Grid<T> syntax changes:
+请注意，:: 之前的名称是 Grid<T>，而不是 Grid。构造函数的主体与 GameBoard 构造函数相同，其余的成员函数定义也与 GameBoard 类中的相应部分相似：
 
 \begin{cpp}
 template <typename T>
@@ -307,12 +307,12 @@ std::optional<T>& Grid<T>::at(std::size_t x, std::size_t y)
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-If an implementation of a class template member function needs a default value for a certain template type parameter, for example T, then you can use the T\{\} syntax. T\{\} calls the default constructor for the object if T is a class type, or generates zero if T is a primitive type. This syntax is called the zero-initialization syntax. It’s a good way to provide a reasonable default value for a variable whose type you don’t know yet.
+如果类模板成员函数的实现需要,为某个模板类型参数提供默认值，例如 T，那么可以使用 T\{\} 语法。T\{\} 在 T 是类类型时调用对象的默认构造函数，或者在 T 是原始类型时生成零,这种语法称为零初始化语法。这是为类型未知，但需要合理默认值的变量提供了默认值。
 \end{myNotic}
 
-\mySamllsection{Using the Grid Template}
+\mySamllsection{使用 Grid 模板}
 
-When you want to create Grid objects, you cannot use Grid alone as a type; you must specify the type that is to be stored in that Grid. Creating concrete instances of class templates for specific types is called template instantiation. Here is an example:
+当想要创建 Grid 对象时，不能单独使用 Grid 作为类型；必须指定要存储在该 Grid 中的类型。为特定类型创建类模板的具体实例，称为模板实例化：
 
 \begin{cpp}
 Grid<int> myIntGrid; // Declares a grid that stores ints,
@@ -327,28 +327,28 @@ Grid<int> anotherIntGrid;
 anotherIntGrid = grid2; // Assignment operator
 \end{cpp}
 
-Note that the type of myIntGrid, grid2, and anotherIntGrid is Grid<int>. You cannot store SpreadsheetCells or ChessPieces in these grids; the compiler will generate an error if you try to do so.
+注意，myIntGrid、grid2 和 anotherIntGrid 的类型是 Grid<int>。不能在这些网格中存储 SpreadsheetCells 或 ChessPieces；如果尝试这样做，编译器将报错。
 
-Note also the use of value\_or(). The at() member functions return an optional reference, which can contain a value or not. value\_or() returns the value inside the optional if there is a value; otherwise, it returns the argument given to value\_or().
+还要注意 value\_or() 的使用。at() 成员函数返回一个可选引用，可以包含一个值或没有值。value\_or() 如果有值，则返回 optional 中的值；否则，返回传递给 value\_or() 的参数。
 
-The type specification is important; neither of the following two lines compiles:
+指定类型很重要；以下两行都无法通过编译：
 
 \begin{cpp}
 Grid test; // WILL NOT COMPILE
 Grid<> test; // WILL NOT COMPILE
 \end{cpp}
 
-The first line causes the compiler to produce an error like “use of class template requires template argument list.” The second line causes an error like “too few template arguments.”
+第一行，编译器会产生类似“使用类模板需要模板参数列表”的错误。第二行，会报“模板参数太少”的错误。
 
-If you want to declare a function that takes a Grid object, you must specify the type stored in that grid as part of the Grid type:
+如果想要声明一个接受 Grid 对象的函数，必须将存储在该网格中的类型作为 Grid 类型的一部分进行指定：
 
 \begin{cpp}
 void processIntGrid(Grid<int>& grid) { /* Body omitted for brevity */ }
 \end{cpp}
 
-Alternatively, you can use function templates, discussed later in this chapter, to write a function parametrized on the type of the elements in the grid.
+或者，可以使用本章后面讨论的函数模板，编写一个对网格中元素类型参数化的函数。
 
-The Grid class template can store more than just ints. For example, you can instantiate a Grid that stores SpreadsheetCells:
+Grid 类模板可以存储不仅仅是 int。例如，可以实例化一个存储 SpreadsheetCell 的 Grid：
 
 \begin{cpp}
 Grid<SpreadsheetCell> mySpreadsheet;
@@ -356,14 +356,14 @@ SpreadsheetCell myCell { 1.234 };
 mySpreadsheet.at(3, 4) = myCell;
 \end{cpp}
 
-You can store pointer types as well:
+也可以存储指针类型：
 
 \begin{cpp}
 Grid<const char*> myStringGrid;
 myStringGrid.at(2, 2) = "hello";
 \end{cpp}
 
-The type specified can even be another template type:
+指定的类型甚至可以是另一个模板类型：
 
 \begin{cpp}
 Grid<vector<int>> gridOfVectors;
@@ -371,7 +371,7 @@ vector<int> myVector { 1, 2, 3, 4 };
 gridOfVectors.at(5, 6) = myVector;
 \end{cpp}
 
-You can also dynamically allocate Grid objects on the free store:
+还可以在堆区动态分配 Grid 对象：
 
 \begin{cpp}
 auto myGridOnFreeStore { make_unique<Grid<int>>(2, 2) }; // 2x2 Grid on free store.
