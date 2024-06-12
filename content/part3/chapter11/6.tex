@@ -1,17 +1,17 @@
 
-There are several uses of the keyword static in C++, all seemingly unrelated. Part of the motivation for “overloading” the keyword was attempting to avoid having to introduce new keywords into the language. One use of the keyword is discussed earlier in this chapter in the context of linkage. Other uses are discussed in this section.
+C++中的关键字static有几种用法，看起来都不相关。重载这个关键字的部分原因是试图避免向语言中引入新的关键字。本章前面在讨论链接的上下文中，提到了这个关键字的一种用法。其他用法将在本节进行介绍。
 
-\mySubsubsection{11.6.1.}{static Data Members and Member Functions}
+\mySubsubsection{11.6.1.}{静态数据成员和成员函数}
 
-You can declare static data members and member functions of classes. static data members, unlike non-static data members, are not part of each object. Instead, there is only one copy of the data member, which exists outside any objects of that class.
+可以声明类的静态数据成员和成员函数。与非常量数据成员不同，静态数据成员不是每个对象的一部分。数据成员只有一个副本，存在于该类的对象之外。
 
-static member functions are similarly at the class level instead of the object level. A static member function does not execute in the context of a specific object; hence, it does not have an implicit this pointer. This also means that static member functions cannot be marked as const.
+静态成员函数同样位于类级别，而非对象级别。静态成员函数不是在特定对象的上下文中执行；因此，没有隐式的this指针。所以，着静态成员函数不能标记为const。
 
-Chapter 9 provides examples of both static data members and member functions.
+第9章提供了静态数据成员和成员函数的示例。
 
-\mySubsubsection{11.6.2.}{static Variables in Functions}
+\mySubsubsection{11.6.2.}{函数中的静态变量}
 
-Another use of the static keyword in C++ is to create variables that retain their values between exits and entrances to their scope. For example, a static local variable inside a function is like a global variable that is accessible only from within that function. One common use of static variables is to “remember” whether a particular initialization has been performed for a certain function. For example, code that employs this technique might look something like this:
+C++中static关键字的另一个用途是，创建在退出和进入其作用域之间保持其值的变量。例如，函数内的静态局部变量就像一个全局变量，但只能在该函数内访问。静态变量的一个常见用途是“记住”是否为某个特定函数执行了特定的初始化。例如，使用这种技术的代码：
 
 \begin{cpp}
 void performTask()
@@ -26,21 +26,21 @@ void performTask()
 }
 \end{cpp}
 
-However, static variables can be confusing, and there are usually better ways to structure your code so that you can avoid them. In this case, you might want to write a class in which the constructor performs the required initialization.
+然而，静态变量可能会令人困惑，通常有更好的方法来构建代码。这种情况下，可能想写一个类，其构造函数执行所需的初始化。
 
 \begin{myNotic}{NOTE}
-Avoid using stand-alone static variables. Maintain state within an object instead.
+避免使用独立的静态变量，尽可能在对象内维护状态。.
 \end{myNotic}
 
-Sometimes, however, they can be useful. One example is for implementing the Meyers’ singleton design pattern, as explained in Chapter 33, “Applying Design Patterns.”
+然而，有时它们可能很有用。一个例子是会在第33章中介绍的Meyers单例设计模式。
 
 \begin{myNotic}{NOTE}
-The implementation of performTask() is not thread-safe; it contains a race condition. In a multithreaded environment, you need to use atomics or other mechanisms for synchronization of multiple threads. Multithreading is discussed in detail in Chapter 27, “Multithreaded Programming with C++.”
+performTask()的实现线程不安全；包含竞争条件。在多线程环境中，需要使用原子操作或其他机制来同步多个线程。多线程在第27章中有详细的介绍。
 \end{myNotic}
 
-\mySubsubsection{11.6.3.}{Order of Initialization of Nonlocal Variables}
+\mySubsubsection{11.6.3.}{非局部变量的初始化顺序}
 
-Before leaving the topic of static variables, consider the order of initialization of such variables. All global and static variables in a program are initialized before main() begins. The variables in a given source file are initialized in the order they appear in the source file. For example, in the following file, Demo::x is guaranteed to be initialized before y:
+结束静态变量这个主题之前，考虑一下这类变量的初始化顺序。程序中所有的全局和静态变量在 main() 开始之前都会初始化，给定源文件中的变量按照在源文件中出现的顺序进行初始化。例如，Demo::x 保证在 y 之前初始化：
 
 \begin{cpp}
 class Demo
@@ -52,16 +52,16 @@ int Demo::x { 3 };
 int y { 4 };
 \end{cpp}
 
-However, C++ provides no specifications or guarantees about the initialization ordering of nonlocal variables in different source files. If you have a global variable x in one source file and a global variable y in another, you have no way of knowing which will be initialized first. Normally, this lack of specification isn’t cause for concern. However, it can be problematic if one global or static variable depends on another. Recall that initialization of objects implies running their constructors. The constructor of one global object might access another global object, assuming that it is already constructed. If these two global objects are declared in two different source files, you cannot count on one being constructed before the other, and you cannot control the order of initialization. This order might not be the same for different compilers or even different versions of the same compiler, and the order might even change when you simply add another file to your project.
+然而，C++ 并不提供关于不同源文件中，非局部变量初始化顺序的规范或保证。如果在一个源文件中有全局变量 x，在另一个源文件中有全局变量 y，无法知道哪个会先初始化。通常，这并不会引起关注。然而，如果一个全局或静态变量依赖于另一个，这可能会成为问题。回想一下，对象的初始化意味着执行它们的构造函数。一个全局对象的构造函数可能会访问另一个全局对象，假设其已经构造。如果这两个全局对象在两个不同的源文件中声明，不能指望一个在另一个之前构造，并且无法控制初始化的顺序。这个顺序对于不同的编译器，甚至是同一编译器的不同版本都可能不同，并且当简单地为项目添加另一个文件时，这个顺序甚至可能发生改变。
 
 \begin{myWarning}{WARNING}
-Initialization order of nonlocal variables in different source files is undefined.
+不同源文件中非局部变量的初始化顺序未定义。
 \end{myWarning}
 
 
-\mySubsubsection{11.6.4.}{Order of Destruction of Nonlocal Variables}
+\mySubsubsection{11.6.4.}{非局部变量的销毁顺序}
 
-Nonlocal variables are destroyed in the reverse order they were initialized. Nonlocal variables in different source files are initialized in an undefined order, which means that the order of destruction is also undefined.
+非局部变量按照它们初始化的相反顺序销毁。不同源文件中的非局部变量以未定义的顺序初始化，所以销毁的顺序也未定义。
 
 
 

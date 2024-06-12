@@ -1,19 +1,19 @@
 
-Before the introduction of C++20’s modules, header files, also called headers, were used as a mechanism for providing the interface to a subsystem or piece of code. The most common use of headers is to declare functions that will be defined elsewhere. A declaration tells the compiler that an entity (function, variable, etc.) with a certain name exists. For functions, a declaration specifies how a function is called, declaring the number and types of parameters and the function’s return type. A definition also tells the compiler that an entity with a certain name exists, but also defines the entity itself. For functions, a definition contains the actual code for the function. All definitions are declarations, but not all declarations are definitions. Declarations, and thus also class definitions, which are declarations, see Chapter 8, “Gaining Proficiency with Classes and Objects,” usually go into header files, typically with extension .h. Definitions, including definitions of non-inline class members, usually go into source files, typically with extension .cpp. This book uses modules everywhere, but this section briefly discusses a few trickier aspects of using header files, such as avoiding duplicate definitions and circular dependencies, because you will encounter these in legacy code bases.
+C++20 模块引入之前，头文件（也称为 headers）用作提供子系统或代码片段接口的机制。头文件最常见的用途是声明将在其他地方定义的函数，声明告诉编译器存在具有特定名称的实体（函数、变量等）。对于函数，声明指定了如何调用函数，声明了参数的数量和类型以及函数的返回类型。定义也告诉编译器存在一个具有特定名称的实体，但同时也定义了实体本身。对于函数，定义包含了函数的实际代码。所有定义都是声明，但并非所有声明都是定义。声明，以及第 8 章中提到的类定义（也是声明），通常放在头文件中，文件通常以 .h 为扩展名。定义，包括非内联类成员的定义，通常放在源文件中，通常宜 .cpp 为扩展名。本书在所有地方都使用模块，但本节简要讨论了使用头文件的一些更复杂的问题，例如避免重复定义和循环依赖，因为读者们会在历史遗留的代码库中遇到这些问题。
 
-\mySubsubsection{11.4.1.}{One Definition Rule (ODR)}
+\mySubsubsection{11.4.1.}{单定义规则（ODR）}
 
-A single translation unit can have exactly one definition of a variable, function, class type, enumeration type, concept, or template. For some types, multiple declarations are allowed, but not multiple definitions. Furthermore, exactly one definition of non-inline functions and non-inline variables is allowed in the entire program.
+一个翻译单元可以有一个变量、函数、类类型、枚举类型、概念或模板的精确一个定义。对于某些类型，允许多个声明，但不允许多个定义。此外，整个程序中只允许有一个非内联函数和非内联变量的定义。
 
-With header files, it’s easy to violate the one definition rule, resulting in duplicate definitions. The next section discusses how such duplicate definitions through header files can be avoided.
+使用头文件时，很容易违反单定义规则，导致重复定义。下一节将讨论如何避免通过头文件产生的重复定义。
 
-Between modules, it’s harder to violate the one definition rule, as each module is much better isolated from other modules. A major reason for this is that an entity in a module that is not exported from that module has module linkage and thus is inaccessible from code in other modules. That is, multiple modules can define their own local non-exported entities with the same name without any problem. On the other hand, in non-modular source files, local entities have external linkage by default. Of course, within a module itself, you still need to make sure you don’t violate the one definition rule.
+模块之间，违反单定义规则很难，因为每个模块与其他模块的隔离性更好。这样做的主要原因是，模块中的实体如果没有从该模块导出，则具有模块链接，因此其他模块中的代码无法访问。多个模块可以定义自己的非导出本地实体，即使名称相同也不会有问题。另一方面，非模块化源文件中，本地实体默认具有外部链接。当然，在模块本身内部，仍然需要确保不违反单定义规则。
 
-\mySubsubsection{11.4.2.}{Duplicate Definitions}
+\mySubsubsection{11.4.2.}{重复定义}
 
-Suppose A.h includes Logger.h, defining a Logger class, and B.h also includes Logger.h. If you have a source file called App.cpp, which includes both A.h and B.h, you end up with duplicate definitions of the Logger class because the Logger.h header is included through A.h and B.h.
+假设A.h包含Logger.h，定义了一个Logger类，B.h也包含Logger.h。如果有一个名为App.cpp的源文件，同时包含A.h和B.h，那么会因为通过A.h和B.h包含Logger.h头文件，而使Logger类重复定义。
 
-This problem of duplicate definitions can be avoided with a mechanism known as include guards, also known as header guards. The following code snippet shows the Logger.h header with include guards. At the beginning of each header file, the \#ifndef directive checks whether a certain key has not been defined. If the key has been defined, the compiler skips to the matching \#endif, which is usually placed at the end of the file. If the key has not been defined, the file proceeds to define the key so that a subsequent include of the same file will be skipped.
+可以通过一种称为包含保护机制的机制来避免重复定义的问题，也称为头文件保护。以下代码片段显示了带有包含保护的Logger.h头文件。在每个头文件的开始，\#ifndef指令检查是否没有定义某个特定的键。如果已经定义了该键，编译器跳到匹配的\#endif，这通常位于文件的末尾。如果没有定义该键，文件继续定义该键，以便后续包含相同的文件室跳过。
 
 \begin{cpp}
 #ifndef LOGGER_H
@@ -24,7 +24,7 @@ class Logger { /* ... */ };
 #endif // LOGGER_H
 \end{cpp}
 
-Alternatively, nearly all compilers these days support the \#pragma once directive, which replaces include guards. Placing a \#pragma once at the beginning of a header file makes sure it’ll be included only once and hence avoids duplicate definitions resulting from including the header multiple times. Here’s an example:
+或者，现在几乎所有编译器都支持\#pragma once指令，该指令取代了包含保护。在头文件的开始放置一个\#pragma once可以确保它只包含一次，从而避免因多次包含头文件而导致的重复定义：
 
 \begin{cpp}
 #pragma once
@@ -33,14 +33,14 @@ class Logger { /* ... */ };
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Include guards and \#pragma once directives prevent only one definition rule violations when a header file is included multiple times within a single translation unit, not across multiple translation units.
+包含保护和\#pragma once指令则仅当头文件在单个翻译单元内多次包含时，可避免违反单一定义规则，而不能跨多个翻译单元。
 \end{myNotic}
 
-\mySubsubsection{11.4.3.}{Circular Dependencies}
+\mySubsubsection{11.4.3.}{循环依赖}
 
-Another tool for avoiding problems with header files is forward declarations. If you need to refer to a class but you cannot include its header file (for example, because it relies heavily on the class you are writing), you can tell the compiler that such a class exists without providing a formal definition through the \#include mechanism. Of course, you cannot actually use the class in the code because the compiler knows nothing about it, except that the named class will exist after everything is linked together. However, you can still make use of pointers and references to forward-declared classes in your code. You can also declare functions that return such forward-declared classes by value or that have such forward-declared classes as pass-by-value function parameters. Of course, both the code defining the function and any code calling the function will need to include the right header files that properly define the forward-declared classes.
+避免头文件问题的另一个工具是前向声明。如果需要引用一个类，但不能包含其头文件（例如，因为它严重依赖于正在编写的类），可以告诉编译器存在这样一个类，而不需要通过\#include机制提供正式定义。当然，实际上不能在代码中使用这个类，因为编译器对它一无所知，只知道在所有东西链接在一起后，这个命名的类将存在。然而，仍然可以在代码中使用指向前向声明类的指针和引用，还可以声明返回前向声明类的函数，或者将前向声明类作为按值传递的函数参数。当然，定义函数的代码和调用函数的代码都需要包含正确定义前向声明类的头文件。
 
-For example, assume that the Logger class uses another class called Preferences that keeps track of user settings. The Preferences class may in turn use the Logger class, so you have a circular dependency that cannot be resolved with include guards. You need to make use of forward declarations in such cases. In the following code, the Logger.h header file uses a forward declaration for the Preferences class and subsequently refers to the Preferences class without including its header file:
+例如，假设Logger类使用另一个名为Preferences的类来跟踪用户设置。Preferences类反过来可能使用Logger类，因此有一个无法用包含保护解决的循环依赖。这种情况下，需要使用前向声明。以下代码中，Logger.h头文件使用Preferences类的前向声明，随后在不包含其头文件的情况下引用Preferences类：
 
 \begin{cpp}
 #pragma once
@@ -57,11 +57,11 @@ class Logger
 };
 \end{cpp}
 
-It’s recommended to use forward declarations as much as possible in your header files instead of including other headers. This can reduce your compilation and recompilation times, because it breaks dependencies of your header file on other headers. Of course, your implementation file needs to include the correct headers for types that you’ve forward-declared; otherwise, it won’t compile.
+建议在头文件中使用尽可能多的前向声明，而不是包含其他头文件。这可以减少编译和重新编译时间，它打破了头文件对其他头文件的依赖。当然，实现文件需要包含已前向声明的类型的正确头文件；否则，将无法编译。
 
-\mySubsubsection{11.4.4.}{Querying Existence of Headers}
+\mySubsubsection{11.4.4.}{查询头文件的存在}
 
-To query whether a certain header file exists, use the \_\_has\_include("filename") or \_\_has\_include(<filename>) preprocessor constant expressions. These evaluate to 1 if the header file exists, 0 if it doesn’t exist. For example, before the <optional> header file was fully approved for C++17, some compilers already had a preliminary version in <experimental/optional>. You could use \_\_has\_include() to check which of the two header files was available on your system:
+要查询某个头文件是否存在，请使用\_\_has\_include("filename")或\_\_has\_include(<filename>)预处理器常量表达式。如果头文件存在，这些表达式计算结果为1；如果不存在，计算结果为0。例如，<optiona>头文件在C++17前，一些编译器就已经在<experimental/optional>中有了预览版本。可以使用\_\_has\_include()来检查，系统中有哪些头文件可用：
 
 \begin{cpp}
 #if __has_include(<optional>)
@@ -71,9 +71,9 @@ To query whether a certain header file exists, use the \_\_has\_include("filenam
 #endif
 \end{cpp}
 
-\mySubsubsection{11.4.5.}{Module Import Declarations}
+\mySubsubsection{11.4.5.}{模块导入声明}
 
-Header files should not contain any module import declarations. The standard mandates that module import declarations must be at the beginning of a file before any other declarations and must not be coming from header inclusions or preprocessor macro expansions. This makes it easier on build systems to discover module dependencies, which are then used to determine the order modules need to be built.
+头文件不应包含模块导入声明。标准规定模块导入声明必须位于文件的开头，在其他声明之前，并且不得来自头文件包含或预处理宏展开。这使得构建系统更容易发现模块依赖关系，然后确定需要构建模块的顺序。
 
 
 

@@ -1,25 +1,25 @@
 
-This section describes the concept of linkage in C++. As Chapter 1 explains, C++ source files are first processed by the preprocessor, which processes all preprocessor directives, resulting in translation units. All translation units are then compiled independently into object files, which contain the machine executable code but in which references to functions and so on are not yet defined. Resolving those references is done by the final phase, the linker, which links all object files together into the final executable. Technically, there are a few more phases in the compilation process, but for this discussion, this simplified view is sufficient.
+本节描述了C++中的链接概念。如第1章所述，C++源文件首先由预处理处理，预处理处理所有预处理器指令，从而生成翻译单元。所有翻译单元独立编译成目标文件，这些文件包含机器可执行代码，但其中对函数等的引用尚未定义。解析这些引用是由链接器完成，链接器将所有目标文件链接成可执行文件。从技术上讲，编译过程还有更多的阶段，但对于本次讨论，这个简化的流程已经足够了。
 
-Each name in a C++ translation unit, including functions and global variables, either has linkage or has no linkage, and this specifies where that name can be defined and from where it can be accessed. There are four types of linkage:
+C++翻译单元中的每个名称（包括函数和全局变量）要么有链接，要么没有链接，这指定了该名称可以在哪里定义以及可以从哪里访问。这里有四种类型的链接：
 
 \begin{itemize}
 \item
-No linkage: The name is accessible only from the scope in which it is defined.
+无链接：该名称仅能从其定义的作用域内访问。
 
 \item
-External linkage: The name is accessible from any translation unit.
+外部链接：该名称可以从任何翻译单元访问。
 
 \item
-Internal linkage (also called static linkage): The name is accessible only from the current translation unit, but not from other translation units.
+内部链接（也称为静态链接）：该名称仅能在当前翻译单元访问，但不能在其他翻译单元访问。
 
 \item
-Module linkage: The name is accessible from any translation unit from the same module.
+模块链接：该名称可以从同一模块的翻译单元访问。
 \end{itemize}
 
-\mySubsubsection{11.3.1.}{Internal Linkage}
+\mySubsubsection{11.3.1.}{内部链接}
 
-By default, functions and global variables have external linkage. However, you can specify internal (or static) linkage by employing anonymous namespaces. For example, suppose you have two source files: FirstFile.cpp and AnotherFile.cpp. Here is FirstFile.cpp:
+默认情况下，函数和全局变量具有外部链接。也可以通过使用匿名命名空间来指定内部（或静态）链接。例如，有两个源文件：FirstFile.cpp 和 AnotherFile.cpp。FirstFile.cpp的内容如下所示：
 
 \begin{cpp}
 void f();
@@ -30,7 +30,9 @@ int main()
 }
 \end{cpp}
 
-Note that this file provides a prototype for f() but doesn’t show the definition. Here is AnotherFile.cpp:
+这个文件为 f() 提供了一个声明，但没有显示其定义。
+
+AnotherFile.cpp的内容如下所示：
 
 \begin{cpp}
 import std;
@@ -43,11 +45,11 @@ void f()
 }
 \end{cpp}
 
-This file provides both a prototype and a definition for f(). Note that it is legal to write prototypes for the same function in two different files. That’s precisely what the preprocessor does for you if you put the prototypes in a header file that you \#include in each of the source files. For this example, I don’t use a header file. The reason to use header files used to be that it was easier to maintain (and keep synchronized) one copy of the prototype, but now that C++ has support for modules, using modules is recommended over using header files.
+这个文件为 f() 提供了原型和定义，在两个不同的文件中为同一个函数编写原没有问题。这正是将声明放在头文件中，并在每个源文件中 \#include 头文件的原因。这个例子中，我没有使用头文件。使用头文件的原因曾经是更容易维护（并保持同步）一个原型的副本，但现在 C++ 支持模块，更建议使用模块。
 
-Each of these source files compiles without error, and the program links fine: because f() has external linkage, main() can call it from a different file.
+每个源文件都可以编译，并且程序可以正常链接：因为 f() 具有外部链接，所以 main() 可以从不同的文件调用它。
 
-However, suppose you wrap the f() function in AnotherFile.cpp in an anonymous namespace to give it internal linkage as follows:
+然而，假设在 AnotherFile.cpp 中将 f() 函数包装在匿名命名空间中，以给它内部链接：
 
 \begin{cpp}
 import std;
@@ -63,9 +65,9 @@ namespace
 }
 \end{cpp}
 
-Entities in an anonymous namespace have internal linkage and thus can be accessed anywhere following their declaration in the same translation unit, but cannot be accessed from other translation units. With this change, each of the source files still compiles without error, but the linker step fails because f() has internal linkage, making it unavailable from FirstFile.cpp.
+匿名命名空间中的实体具有内部链接，可以在同一翻译单元中的任何进行地方访问，但不能从其他翻译单元访问。因此，每个源文件虽任可以编译，但链接时会失败，因为 f() 具有内部链接，无法从 FirstFile.cpp 进行访问。
 
-An alternative to using anonymous namespaces to give a name internal linkage is to prefix the declaration with the keyword static. The earlier anonymous namespace example can be written as follows. Note that you don’t need to repeat the static keyword in front of the definition of f(). As long as it precedes the first instance of the function name, there is no need to repeat it.
+使用匿名命名空间给一个名称内部链接的另一种方法是，在声明前加上关键字 static。前面的匿名命名空间示例可以写成如下。注意，不需要在 f() 的定义前重复 static 关键字。只要它位于函数名称的第一个实例之前，就没有重复的必要。
 
 \begin{cpp}
 import std;
@@ -78,28 +80,28 @@ void f()
 }
 \end{cpp}
 
-The semantics of this version of the code are exactly the same as the one using an anonymous namespace.
+这个版本代码的语义与使用匿名命名空间的版本完全相同。
 
 \begin{myWarning}{WARNING}
-If a translation unit needs a helper entity that is only required within that translation unit, wrap it in an anonymous namespace to give it internal linkage. Using the static keyword for this is discouraged.
+如果一个翻译单元需要一个仅在翻译单元内部需要的辅助函数，请将其包装在匿名命名空间中以给它内部链接。不鼓励使用 static 关键字进行此操作。
 \end{myWarning}
 
-\mySubsubsection{11.3.2.}{The extern Keyword}
+\mySubsubsection{11.3.2.}{extern 关键字}
 
-A related keyword, extern, seems like it should be the opposite of static, specifying external linkage for the names it precedes, and it can be used that way in certain cases. For example, consts and typedefs have internal linkage by default. You can use extern to give them external linkage. However, extern has some complications. When you specify a name as extern, the compiler treats it as a declaration, not a definition. For variables, this means the compiler doesn’t allocate space for the variable. You must provide a separate definition for the variable without the extern keyword. For example, here is the content of AnotherFile.cpp:
+关键字 extern 似乎是 static 的对立面，它指定的名称具有外部链接，并且在某些情况下可以这样使用。例如，const 和 typedef 默认具有内部链接，可以使用 extern 给它们外部链接。然而，extern 有一点复杂。将一个名称指定为 extern 时，编译器将其视为声明，而不是定义。对于变量，编译器不会为其分配空间。必须为变量提供一个不带 extern 关键字的独立定义。例如，这是 AnotherFile.cpp 的内容：
 
 \begin{cpp}
 extern int x;
 int x { 3 };
 \end{cpp}
 
-Alternatively, you can initialize x in the extern statement, which then serves as the declaration and the definition:
+或者，可以在 extern 语句中初始化 x，作为声明和定义：
 
 \begin{cpp}
 extern int x { 3 };
 \end{cpp}
 
-The extern in this case is not very useful, because x has external linkage by default anyway. The real use of extern is when you want to use x from another source file, FirstFile.cpp:
+这时，extern 并不是很有用，因为 x 默认就有外部链接。extern 的真正用途是让另一个源文件可以使用 x ，例如 FirstFile.cpp：
 
 \begin{cpp}
 import std;
@@ -112,12 +114,12 @@ int main()
 }
 \end{cpp}
 
-Here, FirstFile.cpp uses an extern declaration so that it can use x. The compiler needs a declaration of x to use it in main(). If you declared x without the extern keyword, the compiler would think it’s a definition and would allocate space for x, causing the linkage step to fail (because there are then two x variables in the global scope). With extern, you can make variables globally accessible from multiple source files.
+在这里，FirstFile.cpp 使用 extern 声明以便使用 x。编译器需要 x 的声明才能在 main() 中使用。如果没有使用 extern 关键字声明 x，编译器会认为它是一个定义并为 x 分配空间，导致链接步骤失败（因为全局作用域中会有两个 x 变量）。使用 extern，可以使变量在多个源文件内可访问。
 
 \begin{myWarning}{WARNING}
-It is not recommended to use global variables at all. They are confusing and error-prone, especially in large programs. Use them judiciously!
+不推荐使用全局变量。它们令人困惑且容易出错，特别是在大型程序中。请谨慎使用！
 
-The only exception are global constants. Don’t define the same constants all over the place: define them once and use them from everywhere.
+唯一的例外是全局常量。不要到处定义相同的常量：定义一次，处处使用。
 \end{myWarning}
 
 

@@ -1,5 +1,5 @@
 
-You can use feature-test macros to detect which core language features are supported by a compiler. All these macros start with either \_\_cpp\_ or \_\_has\_cpp\_. The following are some examples. Consult your favorite C++ reference for a complete list of all possible core language feature-test macros.
+可以使用特性测试宏来检测编译器支持哪些核心语言特性，这些宏都以\_\_cpp\_或\_\_has\_cpp\_\_开头。以下是一些例子。请查询正在使用的C++编译器参考手册，以获取所有核心语言特性测试宏的完整列表。
 
 \begin{itemize}
 \item
@@ -30,9 +30,9 @@ You can use feature-test macros to detect which core language features are suppo
 . . .
 \end{itemize}
 
-The value of these macros is a number representing the month and year when a specific feature was added or updated. The date is formatted as YYYYMM. For example, the value of \_\_cpp\_binary\_literals is 201304, i.e., April 2013, which is the date when binary literals were introduced. As another example, the value of \_\_has\_cpp\_attribute(nodiscard) can be 201603, i.e., March 2016, which is the date when the [[nodiscard]] attribute was first introduced. Or it can be 201907, i.e., July 2019, which is the date when the attribute was updated to allow specifying a reason such as [[nodiscard("Reason")]].
+这些宏的值是一个数字，代表特定功能被添加或更新的月份和年份。日期格式为 YYYYMM。例如，\_\_cpp\_binary\_literals 的值是 201304，即二进制字面量是在 2013 年 4 月引入的。另一个例子，\_\_has\_cpp\_attribute(nodiscard) 的值可以是 201603，即 [[nodiscard]] 属性是在 2016 年 3 月首次引入的。或者它可以是 201907，即该属性在 2019 年 7 月更新，允许指定一个“原因”，如 [[nodiscard("Reason")]]。
 
-All these core language feature-test macros are available without having to include any specific header. Here is an example use:
+所有这些核心语言功能测试宏，都可以在不包含特定头文件的情况下使用：
 
 \begin{cpp}
 int main()
@@ -45,10 +45,10 @@ int main()
 }
 \end{cpp}
 
-Chapter 16, “Overview of the C++ Standard Library,” explains that there are similar feature-test macros for Standard Library features.
+第 16 章介绍了标准库功能也有类似的功能测试宏。
 
 \begin{myNotic}{NOTE}
-You will rarely need these feature-test macros, unless you are writing crossplatform and cross-compiler code. In that case, you might want to know if certain functionality is supported by a given compiler so that you can provide fallback code in case a feature is missing. Chapter 34, “Developing Cross-Platform and Cross-Language Applications,” discusses cross-platform development.
+通常不需要这些功能测试宏，除非正在编写跨平台和跨编译器的代码。这种情况下，可能想知道编译器支持是否支持某些功能，以便在缺少功能时提供备选代码。第 34 章中，介绍了跨平台开发。
 \end{myNotic}
 
 

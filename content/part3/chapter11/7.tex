@@ -1,8 +1,8 @@
 
 
-In legacy code, you might come across the use of C-style variable-length argument lists. In new code, you should avoid using these and instead use variadic templates for type-safe variable-length argument lists, which are covered in Chapter 26, “Advanced Templates.”
+历史遗留代码中，可能会遇到 C 风格的可变长度参数列表的使用。新代码中，应该避免使用这些，而是使用变量模板来实现类型安全的可变长度参数列表，这将在第 26 章中介绍。
 
-So that you are aware of C-style variable-length argument lists, consider the C function printf() from <cstdio>. You can call it with any number of arguments:
+为了让您了解 C 风格的可变长度参数列表，看一下来自 <cstdio> 的 C 函数 printf()。可以用任意数量的参数调用它：
 
 \begin{cpp}
 printf("int %d\n", 5);
@@ -10,7 +10,7 @@ printf("String %s and int %d\n", "hello", 5);
 printf("Many ints: %d, %d, %d, %d, %d\n", 1, 2, 3, 4, 5);
 \end{cpp}
 
-C/C++ provides the syntax and some utility macros for writing your own functions with a variable number of arguments. These functions usually look a lot like printf(). For example, suppose you want to write a quick-and-dirty debug function that prints strings to stderr if a debug flag is set but does nothing if the debug flag is not set. Just like printf(), this function should be able to print strings with an arbitrary number of arguments and arbitrary types of arguments. A simple implementation looks as follows:
+C/C++ 提供了语法和一些实用宏，可用于编写具有可变数量参数的函数，这些函数看起来很像 printf()。例如，编写一个简单的调试函数，如果设置了调试标志，将字符串打印到 stderr，如果没有设置调试标志，则不做任何事情。就像 printf() 一样，这个函数应该能够打印带有任意数量和任意类型参数的字符串：
 
 \begin{cpp}
 import std;
@@ -30,11 +30,11 @@ void debugOut(const char* str, ...)
 }
 \end{cpp}
 
-The code uses va\_list(), va\_start(), and va\_end(), which are macros defined in <cstdarg> and thus require an explicit \#include <cstdarg>, as import std; does not export any macros. Similarly, stderr is a macro defined in <cstdio> requiring an explicit \#include <cstdio>.
+这段代码使用了 va\_list()、va\_start() 和 va\_end()，是在 <cstdarg> 中定义的宏，因此需要 \#include <cstdarg>( import std; 不导出任何宏)。同样，stderr 是在 <cstdio> 中定义的宏，需要\#include <cstdio>。
 
-The prototype for debugOut() contains one typed and named parameter str, followed by ... (ellipses). They stand for any number and type of arguments. To access these arguments, you must declare a variable of type va\_list and initialize it with a call to va\_start. The second parameter to va\_start() must be the rightmost named variable in the parameter list. All functions with variablelength argument lists require at least one named parameter. The debugOut() function simply passes this list to vfprintf() (a standard function in <cstdio>). After the call to vfprintf() returns, debugOut() calls va\_end() to terminate the access of the variable argument list. You must always call va\_end() after calling va\_start() to ensure that the function ends with the stack in a consistent state.
+debugOut() 的原型包含一个类型化和命名的参数 str，后面跟着 ...（省略号），省略号代表任意数量和类型的参数。要访问这些参数，必须声明一个类型为 va\_list 的变量，并用对 va\_start 的调用来初始化，va\_start() 的第二个参数必须是参数列表中最右边的命名变量。所有具有可变长度参数列表的函数至少需要一个命名参数。debugOut() 函数只是将这个列表传递给 vfprintf()（<cstdio> 中的一个标准函数）。 vfprintf() 调用返回后，debugOut() 调用 va\_end() 来终止对可变参数列表的访问。调用 va\_start() 之后，必须调用 va\_end()，以确保函数结束时堆栈处于一致状态。
 
-You can use the function in the following way:
+可以用以下方式使用这个函数：
 
 \begin{cpp}
 debug = true;
@@ -44,11 +44,11 @@ debugOut("String %s and int %d\n", "hello", 5);
 debugOut("Many ints: %d, %d, %d, %d, %d\n", 1, 2, 3, 4, 5);
 \end{cpp}
 
-\mySubsubsection{11.7.1.}{Accessing the Arguments}
+\mySubsubsection{11.7.1.}{访问参数}
 
-If you want to access the actual arguments yourself, you can use va\_arg() to do so. It accepts a va\_list as first argument, and the type of the argument to interpret. Unfortunately, there is no way to know what the end of the argument list is unless you provide an explicit way of doing so. For example, you can make the first parameter a count of the number of parameters. Or, in the case where you have a set of pointers, you may require the last pointer to be nullptr. There are many ways, but they are all burdensome to the programmer.
+如果想要自己访问实际的参数，可以使用va\_arg()来实现。它接受一个va\_list作为第一个参数，以及要解释的实参类型，但除非提供一种显式的方法，否则无法知道实参列表的末尾。例如，可以使第一个参数成为实参数量的计数。或者，在有一组指针的情况下，可能要求最后一个指针为nullptr。有很多方法，但对开发者来说都很麻烦。
 
-The following example demonstrates the technique where the caller specifies in the first named parameter how many arguments are provided. The function accepts any number of ints and prints them out.
+以下示例演示了调用者如何在第一个命名参数中指定提供了多少个参数。该函数接受任意数量的int，并打印它们。
 
 \begin{cpp}
 void printInts(unsigned num, ...)
@@ -64,26 +64,26 @@ void printInts(unsigned num, ...)
 }
 \end{cpp}
 
-You can call printInts() as follows. Note that the first parameter specifies how many integers will follow.
+可以按以下方式调用printInts()。注意，第一个参数指定了将跟随多少个整数。
 
 \begin{cpp}
 printInts(5, 5, 4, 3, 2, 1);
 \end{cpp}
 
-\mySubsubsection{11.7.2.}{Why You Shouldn’t Use C-Style Variable-Length Argument Lists}
+\mySubsubsection{11.7.2.}{为什么不使用C风格的可变长度实参列表}
 
-Accessing C-style variable-length argument lists is not very safe. There are several risks, as you can see from the printInts() function.
+问C风格的可变长度实参列表并不十分安全。从printInts()函数中看，存在几个风险。
 
 \begin{itemize}
 \item
-You don’t know the number of parameters. In the case of printInts(), you must trust the caller to pass the right number of arguments as the first argument. In the case of debugOut(), you must trust the caller to pass the same number of arguments after the str string as there are replacement fields in the string.
+不知道参数的数量。使用printInts()时，必须相信调用者传递正确数量的参数作为第一个参数。使用debugOut()时，必须相信调用者传递的参数数量与字符串中的替换字段数量相同。
 
 \item
-You don’t know the types of the arguments. va\_arg() takes a type, which it uses to interpret the value in its current spot. However, you can tell va\_arg() to interpret the value as any type. There is no way for it to verify the correct type.
+不知道参数的类型。va\_arg()接受一个类型，可用来解释当前位置的值，也可以告诉va\_arg()将值解释为任何类型，其无法验证类型的正确性。
 \end{itemize}
 
 \begin{myWarning}{WARNING}
-Avoid using C-style variable-length argument lists. It is preferable to pass in an std::array or vector of values, to use initializer lists described in Chapter 1, or to use variadic templates for type-safe variable-length argument lists, as described in Chapter 26.
+避免使用C风格的可变长度实参列表。最好传递一个std::array或vector的值，使用第1章中描述的初始化列表，或使用第26章中描述的变长模板，来实现类型安全的可变长度实参列表。
 \end{myWarning}
 
 
