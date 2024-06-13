@@ -1,5 +1,5 @@
 
-You can also write templates for stand-alone functions. The syntax is similar to the syntax for class templates. For example, you could write the following generic function to find a value in an array and return its index:
+也可以为独立的函数编写模板，模板的语法与类模板的语法相似。例如，可以编写以下泛型函数，在数组中查找值并返回其索引：
 
 \begin{cpp}
 template <typename T>
@@ -14,11 +14,11 @@ optional<size_t> Find(const T& value, const T* arr, size_t size)
 }
 \end{cpp}
 
-The Find() function template can work on arrays of any type. For example, you could use it to find the index of an int in an array of ints or a SpreadsheetCell in an array of SpreadsheetCells.
+Find() 函数模板可以用于任何类型的数组。例如，可以查找 int 在数组中的索引，或者在 SpreadsheetCell 数组中的索引。
 
-You can call the function in two ways: explicitly specifying the template type parameter with angle brackets or omitting the type and letting the compiler deduce the type parameter from the arguments.
+可以以两种方式调用该函数：显式指定模板类型参数并使用尖括号，或者省略类型参数，让编译器从参数中推导出类型参数。
 
-Here are some examples:
+以下是一些示例：
 
 \begin{cpp}
 int myInt { 3 }, intArray[] {1, 2, 3, 4};
@@ -54,7 +54,7 @@ res = Find(cell1, cellArray, sizeCellArray);
 res = Find<SpreadsheetCell>(cell1, cellArray, sizeCellArray);
 \end{cpp}
 
-The previous implementation of the Find() function template requires the size of the array as one of the parameters. Sometimes the compiler knows the exact size of an array, for example, for stackbased arrays. It would be nice to be able to call Find() with such arrays without the need to pass it the size of the array. This can be accomplished by adding the following function template. The implementation just forwards the call to the previous Find() function template. This also demonstrates that function templates can take non-type parameters, just like class templates.
+Find()函数模板先前的实现需要将数组的大小作为参数之一。有时编译器知道数组的准确大小，例如对于基于栈的数组。如果能够在不传递数组大小的条件下调用 Find() 函数，那将非常方便。可以通过添加以下函数模板来实现这一点，该实现的目的是将调用转发到之前的 Find() 函数模板。函数模板还可以像类模板一样接受非类型参数。
 
 \begin{cpp}
 template <typename T, size_t N>
@@ -64,32 +64,32 @@ optional<size_t> Find(const T& value, const T(&arr)[N])
 }
 \end{cpp}
 
-The syntax of this overload of Find() looks a bit strange, but its use is straightforward, as in this example:
+这个 Find() 函数模板的重载看起来有点奇怪，但可以直接使用：
 
 \begin{cpp}
 int myInt { 3 }, intArray[] {1, 2, 3, 4};
 optional<size_t> res { Find(myInt, intArray) };
 \end{cpp}
 
-Like class template member function definitions, function template definitions (not just the prototypes) must be available to all source files that use them. Thus, you should put the definitions in module interface files and export them if more than one source file uses them.
+与类模板成员函数定义一样，函数模板定义（不仅仅是原型）必须对所有使用它们的源文件可用。因此，应该将定义放在模块接口文件中，并在多个源文件使用时进行导出。
 
-Finally, template parameters of function templates can have defaults, just like class templates.
+最后，函数模板的模板参数可以有默认值，就像类模板一样。
 
 \begin{myNotic}{NOTE}
-The C++ Standard Library provides an std::find() function template that is more powerful than the Find() function template shown here. See Chapter 20, “Mastering Standard Library Algorithms,” for details.
+C++ 标准库提供了一个更强大的 std::find() 函数模板。有关详细信息，请参阅第 20 章。
 \end{myNotic}
 
-\mySubsubsection{12.3.1.}{Function Overloads vs. Function Template}
+\mySubsubsection{12.3.1.}{函数重载与函数模板}
 
-There are two options when you want to provide a function that can work with different data types: provide function overloads or provide a function template. How do you choose between those two options?
+想要提供一个可以与不同数据类型一起工作的函数时，有两种选择：提供函数重载或提供函数模板。应该如何进行选择呢？
 
-When writing a function that should work with different data types and for which the body of the function is the same for all data types, provide a function template. If the body of the function is different for every data type, provide function overloads.
+编写一个应该与不同数据类型一起工作的函数，且该函数体的所有数据类型都相同，那就提供一个函数模板。如果函数体对于每种数据类型都不同，就提供函数重载。
 
-\mySubsubsection{12.3.2.}{Function Template Overloading}
+\mySubsubsection{12.3.2.}{函数模板的重载}
 
-In theory, the C++ language allows you to write function template specializations, just as you can write class template specializations. However, you rarely want to do this because such function template specializations do not participate in overload resolution and hence might behave unexpectedly.
+理论上，C++ 语言允许像编写类模板特化一样，编写函数模板的特化。然而，不太需要这样做，这样的函数模板的特化不参与重载解析，可能会有意外的行为。
 
-Instead, you can overload function templates with either non-template functions or other function templates. For example, you might want to write a Find() overload for const char* C-style strings that compares them with strcmp() (see Chapter 2, “Working with Strings and String Views”) instead of operator==, as == would only compare pointers, not the actual strings. Here is such an overload:
+相反，可以通过非模板函数或其他函数模板来重载函数模板。例如，想要为 const char* C 风格字符串编写一个 Find() 重载，使用 strcmp() ，而非 operator== 来比较（见第2章），因为 == 仅比较指针，而不是实际字符串。这是一个重载的例子：
 
 \begin{cpp}
 optional<size_t> Find(const char* value, const char** arr, size_t size)
@@ -103,7 +103,7 @@ optional<size_t> Find(const char* value, const char** arr, size_t size)
 }
 \end{cpp}
 
-This function overload can be used as follows:
+这个函数重载可以这样使用：
 
 \begin{cpp}
 // Using an array for word to make sure no literal pooling happens, see Chapter 2.
@@ -115,21 +115,21 @@ if (res) { println("{}", *res); }
 else { println("Not found"); }
 \end{cpp}
 
-The call to Find() correctly finds the string “two” at index 1.
+对 Find() 的调用正确地在索引 1 处找到了字符串“two”。
 
-If you do explicitly specify the template type parameter as follows, then the function template will be called with T=const char*, and not the overload for const char*:
+如果明确指定模板类型参数如下，那么函数模板将以 T=const char* 调用，而不是 const char* 的重载：
 
 \begin{cpp}
 res = Find<const char*>(word, words, sizeWords);
 \end{cpp}
 
-This call of Find() does not find any matches, as it doesn’t compare the actual strings, but just pointers.
+因为没有比较实际的字符串，而是指针，所以这个对 Find() 的调用没有找到任何匹配项。
 
-When the overload resolution process of the compiler results in two possible candidates, one being a function template, the other being a non-template function, then the compiler always prefers to use the non-template function.
+当编译器的重载解析过程产生两个可能的候选项，一个是函数模板，另一个是非模板函数时，编译器总是倾向于使用非模板函数。
 
-\mySubsubsection{12.3.3.}{Function Templates as Friends of Class Templates}
+\mySubsubsection{12.3.3.}{函数模板作为类模板的友元}
 
-Function templates are useful when you want to overload operators in a class template. For example, you might want to overload the addition operator (operator+) for the Grid class template to be able to add two grids together. The result will be a Grid with the same size as the smallest Grid of the two operands. Corresponding cells are added together only if both cells contain an actual value. Suppose you want to make your operator+ a stand-alone function template. The definition, which should go in the Grid.cppm module interface file, looks as follows. The implementation uses std::min(), defined in <algorithm>, to return the minimum value of two given arguments:
+想要在类模板中重载运算符时，函数模板非常有用。例如，想要为 Grid 类模板重载加法运算符（operator+），以便能够将两个网格相加。结果将是一个与两个操作数中最小的 Grid 大小相同的 Grid。只有当两个单元格都包含实际值时，相应的单元格才会相加。假设希望将 operator+ 作为一个独立的函数模板,定义应该放在 Grid.cppm 模块接口文件中，如下所示。实现使用 <algorithm> 中定义的 std::min()，返回两个参数的最小值：
 
 \begin{cpp}
 export template <typename T>
@@ -152,9 +152,9 @@ Grid<T> operator+(const Grid<T>& lhs, const Grid<T>& rhs)
 }
 \end{cpp}
 
-To query whether an optional contains an actual value, you use the has\_value() member function, while value() is used to retrieve this value.
+要查询一个可选值是否包含实际值，可以使用 has\_value() 成员函数，并用 value() 获取这个值。
 
-This function template works on any Grid, as long as there is an addition operator for the type of elements stored in the grid. The only problem with this implementation is that it accesses private members m\_width and m\_height of the Grid class. The obvious solution is to use the public getWidth() and getHeight() member functions, but let’s see how you can make a function template a friend of a class template. For this example, you can make the operator a friend of the Grid class template. However, both Grid and the operator+ are templates. What you really want is for each instantiation of operator+ for a particular type T to be a friend of the Grid template instantiation for that same type. The syntax looks like this:
+这个函数模板适用于任何 Grid，只要Grid中存储的元素类型有一个加法运算符。这个实现唯一的问题在于，访问了 Grid 类的私有成员 m\_width 和 m\_height。显然的解决方案是使用public的 getWidth() 和 getHeight() 成员函数，来看看如何使一个函数模板成为类模板的朋友。这个例子中，可以使 operator+ 成为 Grid 类模板的友元。然而，Grid 和 operator+ 都是模板。真正想要的是，对于特定类型 T 的每个 operator+ 实例化，都成为同一类型的 Grid 模板实例化的友元。语法如下所示：
 
 \begin{cpp}
 export template <typename T>
@@ -166,9 +166,10 @@ class Grid
 };
 \end{cpp}
 
-This friend declaration is tricky: you’re saying that, for an instance of the class template with type T, the T instantiation of operator+ is a friend. In other words, there is a one-to-one mapping of friends between the class instantiations and the function instantiations. Note particularly the explicit template specification <T> on operator+. This syntax tells the compiler that operator+ is itself a template.
+这个友元声明很巧妙：对于类型 T 的类模板实例，T 实例化的 operator+ 是一个友元。换句话说，在类实例化和函数实例化之间有一对一的友元映射。特别注意 operator+ 上的显式模板指定 <T>，这个语法告诉编译器 operator+ 本身就是一个模板。
 
-This friend operator+ can be tested as follows. The following code first defines two helper function templates: fillGrid(), which fills any Grid with increasing numbers, and printGrid(), which prints any Grid to the console.
+这个友元 operator+ 可以通过以下方式测试。以下代码首先定义了两个辅助函数模板：fillGrid()，用递增的数字填充 Grid，以及 printGrid()，其会将 Grid 中的值输出到控制台。
+
 
 \begin{cpp}
 template <typename T> void fillGrid(Grid<T>& grid)
@@ -204,43 +205,43 @@ int main()
 }
 \end{cpp}
 
-\mySubsubsection{12.3.4.}{More on Template Type Parameter Deduction}
+\mySubsubsection{12.3.4.}{关于模板类型参数推导的更多信息}
 
-The compiler deduces the type of function template parameters based on the arguments passed to the function template. Template parameters that cannot be deduced have to be specified explicitly.
+编译器根据传递给函数模板的参数，来推导函数模板参数的类型。无法推导的模板参数必须显式指定。
 
-For example, the following add() function template requires three template parameters: the type of the return value and the types of the two operands:
+例如，以下 add() 函数模板需要三个模板参数：返回值的类型和两个操作数的类型：
 
 \begin{cpp}
 template <typename RetType, typename T1, typename T2>
 RetType add(const T1& t1, const T2& t2) { return t1 + t2; }
 \end{cpp}
 
-You can call this function template specifying all three parameters as follows:
+可以像这样调用这个函数模板，指定所有参数：
 
 \begin{cpp}
 auto result { add<long long, int, int>(1, 2) };
 \end{cpp}
 
-However, because the template parameters T1 and T2 are parameters to the function, the compiler can deduce those two parameters, so you can call add() by only specifying the type for the return value:
+然而，因为 T1 和 T2 是函数的参数，编译器可以推导出这两个参数，所以可以只指定返回值的类型来调用 add()：
 
 \begin{cpp}
 auto result { add<long long>(1, 2) };
 \end{cpp}
 
-This works only when the parameters to deduce are last in the list of parameters. Suppose the function template is defined as follows:
+这只有在要推导的参数在参数列表的最后时才有效。假设函数模板定义如下：
 
 \begin{cpp}
 template <typename T1, typename RetType, typename T2>
 RetType add(const T1& t1, const T2& t2) { return t1 + t2; }
 \end{cpp}
 
-You have to specify RetType, because the compiler cannot deduce that type. However, because RetType is the second parameter, you have to explicitly specify T1 as well:
+必须指定 RetType，因为编译器无法推导这个类型。因为 RetType 是第二个参数，也必须显式指定 T1：
 
 \begin{cpp}
 auto result { add<int, long long>(1, 2) };
 \end{cpp}
 
-You can also provide a default value for the return type template parameter so that you can call add() without specifying any types:
+也可以为返回类型模板参数提供一个默认值，这样就可以在不指定类型的情况下调用 add()了：
 
 \begin{cpp}
 template <typename RetType = long long, typename T1, typename T2>
@@ -249,27 +250,27 @@ RetType add(const T1& t1, const T2& t2) { return t1 + t2; }
 auto result { add(1, 2) };
 \end{cpp}
 
-\mySubsubsection{12.3.5.}{Return Type of Function Templates}
+\mySubsubsection{12.3.5.}{函数模板的返回类型}
 
-Continuing the example of the add() function template, wouldn’t it be nice to let the compiler deduce the type of the return value? It would; however, the return type depends on the template type parameters, so how can you do this? For example, take the following function template:
+继续使用 add() 函数模板的例子，是否可以让编译器推导返回值的类型呢？理想情况；返回类型取决于模板类型参数，如何做到这一点呢？例如，以下函数模板：
 
 \begin{cpp}
 template <typename T1, typename T2>
 RetType add(const T1& t1, const T2& t2) { return t1 + t2; }
 \end{cpp}
 
-In this example, RetType should be the type of the expression t1+t2, but you don’t know this because you don’t know what T1 and T2 are.
+在这个例子中，RetType 应该是表达式 t1+t2 的类型，但不知道类型，因为不知道 T1 和 T2 是什么。
 
-As discussed in Chapter 1, since C++14 you can ask the compiler to automatically deduce the return type for a function. So you can simply write add() as follows:
+正如第 1 章所讨论的，从 C++14 开始，可以要求编译器自动推导函数的返回类型。因此，可以简单地将 add() 写成如下形式：
 
 \begin{cpp}
 template <typename T1, typename T2>
 auto add(const T1& t1, const T2& t2) { return t1 + t2; }
 \end{cpp}
 
-However, using auto to deduce the type of an expression strips away reference and const qualifiers, while decltype does not strip those. This stripping is fine for the add() function template because operator+ usually returns a new object anyway, but this stripping might not be desirable for certain other function templates, so let’s see how you can avoid it.
+然而，使用 auto 推导表达式的类型会剥离引用和 const 限定符，而 decltype 不会剥离。对于 add() 函数模板来说，因为 operator+ 通常返回一个新的对象，所以可以剥离，但对于某些其他函数模板来说，这可能不那么理想，所以让来看看如何避免这种情况。
 
-Before continuing with the function template examples, however, let’s first look at the differences between auto and decltype using a non-template example. Suppose you have the following function:
+继续函数模板示例之前，先看看 auto 和 decltype 在非模板示例中的区别。假设有以下函数：
 
 \begin{cpp}
 const std::string message { "Test" };
@@ -277,49 +278,49 @@ const std::string message { "Test" };
 const std::string& getString() { return message; }
 \end{cpp}
 
-You can call getString() and store the result in a variable with the type specified as auto as follows:
+可以像这样调用 getString() ，并存储结果到一个带有指定类型的 auto 变量中：
 
 \begin{cpp}
 auto s1 { getString() };
 \end{cpp}
 
-Because auto strips reference and const qualifiers, s1 is of type string, and thus a copy is made. If you want a reference-to-const, you can explicitly make it a reference and mark it const as follows:
+因为 auto 剥离了引用和 const 限定符，s1 是类型 string 的，因此会进行复制。如果想要一个引用到 const，可以显式地将其作为一个引用并标记为 const：
 
 \begin{cpp}
 const auto& s2 { getString() };
 \end{cpp}
 
-An alternative solution is to use decltype, which does not strip anything:
+另一种解决方案是使用 decltype，不会剥离任何限定符：
 
 \begin{cpp}
 decltype(getString()) s3 { getString() };
 \end{cpp}
 
-In this case, s3 is of type const string\&; however, there is code duplication because you need to specify getString() twice, which can be cumbersome when getString() is a more complicated expression. This is solved with decltype(auto):
+这种情况下，s3 是类型 const string\& ，但由于需要两次指定 getString()，这会导致代码重复，这在 getString() 是一个更复杂的表达式时会变得繁琐。这个问题可以通过使用 decltype(auto) 来解决：
 
 \begin{cpp}
 decltype(auto) s4 { getString() };
 \end{cpp}
 
-s4 is also of type const string\&.
+s4 的类型也是 const string\& 。
 
-So, with this knowledge, we can write our add() function template using decltype(auto) to avoid stripping any const and reference qualifiers:
+有了这些知识，可以使用 decltype(auto) 来编写 add() 函数模板，以避免剥离 const 和引用限定符：
 
 \begin{cpp}
 template <typename T1, typename T2>
 decltype(auto) add(const T1& t1, const T2& t2) { return t1 + t2; }
 \end{cpp}
 
-Before C++14—that is, before function return type deduction and decltype(auto) were supported—the problem was solved using decltype(expression), introduced with C++11. For example, you would think you could write the following:
+C++14 之前，即在函数返回类型推导和 decltype(auto) 支持之前，可以使用 decltype(expression) 来解决，该表达式是在 C++11 中引入的。例如，有些读者可能觉得，可以写成以下形式：
 
 \begin{cpp}
 template <typename T1, typename T2>
 decltype(t1+t2) add(const T1& t1, const T2& t2) { return t1 + t2; }
 \end{cpp}
 
-However, this is wrong. You are using t1 and t2 in the beginning of the prototype line, but these are not yet known. t1 and t2 become known once the semantic analyzer reaches the end of the parameter list.
+然而，这是错误的。原型的开头就使用了 t1 和 t2，但这些参数编译器在当时还了解。t1 和 t2 在语义分析器到达参数列表的末尾时，才会被编译器所知。
 
-This problem used to be solved with the alternative function syntax. Note that with this syntax, auto is used at the beginning of the prototype line, and the actual return type is specified after the parameter list (trailing return type); thus, the names of the parameters (and their types, and consequently, the type t1+t2) are known:
+这个问题过去是通过替代函数语法来解决的。在这种语法中，auto 在原型行的开头使用，实际的返回类型在参数列表之后指定（后置返回类型）；因此，参数的名称（以及类型，从而推导出 t1+t2 的类型）是已知的：
 
 \begin{cpp}
 template <typename T1, typename T2>
@@ -329,7 +330,9 @@ auto add(const T1& t1, const T2& t2) -> decltype(t1+t2)
 }
 \end{cpp}
 
-Another option is to use std::declval<>(), which returns an rvalue reference to the type you requested. This is not a fully constructed object, as no constructor gets called! You cannot use the object at run time. You should only use it, for example, in combination with decltype(). It comes in handy in generic code and when you need to create an object of some unknown type. In that case, you can’t call any sensible constructor as you don’t know what constructors the unknown type supports. Let’s look at an example. The earlier add() code snippet with an explicit return type of decltype(t1+t2) at the beginning of the prototype line doesn’t compile because the names t1 and t2 are not yet known at that time. To remedy this, you can use declval<>() as follows:
+另一个选项是使用 std::declval<>()，返回请求类型的 rvalue 引用。这并不是一个完全构造的对象，因为没有调用构造函数！不能在运行时使用这个对象，应该与 decltype() 结合使用。它对于泛型代码，以及当需要创建一个未知类型的对象时，非常有用。这种情况下，不能调用任何构造函数，因为不知道未知类型支持哪些构造函数。
+
+来看一个例子。前面的 add() 代码片段在原型开头有一个明确的返回类型 decltype(t1+t2)，但这在编译时不会通过，因为那时 t1 和 t2 的名称还不知道。为了修复这个问题，可以使用 declval<>()：
 
 \begin{cpp}
 template <typename T1, typename T2>
@@ -340,36 +343,36 @@ decltype(std::declval<T1>() + std::declval<T2>()) add(const T1& t1, const T2& t2
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Now that C++ supports auto return type deduction and decltype(auto), it is recommended to use one of these mechanisms, instead of the alternative function syntax or declval<>().
+现在 C++ 支持 auto 返回类型推导和 decltype(auto)，建议使用这些机制，而不是替代函数语法或 declval<>()。
 \end{myNotic}
 
-\mySubsubsection{12.3.6.}{Abbreviated Function Template Syntax}
+\mySubsubsection{12.3.6.}{简化函数模板语法}
 
-The abbreviated function template syntax makes writing function templates easier. Let’s take another look at the add() function template from the previous section:
+简化函数模板语法使得编写函数模板更加容易，再次看看上一节中的 add() 函数模板：
 
 \begin{cpp}
 template <typename T1, typename T2>
 decltype(auto) add(const T1& t1, const T2& t2) { return t1 + t2; }
 \end{cpp}
 
-Looking at this, it’s a rather verbose syntax to specify a simple function template. With the abbreviated function template syntax, this can be written more elegantly as follows:
+从上面这个例子来看，指定一个简单函数模板的语法相当冗长。使用简化函数模板语法，可以更优雅地写成如下形式：
 
 \begin{cpp}
 decltype(auto) add(const auto& t1, const auto& t2) { return t1 + t2; }
 \end{cpp}
 
-With this syntax, there is no template header, template<>, anymore to specify template parameters. Instead, where previously the implementation used T1 and T2 as types for the parameters of the function, they are now specified as auto. This abbreviated syntax is just syntactical sugar; the compiler automatically translates this abbreviated implementation to the longer original code. Basically, every function parameter that is specified as auto becomes a template type parameter.
+使用这种语法，不再需要模板头 template<> 来指定模板参数。相反，之前实现中使用 T1 和 T2 作为函数参数的类型，现在指定为 auto。这种简化语法只是语法糖；编译器自动将这种简化的实现，翻译为更长的代码。基本上，每个指定为 auto 的函数参数都变成了模板类型参数。
 
-There are two caveats that you have to keep in mind. First, each parameter specified as auto becomes a different template type parameter. Suppose you have a function template like this:
+需要记住两个注意事项。首先，每个指定为 auto 的参数都变成了不同的模板类型参数。假设有一个这样的函数模板：
 
 \begin{cpp}
 template <typename T>
 decltype(auto) add(const T& t1, const T& t2) { return t1 + t2; }
 \end{cpp}
 
-This version has only a single template type parameter, and both parameters to the function, t1 and t2, are of type const T\&. For such a function template, you cannot use the abbreviated syntax, as that would be translated to a function template having two different template type parameters.
+这个版本只有一个模板类型参数，函数的两个参数 t1 和 t2 都是类型 const T\&。对于这样的函数模板，因为这会翻译为具有两个不同模板类型参数的函数模板，所以不能使用简化语法。
 
-A second issue is that you cannot use the deduced types explicitly in the implementation of the function template, as these automatically deduced types have no name. If you need this, you either need to keep using the longer function template syntax or use decltype() to figure out the type.
+第二个问题是，因为自动推导出的类型没有名称，所以不能在函数模板的实现中显式使用推导出的类型。如果需要这样做，要么继续使用更长的函数模板语法，要么使用 decltype() 来确定类型。
 
 
 
