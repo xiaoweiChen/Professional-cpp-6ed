@@ -1,34 +1,32 @@
 \noindent
-\textbf{WHAT’S IN THIS CHAPTER?}
+\textbf{内筒概要}
 
 \begin{itemize}
 \item
-The concept of streams
+流的概念
 
 \item
-How to use streams for input and output of data
+如何使用数据流的输入和输出
 
 \item
-The available standard streams provided by the Standard Library
+标准库中可用的标准流
 
 \item
-How to use the filesystem support library
+如何使用文件系统库
 \end{itemize}
 
-\noindent
-\textbf{WILEY.COM DOWNLOADS FOR THIS CHAPTER}
+本章的所有代码示例都可以在\url{https://github.com/Professional-CPP/edition-6}获得。
 
-Please note that all the code examples for this chapter are available as part of this chapter’s code download on the book’s website at \url{www.wiley.com/go/proc++6e} on the Download Code tab.
+程序的基本工作是接受输入并产生输出，不产生任何输出的程序毫无用处。所有语言都提供某种I/O机制，要么是语言内置的一部分，要么是通过特定的操作系统API。一个好的I/O系统既灵活又易于使用，灵活的I/O系统支持通过各种设备进行输入和输出，如文件和用户控制台。文件可以是标准文件，也可以是来自各种来源的数据，如物联网(IoT)设备、网络服务等。也可能是来自气象设备或股票经纪网络服务的数据，灵活的I/O系统还支持读取和写入不同类型的数据。I/O易于出错，因为用户输入的数据可能是错误的，或者底层文件系统或其他数据源可能无法访问，所以一个好的I/O系统也应该能够处理错误条件。
 
-A program’s fundamental job is to accept input and produce output. A program that produces no output of any sort would not be very useful. All languages provide some mechanism for I/O, either as a built-in part of the language or through an OS-specific API. A good I/O system is both flexible and easy to use. Flexible I/O systems support input and output through a variety of devices, such as files and the user console. Files could be standard files but could also be data coming from a variety of sources such as Internet of Things (IoT) devices, web services, and more. It could be weather data from a weather device or stock values from a stockbroker web service. Flexible I/O systems also support reading and writing of different types of data. I/O is error-prone because data coming from a user can be incorrect or the underlying filesystem or other data source can be inaccessible. Thus, a good I/O system is also capable of handling error conditions.
+如果熟悉C语言，无疑使用过printf()和scanf()。作为I/O机制，printf()和scanf()当然很灵活。通过转义码和变量占位符(类似于std::format(), print(), 和println()中讨论的格式说明符和替换字段)，可以定制为读取特殊格式的数据或输出任何格式代码允许的值。支持的类型仅限于整数/字符值、浮点值和字符串。然而，printf()和scanf()在好I/O系统的其他方面表现不佳，它们特别不擅长处理错误。例如，告诉它们将浮点数解释为整数，它们会很乐意这样做。此外，它们不够灵活，无法处理自定义数据类型，而且不安全，而且在像C++这样的面向对象语言中，它们不是面向对象的。
 
-If you are familiar with the C language, you have undoubtedly used printf() and scanf(). As I/O mechanisms, printf() and scanf()are certainly flexible. Through escape codes and variable placeholders (similar to format specifiers and replacement fields for std::format(), print(), and println() as discussed in Chapter 2, “Working with Strings and String Views”), they can be customized to read in specially formatted data or output any value that the formatting codes permit. Supported types are limited to integer/character values, floating-point values, and strings. However, printf() and scanf() falter on other measures of good I/O systems. They do not handle errors particularly well. For example, if you tell them to interpret a floating-point number as an integer, they will happily do so. Additionally, they are not flexible enough to handle custom data types, they are not type safe, and in an object-oriented language like C++, they are not at all object oriented.
+C++提供了一种更精细、更灵活、更面向对象的I/O方法。流封装在类中，这形成了一个用户友好且安全的解决方案。本章中，将首先了解什么是流，然后学习如何使用流进行数据输出和输入。还将了解如何使用流机制从各种来源读取，并向各种目的地写入，如用户控制台、文件，甚至字符串。本章涵盖了最常用的I/O功能。
 
-C++ provides a more refined, more flexible, and object-oriented approach to I/O. Streams are encapsulated in classes that result in a user-friendly and safe solution. In this chapter, you will first learn what streams are and then learn how to use streams for data output and input. You will also learn how to use the stream mechanism to read from various sources and write to various destinations, such as the user console, files, and even strings. This chapter covers the most commonly used I/O features.
+本书中几乎所有的示例都使用print()和println()将文本打印到用户控制台，另一种选择是使用本章中讨论的I/O流功能。我建议使用print()和println()代替标准输出的流，因为前者更容易阅读，更紧凑，性能更好。本章详细讨论了I/O流，因为它在C++中仍然很重要，我们肯定有需要处理使用I/O流的代码。
 
-Almost all examples in this book use print() and println() to print text to the user console. An alternative is to use the I/O streaming functionality discussed in this chapter. I recommend using print() and println() instead of streaming to standard output, as the former is easier to read, more compact, and more performant. However, this chapter discusses I/O streaming in detail, as it’s still important to know how it works in C++ because you’ll undoubtedly have to work with code that uses I/O streaming.
+本章的最后部分讨论了C++标准库提供的文件系统库。这个库允许你处理路径、目录和文件，很好地补充了流提供的I/O机制。
 
-The last part of this chapter discusses the filesystem support library provided by the C++ Standard Library. This library allows you to work with paths, directories, and files, and it nicely complements the mechanisms provided for I/O by the streams.
 
 
 
