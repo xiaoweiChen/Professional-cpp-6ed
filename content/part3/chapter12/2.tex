@@ -380,67 +380,64 @@ int x { myGridOnFreeStore->at(0, 0).value_or(0) };
 \end{cpp}
 
 
-\mySubsubsection{12.2.2.}{How the Compiler Processes Templates}
+\mySubsubsection{12.2.2.}{编译器如何处理模板}
 
-To understand the intricacies of templates, you need to learn how the compiler processes template code. When the compiler encounters class template member function definitions, it performs syntax checking, but doesn’t actually compile the templates. It can’t compile template definitions because it doesn’t know for which types they will be used. It’s impossible for a compiler to generate code for something like x = y without knowing the types of x and y. This syntax-checking step is the first step in the two-phase name lookup process.
+要理解模板的复杂性，需要学习编译器如何处理模板代码。当编译器遇到类模板成员函数定义时，会进行语法检查，但并不编译模板。编译器不能编译模板定义，因为不知道这些模板将用于哪种类型。对于像 x = y 这样的代码，如果不知道 x 和 y 的类型，编译器就无法生成代码，这是语法检查中，两阶段名称查找的第一步。
 
-The second step in the two-phase name lookup process happens when the compiler encounters an instantiation of the template, such as Grid<int>. At that moment, the compiler writes code for an int version of the Grid template by replacing each T in the class template definition with int. When the compiler encounters a different instantiation of the template, such as Grid<SpreadsheetCell>, it writes another version of the Grid class for SpreadsheetCells. The compiler just writes the code
+两阶段名称查找过程的第二步发生在编译器实例化模板时，例如 Grid<int>。在那一刻，编译器通过将类模板定义中的每个 T 替换为 int 来编写 Grid 模板的 int 版本的代码。当编译器遇到模板的不同实例化，例如 Grid<SpreadsheetCell>，会为 SpreadsheetCell 编写另一个版本的 Grid 类。编译器只编写没有在语言中使用模板支持。并且必须为每种元素类型编写单独的类。这里没有魔法；模板只是自动化了一个编写的过程。如果程序中没有为类型实例化类模板，则类模板定义的成员函数就永远不会编译。
 
-that you would write if you didn’t have template support in the language and had to write separate classes for each element type. There’s no magic here; templates just automate an annoying process. If you don’t instantiate a class template for any types in your program, then the class template member function definitions are never compiled.
+这个实例化过程解释了为什么需要在定义中使用 Grid<T>。当编译器为特定类型（如 int）实例化模板时，会用 int 替换 T，因此 Grid<int> 是类型。
 
-This instantiation process explains why you need to use the Grid<T> syntax in various places in your definition. When the compiler instantiates the template for a particular type, such as int, it replaces T with int, so that Grid<int> is the type.
+\mySamllsection{选择性/隐式实例化}
 
-\mySamllsection{Selective/Implicit Instantiation}
-
-For implicit class template instantiations such as the following:
+对于如下所示的非显式类模板实例化：
 
 \begin{cpp}
 Grid<int> myIntGrid;
 \end{cpp}
 
-the compiler always generates code for all virtual member functions of the class template. However, for non-virtual member functions, the compiler generates code only for those non-virtual member functions that are actually called. For example, given the earlier Grid class template, suppose that you write this code (and only this code) in main():
+编译器总会为类模板的所有虚成员函数生成代码。然而，对于非虚成员函数，编译器只生成那些实际调用的非虚成员函数的代码。例如，之前写了 Grid 类模板，现在在 main() 中只有以下代码：
 
 \begin{cpp}
 Grid<int> myIntGrid;
 myIntGrid.at(0, 0) = 10;
 \end{cpp}
 
-The compiler generates only the zero-argument constructor, the destructor, and the non-const at() member function for an int version of Grid. It does not generate other member functions like the copy constructor, the assignment operator, or getHeight(). This is called selective instantiation.
+编译器只为 Grid 的 int 版本生成零参数构造函数、析构函数和 非常量 at() 成员函数，而不生成其他成员函数，如复制构造函数、赋值运算符或 getHeight()，这称为选择性实例化。
 
+\mySamllsection{显式实例化}
 
-\mySamllsection{Explicit Instantiation}
-
-The danger exists that there are compilation errors in some class template member functions that go unnoticed with implicit instantiations. Unused member functions of class templates can contain syntax errors, as these will not be compiled. This makes it hard to test all code for syntax errors. You can force the compiler to generate code for all member functions, virtual and non-virtual, by using explicit template instantiations. Here’s an example:
+存在一种风险，即某些类模板成员函数中存在未隐式实例化所发现的编译错误。因为这些函数不编译，所以类模板的未使用成员函数可能包含语法错误。这使得测试所有代码的语法错误变得困难。可以使用显式模板实例化来强制编译器为所有成员函数（虚函数和非虚函数）生成代码：
 
 \begin{cpp}
 template class Grid<string>;
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Explicit template instantiations help with finding errors, as they force all your class template member functions to be compiled even when unused.
+显式模板实例化有助于发现错误，强制编译器编译所有类模板成员函数，即使这些函数未被使用。
 \end{myNotic}
 
-When using explicit template instantiations, don’t just try to instantiate the class template with basic types like int, but try it with more complicated types like string, if those are accepted by the class template.
+使用显式模板实例化时，不要只是尝试使用基本类型（如 int）来实例化类模板，而应尝试使用更复杂的类型（如 string），前提是类模板接受这些类型。
 
-\mySamllsection{Template Requirements on Types}
+\mySamllsection{模板对类型的要求}
 
-When you write code that is independent of types, you must assume certain things about those types. For example, in the Grid class template, you assume that the element type (represented by T) is destructible, copy/move constructible, and copy/move assignable.
+当编写与类型无关的代码时，必须对那些类型做出某些假设。例如，在 Grid 类模板中，假设元素类型（由 T 表示）是可析构的、可复制/移动构造的，以及可复制/移动赋值的。
 
-When the compiler attempts to instantiate a template with types that do not support all the operations used by class template member functions that are called, the code will not compile, and the error messages will often be quite obscure. However, even if the types you want to use don’t support the operations required by all the member functions of the class template, you can exploit selective instantiation to use some member functions but not others.
+当编译器尝试使用不支持类模板成员函数，调用的所有操作的类型来实例化模板时，代码将无法编译，而且错误消息通常会很模糊。然而，即使想要使用的类型不支持类模板的所有成员函数，也可以利用选择性实例化来使用一些成员函数。
 
-You can use concepts to write requirements for template parameters that the compiler can interpret and validate. The compiler can generate more readable errors if the template arguments passed to instantiate a template do not satisfy these requirements. Concepts are discussed later in this chapter.
+可以使用概念来编写模板参数的要求，编译器可以解释和验证这些要求。如果传递给实例化模板的模板参数不满足这些要求，编译器可以生成更易读的错误。概念将在本章后面讨论。
 
-\mySubsubsection{12.2.3.}{Distributing Template Code Between Files}
+\mySubsubsection{12.2.3.}{文件间的模板代码}
 
-With class templates, both the class template definition and the member function definitions must be available to the compiler from any source file that uses them. There are several mechanisms to accomplish this.
+对于类模板，使用它们的源文件都必须能够访问类模板定义和成员函数定义。有几种机制可以实现这一点。
 
-\mySamllsection{Member Function Definitions in Same File as Class Template Definition}
+\mySamllsection{与类模板定义在同一文件中的成员函数定义}
 
-You can place the member function definitions directly in the module interface file where you define the class template itself. When you import this module in another source file where you use the template, the compiler will have access to all the code it needs. This mechanism is used for the previous Grid implementation.
+可以将成员函数定义，直接放在定义类模板本身的模块接口文件中。当在另一个源文件中导入这个模块并使用模板时，编译器将能够访问需要的代码。这种机制已用于之前的 Grid 实现。
 
-\mySamllsection{Member Function Definitions in Separate File}
+\mySamllsection{成员函数定义在单独的文件中}
 
-Alternatively, you can place the class template member function definitions in a separate module interface partition file. You then also need to put the class template definition in its own module interface partition. For example, the primary module interface file for the Grid class template could look like this:
+或者，可以将类模板成员函数定义放在单独的模块接口分区文件中。然后，还需要将类模板定义放在其模块接口分区中。例如，Grid 类模板的主模块接口文件可能如下所示：
 
 \begin{cpp}
 export module grid;
@@ -449,7 +446,7 @@ export import :definition;
 export import :implementation;
 \end{cpp}
 
-This imports and exports two module interface partitions: definition and implementation. The class template definition is defined in the definition partition:
+这导入和导出了两个模块接口分区：definition 和 implementation。类模板定义在 definition 分区中：
 
 \begin{cpp}
 export module grid:definition;
@@ -459,7 +456,7 @@ import std;
 export template <typename T> class Grid { ... };
 \end{cpp}
 
-The implementations of the member functions are in the implementation partition, which also needs to import the definition partition because it needs the Grid class template definition:
+成员函数的实现位于 implementation 分区中，还需要导入 definition 分区，因为需要 Grid 类模板的定义：
 
 \begin{cpp}
 export module grid:implementation;
@@ -474,21 +471,21 @@ Grid<T>::Grid(std::size_t width, std::size_t height)
 // Remainder omitted for brevity.
 \end{cpp}
 
-\mySubsubsection{12.2.4.}{Template Parameters}
+\mySubsubsection{12.2.4.}{模板参数}
 
-In the Grid example, the Grid class template has one template parameter: the type that is stored in the grid. When you write the class template, you specify the parameter list inside the angle brackets, like this:
+Grid 示例中，Grid 类模板有一个模板参数：存储类型。当编写类模板时，需要在尖括号内指定参数列表：
 
 \begin{cpp}
 template <typename T>
 \end{cpp}
 
-This parameter list is similar to the parameter list of functions. As with functions, you can write a class template with as many template parameters as you want. Additionally, these parameters don’t have to be types, and they can have default values.
+这个参数列表类似于函数的参数列表。与函数一样，可以编写具有任意个模板参数的类模板。此外，这些参数不一定是类型，可以具有默认值。
 
-\mySamllsection{Non-type Template Parameters}
+\mySamllsection{非类型模板参数}
 
-Non-type template parameters are “normal” parameters such as ints and pointers—the kind of parameters which you’re familiar with from functions. However, non-type template parameters can only be integral types (char, int, long, and so on), enumerations, pointers, references, std::nullptr\_t, auto, auto\&, auto*, floating-point types, and class types. The latter, however, come with a lot of limitations, not further discussed in this text. Remember that templates are instantiated at compile time; hence, arguments for non-type template parameters are evaluated at compile time. That means such arguments must be literals or compile-time constants.
+非类型模板参数是“普通”参数，如 int 和指针——你从函数中熟悉的参数类型。然而，非类型模板参数只能是整数类型（char、int、long 等）、枚举、指针、引用、std::nullptr\_t、auto、auto\&、auto*、浮点类型和类类型。后者有很多限制，但本文不进一步讨论。记住，模板是在编译时实例化的；因此，非类型模板参数的参数在编译时计算，所以这样的参数必须是字面量或编译时常量。
 
-In the Grid class template, you could use non-type template parameters to specify the height and width of the grid instead of specifying them in the constructor. The principal advantage of using nontype template parameters instead of constructor parameters is that the values are known before the code is compiled. Recall that the compiler generates code for template instantiations by substituting the template parameters before compiling. Thus, you can use a normal two-dimensional array in the following implementation instead of a linearized representation using a vector that is dynamically resized. Here is the new class template definition with the changes highlighted:
+Grid 类模板中，可以使用非类型模板参数来指定网格的高度和宽度，而不是在构造函数中指定。使用非类型模板参数的主要优点是，在编译代码之前就知道这些值。回想一下，编译器通过在编译前替换模板参数，来生成模板实例化的代码。因此，可以在以下实现中使用普通二维数组，而不是使用动态调整大小的vector来线性表示。以下是更改后的类模板定义：
 
 \begin{cpp}
 export template <typename T, std::size_t WIDTH, std::size_t HEIGHT>
@@ -519,7 +516,7 @@ class Grid
 };
 \end{cpp}
 
-The template parameter list now has three parameters: the type of objects stored in the grid, and the width and height of the grid. The width and height are used to create a two-dimensional array to store the objects. Here are the class template member function definitions:
+模板参数列表现在有三个参数：存储的对象类型，以及网格的宽度和高度。宽度和高度用于创建一个二维数组来存储对象。以下是类模板成员函数的定义：
 
 \begin{cpp}
 template <typename T, std::size_t WIDTH, std::size_t HEIGHT>
@@ -550,9 +547,9 @@ std::optional<T>& Grid<T, WIDTH, HEIGHT>::at(std::size_t x, std::size_t y)
 }
 \end{cpp}
 
-Note that wherever you previously specified Grid<T> you must now specify Grid<T,WIDTH,HEIGHT> to specify the three template parameters.
+请注意，之前指定了 Grid<T>，现在必须改为 Grid<T,WIDTH,HEIGHT> 来指定三个模板参数。
 
-You can instantiate this template and use it as follows:
+可以按以下方式实例化此模板并使用它：
 
 \begin{cpp}
 Grid<int, 10, 10> myGrid;
@@ -562,21 +559,21 @@ anotherGrid = myGrid;
 println("{}", anotherGrid.at(2, 3).value_or(0));
 \end{cpp}
 
-This code seems great, but unfortunately, there are more restrictions than you might initially expect. First, you can’t use a non-constant integer to specify the height or width. The following code doesn’t compile:
+这段代码看起来很好，但不幸的是，它比最初预期的有更多的限制。首先，不能使用非常量整数来指定高度或宽度。以下代码无法编译：
 
 \begin{cpp}
 size_t height { 10 };
 Grid<int, 10, height> testGrid; // DOES NOT COMPILE
 \end{cpp}
 
-If you define height as a constant, it compiles:
+如果将height定义成一个常量，就没问题：
 
 \begin{cpp}
 const size_t height { 10 };
 Grid<int, 10, height> testGrid; // Compiles and works
 \end{cpp}
 
-constexpr functions with the correct return type also work. For example, if you have a constexpr function returning a size\_t, you can use it to initialize the height template parameter:
+使用正确返回类型的 constexpr 函数也可以。例如，你有一个返回 size\_t 的 constexpr 函数，可以用它来初始化高度模板参数：
 
 \begin{cpp}
 constexpr size_t getHeight() { return 10; }
@@ -584,15 +581,15 @@ constexpr size_t getHeight() { return 10; }
 Grid<double, 2, getHeight()> myDoubleGrid;
 \end{cpp}
 
-A second restriction might be more significant. Now that the width and height are template parameters, they are part of the type of each grid. That means Grid<int,10,10> and Grid<int,10,11> are two different types. You can’t assign an object of one type to an object of the other, and variables of one type can’t be passed to functions that expect variables of another type.
+第二个限制可能更为重要。现在宽度和高度是模板参数，它们成为每个网格类型的一部分，所以 Grid<int,10,10> 和 Grid<int,10,11> 是两种不同的类型。不能将一个类型的对象分配给另一个类型的对象，而且一种类型的变量不能传递给另一种类型的变量的函数。
 
 \begin{myNotic}{NOTE}
-Non-type template parameters become part of the type specification of instantiated objects.
+非类型模板参数是实例化对象类型的一部分。
 \end{myNotic}
 
-\mySamllsection{Default Values for Template Parameters}
+\mySamllsection{模板参数的默认值}
 
-If you continue the approach of making height and width template parameters, you might want to provide defaults for the height and width non-type template parameters just as you did previously in the constructor of the Grid<T> class template. C++ allows you to provide defaults for template parameters with a similar syntax. While you are at it, you could also provide a default for the T type parameter. Here is the class definition:
+如果继续将 height 和 width 作为模板参数，可能希望为 height 和 width 这两个非类型模板参数提供默认值，就像之前在 Grid<T> 类模板的构造函数中所做的那样。C++ 允许使用类似的语法为模板参数提供默认值，也可以为 T 类型参数提供一个默认值。下面是类定义：
 
 \begin{cpp}
 export template <typename T = int, std::size_t WIDTH = 10, std::size_t HEIGHT = 10>
@@ -602,7 +599,7 @@ class Grid
 };
 \end{cpp}
 
-You don’t specify the default values for T, WIDTH, and HEIGHT in the template header for the member function definitions. For example, here is the implementation of at():
+不需要在成员函数定义的模板头中指定 T、WIDTH 和 HEIGHT 的默认值。例如， at() 方法的实现：
 
 \begin{cpp}
 template <typename T, std::size_t WIDTH, std::size_t HEIGHT>
@@ -614,7 +611,7 @@ const std::optional<T>& Grid<T, WIDTH, HEIGHT>::at(
 }
 \end{cpp}
 
-With these changes, you can instantiate a Grid without any template parameters, with only the element type, the element type and the width, or the element type, width, and height:
+有了这些更改，可以不使用模板参数实例化 Grid，只使用元素类型，或者使用元素类型和宽度，或者使用元素类型、宽度和高度：
 
 \begin{cpp}
 Grid<> myIntGrid;
@@ -623,55 +620,55 @@ Grid<int, 5> anotherGrid;
 Grid<int, 5, 5> aFourthGrid;
 \end{cpp}
 
-Note that if you don’t specify any class template parameters, you still need to specify an empty set of angle brackets. For example, the following does not compile!
+请注意，如果没有指定任何类模板参数，仍然需要指定一个空的角度括号集。例如，下面的代码将无法编译！
 
 \begin{cpp}
 Grid myIntGrid;
 \end{cpp}
 
-The rules for default arguments in class template parameter lists are the same as for functions; that is, you can provide defaults for parameters in order starting from the right.
+类模板参数列表中默认参数的规则与函数相同，可以从右边开始按顺序为参数提供默认值。
 
-\mySamllsection{Class Template Argument Deduction}
+\mySamllsection{类模板参数推导}
 
-With class template argument deduction, the compiler can automatically deduce the template type parameters from the arguments passed to a class template constructor.
+通过类模板参数推导，编译器可以自动从传递给类模板构造函数的参数中，推导出模板类型参数。
 
-For example, the Standard Library has a class template called std::pair, defined in <utility> and introduced in Chapter 1. A pair stores exactly two values of two possibly different types, which you normally would have to specify as the template type parameters. Here’s an example:
+例如，标准库中有一个名为 std::pair 的类模板，在 <utility> 头文件中定义。pair 存储两个可能不同类型的值，通常需要将这些类型指定为模板类型参数。下面是一个例子：
 
 \begin{cpp}
 pair<int, double> pair1 { 1, 2.3 };
 \end{cpp}
 
-To avoid having to write the template type parameters explicitly, a helper function template called std::make\_pair() is available. Details of writing your own function templates are discussed later in this chapter. Function templates have always supported the automatic deduction of template type parameters based on the arguments passed to the function template. Thus, make\_pair() is capable of automatically deducing the template type parameters based on the values passed to it. For example, the compiler deduces pair<int, double> for the following call:
+为了避免必须显式编写模板类型参数，提供了一个名为 std::make\_pair() 的辅助函数模板。函数模板支持基于传递给函数模板的参数自动推导模板类型参数，所以make\_pair() 能够基于传递值自动推导模板类型参数。例如，编译器为以下调用推导出 pair<int, double>：
 
 \begin{cpp}
 auto pair2 { make_pair(1, 2.3) };
 \end{cpp}
 
-With class template argument deduction (CTAD), such helper function templates are no longer necessary. The compiler now automatically deduces the template type parameters based on the arguments passed to a constructor. For the pair class template, you can simply write the following code:
+有了类模板参数推导（CTAD），这样的辅助函数模板就不再必要了。编译器现在可以基于传递给构造函数的参数自动推导模板类型参数。对于 pair 类模板，可以这样：
 
 \begin{cpp}
 pair pair3 { 1, 2.3 }; // pair3 has type pair<int, double>
 \end{cpp}
 
-Of course, this works only when all template type parameters of a class template either have default values or are used as parameters in the constructor so that they can be deduced.
+当然，这只有在类模板的所有模板类型参数都有默认值，或者在构造函数中作为参数使用，从而可以推导出来时才有效。
 
-Note that an initializer is required for CTAD to work. The following is illegal:
+注意，CTAD 需要初始化器才能工作。以下代码不合法：
 
 \begin{cpp}
 pair pair4;
 \end{cpp}
 
-A lot of the Standard Library classes support CTAD, for example, vector, array, and so on.
+许多标准库类支持 CTAD，例如 vector、array 等。
 
 \begin{myNotic}{NOTE}
-This type deduction is disabled for std::unique\_ptr and shared\_ptr. You pass a T* to their constructors, which means that the compiler would have to choose between deducing <T> or <T[]>, a dangerous choice to get wrong. So, just remember that for unique\_ptr and shared\_ptr, you need to keep using make\_unique() and make\_shared().
+对于 std::unique\_ptr 和 shared\_ptr，这种类型推导会禁用。将 T* 传递给构造函数，则编译器需要在推导 <T> 或 <T[]> 之间做出选择，这很容易出错。因此，请记住对于 unique\_ptr 和 shared\_ptr，需要继续使用 make\_unique() 和 make\_shared()。
 \end{myNotic}
 
-\mySamllsection{User-Defined Deduction Guides}
+\mySamllsection{用户定义的推导指南}
 
-You can also write your own user-defined deduction guides to help the compiler. These allow you to write rules for how the template type parameters have to be deduced. The following is an example demonstrating their use.
+还可以编写自己的用户定义推导指南来帮助编译器，可以编写模板类型参数如何推导的规则。下面是一个演示其用法的示例。
 
-Suppose you have this SpreadsheetCell class template:
+假设有一个 SpreadsheetCell 类模板：
 
 \begin{cpp}
 template <typename T>
@@ -685,74 +682,74 @@ class SpreadsheetCell
 };
 \end{cpp}
 
-Thanks to CTAD, you can create a SpreadsheetCell with an std::string type. The deduced type is SpreadsheetCell<string>:
+有了 CTAD，就可以使用 std::string 类型创建一个 SpreadsheetCell。推导出的类型是 SpreadsheetCell<string>：
 
 \begin{cpp}
 string myString { "Hello World!" };
 SpreadsheetCell cell { myString };
 \end{cpp}
 
-However, if you pass a const char* to the SpreadsheetCell constructor, then type T is deduced as const char*, which is not what you want! You can create the following user-defined deduction guide to make sure T is deduced as std::string when passing a const char* as argument to the constructor:
+然而，如果将一个 const char* 传递给 SpreadsheetCell 构造函数，那么类型 T 推导为 const char*，这不是期望的！可以创建以下用户定义推导指南，以确保在将 const char* 作为参数传递给构造函数时，将T推导为 std::string：
 
 \begin{cpp}
 SpreadsheetCell(const char*) -> SpreadsheetCell<std::string>;
 \end{cpp}
 
-This guide has to be defined outside the class definition but inside the same namespace as the SpreadsheetCell class.
+这个指南必须在类定义之外，但与 SpreadsheetCell 类相同的命名空间内定义。
 
-The general syntax is as follows. The explicit keyword is optional and behaves the same as explicit for constructors. Such deduction guides are, more often than not, templates as well.
+通用语法如下。explicit 关键字是可选的，其行为与构造函数中的 explicit 相同。这类推导指南通常也是模板。
 
 \begin{cpp}
 template <...>
 explicit TemplateName(Parameters) -> DeducedTemplate<...>;
 \end{cpp}
 
-\mySubsubsection{12.2.5.}{Member Function Templates}
+\mySubsubsection{12.2.5.}{成员函数模板}
 
-C++ allows you to parametrize individual member functions of a class. Such member functions are called member function templates and can be inside a normal class or in a class template. When you write a member function template, you are actually writing many different versions of that member function for many different types. Member function templates are useful for assignment operators and copy constructors in class templates.
+C++ 允许参数化类的单个成员函数，这样的成员函数称为成员函数模板，可以位于普通类或类模板中。当编写一个成员函数模板时，实际上在为许多不同类型编写该成员函数的许多不同版本。成员函数模板对于类模板中的赋值运算符和复制构造函数非常有用。
 
 \begin{myWarning}{WARNING}
-Virtual member functions and destructors cannot be member function templates.
+虚成员函数和析构函数不能是函数模板。
 \end{myWarning}
 
-Consider the original Grid template with only one template parameter: the element type. You can instantiate grids of many different types, such as ints and doubles:
+考虑只有一个模板参数的原始 Grid 模板：元素类型。可以实例化许多不同类型的Grid，如 int 和 double：
 
 \begin{cpp}
 Grid<int> myIntGrid;
 Grid<double> myDoubleGrid;
 \end{cpp}
 
-However, Grid<int> and Grid<double> are two different types. If you write a function that takes an object of type Grid<double>, you cannot pass a Grid<int>. Even though you know that the elements of an int grid could be copied to the elements of a double grid, because ints can be converted into doubles, you cannot assign an object of type Grid<int> to one of type Grid<double> or construct a Grid<double> from a Grid<int>. Neither of the following two lines compiles:
+然而，Grid<int> 和 Grid<double> 是两种不同的类型。如果编写一个接受 Grid<double> 类型对象的函数，就不能传递一个 Grid<int>。即使知道 int Grid的元素可以复制到 double Grid的元素，因为 int 可以转换为 double，但不能将 Grid<int> 类型的对象分配给 Grid<double> 类型的对象，也不能使用 Grid<int> 构造 Grid<double>。以下两行均无法编译：
 
 \begin{cpp}
 myDoubleGrid = myIntGrid; // DOES NOT COMPILE
 Grid<double> newDoubleGrid { myIntGrid }; // DOES NOT COMPILE
 \end{cpp}
 
-The problem is that the copy constructor and assignment operator for the Grid template are as follows:
+问题在于 Grid 模板的复制构造函数和赋值运算符：
 
 \begin{cpp}
 Grid(const Grid& src);
 Grid& operator=(const Grid& rhs);
 \end{cpp}
 
-which are equivalent to:
+其等价于：
 
 \begin{cpp}
 Grid(const Grid<T>& src);
 Grid<T>& operator=(const Grid<T>& rhs);
 \end{cpp}
 
-The Grid copy constructor and operator= both take a reference to a const Grid<T>. When you instantiate a Grid<double> and try to call the copy constructor and operator=, the compiler generates member functions with these prototypes:
+Grid 的复制构造函数和 operator= 都接受一个 const Grid<T>\&。当实例化 Grid<double> 并尝试调用复制构造函数和 operator= 时，编译器生成具有这些原型的成员函数：
 
 \begin{cpp}
 Grid(const Grid<double>& src);
 Grid<double>& operator=(const Grid<double>& rhs);
 \end{cpp}
 
-There are no constructors or operator= that take a Grid<int> within the generated Grid<double> class.
+生成的 Grid<double> 类中没有接受 Grid<int> 的构造函数或 operator=。
 
-Luckily, you can rectify this oversight by adding parametrized versions of the copy constructor and assignment operator to the Grid class template to generate member functions that will convert from one grid type to another. Here is the new Grid class template definition:
+幸运的是，可以通过向 Grid 类模板添加参数化的复制构造函数和赋值运算符来纠正这个问题，以生成将一个Grid类型转换为另一个Grid类型的成员函数。以下是新的 Grid 类模板的定义：
 
 \begin{cpp}
 export template <typename T>
@@ -771,16 +768,16 @@ class Grid
 };
 \end{cpp}
 
-The original copy constructor and copy assignment operator cannot be removed. The compiler will not call these new parametrized copy constructor and parametrized copy assignment operator if E equals T.
+原始的复制构造函数和复制赋值运算符不能删除。如果 E 等于 T，编译器不会调用这些新的参数化复制构造函数和参数化复制赋值运算符。
 
-Examine the new parametrized copy constructor first:
+首先检查新参数化的复制构造函数：
 
 \begin{cpp}
 template <typename E>
 Grid(const Grid<E>& src);
 \end{cpp}
 
-You can see that there is another template header with a different typename, E (short for “element”). The class is parametrized on one type, T, and the new copy constructor is additionally parametrized on a different type, E. This twofold parametrization allows you to copy grids of one type to another. Here is the definition of the new copy constructor:
+可以看到有一个带有不同 typename 的新的模板头，E（代表“元素”）。类在一个类型 T 上参数化，新复制构造函数额外在另一个类型 E 上参数化。这种双重参数化可将一个类型的Grid复制到另一个类型。这是新复制构造函数的定义：
 
 \begin{cpp}
 template <typename T>
@@ -800,16 +797,16 @@ Grid<T>::Grid(const Grid<E>& src)
 }
 \end{cpp}
 
-As you can see, you must declare the class template header (with the T parameter) before the member template header (with the E parameter). You can’t combine them like this:
+必须在构造函数定义前声明类模板头（带有 T 参数），然后是成员模板头（带有 E 参数）。不能像这样将它们组合：
 
 \begin{cpp}
 template <typename T, typename E> // Wrong for nested template constructor!
 Grid<T>::Grid(const Grid<E>& src)
 \end{cpp}
 
-In addition to the extra template header before the constructor definition, note that you must use the public accessor member functions getWidth(), getHeight(), and at() to access the elements of src. That’s because the object you’re copying to is of type Grid<T>, and the object you’re copying from is of type Grid<E>. They are not the same type, so you must use public member functions.
+除了在构造函数定义前的额外模板头，注意必须使用公共访问器成员函数 getWidth()、getHeight() 和 at() 来访问 src 的元素。这是因为正在复制的对象是 Grid<T> 类型，而正在复制的对象是 Grid<E> 类型，它们不是同一类型，所以必须使用公共成员函数。
 
-The swap() member function is straightforward:
+swap() 成员函数很简单：
 
 \begin{cpp}
 template <typename T>
@@ -821,7 +818,7 @@ void Grid<T>::swap(Grid& other) noexcept
 }
 \end{cpp}
 
-The parametrized assignment operator takes a const Grid<E>\& but returns a Grid<T>\&:
+参数化赋值运算符接受一个 const Grid<E>\& 参数，但返回一个 Grid<T>\&：
 
 \begin{cpp}
 template <typename T>
@@ -835,11 +832,11 @@ Grid<T>& Grid<T>::operator=(const Grid<E>& rhs)
 }
 \end{cpp}
 
-The implementation of this assignment operator uses the copy-and-swap idiom introduced in Chapter 9. The swap() member function can only swap Grids of the same type, but that’s OK because this parametrized assignment operator first converts a given Grid<E> to a Grid<T> called temp using the parametrized copy constructor. Afterward, it uses the swap() member function to swap this temporary Grid<T> with this, which is also of type Grid<T>.
+这个赋值运算符的实现使用了第9章介绍的复制和交换模式。swap() 成员函数只能交换相同类型的 Grid，但这也可以，因为这个参数化赋值运算符首先使用参数化复制构造函数将给定的 Grid<E> 转换为 Grid<T>。之后，使用 swap() 成员函数将临时 Grid<T> 与 this 交换(this 也 Grid<T> 类型)。
 
-\mySamllsection{Member Function Templates with Non-type Template Parameters}
+\mySamllsection{带有非类型模板参数的成员函数模板}
 
-A major problem with the earlier Grid class template with integer template parameters for HEIGHT and WIDTH is that the height and width become part of the types. This restriction prevents you from assigning a grid with one height and width to a grid with a different height and width. In some cases, however, it’s desirable to assign or copy a grid of one size to a grid of a different size. Instead of making the destination object a perfect clone of the source object, you would copy only those elements from the source array that fit in the destination array, padding the destination array with default values if the source array is smaller in either dimension. With member function templates for the assignment operator and copy constructor, you can do exactly that, thus allowing assignment and copying of different-sized grids. Here is the class definition:
+带有整数模板参数 HEIGHT 和 WIDTH 的 Grid 类模板的一个主要问题是，高度和宽度成为了类型的一部分。这就限制了将一个尺寸的Grid赋值给另一个不同尺寸的 Grid。然而，在某些情况下，将一个尺寸的 Grid赋值或复制到另一个不同尺寸的 Grid是可行的。不需要完美克隆源对象，而是只从源数组中复制那些适合目标数组的元素，如果源数组在某些维度上较小，则用默认值填充目标数组。通过为赋值运算符和复制构造函数提供成员函数模板，可以精确地做到这一点，从而允许不同尺寸 Grid的赋值和复制。下面是类定义：
 
 \begin{cpp}
 export template <typename T, std::size_t WIDTH = 10, std::size_t HEIGHT = 10>
@@ -877,9 +874,9 @@ class Grid
 };
 \end{cpp}
 
-This new definition includes member function templates for the copy constructor and assignment operator, plus a helper member function swap(). Note that the non-parametrized copy constructor and assignment operator are explicitly defaulted (because of the user-declared destructor). They simply copy or assign m\_cells from the source to the destination, which is exactly the semantics you want for two grids of the same size.
+这个新定义包括了复制构造函数和赋值运算符的成员函数模板，以及一个辅助成员函数 swap()。注意，非参数化的复制构造函数和赋值运算符显式默认（用户声明了析构函数）。只是简单地将 m\_cells 从源复制或赋值到目标，这对于相同尺寸的两个Grid正是预想的语义。
 
-Here is the parametrized copy constructor:
+这是参数化的复制构造函数：
 
 \begin{cpp}
 template <typename T, std::size_t WIDTH, std::size_t HEIGHT>
@@ -898,10 +895,9 @@ Grid<T, WIDTH, HEIGHT>::Grid(const Grid<E, WIDTH2, HEIGHT2>& src)
 }
 \end{cpp}
 
-Note that this copy constructor copies only WIDTH and HEIGHT elements in the x and y dimensions, respectively, from src, even if src is bigger than that. If src is smaller in either dimension, the std::optional objects in the extra spots are reset using the reset() member function.
+注意，这个复制构造函数只复制了 src 中的 WIDTH 和 HEIGHT 个元素，分别在 x 和 y 维度上，即使 src 比这更大。如果 src 在任一维度上较小，则在额外的位置上的 std::optional 对象使用 reset() 成员函数进行重置。
 
-Here are the implementations of swap() and operator=:
-
+以下是 swap() 和 operator= 的实现：
 
 \begin{cpp}
 template <typename T, std::size_t WIDTH, std::size_t HEIGHT>
@@ -924,9 +920,9 @@ Grid<T, WIDTH, HEIGHT>& Grid<T, WIDTH, HEIGHT>::operator=(
 
 \CXXTwentythreeLogo{-40}{-50}
 
-\mySamllsection{Using Member Function Templates with Explicit Object Parameters to Avoid Code Duplication}
+\mySamllsection{带有显式对象参数的成员函数模板——避免代码重复}
 
-Our running example of the Grid class template with a single template type parameter T contains two overloads of an at() member function, const and non-const. As a reminder:
+我们一直在讨论的 Grid 类模板，有一个模板类型参数 T，并包含两个 at() 成员函数的重载，一个const ，另一个非 const ：
 
 \begin{cpp}
 export template <typename T>
@@ -939,7 +935,7 @@ class Grid
 };
 \end{cpp}
 
-Their implementations use Scott Meyers’ const\_cast() pattern to avoid code duplication:
+它们的实现使用了 Scott Meyers 的 const\_cast() 模式来避免代码重复：
 
 \begin{cpp}
 template <typename T>
@@ -956,7 +952,7 @@ std::optional<T>& Grid<T>::at(std::size_t x, std::size_t y)
 }
 \end{cpp}
 
-Although there is no code duplication, you still need to define both the const and non-const overloads explicitly. Starting with C++23, you can use an explicit object parameter (see Chapter 8) to avoid having to provide the two overloads explicitly. The trick is to turn the at() member function into a member function template where the type of the explicit object parameter self is itself a template type parameter, Self, and thus deduced automatically. This feature is called deducing this. Here is such a declaration:
+尽管没有代码重复，但仍然需要显式定义 const 和非 const 的重载。从 C++23 开始，可以使用显式对象参数（参见第 8 章）来避免显式提供这两个重载。诀窍是将 at() 成员函数转换为一个成员函数模板，其中显式对象参数 self 的类型本身是一个模板类型参数 Self，因此可以自动推导，这个特性称为 this推导。下面是这样的声明：
 
 \begin{cpp}
 export template <typename T>
@@ -969,13 +965,13 @@ class Grid
 };
 \end{cpp}
 
-The implementation uses a forwarding reference, Self\&\&; see the following note. Such a forwarding reference can bind to Grid<T>\&, const Grid<T>\&, and Grid<T>\&\&.
+实现使用了转发引用，Self\&\&；，这样的转发引用可以绑定到 Grid<T>\&、const Grid<T>\& 和 Grid<T>\&\&。
 
 \begin{myNotic}{NOTE}
-A reference of type Self\&\& is only a forwarding reference when it is used as a parameter for a function or member function template with Self as one of its template type parameters. If a class member function has a Self\&\& parameter, but with Self a template type parameter of the class and not of the member function itself, then that Self\&\& is not a forwarding reference, but just an rvalue reference. That’s because at the time the compiler starts processing that member function with a Self\&\& parameter, the class template parameter Self has already been resolved to a concrete type, for example int, and at that time, that member function parameter type has already been replaced with int\&\&.
+当 Self\&\& 用作具有 Self 作为其模板类型参数的函数或成员函数模板的参数时，才是一个转发引用。如果类成员函数具有 Self\&\& 参数，但 Self 是类的模板类型参数，而不是成员函数本身的模板类型参数，那么那个 Self\&\& 不是一个转发引用，只是一个右值引用。因为当编译器开始处理带有 Self\&\& 参数的成员函数时，类模板参数 Self 已经解析为一个具体类型，例如 int，成员函数参数类型已经替换为 int\&\&。
 \end{myNotic}
 
-Here is the implementation. Remember from Chapter 8 that in the body of a member function using an explicit object parameter, you need to use the explicit object parameter, self in this case, to get access to the object; there is no this pointer.
+下面是实现。第 8 章中提到，在显式对象参数的成员函数体中，需要使用显式对象参数 self 来访问对象；这里没有 this 指针。
 
 \begin{cpp}
 template <typename T>
@@ -987,27 +983,26 @@ auto&& Grid<T>::at(this Self&& self, std::size_t x, std::size_t y)
 }
 \end{cpp}
 
-The implementation uses std::forward\_like<Self>(x) introduced in C++23. This returns a reference to x with similar properties as Self\&\&. Thus, since the type of the elements of m\_cells is optional<T>, the following holds:
+实现使用了 C++23 引入的 std::forward\_like<Self>(x)。这返回一个与 Self\&\& 具有相似属性的 x 的引用。由于 m\_cells 的元素类型是 optional<T>，以下条件成立：
 
 \begin{itemize}
 \item
-If Self\&\& is bound to a Grid<T>\&, the return type will be an optional<T>\&.
+如果 Self\&\& 绑定到 Grid<T>\&，返回类型将是 optional<T>\&。
 
 \item
-If Self\&\& is bound to a const Grid<T>\&, the return type will be a const optional<T>\&.
+如果 Self\&\& 绑定到 const Grid<T>\&，返回类型将是 const optional<T>\&。
 
 \item
-If Self\&\& is bound to a Grid<T>\&\&, the return type will be an optional<T>\&\&.
+如果 Self\&\& 绑定到 Grid<T>\&\&，返回类型将是 optional<T>\&\&。
 \end{itemize}
 
-To summarize, with a combination of member function templates, explicit object parameters, forwarding references, and forward\_like(), it becomes possible to declare and define just a single member function template that provides both const and non-const instantiations.
+总结一下，通过结合成员函数模板、显式对象参数、转发引用和 forward\_like()，可以只声明和定义一个成员函数模板，就能提供 const 和非 const 的实例化。
 
-\mySubsubsection{12.2.6.}{Class Template Specialization}
+\mySubsubsection{12.2.6.}{类模板的特化}
 
-You can provide alternate implementations of class templates for specific types. For example, you might decide that the Grid behavior for const char*s (C-style strings) doesn’t make sense. A Grid<const char*> will store its elements in a vector<optional<const char*>{}>. The copy constructor and assignment operator will perform shallow copies of this const char* pointer type. For const char*s, it makes more sense to do a deep copy of strings. The easiest solution for this is to write an alternative implementation specifically for const char*s, which converts them to C++ strings and stores them in a vector<optional<string>{}>.
+可以为特定类型提供类模板的替代实现。例如，让Grid 对 const char*（C 风格字符串）不起作用。一个 Grid<const char*> 将存储其元素在 vector<optional<const char*>{}> 中。复制构造函数和赋值运算符将执行这个 const char* 指针类型的浅复制。对于 const char*，更合理的是对字符串进行深度复制。这个问题的最简单解决方案是为 const char* 编写一个特定的替代实现，将它们转换为 C++ 字符串并存储在 vector<optional<string>{}> 中。
 
-Alternate implementations of templates are called template specializations. You might find the syntax to be a little weird at first. When you write a class template specialization, you must specify that it’s based on a template and that you are writing a version of the template for a particular type. Here is the syntax for a const char* specialization for Grid. For this implementation, the original Grid class template is moved to a module interface partition called main, while the specialization is in a module interface partition called string.
-
+模板的替代实现称为模板特化，可能会觉得这个语法一开始有点奇怪。当编写一个类模板特化时，必须基于一个模板，并且正在为特定类型编写模板的版本。这是 Grid 的 const char* 特化语法的示例。这个实现中，原始的 Grid 类模板会移动到名为 main 的模块接口分区，而特化则位于名为 string 的模块接口分区。
 
 \begin{cpp}
 export module grid:string;
@@ -1049,22 +1044,22 @@ class Grid<const char*>
 };
 \end{cpp}
 
-Note that you don’t refer to any type variable, such as T, in the specialization: you work directly with const char*s and strings. One obvious question at this point is why this class still has a template header. That is, what good is the following syntax?
+注意，在特化中不需要引用任何类型变量(如 T)，可以直接处理 const char* 和字符串。此时一个明显的问题是，为什么这个类仍然有一个模板头。也就是说，以下语法的用处是什么？
 
 \begin{cpp}
 template <>
 class Grid<const char*>
 \end{cpp}
 
-This syntax tells the compiler that this class is a const char* specialization of the Grid class template. Suppose that you didn’t use that syntax and just tried to write this:
+这个语法告诉编译器这个类是 Grid 类模板的 const char* 特化版本。假设没有使用这种语法，只是尝试这样写：
 
 \begin{cpp}
 class Grid
 \end{cpp}
 
-The compiler wouldn’t let you do that because there is already a class template named Grid (the original class template). Only by specializing it can you reuse the name. The main benefit of specializations is that they can be invisible to the user. When a user creates a Grid of ints or SpreadsheetCells, the compiler generates code from the original Grid template. When the user creates a Grid of const char*s, the compiler uses the const char* specialization. This can all be “behind the scenes.”
+编译器会报错的，因为已经有一个名为 Grid 的类模板（原始的类模板）。只有通过特化，才能重用这个名字。特化的主要好处是对用户不可见。当用户创建一个 int 或 SpreadsheetCell 的 Grid 时，编译器会生成原始 Grid 模板的代码。当用户创建一个 const char* 的 Grid 时，编译器使用 const char* 特化，这一切都可以“幕后”进行。
 
-The primary module interface file simply imports and exports both module interface partitions:
+主模块接口文件简单地导入和导出了两个模块接口分区：
 
 \begin{cpp}
 export module grid;
@@ -1073,7 +1068,7 @@ export import :main;
 export import :string;
 \end{cpp}
 
-The specialization can be tested as follows:
+特化可以像这样进行测试：
 
 \begin{cpp}
 Grid<int> myIntGrid; // Uses original Grid template.
@@ -1088,7 +1083,7 @@ stringGrid1.at(1, 1) = "there";
 Grid<const char*> stringGrid2 { stringGrid1 };
 \end{cpp}
 
-When you specialize a class template, you don’t “inherit” any code; specializations are not like derivations. You must rewrite the entire implementation of the class. There is no requirement that you provide member functions with the same names or behavior. As an example, the const char* specialization of Grid implements the at() member functions by returning an optional<string>, not an optional<const char*>. As a matter of fact, you could write a completely different class with no relation to the original. Of course, that would abuse the template specialization ability, and you shouldn’t do it without good reason. Here are the implementations for the member functions of the const char* specialization. Unlike in the class template definition, you do not repeat the template header, template<>, before each member function definition.
+当特化一个类模板时，不“继承”代码；特化不是像派生那样，必须重写整个类的实现。没有要求必须提供具有相同名称或行为的成员函数。例如，Grid 的 const char* 特化通过返回 optional<string> ，而不是使用 optional<const char*> 来实现 at() 成员函数。实际上，可以编写一个完全不同的类，可以和原始类没有关系。当然，这会滥用模板特化的能力，而且没有充分的理由不应这样做。以下是 const char* 特化的成员函数实现。与类模板定义不同，不需要在每个成员函数定义前重复模板头，template<>。
 
 \begin{cpp}
 Grid<const char*>::Grid(std::size_t width, std::size_t height)
@@ -1123,11 +1118,11 @@ std::optional<std::string>& Grid<const char*>::at(std::size_t x, std::size_t y)
 }
 \end{cpp}
 
-This section discussed how to use class template specialization to write a special implementation for a class template, with all template type parameters replaced with specific types. This is called full template specialization. Such a full class template specialization is no longer a class template itself but a class definition. Chapter 26, “Advanced Templates,” continues the discussion of class template specialization with a more advanced feature called partial specialization.
+本节讨论了如何使用类模板特化来为类模板编写特殊实现，其中所有模板类型参数替换为特定类型，这被为全特化模板。这样的全特化类模板本身不再是类模板，而是一个类定义。第 26 章会继续介绍类模板特化，并介绍了一个更高级的特性，称为部分特化或偏特化。
 
-\mySubsubsection{12.2.7.}{Deriving from Class Templates}
+\mySubsubsection{12.2.7.}{派生于类模板}
 
-You can inherit from class templates. If the derived class inherits from the template itself, it must be a template as well. Alternatively, you can derive from a specific instantiation of the class template, in which case your derived class does not need to be a template. As an example of the former, suppose you decide that the generic Grid class doesn’t provide enough functionality to use as a game board. Specifically, you would like to add a move() member function to the game board that moves a piece from one location on the board to another. Here is the class definition for the GameBoard template:
+可以从类模板继承。如果派生类继承自模板本身，它也必须是一个模板。或者，可以从类模板的具体实例派生，这时派生类不需要是一个模板。作为前者的一个例子，假设决定通用 Grid 类提供的功能不足以用作GameBoard。具体来说，希望在GameBoard上添加一个 move() 成员函数，该函数将一个GameBoard上的元素从一个位置移动到另一个位置。以下是 GameBoard 模板的类定义：
 
 \begin{cpp}
 import grid;
@@ -1144,13 +1139,13 @@ class GameBoard : public Grid<T>
 };
 \end{cpp}
 
-This GameBoard template derives from the Grid template and thereby inherits all its functionality. You don’t need to rewrite at(), getHeight(), or any of the other member functions. You also don’t need to add a copy constructor, operator=, or destructor, because you don’t have any dynamically allocated memory in GameBoard. Additionally, GameBoard explicitly inherits the constructors from the base class, Grid<T>. Inheriting constructors from base classes is explained in Chapter 10, “Discovering Inheritance Techniques.”
+这个 GameBoard 模板从 Grid 模板派生，从而继承了它的所有功能。不需要重新编写 at()、getHeight() 或其他任何成员函数。也不需要添加复制构造函数、operator= 或析构函数，因为 GameBoard 中没有动态分配的内存。此外，GameBoard 明确从基类 Grid<T> 继承构造函数，从基类继承构造函数在第10章中介绍过。
 
-The inheritance syntax looks normal, except that the base class is Grid<T>, not Grid. The reason for this syntax is that the GameBoard template doesn’t really derive from the generic Grid template.
+继承语法看起来很正常，只是基类是 Grid<T>，而不是 Grid。这种语法的原因是 GameBoard 模板并没有真正从通用 Grid 模板派生。
 
-Rather, each instantiation of the GameBoard template for a specific type derives from the Grid instantiation for that same type. For example, if you instantiate a GameBoard with a ChessPiece type, then the compiler generates code for a Grid<ChessPiece> as well. The : public Grid<T> syntax says that this class inherits from whatever Grid instantiation makes sense for the T type parameter.
+相反，GameBoard 模板对特定类型的每个实例都从相应的 Grid 实例派生。例如，用 ChessPiece 类型实例化一个 GameBoard，那么编译器也会为该类型生成 Grid<ChessPiece> 的代码。: public Grid<T> 语法表示这个类从对 T 类型参数有意义的 Grid 实例中继承。
 
-Here is the implementation of the move() member function:
+这是 move() 成员函数的实现：
 
 \begin{cpp}
 template <typename T>
@@ -1166,10 +1161,10 @@ void GameBoard<T>::move(std::size_t xSrc, std::size_t ySrc,
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Although some compilers don’t enforce it, the C++ name lookup rules require you to use the this pointer or Grid<T>:: to refer to data members and member functions in a base class template. Hence, we use Grid<T>::at() instead of just at().
+虽然某些编译器可能不会强制执行，但 C++ 名称查找规则要求使用 this 指针或 Grid<T>:: 来引用基类模板中的数据成员和成员函数，所以这里使用 Grid<T>::at() 而不是at()。
 \end{myNotic}
 
-You can use the GameBoard template as follows:
+可以像这样使用 GameBoard 模板：
 
 \begin{cpp}
 GameBoard<ChessPiece> chessboard { 8, 8 };
@@ -1179,12 +1174,12 @@ chessBoard.move(0, 0, 0, 1);
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Of course, if you want to override member functions from Grid, you will have to mark them virtual in the Grid class template.
+如果想覆盖 Grid 中的成员函数，需要在 Grid 类模板中将其标记为虚。
 \end{myNotic}
 
-\mySubsubsection{12.2.8.}{Inheritance vs. Specialization}
+\mySubsubsection{12.2.8.}{继承与特化}
 
-Some programmers find the distinction between template inheritance and template specialization confusing. The following table summarizes the differences:
+一些开发者发现模板继承和模板特化之间的区别有些混淆。以下表格总结了它们之间的差异：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -1192,58 +1187,64 @@ Some programmers find the distinction between template inheritance and template 
 \begin{longtable}{|l|l|l|}
 \hline
 &
-\textbf{INHERITANCE} &
-\textbf{SPECIALIZATION} \\ \hline
+\textbf{继承} &
+\textbf{特化} \\ \hline
 \endfirsthead
 %
 \endhead
 %
-\textbf{Reuses code?} &
-\begin{tabular}[c]{@{}l@{}}Yes: Derived classes contain all base\\ class data members and member\\ functions.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}No: You must rewrite\\ all required code in the\\ specialization.\end{tabular} \\ \hline
-\textbf{Reuses name?} &
-\begin{tabular}[c]{@{}l@{}}No: The derived class name must be\\ different from the base class name.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Yes: The specialization must\\ have the same name as\\ the original.\end{tabular} \\ \hline
-\textbf{\begin{tabular}[c]{@{}l@{}}Supports\\ polymorphism?\end{tabular}} &
-\begin{tabular}[c]{@{}l@{}}Yes: Objects of the derived class can\\ stand in for objects of the base class.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}No: Each instantiation of\\ a template for a type is a\\ different type.\end{tabular} \\ \hline
+\textbf{复用代码?} &
+\begin{tabular}[c]{@{}l@{}}是的：派生类包含所有基类的\\数据成员和成员函数。
+\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}不：必须重新编写特化中的\\所有代码。
+\end{tabular} \\ \hline
+\textbf{复用名称?} &
+\begin{tabular}[c]{@{}l@{}}不：派生类的名称必须与基类\\名称不同。
+\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}是的：特化必须与原始模板\\具有相同的名称。
+\end{tabular} \\ \hline
+\textbf{\begin{tabular}[c]{@{}l@{}}支持多态?\end{tabular}} &
+\begin{tabular}[c]{@{}l@{}}是的：派生类的对象可以代表\\基类的对象。
+\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}不：每个模板的实例化对于\\一个类型来说是一个不同的类型。
+\end{tabular} \\ \hline
 \end{longtable}
 
 \begin{myNotic}{NOTE}
-Use inheritance for extending implementations and for polymorphism. Use specialization for customizing implementations for particular types.
+使用继承来扩展实现，用于多态。使用特化来为特定类型定制实现。
 \end{myNotic}
 
-\mySubsubsection{12.2.9.}{Alias Templates}
+\mySubsubsection{12.2.9.}{别名模板}
 
-Chapter 1 introduces the concept of type aliases and typedefs. They allow you to give other names to specific types. To refresh your memory, you could, for example, write the following type alias to give a second name to type int:
+第 1 章介绍了类型别名和 typedef 的概念，允许给特定的类型起另一个名字。例如，可以编写以下类型别名，给类型 int 起一个第二个名字：
 
 \begin{cpp}
 using MyInt = int;
 \end{cpp}
 
-Similarly, you can use a type alias to give another name to a class template. Suppose you have the following class template:
+同样，可以使用类型别名给类模板起另一个名字。假设有以下类模板：
 
 \begin{cpp}
 template <typename T1, typename T2>
 class MyClassTemplate { /* ... */ };
 \end{cpp}
 
-You can define the following type alias in which you specify both class template type parameters:
+可以定义以下类型别名，其中指定了类模板的两个类型参数：
 
 \begin{cpp}
 using OtherName = MyClassTemplate<int, double>;
 \end{cpp}
 
-A typedef can also be used instead of such a type alias.
+也可以使用 typedef 代替这样的类型别名。
 
-Additionally, it’s also possible to specify only some of the types and keep the other types as template type parameters. This is called an alias template. Here’s an example:
+此外，还可以指定一些类型而保留其他类型作为模板类型参数，称为别名模板。以下是一个例子：
 
 \begin{cpp}
 template <typename T1>
 using OtherName = MyClassTemplate<T1, double>;
 \end{cpp}
 
-This is something you cannot do with a typedef.
+typedef 无法做到这一点。
 
 
 
