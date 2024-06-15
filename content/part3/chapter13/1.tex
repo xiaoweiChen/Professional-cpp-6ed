@@ -1,69 +1,70 @@
 
-The stream metaphor takes a bit of getting used to. At first, streams may seem more complex than traditional C-style I/O, such as printf(). In reality, they seem complicated initially only because there is a deeper metaphor behind streams than there is behind printf(). Don’t worry, though: after a few examples, everything will be clear.
+流这个概念需要一点时间去适应。一开始，流可能看起来比传统的C风格I/O，比如printf()。实际上，流看起来复杂，只是因为流比printf()更复杂。不过别担心：通过几个例子，一切都会变得清晰起来。
 
-\mySubsubsection{13.1.1.}{What Is a Stream, Anyway?}
+\mySubsubsection{13.1.1.}{流是什么？}
 
-Chapter 1, “A Crash Course in C++ and the Standard Library,” compares the cout stream to a laundry chute for data. You throw some variables down the stream, and they are written to the user’s screen, or console. More generally, all streams can be viewed as data chutes. Streams vary in their direction and their associated source or destination. For example, the cout stream that you are already familiar with is an output stream, so its direction is “out.” It writes data to the console, so its associated destination is “console.” The c in cout does not stand for “console” as you might expect but stands for “character” as it’s a character-based stream. There is another standard stream called cin that accepts input from the user. Its direction is “in,” and its associated source is “console.” As with cout, the c in cin stands for “character.” Both cout and cin are predefined instances of streams available in the std namespace. The following table gives a brief description of all predefined streams defined in <iostream>.
+第1章，将cout流比作数据槽，将一些变量投入流中，就会输出到用户的屏幕或控制台。更一般地说，所有流都可以视为数据槽。流在方向和关联的源或目的地方面有所不同。例如，熟悉的cout流是一个输出流，它的方向是“出”。将数据写入控制台，所以关联目的地是“控制台”。cout中的c并不像你预期的代表“控制台”，而是代表“字符”，因为它是一个基于字符的流。还有一个标准流叫做cin，其接受用户的输入。的方向是“入”，关联源是“控制台”。与cout一样，cin中的c代表“字符”。cout和cin都是std命名空间中可用的流的预定义实例。下表简要描述了<iostream>中定义的所有预定义流。
 
-Streams can be buffered or unbuffered. The difference between them is that a buffered stream does not immediately send the data to the destination. Instead, it buffers, that is collects, incoming data and then sends it in blocks. An unbuffered stream, on the other hand, immediately sends the data to the destination. Buffering is usually done to improve performance, as certain destinations, such as files, perform better when writing bigger blocks at once. Note that you can always force a buffered stream to send all its currently buffered data to the destination by flushing its buffer using the flush() member function. Buffering and flushing is discussed in a bit more detail later in this chapter.
+流可以是缓冲的或无缓冲的。它们之间的区别在于，缓冲流不会立即将数据发送到目的地。相反，会缓冲流会收集传入数据，然后以块的形式发送。另一方面，无缓冲流会立即将数据发送到目的地。缓冲通常是为了提高性能，因为某些目的地，如文件，在一次性写入更大的块时性能更好。请注意，可以通过使用flush()成员函数刷新其缓冲区，始终强制缓冲流将其当前所有缓冲的数据发送到目的地。缓冲和刷新将在本章稍后更详细地讨论。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{STREAM} & \textbf{DESCRIPTION}                                          \\ \hline
+\textbf{流} & \textbf{描述}                                          \\ \hline
 \endfirsthead
 %
 \endhead
 %
-cin             & An input stream, reads data from the “input console”          \\ \hline
-cout            & A buffered output stream, writes data to the “output console” \\ \hline
-cerr & \begin{tabular}[c]{@{}l@{}}An unbuffered output stream, writes data to the “error console,” which is often the\\ same as the “output console”\end{tabular} \\ \hline
-clog            & A buffered version of cerr                                    \\ \hline
+cin             & 一个输入流，从“输入控制台”读取数据。          \\ \hline
+cout            & 一个缓冲的输出流，将数据写入“输出控制台”。
+ \\ \hline
+cerr & \begin{tabular}[c]{@{}l@{}}一个无缓冲的输出流，将数据写入“错误控制台”，与“输出控制台”相同。\end{tabular} \\ \hline
+clog            & cerr的一个缓冲版本。                                    \\ \hline
 \end{longtable}
 
-Remember from Chapter 1 that std::print() and println() by default print to cout but that you can pass a stream as first argument to these functions if you want to print to a different stream, for example:
+第1章中，std::print()和println()默认打印到cout，但如果想要打印到不同的流，可以将一个流作为这些函数的第一个参数，例如：
 
 \begin{cpp}
 println(cerr, "This is an error printed to cerr.");
 \end{cpp}
 
-There are also wide-character, wchar\_t versions available of these streams that have names starting with w: wcin, wcout, wcerr, and wclog. Wide characters can be used to work with languages that have more characters than, for example, English, such as Chinese. Wide characters are discussed in Chapter 21, “String Localization and Regular Expressions.”
+这些流还有宽字符、wchar\_t版本的，名称以w开头：wcin、wcout、wcerr和wclog。宽字符可以用来处理有更多字符的语言，比如中文。宽字符将在第21章中介绍。
 
 \begin{myNotic}{NOTE}
-Every input stream has an associated source. Every output stream has an associated destination.
+每个输入流都有一个关联的源，每个输出流都有一个关联的目的地。
 \end{myNotic}
 
-Another important aspect of streams is that they include data but also have a current position. The current position is the position in the stream where the next read or write operation will take place.
+流不仅包含数据，还具有当前位置。当前位置是流中下一个读或写操作将发生的位置。
 
 \begin{myNotic}{NOTE}
-Graphical user interface applications normally do not have a console; that is, if you write something to cout, the user will not see it. If you are writing a library, you should never assume the existence of cout, cin, cerr, or clog because you never know whether your library will be used in a console or a GUI application.
+图形界面应用通常没有控制台；如果写入cout，用户将看不到它。如果正在编写一个库，永远不应该假设cout、cin、cerr或clog的存在，因为永远不知道这个库是否会在控制台或GUI应用程序中使用。
 \end{myNotic}
 
-\mySubsubsection{13.1.2.}{Stream Sources and Destinations}
+\mySubsubsection{13.1.2.}{流的源和目的地}
 
-Streams as a concept can be applied to any object that accepts data or emits data. You could write a stream-based network class or stream-based access to a Musical Instrument Digital Interface (MIDI) instrument. In C++, there are four common sources and destinations for streams: consoles, files, strings, and fixed buffer arrays. Fixed buffer array support is introduced with C++23.
+流作为一个概念，可用于任受数据或发出数据的对象。可以编写一个基于流的网络类，或者基于流的方式访问音乐乐器数字接口（MIDI）乐器。在C++中，流有四个常见的源和目的地：控制台、文件、字符串和固定缓冲区数组，固定缓冲区数组支持在C++23中加入。
 
-You have already seen many examples of user, or console, streams. Console input streams make programs interactive by allowing input from the user at run time. Console output streams provide feedback to the user and output results.
+我们已经了解了许多用户或控制台流的例子。控制台输入流通过允许运行时用户输入，使程序具有交互性。控制台输出流向用户提供反馈并输出结果。
 
-File streams, as the name implies, read data from and write data to a filesystem. File input streams are useful for reading configuration data and saved files or for batch processing file-based data. File output streams are useful for saving state and providing output. If you are familiar with C-style input and output, then file streams subsume the functionality of the C functions fprintf(), fwrite(), and fputs() for output, and fscanf(), fread(), and fgets() for input. As these C-style functions are not recommended in C++, they are not further discussed.
+文件流，顾名思义，从文件系统读取数据并写入数据。文件输入流对于读取配置数据、保存的文件或批量处理基于文件的数据很有用。文件输出流对于保存状态和提供输出很有用。如果熟悉C风格的输入和输出，则文件流包含了C函数fprintf()、fwrite()和fputs()的输出功能，以及fscanf()、fread()和fgets()的输入功能。由于这些C风格函数在C++中不推荐使用，所以在这里就不多说了。
 
-String streams are an application of the stream metaphor to the string type. With a string stream, you can treat character data just as you would treat any other stream. For the most part, this is merely a handy syntax for functionality that could be handled through member functions on the string class. However, using stream syntax provides opportunities for optimization and can be far more convenient and more efficient than direct use of the string class. String streams subsume the functionality of sprintf(), sprintf\_s(), sscanf(), and other forms of C-style string-formatting functions, not further discussed in this C++ book.
+字符串流是将流的概念应用于字符串类型。使用字符串流，可以像处理其他流一样处理字符数据。大多数情况下，这是可以通过字符串类的成员函数处理的功能的便捷语法，而使用流语法回提供了优化的机会，并且通常比直接使用字符串类更方便、更高效。字符串流包含了sprintf()、sprintf\_s()、sscanf()和其他形式的C风格字符串格式化函数的功能，这在本书中不再讨论。
 
-The streams working with fixed buffer arrays allow you to use the stream metaphor on any block of memory, independently of how memory for that buffer was allocated.
+与固定缓冲区数组一起工作的流，允许使用流的概念处理内存块，而不管该缓冲区的内存如何分配。
 
-The rest of this section deals with console streams (cin and cout). Examples of file, string, and fixed buffer array streams are provided later in this chapter. Other types of streams, such as printer output or network I/O, are often platform dependent, so they are not covered in this book.
+本节的其余部分讨论控制台流（cin和cout）。本章稍后提供了文件、字符串和固定缓冲区数组流的示例。其他类型的流，如打印机输出或网络I/O，通常是平台相关的，所以本书不涉及这些内容。
 
-\mySubsubsection{13.1.3.}{Output with Streams}
+\mySubsubsection{13.1.3.}{使用输出流}
 
-Output using streams is introduced in Chapter 1. This section briefly revisits some of the basics and introduces material that is more advanced.
+第1章中介绍了使用输出流。本节将简要回顾一些基础知识，并引入更高级的内容。
 
-\mySamllsection{Output Basics}
+\mySamllsection{基本使用}
 
-Output streams are defined in <ostream>. There is also <iostream>, which in turn includes the functionality for both input streams and output streams. <iostream> also declares all predefined stream instances: cout, cin, cerr, clog, and the wide versions.
+输出流在<ostream>中定义。还有<iostream>，包括了输入流和输出流的功能。<iostream>还声明了所有预定义的流实例：cout、cin、cerr、clog，以及宽字符版本。
 
-The <{}< operator is the simplest way to use output streams. C++ basic types, such as ints, pointers, doubles, and characters, can be output using <{}<. In addition, the C++ string class is compatible with <{}<, and C-style strings are properly output as well. The following are some examples of using <{}<:
+<{}<运算符是使用输出流的最简单方式。C++的基本类型，如int、指针、double和字符，都可以使用<{}<输出。此外，C++的string类与<{}<兼容，C风格字符串也能正确输出。以下是一些使用<{}<的示例：
 
 \begin{cpp}
 int i { 7 };
@@ -76,7 +77,7 @@ string myString { "Hello World." };
 cout << myString << endl;
 \end{cpp}
 
-The output is as follows:
+输出结果如下：
 
 \begin{shell}
 7
@@ -84,26 +85,26 @@ a
 Hello World.
 \end{shell}
 
-The cout stream is the built-in stream for writing to the console, or standard output. You can “chain” uses of <{}< together to output multiple pieces of data. This is because operator<{}< returns a reference to the stream as its result, so you can immediately use <{}< again on the same stream. Here is an example:
+cout流是用于写入控制台或标准输出的内置流，可以“链式”使用<{}<来输出多个数据项。因为operator<{}<返回流的一个引用作为结果，所以可以立即在同一流上再次使用<{}<：
 
 \begin{cpp}
 int j { 11 };
 cout << "The value of j is " << j << "!" << endl;
 \end{cpp}
 
-The output is as follows:
+输出结果如下：
 
 \begin{shell}
 The value of j is 11!
 \end{shell}
 
-C++ streams correctly parse C-style escape sequences, such as strings that contain \verb|\|n. You can also use std::endl to start a new line. The difference between using \verb|\|n and endl is that \verb|\|n just starts a new line while endl also flushes the buffer. Watch out with endl because too many flushes might hurt performance. The following example uses endl to output and flush several lines of text with just one line of code:
+C++流能正确解析C风格转义序列，如包含\verb|\|n的字符串。还可以使用std::endl开始新的一行。使用\verb|\|n和endl的区别在于，\verb|\|n只是开始新的一行，而endl还会刷新缓冲区。注意endl，过多的刷新可能会影响性能。以下示例使用endl输出并刷新多行文本，仅用一行代码：
 
 \begin{cpp}
 cout << "Line 1" << endl << "Line 2" << endl << "Line 3" << endl;
 \end{cpp}
 
-The output is as follows:
+输出结果如下：
 
 \begin{shell}
 Line 1
@@ -112,23 +113,23 @@ Line 3
 \end{shell}
 
 \begin{myWarning}{WARNING}
- endl flushes the destination buffer, so use it judiciously in performance critical code, such as tight loops.
+endl刷新目标缓冲区，在性能关键代码中要谨慎使用，例如：在紧凑的循环中。
 \end{myWarning}
 
-\mySamllsection{Member Functions of Output Streams}
+\mySamllsection{输出流的成员函数}
 
-The <{}< operator is, without a doubt, the most useful part of output streams. However, there is additional functionality to be explored. If you look through the contents of <ostream>, you’ll see many lines of overloaded definitions of the <{}< operator to support outputting all kinds of different data types. You’ll also find some useful public member functions.
+<{}<运算符无疑是输出流中最有用的部分，还有其他功能值得探索。查看<ostream>中的内容，会看到许多重载的<{}<运算符的定义，支持输出各种不同的数据类型，还会发现一些有用的public成员函数。
 
-\mySamllsection{put() and write()}
+\mySamllsection{put()和write()}
 
-put() and write() are raw output member functions. Instead of taking an object or variable that has some defined behavior for output, put() accepts a single character, while write() accepts a character array. The data passed to these member functions is output as is, without any special formatting or processing. For example, the following code snippet shows how to output a C-style string to the console without using the <{}< operator:
+put()和write()是原始输出成员函数。put()接受单个字符，而write()接受字符数组。传递给这些成员函数的数据将原样输出，没有经过特殊格式化或处理。例如，以下代码片段显示了如何不使用<{}<，将C风格字符串输出到控制台：
 
 \begin{cpp}
 const char* test { "hello there" };
 cout.write(test, strlen(test));
 \end{cpp}
 
-The next snippet shows how to write a single character to the console by using the put() member function:
+下一个代码段展示了，如何使用put()成员函数向控制台写入单个字符：
 
 \begin{cpp}
 cout.put('a');
@@ -136,26 +137,26 @@ cout.put('a');
 
 \mySamllsection{flush()}
 
-When you write to an output stream, the stream does not necessarily write the data to its destination right away. Most output streams buffer, or accumulate, data instead of writing it out as soon as it comes in. This is usually done to improve performance. Certain stream destinations, such as files, are much more performant if data is written in larger blocks, instead of, for example, character by character. The stream flushes, or writes out, the accumulated data, when one of the following conditions occurs:
+当写入输出流时，流不一定会立即将数据写入其目标。大多数输出流缓冲或积累数据，为了提高性能，不是一有数据就立即写入。某些流目标，如文件，如果数据以较大的块写入，而不是例如逐个字符写入，性能会更高。当出现以下情况之一时，流会刷新或写出积累的数据：
 
 \begin{itemize}
 \item
-An endl manipulator is encountered.
+遇到endl操纵符。
 
 \item
-The stream goes out of scope and is destructed.
+流超出作用域并被销毁。
 
 \item
-The stream buffer is full.
+流缓冲区已满。
 
 \item
-You explicitly tell the stream to flush its buffer.
+你明确告诉流刷新其缓冲区。
 
 \item
-Input is requested from a corresponding input stream (that is, when you make use of cin for input, cout will flush). In the section “File Streams,” you will learn how to establish this type of link.
+从相应的输入流请求输入（即，当你使用cin进行输入时，cout将刷新）。在“文件流”一节中，你将学习如何建立这种类型的链接。
 \end{itemize}
 
-One way to explicitly tell a stream to flush is to call its flush() member function, as in the following code:
+告诉流刷新的一种方法是调用其flush()成员函数，如下列代码所示：
 
 \begin{cpp}
 cout << "abc";
@@ -165,14 +166,14 @@ cout << endl; // def is written to the console.
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Not all output streams are buffered. The cerr stream, for example, does not buffer its output.
+并非所有输出流都是缓冲的。例如，cerr流不缓冲其输出。
 \end{myNotic}
 
-\mySamllsection{Handling Output Errors}
+\mySamllsection{处理输出错误}
 
-Output errors can arise in a variety of situations. Perhaps you are trying to open a non-existing file. Maybe a disk error has prevented a write operation from succeeding, for example, because the disk is full. None of the streams’ code you have seen up until this point has considered these possibilities, mainly for brevity. However, it is vital that you address any error conditions that occur.
+输出错误可能在各种情况下出现，也许是试图打开一个不存在的文件，也许磁盘错误阻止了写操作的成功，例如：磁盘已满。目前，看到的流的代码都没有考虑这些可能性，主要是为了简单。然而，处理发生的错误至关重要。
 
-When a stream is in its normal usable state, it is said to be “good.” The good() member function can be called directly on a stream to determine whether the stream is currently good:
+当流处于正常可用状态时，认为是“良好”的。可通过good()成员函数，以确定流当前是否良好：
 
 \begin{cpp}
 if (cout.good()) {
@@ -180,7 +181,7 @@ if (cout.good()) {
 }
 \end{cpp}
 
-good() provides an easy way to obtain basic information about the validity of the stream, but it does not tell you why the stream is unusable. There is a member function called bad() that provides a bit more information. If bad() returns true, it means that a fatal error has occurred (as opposed to any nonfatal condition like end-of-file, eof()). Another member function, fail(), returns true if the most recent operation has failed; however, it doesn’t say anything about the next operation, which can either succeed or fail as well. For example, after calling flush() on an output stream, you could call fail() to make sure the flush was successful:
+good()提供了一种获取关于流基本信息的简单方法，但它没有说为什么流不可用。有一个名为bad()的成员函数提供了更多信息。如果bad()返回true，则发生了致命错误（与任何非致命条件如文件结束，eof()相对）。另一个成员函数fail()，如果最近的操作失败则返回true，但它并不清楚下一个操作的情况，下一个操作也可能成功或失败。例如，输出流上调用flush()之后，可以调用fail()以确保成功刷新：
 
 \begin{cpp}
 cout.flush();
@@ -189,7 +190,7 @@ if (cout.fail()) {
 }
 \end{cpp}
 
-Streams have a conversion operator to convert to type bool. This conversion operator returns the same as calling !fail(). So, the previous code snippet can be rewritten as follows:
+流有一个转换为bool类型的转换运算符，这个转换运算符返回的值与调用!fail()相同。因此，前面的代码段可以重写为：
 
 \begin{cpp}
 cout.flush();
@@ -198,9 +199,9 @@ if (!cout) {
 }
 \end{cpp}
 
-Important to know is that both good() and fail() return false if the end-of-file is reached. The relation is as follows: good() == (!fail() \&\& !eof()).
+重要的是，如果达到文件结束，good()和fail()都返回false。关系如下：good() == (!fail() \&\& !eof())。
 
-You can also tell the streams to throw exceptions when a failure occurs. You then write a catch handler to catch ios\_base::failure exceptions, on which you can use the what() member function to get a description of the error, and the code() member function to get the error code. However, whether or not you get useful information depends on the Standard Library implementation that you use.
+还可以告诉流在发生失败时抛出异常，然后编写一个捕获处理程序来捕获ios\_base::failure异常，可以使用what()成员函数来获取错误的描述，使用code()成员函数来获取错误代码。然而，是否能得到有用的信，息取决于标准库的实现。
 
 \begin{cpp}
 cout.exceptions(ios::failbit | ios::badbit | ios::eofbit);
@@ -212,54 +213,53 @@ try {
 }
 \end{cpp}
 
-To reset the error state of a stream, use clear():
+使用clear()重置流的错误状态:
 
 \begin{cpp}
 cout.clear();
 \end{cpp}
 
-Error checking is performed less frequently for console output streams than for file output or input streams. The member functions discussed here apply for other types of streams as well and are revisited later as each type is discussed.
+与文件输出或输入流相比，控制台输出流的错误检查较少。这里讨论的成员函数，也适用于其他类型的流。
 
+\mySamllsection{输出操作符}
 
-\mySamllsection{Output Manipulators}
+流的一个特性是，不仅只是将数据投入通道。C++流还识别操作符，这些对象改变流的行为，而不是为流提供数据。
 
-One of the unusual features of streams is that you can throw more than just data down the chute. C++ streams also recognize manipulators, objects that make a change to the behavior of the stream instead of, or in addition to, providing data for the stream to work with.
-
-You have already seen one manipulator: endl. The endl manipulator encapsulates data and behavior. It tells the stream to output an end-of-line sequence and to flush its buffer. The following is a non-exhaustive list of some other useful manipulators, many of which are defined in <ios> and <iomanip>. An example after this list shows how to use them:
+已经见到过了一个操作符：endl操作符，封装了数据和行为，告诉流输出一个行结束序列，并刷新其缓冲区。以下是一些其他有用的操作符的非详尽列表，其中许多定义在<ios>和<iomanip>中。这里，展示了如何使用它们：
 
 \begin{itemize}
 \item
-boolalpha and noboolalpha: Tells the stream to output bool values as true and false (boolalpha) or 1 and 0 (noboolalpha). The default is noboolalpha.
+boolalpha和noboolalpha:告诉流以true和false（boolalpha）或1和0（noboolalpha）输出布尔值。默认是noboolalpha。
 
 \item
-hex, oct, and dec: Outputs numbers in hexadecimal, octal, and base 10, respectively.
+hex, oct和dec: 分别以十六进制、八进制和十进制输出数字。
 
 \item
-fixed, scientific, and defaultfloat: Outputs fractional numbers using fixed, scientific, or default formatting, respectively.
+fixed, scientific和defaultfloat: 分别使用定点、科学或默认格式输出小数。
 
 \item
-setprecision: Sets the number of decimal places that are output for fractional numbers using fixed or scientific formatting, or else the total number of digits to output. This is a parameterized manipulator (meaning that it takes an argument).
+setprecision: 设置使用fixed或scientific格式输出小数时的十进制位数，或者输出的总数字位数，这是一个带参数的操作符（接受一个参数）。
 
 \item
-setw: Sets the field width for outputting data. This is a parameterized manipulator.
+setw: 设置输出数据的字段宽度。这是一个带参数的操作符。
 
 \item
-setfill: Sets a character as the new fill character for the stream. The fill character pads output according to the width set by setw. This is a parameterized manipulator.
+setfill: 设置流的新的填充字符，填充字符可根据setw设置的宽度填充输出。这是一个带参数的操作符。
 
 \item
-showpoint and noshowpoint: Forces the stream to always or never show the decimal point for floating-point numbers with no fractional part.
+showpoint和noshowpoint: 强制流不显示没有小数部分的浮点数的十进制点。
 
 \item
-put\_money: A parameterized manipulator that writes a formatted monetary value to a stream.
+put\_money: 一个带参数的操作符，将格式化的货币值写入流。
 
 \item
-put\_time: A parameterized manipulator that writes a formatted time to a stream.
+put\_time: 一个带参数的操作符，将格式化的时间写入流。
 
 \item
-quoted: A parameterized manipulator that encloses a given string with quotes and escapes embedded quotes.
+quoted: 一个带参数的操作符，用引号括起给定的字符串，并转义嵌入的引号。
 \end{itemize}
 
-All of these manipulators stay in effect for subsequent output to the stream until they are reset, except setw, which is active for only the next single output. The following example uses several of these manipulators to customize its output:
+这些操作符在流中后续的输出中保持有效，直到重置(除了setw)，只对下一个单独的输出有效。以下示例，使用这些操作符中的几个来自定义其输出：
 
 \begin{cpp}
 // Boolean values
@@ -318,31 +318,31 @@ cout << "This should be: \"Quoted string with \\\"embedded quotes\\\".\": "
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-With Microsoft Visual C++, this example might give you a security-related error or warning on the call to localtime(). You can either switch to using localtime\_s() or temporarily disable this warning using a \#pragma. See the downloadable source code archive.
+使用Microsoft Visual C++时，这个示例在调用localtime()时可能会给出一个与安全性相关的错误或警告。可以切换到使用localtime\_s()，或者临时使用\#pragma指令禁用这个警告。
 \end{myNotic}
 
-If you don’t care for the concept of manipulators, you can usually get by without them. Streams provide much of the same functionality through equivalent member functions like precision(). For example, take the following line:
+如果你不喜欢操作符，也可以不使用它们。流的成员函数(如precision())，也提供了许多相同的功能：
 
 \begin{cpp}
 cout << "This should be '1.2346': " << setprecision(5) << 1.23456789 << endl;
 \end{cpp}
 
-This can be converted to use a member function call as follows. The advantage of the member function calls is that they return the previous value, allowing you to restore it, if needed.
+这可以转换为使用成员函数调用来实现。使用成员函数调用的优点是会返回之前的值，如果需要，可以进行恢复。
 
 \begin{cpp}
 cout.precision(5);
 cout << "This should be '1.2346': " << 1.23456789 << endl;
 \end{cpp}
 
-For a detailed description of all stream member functions and manipulators, consult your favorite Standard Library Reference.
+有关所有流成员函数和操作符的详细描述，请参阅标准库手册。
 
-\mySubsubsection{13.1.4.}{Input with Streams}
+\mySubsubsection{13.1.4.}{使用输入流}
 
-Input streams provide a simple way to read in structured or unstructured data. In this section, the techniques for input are discussed within the context of cin, the console input stream.
+输入流提供了一种简单的方式，来读取结构化或非结构化数据。本节中，将在cin的上下文中讨论输入技术，cin是控制台输入流。
 
-\mySamllsection{Input Basics}
+\mySamllsection{基本使用}
 
-There are two easy ways to read data by using an input stream. The first is an analog of the <{}< operator that outputs data to an output stream. The corresponding operator for reading data is >{}>. When you use >{}> to read data from an input stream, the variable you provide is the storage for the received value. For example, the following program reads one word from the user and puts it into a string. Then the string is output back to the console:
+使用输入流读取数据有两种简单方法。第一种是输出数据到输出流的<{}<运算符，相应的读取数据的运算符是>{}>。当使用>{}>从输入流读取数据时，提供的变量是接收值的存储位置。例如，以下程序从用户读取一个单词，并将其放入一个字符串中，然后字符串输出到控制台：
 
 \begin{cpp}
 string userInput;
@@ -350,19 +350,19 @@ cin >> userInput;
 println("User input was {}.", userInput);
 \end{cpp}
 
-By default, the >{}> operator tokenizes values according to whitespace. For example, if a user runs the previous program and enters hello there as input, only the characters up to the first whitespace character (the space character in this instance) are captured into the userInput variable. The output would be as follows:
+通常，>{}>运算符根据空白字符对值进行标记化。如果用户运行上一个程序并输入hello there作为输入，只有第一个空白字符（在此例中为空格字符）之前的字符会捕获存储到userInput变量中。输出如下所示：
 
 \begin{shell}
 User input was hello.
 \end{shell}
 
-One solution to include whitespace in the input is to use get(), which is discussed later in this chapter.
+要在输入中包含空白字符，可以使用get()。
 
 \begin{myNotic}{NOTE}
-Whitespace characters in C++ are space (' '), form feed ('\verb|\|f'), line feed ('\verb|\|n'), carriage return ('\verb|\|r'), horizontal tab ('\verb|\|t'), and vertical tab ('\verb|\|v').
+C++中的空白字符包括空格(' ')、换页('\verb|\|f')、换行('\verb|\|n')、回车('\verb|\|r')、水平制表符('\verb|\|t')和垂直制表符('\verb|\|v')。
 \end{myNotic}
 
-The >{}> operator works with different variable types, just like the <{}< operator. For example, to read an integer, the code differs only in the type of the variable:
+>{}>运算符适用于不同的变量类型，就像<{}<运算符一样。要读取一个整数的话，代码只会在变量类型上有所不同：
 
 \begin{cpp}
 int userInput;
@@ -370,7 +370,7 @@ cin >> userInput;
 println("User input was {}.", userInput);
 \end{cpp}
 
-You can use input streams to read in multiple values, mixing and matching types as necessary. For example, the following function, an excerpt from a restaurant reservation system, asks the user for a last name and the number of people in their party:
+可以使用输入流读取多个值，根据需要混合和匹配类型。例如，以下函数，摘自一个餐厅预订系统，询问用户的姓氏和派对的人数：
 
 \begin{cpp}
 void getReservationData()
@@ -386,31 +386,31 @@ void getReservationData()
 }
 \end{cpp}
 
-Remember that the >{}> operator tokenizes values according to whitespace, so getReservationData() does not allow you to enter a name with whitespace. A solution using unget() is discussed later in this chapter. Note also that the first use of cout does not explicitly flush the buffer using endl or flush(), but still, the text will be written to the console because the use of cin immediately flushes the cout buffer; they are linked together in this way.
+>{}>运算符根据空白字符对值进行标记化，所以getReservationData()不允许输入带有空白字符的名字。本章后面将讨论使用unget()的解决方案。还请注意，第一次使用cout时没有使用endl或flush()显式刷新缓冲区，但文本仍然会写入控制台，因为使用cin会立即刷新cout缓冲区(以这种方式链接在一起)。
 
 \begin{myNotic}{NOTE}
-If you get confused between <{}< and >{}>, just think of the angles as pointing toward their destination. In an output stream, <{}< points toward the stream itself because data is being sent to the stream. In an input stream, >{}> points toward the variables because data is being stored.
+如果对于<{}<和>{}>之间感到困惑，只需考虑角度指向其目的地即可。在输出流中，<{}<指向流本身，因为正在发送数据到流中。在输入流中，>{}>指向变量，因为正在存储数据。
 \end{myNotic}
 
-\mySamllsection{Handling Input Errors}
+\mySamllsection{处理输入错误}
 
-Input streams have a number of member functions to detect unusual circumstances. Most of the error conditions related to input streams occur when there is no data available to read. For example, the end of the stream (referred to as end-of-file, even for non–file streams) may have been reached. The most common way of querying the state of an input stream is to access it within a conditional statement. For example, the following loop keeps looping as long as cin remains in a good state. This pattern takes advantage of the fact that evaluating an input stream within a conditional context results in true only if the stream is not in any error state. Encountering an error causes the stream to evaluate to false. The underlying details of the conversion operations required to implement such behavior are explained in Chapter 15, “Overloading C++ Operators.”
+输入流有一系列成员函数来检测不正常的情况。与输入流相关的错误条件大多数发生在没有数据可读取时，例如：流已达到其末尾（即使对于非文件流也称为文件结束）。查询输入流状态最常见的方法是在条件语句中访问，例如：以下循环会持续循环，只要cin处于良好状态。这种模式利用了在条件上下文中评估输入流会导致错误的情况。所以遇到错误时，流会评估为false。实现这种行为的底层转换操作细节，将在第15章中介绍。
 
 \begin{cpp}
 while (cin) { ... }
 \end{cpp}
 
-You can input data at the same time:
+可以在同时输入数据：
 
 \begin{cpp}
 while (cin >> ch) { ... }
 \end{cpp}
 
-The good(), bad(), and fail() member functions can be called on input streams, just as on output streams. There is also an eof() member function that returns true if the stream has reached its end. Similar as for output streams, both good() and fail() return false if the end-of-file is reached. The relation is again as follows: good() == (!fail() \&\& !eof()).
+good(), bad(), 和 fail() 成员函数可以对输入流进行调用，就像对输出流一样。还有一个名为eof()的成员函数，当流达到其末尾时返回true。与输出流类似，good()和fail()在达到文件结束时都返回false。关系如下：good() == (!fail() \&\& !eof())。
 
-You should get into the habit of checking the stream state after reading data so that you can recover from bad input.
+应该在阅读数据后检查流的状态，以便从错误的输入中恢复。
 
-The following program shows a common pattern for reading data from a stream and handling errors. The program reads numbers from standard input and displays their sum once end-of-file is reached. Note that in command-line environments, the end-of-file is indicated by the user typing a particular character. In Unix and Linux, it is Control+D; in Windows it is Control+Z, both followed by Enter. The exact character is operating-system dependent, so you will need to know what your operating system requires.
+以下程序展示了从流中读取数据并处理错误的常见模式。该程序从标准输入读取数字，并在达到文件结束时显示它们的和。注意，命令行环境中，文件结束是由用户输入特定字符来指定。在Unix和Linux中，是Control+D；在Windows中是Control+Z，然后是Enter。确切的字符取决于操作系统，所以需要了解正在使用的操作系统。
 
 \begin{cpp}
 println("Enter numbers on separate lines to add.");
@@ -440,7 +440,7 @@ while (!cin.bad()) {
 println("The sum is {}.", sum);
 \end{cpp}
 
-Here is some example output of this program. The \^{}Z characters in the output appear when Control+Z is pressed.
+这里是在此程序上的示例输出。输出中的\^{}Z字符是在按下Control+Z时出现的。
 
 \begin{shell}
 Enter numbers on separate lines to add.
@@ -453,13 +453,13 @@ WARNING: Bad input encountered: test
 The sum is 6.
 \end{shell}
 
-\mySamllsection{Input Member Functions}
+\mySamllsection{输入流的成员函数}
 
-Just like output streams, input streams have several member functions that allow a lower level of access than the functionality provided by the more common >> operator.
+与输出流一样，输入流有几种成员函数，允许使用更常见的 >{}> 运算符提供的功能更底层的访问级别。
 
 \mySamllsection{get()}
 
-The get() member function allows raw input of data from a stream. The simplest version of get() returns the next character in the stream, though other versions exist that read multiple characters at once. get() is most commonly used to avoid the automatic tokenization that occurs with the >{}> operator. For example, the following function reads a name, which can be made up of several words, from an input stream until the end of the stream is reached:
+get()成员函数允许从流中进行原始输入数据。get()的最简单版本返回流中的下一个字符，尽管存在其他版本，可以一次读取多个字符。get()最常用于避免与 >{}> 运算符自动进行分词。例如，以下函数从输入流中读取一个名字，该名字可以由几个单词组成，直到流结束为止：
 
 \begin{cpp}
 string readName(istream& stream)
@@ -475,20 +475,20 @@ string readName(istream& stream)
 }
 \end{cpp}
 
-There are several interesting observations to make about this readName() function:
+这个readName()函数，有一些有趣的观察：
 
 \begin{itemize}
 \item
-Its parameter is a reference-to-non-const to an istream, not a reference-to-const. The member functions that read in data from a stream will change the actual stream (most notably, its position), so they are not const member functions. Thus, you cannot call them on a reference-to-const.
+其参数是一个对istream的引用为非常量，而不是引用为常量。从流中读取数据的成员函数将改变实际的流（尤其是其位置），所以不是常量成员函数。因此，不能在引用为常量上调用它们。
 
 \item
-The return value of get() is stored in an int, not in a char, because get() can return special non-character values such as std::char\_traits<char>::eof() (end-of-file).
+因为get()可以返回特殊非字符值，所以get()的返回值存储在int中，而不是char中，如std::char\_traits::eof()（文件结束）。
 
 \item
-Newline and other escape characters that are read by get() will appear in the string returned by readName(). If the Ctrl+D or Ctrl+Z isn’t done at the beginning of a line, they too will appear in the returned string.
+get()读取的新行和其他转义字符，将出现在由readName()返回的字符串中。如果不在行的开头按下Ctrl+D或Ctrl+Z，它们也会出现在返回的字符串中。
 \end{itemize}
 
-readName() is a bit strange because there are two ways to get out of the loop: either the stream can get into a failed state or the end of the stream is reached. A more common pattern for reading from a stream uses a different version of get() that takes a reference to a character and returns a reference to the stream. Evaluating an input stream within a conditional context results in true only if the stream is not in any error state. The following version of the same function is a bit more concise:
+readName()有点奇怪，因为退出循环有两种方式：要么流进入失败状态，要么达到流的末尾。更常见的从流中读取数据的模式使用了一个不同的get()版本，该版本接受一个字符的引用，并返回流的引用。在条件上下文中评估输入流，当流不在任何错误状态下时才为真。以下是相同函数的更简洁版本：
 
 \begin{cpp}
 string readName(istream& stream)
@@ -504,11 +504,11 @@ string readName(istream& stream)
 
 \mySamllsection{unget()}
 
-For most purposes, the correct way to think of an input stream is as a one-way chute. Data falls down the chute and into variables. The unget() member function breaks this model in a way by allowing you to push data back up the chute.
+大多数情况下，正确地看待输入流的方式是将其视为单向通道，数据沿着通道落入变量。unget()成员函数以一种方式打破了这种模型，允许将数据推回通道。
 
-A call to unget() causes the stream to back up by one position, essentially putting the previous character read back on the stream. You can use the fail() member function to see whether unget() was successful or not. For example, unget() can fail if the current position is at the beginning of the stream.
+调用unget()会使流回退一个位置，实质上将之前读取的字符放回流中，可以使用fail()成员函数来查看unget()是否成功。例如，如果当前位置在流的开始，unget()可能会失败。
 
-The getReservationData() function shown earlier in this chapter did not allow you to enter a name with whitespace. The following code uses unget() to allow whitespace in the name. The code reads character by character and checks whether the character is a digit or not. If the character is not a digit, it is added to guestName. If it is a digit, the character is put back into the stream using unget(), the loop is stopped, and the >> operator is used to input an integer, partySize. The noskipws input manipulator tells the stream not to skip whitespace; that is, whitespace is read like any other characters.
+本章前面显示的getReservationData()函数不允许输入带有空白字符的名字。以下代码使用unget()允许名字中包含空白字符。代码逐个字符读取，并检查字符是否为数字。如果字符不是数字，会添加到guestName中。如果是数字，字符会使用unget()放回流中，循环停止，并使用>{}>运算符输入整数partySize。noskipws输入操纵器告诉流不要跳过空白字符，所以空白字符像其他字符一样读取。
 
 \begin{cpp}
 void getReservationData()
@@ -544,7 +544,7 @@ void getReservationData()
 
 \mySamllsection{putback()}
 
-The putback() member function, like unget(), lets you move backward by one character in an input stream. The difference is that putback() takes the character being placed back on the stream as a parameter. Here is an example:
+putback()成员函数与unget()类似，允许在输入流中回退一个字符。不同之处在于，putback()将放回流中的字符作为参数。这里有一个示例：
 
 \begin{cpp}
 char c;
@@ -557,7 +557,7 @@ println("Called putback('e').");
 while (cin >> c) { println("Retrieved {}.", c); }
 \end{cpp}
 
-The output can be as follows:
+输出如下所示：
 
 \begin{shell}
 wow
@@ -570,9 +570,9 @@ Retrieved w.
 
 \mySamllsection{peek()}
 
-The peek() member function allows you to preview the next value that would be returned if you were to call get(). To take the chute metaphor perhaps a bit too far, you could think of it as looking up the chute without a value actually falling down it.
+peek()成员函数允许预览调用get()将返回的下一个值。可以将其视为向上看通道，但实际上没有值掉下来。
 
-peek() is ideal for any situation where you need to look ahead before reading a value. For example, the following code implements getReservationData() that allows whitespace in the name, but uses peek() instead of unget():
+peek()适用于需要在读取值之前向前看的情况。例如，以下代码实现了getReservationData()，允许名字中包含空白字符，这里会使用peek()，而不是unget()：
 
 \begin{cpp}
 void getReservationData()
@@ -611,25 +611,25 @@ void getReservationData()
 
 \mySamllsection{getline()}
 
-Obtaining a single line of data from an input stream is so common that a member function exists to do it for you. The getline() member function fills a character buffer with a line of data up to the specified size. This specified size includes the \verb|\|0 character. Thus, the following code reads a maximum of BufferSize-1 characters from cin or until an end-of-line sequence is read:
+从输入流中获取单行数据非常常见，因此有一个成员函数可以为你完成这个任务。getline()成员函数用指定大小的字符缓冲区填充一行数据。这个指定的大小包括\verb|\|0字符。以下代码从cin读取最多BufferSize-1个字符，或者直到读取到行结束序列：
 
 \begin{cpp}
 char buffer[BufferSize] { 0 };
 cin.getline(buffer, BufferSize);
 \end{cpp}
 
-When getline() is called, it reads a line from the input stream, up to and including the end-of-line sequence. However, the end-of-line character or characters do not appear in the string. Note that the end-of-line sequence is platform dependent. For example, it can be \verb|\|r\verb|\|n, \verb|\|n, or \verb|\|n\verb|\|r.
+当调用getline()时，其会从输入流中读取一行数据，直到包括行结束序列。然而，行结束字符或字符不会出现在字符串中。注意，行结束序列取决于平台。例如，可以是\verb|\|r\verb|\|n、\verb|\|n或\verb|\|n\verb|\|r。
 
-There is a form of get() that performs the same operation as getline(), except that it leaves the newline sequence in the input stream.
+get()有一种形式，执行与getline()相同的功能，只保留输入流中新行的序列。
 
-There is also a non-member function called std::getline() that can be used with C++ strings. It is defined in <string> and is in the std namespace. It takes a stream and a string reference. The advantage of using this version of getline() is that it doesn’t require you to specify the size of any buffer.
+还有一个非成员函数std::getline()，可以用于C++字符串。定义在<string>中，属于std命名空间。使用这个版本的getline()的好处是，不需要指定缓冲区的大小。
 
 \begin{cpp}
 string myString;
 getline(cin, myString);
 \end{cpp}
 
-Both the getline() member function and the std::getline() function accept an optional delimiter as last parameter. The default delimiter is \verb|\|n. By changing this delimiter, these functions can be used to read in multiple lines of text until a given delimiter is reached. For example, the following code reads in multiple lines of text until it reads an @ character:
+getline()成员函数和std::getline()函数都接受一个可选的分隔符作为最后一个参数，默认分隔符是\verb|\|n。通过更改这个分隔符，这些函数可以用来读取直到遇到给定分隔符的多行文本。例如，以下代码读取多行文本，直到@字符：
 
 \begin{cpp}
 print("Enter multiple lines of text. "
@@ -639,7 +639,7 @@ getline(cin, myString, '@');
 println("Read text: \"{}\"", myString);
 \end{cpp}
 
-Here is a possible output:
+可能的输出如下所示：
 
 \begin{shell}
 Enter multiple lines of text. Use an @ character to signal the end of the text.
@@ -652,34 +652,34 @@ lines."
 \end{shell}
 
 
-\mySamllsection{Input Manipulators}
+\mySamllsection{输入操作符}
 
-Just as for output streams, input streams support a number of input manipulators. You’ve already seen one, noskipws, which tells an input stream not to skip any whitespace characters. The following list shows other built-in input manipulators available to you that allow you to customize the way data is read:
+与输出流一样，输入流也支持多种输入操作符。已经见过noskipws了，它告诉输入流在标记化时不要跳过空白字符。以下列表显示了其他可用的内置输入操作符，允许按自定义的方式读取数据：
 
 \begin{itemize}
 \item
-boolalpha and noboolalpha: If boolalpha is used, the string false will be interpreted as the Boolean value false; anything else will be treated as the Boolean value true. If noboolalpha is set, zero will be interpreted as false, anything else as true. The default is noboolalpha.
+boolalpha和noboolalpha: 如果使用boolalpha，字符串false将解释为布尔值false；其他内容都将视为布尔值true。如果设置noboolalpha，零将解释为false，其他任何内容为true。流中默认是noboolalpha。
 
 \item
-dec, hex, and oct: Reads numbers in decimal base 10, hexadecimal, or octal notation, respectively. For example, the decimal base 10 number 207 is cf in hexadecimal, and 317 in octal notation.
+dec, hex和oct: 分别以十进制、十六进制或八进制表示读取数字。例如，十进制基数10的数字207在十六进制中是cf，在八进制中是317。
 
 \item
-skipws and noskipws: Tells the stream to either skip whitespace when tokenizing or to read in whitespace as its own token. The default is skipws.
+skipws和noskipws: 告诉流在标记化时跳过空白字符，还是将空白字符作为标记。流中默认是skipws。
 
 \item
-ws: A handy manipulator that simply skips over the current series of whitespace at the current position in the stream.
+ws: 一个方便的操作符，简单地跳过流当前位置的空白字符。
 
 \item
-get\_money: A parameterized manipulator that reads a monetary value from a stream.
+get\_money: 一个参数化操作符，从流中读取货币值。
 
 \item
-get\_time: A parameterized manipulator that reads a formatted time from a stream.
+get\_time: 一个参数化操作符，从流中读取格式化时间。
 
 \item
-quoted: A parameterized manipulator that reads a string enclosed with quotes and in which embedded quotes are escaped. An example of this manipulator is shown later in this chapter.
+quoted: 一个参数化操作符，读取用引号包围的字符串，转义其中嵌入的引号。本章后面将展示这个操作符的一个例子。
 \end{itemize}
 
-Input is locale aware. For example, the following code enables your system locale for cin. Locales are discussed in Chapter 21:
+输入可以是区域化的。例如，以下代码使cin使用系统区域。区域化将在第21章中介绍：
 
 \begin{cpp}
 cin.imbue(locale { "" });
@@ -687,11 +687,11 @@ int i;
 cin >> i;
 \end{cpp}
 
-If your system locale is U.S. English, you can enter 1,000 and it will be parsed as 1000. If you enter 1.000, it will be parsed as 1. On the other hand, if your system locale is Dutch Belgium, you can enter 1.000 to get the value of 1000, but entering 1,000 will result in 1. In both cases, you can also just enter 1000 without any digit separators to get the value 1000.
+如果你的系统区域设置是美式英语，可以输入1,000，程序会解析为1000。如果输入1.000，程序会解析为1。另外，如果系统区域设置是荷兰比利时，可以输入1.000来得到1000的值，但输入1,000会得到1。这两种情况下，也可以直接输入1000，没有任何数字分隔符，从而得到1000的值。
 
-\mySubsubsection{13.1.5.}{Input and Output with Objects}
+\mySubsubsection{13.1.5.}{对象的输入和输出}
 
-If you are familiar with the old-school printf() function from C for output, you know that it is not flexible and does not support custom types. printf() knows about several types of data, but there really isn’t a way to give it additional knowledge. For example, consider the following simple class:
+如果熟悉C语言中用于输出的旧式printf()函数，它不够灵活，也不支持自定义类型。printf()了解几种数据类型，但并没有办法扩展。例如，以下简单的类：
 
 \begin{cpp}
 class Muffin final
@@ -718,15 +718,15 @@ class Muffin final
 };
 \end{cpp}
 
-To output an object of class Muffin by using printf(), it would be nice if you could specify it as an argument, perhaps using \%m as a placeholder:
+使用printf()输出Muffin类对象时，如果能指定它作为一个参数，也许\%m可以作为一个很好的占位符：
 
 \begin{cpp}
 printf("Muffin: %m\n", myMuffin); // BUG! printf doesn't understand Muffin.
 \end{cpp}
 
-Unfortunately, the printf() function knows nothing about the Muffin type and is unable to output an object of type Muffin. Worse still, because of the way the printf() function is declared, this will result in a run-time error, not a compile-time error (though a good compiler will give you a warning).
+不幸的是，printf()函数对Muffin类型一无所知，无法输出Muffin类型对象。更糟糕的是，由于printf()函数的声明方式，这会导致运行时错误，而不是编译时错误（好的编译器会给出警告）。
 
-The best you can do with printf() is to add a new output() member function to the Muffin class:
+用printf()能做的最好的方式是，在Muffin类中添加一个新的输出()成员函数：
 
 \begin{cpp}
 class Muffin final
@@ -741,7 +741,7 @@ class Muffin final
 };
 \end{cpp}
 
-Using such a mechanism is cumbersome, however. To output a Muffin in the middle of another line of text, you’d need to split the line into two calls with a call to Muffin::output() in between, as shown here:
+要在另一行文本中间输出一个Muffin，需要将这行文本分成两个调用，并在两者之间调用Muffin::output()：
 
 \begin{cpp}
 printf("The muffin is a ");
@@ -749,7 +749,7 @@ myMuffin.output();
 printf(" -- yummy!\n");
 \end{cpp}
 
-A much better and modern option is to write a custom std::formatter specialization for Muffin objects as explained in Chapter 2. The following is a simple custom formatter for Muffins. To keep the example concise, this formatter does not support any format specifiers. Thus, the parse() abbreviated member function template does not need to parse anything and can just return begin(context).
+更好、更现代的选项是，为Muffin对象编写自定义的std::formatter特化，如第2章所述。以下是Muffins的简单自定义格式化器。为了保持示例简洁，这个格式化器不支持任何格式说明符。因此，parse()简化的成员函数模板不需要任何解析，只需返回context的起始位置即可。
 
 \begin{cpp}
 template <>
@@ -768,19 +768,19 @@ class std::formatter<Muffin>
 };
 \end{cpp}
 
-With this custom formatter, you can use the modern std::print() and println() functions to print a muffin. Here is an example:
+有了这个自定义格式化器，可以使用现代的std::print()和println()函数输出Muffin：
 
 \begin{cpp}
 println("The muffin is a {} -- yummy!", myMuffin);
 \end{cpp}
 
-Yet another option to print Muffins is to overload the <{}< operator after which you output a Muffin just like you output a string—by providing it as an argument to operator<{}<. Additionally, you can overload the >{}> operator so that you can input Muffins from an input stream. Chapter 15 covers the details of overloading the <{}< and >{}> operators.
+打印Muffins的另一种选项是在<{}<运算符上重载，之后像输出字符串一样输出Muffin——只需将其作为<{}<运算符的参数提供。此外，还可以重载>{}>运算符，以便可以从输入流中输入Muffins。第15章介绍了重载<{}<和>{}>运算符的细节。
 
-\mySubsubsection{13.1.6.}{Custom Manipulators}
+\mySubsubsection{13.1.6.}{自定义操作符}
 
-The Standard Library comes with a number of built-in stream manipulators, but, if need be, custom manipulators can be written.
+标准库包含许多内置的流操作符，也可以编写自定义操作符。
 
-Writing your own non-parameterized manipulator is easy. Here’s a simple example defining a tab output manipulator which outputs the tab character to a given stream:
+编写自己的非参数化操作符很简单。这里有一个简单的示例，定义了一个制表符输出操作符，将制表符输出到给定的流中：
 
 \begin{cpp}
 ostream& tab(ostream& stream) { return stream << '\t'; }
@@ -791,15 +791,15 @@ int main()
 }
 \end{cpp}
 
-Writing custom parameterized manipulators is more complicated. It involves using functionality exposed by ios\_base, such as xalloc(), iword(), pword(), and register\_callback(). Since such manipulators are rarely needed, this text does not further discuss this topic. Consult your favorite Standard Library reference in case you are interested.
+编写自定义的参数化操作符很复杂，涉及到使用ios\_base的功能，如xalloc()、iword()、pword()和register\_callback()。由于这样的操作符很少见，本文不再进一步讨论。如果感兴趣，可以查阅标准库手册。
 
 \begin{myNotic}{NOTE}
-Turning an object into a “flattened” type, like a string, is often called marshaling. Marshaling is useful for saving objects to disk or sending them across a network.
+将对象转换为“扁平化”类型，如字符串，通常称为编组。编组对于将对象保存到磁盘或通过网络发送很有用。
 \end{myNotic}
 
-An advantage of string streams over standard C++ strings is that, in addition to data, they know where the next read or write operation will take place, also called the current position.
+字符串流相对于标准C++字符串的优势是，除了数据，还知道下一次读或写操作将发生的位置，也称为当前位置。
 
-Another advantage is that string streams support manipulators and locales to enable more powerful formatting compared to strings.
+另一个优势是字符串流支持操作符和区域设置，以实现比字符串更强大的格式化。
 
-Finally, if you need to build up a string by concatenating several smaller strings, using a string stream will be more performant compared to concatenating string objects directly.
+最后，如果需要通过连接几个较小的字符串来构建一个字符串，使用字符串流将比直接连接字符串对象更为高效。
 
