@@ -1,8 +1,8 @@
-So far, this chapter has discussed input and output streams as two separate but related classes. However, there is such a thing as a stream that performs both input and output: a bidirectional stream.
+目前为止，本章讨论了输入流和输出流作为两个相关的类。然而，有一种流可以执行输入和输出：双向流。
 
-Bidirectional streams derive from iostream, which in turn derives from both istream and ostream, thus serving as an example of useful multiple inheritance. As you would expect, bidirectional streams support both the >{}> operator and the <{}< operator, as well as the member functions of both input streams and output streams.
+双向流从iostream派生，iostream又从istream和ostream派生，因此它是一个有用的多重继承的例子，双向流支持>{}>运算符和<{}<运算符，以及输入流和输出流的成员函数。
 
-The fstream class provides a bidirectional file stream. fstream is ideal for applications that need to replace data within a file, because you can read until you find the correct position and then immediately switch to writing. For example, imagine a program that stores a list of mappings between ID numbers and phone numbers. It might use a data file with the following format:
+fstream类提供了一个双向文件流。fstream适用于需要替换文件中的数据的程序，可以在找到正确位置后立即切换到写入。例如，有一个程序，将ID号和电话号码之间的映射存储在一个数据文件中，可能使用以下格式的数据文件：
 
 \begin{shell}
 123 408-555-0394
@@ -11,10 +11,9 @@ The fstream class provides a bidirectional file stream. fstream is ideal for app
 100 650-555-3434
 \end{shell}
 
-A reasonable approach to such a program would be to read in the entire data file when the program opens and rewrite the file, with any modifications, when the program closes. If the data set is huge, however, you might not be able to keep everything in memory. With iostreams, you don’t have to. You can easily scan through the file to find a record, and you can add new records by opening the file for output in append mode. To modify an existing record, you could use a bidirectional stream, as in the following function that changes the phone number for a given ID:
+一个合理的做法是在程序打开时读取整个数据文件，并在程序关闭时修改重写文件。如果数据集非常大，可能无法将其全部保存在内存中。使用iostreams，不必这样做。可以轻松地扫描文件以找到一个记录，并通过以追加模式打开文件来添加新记录。要修改现有记录，可以使用双向流，如下所示的函数将给定ID的电话号码更改为新号码：
 
-
-\begin{shell}
+\begin{cpp}
 bool changeNumberForID(const string& filename, int id, string_view newNumber)
 {
     fstream ioData { filename };
@@ -45,14 +44,14 @@ bool changeNumberForID(const string& filename, int id, string_view newNumber)
     }
     return true;
 }
-\end{shell}
+\end{cpp}
 
-Of course, an approach like this only works properly if the data is of a fixed size. When the preceding program switched from reading to writing, the output data overwrote other data in the file. To preserve the format of the file and to avoid writing over the next record, the data had to be the exact same size.
+当然，这种方法只有在数据大小固定时才能正确工作。当程序从前一个读取切换到写入时，输出的数据会覆盖文件中的其他数据。为了保持文件格式，避免覆盖下一个记录，数据必须相同。
 
-String streams can also be accessed in a bidirectional manner through the stringstream class.
+也可以通过stringstream类，以双向方式访问字符串流。
 
 \begin{myNotic}{NOTE}
-Bidirectional streams have separate pointers for the read position and the write position. When switching between reading and writing, you need to seek the appropriate position.
+双向流有单独的指针用于读取位置和写入位置。切换读取和写入时，需要移动到适当的位置。
 \end{myNotic}
 
 

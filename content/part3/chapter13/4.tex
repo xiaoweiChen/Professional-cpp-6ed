@@ -1,38 +1,47 @@
 
-Files lend themselves well to the stream abstraction because reading and writing files always involves a position in addition to the data. In C++, the std::ofstream and ifstream classes provide output and input functionality for files. They are defined in <fstream>.
+因为读写文件总是涉及位置和数据，所以文件非常适合流。在C++中，std::ofstream和ifstream类为文件提供了输出和输入功能，其定义在<fstream>中。
 
-When dealing with the filesystem, it is especially important to detect and handle error cases. The file you are working with could be on a network file store that just went offline, or you may be trying to write to a file that is located on a disk that is full. Maybe you are trying to open a file for which the current user does not have permissions. Error conditions can be detected by using the standard error handling mechanisms described earlier.
+处理文件系统时，特别重要的是检测和处理错误情况。正在处理的文件可能位于刚刚脱机的网络文件存储上，或者可能会尝试写入位于已满磁盘上的文件，也许正在尝试打开一个当前用户没有权限的文件。可以通过使用前面描述的标准错误处理机制，来检测错误。
 
-The only major difference between output file streams and other output streams is that the file stream constructor can take the name of the file and the mode in which you would like to open it. The default mode is write, ios\_base::out, which starts writing to a file at the beginning, overwriting any existing data. You can also open an output file stream in append mode by specifying the constant ios\_base::app as the second argument to the file stream constructor. The following table lists the different constants that are available:
+输出文件流与其他输出流之间的主要区别是，文件流构造函数可以接受文件名，以及期望以哪种模式打开它。默认模式是写入，ios\_base::out，从文件开始写入，覆盖现有数据。也可以通过在文件流构造函数中指定常量ios\_base::app作为第二个参数，以附加模式打开输出文件流。以下表格列出了有关读写模式的常量：
+
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{CONSTANT} & \textbf{DESCRIPTION}                                    \\ \hline
+\textbf{常量} & \textbf{描述}                                    \\ \hline
 \endfirsthead
 %
 \endhead
 %
-ios\_base::app    & Open, and go to the end before each write operation.    \\ \hline
-ios\_base::ate    & Open, and go to the end once immediately after opening. \\ \hline
-ios\_base::binary           & \begin{tabular}[c]{@{}l@{}}Perform input and output in binary mode as opposed to text mode.\\ See the next section.\end{tabular} \\ \hline
-ios\_base::in     & Open for input, start reading at the beginning.         \\ \hline
-ios\_base::out              & \begin{tabular}[c]{@{}l@{}}Open for output, start writing at the beginning, overwriting\\ existing data.\end{tabular}            \\ \hline
-ios\_base::trunc  & Option for out. Delete all existing data (truncate).    \\ \hline
-ios\_base::noreplace(C++23) & \begin{tabular}[c]{@{}l@{}}Option for out. Open in exclusive mode. Open will fail if the file\\ already exists.\end{tabular}     \\ \hline
+ios\_base::app    & 打开文件，并在每次写操作前跳转到文件末尾。
+    \\ \hline
+ios\_base::ate    & 打开文件，并在立即打开后跳转到文件末尾。
+ \\ \hline
+ios\_base::binary           & \begin{tabular}[c]{@{}l@{}}以二进制模式进行输入输出，而不是文本模式。
+\end{tabular} \\ \hline
+ios\_base::in     & 以只读模式打开文件，从开始处开始读取。
+         \\ \hline
+ios\_base::out              & \begin{tabular}[c]{@{}l@{}}以写入模式打开文件，从开始处开始写入，覆盖现有数据。
+\end{tabular}            \\ \hline
+ios\_base::trunc  & 输出选项。删除所有现有数据（截断）。
+    \\ \hline
+ios\_base::noreplace(C++23) & \begin{tabular}[c]{@{}l@{}}输出选项。以独占模式打开。如果文件已存在，打开将失败。
+\end{tabular}     \\ \hline
 \end{longtable}
 
-Note that modes can be combined. For example, if you want to open a file for output in binary mode, while truncating existing data, you would specify the open mode as follows:
+模式可以组合使用。例如，如果想以二进制模式打开文件用于输出，同时截断现有数据，指定得打开模式如下所示：
 
 \begin{cpp}
 ios_base::out | ios_base::binary | ios_base::trunc
 \end{cpp}
 
-An ifstream automatically includes the ios\_base::in mode, while an ofstream automatically includes the ios\_base::out mode, even if you don’t explicitly specify in or out as the mode.
+ifstream包含ios\_base::in模式，而ofstream包含ios\_base::out模式。
 
-The following program opens the test.txt file and writes the program’s arguments to it. The ifstream and ofstream destructors automatically close the underlying file, so there is no need to explicitly call close().
+以下程序打开test.txt文件并将程序的参数写入其中。ifstream和ofstream析构函数会自动关闭底层的文件，没有必要显式调用close()。
+
 
 \begin{cpp}
 int main(int argc, char* argv[])
@@ -50,63 +59,62 @@ int main(int argc, char* argv[])
 }
 \end{cpp}
 
-\mySubsubsection{13.4.1.}{Text Mode vs. Binary Mode}
+\mySubsubsection{13.4.1.}{文本模式和二进制模式}
 
-By default, a file stream is opened in text mode. If you specify the ios\_base::binary flag, then the file is opened in binary mode.
+默认情况下，文件流以文本模式打开。如果指定了ios\_base::binary，则文件以二进制模式打开。
 
-In binary mode, the exact bytes you ask the stream to write are written to the file. When reading, the bytes are returned to you exactly as they are in the file.
+二进制模式下，请求流写入的的字节会写入文件。读取时，字节会以文件中的确切形式返回。
 
-In text mode, there is some hidden conversion happening: each line you write to, or read from, a file ends with \verb|\|n. However, how the end of a line is encoded in a file depends on the operating system. For example, on Windows, a line ends with \verb|\|r\verb|\|n instead of with a single \verb|\|n character. Therefore, when a file is opened in text mode and you write a line ending with \verb|\|n to it, the underlying implementation automatically converts the \verb|\|n to \verb|\|r\verb|\|n before writing it to the file. Similarly, when reading a line from the file, the \verb|\|r\verb|\|n that is read from the file is automatically converted back to \verb|\|n before being returned to you.
+文本模式下，有些隐藏的转换正在发生：写入或从文件读取的每行都以\verb|\|n结尾。然而，文件中行的结束如何编码取决于操作系统。例如，在Windows上，一行以\verb|\|r\verb|\|n而不是单个\verb|\|n字符结束。因此，当文件以文本模式打开时，写入文件的以\verb|\|n结尾的行，底层实现会自动将\verb|\|n转换为\verb|\|r\verb|\|n后再写入文件。类似地，从文件中读取一行时，从文件中读取的\verb|\|r\verb|\|n会自动转换回\verb|\|n后再返回。
 
-\mySubsubsection{13.4.2.}{Jumping Around with seek() and tell()}
+\mySubsubsection{13.4.2.}{使用seek()和tell()跳转}
 
-The seekx() and tellx() member functions are present on all input and output streams. The seekx() member functions let you move to an arbitrary position within an input or output stream. There are several forms of seekx(). For an input stream, the member function is called seekg() (the g is for get), and for an output stream, it is called seekp() (the p is for put). You might wonder why there is both a seekg() and a seekp() member function, instead of one seek() member function. The reason is that you can have streams that are both input and output, for example, file streams. In that case, the stream needs to remember both a read position and a separate write position. This is also called bidirectional I/O and is covered later in this chapter.
+seekx()和tellx()成员函数存在于所有输入和输出流中，seekx()成员函数允许在输入或输出流中的任意位置移动。seekx()有几种形式，对于输入流，成员函数称为seekg()（g代表get），对于输出流，它称为seekp()（p代表put）。可能会想知道为什么既有seekg()又有seekp()成员函数，而不是一个seek()成员函数。原因是，有既是输入又是输出的流，例如文件流。这种情况下，流需要记住一个读取位置和一个单独的写入位置，这也称作双向I/O，本章后面将详细介绍。
 
-There are two overloads of seekg() and two of seekp(). One overload accepts a single argument, an absolute position, and seeks to this absolute position. The second overload accepts an offset and a position and seeks an offset relative to the given position. Positions are of type std::streampos, while offsets are of type std::streamoff; both are measured in bytes. There are three predefined positions available, as shown in the following table:
+seekg()和seekp()各有两个重载。一个重载接受一个单一参数，即绝对位置，并移动到这个绝对位置。第二个重载接受一个偏移量和位置，并在给定位置上寻找相对偏移量。位置的类型是std::streampos，而偏移量的类型是std::streamoff；两者都按字节进行。有三个预定义的位置可用，如下表所示：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{POSITION} & \textbf{DESCRIPTION}               \\ \hline
+\textbf{位置} & \textbf{描述}               \\ \hline
 \endfirsthead
 %
 \endhead
 %
-ios\_base::beg    & The beginning of the stream        \\ \hline
-ios\_base::end    & The end of the stream              \\ \hline
-ios\_base::cur    & The current position in the stream \\ \hline
+ios\_base::beg    & 流的起始       \\ \hline
+ios\_base::end    & 流的末尾              \\ \hline
+ios\_base::cur    & 流的当前位置 \\ \hline
 \end{longtable}
 
-
-For example, to seek to an absolute position in an output stream, you can use the one-parameter overload of seekp(), as in the following case, which uses the constant ios\_base::beg to move to the beginning of the stream:
+例如，要在输出流中移动到绝对位置，可以使用seekp()的一个参数重载。如下例所示，使用constant ios\_base::beg将位置移动到流的开始：
 
 \begin{cpp}
 outStream.seekp(ios_base::beg);
 \end{cpp}
 
-Seeking within an input stream is the same, except that the seekg() member function is used:
+输入流中移动与在输出流中移动相同，只是换成使用seekg()成员函数了：
 
 \begin{cpp}
 inStream.seekg(ios_base::beg);
 \end{cpp}
 
-The two-argument overloads move to a relative position in the stream. The first argument prescribes how many positions to move, and the second argument provides the starting point. To move relative to the beginning of the file, the constant ios\_base::beg is used. To move relative to the end of the file, ios\_base::end is used. To move relative to the current position, ios\_base::cur is used. For example, the following line moves to the second byte from the beginning of the output stream. Note that integers are implicitly converted to type streampos and streamoff.
+两个参数的重载用于在流中移动相对位置。第一个参数规定要移动多少位置，第二个参数提供起始点。要相对于文件的开头移动，使用constant ios\_base::beg。要相对于文件末尾移动，使用ios\_base::end。要相对于当前位置移动，使用ios\_base::cur。例如，以下行将输出流的位置移动到开头后的第二个字节，注意整数会隐式转换为streampos和streamoff类型。
 
 \begin{cpp}
 outStream.seekp(2, ios_base::beg);
 \end{cpp}
 
-The next example moves to the third-to-last byte of an input stream:
+下一个例子将输入流的位置移动到，输入流的倒数第三个字节：
 
 \begin{cpp}
 inStream.seekg(-3, ios_base::end);
 \end{cpp}
 
-You can also query a stream’s current location using the tellx() member function, which returns a streampos that indicates the current position. You can use this result to remember the current marker position before doing a seekx() or to query whether you are in a particular location. There are again separate versions of tellx() for input streams and output streams. Input streams use tellg(), and output streams use tellp().
+还可以使用tellx()成员函数查询流的当前位置，该函数返回一个streampos，指示当前位置。可以使用这个结果在执行seekx()之前记住当前标记位置，或者查询是否处于特定位置。对于输入流和输出流，tellx()也有独立版本。输入流使用tellg()，输出流使用tellp()。
 
-The following code checks the position of an input stream to determine whether it is at the beginning:
+以下代码检查输入流的位置，以确定是否位于开头：
 
 \begin{cpp}
 streampos curPos { inStream.tellg() };
@@ -115,29 +123,29 @@ if (ios_base::beg == curPos) {
 }
 \end{cpp}
 
-The following is a sample program that brings it all together. This program writes into a file called test.out and performs the following tests:
+以下是一个示例程序，将所有内容整合在一起。这个程序写入一个名为test.out的文件，并执行以下测试：
 
 \begin{enumerate}
 \item
-Outputs the string 54321 to the file
+向文件输出字符串54321
 
 \item
-Verifies that the marker is at position 5 in the stream
+验证标记是否位于流中的位置5
 
 \item
-Moves to position 2 in the output stream
+输出流中移动到位置2
 
 \item
-Outputs a 0 in position 2 and closes the output stream
+在位置2输出一个0，并关闭输出流
 
 \item
-Opens an input stream on the test.out file
+打开一个输入流，用于test.out文件
 
 \item
-Reads the first token as an integer
+读取第一个标记作为整数
 
 \item
-Confirms that the value is 54021
+确认值是54021
 \end{enumerate}
 
 \begin{cpp}
@@ -189,13 +197,13 @@ if (testVal == expected) {
 }
 \end{cpp}
 
-\mySubsubsection{13.4.3.}{Linking Streams Together}
+\mySubsubsection{13.4.3.}{链接流}
 
-A link can be established between any input and output streams to give them flush-on-access behavior. In other words, when data is requested from an input stream, its linked output stream is automatically flushed. This behavior is available to all streams but is particularly useful for file streams that may be dependent upon each other.
+可以在输入流和输出流之间建立链接，以实现访问时自动刷新的行为。换句话说，当从输入流请求数据时，其链接的输出流将自动刷新。这种行为对所有流都可用，但对于可能相互依赖的文件流尤其有用。
 
-Stream linking is accomplished with the tie() member function. To tie an output stream to an input stream, call tie() on the input stream, and pass the address of the output stream. To break the link, pass nullptr.
+流链接通过tie()成员函数实现。要将输出流链接到输入流，请在输入流上调用tie()，并传递输出流的地址。要断开链接的话，传递nullptr即可。
 
-The following program ties the input stream of one file to the output stream of an entirely different file. You could also tie it to an output stream on the same file, but bidirectional I/O (covered in the next section) is perhaps a more elegant way to read and write the same file simultaneously.
+以下程序将一个文件的输入流链接到另一个完全不同文件的输出流，也可以将链接到同一文件的输出流，但双向I/O（下一节介绍）可能是同时读写同一文件更优雅的方式。
 
 \begin{cpp}
 ifstream inFile { "input.txt" }; // Note: input.txt must exist.
@@ -212,19 +220,19 @@ inFile >> nextToken;
 // outFile HAS been flushed.
 \end{cpp}
 
-The flush() member function is defined on the ostream base class, so you can also link an output stream to another output stream. Here’s an example:
+flush()成员函数定义在ostream基类中，也可以将一个输出流链接到另一个输出流中。例如：
 
 \begin{cpp}
 outFile.tie(&anotherOutputFile);
 \end{cpp}
 
-Such a relationship means that every time you write to one file, the buffered data that has been sent to the other file is flushed. You can use this mechanism to keep two related files synchronized.
+这样，每次你向一个文件写入数据时，已发送到另一个文件的缓冲数据将刷新。可以使用这种机制来保持两个文件内容同步。
 
-One example of this stream linking is the link between cout and cin. Whenever you try to input data from cin, cout is automatically flushed. There is also a link between cerr and cout, meaning that any output to cerr causes cout to flush. The clog stream, on the other hand, is not linked to cout. The wide versions of these streams have similar links.
+这种流链接的一个例子是cout和cin之间的链接。每当尝试从cin输入数据时，cout会自动刷新。cerr和cout之间也有链接，所以cerr的输出都会刷新cout。另一方面，clog流没有链接到cout。这些流宽字符版本之间也有类似的链接。
 
-\mySubsubsection{13.4.4.}{Read an Entire File}
+\mySubsubsection{13.4.4.}{读取整个文件}
 
-You can use getline() to read the entire contents of a file by specifying \verb|\|0 as the delimiter. This works only as long as the file doesn’t contain any \verb|\|0 characters in its contents. For example:
+可以使用getline()读取整个文件的内容，通过指定\verb|\|0作为分隔符。只要文件内容中不包含\verb|\|0字符，这就可以工作。例如：
 
 \begin{cpp}
 ifstream inputFile { "some_data.txt" };

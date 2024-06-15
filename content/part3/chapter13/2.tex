@@ -1,10 +1,10 @@
-String streams provide a way to use stream semantics with strings. In this way, you can have an in-memory stream that represents textual data. For example, in a GUI application you might want to use streams to build up textual data, but instead of outputting the text to the console or a file, you might want to display the result in a GUI element like a message box or an edit control. Another example could be that you want to pass a string stream around to different functions, while retaining the current read position, so that each function can process the next part of the stream. String streams are also useful for parsing text, because streams have built-in tokenizing functionality.
+字符串流提供了一种使用流语义与字符串相结合的方式，这样就可以有一个代表文本数据的内存流。例如，在GUI应用程序中，可能会想要使用流来构建文本数据，但不是将文本输出到控制台或文件，而是想在GUI（如消息框或编辑控件）中显示结果。另一个例子是，想要将字符串流传递到不同的函数中，同时保持当前的读取位置，以便每个函数都可以处理流的一部分。字符串流在解析文本时也非常有用，因为流具有内置的标记化功能。
 
-The std::ostringstream class is used to write data to a string, while std::istringstream is used to read data from a string. The o in ostringstream stands for output, while the i in istringstream stands for input. They are both defined in <sstream>. Because ostringstream and istringstream inherit the same behavior as ostream and istream, working with them is pleasantly similar.
+std::ostringstream类用于将数据写入字符串，而std::istringstream类用于从字符串读取数据。ostringstream中的o代表输出，而istringstream中的i代表输入，都定义在<sstream>中。由于ostringstream和istringstream继承了ostream和istream的行为，因此使用的方式也非常相似。
 
-The following program requests words from the user and outputs them to a single ostringstream, separated by commas and surrounded by double quotes. At the end of the program, the whole stream is turned into a string object using the str() member function and is written to the console.
+以下程序请求用户输入单词，并将它们输出到一个单独的ostringstream中，单词之间用逗号分隔，并用双引号包围。程序结束时，整个流通过str()成员函数转换为字符串对象，并写入控制台。
 
-Input of tokens can be stopped by entering the token “done” or by closing the input stream with Control+D (Unix) or Control+Z (Windows).
+通过输入标记“done”或通过使用Control+D（Unix）或Control+Z（Windows）关闭输入流来停止输入。
 
 \begin{cpp}
 println("Enter tokens. "
@@ -25,13 +25,13 @@ while (cin) {
 println("The end result is: {}", outStream.str());
 \end{cpp}
 
-Reading data from a string stream is similarly familiar. The following function creates and populates a Muffin object (see the earlier example) from a string input stream. The stream data is in a fixed format so that the function can easily turn its values into calls to Muffin’s setters. This fixed format is the description of the muffin between double quotes, followed by the size, followed by true or false depending on whether the muffin has chocolate chips. For example, the following string is a valid muffin:
+从字符串流中读取数据也同样熟悉，以下函数从字符串输入流创建并填充一个Muffin对象（参见之前的示例）。流数据以固定格式表示，因此函数可以轻松地将其值转换为Muffin的setter调用。这个固定格式是Muffin的描述（在双引号之间），后面跟着大小，后面跟着真或假，取决于Muffin是否有巧克力碎片。例如，以下字符串是一个有效的Muffin：
 
 \begin{shell}
 "Raspberry Muffin" 12 true
 \end{shell}
 
-Here is the implementation. Note the use of the quoted manipulator to read a quoted string from the input stream.
+这里是实现。注意使用quoted操作符，从输入流读取带引号的字符串。
 
 \begin{cpp}
 Muffin createMuffin(istringstream& stream)
@@ -57,11 +57,11 @@ Muffin createMuffin(istringstream& stream)
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Turning an object into a “flattened” type, like a string, is often called marshaling. Marshaling is useful for saving objects to disk or sending them across a network.
+将对象转换为“扁平化”类型，如字符串，通常称为编组。编组对于将对象保存到磁盘或通过网络发送很有用。
 \end{myNotic}
 
-An advantage of string streams over standard C++ strings is that, in addition to data, they know where the next read or write operation will take place, also called the current position.
+字符串流相对于标准C++字符串的优势是，除了数据，还知道下一次读或写操作将发生的位置，也称为当前位置。
 
-Another advantage is that string streams support manipulators and locales to enable more powerful formatting compared to strings.
+另一个优势是字符串流支持操作符和区域设置，以实现比字符串更强大的格式化。
 
-Finally, if you need to build up a string by concatenating several smaller strings, using a string stream will be more performant compared to concatenating string objects directly.
+最后，如果需要通过连接几个较小的字符串来构建一个字符串，使用字符串流将比直接连接字符串对象更为高效。

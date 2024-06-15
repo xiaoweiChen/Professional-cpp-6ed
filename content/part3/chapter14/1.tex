@@ -5,11 +5,11 @@ No program exists in isolation; they all depend on external facilities such as i
 
 Exceptions are a mechanism for a piece of code to notify another piece of code of an “exceptional” situation or error condition without progressing through the normal code paths. The code that encounters the error throws the exception, and the code that handles the exception catches it. Exceptions do not follow the fundamental rule of step-by-step execution to which you are accustomed. When a piece of code throws an exception, the program control immediately stops executing code step-by-step and transitions to the exception handler, which could be anywhere from the next line in the same function to several function calls up the stack. If you like sports analogies, you can think of the code that throws an exception as an outfielder throwing a baseball back to the infield, where the nearest infielder (closest exception handler) catches it. Figure 14.1 shows a hypothetical stack of three function calls. Function A() has the exception handler. It calls function B(), which calls function C(), which throws the exception.
 
-\myGraphic{0.7}{content/part3/chapter14/images/1.png}{FIGURE 14.1}
+\myGraphic{0.5}{content/part3/chapter14/images/1.png}{FIGURE 14.1}
 
 Figure 14.2 shows the handler catching the exception. The stack frames for C() and B() have been removed, leaving only A().
 
-\myGraphic{0.7}{content/part3/chapter14/images/2.png}{FIGURE 14.2}
+\myGraphic{0.5}{content/part3/chapter14/images/2.png}{FIGURE 14.2}
 
 Most modern programming languages, such as C\# and Java, have support for exceptions, so it’s no surprise that C++ has full-fledged support for them as well. However, if you are coming from C, then exceptions are something new; but once you get used to them, you probably don’t want to go back.
 

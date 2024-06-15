@@ -1,9 +1,9 @@
 
-The C++ Standard Library includes a filesystem support library, defined in <filesystem> and living in the std::filesystem namespace. It allows you to write portable code to work with the filesystem. You can use it for querying whether something is a directory or a file, iterating over the contents of a directory, manipulating paths, and retrieving information about files such as their size, extension, creation time, and so on. The two most important parts of the library—paths and directory entries— are introduced in the next sections.
+C++标准库包括一个文件系统库，定义在<filesystem>中，位于std::filesystem命名空间中，允许编写可移植的代码来操作文件系统。可以用它来查询某物是否是目录或文件，遍历目录的内容，操作路径，以及获取文件信息，如大小、扩展名、创建时间等。库的两大重要部分——路径和目录条目——将在下一节中介绍。
 
-\mySubsubsection{13.6.1.}{Path}
+\mySubsubsection{13.6.1.}{路径}
 
-The basic component of the library is a path. A path can be absolute or relative and can optionally include a filename. For example, the following code defines a couple of paths. Note the use of raw string literals, introduced in Chapter 2, to avoid having to escape backslashes:
+库的基本组件是路径。路径可以是绝对的或相对的，可以包含可选的文件名。例如，以下代码定义了几个路径。注意，使用raw字符串字面量，这在第2章中引入，以避免转义反斜杠：
 
 \begin{cpp}
 path p1 { R"(D:\Foo\Bar)" };
@@ -13,21 +13,21 @@ path p4 { R"(..\SomeFolder)" };
 path p5 { "/usr/lib/X11" };
 \end{cpp}
 
-A path can be converted to the native format of the system on which the code is running by calling string(). Here’s an example:
+通过调用string()可以将路径转换为运行代码的系统本机格式。这是一个例子：
 
 \begin{cpp}
 println("{}", p1.string());
 println("{}", p2.string());
 \end{cpp}
 
-The output on Windows, which supports both forward and backward slashes, is as follows:
+在Windows上，支持前后斜杠，输出如下：
 
 \begin{shell}
 D:\Foo\Bar
 D:/Foo/Bar
 \end{shell}
 
-You can append a component to a path with the append() member function or with operator/=. A platform-dependent path separator is automatically inserted. Here’s an example:
+可以使用append()成员函数或operator/=向路径追加一个组件，自动插入平台相关的路径分隔符：
 
 \begin{cpp}
 path p { "D:\\Foo" };
@@ -36,9 +36,9 @@ p /= "Bar";
 println("{}", p.string());
 \end{cpp}
 
-The output on Windows is D:\verb|\|Foo\verb|\|Bar\verb|\|Bar.
+Windows上的输出为D:\verb|\|Foo\verb|\|Bar\verb|\|Bar。
 
-You can use concat() or operator+= to concatenate a string to an existing path. This does not insert any path separator! Here’s an example:
+可以使用concat()或operator+=将字符串拼接到现有路径，这不会插入任何路径分隔符！这是一个例子：
 
 \begin{cpp}
 path p { "D:\\Foo" };
@@ -47,13 +47,13 @@ p += "Bar";
 println("{}", p.string());
 \end{cpp}
 
-The output on Windows now is D:\verb|\|FooBarBar.
+Windows上，现在的输出为D:\verb|\|FooBarBar。
 
 \begin{myWarning}{WARNING}
-append() and operator/= automatically insert a platform-dependent path separator, while concat() and operator+= do not.
+append()和operator/=会自动插入平台相关的路径分隔符，而concat()和operator+=不会。
 \end{myWarning}
 
-A range-based for loop can be used to iterate over the different components of a path. Here is an example:
+可以使用基于范围的for循环来遍历路径的不同组件：
 
 \begin{cpp}
 path p { R"(C:\Foo\Bar)" };
@@ -62,7 +62,7 @@ for (const auto& component : p) {
 }
 \end{cpp}
 
-The output on Windows is as follows:
+Windows上的输出如下：
 
 \begin{cpp}
 C:
@@ -71,7 +71,7 @@ Foo
 Bar
 \end{cpp}
 
-The path interface supports operations such as remove\_filename(), replace\_filename(), replace\_extension(), root\_name(), parent\_path(), extension(), stem(), filename(), has\_extension(), is\_absolute(), is\_relative(), and more. A few of these are demonstrated in the following code snippet:
+路径接口支持如remove\_filename()、replace\_filename()、replace\_extension()、root\_name()、parent\_path()、extension()、stem()、filename()、has\_extension()、is\_absolute()、is\_relative()等操作。以下代码片段演示了其中一些：
 
 \begin{cpp}
 path p { R"(C:\Foo\Bar\file.txt)" };
@@ -81,7 +81,7 @@ println("{}", p.stem().string());
 println("{}", p.extension().string());
 \end{cpp}
 
-This code produces the following result on Windows:
+Windows上，这段代码产生的结果如下所示：
 
 \begin{shell}
 C:
@@ -90,13 +90,13 @@ file
 .txt
 \end{shell}
 
-Consult your favorite Standard Library reference for a full list of all available functionality.
+有关所有可用功能的完整列表，请参考标准库参考手册。
 
-\mySubsubsection{13.6.2.}{Directory Entry}
+\mySubsubsection{13.6.2.}{目录}
 
-A path just represents a directory or a file on a filesystem. A path may refer to a non-existing directory or file. If you want to query an actual directory or file on the filesystem, you need to construct a directory\_entry from a path. The directory\_entry interface supports operations such as exists(), is\_directory(), is\_regular\_file(), file\_size(), last\_write\_time(), and others.
+路径仅代表文件系统上的目录或文件，路径可能指向不存在的目录或文件。如果想查询实际的目录或文件，需要从路径构造一个directory\_entry。directory\_entry接口支持诸如exists()、is\_directory()、is\_regular\_file()、file\_size()、last\_write\_time()等操作。
 
-The following example constructs a directory\_entry from a path to query the size of a file:
+以下示例从一个路径构建directory\_entry来查询文件的大小：
 
 \begin{cpp}
 path myPath { "c:/windows/win.ini" };
@@ -106,11 +106,11 @@ if (dirEntry.exists() && dirEntry.is_regular_file()) {
 }
 \end{cpp}
 
-\mySubsubsection{13.6.3.}{Helper Functions}
+\mySubsubsection{13.6.3.}{辅助函数}
 
-An entire collection of helper functions is available as well. For example, you can use copy() to copy files or directories, create\_directory() to create a new directory on the filesystem, exists() to query whether a given directory or file exists, file\_size() to get the size of a file, last\_write\_time() to get the time the file was last modified, remove() to delete a file, temp\_directory\_path() to get a directory suitable for storing temporary files, space() to query the available space on a filesystem, and more. Consult a Standard Library reference (see Appendix B, “Annotated Bibliography”) for a full list.
+这里也有一整套辅助函数可供使用，可以使用copy()复制文件或目录，create\_directory()在文件系统上创建新的目录，exists()查询给定的目录或文件是否存在，file\_size()获取文件的大小，last\_write\_time()获取文件最后修改的时间，remove()删除文件，temp\_directory\_path()获取适合存储临时文件的目录，space()查询文件系统的可用空间等。请参阅标准库参考（详见附录B）以获取完整列表。
 
-The following example prints out the capacity of a filesystem and how much space is still free:
+以下示例打印出文件系统的容量和剩余空间：
 
 \begin{cpp}
 space_info s { space("c:\\") };
@@ -118,12 +118,11 @@ println("Capacity: {}", s.capacity);
 println("Free: {}", s.free);
 \end{cpp}
 
-You can find more examples of these helper functions in the following section on directory iteration.
+可以在以下关于目录迭代的章节中，找到这些辅助函数的更多示例。
 
+\mySubsubsection{13.6.4.}{目录迭代}
 
-\mySubsubsection{13.6.4.}{Directory Iteration}
-
-If you want to recursively iterate over all files and subdirectories in a given directory, you can use a recursive\_directory\_iterator. To start the iteration process, you need an iterator to the first directory\_entry. To know when to stop the iteration, you need an end iterator. To create the start iterator, construct a recursive\_directory\_iterator and pass as argument a path of the directory over which you want to iterate. To construct the end iterator, default construct a recursive\_directory\_iterator. To get access to the directory\_entry that an iterator refers to, use the dereferencing operator, *. Traversing all elements in the collection is accomplished by simply incrementing the iterator using the ++ operator until it reaches the end iterator. Note that the end iterator is not part of the collection anymore and hence does not refer to a valid directory\_entry and must not be dereferenced.
+如果想递归地遍历给定目录中的所有文件和子目录，可以使用recursive\_directory\_iterator。为了开始迭代过程，需要一个指向directory\_entry的迭代器。为了知道何时停止迭代，还需要一个结束迭代器。要创建开始迭代器，构造一个recursive\_directory\_iterator并传递要迭代的目录路径。要构造结束迭代器，使用默认构造函数创建一个recursive\_directory\_iterator。要获取迭代器所指的directory\_entry的访问权限，使用解引用运算符*。通过简单地使用自加运算符递增迭代器，直到达到结束迭代器，就可以遍历集合中的所有元素。注意，结束迭代器不再属于集合，不再指向有效的directory\_entry，并且不能解引用。
 
 \begin{cpp}
 void printDirectoryStructure(const path& p)
@@ -148,14 +147,14 @@ void printDirectoryStructure(const path& p)
 }
 \end{cpp}
 
-This function can be called as follows:
+此函数可以按以下方式调用：
 
 \begin{cpp}
 path p { R"(D:\Foo\Bar)" };
 printDirectoryStructure(p);
 \end{cpp}
 
-You can also use a directory\_iterator to iterate over the contents of a directory and implement the recursion yourself. Here is an example that does the same thing as the previous example but using a directory\_iterator instead of a recursive\_directory\_iterator:
+也可以使用directory\_iterator迭代目录的内容，并自行实现递归。以下示例与前一个示例相同，这里使用了directory\_iterator，而非recursive\_directory\_iterator：
 
 \begin{cpp}
 void printDirectoryStructure(const path& p, unsigned level = 0)

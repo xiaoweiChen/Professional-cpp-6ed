@@ -1,42 +1,40 @@
 \noindent
-\textbf{WHAT’S IN THIS CHAPTER?}
+\textbf{内筒概要}
 
 \begin{itemize}
 \item
-How to handle errors in C++, including pros and cons of exceptions
+如何处理C++中的错误，包括异常的优缺点
 
 \item
-The syntax of exceptions
+异常的语法
 
 \item
-Exception class hierarchies and handling exceptions polymorphically
+异常类的层次结构和多态异常处理
 
 \item
-How to rethrow caught exceptions
+如何重新抛出捕获的异常
 
 \item
-Stack unwinding and cleanup
+堆栈展开，以及清理
 
 \item
-How to embed, inside a custom exception, the exact source code location where an exception occurred
+如何在自定义异常中嵌入异常发生的确切源代码位置
 
 \item
-How to embed the entire stack trace, also known as call stack, in a custom exception
+如何在自定义异常中嵌入堆栈跟踪(也称为调用堆栈)
 
 \item
-Common error-handling situations
+常见的错误处理
 \end{itemize}
 
-\noindent
-\textbf{WILEY.COM DOWNLOADS FOR THIS CHAPTER}
+本章的所有代码示例都可以在\url{https://github.com/Professional-CPP/edition-6/}获得。
 
-Please note that all the code examples for this chapter are available as part of this chapter’s code download on the book’s website at \url{www.wiley.com/go/proc++6e} on the Download Code tab.
+不可避免地，C++程序在执行过程中会遇到错误。程序可能无法打开文件，网络连接可能中断，或者用户可能输入了错误的值等。C++语言提供了一个称为异常处理的功能来处理这些特殊，但并不意外的情况。
 
-Inevitably, your C++ programs will encounter errors during execution. The program might be unable to open a file, the network connection might go down, or the user might enter an incorrect value, to name a few possibilities. The C++ language provides a feature called exceptions to handle these exceptional but not unexpected situations.
+目前为止，本书中的大多数代码示例通常为了简洁而忽略了错误条件。本章去掉了这个简化，并在程序开始时如何将错误处理融入其中，专注于C++异常，包括语法细节。并描述了如何有效地使用它们，来创建设计良好的错误处理程序。
 
-Most code examples in this book so far have generally ignored error conditions for brevity. This chapter rectifies that simplification by teaching you how to incorporate error handling into your programs from their beginnings. It focuses on C++ exceptions, including the details of their syntax, and describes how to employ them effectively to create well-designed error-handling programs.
+本章还讨论了如何编写自己的异常类。这包括讨论如何自动嵌入异常发生时在源代码中的确切位置，以及异常抛出时记录完整堆栈跟踪。这两者对于诊断错误都有很大的帮助。
 
-The chapter also discusses how you can write your own exception classes. This includes discussing how to automatically embed both, the exact location in your source code where an exception occurred, as well as the full stack trace at the moment the exception was raised. Both of these help tremendously in diagnosing any errors.
 
 
 

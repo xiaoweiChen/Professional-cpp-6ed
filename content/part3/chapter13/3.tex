@@ -1,11 +1,11 @@
 
 \CXXTwentythreeLogo{-40}{12}
 
-C++23 introduces span-based streams, defined in <spanstream>, which allow you to use the stream metaphor on any fixed memory buffer you have available. How memory was allocated for that buffer is not important. The most important classes in this context that you’ll use are ispanstream for input, ospanstream for output, and spanstream for input and output. Technically, these are char instantiations for the class templates basic\_ispanstream, basic\_ospanstream, and basic\_spanstream. There are also wide-character, wchar\_t instantiations available called wispanstream, wospanstream, and wspanstream. Wide characters are mentioned earlier in this chapter and covered in more detail in Chapter 21. This section gives examples of the non-widecharacter classes, as the others work very similarly.
+C++23引入了基于span的流，定义在<spanstream>中，允许使用流的概念对可用的固定内存缓冲区进行操作，这个缓冲区是如何分配内存的并不重要。这个上下文中最重要的是ispanstream用于输入，ospanstream用于输出，以及spanstream用于输入和输出。从技术上讲，这些是basic\_ispanstream、basic\_ospanstream和basic\_spanstream类的char实例化。还有宽字符，wchar\_t实例化，称为wispanstream、wospanstream和wspanstream。宽字符在本章早些时候提到，并将在第21章中更详细地介绍。本节将给出非宽字符类的示例，其他类的工作方式非常相似。
 
-The constructors of the span-based stream classes require an std::span. Chapter 18, “Standard Library Containers,” discusses span in detail and explains why and when you want to use it, but those details are not important for this section. The use of span in the context of span-based streams is straightforward, as you’ll see. In a nutshell, a span allows you to make a view over a contiguous block of memory. It’s a bit similar to how std::string\_view allows you to create a read-only view over any kind of string, as discussed in Chapter 2. The difference is that a span can be a read-only view, but it can also be a writable view allowing modifications to the underlying buffer.
+基于span的流类的构造函数需要一个std::span。第18章详细介绍了span，并解释了为什么以及何时使用它，这些细节对于本节并不重要。基于span流的上下文中使用span非常直接，span允许对连续内存块进行查看。有点类似于std::string\_view允许你创建对任何类型的字符串的只读视图，在第2章介绍过。区别在于，span可以是一个只读视图，但也可以是一个可写的视图，允许对底层缓冲区进行修改。
 
-Here is an example of using an ispanstream to parse data stored in a fixed memory buffer called fixedBuffer. To construct a span over that buffer, you simply use the span constructor and pass it the location of the buffer.
+以下是使用ispanstream，来解析存储在固定内存缓冲区fixedBuffer中的数据的示例。要在此缓冲区上创建一个span，只需使用span构造函数，并传递缓冲区的位置。
 
 \begin{cpp}
 char fixedBuffer[] { "11 2.222 Hello" };
@@ -15,13 +15,13 @@ stream >> i >> d >> str;
 println("Parsed data: int: {}, double: {}, string: {}", i, d, str);
 \end{cpp}
 
-The output is as follows:
+输出如下：
 
 \begin{shell}
 Parsed data: int: 11, double: 2.222, string: Hello
 \end{shell}
 
-Using an ospanstream is similarly straightforward. The following code creates a fixed buffer of 32 chars, constructs a writable ospanstream view over that buffer, uses standard stream insertion operations to output some data to the buffer, and finally prints out the result:
+使用ospanstream也很简单。以下代码创建了一个32个字符的固定缓冲区，构造了一个可写的ospanstream视图，使用标准流插入操作将一些数据输出到缓冲区，最后打印出结果：
 
 \begin{cpp}
 char fixedBuffer[32] {};
@@ -30,7 +30,7 @@ stream << "Hello " << 2.222 << ' ' << 11;
 println("Buffer contents: \"{}\"", fixedBuffer);
 \end{cpp}
 
-The output is:
+输出如下：
 
 \begin{shell}
 Buffer contents: "Hello 2.222 11"

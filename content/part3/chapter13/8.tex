@@ -1,16 +1,16 @@
-By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+通过解决下面的练习，可以练习本章讨论的内容。所有练习的解决方案都可以在本书的网站\url{www.wiley.com/go/proc++6e}下载到源码。然而，若在练习中卡住了，在从网站上寻找解决方案之前，可以考虑先重读本章的部分内容，试着自己找到答案。
 
 \begin{itemize}
 \item
-Exercise 13-1: Let’s revisit the Person class you developed during exercises in previous chapters. Take your implementation from Exercise 9-2 and add an output() member function that writes the details of a person to the standard output console.
+\textbf{练习13-1}: 回顾在之前章节中开发的Person类。使用练习9-2中的实现，并添加一个output()成员函数，将一个人的详细信息写入标准输出控制台。
 
 \item
-Exercise 13-2: The output() member function from the previous exercise always writes the details of a person to the standard output console. Change the output() member function to have an output stream as parameter and write the details of a person to that stream. Test your new implementation in main() by writing a person to the standard output console, a string stream, and a file. Notice how it’s possible to output a person to all kinds of different targets (output console, string streams, files, and so on) with a single member function using streams.
+\textbf{练习13-2}: 从上一个练习的output()成员函数，将一个人的详细信息写入标准输出控制台。将output()成员函数改为接受一个输出流作为参数，并将一个人的详细信息写入该流。在main()中测试新实现，通过将一个人写入标准输出控制台、字符串流和文件。注意，如何使用流成员函数将一个人输出到各种不同的目标（输出控制台、字符串流、文件等）。
 
 \item
-Exercise 13-3: Develop a class called Database that stores Persons (from Exercise 13-2) in an std::vector. Provide an add() member function to add a person to the database. Also provide a save() member function, accepting the name of a file to which it saves all persons in the database. Any existing contents in the file is removed. Add a load() member function, accepting the name of a file from which the database loads all persons. Provide a clear() member function to remove all persons from the database. Finally, add a member function outputAll() that calls output() on all persons in the database. Make sure your implementation works, even if there are spaces in a person’s first or last name.
+\textbf{练习13-3}: 开发一个名为Database的类，用于存储Person（来自练习13-2）。提供一个add()成员函数，用于向数据库添加一个人。还提供一个save()成员函数，接受一个文件名作为参数，将数据库中的所有人在该文件中保存。现有的文件内容都会删除，提供一个load()成员函数，接受一个文件名作为参数，从该文件加载数据库中的所有人。提供一个clear()成员函数，用于从数据库中删除所有人。最后，提供一个outputAll()成员函数，对数据库中的所有人都调用output()。确保实现即使在一个人名中包含空格也能正常工作。
 
 \item
-Exercise 13-4: The Database from Exercise 13-3 stores all persons in a single file. To practice the filesystem support library, let’s change that to store each person in its own file. Modify the save() and load() member functions to accept a directory as argument where files should be stored to or loaded from. The save() member function saves every person in the database to its own file. The name of each file is the first name of the person followed by an underscore followed by the last name of the person. The extension of the files should be .person. If a file already exists, overwrite it. The load() member function iterates over all .person files in a given directory and loads all of them.
+\textbf{练习13-4:} 练习113-3中的Database将所有人的信息存储在一个文件中。为了练习文件系统库，这里需要将每个人的信息单独存储在一个文件中。修改save()和load()成员函数，接受一个目录作为参数，文件应存储到或加载自该目录。save()成员函数将数据库中的每个人保存到自己的文件中。每个文件的名称是该人的姓前名后，以下划线分隔，扩展名为.person。如果文件已存在，则覆盖。load()成员函数需要遍历给定目录中的所有.person文件，并加载它们。
 \end{itemize}
 
