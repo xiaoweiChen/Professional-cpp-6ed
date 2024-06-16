@@ -1,50 +1,50 @@
 
-No program exists in isolation; they all depend on external facilities such as interfaces with the operating system, networks and file systems, external code such as third-party libraries, and user input. Each of these areas can introduce situations that require you to respond to problems your program may encounter. These potential problems can be referred to with the general term exceptional situations. Even perfectly written programs encounter errors and exceptional situations. Thus, anyone who writes professional computer programs must include error-handling capabilities. Some languages, such as C, do not include many specific language facilities for error handling. Programmers using these languages generally rely on return values from functions and other ad hoc approaches. Other languages, such as Java, enforce the use of a language feature called exceptions as an error-handling mechanism. C++ lies between these extremes. It provides language support for exceptions but does not require their use. However, you can’t ignore exceptions entirely in C++ because a few basic facilities, such as memory allocation routines, use them by default, and several classes from the Standard Library use exceptions as well.
+没有程序可以孤立存在；它们都依赖于外部设施，例如与操作系统、网络和文件系统的接口，外部代码，如第三方库，以及用户输入。这些领域都需要响应程序可能遇到的问题。这些问题可以用异常这一通用术语来指代。即使是完美程序也会遇到错误和异常情况，编写专业计算机程序的开发者都需要学会错误处理。一些语言，如C，没有包含许多特定的错误处理，开发者通常依赖于函数的返回值和其他临时方法。其他语言，如Java，强制使用一种称为异常的语言特性作为错误处理机制。C++介于这两个极端之间，为异常提供语言支持，但不强制要求使用。但C++中不能完全忽略异常，一些基本操作，如内存分配，默认都会使用，而且标准库中还有几个类也会使用异常。
 
-\mySubsubsection{14.1.1.}{What Are Exceptions, Anyway?}
+\mySubsubsection{14.1.1.}{异常到底是什么？}
 
-Exceptions are a mechanism for a piece of code to notify another piece of code of an “exceptional” situation or error condition without progressing through the normal code paths. The code that encounters the error throws the exception, and the code that handles the exception catches it. Exceptions do not follow the fundamental rule of step-by-step execution to which you are accustomed. When a piece of code throws an exception, the program control immediately stops executing code step-by-step and transitions to the exception handler, which could be anywhere from the next line in the same function to several function calls up the stack. If you like sports analogies, you can think of the code that throws an exception as an outfielder throwing a baseball back to the infield, where the nearest infielder (closest exception handler) catches it. Figure 14.1 shows a hypothetical stack of three function calls. Function A() has the exception handler. It calls function B(), which calls function C(), which throws the exception.
+异常是一种代码片段通知另一个代码片段出现“异常”情况或错误的机制(不通过正常代码路径)。遇到错误的代码抛出异常，处理异常的代码会捕获异常，异常不遵循逐步执行的基本规则。当一段代码抛出异常时，程序控制立即停止逐步执行代码，并转换到异常处理程序，可能在同一函数中的下一行，也可能在堆栈上几个函数调用之外。如果各位读者喜欢体育，可以把抛出异常的代码想象成外场员将棒球扔回内场，最近的内场员（最近的异常处理程序）会接住这个球。图14.1显示了三个函数调用的假设堆栈。函数A()有异常处理程序，调用函数B()，B()调用函数C()，C()抛出异常。
 
 \myGraphic{0.5}{content/part3/chapter14/images/1.png}{FIGURE 14.1}
 
-Figure 14.2 shows the handler catching the exception. The stack frames for C() and B() have been removed, leaving only A().
+图14.2显示了处理程序捕获异常。C()和B()的堆栈帧已移除，只剩下A()。
 
 \myGraphic{0.5}{content/part3/chapter14/images/2.png}{FIGURE 14.2}
 
-Most modern programming languages, such as C\# and Java, have support for exceptions, so it’s no surprise that C++ has full-fledged support for them as well. However, if you are coming from C, then exceptions are something new; but once you get used to them, you probably don’t want to go back.
+大多数现代编程语言，如C\#和Java，都支持异常处理，所以C++也完全支持异常。然而，如果你是一个C语言开发者，那么异常对于你来说就是一个新鲜事物；但当你了解了它们，可能就不想回去使用C语言开发了。
 
-\mySubsubsection{14.1.2.}{Why Exceptions in C++ Are a Good Thing}
+\mySubsubsection{14.1.2.}{C++中的异常是一个好东西？}
 
-As mentioned earlier, run-time errors in programs are inevitable. Despite that fact, error handling in most C and C++ programs is messy and ad hoc. The de facto C error-handling standard, which was carried over into many C++ programs, uses integer function return codes, and the errno macro to signify errors. Each thread has its own errno value. errno acts as a thread-local integer variable that functions can use to communicate errors back to calling functions.
+有时，程序会在运行时不可避免的出现错误，但大多数C和C++程序中的错误处理即混乱又临时。事实上C语言有错误处理标准，许多C++程序也继承了这一标准，使用整数函数返回码和errno宏来表示错误。每个线程都有自己的errno值，errno为一个线程局部的整型变量，函数可以使用将错误码返回给调用函数。
 
-Unfortunately, the integer return codes and errno are used inconsistently. Some functions might choose to return 0 for success and -1 for an error. If they return -1, they also set errno to an error code. Other functions return 0 for success and nonzero for an error, with the actual return value specifying the error code. These functions do not use errno. Still others return 0 for failure instead of for success, presumably because 0 always evaluates to false in C and C++.
+不幸的是，整数返回码和errno的使用不一致。一些函数可能选择返回0表示成功，返回-1表示错误。如果返回-1，还会将errno设置为错误。其他函数返回0表示成功，非零表示错误，实际返回值指定错误码。这些函数不使用errno。还有一些函数返回0表示失败，而不是成功，可能是因为在C和C++中0始终为false。
 
-These inconsistencies can cause problems because programmers encountering a new function often assume that its return codes are the same as other similar functions. That is not always true. For example, on the Solaris 11 operating system, there are two different libraries of synchronization objects: the Portable Operating System Interface (POSIX) version and the Solaris version. The function to initialize a semaphore in the POSIX version is called sem\_init(), and the function to initialize a semaphore in the Solaris version is called sema\_init(). As if that weren’t confusing enough, the two functions handle error codes differently! sem\_init() returns -1 and sets errno on error, while sema\_init() returns the error code directly as a positive integer and does not set errno.
+这些不一致会导致问题，开发者遇到一个新函数时，经常会假设返回码与其他类似函数相同，但情况并非总是如此。例如，在Solaris 11操作系统中，有两种不同的同步对象库：可移植操作系统接口（POSIX）版本和Solaris版本。POSIX版本中初始化信号量的函数称为sem\_init()，Solaris版本中初始化信号量的函数称为sema\_init()。这还不够混乱，这两个函数处理错误码的方式也不相同！sem\_init()在出错时返回-1并设置errno，而sema\_init()直接将错误码作为正整数返回，并不设置errno。
 
-Another problem is that the return type of functions in C++ can be of only one type, so if you need to return both an error and a value, you must find an alternative mechanism. One solution is to return an std::pair or tuple, an object that you can use to store two or more types. The pair class is introduced in Chapter 1, “A Crash Course in C++ and the Standard Library,” while tuple is discussed in the upcoming chapters that cover the Standard Library. Starting with C++23, you can return an std::expected from a function, which can contain either the result of the function or an error if something went wrong. Chapter 24, “Additional Vocabulary Types,” discusses expected in detail. Another choice is to define your own struct or class that contains several values and return an instance of that struct or class from your function. Yet another option is to return the value or error through a reference parameter or to make the error code one possible value of the return type, such as a nullptr pointer. In all these solutions, the caller is responsible for explicitly checking for any errors returned from the function, and if it doesn’t handle the error itself, it should propagate the error to its caller. Unfortunately, this often results in the loss of critical details about the error.
+另一个问题是，C++中函数的返回类型只能有一种，所以如果需要返回错误和值，必须使用另一种机制。一个解决方案是返回一个std::pair或tuple，这是一个可以用来存储两种或更多类型的对象。pair类在第1章中介绍过，而tuple将在后面介绍标准库的章节中介绍。从C++23开始，可以从函数返回一个std::expected实例，它可能包含函数的结果，如果出现问题，则包含错误，第24章详细介绍了expected。另一个选择是定义自己的包含多个值的struct或class，并从函数返回该struct或class的实例。还有一个选项是通过引用参数返回值或错误，或者使错误码成为返回类型的一种可能值，比如nullptr指针。这些解决方案中，调用者负责显式检查函数返回的错误，如果它自己不处理错误，应该将错误告知给调用者。不幸的是，这通常会导致关于错误信息的丢失。
 
-C programmers may be familiar with a mechanism known as setjmp()/longjmp(). This mechanism cannot be used correctly in C++, because it bypasses scoped destructors on the stack. You should avoid it at all costs, even in C programs; therefore, this book does not explain the details of how to use it.
+C程序员可能熟悉一种称为setjmp()/longjmp()的机制。这个机制在C++中不能正确使用，因为它绕过了栈上的作用域析构函数。即使是在C程序中，也应该尽量避免使用；因此，本书不会介绍如何使用它。
 
-Exceptions provide an easier, more consistent, and safer mechanism for error handling. There are several specific advantages of exceptions over the ad hoc approaches in C and C++:
+异常为错误处理提供了一个更简单、更一致、更安全的机制。异常相对于C和C++中的临时方法有几个优势：
 
 \begin{itemize}
 \item
-When return codes are used as an error reporting mechanism, you might forget to check the return code and properly handle it either locally or by propagating it upward. The [[nodiscard]] attribute, introduced in Chapter 1, offers a possible solution to prevent return codes from being ignored, but it’s not foolproof either. Exceptions cannot be forgotten or ignored: if your program fails to catch an exception, it terminates.
+当返回码用作错误报告机制时，可能会忘记检查返回码，并在本地处理或向上传播。第1章中引入的[[nodiscard]]属性，提供了一个可能的解决方案来防止忽略返回码，但它也不是万无一失的。不能忘记或忽略异常：如果程序未能捕获异常，程序将终止运行。
 
 \item
-When integer return codes are used, they generally do not contain sufficient information. You can use exceptions to pass as much information as you want from the code that finds the error to the code that handles it. Exceptions can also be used to communicate information other than errors, though many developers, including myself, consider that an abuse of the exception mechanism.
+当使用整数返回码时，通常不包含足够的信息。可以使用异常从发现错误的代码，传递信息到处理代码中。异常也可以用来传递错误之外的信息，不过包括我在内的许多开发者认为这是对异常机制的滥用。
 
 \item
-Exception handling can skip levels of the call stack. That is, a function can handle an error that occurred several function calls down the stack, without error-handling code in the intermediate functions. Return codes require each level of the call stack to clean up explicitly after the previous level and to explicitly propagate the error code.
+异常处理可以跳过调用堆栈的级别，一个函数可以处理在堆栈下几个函数调用中发生的错误，而中间函数中不需要错误处理代码。返回码要求调用堆栈逐级清理，并显式地传播错误码。
 \end{itemize}
 
-In some compilers in the past, exception handling added a tiny amount of overhead to any function that had an exception handler. For most modern compilers there is a trade-off in that there is almost no, or even zero, overhead in the non-throwing case, and only some slight overhead when you actually throw something. This trade-off is not a bad thing. Exceptions should not be used for controlling the standard execution flow of a program, such as returning a value from a function. Exceptions should be used only to handle exceptional events that are generally not encountered in normal program use, for example, a failure while reading from a file on disk. All this means that using exceptions actually results in faster code for the non-error case compared to an implementation using error return codes.
+以前的一些编译器中，异常处理为具有异常处理器的函数增加了一点开销。对于大多数现代编译器来说，在非抛出情况下没有或没有开销，只有在实际抛出时才会有一些开销。这种权衡并不是坏事。异常不应该用于控制程序的标准执行流程，比如：从函数返回一个值。异常应该只用于处理通常在正常程序使用中不会遇到的异常事件，例如：从磁盘上的文件读取时失败。在使用异常实际上在非错误情况下，会比使用错误返回码的实现产生更快的代码。
 
-Exception handling is not enforced in C++. In Java, for example, it is enforced. A Java function that does not specify a list of exceptions that it can possibly throw is not allowed to throw any exceptions. In C++, it is just the opposite: a function can throw any exception it wants, unless it specifies that it will not throw any exceptions using the noexcept keyword, which is discussed later in this chapter!
+在C++中并不强制进行异常处理，但在Java中强制。Java函数如果没有指定它可能抛出的异常列表，则不允许抛出任何异常。而在C++中，情况正好相反：一个函数可以抛出任何异常，除非使用noexcept关键字明确指定它不会抛出任何异常，这一点将在本章后面介绍！
 
-\mySubsubsection{14.1.3.}{Recommendation}
+\mySubsubsection{14.1.3.}{推荐}
 
-I recommend exceptions as a useful mechanism for error handling. I feel that the structure and errorhandling formalization that exceptions provide outweigh the less desirable aspects. Thus, the remainder of this chapter focuses on exceptions. Also, many popular libraries, such as the Standard Library and Boost, use exceptions, so you need to be prepared to handle them.
+我推荐将异常作为错误处理的实用机制，因为异常提供的结构和错误处理形式化利大于弊。因此，本章的其余部分将重点讨论异常。另外，许多流行的库，如标准库和Boost，都使用异常，所以需要处理好它们。
 
 
 
