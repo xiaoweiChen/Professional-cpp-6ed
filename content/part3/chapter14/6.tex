@@ -1,46 +1,51 @@
 
 
-Before C++20, you could use the following preprocessor macros to get information about a location in your source code:
+C++20之前，可以使用以下预处理器宏来获取关于源代码中位置的信息：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{MACRO} & \textbf{DESCRIPTION}                                     \\ \hline
+\textbf{宏} & \textbf{描述}                                     \\ \hline
 \endfirsthead
 %
 \endhead
 %
-\_\_FILE\_\_   & Replaced with the current source code filename           \\ \hline
-\_\_LINE\_\_   & Replaced with the current line number in the source code \\ \hline
+\_\_FILE\_\_   & 用当前源代码文件名替换
+           \\ \hline
+\_\_LINE\_\_   & 用源代码中的当前行号替换
+ \\ \hline
 \end{longtable}
 
-Additionally, every function has a locally defined static character array called \_\_func\_\_ containing the name of the function.
+此外，每个函数都有一个局部定义的静态字符数组，名为 \_\_func\_\_，包含函数的名称。
+从C++20开始，\_\_func\_\_ 以及这些C风格的预处理器宏的面向对象替代品可用，形式为std::source\_location类，定义在<source\_location>中。source\_location类的实例具有以下公共访问器：
 
-Since C++20, a proper object-oriented replacement for \_\_func\_\_ and these C-style preprocessor macros is available in the form of an std::source\_location class, defined in <source\_location>. An instance of source\_location has the following public accessors:
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{ACCESSOR} & \textbf{DESCRIPTION}                                  \\ \hline
+\textbf{访问器} & \textbf{描述}                                  \\ \hline
 \endfirsthead
 %
 \endhead
 %
-file\_name()      & Contains the current source code filename             \\ \hline
-function\_name() & \begin{tabular}[c]{@{}l@{}}Contains the current function name, if the current position is inside\\ a function\end{tabular} \\ \hline
-line()            & Contains the current line number in the source code   \\ \hline
-column()          & Contains the current column number in the source code \\ \hline
+file\_name()      & 包含当前源文件的文件名             \\ \hline
+function\_name() & \begin{tabular}[c]{@{}l@{}}包含当前函数名，如果当前位置在函数内部。
+\end{tabular} \\ \hline
+line()            & 包含源代码中的当前行号。
+  \\ \hline
+column()          & 包含源代码中的当前列号
+ \\ \hline
 \end{longtable}
 
-A static member function current() is provided that creates a source\_location instance based on the location in the source code where the member function is called.
+提供了一个静态成员函数 current()，该函数基于成员函数调用的源代码位置创建一个 source\_location 实例。
 
-\mySubsubsection{14.6.1.}{Source Location for Logging}
+\mySubsubsection{14.6.1.}{日志记录的源位置}
 
-The source\_location class is useful for logging purposes. Previously, logging often involved writing C-style macros to automatically gather the current file name, function name, and line number, so they could be included in the log output. Now, with source\_location, you can write a pure C++ function to perform your logging and to automatically collect the location data you require. A nice trick to do this is defining a logMessage() function as follows. This time, the code is prefixed with line numbers to better explain what is happening.
+source\_location类在日志记录方面非常有用。以前，日志记录通常涉及编写C风格的宏来自动收集当前文件名、函数名和行号，以便可以包含在日志输出中。现在，有了source\_location，可以编写一个纯C++函数来执行你的日志记录，并自动收集需要的定位数据。一个实现这个功能的好方法是定义一个像下面的logMessage()函数。这次，代码前面加了行号，以便更好地解释发生了什么。
 
 \begin{shell}
 5.  void logMessage(string_view message,
@@ -61,19 +66,19 @@ The source\_location class is useful for logging purposes. Previously, logging o
 20. }
 \end{shell}
 
-he second parameter of logMessage() is a source\_location with the result of the static member function current() as default value. The trick here is that the call to current() does not happen on line 6, but actually at the location where logMessage() is called, which is line 14, and that’s exactly the location you are interested in.
+logMessage()的第二个参数是一个source\_location，其默认值为source\_location::current()静态成员函数的结果。这里，current()的调用不是在行6，而是在调用logMessage()的地方，即行14，而这正是我们感兴趣的位置。
 
-When executing this program with Microsoft Visual C++, the output is as follows:
+使用Microsoft Visual C++执行此程序后，输出如下所示：
 
 \begin{shell}
 ./01_Logging.cpp(14): void __cdecl foo(void): Starting execution of foo().
 \end{shell}
 
-Line 14 indeed corresponds to the line calling logMessage(). The exact name of the function, void \_\_cdecl foo(void) in this case, is compiler dependent.
+第14行确实对应于调用logMessage()的行。函数的确切名称，如这里的void \_\_cdecl foo(void)，具体名称取决于编译器。
 
-\mySubsubsection{14.6.2.}{Automatically Embed a Source Location in Custom Exceptions}
+\mySubsubsection{14.6.2.}{自定义异常中自动嵌入源位置}
 
-Another interesting use case for source\_location is in your own exception classes to automatically store the location where an exception was thrown. Here’s an example:
+source\_location在自定义异常中的另一个用途是自动存储异常抛出的位置。下面是一个例子：
 
 \begin{cpp}
 class MyException : public exception
@@ -109,7 +114,7 @@ int main()
 }
 \end{cpp}
 
-The output with Microsoft Visual C++ is similar to the following:
+使用Microsoft Visual C++会输出类如下内容：
 
 \begin{shell}
 Caught: 'Throwing MyException.' at line 26 in void __cdecl doSomething(void).

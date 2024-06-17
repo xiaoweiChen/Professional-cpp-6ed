@@ -1,16 +1,15 @@
 
-As described earlier, you can actually throw any type of exception. However, classes are the most useful types of exceptions. In fact, exception classes are usually written in a hierarchy so that you can employ polymorphism when you catch the exceptions.
+如前所述，代码可以抛出任何类型的异常，异常类是最有用的异常类型。实际上，异常类以层次结构编写，这样可以在捕获异常时使用多态。
 
-\mySubsubsection{14.3.1.}{The Standard Exception Hierarchy}
+\mySubsubsection{14.3.1.}{C++标准异常的层次结构}
 
-You’ve already seen several exceptions from the C++ standard exception hierarchy: exception, runtime\_error, and invalid\_argument. Figure 14.3 shows the full hierarchy. For completeness, all standard exceptions are shown, including those thrown by parts of the Standard Library that are discussed in later chapters.
+已经看到了C++标准异常层次结构中的几个异常：exception、runtime\_error 和 invalid\_argument。图14.3展示了完整的层次结构，完整起见，展示了所有标准异常，包括在后续章节中讨论的标准库部分抛出的异常。
 
-\myGraphic{0.7}{content/part3/chapter14/images/3.png}{FIGURE 14.3}
+\myGraphic{0.9}{content/part3/chapter14/images/3.png}{图 14.3}
 
-All of the exceptions thrown by the C++ Standard Library are objects of classes in this hierarchy.
-Each class in the hierarchy supports a what() member function that returns a const char* string describing the exception. You can use this string in an error message.
+C++标准库抛出的异常都是这个层次结构中类的对象。层次结构中的每个类都支持一个what()成员函数，该函数返回一个描述异常的const char*字符串。可以在错误消息中使用这个字符串。
 
-Some of the exception classes require you to set in the constructor the string that is returned by what(). That’s why you have to specify a string in the constructors for runtime\_error and invalid\_argument. This has already been done in examples throughout this chapter. Here is another version of readIntegerFile() that includes the filename in the error message:
+一些异常类需要在构造函数中设置由what()返回的字符串，这就是为什么在runtime\_error和invalid\_argument的构造函数中必须指定一个字符串。以下是另一个版本的readIntegerFile()，在错误消息中包含了文件名：
 
 \begin{cpp}
 vector<int> readIntegerFile(const string& filename)
@@ -41,9 +40,9 @@ vector<int> readIntegerFile(const string& filename)
 }
 \end{cpp}
 
-\mySubsubsection{14.3.2.}{Catching Exceptions in a Class Hierarchy}
+\mySubsubsection{14.3.2.}{在类的层次结构中捕获异常}
 
-A feature of exception hierarchies is that you can catch exceptions polymorphically. For example, if you look at the following two catch statements, you can see that they are identical except for the exception class that they handle:
+异常层次结构的特性是，可以以多态方式捕获异常。例如，以下两个catch语句，除了处理的异常类不同之外，其他都相同：
 
 \begin{cpp}
 try {
@@ -57,7 +56,7 @@ try {
 }
 \end{cpp}
 
-Conveniently, invalid\_argument and runtime\_error are both derived classes of exception, so you can replace the two catch statements with a single catch statement for exception:
+invalid\_argument和runtime\_error都是exception的派生类，所以可以用一个捕获exception的catch语句替换这两个catch语句：
 
 \begin{cpp}
 try {
@@ -68,13 +67,13 @@ try {
 }
 \end{cpp}
 
-The catch statement for an exception reference matches any derived classes of exception, including both invalid\_argument and runtime\_error. Note that the higher in the exception hierarchy you catch exceptions, the less specific your error handling can be. You should generally catch exceptions at as specific a level as possible.
+捕获异常引用的catch语句匹配任何exception的派生类，包括invalid\_argument和runtime\_error。请注意，在异常层次结构中捕获异常的位置越高，错误处理就越不具体。通常，应该尽可能在具体的层次上捕获异常。
 
 \begin{myWarning}{WARNING}
-When you catch exceptions polymorphically, make sure to catch them by reference! If you catch exceptions by value, you can encounter slicing, in which case you lose information from the object. See Chapter 10 for details on slicing.
+当以多态方式捕获异常时，确保通过引用捕获！如果通过值捕获异常，可能会遇到切片问题，在这种情况下会丢失对象的信息。有关切片的详细信息，请参阅第10章。
 \end{myWarning}
 
-When more than one catch clause is used, the catch clauses are matched in syntactic order as they appear in your code; the first one that matches wins. If one catch is more inclusive than a later one, it will match first, and the more restrictive one, which comes later, will never be executed. Therefore, you should place your catch clauses from most restrictive to least restrictive in order. For example, suppose that you want to catch invalid\_argument from readIntegerFile() explicitly, but you also want to leave the generic exception handler for any other exceptions. The correct way to do so is like this:
+当使用多个catch子句时，catch子句会按照代码中出现的语法顺序进行匹配；第一个匹配的子句获胜。如果一个catch比后面的更具有包容性，将首先匹配，而后面的更具体的子句将不会执行。因此，应该按照从最具体到最不具体的顺序排列catch子句。例如，想显式捕获readIntegerFile()抛出的invalid\_argument异常，但还想保留一个通用的异常处理程序来处理其他任何异常。正确的做法如下所示：
 
 \begin{cpp}
 try {
@@ -87,7 +86,7 @@ try {
 }
 \end{cpp}
 
-The first catch statement catches invalid\_argument exceptions, and the second catches any other exceptions of type exception. However, if you reverse the order of the catch statements, you don’t get the same result:
+第一个catch语句捕获invalid\_argument异常，第二个捕获其他类型的exception异常。然而，如果颠倒了catch子句的顺序，结果将不同：
 
 \begin{cpp}
 try {
@@ -100,23 +99,23 @@ try {
 }
 \end{cpp}
 
-With this order, any exception of a class that derives from exception is caught by the first catch statement; the second catch will never be reached. Some compilers issue a warning in this case, but you shouldn’t count on it.
+这种情况下，任何从exception派生的类异常都会被第一个catch子句捕获；第二个catch将永远不会执行，有一些编译器对这种情况发出警告。
 
-\mySubsubsection{14.3.3.}{Writing Your Own Exception Classes}
+\mySubsubsection{14.3.3.}{编写异常类}
 
-There are two advantages to writing your own exception classes:
+编写自己的异常类有两个优点：
 
 \begin{itemize}
 \item
-The number of exceptions in the C++ Standard Library is limited. Instead of using an exception class with a generic name, such as runtime\_error, you can create classes with names that are more meaningful for the particular errors in your program.
+C++标准库中的异常数量有限。可以创建具有更具体名称的类，而不是使用像runtime\_error这样的通用名称，以便更好地表示程序中的特定错误。
 
 \item
-You can add your own information to these exceptions. Most exceptions in the standard hierarchy allow you to set only an error string. You might want to pass different information in the exception.
+可以向这些异常中添加自己的信息。标准层次结构中的大多数异常只允许设置一个错误字符串，而我们可能期望传递不同的信息。
 \end{itemize}
 
-It’s recommended that all the exception classes that you write inherit directly or indirectly from the standard exception class. If everyone on your project follows that rule, you know that every exception in the program will be derived from exception (assuming that you aren’t using third-party libraries that break this rule). This guideline makes exception handling via polymorphism significantly easier.
+建议自定义的所有异常类，都直接或间接地从标准异常类继承。如果项目中的每个人都遵循这个规则，那么可以知道程序中的每个异常都派生自exception（假设不使用违反这一规则的第三方库）。这个指导原则使得通过多态处理异常，变得更加简单。
 
-Let’s look at an example. invalid\_argument and runtime\_error don’t do a good job at capturing the file opening and reading errors in readIntegerFile(). You can define your own error hierarchy for file errors, starting with a generic FileError class:
+来看一个例子。invalid\_argument和runtime\_error不能很好地捕捉readIntegerFile()中的文件打开和读取错误，可以为文件错误定义自己的错误层次结构，从通用的FileError类开始：
 
 \begin{cpp}
 class FileError : public exception
@@ -133,9 +132,9 @@ class FileError : public exception
 };
 \end{cpp}
 
-As a good programming citizen, you make FileError a part of the standard exception hierarchy. It seems appropriate to integrate it as a child of exception. When you derive from exception, you can override the what() member function, which has the prototype shown and which must return a const char* string that is valid until the object is destroyed. In the case of FileError, this string comes from the m\_message data member. Derived classes of FileError can set the message using the protected setMessage() member function. The generic FileError class also contains a filename and a public accessor for that filename.
+作为一个好的编程习惯，可使FileError成为标准异常层次结构的一部分，将其作为exception的子类似乎是合适的。从exception派生时，可以覆写what()成员函数，其原型如上所示，并且必须返回一个const char*字符串，该字符串在对象销毁之前有效。在FileError的情况下，这个字符串来自m\_message数据成员。FileError的派生类可以使用受保护的setMessage()成员函数设置消息，通用的FileError类还包含一个文件名和该文件名的公共访问器。
 
-The first exceptional situation in readIntegerFile() occurs when the file cannot be opened. Thus, you might want to write a FileOpenError exception derived from FileError:
+readIntegerFile()中的第一个异常情况是文件无法打开，所以可能会创建一个从FileError派生的FileOpenError异常：
 
 \begin{cpp}
 class FileOpenError : public FileError
@@ -148,9 +147,9 @@ class FileOpenError : public FileError
 };
 \end{cpp}
 
-The FileOpenError exception calls setMessage() to change the m\_message string to represent the file-opening error. Note that in the body of the constructor, getFilename() is used to get the filename. The filename parameter cannot be used for this as the ctor-initializer has moved filename in the call to the FileError constructor. As you know, after a move operation, you shouldn’t use an object any longer.
+FileOpenError异常调用setMessage()，将m\_message字符串更改为表示文件打开错误的字符串。构造函数体中，getFilename()用于获取文件名。不能使用filename参数，因为在调用FileError构造函数时，构造函数初始化器已经移动了filename。在移动操作之后，就不应再使用该对象。
 
-The second exceptional situation in readIntegerFile() occurs if the file cannot be read properly. It might be useful for this exception to include the line number where the error occurred, as well as the filename in the error message string returned from what(). Here is a FileReadError exception derived from FileError:
+readIntegerFile()中的第二个异常情况是如果文件无法正确读取。对于这个异常，在从what()返回的错误消息字符串中，包含错误发生的行号，以及文件名可能很有用。这里是一个从FileError派生的FileReadError异常：
 
 \begin{cpp}
 class FileReadError : public FileError
@@ -168,7 +167,7 @@ class FileReadError : public FileError
 };
 \end{cpp}
 
-Of course, to set the line number properly, readIntegerFile() needs to be modified to track the number of lines read instead of just reading integers directly. Here is a new readIntegerFile() function that uses the new exceptions:
+当然，为了正确设置行号，需要修改readIntegerFile()以跟踪读取的行数，而不仅仅是直接读取整数。这里是一个使用新异常的新readIntegerFile()函数：
 
 \begin{cpp}
 vector<int> readIntegerFile(const string& filename)
@@ -206,7 +205,7 @@ vector<int> readIntegerFile(const string& filename)
 }
 \end{cpp}
 
-Now, code that calls readIntegerFile() can use polymorphism to catch exceptions of type FileError like this:
+现在，调用readIntegerFile()的代码，使用多态来捕捉类型为FileError的异常：
 
 \begin{cpp}
 try {
@@ -217,24 +216,23 @@ try {
 }
 \end{cpp}
 
-There is one caveat when writing classes whose objects will be used as exceptions. When a piece of code throws an exception, the object or value thrown is moved or copied, using either the move constructor or the copy constructor. Thus, if you write a class whose objects will be thrown as exceptions, you must make sure those objects are copyable and/or moveable. This means that if you have dynamically allocated memory in your exception class, your class must have a destructor, but also a copy constructor and copy assignment operator and/or a move constructor and move assignment operator, see Chapter 9, “Mastering Classes and Objects.”
+自定义异常类时，有一个需要注意的问题。当一段代码抛出异常时，抛出的对象或值会通过移动构造函数或复制构造函数进行移动或复制，如果编写了一个其对象将作为异常抛出的类，必须确保这些对象是可复制的和/或可移动的。如果的异常类中有动态分配的内存，该类必须有一个析构函数，还必须有复制构造函数和复制赋值运算符和/或移动构造函数和移动赋值运算符，参见第9章。
 
 \begin{myWarning}{WARNING}
-Objects thrown as exceptions are always moved or copied at least once.
+作为异常抛出的对象，至少会移动或复制一次。
 \end{myWarning}
 
-It is possible for exceptions to be copied more than once, but only if you catch the exception by value instead of by reference.
+异常可能会复制多次，但这只发生在按值捕获异常，而不是按引用捕获的情况下。
 
 \begin{myNotic}{NOTE}
-Catch exception objects by reference (preferably reference-to-const) to avoid unnecessary copying.
+通过引用（最好是常量引用）捕获异常对象，以避免不必要的复制。
 \end{myNotic}
 
+\mySubsubsection{14.3.4.}{嵌套异常}
 
-\mySubsubsection{14.3.4.}{Nested Exceptions}
+有可能会发生这样的情况：处理第一个异常期间，触发了第二个异常情况，需要抛出第二个异常。不幸的是，当抛出第二个异常时，当前正在尝试处理的第一个异常的所有信息都将丢失。C++为这个问题提供的解决方案称为嵌套异常，允许在新异常的上下文中嵌套一个捕获的异常。如果调用一个第三方库的函数，该函数抛出一个类型为A的异常，但只想在代码中使用类型为B的异常，这种情况也非常有用。这种情况下，捕获库中的所有异常并将它们嵌套在类型为B的异常中。
 
-It could happen that during handling of a first exception, a second exceptional situation is triggered that requires a second exception to be thrown. Unfortunately, when you throw the second exception, all information about the first exception that you are currently trying to handle will be lost. The solution provided by C++ for this problem is called nested exceptions, which allow you to nest a caught exception in the context of a new exception. This can also be useful if you call a function in a thirdparty library that throws an exception of a certain type, A, but you only want exceptions of another type, B, in your code. In such a case, you catch all exceptions from the library and nest them in an exception of type B.
-
-You use std::throw\_with\_nested() to throw an exception with another exception nested inside it. A catch handler for this new exception can use a dynamic\_cast() to get access to the std::nested\_exception representing the first exception. The upcoming example demonstrates this. It first defines a MyException class, which derives from exception and accepts a string in its constructor:
+使用std::throw\_with\_nested()来抛出一个内部嵌套了另一个异常的异常。这个新异常的捕获处理器可以使用dynamic\_cast()，来获取代表第一个异常的std::nested\_exception的访问权限。接下来的示例，首先定义了一个MyException类，该类从exception派生并在其构造函数中接受一个字符串：
 
 \begin{cpp}
 class MyException : public exception
@@ -247,7 +245,7 @@ class MyException : public exception
 };
 \end{cpp}
 
-The following doSomething() function throws a runtime\_error that is immediately caught in a catch handler. The catch handler writes a message and then uses the throw\_with\_nested() function to throw a second exception that has the first one nested inside it. Note that nesting the exception happens automatically:
+接下来的doSomething()函数抛出一个runtime\_error，该异常立即捕获并处理。捕获处理器写入一条消息，然后使用throw\_with\_nested()函数抛出一个第二个异常，第一个异常嵌套在其中。注意，嵌套异常是自动发生的：
 
 \begin{cpp}
 void doSomething()
@@ -263,9 +261,9 @@ void doSomething()
 }
 \end{cpp}
 
-throw\_with\_nested() works by throwing an unnamed new compiler-generated type that derives from both nested\_exception and, in this example, from MyException. Hence, it’s another example of useful multiple inheritance in C++. The default constructor of the nested\_exception base class automatically captures the exception currently being handled by calling std::current\_exception() and stores it in an std::exception\_ptr. An exception\_ptr is a pointer-like type capable of storing either a null pointer or a pointer to an exception object that was thrown and captured with current\_exception(). Instances of exception\_ptr can be passed to functions (usually by value) and across different threads.
+throw\_with\_nested()通过抛出一个未命名、编译器生成的新类型来实现，该类型同时派生自nested\_exception和（这个例子中）MyException。因此，这是C++中多重继承的一个示例，nested\_exception基类的默认构造函数通过调用std::current\_exception()自动捕获当前正在处理的异常，并将其存储在std::exception\_ptr中。exception\_ptr是一种指针样类型，能够存储空指针或指向使用current\_exception()捕获并抛出的异常对象的指针。exception\_ptr的实例可以传递给函数（通常是通过值）,并在不同的线程之间传递。
 
-Finally, the following code snippet demonstrates how to handle an exception with a nested exception. The code calls doSomething() and has one catch handler for exceptions of type MyException. When it catches such an exception, it writes a message and then uses a dynamic\_cast() to get access to the nested exception. If there is no nested exception inside, the result will be a null pointer. If there is a nested exception inside, the rethrow\_nested() member function on the nested\_exception is called. This causes the nested exception to be rethrown, which you can then catch in another try/catch block.
+最后，以下代码片段演示了如何处理带有嵌套异常的异常。代码调用doSomething()，并且有一个用于捕获类型为MyException的异常的捕获处理。当它捕获这样的异常时，它写入一条消息，然后使用dynamic\_cast()获取嵌套异常的访问权限。如果没有嵌套异常，结果将是一个空指针。如果内部有嵌套异常，则在nested\_exception上调用rethrow\_nested()成员函数。这导致嵌套异常会重新抛出，然后可以在另一个try/catch块中再次捕获。
 
 \begin{cpp}
 try {
@@ -285,7 +283,7 @@ try {
 }
 \end{cpp}
 
-The output is as follows:
+输出如下：
 
 \begin{shell}
 doSomething() caught a runtime_error
@@ -295,7 +293,7 @@ main() caught MyException: MyException with nested runtime_error
 \end{shell}
 
 
-This code uses a dynamic\_cast() to check for a nested exception. Because you always have to perform such a dynamic\_cast() if you want to check for a nested exception, the standard provides a helper function called std::rethrow\_if\_nested() that does it for you. This helper function can be used as follows:
+这段代码使用dynamic\_cast()来检查是否有嵌套异常。因为想检查嵌套异常，必须执行dynamic\_cast()，所以标准提供了一个名为std::rethrow\_if\_nested()的辅助函数来完成这个操作。这个辅助函数的用法：
 
 \begin{cpp}
 try {
@@ -311,7 +309,7 @@ try {
 }
 \end{cpp}
 
-throw\_with\_nested(), nested\_exception, rethrow\_if\_nested(), current\_exception(), and exception\_ptr are all defined in <exception>.
+throw\_with\_nested()、nested\_exception、rethrow\_if\_nested()、current\_exception()和exception\_ptr都定义在<exception>中。
 
 
 

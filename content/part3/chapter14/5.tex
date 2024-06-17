@@ -1,7 +1,7 @@
 
-When a piece of code throws an exception, it searches for a catch handler on the stack. This catch handler could be zero or more function calls up the stack of execution. When one is found, the stack is stripped back to the stack level that defines the catch handler by unwinding all intermediate stack frames. Stack unwinding means that the destructors for all locally scoped variables are called, and all code remaining in each function past the current point of execution is skipped.
+当一段代码抛出异常时，就会在栈上搜索捕获处理程序，这个捕获处理程序可能是执行栈上零个或多个函数调用。找到时，栈将回滚到定义捕获处理程序的栈级别，通过展开所有中间栈帧来实现。栈展开意味着调用所有局部作用域变量的析构函数，并跳过每个函数中当前执行点之后的所有代码。
 
-During stack unwinding, pointer variables are obviously not freed, and other cleanup is not performed either. This behavior can present problems. For example, the following code causes a memory leak:
+栈展开期间，指针变量显然不会释放，也不会执行其他清理工作。这种行为可能会导致问题。例如，以下代码有内存泄漏：
 
 \begin{cpp}
 void funcOne();
@@ -34,43 +34,43 @@ void funcTwo()
 }
 \end{cpp}
 
-When funcTwo() throws an exception, the closest exception handler is in main(). Control then jumps immediately from this line in funcTwo(),
+当funcTwo()抛出异常时，最近的异常处理程序在main()中。然后控制从funcTwo()中的这一行：
 
 \begin{cpp}
 throw exception {};
 \end{cpp}
 
-to this line in main():
+跳转到main()中的这一行：
 
 \begin{cpp}
 println(cerr, "Exception caught!");
 \end{cpp}
 
-In funcTwo(), control remains at the line that threw the exception, so this subsequent line never gets a chance to run:
+在funcTwo()中，控制留在抛出异常的那一行，所以后续的这行代码永远不会运行：
 
 \begin{cpp}
 fileStream.close();
 \end{cpp}
 
-However, luckily for you, the ifstream destructor is called because fileStream is a local variable on the stack. The ifstream destructor closes the file for you, so there is no resource leak here. If you had dynamically allocated fileStream, it would not be destroyed, and the file would not be closed.
+然而，幸运的是，ifstream析构函数会调用，因为fileStream是栈上的局部变量。ifstream析构函数关闭文件，所以这里没有资源泄漏。如果动态分配了fileStream，它就不会销毁，文件也不会关闭。
 
-In funcOne(), control is at the call to funcTwo(), so this subsequent line never gets a chance to run:
+在funcOne()中，控制位于对funcTwo()的调用，所以后续的这行代码也永远不会运行：
 
 \begin{cpp}
 delete str2;
 \end{cpp}
 
-In this case, there really is a memory leak. Stack unwinding does not automatically call delete on str2 for you. On the other hand, str1 is destroyed properly because it is a local variable on the stack. Stack unwinding destroys all local variables correctly.
+这种情况下，真的存在内存泄漏。栈展开不会自动为你调用str2的delete。另一方面，str1可正确销毁，因为它是一个栈上的局部变量，所以栈展开正确地销毁了所有局部变量。
 
 \begin{myWarning}{WARNING}
-Careless exception handling can lead to memory and resource leaks.
+粗心的异常处理可能导致内存和资源的泄漏。
 \end{myWarning}
 
-This is one reason why you should never mix older C models of allocation (even if you are calling new so it looks like C++) with modern programming methodologies like exceptions. In C++, this situation should be handled by using stack-based allocations or, if that is not possible, by one of the techniques discussed in the upcoming two sections.
+这就是为什么不应该将旧的C语言模型中的分配（即使你调用new，看起来像C++）与现代编程方法（如异常）混合使用的原因之一。在C++中，这种情况应该通过使用基于栈的分配来处理，如果不可，则使用接下来两节中讨论的方式。
 
-\mySubsubsection{14.5.1.}{Use Smart Pointers}
+\mySubsubsection{14.5.1.}{使用智能指针}
 
-If stack-based allocation is not possible, then use smart pointers. They allow you to write code that automatically prevents memory or resource leaks during exception handling. Whenever a smart pointer object is destroyed, it frees the underlying resource. Here is a modified funcOne() implementation using a unique\_ptr smart pointer, defined in <memory>, and introduced in Chapter 7, “Memory Management”:
+如果基于栈的分配不可能，那么使用智能指针，其允许编写在异常处理期间自动防止内存或资源泄漏的代码。每当销毁智能指针对象时，都会释放底层资源。这里是一个使用<memory>中定义的unique\_ptr智能指针的funcOne()实现，该指针在第7章中引入：
 
 \begin{cpp}
 void funcOne()
@@ -81,17 +81,17 @@ void funcOne()
 }
 \end{cpp}
 
-The str2 pointer will automatically be deleted when you return from funcOne() or when an exception is thrown.
+当从funcOne()返回或抛出异常时，str2指针将自动删除。
 
-Of course, you should only allocate something dynamically if you have a good reason to do so. For example, in funcOne(), there is no good reason to make str2 a dynamically allocated string. It should just be a stack-based string variable. It’s merely shown here as an artificial example of the consequences of throwing exceptions.
+当然，只有在有充分的理由时，才进行动态分配。例如，在funcOne()中，没有充分的理由让str2成为一个动态分配的字符串，应该只是一个基于栈的字符串变量。这里只是作为一个示例，来展示抛出异常的后果。
 
 \begin{myNotic}{NOTE}
-With smart pointers, or other resource acquisition is initialization (RAII) objects, you never have to remember to free the underlying resource: the destructor of the RAII object does it for you, whether you leave the function normally or via an exception. It’s a design technique discussed in Chapter 32, “Incorporating Design Techniques and Frameworks.”
+使用智能指针或其他资源获取即初始化（RAII）对象时，永远不需要记住释放底层资源：RAII对象的析构函数会为你完成这项工作，无论是正常离开函数，还是通过异常。这是一种在第32章中才会介绍的技术。
 \end{myNotic}
 
-\mySubsubsection{14.5.2.}{Catch, Cleanup, and Rethrow}
+\mySubsubsection{14.5.2.}{捕获、清理和重新抛出}
 
-Another technique for avoiding memory and resource leaks is for each function to catch any possible exceptions, perform necessary cleanup work, and rethrow the exception for the function higher up the stack to handle. Here is a revised funcOne() with this technique:
+避免内存和资源泄漏的另一种方式是每个函数捕获可能的异常，执行必要的清理工作，然后为栈上更高层的函数重新抛出异常。这里是使用这种方法的funcOne()：
 
 \begin{cpp}
 void funcOne()
@@ -108,12 +108,12 @@ void funcOne()
 }
 \end{cpp}
 
-This function wraps the call to funcTwo() with an exception handler that performs the cleanup (calls delete on str2) and then rethrows the exception. The keyword throw by itself rethrows whatever exception was caught most recently. Note that the catch statement uses the ... syntax to catch all exceptions.
+这个函数用一个异常处理程序包装了对funcTwo()的调用，该处理程序执行清理工作（str2上调用delete）然后重新抛出异常，关键字throw会重新抛出最近捕获的异常。注意，catch语句使用了…语法来捕获所有异常。
 
-This method works fine but is messy and error prone. In particular, note that there are now two identical lines that call delete on str2: one while handling the exception and one when the function exits normally.
+这种方法虽然可行，但会使代码变得混乱且容易出错。特别是要注意，现在有两行完全相同的代码调用了delete str2：一行是在处理异常时，另一行是在函数正常退出时。
 
 \begin{myWarning}{WARNING}
-The preferred solution is to use stack-based allocation, or, if not possible, to use smart pointers or other RAII classes instead of the catch, cleanup, and rethrow technique.
+首选的解决方案是使用基于栈的分配，如果不行，则使用智能指针或其他RAII类，而不是捕获、清理和重新抛出技术。
 \end{myWarning}
 
 
