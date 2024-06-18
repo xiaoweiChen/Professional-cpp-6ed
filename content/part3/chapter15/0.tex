@@ -1,58 +1,56 @@
 \noindent
-\textbf{WHAT’S IN THIS CHAPTER?}
+\textbf{内筒概要}
 
 \begin{itemize}
 \item
-What operator overloading is
+什么是操作符重载
 
 \item
-Rationale for overloading operators
+重载操作符的基本原理
 
 \item
-Limitations, caveats, and choices in operator overloading
+操作符重载中的限制、注意事项和选择
 
 \item
-Summary of operators you can, cannot, and should not overload
+浅析可以、不能和不应该重载的操作符
 
 \item
-How to overload unary plus, unary minus, increment, and decrement
+如何重载一元加号、一元减号、自增和自减
 
 \item
-How to overload the I/O stream operators (operator<{}< and operator>{}>)
+如何重载I/O流操作符(operator<{}<和operator>{}>)
 
 \item
-How to overload the subscripting (array index) operator
+如何重载下标(数组索引)操作符
 
 \item
-How to write multidimensional subscripting operators
+如何编写多维下标操作符
 
 \item
-How to overload the function call operator
+如何重载函数调用操作符
 
 \item
-How to overload the dereferencing operators (* and ->)
+如何重载解引用操作符(*和->)
 
 \item
-How to write conversion operators
+如何编写转换操作符
 
 \item
-How to overload the memory allocation and deallocation operators
+如何重载内存分配和释放操作符
 
 \item
-How to define your own user-defined literal operators
+如何自定义字面量操作符
 
 \item
-The available standard literal operators
+可用的标准字面量操作符
 \end{itemize}
 
-\noindent
-\textbf{WILEY.COM DOWNLOADS FOR THIS CHAPTER}
+本章的所有代码示例都可以在\url{https://github.com/Professional-CPP/edition-6/}获得。
 
-Please note that all the code examples for this chapter are available as part of this chapter’s code download on the book’s website at \url{www.wiley.com/go/proc++6e} on the Download Code tab.
+C++允许重新定义+，-，和=等运算符，许多面向对象的语言不提供这种能力，所以可能会有冲动忽视其在C++中的作用。然而，这将使类表现得像内置类型（如int和double）一样。甚至可以编写看起来像数组、函数或指针的类。
 
-C++ allows you to redefine the meanings of operators, such as +, -, and =, for your classes. Many object-oriented languages do not provide this capability, so you might be tempted to disregard its usefulness in C++. However, it is instrumental for making your classes behave similarly to built-in types such as ints and doubles. It is even possible to write classes that look like arrays, functions, or pointers.
+第5章和第6章分别介绍了面向对象设计和运算符重载，第8章和第9章分别介绍了对象和基本运算符重载的语法细节。本章在第9章的基础上继续介绍运算符的重载。
 
-Chapter 5, “Designing with Classes,” and Chapter 6, “Designing for Reuse,” introduce object-oriented design and operator overloading, respectively. Chapter 8, “Gaining Proficiency with Classes and Objects,” and Chapter 9, “Mastering Classes and Objects,” present the syntax details for objects and for basic operator overloading. This chapter picks up operator overloading where Chapter 9 left off.
 
 
 

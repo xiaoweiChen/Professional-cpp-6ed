@@ -1,11 +1,11 @@
 
 \CXXTwentythreeLogo{-40}{10}
 
-Whenever a function A() calls another function B(), the arguments to be passed to B() are recorded and information about where to return to when the function is finished is recorded as well. The execution of B() can again call another function C() and so on. All this information is recorded in frames on a stack trace, also known as a call stack. For each function call, a new frame is added to the stack trace. When the execution of the function is finished, its frame is removed from the stack trace. At any given moment in the execution of your program, the stack trace tells you exactly through which function calls you arrived in the currently executing function. Information like this is vital for finding and fixing bugs in your program. Chapter 31, “Conquering Debugging,” discusses debugging in detail. This section discusses the functionality provided by the Standard Library to work with stack traces, as well as how this can be very useful in combination with custom exceptions. Everything discussed in this section is new since C++23.
+每当函数A()调用另一个函数B()时，都会记录传递给B()的参数，以及函数完成时需要返回的位置信息。B()的执行可能会再次调用另一个函数C()，以此类推。所有这些信息都会记录在栈跟踪（也称为调用栈）的帧中。对于每个函数调用，都会在栈跟踪中添加一个新帧。当函数执行完毕时，其帧会从栈跟踪中移除。程序执行时，栈跟踪都能知道确切是通过哪些函数调用到达当前正在执行的函数，这样的信息对于找到并修复程序中的错误至关重要，第31章详细介绍了调试。本节讨论了标准库提供的用于处理栈跟踪的功能，以及如何与自定义异常结合使用，这个特性只有在C++23之后才能使用。
 
-\mySubsubsection{14.7.1.}{The Stack Trace Library}
+\mySubsubsection{14.7.1.}{栈跟踪库}
 
-The stack trace library is defined in <stacktrace>. You can retrieve a stack trace at any moment in time using the static member function std::stacktrace::current(). You can pass an integer to current() if you want to skip a certain number of top frames. An example of this is given in the next section. Once you have a stack trace, you can easily print it to the console using print() or println(). You can also convert a stack trace to a string using std::to\_string(). Here is an example, with the stack trace–related statements highlighted:
+栈跟踪库定义在<stacktrace>中,可以使用静态成员函数std::stacktrace::current()取栈跟踪信息。如果想要跳过栈跟踪顶部的某些帧，可以向current()传递一个整数。下一个部分将给出一个这样的例子。有了栈跟踪，就可以轻松地使用print()或println()将其打印到控制台，也可以使用std::to\_string()将栈跟踪转换为字符串。这里是一个例子：
 
 \begin{cpp}
 void handleStackTrace(const stacktrace& trace)
@@ -35,7 +35,7 @@ int main()
 }
 \end{cpp}
 
-Compiled with Microsoft Visual C++ and running on Windows, the output resembles the following. Long pathnames have been trimmed to prevent wrapping of lines. The 01\_stacktrace.cpp file is our code. The exe\_common.inl and exe\_main.cpp files belong to the Visual C++ runtime. The final two frames, kernel32 and ntdll, are part of the Windows kernel. Function names are highlighted for readability.
+使用Microsoft Visual C++编译并在Windows上运行，输出类似于以下内容。为了防止换行，就截断路径名。文件01\_stacktrace.cpp是我们的代码，文件exe\_common.inl和exe\_main.cpp隶属于Visual C++运行时。最后两个帧kernel32和ntdll是Windows内核的一部分：
 
 \begin{shell}
 Entered A().
@@ -58,17 +58,17 @@ Entered C().
 ---------------------------------------------------------
 \end{shell}
 
-You can iterate over the individual frames of a stack trace and query for information of each frame. A frame is represented by the std::stacktrace\_entry class, which supports the following member functions:
+可以遍历栈跟踪的各个帧，并查询每个帧的信息。帧`std::stacktrace\_entry类表示，它支持以下成员函数：
 
 \begin{itemize}
 \item
-description(): Returns the description of the frame
+description(): 返回帧描述
 
 \item
-source\_file() and source\_line(): The name of the source file and the line number within it that contains the statement represented by the frame
+source\_file() 和  source\_line(): 包含帧的源文件名和源文件中的行号
 \end{itemize}
 
-For example, the following implementation of handleStackTrace() doesn’t just print the entire stack trace all at once but iterates over the individual frames and prints out only the description of each.
+例如，下面的handleStackTrace()的实现，并没有一次性打印整个栈跟踪，而是遍历了每个帧，只输出了每个帧的描述。
 
 \begin{cpp}
 void handleStackTrace(const stacktrace& trace)
@@ -82,7 +82,7 @@ void handleStackTrace(const stacktrace& trace)
 }
 \end{cpp}
 
-The output now is as follows:
+输出如下所示：
 
 \begin{shell}
 Entered A().
@@ -99,9 +99,9 @@ Entered C().
       ... <snip> ...
 \end{shell}
 
-\mySubsubsection{14.7.2.}{Automatically Embed a Stack Trace in Custom Exceptions}
+\mySubsubsection{14.7.2.}{自动嵌入堆栈跟踪的异常}
 
-We can extend the MyException class from an earlier section on source\_location to include a stack trace in addition to the source location.
+可以扩展之前关于source\_location的MyException类，以跟踪堆栈(除了源位置之外)。
 
 \begin{cpp}
 class MyException : public exception
@@ -124,7 +124,7 @@ class MyException : public exception
 };
 \end{cpp}
 
-Note that the constructor passes 1 to stacktrace::current() to skip the top frame of the stack trace. This top frame would be the constructor of MyException, which we are not interested in. We’re interested only in the stack trace leading up to the construction of this MyException instance. This new exception class can be tested as follows:
+注意，构造函数将1传递给stacktrace::current()，以跳过堆栈跟踪的顶部帧。这个顶部帧将是MyException构造函数，我们对此不感兴趣。我们只对导致创建这个MyException实例的堆栈跟踪感兴趣，所以可以这样测试这个新异常类：
 
 \begin{cpp}
 void doSomething()
@@ -153,7 +153,7 @@ int main()
 }
 \end{cpp}
 
-When compiling with Microsoft Visual C++ and running on Windows, the output resembles the following. Only the top two relevant entries of the stack trace are shown. The stack entries that are inside the Visual C++ runtime or inside Windows itself are omitted for brevity.
+使用Microsoft Visual C++编译并在Windows上运行时，输出类似于以下内容。以简洁为主，只显示堆栈跟踪的顶部两个相关信息，跳过了Visual C++运行时或Windows本身内部的堆栈信息。
 
 \begin{shell}
 Caught: 'Throwing MyException.' at line 30 in void __cdecl doSomething(void).
@@ -164,7 +164,7 @@ Caught: 'Throwing MyException.' at line 30 in void __cdecl doSomething(void).
 \end{shell}
 
 \begin{myNotic}{NOTE}
-If you are using custom exceptions, embed a stack trace in them for easier debugging of errors.
+如果使用自定义异常，请在其中嵌入堆栈跟踪，以便调试错误。
 \end{myNotic}
 
 

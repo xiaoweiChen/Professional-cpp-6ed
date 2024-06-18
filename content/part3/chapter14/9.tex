@@ -1,19 +1,19 @@
-Now that you are fluent in working with exceptions, it’s time to discuss exception safety guarantees. There are several levels of guarantees you can provide for code you write so that users of your code know what can be expected when an exception is thrown. The following exception safety guarantees can be specified for a function:
+已经熟练地处理了异常，现在是讨论异常安全保证的时候了。可以为编写代码提供几种级别的保证，以便代码的用户了解处理异常的情况。以下是可以为函数指定的异常安全保证：
 
 \begin{itemize}
 \item
-Nothrow (or nofail) exception guarantee: The function never throws any exceptions.
+Nothrow（或nofail）异常保证：该函数永远不会抛出异常。
 
 \item
-Strong exception guarantee: If an exception is thrown, all involved objects are rolled back to the state they were in before the function was called. An example of code providing this guarantee is the copy-and-swap idiom introduced in Chapter 9.
+强异常保证：如果抛出异常，所有涉及的实例都会回滚到函数调用之前的状态。提供这种保证的代码的例子是在第9章介绍的复制和交换模式。
 
 \item
-Basic exception guarantee: If an exception is thrown, all involved objects remain in a valid state, and no resources are leaked. However, the objects could be in another state than they were before the function was called.
+基本异常保证：如果抛出异常，所有涉及的实例都保持有效状态，没有资源泄漏。然而，实例的状态可能与函数调用之前的状态不同。
 
 \item
-No guarantee: When an exception is thrown, the application can be in any invalid state, resources might be leaked, memory might be corrupted, and so on.
+无保证：当抛出异常时，应用程序可能处于任何无效状态，资源可能泄漏，内存可能破坏等。
 \end{itemize}
 
 \begin{myNotic}{NOTE}
-If a function can throw exceptions, then it should provide, at the very least, a basic exception guarantee.
+如果一个函数可以抛出异常，至少应该提供基本的异常保证。
 \end{myNotic}

@@ -1,8 +1,8 @@
-By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+通过解决下面的练习，可以练习本章讨论的内容。所有练习的解决方案都可以在本书的网站\url{www.wiley.com/go/proc++6e}下载到源码。然而，若在练习中卡住了，在从网站上寻找解决方案之前，可以考虑先重读本章的部分内容，试着自己找到答案。
 
 \begin{itemize}
 \item
-Exercise 14-1: Without compiling and executing, find and correct the errors in the following code:
+\textbf{练习14-1}：在不编译和执行的情况下，找出并纠正以下代码中的错误：
 
 \begin{cpp}
 // Throws a logic_error exception if the number of elements
@@ -49,13 +49,13 @@ int main()
 \end{cpp}
 
 \item
-Exercise 14-2: Take the code from the bidirectional I/O example from Chapter 13. You can find this in the Ch13\verb|\|22\_Bidirectional folder in the downloadable source code archive. The example implements a changeNumberForID() function. Retrofit the code to use exceptions on all places you deem appropriate. Once your code is using exceptions, do you see a possible change you can make to the changeNumberForID() function header?
+\textbf{练习14-2}：使用第13章中的双向I/O示例代码。可以在这个下载源代码存档的Ch13\verb|\|22\_Bidirectional文件夹中找到这个示例。这个示例实现了一个changeNumberForID()函数，将代码修改为在所有适当的地方使用异常。当代码开始使用异常，是否可以对changeNumberForID()函数声明进行修改？
 
 \item
-Exercise 14-3: Add proper error handling using exceptions to your person database solution of Exercise 13-3.
+\textbf{练习14-3}：为练习13-3中的人员数据库解决方案添加适当的错误处理，使用异常。
 
 \item
-Exercise 14-4: Take a look at the code in Chapter 9 for the Spreadsheet example that includes support for move semantics using swap(). You can find the entire code in the downloadable source code archive in the folder Ch09\verb|\|07\_SpreadsheetMoveSemantics– WithSwap. Add proper error handling to the code, including handling of memory allocation failures. Add a maximum width and height to the class and include the proper verification checks. Write your own exception class, InvalidCoordinate, which stores both an invalid coordinate and the range of allowed coordinates. Use it in the verifyCoordinate() member function. Write a couple of tests in main() to test various error conditions.
+\textbf{练习14-4}：查看第9章中的Spreadsheet示例代码，该代码支持使用swap()的移动语义。可以在这个下载源代码存档的Ch09\verb|\|07\_SpreadsheetMoveSemantics–WithSwap文件夹中找到完整的代码。为代码添加适当的错误处理，包括处理内存分配失败。在类中添加最大宽度和高度，并包括适当的验证检查。编写自己的异常类InvalidCoordinate，存储无效的坐标和允许的坐标范围，并在verifyCoordinate()成员函数中使用它。在main()中编写几个测试来测试各种错误条件。
 \end{itemize}
 
 
