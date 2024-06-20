@@ -1,70 +1,71 @@
 
-As Chapter 1, “A Crash Course in C++ and the Standard Library,” explains, operators in C++ are symbols such as +, <, *, and <{}<. They work on built-in types such as int and double to allow you to perform arithmetic, logical, and other operations. There are also operators such as -> and * that allow you to dereference pointers. The concept of operators in C++ is broad, and even includes [] (array index), () (function call), casting, and the memory allocation and deallocation operators. Operator overloading allows you to change the behavior of language operators for your classes. However, this capability comes with rules, limitations, and choices.
+第1章中解释了C++中的运算符，如+、<、*和<{}<，可作用于内置类型，如int和double，允许执行算术、逻辑和其他操作。还有如->和*这样的运算符，对指针解引用。C++中的运算符概念很广泛，甚至包括[]（数组索引）、()（函数调用）、类型转换以及内存分配和回收运算符。运算符重载允许你改变语言运算符对你类的行为。然而，这种能力也有自己的规则、限制和选择。
 
-\mySubsubsection{15.1.1.}{Why Overload Operators?}
+\mySubsubsection{15.1.1.}{为什么要重载运算符？}
 
-Before learning how to overload operators, you probably want to know why you would ever want to do so. The reasons vary for the different operators, but the general guiding principle is to make your classes behave like built-in types. The closer your classes are to built-in types, the easier they will be for clients to use. For example, if you want to write a class to represent fractions, it’s quite helpful to have the ability to define what +, -, *, and / mean when applied to objects of that class.
+学习如何重载运算符之前，可能想知道为什么你想要这样做。因不同的运算符而异，但一般的指导原则是让类表现得像内置类型。类越接近内置类型，客户端使用起来就越容易。例如，写一个类来表示分数，能够定义+、-、*和/在应用于该类的对象时就会很有用。
 
-Another reason to overload operators is to gain greater control over the behavior in your program. For example, you can overload memory allocation and deallocation operators for your classes to specify exactly how memory should be distributed and reclaimed for each new object.
+重载运算符的另一个原因是，获得对程序行为更大的控制权。例如，重载类内存分配和回收运算符，以精确指定每个新对象的内存分配和回收。
 
-It’s important to emphasize that operator overloading doesn’t necessarily make things easier for you as the class developer; its main purpose is to make things easier for users of the class.
+需要强调的是，运算符重载并不一定会让开发工作更容易，其主要目的是让类的用户使用起来更容易。
 
-\mySubsubsection{15.1.2.}{Limitations to Operator Overloading}
+\mySubsubsection{15.1.2.}{运算符重载的限制}
 
-Here is a list of things you cannot do when you overload operators:
+以下是在重载运算符时不能做的事情：
 
 \begin{itemize}
 \item
-You cannot add new operator symbols. You can only redefine the meanings of operators already in the language. The table in the section “Summary of Overloadable Operators” later in this chapter lists all of the operators that you can overload.
+不能添加新的运算符符号，只能重新定义语言中已有的运算符的含义。本章后面“可重载运算符总结”一节中的表格，列出了可以重载的运算符。
 
 \item
-There are a few operators that you cannot overload, such as . and .* (member access in an object), :: (scope resolution operator), and ?: (the conditional operator). The table lists all the operators that you can overload. The operators that you can’t overload are usually not those you would care to overload anyway, so you shouldn’t find this restriction limiting.
+有些运算符不能重载，比如.和.*（对象中的成员访问）、::（范围解析运算符）和?:（条件运算符）。
 
 \item
-The arity describes the number of arguments, or operands, associated with the operator. You can change the arity only for the function call, new, and delete operators, and, since C++23, also for the subscripting operator (array index), []. For all other operators, you cannot change the arity. Unary operators, such as ++, work on only one operand. Binary operators, such as /, work on two operands.
+元数描述了与运算符相关联的参数或操作数的数量。只能更改函数调用、new和delete运算符的元数，以及，自C++23起，还可以更改下标运算符（数组索引）[]的元数。对于所有其他运算符，不能更改元数。一元运算符，如++，只作用于一个操作数。二元运算符，如/，作用于两个操作数。
 
 \item
-You cannot change the precedence nor the associativity of an operator. The precedence is used to decide which operators need to be executed before other operators, while the associativity can be either left-to-right or right-to-left and specifies in which order operators of the same precedence are executed. Again, this constraint shouldn’t be cause for concern in most programs because there are rarely benefits to changing the order of evaluation, but, in certain domains, it’s something to keep in mind. For example, if you are writing a class to represent mathematical vectors and would like to overload the \^{} operator to be able to raise a vector to a certain power, then keep in mind that \^{} has lower precedence compared to many other operators such as +. For instance, suppose x and y are mathematical vectors, writing x\^{}3+y will be evaluated as x\^{}(3+y) and not as (x\^{}3)+y as you probably intended.
+不能改变运算符的优先级和结合性。优先级用于决定哪些运算符需要在其他运算符之前执行，而结合性可以是左到右或右到左，并指定具有相同优先级的运算符的执行顺序。再次强调，这个约束在大多数程序中不应该是关注的焦点，很有有改变求值顺序的需求，但在某些领域中，这是需要考虑的。例如，正在编写一个表示数学向量的类，并希望重载\^{}运算符以便能够将向量提升到一定的幂，那么请记住\^{}与许多其他运算符（如+）相比具有较低的优先级。例如，x和y是数学向量，编写x\^{}3+y将计算为x\^{}(3+y)，而不是(x\^{}3)+y。
 
 \item
-You cannot redefine operators for built-in types. The operator must be a member function in a class, or at least one of the arguments to a global overloaded operator function must be a user-defined type (for example, a class). This means that you can’t do something ridiculous, such as redefine + for ints to mean subtraction (though you could do so for your own classes). The one exception to this rule is the memory allocation and deallocation operators; you can replace the global operators for all memory allocations in your program.
+不能为内置类型重新定义运算符。运算符必须是类中的成员函数，或者至少全局重载运算符函数的一个参数必须是用户定义类型（例如，类）。所以不能做些荒谬的事情，比如将+对int的定义改为减法（尽管可以在自己的类中这样做）。这个规则的例外是内存分配和回收运算符，可以替换程序中所有内存分配的全局运算符。
 \end{itemize}
 
-Some of the operators already mean two different things. For example, operator- can be used as a binary operator (as in x=y-z;) or as a unary operator (as in x=-y;). The * operator can be used for multiplication or for dereferencing a pointer. The << operator is the stream insertion operator or the left-shift operator, depending on the context. For such dual-meaning operators, you can overload both meanings.
+有些运算符已经有两个不同的含义。例如，运算符-可以用作二元运算符（如在x=y-z;中）或一元运算符（如在x=-y;中）。*运算符可以用作乘法或对指针解引用。<{}<运算符是流插入运算符或左移运算符，具体取决于上下文。对于具有双重含义的运算符，可以两种含义都重载。
 
-\mySubsubsection{15.1.3.}{Choices in Operator Overloading}
+\mySubsubsection{15.1.3.}{选择操作符重载}
 
-When you overload an operator, you write a global function or member function with the name operatorX, where X is the symbol for some operator, and with optional whitespace between operator and X. For example, Chapter 9 declares operator+ for SpreadsheetCell objects like this:
+重载操作符时，需要编写一个名为operatorX的全局函数或成员函数，其中X是某个操作符的符号，operator和X之间可以有可选的空格。例如，第9章为SpreadsheetCell对象声明operator+：
 
 \begin{cpp}
 SpreadsheetCell operator+(const SpreadsheetCell& lhs, const SpreadsheetCell& rhs);
 \end{cpp}
 
-The following sections describe several choices involved in each overloaded operator you write.
+以下各节描述了在编写每个重载操作符时，涉及到的选择。
 
-\mySamllsection{Member Function or Global Function}
+\mySamllsection{成员函数或全局函数}
 
-First, you must decide whether your operator should be a member function of your class or a global function. The latter can be a friend of the class, although that should be a last resort — adding friends to a class should be limited as much as possible, as they can access private data members directly and thus circumvent the data-hiding principle.
+首先，需要决定操作符应该是类的成员函数，还是全局函数。后者可以是类的友元函数，但应作为最后的手段——应尽可能限制向类添加友元函数，因为它们可以直接访问private数据成员，从而绕过数据隐藏原则。
 
-How do you choose between a member function or a global function? First, you need to understand the difference between these two choices. When the operator is a member function of a class, the left-hand side of the operator expression must always be an object of that class. If you write a global function, the left-hand side can be an object of a different type.
+如何选择成员函数和全局函数？首先，需要了解这两种选择的区别。当操作符是类的成员函数时，操作符表达式的左侧必须始终是该类的对象。如果编写一个全局函数，左侧可以是不同类型的对象。
 
-There are three different types of operators:
+有三种不同类型的操作符：
 
 \begin{itemize}
 \item
-Operators that must be member functions. The C++ language requires some operators to be member functions of a class because they don’t make sense outside of a class. For example, operator= is tied so closely to the class that it can’t exist anywhere else. The table in the section “Summary of Overloadable Operators” lists those operators that must be member functions. Most operators do not impose this requirement.
+必须作为成员函数的操作符。因为它们在类的外部没有意义，所以C++语言要求某些操作符必须是类的成员函数。例如，operator=与类紧密相关，不能存在于其他任何地方。本节“可重载操作符的总结”中的表格列出了必须作为成员函数的操作符，大多数操作符没有这个要求。
 
 \item
-Operators that must be global functions. Whenever you need to allow the left-hand side of the operator to be a variable of a different type than your class, you must make the operator a global function. This rule applies specifically to the <{}< and >{}> insertion and extraction streaming operators, where the left-hand side is an iostream object, not an object of your class. It also applies to commutative operators like binary + and –, which should allow variables that are not objects of your class on the left-hand side. A global function is required if implicit conversions are desired for the left operand of a binary operator. Chapter 9 discusses this problem.
+必须作为全局函数的操作符。当需要允许操作符左侧的变量与类不同的类型时，必须使操作符成为全局函数。这条规则特别适用于<{}<和>{>}插入和提取流操作符，其中左侧是iostream对象，而不是类的对象。这也适用于像二进制+和-这样的交换操作符，允许左侧的变量不是类的对象。如果希望为二元操作符的左操作数进行隐式转换，则需要全局函数。第9章已经介绍了这个问题。
 
 \item
-Operators that can be either member functions or global functions. There is some disagreement in the C++ community on whether it’s better to write member functions or global functions to overload operators. However, I recommend the following rule: make every operator a member function unless you must make it a global function, as described previously.
-One major advantage to this rule is that member functions can be virtual, while global functions obviously cannot. Therefore, when you plan to write overloaded operators in an inheritance tree, you should make them member functions if possible.
+可以作为成员函数或全局函数的操作符。在C++社区中，关于是否最好将操作符重载为成员函数或全局函数存在一些分歧。然而，我建议，除非必须按照前面的描述将其作为全局函数，否则使每个操作符成为成员函数。
+
+这个规则的一个主要优点是，成员函数可以是虚函数，而全局函数显然不能。因此，在继承树中编写重载操作符时，尽可能应使它们成为成员函数。
 \end{itemize}
 
-When you write an overloaded operator as a member function, you should mark it const if it doesn’t change the object. That way, it can be called on const objects.
+将重载操作符编写为成员函数时，如果不改变对象，应将其标记为const。
 
-When you write an overloaded operator as a global function, put it in the same namespace that contains the class for which the operator is written.
+将重载操作符编写为全局函数时，将其放在包含要编写操作符的类的同一命名空间中。
 
 \mySamllsection{Choosing Argument Types}
 
