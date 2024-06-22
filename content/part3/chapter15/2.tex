@@ -1,9 +1,9 @@
 
-Chapter 9 shows how to write the binary arithmetic operators and the shorthand arithmetic assignment operators, but it does not cover how to overload the other arithmetic operators.
+第9章展示了如何编写二元算术运算符和简写算术赋值运算符，但没有介绍如何重载其他算术运算符。
 
-\mySubsubsection{15.2.1.}{Overloading Unary Minus and Unary Plus}
+\mySubsubsection{15.2.1.}{重载一元加减}
 
-C++ has several unary arithmetic operators. Two of these are unary minus and unary plus. Here is an example of these operators using ints:
+C++ 有几个一元算术操作符。其中两个是一元减（-）和一元加（+）。以下是一个使用整数的一元操作符的示例：
 
 \begin{cpp}
 int i, j { 4 };
@@ -13,9 +13,9 @@ j = +(-i); // Apply unary plus to the result of applying unary minus to i.
 j = -(-i); // Apply unary minus to the result of applying unary minus to i.
 \end{cpp}
 
-Unary minus negates the operand, while unary plus returns the operand directly. Note that you can apply unary plus or unary minus to the result of unary plus or unary minus. These operators don’t change the object on which they are called so you should make them const.
+一元减取操作数的相反数，而一元加直接返回操作数。注意，可以对一元加或一元减的结果应用一元加或一元减。这些操作符不改变调用的对象，因此应该使它们成为const成员函数。
 
-Here is an example of a unary operator- as a member function for a SpreadsheetCell class. Unary plus is usually an identity operation, so this class doesn’t overload it.
+以下是一个一元减操作符作为 SpreadsheetCell 类的成员函数的示例。一元加通常是一个恒等操作，所以这个类没有重载。
 
 \begin{cpp}
 SpreadsheetCell SpreadsheetCell::operator-() const
@@ -24,16 +24,16 @@ SpreadsheetCell SpreadsheetCell::operator-() const
 }
 \end{cpp}
 
-operator- doesn’t change the operand, so this member function must construct a new SpreadsheetCell with the negated value and return it. Hence, it can’t return a reference. You can use this operator as follows:
+operator- 不改变操作数，因此这个成员函数必须构造一个新的 SpreadsheetCell， 并返回它的相反值。因此，不能返回引用。可以像这样使用这个操作符：
 
 \begin{cpp}
 SpreadsheetCell c1 { 4 };
 SpreadsheetCell c3 { -c1 };
 \end{cpp}
 
-\mySubsubsection{15.2.2.}{Overloading Increment and Decrement}
+\mySubsubsection{15.2.2.}{重载增减量操作符}
 
-There are several ways to add 1 to a variable:
+有多种方法可以将1加到变量：
 
 \begin{cpp}
 i = i + 1;
@@ -43,11 +43,11 @@ i += 1;
 i++;
 \end{cpp}
 
-The last two forms are called the increment operators. The first of these is prefix increment, which adds 1 to the variable and then returns the newly incremented value for use in the rest of the expression. The second is postfix increment, which also adds 1 to the variable but returns the old (nonincremented) value for use in the rest of the expression. The decrement operators work similarly.
+最后两种形式称为增量操作符。第一个是前置增量，将1加到变量，然后返回新增加的值，以供表达式的其余部分使用。第二个是后置增量，也将1加到变量，但返回旧的（未增加的）值，以供表达式的其余部分使用。减量操作符的工作方式类似。
 
-The two possible meanings for operator++ and operator-- (prefix and postfix) present a problem when you want to overload them. When you write an overloaded operator++, for example, how do you specify whether you are overloading the prefix or the postfix version? C++ introduced a hack to allow you to make this distinction: the prefix versions of operator++ and operator-- take no arguments, while the postfix versions take one unused argument of type int.
+想要重载 operator++ 和 operator-- 时，可能具有的前置和后置含义提出了一个问题。例如，当编写一个重载的 operator++ 时，如何指定是在重载前置版本还是后置版本？C++ 引入了一个技巧来允许你做出这种区分：前置版本的 operator++ 和 operator-- 不接受参数，而后置版本接受一个未使用的类型为 int 的参数。
 
-The prototypes of these overloaded operators for the SpreadsheetCell class look like this:
+SpreadsheetCell 类的这些重载操作符的原型如下：
 
 \begin{cpp}
 SpreadsheetCell& operator++(); // Prefix
@@ -56,9 +56,9 @@ SpreadsheetCell& operator--(); // Prefix
 SpreadsheetCell operator--(int); // Postfix
 \end{cpp}
 
-The return value in the prefix forms is the same as the end value of the operand, so prefix increment and decrement can return a reference to the object on which they are called. The postfix versions of increment and decrement, however, return values that are different from the end values of the operands, so they cannot return references.
+前置形式的返回值与操作数的最终值相同，因此前置增量和减量可以返回对调用对象的引用。然而，后置增量和减量的返回值与操作数的最终值不同，因此不能返回引用。
 
-Here are the implementations for operator++:
+以下是 operator++ 的实现：
 
 \begin{cpp}
 SpreadsheetCell& SpreadsheetCell::operator++()
@@ -76,10 +76,10 @@ SpreadsheetCell SpreadsheetCell::operator++(int)
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-It is recommended to implement the postfix operator in terms of the prefix operator.
+建议以后置操作符的形式实现前置操作符。
 \end{myNotic}
 
-The implementations for operator-- are virtually identical. Now you can increment and decrement SpreadsheetCell objects to your heart’s content:
+operator-- 的实现几乎相同。现在可以随心所欲地增量和减量 SpreadsheetCell 对象了：
 
 \begin{cpp}
 SpreadsheetCell c1 { 4 };
@@ -88,7 +88,7 @@ c1++;
 ++c2;
 \end{cpp}
 
-Increment and decrement operators also work on pointers. When you write classes that are smart pointers, for example, you can overload operator++ and operator-- to provide pointer incrementing and decrementing.
+增量和减量操作符也适用于指针。例如，使用智能指针类时，可以重载 operator++ 和 operator-- ，用以提供指针增减量功能。
 
 
 

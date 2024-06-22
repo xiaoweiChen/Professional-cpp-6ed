@@ -63,52 +63,52 @@ SpreadsheetCell operator+(const SpreadsheetCell& lhs, const SpreadsheetCell& rhs
 这个规则的一个主要优点是，成员函数可以是虚函数，而全局函数显然不能。因此，在继承树中编写重载操作符时，尽可能应使它们成为成员函数。
 \end{itemize}
 
-将重载操作符编写为成员函数时，如果不改变对象，应将其标记为const。
+将重载操作符创建为成员函数时，如果不改变对象，应将其标记为const。
 
-将重载操作符编写为全局函数时，将其放在包含要编写操作符的类的同一命名空间中。
+将重载操作符创建为全局函数时，将其放在包含要编写操作符的类的同一命名空间中。
 
-\mySamllsection{Choosing Argument Types}
+\mySamllsection{选择参数类型}
 
-You are somewhat limited in your choice of argument types because, as stated earlier, for most operators you cannot change the number of arguments. For example, operator/ must always have two arguments if it is a global function, and one argument if it’s a member function. The compiler issues an error if it differs from this standard. In this sense, the operator functions are different from normal functions, which you can overload with any number of parameters. Additionally, although you can write the operator for whichever types you want, the choice is usually constrained by the class for which you are writing the operator. For example, if you want to implement addition for class T, you don’t write an operator+ that takes two strings! The real choice arises when you try to determine whether to take parameters by value or by reference and whether to make them const.
+选择参数类型时，会受到一定限制，对于大多数运算符，不能更改参数的数量。例如，operator/ 是一个全局函数，必须始终有两个参数；如果它是一个成员函数，则必须有一个参数。如果与此标准不符，编译器将报错。运算符函数与普通函数不同，后者可以通过任意数量的参数进行重载。此外，可以为相应的类型编写运算符，但选择通常受到运算符类型的限制。例如，想为类 T 实现 addition，不能有一个接受两个字符串的 operator+！当尝试确定是按值还是按引用传递参数，以及是否使它们成为 const 时，真正需要做出选择的时刻就出现了。
 
-The choice of value versus reference is easy: you should take every non-primitive parameter type by reference, unless the function always makes a copy of the passed object, see Chapter 9.
+按值与引用的选择很简单：除非函数始终复制传递的对象，否则应该通过引用传递每个非原始参数类型，请参见第9章。
 
-The const decision is also trivial: mark every parameter const unless you actually modify it. The table in the section “Summary of Overloadable Operators” shows sample prototypes for each operator, with the arguments marked const and reference as appropriate.
+const 的决定也很简单：除非需要修改它，否则请将每个参数标记为 const。在“可重载运算符摘要”部分中的表格显示了每个运算符的示例原型，其中参数都标记为 const 和引用。
 
-\mySamllsection{Choosing Return Types}
+\mySamllsection{选择返回类型}
 
-C++ doesn’t determine overload resolution based on return type. Thus, you can specify any return type you want when you write overloaded operators. However, just because you can do something doesn’t mean you should do it. This flexibility implies that you could write confusing code in which comparison operators return pointers, and arithmetic operators return bools. However, you shouldn’t do that. Instead, you should write your overloaded operators such that they return the same types as the operators do for the built-in types. If you write a comparison operator, return a bool. If you write an arithmetic operator, return an object representing the result. Sometimes the return type is not obvious at first. For example, as Chapter 8 mentions, operator= should return a reference to the object on which it’s called in order to support chained assignments. Other operators have similarly tricky return types, all of which are summarized in the table in the section “Summary of Overloadable Operators.”
+C++ 不基于返回类型确定重载解析，在重载运算符时，可以指定想要的返回类型，但这并不意味着应该这样做。这种灵活性会实现一些令人困惑的代码，例如：比较运算符返回指针，算术运算符返回 bool。相反，应该使重载的运算符返回与内置类型的运算符相同的类型。如果重载了一个比较运算符，请返回一个 bool。如果重载了一个算术运算符，请返回一个表示结果的对象。有时，返回类型一开始并不明显。例如，第8章提到的operator= 应返回对其调用对象的引用，以支持链式赋值。其他运算符也有类似的复杂返回类型，这些都在后面的表格中进行了总结。
 
-The same choices of reference and const apply to return types as well. However, for return values, the choices are more difficult. The general rule for value or reference is to return a reference if you can; otherwise, return a value. How do you know when you can return a reference? This choice applies only to operators that return objects: the choice is moot for the comparison operators that return bool, the conversion operators that have no return type, and the function call operator, which may return any type you want. If your operator constructs a new object, then you must return that new object by value. If it does not construct a new object, you can return a reference to the object on which the operator is called, or one of its arguments. The table in the section “Summary of Overloadable Operators” shows examples.
+引用和 const 的选择同样适用于返回类型，但对于返回值，选择更为困难。值或引用的一般规则是：如果能返回引用，则返回引用；否则，返回值。如何知道何时可以返回引用？这个选择仅适用于返回对象的运算符：对于返回 bool 的比较运算符、没有返回类型的转换运算符，以及可能返回想要的类型的函数调用运算符，那么这个选择就无关紧要了。如果运算符构造了一个新对象，那么必须按值返回新对象。如果没有构造新对象，可以直接返回对调用该运算符的对象或其参数的引用。
 
-A return value that can be modified as an lvalue (e.g., on the left-hand side of an assignment expression) must be non-const. Otherwise, it should be const. More operators than you might expect require that you return lvalues, including all of the assignment operators (operator=, operator+=, operator-=, and so on).
+可以作为左值（例如，在赋值表达式的左侧）修改的返回值必须是非 const；否则，应该是 const。有很多的运算符都要求返回左值，包括所有赋值运算符（operator=、operator+=、operator-= 等）。
 
-\mySamllsection{Choosing Behavior}
+\mySamllsection{选择行为}
 
-You can provide whichever implementation you want in an overloaded operator. For example, you could write an operator+ that launches a game of Scrabble. However, as Chapter 6 describes, you should generally constrain your implementations to provide behaviors that clients expect. Write operator+ so that it performs addition, or something like addition, such as string concatenation. This chapter explains how you should implement your overloaded operators. In exceptional circumstances, you might want to differ from these recommendations; but, in general, you should follow the standard patterns.
+可以在重载运算符中提供想要的实现。例如，编写一个启动 Scrabble 游戏的 operator+。然而，通常应该将实现限制为客户端期望的行为。编写 operator+ 以执行加法，或者类似加法的行为，如字符串连接。本章将解释您应该如何实现重载运算符。特殊情况下，可以不按照建议来做；但一般来说，应该遵循标准模式。
 
-\mySubsubsection{15.1.4.}{Operators You Shouldn’t Overload}
+\mySubsubsection{15.1.4.}{不应重载的操作符}
 
-Some operators should not be overloaded, even though it is permitted. Specifically, the address-of operator (operator\&) is not particularly useful to overload and leads to confusion if you do because you are changing fundamental language behavior (taking addresses of variables) in potentially unexpected ways. The entire Standard Library, which uses operator overloading extensively, never overloads the address-of operator.
+尽管允许重载，但有些操作符不应重载。特别是地址操作符（operator\&），重载它并没有太大用处，反而可能导致混淆，可能会以潜在不可预期的方式改变基本语言行为（获取变量的地址）。整个标准库中，虽然广泛使用操作符重载，但从未重载过地址操作符。
 
-Additionally, you should avoid overloading the binary Boolean operators operator\&\& and || because you lose C++’s short-circuit evaluation rules. Short-circuiting is not possible in that case because all operands need to be evaluated before they can be passed to your overloaded operator function. If your class needs logical operators, provide operator\& and | instead.
+此外，应避免重载二元布尔操作符 operator\&\& 和 ||，因为这样会失去 C++ 的短路求值规则。在这种情况下，短路是不可能的，因为所有操作数都需要在传递给你的重载操作符函数之前进行计算。如果类需要逻辑操作符，请提供 operator\& 和 |。
 
-Finally, you should not overload the comma operator (operator,). Yes, you read that correctly: there really is a comma operator in C++. It’s also called the sequencing operator, and is used to separate two expressions in a single statement, while guaranteeing that they are evaluated left to right. The following snippet demonstrates the comma operator:
+最后，不应重载逗号操作符（operator,）。是的，没看错：C++ 中确实有一个逗号操作符，也称为序列点操作符，用于在单个语句中分隔两个表达式，同时保证它们从左到右进行计算。以下代码片段演示了逗号操作符的使用：
 
 \begin{cpp}
 int x { 1 };
 println("{}", (++x, 2 * x)); // Increments x to 2, doubles it, and prints 4.
 \end{cpp}
 
-There is rarely a good reason to overload the comma operator.
+通常，无需重载逗号操作符。
 
-\mySubsubsection{15.1.5.}{Summary of Overloadable Operators}
+\mySubsubsection{15.1.5.}{可重载操作符的总结}
 
-The following table lists the operators you can overload, specifies whether they should be member functions of the class or global functions, summarizes when you should (or should not) overload them, and provides sample prototypes showing the proper parameter and return value types. Operators that cannot be overloaded, such as ., .*, ::, and ?: are not in this list.
+下表列出了可以重载的操作符，指明了它们应该是类的成员函数，还是全局函数，总结了何时应该（或不应该）重载它们，并提供了示例，展示了正确的参数和返回值类型。不能重载的操作符，如 ., .*, ::, 和 ?: 不在此列表中。
 
-This table is a useful reference for the future when you want to write an overloaded operator. You’re bound to forget which return type you should use and whether or not the function should be a member function.
+想要重载操作符时，这个表格是一个有用的参考。可能会忘记应该使用哪种返回类型，以及该函数是否应该是成员函数。
 
-In this table, T is the name of the class for which the overloaded operator is written, and E is a different type. The sample prototypes given are not exhaustive; often there are other combinations of T and E possible for a given operator:
+此表中，T 是编写重载操作符的类的名称，E 是不同的类型。给出的示例并不详尽；通常对于给定的操作符，T 和 E 之间可能有其他组合：
 
 % Please add the following required packages to your document preamble:
 % \usepackage[normalem]{ulem}
@@ -117,177 +117,177 @@ In this table, T is the name of the class for which the overloaded operator is w
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|l|l|}
 \hline
-\textbf{OPERATOR} &
-\textbf{\begin{tabular}[c]{@{}l@{}}NAME OR\\ CATEGORY\end{tabular}} &
-\textbf{\begin{tabular}[c]{@{}l@{}}MEMBER\\ FUNCTION\\ OR GLOBAL\\ FUNCTION\end{tabular}} &
-\textbf{\begin{tabular}[c]{@{}l@{}}WHEN TO\\ OVERLOAD\end{tabular}} &
-\textbf{\begin{tabular}[c]{@{}l@{}}SAMPLE\\ PROTOTYPES\end{tabular}} \\ \hline
+\textbf{运算符} &
+\textbf{\begin{tabular}[c]{@{}l@{}}名称\\类别\end{tabular}} &
+\textbf{\begin{tabular}[c]{@{}l@{}}成员函数\\全局函数\end{tabular}} &
+\textbf{\begin{tabular}[c]{@{}l@{}}何时重载\end{tabular}} &
+\textbf{\begin{tabular}[c]{@{}l@{}}示例\end{tabular}} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 \begin{tabular}[c]{@{}l@{}}operator+\\ operator\\ operator*\\ operator/\\ operator\%\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Binary\\ arithmetic\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Global function\\ recommended\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Whenever\\ you want to\\ provide these\\ operations for\\ your class\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}二元算术\\操作符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}推荐为\\全局函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}想为类提供\\这些操作，\\就可以重载\\二元算术\\操作符。
+\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}T operator+(const\\ T\&, const T\&);\\ T operator+(const\\ T\&, const E\&);\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator\\ operator+\\ operator˜\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Unary\\ arithmetic\\ and bitwise\\ operators\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Member function\\ recommended\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Whenever\\ you want to\\ provide these\\ operations for\\ your class\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}一元算术\\和位操作符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}想为类提供\\这些操作，\\就可以重载\\一元算术和位\\操作符。
+\end{tabular} &
 T operator-() const; \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator++\\ operator--\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Pre-increment\\ and pre\\ decrement\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Member function\\ recommended\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Whenever you\\ overload +=\\ and -= taking\\ an arithmetic\\ argument (int,\\ long, . . .)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}前置增量\\和前置减量\\操作符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}重载有\\算术参数\\的+=和-=\\(int, long，…)\end{tabular} &
 T\& operator++(); \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator++\\ operator--\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Post-increment\\ and post\\ decrement\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Member function\\ recommended\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Whenever you\\ overload +=\\ and -= taking\\ an arithmetic\\ argument (int,\\ long, . . .)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}后置增量\\和后置减量\\操作符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}重载有\\算术参数\\的+=和-=时\\(int, long，…)\end{tabular} &
 T operator++(int); \\ \hline
 operator= &
-\begin{tabular}[c]{@{}l@{}}Assignment\\ operator\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Member function\\ required\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Whenever\\ your class has\\ dynamically\\ allocated\\ resources, or\\ members that\\ are references\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}赋值运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}必须为\\成员函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}当类具有动态\\分配的资源或\\引用成员时\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}T\& operator=(const\\ T\&);\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator+=\\ operator-=\\ operator*=\\ operator/=\\ operator\%=\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Shorthand /\\ compound\\ arithmetic\\ assignment\\ operator\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Member function\\ recommended\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Whenever\\ you overload\\ the binary\\ arithmetic\\ operators and\\ your class is not\\ designed to be\\ immutable\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}简写/复合\\算术赋值\\运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}重载二元算\\术运算符时，\\类不可变\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}T\& operator+=(const\\ T\&);\\ T\& operator+=(const\\ E\&);\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator\textless{}\textless\\ operator\textgreater{}\textgreater\\ operator\&\\ operator|\\ operator\textasciicircum{}\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Binary bitwise\\ operators\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Global function\\ recommended\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Whenever\\ you want to\\ provide these\\ operations\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}二元位运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}推荐为\\全局函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}只要想，\\就可以重载\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}T operator\textless{}\textless{}(const\\ T\&, const T\&);\\ T operator\textless{}\textless{}(const\\ T\&, const E\&);\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator\textless{}\textless{}=\\ operator\textgreater{}\textgreater{}=\\ operator\&=\\ operator|=\\ operator\textasciicircum{}=\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Shorthand /\\ compound\\ bitwise\\ assignment\\ operator\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Member function\\ recommended\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Whenever you\\ overload the\\ binary bitwise\\ operators and\\ your class is not\\ designed to be\\ immutable\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}简写/复合\\位赋值运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}重载二元算\\术运算符时，\\类不可变\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}T\& operator\textless{}\textless{}=(const\\ T\&);\\ T\& operator\textless{}\textless{}=(const\\ E\&);\end{tabular} \\ \hline
 operator\textless{}=\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Three-way\\ comparison\\ operator\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Member function\\ recommended\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Whenever you\\ want to provide\\ comparison\\ support for\\ your class; if\\ possible, this\\ should be\\ defaulted using\\ =default\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}三向比较\\运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}当为类提\\供比较支持\\时;如果\\可能的话，\\应该使用\\=default\\作为默认值\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}auto\\ operator\textless{}=\textgreater{}(const\\ T\&) const = default;\\ partial\_ordering\\ operator\textless{}=\textgreater{}(const\\ E\&) const;\end{tabular} \\ \hline
 operator== &
-\begin{tabular}[c]{@{}l@{}}Binary equality\\ operator\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Post-C++20:\\ member function\\ recommended\\ Pre-C++20:\\ global function\\ recommended\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Whenever you\\ want to provide\\ comparison\\ support for\\ your class, and\\ you cannot\\ default the\\ three-way\\ comparison\\ operator\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}二元相等\\运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}C++20后:\\推荐为\\成员函数\\C++ 20前:\\推荐为\\全局函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}当为类提\\供比较支\\持，并且\\不能默认\\使用三向\\比较操作\\符时\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}bool operator==(const\\ T\&) const;\\ bool operator==(const\\ E\&) const;\\ bool operator==(const\\ T\&, const T\&);\\ bool operator==(const\\ T\&, const E\&);\end{tabular} \\ \hline
 operator!= &
-\begin{tabular}[c]{@{}l@{}}Binary\\ inequality\\ operator\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Post-C++20:\\ member function\\ recommended\\ Pre-C++20:\\ global function\\ recommended\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Post-C++20:\\ not needed as\\ the compiler\\ automatically\\ provides !=\\ when == is\\ supported\\ Pre-C++20:\\ Whenever you\\ want to provide\\ comparison\\ support for\\ your class\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}二元不等\\运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}C++20后:\\推荐为\\成员函数\\C++ 20前:\\推荐为\\全局函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}C++20后:\\不需要，\\因为编译\\器在支持\\==时自动\\提供!=;\\ C++ 20前:\\当为类提\\供比较支\\持时\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}bool operator!=(const\\ T\&) const;\\ bool operator!=(const\\ E\&) const;\\ bool operator!=(const\\ T\&, const T\&);\\ bool operator!=(const\\ T\&, const E\&);\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator\textless\\ operator\textgreater\\ operator\textless{}=\\ operator\textgreater{}=\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Binary\\ comparison\\ operators\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Global function\\ recommended\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Whenever\\ you want to\\ provide these\\ operations; not\\ needed when\\ \textless{}=\textgreater is provided\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}二元比较\\运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}推荐为\\全局函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}想提供这\\些操作时;\\不需要<=>\\时\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}bool operator\textless{}(const\\ T\&, const T\&);\\ bool operator\textless{}(const\\ T\&, const E\&);\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator\textless{}\textless\\ operator\textgreater{}\textgreater{}\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}I/O stream\\ operators\\ (insertion and\\ extraction)\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Global function\\ required\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Whenever\\ you want to\\ provide these\\ operations\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}I/O流\\操作符\\(插入和提取)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}必须为\\全局函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}想要提供\\这些操作时\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}ostream\&\\ operator\textless{}\textless{}(ostream\&,\\ const T\&);\\ istream\&\\ operator\textgreater{}\textgreater{}(istream\&,\\ T\&);\end{tabular} \\ \hline
 operator! &
-\begin{tabular}[c]{@{}l@{}}Boolean\\ negation\\ operator\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Member function\\ recommended\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Rarely; use\\ bool or void*\\ conversion\\ instead\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}布尔运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}很少重载;\\请使用bool\\或void*转换\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}bool operator!()\\ const;\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator\&\&\\ operator||\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Binary Boolean\\ operators\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Global function\\ recommended\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Rarely, if ever,\\ because you\\ lose short\\ circuiting;\\ it’s better to\\ overload \& and\\ | instead, as\\ these never\\ short-circuit\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}二元布尔\\运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}推荐为\\全局函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}很少重载，\\会失去短\\路特性;\\最好重载\\\&和|，\\它们永远\\不会短路\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}bool operator\&\&(const\\ T\&, const T\&);\end{tabular} \\ \hline
 operator{[}{]} &
-\begin{tabular}[c]{@{}l@{}}Subscripting\\ (array index)\\ operator\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Member function\\ required\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}When you want\\ to support\\ subscripting\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}下标\\(数组索引)\\操作符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}必须为\\成员函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}想支持下\\标时\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}E\& operator{[}{]}\\ (size\_t);\\ const E\& operator{[}{]}\\ (size\_t) const;\end{tabular} \\ \hline
 operator() &
-\begin{tabular}[c]{@{}l@{}}Function call\\ operator\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Member function\\ required\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}When you\\ want objects\\ to behave\\ like function\\ pointers\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Return type and parameters\\ can vary; see later examples\\ in this chapter\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}函数运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}必须为\\成员函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}想让对象\\表现得像\\函数指针时\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}返回类型和参数可以不同\end{tabular} \\ \hline
 operator type() &
-\begin{tabular}[c]{@{}l@{}}Conversion, or\\ cast, operators\\ (separate\\ operator for\\ each type)\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Member function\\ required\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}When you want\\ to provide\\ conversions\\ from your class\\ to other types\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}转换或强制\\转换操作符\\(类型独立\\的操作符)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}必须为\\成员函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}想进行类\\型转换时\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}operator double()\\ const;\end{tabular} \\ \hline
 operator ""\_x &
-\begin{tabular}[c]{@{}l@{}}User-defined\\ literal operator\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Global function\\ required\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}When you want\\ to support user\\ defined literals\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}自定义\\字面量\\运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}必须为\\全局函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}希望支持\\自定义字\\面量时\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}T operator""\_i(long\\ double d);\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator new\\ operator new{[}{]}\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Memory\\ allocation\\ routines\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Member function\\ recommended\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}When you\\ want to control\\ memory\\ allocation for\\ your classes\\ (rarely)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}内存分配\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}建议为\\成员函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}想要控制\\类的内存\\分配时\\(很少用)\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}void* operator\\ new(size\_t size);\\ void* operator new{[}{]}\\ (size\_t size);\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator delete\\ operator delete{[}{]}\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Memory\\ deallocation\\ routines\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Member function\\ recommended\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Whenever\\ you overload\\ the memory\\ allocation\\ routines (rarely)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}内存释放\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}建议为\\成员函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}想要控制\\类的内存\\分配时\\(很少用)\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}void operator\\ delete(void* ptr)\\ noexcept;\\ void operator\\ delete{[}{]}(void* ptr)\\ noexcept;\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator*\\ operator-\textgreater{}\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Dereferencing\\ operators\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Member function\\ recommended\\ for operator*\\ Member function\\ required for\\ operator-\textgreater{}\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Useful for smart\\ pointers\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}解引用\\操作符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}operator*：\\建议为\\成员函数\\ operator-\textgreater{}：\\必须为\\成员函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}对智能指针\\有用\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}E\& operator*() const;\\ E* operator-\textgreater{}()\\ const;\end{tabular} \\ \hline
 operator\& &
-\begin{tabular}[c]{@{}l@{}}Address-of\\ operator\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}取地址\\运算符\end{tabular} &
 N/A &
-Never &
+从不 &
 N/A \\ \hline
 operator-\textgreater{}* &
-\begin{tabular}[c]{@{}l@{}}Dereference\\ pointer-to\\ member\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}解引用\\指向成员\\的指针\end{tabular} &
 N/A &
-Never &
+从不 &
 N/A \\ \hline
 operator, &
-\begin{tabular}[c]{@{}l@{}}Comma\\ operator\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}逗号操作符\end{tabular} &
 N/A &
-Never &
+从不 &
 N/A \\ \hline
 \end{longtable}
 
+\mySubsubsection{15.1.6.}{右值引用}
 
-
-\mySubsubsection{15.1.6.}{Rvalue References}
-
-Chapter 9 discusses move semantics and rvalue references. It demonstrates these by defining move assignment operators, which are used by the compiler in cases where the source object is a temporary object that will be destroyed after the assignment, or an object that is explicitly moved from using std::move(). The normal assignment operator from the preceding table has the following prototype:
+第9章讨论了移动语义和右值引用，通过定义移动赋值运算符来展示这些概念，编译器在源对象是一个临时对象且在赋值后会销毁，或者使用 std::move() 明确从某个对象移动时，会使用这些移动赋值运算符。前一个表中的普通赋值运算符有以下原型：
 
 \begin{cpp}
 T& operator=(const T&);
 \end{cpp}
 
-The move assignment operator has almost the same prototype, but uses an rvalue reference. It modifies the argument so it cannot be passed as const. See Chapter 9 for details.
+移动赋值运算符有相同原型，但它使用右值引用，修改了参数，使其不能作为 const 传递。有关详细信息，请参阅第9章。
 
 \begin{cpp}
 T& operator=(T&&) noexcept;
 \end{cpp}
 
-The preceding table does not include sample prototypes with rvalue references. However, for most operators it can make sense to write both a version using normal lvalue references and a version using rvalue references. Whether or not it does make sense depends on implementation details of your class. The operator= is one example from Chapter 9. Another example is operator+ to prevent unnecessary memory allocations. The std::string class from the Standard Library, for example, implements an operator+ using rvalue references as follows (simplified):
+前一个表没有包含使用右值引用的示例原型，对于大多数运算符来说，使用普通左值引用的版本和使用右值引用的版本都可以，但是否合理则取决于类的实现细节。operator= 是第9章的一个示例，另一个示例是 operator+，以避免不必要的内存分配。例如，标准库中的 std::string 类实现了使用右值引用的 operator+，如下所示（简化过）：
 
 \begin{cpp}
 string operator+(string&& lhs, string&& rhs);
 \end{cpp}
 
-The implementation of this operator reuses memory of one of the arguments because they are being passed as rvalue references, meaning both are temporary objects that will be destroyed when this operator+ is finished. The implementation of this operator+ has the following effect depending on the size and the capacity of both operands:
+这个运算符的实现重用了其中一个参数的内存，它们作为右值引用传递，所以两者都是临时对象，当这个 operator+ 完成时销毁。根据两个操作数的大小和容量，这个 operator+ 的实现具有以下效果：
 
 \begin{cpp}
 return move(lhs.append(rhs));
 \end{cpp}
 
-or
+或者
 
 \begin{cpp}
 return move(rhs.insert(0, lhs));
 \end{cpp}
 
-In fact, string defines several operator+ overloads accepting two strings as arguments and different combinations of lvalue and rvalue references. Here is a list (simplified):
+实际上，string 定义了几个 operator+ 重载，接受两个字符串作为参数，以及不同的左值和右值引用组合。以下是列表（简化过）：
 
 \begin{cpp}
 string operator+(const string& lhs, const string& rhs); // No memory reuse.
@@ -296,52 +296,52 @@ string operator+(const string& lhs, string&& rhs); // Can reuse memory of rhs.
 string operator+(string&& lhs, string&& rhs); // Can reuse memory of lhs or rhs.
 \end{cpp}
 
-Reusing memory of one of the rvalue reference arguments is implemented in the same way as it is explained for move assignment operators in Chapter 9.
+重用一个右值引用参数的内存的实现方式与第9章中的移动赋值运算符相同。
 
-\mySubsubsection{15.1.7.}{Precedence and Associativity}
+\mySubsubsection{15.1.7.}{优先级和结合性}
 
-In statements containing multiple operators, the precedence of the operators is used to decide which operators need to be executed before other operators. For example, * and / are always executed before + and -.
+包含多个操作符的语句中，操作符的优先级用于决定，哪些操作符需要先于其他操作符执行。例如，* 和 / 总是在 + 和 - 之前执行。
 
-The associativity can be either left-to-right or right-to-left and specifies in which order operators of the same precedence are executed.
+结合性可以是左到右或右到左，指定了具有相同优先级的操作符的执行顺序。
 
-The following table lists the precedence and associativity of all available C++ operators, including those that you cannot overload and operators you haven’t seen mentioned in this book yet. Operators with a lower precedence number are executed before operators with a higher precedence number. In the table, T represents a type, while x, y, and z represent objects:
+下表列出了所有可用 C++ 操作符的优先级和结合性，包括那些不能重载的操作符，以及本书中尚未提及的操作符。具有较低优先级编号的操作符，将在具有较高优先级编号的操作符之前执行。在表中，T 表示类型，而 x、y 和 z 表示对象：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{PRECEDENCE} & \textbf{OPERATOR}                                   & \textbf{ASSOCIATIVITY} \\ \hline
+\textbf{优先级} & \textbf{操作符}                                   & \textbf{结合性} \\ \hline
 \endfirsthead
 %
 \endhead
 %
-1                   & ::                                                  & Left-to-right          \\ \hline
-2                   & x++{} x-- x() x{[}{]} T() T\{\} . -\textgreater{}     & Left-to-right          \\ \hline
+1                   & ::                                                  & 从左到右          \\ \hline
+2                   & x++ \quad x-- \quad x() \quad x{[}{]} \quad T() \quad T\{\} . \quad -\textgreater{}     & 从左到右          \\ \hline
 3 &
-\begin{tabular}[c]{@{}l@{}}++x --x +x -x ! ˜ *x \&x (T)\\ sizeof co\_await new delete new{[}{]} delete{[}{]}\end{tabular} &
-Right-to-left \\ \hline
-4                   & .* -\textgreater{}*                                 & Left-to-right          \\ \hline
-5                   & x*y x/y x\%y                                        & Left-to-right          \\ \hline
-6                   & x+y x-y                                             & Left-to-right          \\ \hline
-7                   & \textless{}\textless \textgreater{}\textgreater{}   & Left-to-right          \\ \hline
-8                   & \textless{}=\textgreater{}                          & Left-to-right          \\ \hline
-9                   & \textless \textless{}= \textgreater \textgreater{}= & Left-to-right          \\ \hline
-10                  & == !=                                               & Left-to-right          \\ \hline
-11                  & x\&y                                                & Left-to-right          \\ \hline
-12                  & \textasciicircum{}                                  & Left-to-right          \\ \hline
-13                  & |                                                   & Left-to-right          \\ \hline
-14                  & \&\&                                                & Left-to-right          \\ \hline
-15                  & ||                                                  & Left-to-right          \\ \hline
+\begin{tabular}[c]{@{}l@{}}++x \quad --x \quad +x \quad -x \quad ! \quad \textasciitilde \quad *x \quad \quad \&x \quad (T)\\ sizeof \quad co\_await \quad new \quad delete \quad new{[}{]} \quad delete{[}{]}\end{tabular} &
+从右到左 \\ \hline
+4                   & .* \quad -\textgreater{}*                                 & 从左到右          \\ \hline
+5                   & x*y \quad x/y \quad x\%y                                        & 从左到右          \\ \hline
+6                   & x+y \quad x-y                                             & 从左到右          \\ \hline
+7                   & \textless{}\textless \quad \textgreater{}\textgreater{}   & 从左到右          \\ \hline
+8                   & \textless{}=\textgreater{}                          & 从左到右          \\ \hline
+9                   & \textless{}\textless{}= \quad \textgreater{}\textgreater{}= & 从左到右          \\ \hline
+10                  & == \quad !=                                               & 从左到右          \\ \hline
+11                  & x\&y                                                & 从左到右          \\ \hline
+12                  & \textasciicircum{}                                  & 从左到右          \\ \hline
+13                  & |                                                   & 从左到右          \\ \hline
+14                  & \&\&                                                & 从左到右          \\ \hline
+15                  & ||                                                  & 从左到右          \\ \hline
 16 &
-\begin{tabular}[c]{@{}l@{}}x?y:z throw co\_yield\\ = += -= *= /= \%= \textless{}\textless{}= \textgreater{}\textgreater{}= \&= \textasciicircum{}= |=\end{tabular} &
-Right-to-left \\ \hline
-17                  & ,                                                   & Left-to-right          \\ \hline
+\begin{tabular}[c]{@{}l@{}}x?y:z \quad throw \quad co\_yield\\ = \quad += \quad -= \quad *= \quad /= \quad \%= \quad \textless{}\textless{}= \quad \textgreater{}\textgreater{}= \quad \&= \quad \textasciicircum{}= \quad |=\end{tabular} &
+从右到左 \\ \hline
+17                  & ,                                                   & 从左到右          \\ \hline
 \end{longtable}
 
-\mySubsubsection{15.1.8.}{Relational Operators}
+\mySubsubsection{15.1.8.}{关系操作符}
 
-The following set of function templates for relational operators are defined in <utility> in the std::rel\_ops namespace:
+<utility>头文件中的 std::rel\_ops 命名空间中定义了以下一组关系操作符的函数模板：
 
 \begin{cpp}
 template<class T> bool operator!=(const T& a, const T& b);// Needs operator==
@@ -350,40 +350,40 @@ template<class T> bool operator<=(const T& a, const T& b);// Needs operator<
 template<class T> bool operator>=(const T& a, const T& b);// Needs operator<
 \end{cpp}
 
-These function templates define the operators !=, >, <=, and >= in terms of the == and < operators for any class. So, if you implement operator== and < for your class, you get the other relational operators for free with these templates.
+这些函数模板使用 == 和 < 操作符定义了 !=, >, <=, 和 >= 操作符，适用于任何类。可以为类实现 operator== 和 < 后，就可以获得其他关系操作符了。
 
-However, there are a lot of problems with this technique. A first problem is that those operators might be created for all classes that you use in relational operations, not only for your own class.
+然而，这种技术存在很多问题。第一个问题是，这些操作符可能会在关系操作中的所有类创建。
 
-A second problem with this technique is that utility templates such as std::greater<T> (discussed in Chapter 19, “Function Pointers, Function Objects, and Lambda Expressions”) do not work with those automatically generated relational operators.
+第二个问题是，像 std::greater<T> 这样的工具模板（在第19章中介绍）与自动生成的这些关系操作符不兼容。
 
-Yet another problem with these is that implicit conversions won’t work.
+另一个问题是，无法隐式转换。
 
-Finally, with C++20’s three-way comparison operator and the fact that C++20 has deprecated the std::rel\_ops namespace, there is no longer any reason to still use rel\_ops.
+最后，由于 C++20 的三向比较操作符，以及 C++20 已经弃用了 std::rel\_ops 命名空间，因此没有理由再使用 rel\_ops 了。
 
 \begin{myWarning}{WARNING}
-Never use std::rel\_ops; it has been deprecated since C++20! Instead, to add support for all six comparison operators to a class, just explicitly default or implement operator<=> and possibly operator== for the class. See Chapter 9 for details.
+永远不要使用 std::rel\_ops， C++20 开始已经将其弃用！相反，要为一个类添加对所有六个比较操作符的支持，只需显式默认或实现 operator<=>，并可能为该类实现 operator==。详情请参见第9章。
 \end{myWarning}
 
-\mySubsubsection{15.1.9.}{Alternative Notation}
+\mySubsubsection{15.1.9.}{替代表示法}
 
-C++ supports the following alternative notations for a selection of operators. These were mainly used in the old days when using character sets that didn’t include certain characters such as ~, |, and \^{}.
+C++ 支持以下替代表示法供选择的运算符使用。这些主要在旧代码中使用，当时使用的字符集不包括某些字符，如 ~、| 和 \^{}。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
-\begin{longtable}{|l|l|l|l|}
+\begin{longtable}{|l|l|l|l|l|}
 \hline
-\textbf{OPERATOR} & \textbf{ALTERNATIVE NOTATION} & \textbf{OPERATOR} & \textbf{ALTERNATIVE NOTATION} \\ \hline
+\textbf{操作符} & \textbf{替代符号} && \textbf{操作符} & \textbf{替代符号} \\ \hline
 \endfirsthead
 %
 \endhead
 %
-\&\&   & and     & !=                  & not\_eq \\ \hline
-\&=    & and\_eq & ||                  & or      \\ \hline
-\&     & bitand  & |=                  & or\_eq  \\ \hline
-|      & bitor   & \textasciicircum{}  & xor     \\ \hline
-$\sim$ & compl   & \textasciicircum{}= & xor\_eq \\ \hline
-！      & not     &                     &         \\ \hline
+\&\&   & and     && !=                  & not\_eq \\ \hline
+\&=    & and\_eq && ||                  & or      \\ \hline
+\&     & bitand  && |=                  & or\_eq  \\ \hline
+|      & bitor   && \textasciicircum{}  & xor     \\ \hline
+$\sim$ & compl   && \textasciicircum{}= & xor\_eq \\ \hline
+！     & not     &&                     &         \\ \hline
 \end{longtable}
 
 
