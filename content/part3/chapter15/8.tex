@@ -1,26 +1,26 @@
 
-Going back to the SpreadsheetCell example, consider these two lines of code:
+回到 SpreadsheetCell 示例，看看这两行代码：
 
 \begin{cpp}
 SpreadsheetCell cell { 1.23 };
 double d1 { cell }; // DOES NOT COMPILE!
 \end{cpp}
 
-A SpreadsheetCell contains a double representation, so it seems logical that you could assign it to a double variable. Well, you can’t. The compiler tells you that it doesn’t know how to convert a SpreadsheetCell to a double. You might be tempted to try forcing the compiler to do what you want, like this:
+SpreadsheetCell 包含一个双精度浮点数表示，所以可以将它赋值给一个双精度变量，但不能这么做。编译器会说它不知道如何将 SpreadsheetCell 转换为双精度。尝试强制编译器做转换，比如这样：
 
 \begin{cpp}
 double d1 { (double)cell }; // STILL DOES NOT COMPILE!
 \end{cpp}
 
-First, the preceding code still doesn’t compile because the compiler still doesn’t know how to convert the SpreadsheetCell to a double. It already knew from the first line what you wanted it to do, and it would do it if it could. Second, it’s a bad idea in general to add gratuitous casts to your program.
+但上述代码仍然无法编译，因为编译器仍然不知道如何将 SpreadsheetCell 转换为双精度。它已经在第一行知道你想要它做什么。还有，在程序中随意添加强制类型转换通常不是一个好习惯。
 
-If you want to allow this kind of conversion, you must tell the compiler how to perform it. Specifically, you can write a conversion operator to convert SpreadsheetCells to doubles. The prototype looks like this:
+如果想允许这种转换，必须告诉编译器如何执行。具体来说，可以写一个转换操作符将 SpreadsheetCell 转换为双精度，像这样：
 
 \begin{cpp}
 operator double() const;
 \end{cpp}
 
-The name of the function is operator double. It has no return type because the return type is specified by the name of the operator: double. It is const because it doesn’t change the object on which it is called. The implementation looks like this:
+函数名是 operator double，没有返回类型，因为返回类型由操作符的名称指定：double。操作符为const，因为它不会改变被调用的对象。实现如下：
 
 \begin{cpp}
 SpreadsheetCell::operator double() const
@@ -29,20 +29,20 @@ SpreadsheetCell::operator double() const
 }
 \end{cpp}
 
-That’s all you need to do to write a conversion operator from SpreadsheetCell to double. Now the compiler accepts the following lines and does the right thing at run time:
+这就是需要做的，将 SpreadsheetCell 转换为双精度的转换操作符。现在编译器接受以下行，并在运行时正确处理：
 
 \begin{cpp}
 SpreadsheetCell cell { 1.23 };
 double d1 { cell }; // Works as expected
 \end{cpp}
 
-You can write conversion operators for any type with this same syntax. For example, here is an std::string conversion operator for SpreadsheetCell:
+可以为任何类型使用相同的语法编写转换操作符。例如，这里为 SpreadsheetCell 编写一个 std::string 转换操作符：
 
 \begin{cpp}
 operator std::string() const;
 \end{cpp}
 
-And here is an implementation:
+实现如下：
 
 \begin{cpp}
 SpreadsheetCell::operator std::string() const
@@ -51,13 +51,13 @@ SpreadsheetCell::operator std::string() const
 }
 \end{cpp}
 
-Now you can convert a SpreadsheetCell to a string. However, due to the constructors provided by string, the following does not work:
+现在可以将 SpreadsheetCell 转换为字符串，但由于 string 的构造函数，以下代码不起作用：
 
 \begin{cpp}
 string str { cell };
 \end{cpp}
 
-Instead, you can either use normal assignment syntax instead of uniform initialization, or use an explicit static\_cast() as follows:
+相反，可以使用正常的赋值语法，而非统一初始化，或者使用显式的 static\_cast()：
 
 \begin{cpp}
 string str1 = cell;
@@ -67,72 +67,72 @@ string str2 { static_cast<string>(cell) };
 
 \mySubsubsection{15.8.1.}{Operator auto}
 
-Instead of explicitly specifying the type that a conversion operator returns, you can specify auto and let the compiler deduce it for you. For example, the double conversion operator of SpreadsheetCell could be written as follows:
+可以通过指定 auto ，而不是显式指定转换运算符的返回类型，让编译器推断类型。例如，SpreadsheetCell 的 double 转换运算符可以这样写：
 
 \begin{cpp}
 operator auto() const { return getValue(); }
 \end{cpp}
 
-There is one caveat, the implementation of member functions with auto return type deduction must be visible to users of the class. Hence, this example puts the implementation directly in the class definition.
+这里有一个警告，带有 auto 返回类型推断的成员函数的实现必须对类用户可见。因此，这个例子直接在类定义中实现了这个方法。
 
-Also, remember from Chapter 1 that auto strips away reference and const qualifiers. So, if your operator auto returns a reference to a type T, then the deduced type will be T returned by value, resulting in a copy being made. If needed, you can explicitly add reference and const qualifiers; here’s an example:
+此外，在第1章中我们知道 auto 会去除引用和 const 限定符。所以，如果 operator auto 返回一个类型 T 的引用，那么推断出的类型将是 T 通过值返回，会创建一个副本。如果需要，可以显式添加引用和 const 限定符；这里是一个例子：
 
 \begin{cpp}
 operator const auto&() const { /* ... */ }
 \end{cpp}
 
-\mySubsubsection{15.8.2.}{Solving Ambiguity Problems with Explicit Conversion Operators}
+\mySubsubsection{15.8.2.}{使用显式转换运算符解决歧义问题}
 
-Writing the double conversion operator for the SpreadsheetCell object introduces an ambiguity problem. Consider this line:
+为 SpreadsheetCell 对象编写 double 转换运算符会引入歧义问题。看看这一行：
 
 \begin{cpp}
 SpreadsheetCell cell { 6.6 };
 double d1 { cell + 3.4 }; // DOES NOT COMPILE IF YOU DEFINE operator double()
 \end{cpp}
 
-This line now fails to compile. It worked before you wrote operator double(), so what’s the problem now? The issue is that the compiler doesn’t know if it should convert cell to a double with operator double() and perform double addition, or convert 3.4 to a SpreadsheetCell with the double constructor and perform SpreadsheetCell addition. Before you wrote operator double(), the compiler had only one choice: convert 3.4 to a SpreadsheetCell with the double constructor and perform SpreadsheetCell addition. However, now the compiler could do either. It doesn’t want to make a choice you might not like, so it refuses to make any choice at all.
+这行现在无法编译。实现 operator double() 之前，这行可以编译通过，所以现在有什么问题呢？问题在于，编译器不知道应该使用 operator double() 将 cell 转换为 double 并进行 double 加法，还是使用 double 构造函数将 3.4 转换为 SpreadsheetCell 并进行 SpreadsheetCell 加法。在实现 operator double() 之前，编译器只有一个选择：使用 double 构造函数将 3.4 转换为 SpreadsheetCell 并进行 SpreadsheetCell 加法。
 
-The usual pre-C++11 solution to this conundrum is to make the constructor in question explicit so that the automatic conversion using that constructor is prevented (see Chapter 8). However, you don’t want that constructor to be explicit because you generally like the automatic conversion of doubles to SpreadsheetCells. Since C++11, you can solve this problem by making the double conversion operator explicit instead of the constructor:
+C++11 之前，解决这个问题的常见方法是将问题中的构造函数显式化，以防止使用该构造函数的自动转换（参见第8章）。然而，我们可能不希望显式化这个构造函数，因为通常希望自动将 double 转换为 SpreadsheetCell。从 C++11 开始，可以通过将 double 转换运算符显式化，而不是构造函数来解决这个问题：
 
 \begin{cpp}
 explicit operator double() const;
 \end{cpp}
 
-With this change the following line compiles fine:
+有了这个改变，以下行就可以编译通过了：
 
 \begin{cpp}
 double d1 { cell + 3.4 }; // 10
 \end{cpp}
 
-The operator auto as discussed in the previous section can also be marked as explicit.
+正如前一小节讨论的，operator auto 也可以标记为explicit。
 
-\mySubsubsection{15.8.3.}{Conversions for Boolean Expressions}
+\mySubsubsection{15.8.3.}{布尔表达式中的转换}
 
-Sometimes it is useful to be able to use objects in Boolean expressions. For example, programmers often use pointers in conditional statements like this:
+有时，可以在布尔表达式中使用对象。例如，在条件语句中使用指针：
 
 \begin{cpp}
 if (ptr != nullptr) { /* Perform some dereferencing action. */ }
 \end{cpp}
 
-Sometimes they write shorthand conditions such as this:
+有时会写这样简写条件：
 
 \begin{cpp}
 if (ptr) { /* Perform some dereferencing action. */ }
 \end{cpp}
 
-Other times, you see code as follows:
+其他情况下，可能会看到这样的代码：
 
 \begin{cpp}
 if (!ptr) { /* Do something. */ }
 \end{cpp}
 
-Currently, none of the preceding expressions compile with the Pointer smart pointer class template defined earlier. To make them work, we can add a conversion operator to the class to convert it to a pointer type. Then, the comparisons to nullptr, as well as the object alone in an if statement, will trigger the conversion to the pointer type. The usual pointer type for the conversion operator is void*, because that’s a pointer type with which you cannot do much except test it in Boolean expressions. Here is the implementation:
+目前，以上所有表达式都不能与前面定义的 Pointer 智能指针类模板一起编译。为了让它们工作，可以向类中添加一个转换运算符，将其转换为指针类型。然后，与 nullptr 的比较，以及在 if 语句中单独使用对象，都会触发转换为指针类型。转换运算符通常的指针类型是 void*，那是一个除了在布尔表达式中测试它之外，无法做太多操作的指针类型。以下是实现：
 
 \begin{cpp}
 operator void*() const { return m_ptr; }
 \end{cpp}
 
-Now the following code compiles and does what you expect:
+现在以下代码可以编译并通过，并按预期工作：
 
 \begin{cpp}
 void process(const Pointer<SpreadsheetCell>& p)
@@ -154,7 +154,7 @@ int main()
 }
 \end{cpp}
 
-The output is as follows:
+输出如下：
 
 \begin{shell}
 nullptr
@@ -164,13 +164,13 @@ not 0
 not nullptr
 \end{shell}
 
-Another alternative is to overload operator bool() as follows instead of operator void*(). After all, you’re using the object in a Boolean expression; why not convert it directly to a bool?
+另一种选择是使用 operator bool()，而不是 operator void*() 来重载。毕竟，在布尔表达式中使用对象，为什么不像直接转换为 bool 一样转换它呢？
 
 \begin{cpp}
 operator bool() const { return m_ptr != nullptr; }
 \end{cpp}
 
-The following comparisons still work:
+以下比较仍然可以工作：
 
 \begin{cpp}
 if (p != 0) { println("not 0"); }
@@ -178,13 +178,13 @@ if (p)      { println("not nullptr"); }
 if (!p)     { println("nullptr"); }
 \end{cpp}
 
-However, with operator bool(), the following comparison with nullptr results in a compilation error:
+然而，使用 operator bool()，以下与 nullptr 的比较会导致编译错误：
 
 \begin{cpp}
 if (p != nullptr) { println("not nullptr"); } // Error
 \end{cpp}
 
-This is because nullptr has its own type called nullptr\_t, which is not automatically converted to the integer 0 (false). The compiler cannot find an operator!= that takes a Pointer object and a nullptr\_t object. You could implement such an operator!= as a friend of the Pointer class:
+这是因为 nullptr 有一个自己的类型 nullptr\_t，不能自动转换为整数 0（false）。编译器找不到一个接受 Pointer 对象和 nullptr\_t 对象的 operator !=。可以实现这样的 operator != ，作为 Pointer 类的友元：
 
 \begin{cpp}
 export template <typename T>
@@ -204,20 +204,20 @@ bool operator!=(const Pointer<T>& lhs, std::nullptr_t rhs)
 }
 \end{cpp}
 
-However, after implementing this operator!=, the following comparison stops working, because the compiler no longer knows which operator!= to use:
+然而，实现了 operator != 之后，以下比较将不再工作，因为编译器不知道应该使用哪个 operator !=：
 
 \begin{cpp}
 if (p != 0) { println("not 0"); }
 \end{cpp}
 
-From this example, you might conclude that the operator bool() technique only seems appropriate for objects that don’t represent pointers and for which conversion to a pointer type really doesn’t make sense. Unfortunately, even then, adding a conversion operator to bool presents some other unanticipated consequences. C++ applies promotion rules to silently convert bool to int whenever the opportunity arises. Therefore, with the operator bool(), the following code compiles and runs:
+通过这个例子，可能会得出结论，operator bool() 技术只适用于那些不表示指针的对象，以及那些转换为指针类型没有意义的对象。不幸的是，即使在这种情况下，将 bool 添加为转换运算符也会带来一些未预料的后果。C++ 在有机会时会默默地使用提升规则将 bool 转换为 int，所以使用 operator bool()，以下代码可以编译并通过：
 
 \begin{cpp}
 Pointer<SpreadsheetCell> anotherSmartCell { new SpreadsheetCell { 5.0 } };
 int i { anotherSmartCell }; // Converts Pointer to bool to int.
 \end{cpp}
 
-That’s usually not behavior that you expect or desire. To prevent such assignments, you could explicitly delete the conversion operators to int, long, long long, and so on. However, this is getting messy. So, many programmers prefer operator void*() instead of operator bool().
+这通常不是期望或希望的行为。为了防止这样的赋值，可以显式删除转换运算符到 int、long、long long 等，但这样做会变得很混乱。因此，许多开发者更喜欢 operator void*()，而不是 operator bool()。
 
-As you can see, there is a design element to overloading operators. Your decisions about which operators to overload directly influence the ways in which clients can use your classes.
+如上，重载运算符是需要设计的。关于要重载哪些运算符的决定，会直接影响客户使用类的方式。
 

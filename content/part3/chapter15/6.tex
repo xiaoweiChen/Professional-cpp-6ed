@@ -1,5 +1,5 @@
 
-C++ allows you to overload the function call operator, written as operator(). If you write an operator() for your class, you can use objects of that class as if they were function pointers. An object of a class with a function call operator is called a function object, or functor, for short. Here is an example of a simple class with an overloaded operator() and a class member function with the same behavior:
+在 C++ 中，可以重载函数调用操作符，写为 operator()。如果为类实现了一个 operator()，就可以像使用函数指针一样使用该类的对象。具有函数调用操作符的对象称为函数对象，或简称为函子。下面是一个简单的类，有一个重载的函数调用操作符和一个具有相同行为的类成员函数的例子：
 
 \begin{cpp}
 class Squarer
@@ -14,7 +14,7 @@ int Squarer::operator()(int value) const { return doSquare(value); }
 int Squarer::doSquare(int value) const { return value * value; }
 \end{cpp}
 
-Here is an example of code that uses the function call operator, contrasted with a call to the normal member function of the class:
+下面是使用函数调用操作符的代码示例，与调用类的正常成员函数进行对比：
 
 \begin{cpp}
 int x { 3 };
@@ -24,48 +24,48 @@ int xSquaredAgain { square.doSquare(xSquared) };// Call the normal member functi
 println("{} squared is {}, and squared again is {}.", x, xSquared, xSquaredAgain);
 \end{cpp}
 
-The output is as follows:
+输出为：
 
 \begin{shell}
 3 squared is 9, and squared again is 81.
 \end{shell}
 
-At first, the function call operator probably seems a little strange. Why would you want to write a special member function for a class to make objects of the class look like function pointers? Why wouldn’t you just write a global function or a standard member function of a class?
+起初，函数调用操作符看起来有点奇怪。为什么会为一个类写一个特殊的成员函数，使类的对象看起来像函数指针？为什么不只是写一个全局函数或类的标准成员函数？
 
-The advantage of function objects over standard member functions of objects is simple: these objects can sometimes masquerade as function pointers; that is, you can pass function objects as callback functions to other functions. This is discussed in more detail in Chapter 19.
+函数对象相对于类标准成员函数的优势很简单：这些对象有时可以伪装成函数指针；也就是说，可以将函数对象作为回调函数传递给其他函数，这将在第19章中详细介绍。
 
-The advantages of function objects over global functions are more intricate. There are two main benefits:
+函数对象相对于全局函数的优势更为复杂。有两个主要优势：
 
 \begin{itemize}
 \item
-Objects can retain information in their data members between repeated calls to their function call operators. For example, a function object might be used to keep a running sum of numbers collected from each call to the function call operator.
+重复调用其函数调用操作符时，对象可以在其数据成员之间保留信息。例如，一个函数对象可用来保持每次调用函数调用操作符时，收集数字的总和。
 
 \item
-You can customize the behavior of a function object by setting data members. For example, you could write a function object to compare an argument to the function call operator against a data member. This data member could be configurable so that the object could be customized for whatever comparison you want.
+可以通过设置数据成员来定制函数对象的行为。例如，可以写一个函数对象来比较函数调用操作符的参数与数据成员。这个数据成员也许可配置，这样对象就可以定制化比较了。
 \end{itemize}
 
-Of course, you could implement either of the preceding benefits with global or static variables. However, function objects provide a cleaner way to do it, and besides, using global or static variables should be avoided and can cause problems in a multithreaded application. The true benefits of function objects are demonstrated with the Standard Library in Chapter 20, “Mastering Standard Library Algorithms.”
+当然，可以用全局或静态变量来实现上述优点，但函数对象提供了一种更清晰的方式来做这些事情。而且，应该避免使用全局或静态变量，因为它在多线程应用程序中可能会引起问题。函数对象的真正的优势将在第20章中通过标准库展示。
 
-By following the normal member function overloading rules, you can write as many operator()s for your classes as you want. For example, you could add an operator() to the Squarer class that takes a double:
+遵循正常的成员函数重载规则，可以为类写尽可能多的 operator()。例如，可以为 Squarer 类添加一个接受双精度的重载：
 
 \begin{cpp}
 int operator()(int value) const;
 double operator()(double value) const;
 \end{cpp}
 
-This double overload can be implemented as follows:
+双精度重载的实现如下所示：
 
 \begin{cpp}
 double Squarer::operator()(double value) const { return value * value; }
 \end{cpp}
 
-\CXXTwentythreeLogo{-40}{-60}
+\mySubsubsection{15.6.1.}{静态函数调用运算符}
 
-\mySubsubsection{15.6.1.}{static Function Call Operator}
+\CXXTwentythreeLogo{-40}{15}
 
-Starting with C++23, a function call operator can be marked as static if its implementation does not require access to this, or, in other words, does not need access to non-static data members and non-static member functions. This is similar to how subscripting operators, discussed earlier in this chapter, can be marked as static, and doing so allows the compiler to better optimize the code.
+从 C++23 开始，函数调用运算符可以标记为静态，如果其实现不需要访问 this，或者不需要访问非静态数据成员和非静态成员函数。这与本章介绍过的下标号运算符可以标记为静态的方式相似，这样做允许编译器更好地优化代码。
 
-Here is an example, a reduced Squarer functor with a static, constexpr, and noexcept function call operator:
+以下是一个例子，一个简化的 Squarer 函数对象，具有static、constexpr 和 noexcept 函数调用运算符：
 
 \begin{cpp}
 class Squarer
@@ -78,7 +78,7 @@ class Squarer
 };
 \end{cpp}
 
-This functor can be used as follows:
+这个函数对象可以这样使用：
 
 \begin{cpp}
 int x { 3 };
@@ -87,7 +87,7 @@ int xSquaredAgain { Squarer{}(xSquared) };
 println("{} squared is {}, and squared again is {}.", x, xSquared, xSquaredAgain);
 \end{cpp}
 
-Another benefit of static function call operators is that you can easily take their address, for example, \&Squarer::operator(), which allows you to use them as if they were function pointers. This can improve the performance when working with the Standard Library algorithms discussed in detail in Chapter 20. Quite a few of those algorithms accept a callable, such as a functor, to customize their behavior. If your functor has a static function call operator, then passing the address of that function call operator to such algorithms allows the compiler to generate more performant code than with a non-static function call operator. The reason is that with a static function call operator, the compiler doesn’t need to worry about any this pointer.
+静态函数调用运算符的另一个好处是，可以轻松地获取其地址，例如 \&Squarer::operator()，可以像使用函数指针一样使用它们。这可以使用在第20章介绍的标准库算法中，从而提高运行性能。这些算法许多都接受一个可调用对象，如一个函数对象，以定制其行为。如果函数对象有一个静态函数调用运算符，那么将该函数调用运算符的地址传递给这些算法，可以让编译器生成比非静态函数调用运算符更高效的代码。因为有了静态函数调用运算符，编译器就可以不管 this 指针了。
 
 
 

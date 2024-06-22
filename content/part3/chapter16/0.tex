@@ -1,44 +1,41 @@
 \noindent
-\textbf{WHAT’S IN THIS CHAPTER?}
+\textbf{内筒概要}
 
 \begin{itemize}
 \item
-The coding principles used throughout the Standard Library
+标准库中使用的编码原则
 
 \item
-A high-level overview of the functionality provided by the Standard Library
+标准库功能的高级概述
 \end{itemize}
 
-\noindent
-\textbf{WILEY.COM DOWNLOADS FOR THIS CHAPTER}
+本章的所有代码示例都可以在\url{https://github.com/Professional-CPP/edition-6/}获得。
 
-Please note that all the code examples for this chapter are available as part of this chapter’s code download on the book’s website at \url{www.wiley.com/go/proc++6e} on the Download Code tab.
+对于 C++ 开发者，最重要的库就是 C++ 标准库。这个库是 C++ 标准的一部分，所以符合标准的编译器都应该包括它。标准库并不是一个单一的实体：它包括几个不相关的组件，其中一些可能已经使用过了，可能甚至认为它们是语言核心的一部分。所有标准库的类和函数都在 std 命名空间中声明，或者在 std 的子命名空间中声明。
 
-The most important library that you will use as a C++ programmer is the C++ Standard Library. As its name implies, this library is part of the C++ standard, so any standardsconforming compiler should include it. The Standard Library is not monolithic: it includes several disparate components, some of which you have been using already. You may even have assumed they were part of the core language. All Standard Library classes and functions are declared in the std namespace, or a subnamespace of std.
+C++ 标准库的核心是其泛型容器和算法。有些人仍然称这个库的子集为标准模板库（STL），因为最初它是基于标准模板库的第三方库，这个库大量使用了模板。然而，STL 并不是 C++ 标准本身定义的术语，所以这本书不使用。标准库的力量在于它以一种方式提供了泛型容器和泛型算法，使得大多数算法都能在大多数容器上工作，无论容器存储什么类型的数据。性能是标准库的一个重要方面，目标是使标准库的容器和算法与手写代码一样快，或者更快。
 
-The heart of the C++ Standard Library is its generic containers and algorithms. Some people still call this subset of the library the Standard Template Library, or STL for short, because originally it was based on a third-party library called the Standard Template Library, which used templates abundantly. However, STL is not a term defined by the C++ standard itself, so this book does not use it. The power of the Standard Library is that it provides generic containers and generic algorithms in such a way that most of the algorithms work on most of the containers, no matter what type of data the containers store. Performance is an important aspect of the Standard Library. The goal is to make the Standard Library containers and algorithms as fast as, or faster than, handwritten code.
-
-The C++ Standard Library also includes most of the C headers that are part of the C11 standard, but with new names. For example, you can access the functionality from the C <stdio.h> header by including <cstdio>. The former puts everything in the global namespace, while the latter puts everything in the std namespace. Though, technically, the former is allowed to put things in the std namespace as well, and the latter is allowed to additionally put things in the global namespace. The C11 headers <stdnoreturn.h>, <threads.h>, and their <c...> equivalents are not included in the C++ standard. The <stdatomic.h> header from C11 has been available since C++23, but no equivalent <cstdatomic> is provided. Furthermore, C++17 has deprecated, and C++20 has removed the following C headers:
+C++ 标准库还包括 C11 标准中的大多数 C 头文件，但名称不同。例如，可以通过包含 <cstdio> 来访问 C 头文件<stdio.h> 的功能。前者将所有内容放在全局命名空间中，而后者将所有内容放在 std 命名空间中。尽管从技术上讲，前者允许将内容放在 std 命名空间中，而后者允许将内容放在全局命名空间中。C11 头文件 <stdnoreturn.h>、<threads.h> 以及它们的 <c...> 等价物并未包含在 C++ 标准中。从 C++23 开始，<stdatomic.h> 头文件一直可用，但未提供等价的 <cstdatomic>。此外，C++17 已经弃用，C++20 已经移除了以下 C 头文件：
 
 \begin{itemize}
 \item
-<ccomplex> and <ctgmath>: Replace the use of these with <complex> and/or <cmath>.
+<ccomplex> 和 <ctgmath>：用 <complex> 和/或 <cmath> 替换它们。
 
 \item
-<ciso646>, <cstdalign>, and <cstdbool>: These headers were useless in C++ as these were either empty or defined macros that are keywords in C++.
+<ciso646>、<cstdalign> 和 <cstdbool>：这些头文件在 C++ 中是无用的，它们要么是空的，要么定义了在 C++ 中是关键字的宏。
 \end{itemize}
 
-C headers are not guaranteed to be importable. Use \#include instead of import to get access to the functionality defined by them.
+C 头文件并不保证可以导入。要访问它们定义的功能，请使用 \#include，而不是 import。
 
 \begin{myNotic}{NOTE}
-If there is a C++ equivalent of functionality provided by a C header, it is recommended to use the C++ equivalent.
+如果有一个 C++ 头文件提供了 C 头文件提供的功能，建议使用 C++ 头文件。
 \end{myNotic}
 
-A C++ programmer who wants to claim language expertise is expected to be familiar with the Standard Library. You can save yourself immeasurable time and energy by incorporating Standard Library containers and algorithms into your programs instead of writing and debugging your own versions. Now is the time to master this Standard Library.
+一个声称掌握 C++ 语言的 C++ 开发者应该熟悉标准库。通过将标准库的容器和算法纳入程序，而不是编写和调试自己的版本，这样可以节省大量的时间和精力。现在是掌握这个标准库的时候了。
 
-This first chapter on the Standard Library provides a general overview of the available functionality. The next few chapters go into more detail on several aspects of the Standard Library, including containers, iterators, generic algorithms, predefined function object classes, regular expressions, random number generation, and much more. Additionally, Chapter 25, “Customizing and Extending the Standard Library,” is dedicated to customizing and extending the library with your own Standard Library–compliant algorithms and data structures.
+关于标准库的第1章提供了可用功能的概述。接下来的几章将详细介绍标准库的几个方面，包括容器、迭代器、泛型算法、预定义的函数对象类、正则表达式、随机数生成等。此外，第25章专门介绍如何使用自己符合标准库规范的算法和数据结构，来定制和扩展标准库。
 
-Despite the depth of material found in this and the following chapters, the Standard Library is too large for this book to cover exhaustively. You should read these chapters to learn about the Standard Library, but keep in mind that they don’t mention every member function and data member that the various classes provide or show you the prototypes of every algorithm. Appendix C, “Standard Library Header Files,” summarizes all the header files in the Standard Library. Consult your favorite Standard Library Reference for a complete reference of all provided functionality.
+尽管接下来的章节中有大量信息，标准库太大了，这本书无法全面覆盖。应该阅读这些章节来了解标准库，但请记住，它们并没有提到各个类提供的所有成员函数和数据成员，也没有展示所有算法的原型。附录C总结了标准库中的所有头文件。要了解所有提供的功能的完整参考，请查阅标准库手册。
 
 
 

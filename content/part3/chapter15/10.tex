@@ -1,35 +1,35 @@
 
-C++ has a number of built-in literal types that you can use in your code. Here are some examples:
+C++ 有一系列内置的字面量类型，可以在代码中使用它们。以下是一些示例：
 
 \begin{itemize}
 \item
-'a': Character
+'a': 字符
 
 \item
-"A string": Zero-terminated sequence of characters, C-style string
+"A string": 以零终止的字符序列，C 风格字符串
 
 \item
-3.14f: float single-precision floating-point value
+3.14f: 单精度浮点值
 
 \item
-0xabc: Hexadecimal value
+0xabc: 十六进制值
 \end{itemize}
 
-C++ also allows you to define your own literals, and the Standard Library does exactly that; it provides a number of additional literal types to construct Standard Library objects. Let’s take a look at these first and then see how you can define your own.
+C++ 还允许定义自己的字面量，标准库就是这样做的；提供了构建标准库对象的字面量类型。我们先来看看这些，然后再看看如何自定义。
 
-\mySubsubsection{15.10.1.}{Standard Library Literals}
+\mySubsubsection{15.10.1.}{标准库字面量}
 
-The C++ Standard Library defines the following standard literals. Note that these literals do not start with an underscore:
+C++ 标准库定义了以下标准字面量。注意，这些字面量不以下划线开头：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|l|}
 \hline
-\textbf{LITERAL} &
-\textbf{\begin{tabular}[c]{@{}l@{}}CREATES INSTANCES\\ OF . . .\end{tabular}} &
-\textbf{EXAMPLE} &
-\textbf{REQUIRES NAMESPACE} \\ \hline
+\textbf{字面量} &
+\textbf{\begin{tabular}[c]{@{}l@{}}创建…的实例\end{tabular}} &
+\textbf{示例} &
+\textbf{需要的命名空间} \\ \hline
 \endfirsthead
 %
 \endhead
@@ -47,16 +47,16 @@ chrono::duration &
 \begin{tabular}[c]{@{}l@{}}auto myDuration \{\\ 42min \};\end{tabular} &
 chrono\_literals \\ \hline
 y, d &
-chrono::year and day &
+chrono::year 和 day &
 \begin{tabular}[c]{@{}l@{}}auto thisYear \{\\ 2024y \};\end{tabular} &
 chrono\_literals \\ \hline
 i, il, if &
-\begin{tabular}[c]{@{}l@{}}complex\textless{}T\textgreater with\\ T equal to double,\\ long double, float,\\ respectively\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}complex\textless{}T\textgreater with\\ T 可以是 double,\\ long double, float\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}auto\\ myComplexNumber \{\\ 1.3i \};\end{tabular} &
 complex\_literals \\ \hline
 \end{longtable}
 
-Technically, all of these are defined in subnamespaces of std::literals, for example std::literals::string\_literals. However, both string\_literals and literals are inline namespaces that automatically make their contents available in their parent namespace. Hence, if you want to use s string literals, you can use any of the following using directives:
+所有这些都是在 std::literals 的子命名空间中定义的，例如 std::literals::string\_literals。然而，string\_literals 和 literals 都是内联命名空间，它们自动使它们的内容在其父命名空间中可用。因此，如果想使用字符串字面量，可以使用以下任何一个 using:
 
 \begin{cpp}
 using namespace std;
@@ -66,25 +66,25 @@ using namespace std::literals::string_literals;
 \end{cpp}
 
 
-\mySubsubsection{15.10.2.}{User-Defined Literals}
+\mySubsubsection{15.10.2.}{自定义的字面量}
 
-User-defined literals should start with exactly one underscore. Some examples are \_i, \_s, \_km, \_miles, \_K, and so on.
+自定义的字面量应以确切的单下划线开头，比如： \_i, \_s, \_km, \_miles, \_K 等。
 
-User-defined literals are implemented by writing literal operators. A literal operator can work in raw or cooked mode. In raw mode, your literal operator receives a sequence of characters, while in cooked mode your literal operator receives a specific interpreted type. For example, take the C++ literal 123. A raw literal operator receives this as a sequence of characters '1', '2', '3'. A cooked literal operator receives this as the integer 123. The literal 0x23 is received by a raw operator as the characters '0', 'x', '2', '3', while a cooked operator receives the integer 35. A literal such as 3.14 is received by a raw operator as '3', '.', '1', '4', while a cooked operator receives the floatingpoint value 3.14.
+自定义的字面量通过编写字面量运算符来实现，字面量运算符可以在原始模式或已处理模式下工作。在原始模式下，字面量运算符接收一个字符序列，而在已烹饪模式下，字面量运算符接收一个特定的解释类型。例如，考虑 C++ 字面量 123。原始模式的字面量运算符接收这个作为字符序列 '1', '2', '3'，已处理模式的字面量运算符接收整数 123。字面量 0x23 原始运算符接收为字符 '0', 'x', '2', '3'，而已处理运算符接收整数 35。像 3.14 这样的字面量原始运算符接收为 '3', '.', '1', '4'，而已处理运算符接收浮点值 3.14。
 
-\mySamllsection{Cooked-Mode Literal Operator}
+\mySamllsection{已处理模式的字面量运算符}
 
-A cooked-mode literal operator should have either of the following:
+已处理模式的字面量运算符应该有以下之一：
 
 \begin{itemize}
 \item
-To process numeric values: One parameter of type unsigned long long, long double, char, wchar\_t, char8\_t, char16\_t, or char32\_t
+处理数值：一个类型为 unsigned long long, long double, char, wchar\_t, char8\_t, char16\_t 或 char32\_t 的参数
 
 \item
-To process strings: Two parameters where the first is a C-style string and the second is the length of the string, for instance, (const char* str, std::size\_t len)
+处理字符串：两个参数，第一个是 C 风格字符串，第二个是字符串的长度，例如，(const char* str, std::size\_t len)
 \end{itemize}
 
-For example, the following code defines a Length class storing a length in meters. The constructor is private because users should only be able to construct a Length instance using the provided userdefined literals. The code provides cooked literal operators for user-defined literal operators \_km and \_m. Both of these are friends of Length so that they can access the private constructor. There must not be any space between the "" and the underscore of these operators.
+例如，以下代码定义了一个存储米长度的 Length 类。构造函数是private，因为用户应该只能使用提供的用户定义的字面量来构造 Length 实例。代码为用户定义的字面量 \_km 和 \_m 提供了已处理的字面量运算符。这两个都是 Length 的友元，以便可以访问private构造函数。这些运算符之间，不能有空格。
 
 \begin{cpp}
 // A class representing a length. The length is always stored in meters.
@@ -112,7 +112,7 @@ Length operator ""_m(long double d) // Cooked _m literal operator
 }
 \end{cpp}
 
-These literal operators can be used as follows:
+字面量运算符的使用如下所示：
 
 \begin{cpp}
 Length d1 { 1.2_km };
@@ -120,13 +120,13 @@ auto d2 { 1.2_m };
 println("d1 = {}m; d2 = {}m", d1.getMeters(), d2.getMeters());
 \end{cpp}
 
-Here is the output:
+输出如下：
 
 \begin{shell}
 d1 = 1200m; d2 = 1.2m
 \end{shell}
 
-To demonstrate the variant of a cooked literal operator accepting a const char* and a size\_t, we can re-create the standard string literal, s, provided by the Standard Library, to construct an std::string. Let’s call the literal \_s.
+为了演示接受 const char* 和 size\_t 的烹饪字面量运算符的变体，我们可以重新创建标准库提供的字符串字面量 s，以构建一个 std::string。我们称这个字面量为 \_s。
 
 \begin{cpp}
 string operator ""_s(const char* str, size_t len)
@@ -135,23 +135,23 @@ string operator ""_s(const char* str, size_t len)
 }
 \end{cpp}
 
-This literal operator can be used as follows:
+这个字面量运算符的使用如下所示：
 
 \begin{cpp}
 string str1 { "Hello World"_s };
 auto str2 { "Hello World"_s }; // str2 has as type string
 \end{cpp}
 
-Without the \_s literal operator, the auto type deduction would result in const char*:
+如果没有 \_s 字面量运算符，auto 会将类型推导为 const char*：
 
 \begin{cpp}
 auto str3 { "Hello World" }; // str3 has as type const char*
 \end{cpp}
 
 
-\mySamllsection{Raw-Mode Literal Operator}
+\mySamllsection{原始模式字面量运算符}
 
-A raw-mode literal operator requires one parameter of type const char*, a zero-terminated C-style string. The following example defines the earlier literal operator \_m as a raw literal operator:
+一个原始模式字面量运算符需要一个参数，类型为 const char*，即一个零终止的 C 风格字符串。以下示例定义了之前提到的 \_m 字面量运算符作为一个原始模式字面量运算符：
 
 \begin{cpp}
 Length operator ""_m(const char* str)
@@ -162,10 +162,10 @@ Length operator ""_m(const char* str)
 }
 \end{cpp}
 
-Using this raw-mode literal operator is the same as using the cooked version.
+使用这个原始模式字面量运算符与使用已处理模式版本的方式相同。
 
 \begin{myNotic}{NOTE}
-Raw-mode literal operators work only with non-string literals. For example, 1.23\_m could be implemented with a raw-mode literal operator, but "1.23"\_m cannot. The latter one requires a cooked-mode literal with two parameters: the zero-terminated string and its length.
+原始模式字面量运算符只与非字符串字面量一起工作。例如，1.23\_m 可以实现为一个原始模式字面量运算符，但 "1.23"\_m 不能。后者需要一个已处理模式字面量，带有两个参数：零终止字符串和长度。
 \end{myNotic}
 
 

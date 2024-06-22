@@ -195,11 +195,11 @@ tuple, defined in <tuple>, is a generalization of pair. It can store any number 
 \item
 optional, defined in <optional>, holds a value of a specific type or nothing. It can be used for class data members, function parameters, return types of a function, and so on, if you want to allow for values to be optional. It is introduced in Chapter 1. Chapter 24 explains that optionals support monadic operations, allowing you to easily chain operations on optionals without having to worry whether an optional is empty before applying another operation to it.
 
-\CXXTwentythreeLogo{-40}{-50}
-
 \item
 expected, defined in <expected>, holds a value of a specific type, or an error value of a, possibly different, type. This can be useful as the return type of a function because it allows the function to return either the requested data back to the caller or the reason why something went wrong.
 \end{itemize}
+
+\CXXTwentythreeLogo{-40}{30}
 
 \mySubsubsection{16.2.15.}{Function Objects}
 
@@ -305,10 +305,9 @@ Additionally, as explained in the previous section, <version> exposes all Standa
 
 std::source\_location, defined in <source\_location>, can be used to query information about your source code, such as filename, function name, line number, and column number, and replaces the old C-style macros \_\_FILE\_\_ and \_\_LINE\_\_. Example use cases are to provide source code information when logging messages or when throwing exceptions. Chapter 14 gives an example of both these use cases.
 
-
-\CXXTwentythreeLogo{-40}{-50}
-
 \mySubsubsection{16.2.22.}{Stack Trace}
+
+\CXXTwentythreeLogo{-40}{15}
 
 <stacktrace> defines the std::stacktrace and std::stacktrace\_entry classes. These can be used to get a stack trace at any given moment in time and to iterate and inspect each individual entry, known as a frame. See Chapter 14 for an example.
 
@@ -385,9 +384,9 @@ A span, defined in <span>, represents a view on a contiguous sequence of data. I
 When writing a function accepting, for example, a const vector<T>\&, consider accepting a span<const T> instead, so the function can work with views and subviews of data sequences coming from vectors, arrays, C-style arrays, and more.
 \end{myNotic}
 
-\CXXTwentythreeLogo{-40}{-50}
-
 \mySamllsection{mdspan}
+
+\CXXTwentythreeLogo{-40}{5}
 
 An mdspan, defined in <mdspan>, is similar to a span but represents a multidimensional view on a contiguous sequence of data. Just as a span, it can be a read-only view or a view with read/write access to the underlying elements. Chapter 18 discusses mdspan in more detail.
 
@@ -472,9 +471,9 @@ Insertion, deletion, and lookup with these unordered associative containers can 
 
 Chapter 18 explains how these unordered associative containers work and why they are called hash tables.
 
-\CXXTwentythreeLogo{-40}{-50}
-
 \mySamllsection{Flat Associative Container Adapters}
+
+\CXXTwentythreeLogo{-40}{5}
 
 C++23 introduces four flat associative container adapters:
 

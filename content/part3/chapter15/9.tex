@@ -1,33 +1,33 @@
 
-C++ gives you the ability to redefine the way memory allocation and deallocation work in your programs. You can provide this customization both on the global level and the class level. This capability is most useful when you are worried about memory fragmentation, which can occur if you allocate and deallocate a lot of small objects. For example, instead of going to the default C++ memory allocation each time you need memory, you could write a memory pool allocator that reuses fixed-size chunks of memory. This section explains the subtleties of the memory allocation and deallocation routines and shows you how to customize them. With these tools, you should be able to write your own allocator if the need ever arises.
+C++ 允许重新定义程序中内存分配和释放的方式，可以在全局级别和类级别提供这种定制。当担心内存碎片化时，这种能力最有用，这通常发生在大量分配和释放小对象时。例如，每次需要内存时，不必总是使用默认的 C++ 内存分配，可以编写一个内存池分配器，重用固定大小的内存块。这一节解释了内存分配和释放例程的微妙之处，并展示了如何进行定制。有了这些工具，应该能够编写自己的分配器。
 
 \begin{myWarning}{WARNING}
-Unless you know a lot about memory allocation strategies, attempts to overload the memory allocation routines are rarely worth the trouble. Don’t overload them just because it sounds like a neat idea. Only do so if you have a genuine requirement and the necessary knowledge.
+除非对内存分配策略有深入的了解，否则尝试重载内存分配例程通常不值得。不要仅仅因为听起来不错，就去重载它们。只有在真正的需求和必要的知识时再这样做。
 \end{myWarning}
 
-\mySubsubsection{15.9.1.}{How new and delete Really Work}
+\mySubsubsection{15.9.1.}{new 和 delete 的工作原理}
 
-One of the trickiest aspects of C++ is the details of new and delete. Consider this line of code:
+C++ 中最棘手的一个方面之一是 new 和 delete 的细节。看看以下代码行：
 
 \begin{cpp}
 SpreadsheetCell* cell { new SpreadsheetCell {} };
 \end{cpp}
 
-The part new SpreadsheetCell\{\} is called the new-expression. It does two things. First, it allocates space for the SpreadsheetCell object by making a call to operator new. Second, it calls the constructor for the object. Only after the constructor has completed does it return the pointer to you.
+new 表达式的部分 new SpreadsheetCell\{\} 做了两件事。首先，通过调用 operator new 为 SpreadsheetCell 对象分配空间。其次，调用对象的构造函数。只有在构造函数完成后，才返回指针。
 
-delete works analogously. Consider this line of code:
+delete 的工作原理类似：
 
 \begin{cpp}
 delete cell;
 \end{cpp}
 
-This line is called the delete-expression. It first calls the destructor for cell and then calls operator delete to free the memory.
+这行代码称为 delete 表达式，首先调用 cell 的析构函数，然后调用 operator delete 来释放内存。
 
-You can overload operator new and operator delete to control memory allocation and deallocation, but you cannot overload the new-expression or the delete-expression. Thus, you can customize the actual memory allocation and deallocation, but not the calls to the constructor and destructor.
+可以重载 operator new 和 operator delete 来控制内存分配和释放，但不能重载 new 表达式或 delete 表达式。因此，可以自定义实际的内存分配和释放，但不能自定义调用构造函数和析构函数。
 
-\mySamllsection{The New-Expression and operator new}
+\mySamllsection{new表达式和 operator new}
 
-There are six different forms of the new-expression, each of which has a corresponding operator new. Earlier chapters in this book already show four new-expressions: new, new[], new(nothrow), and new(nothrow)[]. The following list shows the corresponding four operator new overloads defined in <new>:
+new 表达式有六种不同的形式，每种形式都有一个对应形式的 operator new。本书前面的章节已经展示了四种 new 表达式：new、new[]、new(nothrow) 和 new(nothrow)[]。以下列表显示了在 <new> 中定义的四个 operator new 重载：
 
 \begin{cpp}
 void* operator new(std::size_t size);
@@ -36,29 +36,29 @@ void* operator new(std::size_t size, const std::nothrow_t&) noexcept;
 void* operator new[](std::size_t size, const std::nothrow_t&) noexcept;
 \end{cpp}
 
-There are two special new-expressions that don’t do any allocation but invoke the constructor on an already allocated piece of memory. These are called placement new operators (including both single and array forms). They allow you to construct an object in pre-allocated memory like this:
+有两种特殊的 new 表达式，它们不会进行分配，但会在已经分配的内存上调用构造函数，这称为放置 new 运算符（包括单数和数组形式），允许在预先分配的内存中构造对象：
 
 \begin{cpp}
 void* ptr { allocateMemorySomehow() };
 SpreadsheetCell* cell { new (ptr) SpreadsheetCell {} };
 \end{cpp}
 
-The two corresponding operator new overloads for these look as follows; however, the C++ standard forbids you to overload them:
+对应于这些的 operator new 重载如下所示，C++ 会禁止重载它们：
 
 \begin{cpp}
 void* operator new(std::size_t size, void* p) noexcept;
 void* operator new[](std::size_t size, void* p) noexcept;
 \end{cpp}
 
-This feature is a bit obscure, but it’s important to know that it exists. It can come in handy if you want to implement memory pools by reusing memory without freeing it in between. This allows you to construct and destruct instances of an object without re-allocating memory for each new instance. Chapter 29, “Writing Efficient C++,” gives an example of a memory pool implementation.
+这个特性有点晦涩，但重要的是要知道它的存在。它可以在你想要实现内存池时派上用场，重用内存而非频繁分配和释放。这允许构造和析构对象的实例，而无需为每个新实例重新分配内存。第29章给出了一个内存池实现的示例。
 
+\mySamllsection{delete 表达式和 operator delete}
 
-\mySamllsection{The Delete-Expression and operator delete}
+可以调用的 delete 表达式只有两种形式：delete 和 delete[]；没有 nothrow 或放置形式。然而，这里有六个 operator delete 重载。
 
-There are only two different forms of the delete-expression that you can call: delete, and delete[]; there are no nothrow or placement forms. However, there are all six overloads of operator delete.
-Why the asymmetry? The two nothrow and two placement overloads are used only if an exception is thrown from a constructor. In that case, the operator delete is called that matches the operator new that was used to allocate the memory prior to the constructor call. However, if you delete a pointer normally, delete calls operator delete and delete[] calls operator delete[] (never the nothrow or placement forms). Practically, this doesn’t really matter because the C++ standard says that throwing an exception from delete (for example, from a destructor called by delete) results in undefined behavior. This means delete should never throw an exception anyway, so the nothrow overload of operator delete is superfluous. Also, placement delete should be a no-op, because placement new doesn’t allocate any memory, so there’s nothing to free.
+为什么不对称呢？两个 nothrow 和两个放置重载只在构造函数抛出异常时使用。这种情况下，operator delete 调用与在构造函数调用之前用于分配内存的 operator new 匹配。然而，如果正常删除一个指针，delete 调用 operator delete，delete[] 调用 operator delete[]（永远不会调用 nothrow 或放置形式）。实际上这并不重要，因为 C++ 标准指出，从 delete 抛出异常（例如，从由 delete 调用的析构函数）会导致未定义行为，这意味着 delete 无论如何都不应该抛出异常，所以 operator delete 的 nothrow 重载多余。此外，放置 delete 应该是一个空操作，因为放置 new 并没有分配内存，所以无需释放。
 
-Here are the prototypes for the six operator delete overloads corresponding to the six operator new overloads:
+以下是六个 operator delete 重载的声明，对应于六个 operator new 重载：
 
 \begin{cpp}
 void operator delete(void* ptr) noexcept;
@@ -69,16 +69,17 @@ void operator delete(void* ptr, void*) noexcept;
 void operator delete[](void* ptr, void*) noexcept;
 \end{cpp}
 
-\mySubsubsection{15.9.2.}{Overloading operator new and operator delete}
+\mySubsubsection{15.9.2.}{重载 operator new 和 operator delete}
 
-You can replace the global operator new and operator delete routines if you want. These functions are called for every new-expression and delete-expression in the program, unless there are more specific routines in individual classes. However, to quote Bjarne Stroustrup, “. . . replacing the global operator new and operator delete is not for the fainthearted” (The C++ Programming Language, third edition, Addison-Wesley, 1997). I don’t recommend it either!
+可以替换全局的 operator new 和 operator delete ，这些函数在程序中的每个 new 表达式和 delete 表达式都会调用。然而，引用 Bjarne Stroustrup 的话：“... 替换全局的 operator new 和 operator delete 不要轻率为之”（《C++ 编程语言》第三版，Addison-Wesley，1997）。我也不推荐这么做！
 
 \begin{myWarning}{WARNING}
-If you fail to heed my advice and decide to replace the global operator new, keep in mind that you cannot put any code in the operator that makes a call to new because this will cause an infinite recursion. For example, you cannot write a message to the console with print().
+如果不接受我的建议，决定替换全局的 operator new，请记住你无法在 operator 中放置任何调用 new 的代码，这会导致无限递归。例如，不能写一条消息到控制台。
 \end{myWarning}
 
-A more useful technique is to overload operator new and operator delete for specific classes.
-These overloaded operators will be called only when you allocate and deallocate objects of that particular class. Here is an example of a class that overloads the four non-placement forms of operator new and operator delete:
+一个更有用的技术是为特定类重载 operator new 和 operator delete，这些重载的操作符只有在分配和释放该特定类的对象时才会调用。
+
+以下是重载了四种非放置形式的 operator new 和 operator delete 的类的例子：
 
 \begin{cpp}
 export class MemoryDemo
@@ -96,7 +97,7 @@ export class MemoryDemo
 };
 \end{cpp}
 
-Here are implementations of these operators that simply write out a message to the standard output and pass the arguments through to calls to the global versions of the operators. Note that nothrow is actually a variable of type nothrow\_t.
+以下是这些操作符的实现，只是向标准输出写入一条消息，并通过调用全局版本的操作符来传递参数。请注意，nothrow 实际上是一个 nothrow\_t 类型的变量。
 
 \begin{cpp}
 void* MemoryDemo::operator new(size_t size)
@@ -141,7 +142,7 @@ void MemoryDemo::operator delete[](void* ptr, const nothrow_t&) noexcept
 }
 \end{cpp}
 
-Here is some code that allocates and frees objects of this class in several ways:
+以下是分配和释放该类对象的代码示例，以几种不同的方式进行：
 
 \begin{cpp}
 MemoryDemo* mem { new MemoryDemo{} };
@@ -154,7 +155,7 @@ mem = new (nothrow) MemoryDemo[10];
 delete [] mem;
 \end{cpp}
 
-Here is the output from running the program:
+以下是运行该程序的输出：
 
 \begin{shell}
 operator new
@@ -167,21 +168,21 @@ operator new[] nothrow
 operator delete[]
 \end{shell}
 
-These implementations of operator new and operator delete are obviously trivial and not particularly useful. They are intended only to give you an idea of the syntax in case you ever want to implement nontrivial versions of them.
+这些 operator new 和 operator delete 的实现很简单，并没有太大用处，只是为了展示语法示例。
 
 \begin{myWarning}{WARNING}
-Whenever you overload operator new, overload the corresponding form of operator delete. Otherwise, memory will be allocated as you specify but freed according to the built-in semantics, which may not be compatible.
+无论何时重载 operator new，都应重载对应的 operator delete 形式。否则，内存将按照指定的方式分配，但释放时将遵循内置语义，这可能不兼容。
 \end{myWarning}
 
-It might seem overkill to overload all the various forms of operator new and operator delete. However, it’s generally a good idea to do so to prevent inconsistencies in memory allocations. If you don’t want to provide implementations for certain overloads, you can explicitly delete these using =delete to prevent anyone from using them. See the next section for more information.
+为所有各种形式的 operator new 和 operator delete 重载可能看起来过于复杂，但这样做是为了避免内存分配中的不一致性。如果不想为某些重载提供实现，可以使用 =delete 显式删除这些，以避免任何人使用。
 
 \begin{myWarning}{WARNING}
-Overload all forms of operator new and operator delete, or explicitly delete overloads that you don’t want to get used, to prevent inconsistencies in the memory allocations.
+重载所有形式的 operator new 和 operator delete，或者显式删除你不希望使用的重载，避免内存分配中的不一致。
 \end{myWarning}
 
-\mySubsubsection{15.9.3.}{Explicitly Deleting or Defaulting operator new and operator delete}
+\mySubsubsection{15.9.3.}{显式删除或默认 operator new 和 operator delete}
 
-Chapter 8 shows how you can explicitly delete or default a constructor or assignment operator. Explicitly deleting or defaulting is not limited to constructors and assignment operators. For example, the following class deletes operator new and new[], which means that objects of this class cannot be dynamically allocated using new or new[]:
+第8章展示了如何显式删除或默认一个构造函数或赋值运算符，显式删除或默认不仅仅限于构造函数和赋值运算符。例如，以下类删除了 operator new 和 new[]，所以这个类的对象不能使用 new 或 new[] 动态分配：
 
 \begin{cpp}
 class MyClass
@@ -194,7 +195,7 @@ class MyClass
 };
 \end{cpp}
 
-Using this class as follows results in compilation errors:
+使用这个类会导致编译错误：
 
 \begin{cpp}
 MyClass* p1 { new MyClass };
@@ -202,18 +203,18 @@ MyClass* p2 { new MyClass[2] };
 MyClass* p3 { new (std::nothrow) MyClass };
 \end{cpp}
 
-\mySubsubsection{15.9.4.}{Overloading operator new and operator delete with Extra Parameters}
+\mySubsubsection{15.9.4.}{带有额外参数的重载 operator new 和 operator delete}
 
-In addition to overloading the standard forms of operator new, you can write your own versions with extra parameters. These extra parameters can be useful for passing various flags or counters to your memory allocation routines. For instance, some runtime libraries use this in debug mode to provide the filename and line number where an object is allocated, so when there is a memory leak, the offending line that did the allocation can be identified.
+除了重载 operator new 的标准形式，还可以编写带有参数的版本。这些额外参数可以用于向内存分配例程传递各种标志或计数器。例如，一些运行时库在调试模式下使用此方法，在对象分配时提供文件名和行号，以便在发生内存泄漏时可以确定进行分配的行。
 
-As an example, here are the prototypes for an additional operator new and operator delete with an extra integer parameter for the MemoryDemo class:
+作为示例，以下是对 MemoryDemo 类的额外 operator new 和 operator delete 的原型，带有一个整数参数：
 
 \begin{cpp}
 void* operator new(std::size_t size, int extra);
 void operator delete(void* ptr, int extra) noexcept;
 \end{cpp}
 
-The implementations are as follows:
+实现如下：
 
 \begin{cpp}
 void* MemoryDemo::operator new(std::size_t size, int extra)
@@ -228,31 +229,31 @@ void MemoryDemo::operator delete(void* ptr, int extra) noexcept
 }
 \end{cpp}
 
-When you write an overloaded operator new with extra parameters, the compiler automatically allows the corresponding new-expression. The extra arguments to new are passed with function call syntax (as with nothrow overloads). So, you can now write code like this:
+当实现带有参数的 overloaded operator new 时，编译器会自动允许相应的 new 表达式。new 表达式中外参数，通过函数调用语法传递（与 nothrow 重载一样）。因此，可以这样实现：
 
 \begin{cpp}
 MemoryDemo* memp { new(5) MemoryDemo{} };
 delete memp;
 \end{cpp}
 
-The output is as follows:
+输出如下所示：
 
 \begin{shell}
 operator new with extra int: 5
 operator delete
 \end{shell}
 
-When you define an operator new with extra parameters, you should also define the corresponding operator delete with the same extra parameters. However, you cannot call this operator delete with extra parameters yourself; it will be called only when you use your operator new with extra parameters and the constructor of your object throws an exception.
+当定义带有参数的 operator new 时，也应该定义相应的带有相同参数的 operator delete。然而，不能自己调用这个带有参数的 operator delete；它只能在使用带有参数的 operator new，并且对象的构造函数抛出异常时才会调用。
 
-\mySubsubsection{15.9.5.}{Overloading operator delete with Size of Memory as Parameter}
+\mySubsubsection{15.9.5.}{带有内存大小参数的 operator delete重载}
 
-An alternate form of operator delete gives you the size of the memory that should be freed as well as the pointer. Simply declare the prototype for operator delete with an extra size parameter.
+operator delete 的一个替代形式允许你获得应该释放的内存的大小以及指针，只需声明 operator delete 的原型，带有一个 size 参数。
 
 \begin{myWarning}{WARNING}
-If a class declares two overloads of operator delete with one overload taking the size as a parameter and the other doesn’t, the overload without the size parameter will always get called. If you want the overload with the size parameter to be used, write only that overload.
+如果一个类声明了两个 operator delete 重载，其中一个重载带有大小参数，而另一个不带，那么不带大小参数的重载将始终调用。如果想使用带有大小参数的重载，只需实现那个重载。
 \end{myWarning}
 
-You can replace operator delete with an overload that takes a size for any of the overloads of operator delete independently. Here is the MemoryDemo class definition with the first operator delete modified to take the size of the memory to be deleted:
+可以用一个带有 size 参数的重载替换 operator delete 的任何版本。这里是对 MemoryDemo 类定义的修改，其中第一个 operator delete 修改为接受要删除的内存大小：
 
 \begin{cpp}
 export class MemoryDemo
@@ -265,7 +266,7 @@ export class MemoryDemo
 };
 \end{cpp}
 
-The implementation of this operator delete again simply calls the global operator delete:
+这个 operator delete 的实现，简单地调用全局的 operator delete：
 
 \begin{cpp}
 void MemoryDemo::operator delete(void* ptr, size_t size) noexcept
@@ -275,7 +276,7 @@ void MemoryDemo::operator delete(void* ptr, size_t size) noexcept
 }
 \end{cpp}
 
-This capability is useful only if you are writing a complicated memory allocation and deallocation scheme for your classes.
+这种能力只有在编写复杂内存分配和释放方案时才有用。
 
 
 

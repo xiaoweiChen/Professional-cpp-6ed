@@ -310,11 +310,11 @@ for (size_t y { 0 }; y < myIntGrid.getHeight(); ++y) {
 
 \hspace*{\fill}
 
-\CXXTwentythreeLogo{-40}{-60}
+\mySubsubsection{15.5.4.}{静态下标计算操作符}
 
-\mySubsubsection{15.5.4.}{静态子下标计算操作符}
+\CXXTwentythreeLogo{-40}{15}
 
-从 C++23 开始，当操作符的实现不需要访问this时(不需要访问非静态数据成员和非静态成员函数)，可将子下标计算操作符可以标记为static。这允许编译器更好地优化代码，无需操心 this 指针。以下是将 operator[] 标记为静态、常量表达式（参见第9章）和无异常（第14章）的示例：
+从 C++23 开始，当操作符的实现不需要访问this时(不需要访问非静态数据成员和非静态成员函数)，可将下标计算操作符可以标记为static。这允许编译器更好地优化代码，无需操心 this 指针。以下是将 operator[] 标记为静态、常量表达式（参见第9章）和无异常（第14章）的示例：
 
 \begin{cpp}
 enum class Figure { Diamond, Heart, Spade, Club };

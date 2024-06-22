@@ -1,5 +1,5 @@
 
-You can overload three dereferencing operators: *, ->, and ->*. Ignoring ->* for the moment (I’ll come back to it later), consider the built-in meanings of * and ->. The * operator dereferences a pointer to give you direct access to its value, while -> is shorthand for a * dereference followed by a . member selection. The following code shows the equivalences:
+可以重载三个解引用运算符：*、-> 和 ->*。先忽略 ->*（稍后再回来讨论），先考虑 * 和 -> 的内置含义。* 运算符解引用指针以直接访问其值，而 -> 是 * 解引用后紧跟一个 . 成员选择的缩写。以下代码展示了等价性：
 
 \begin{cpp}
 SpreadsheetCell* cell { new SpreadsheetCell };
@@ -7,20 +7,20 @@ SpreadsheetCell* cell { new SpreadsheetCell };
 cell->set(5); // Shorthand arrow dereference and member selection together.
 \end{cpp}
 
-You can overload the dereferencing operators for your classes to make objects of the classes behave like pointers. The main use of this capability is for implementing smart pointers, introduced in Chapter 7, “Memory Management.” It is also useful for iterators, which the Standard Library uses extensively. Iterators are discussed in Chapter 17, “Understanding Iterators and the Ranges Library.” This chapter teaches you the basic mechanics for overloading the relevant operators in the context of a simple smart pointer class template.
+可以为类重载解引用运算符，使对象的行为像指针一样。这种能力的主要用途是实现智能指针，这在第7章中介绍过。它也用于迭代器，标准库广泛使用。迭代器在第17章中介绍。本章将介绍如何在简单智能指针类模板的上下文中，重载相关运算符的基本机制。
 
 \begin{myWarning}{WARNING}
-C++ has two standard smart pointers called std::unique\_ptr and shared\_ptr. You should use these standard smart pointers instead of writing your own. The example here is given only to demonstrate how to write dereferencing operators.
+C++ 有两个标准智能指针：std::unique\_ptr 和 std::shared\_ptr。应该使用这些标准智能指针，而不是自己创建。这里的例子只是为了展示如何编写解引用运算符。
 \end{myWarning}
 
-Here is an example of a smart pointer class template definition, without the dereferencing operators filled in yet:
+这里是智能指针类模板定义的一个例子，尚未填写解引用运算符：
 
 \begin{cpp}
 export template <typename T> class Pointer
 {
     public:
         explicit Pointer(T* ptr) : m_ptr { ptr } {}
-        virtual ˜Pointer() { reset(); }
+        virtual ~Pointer() { reset(); }
         // Disallow copy constructor and copy assignment.
         Pointer(const Pointer& src) = delete;
         Pointer& operator=(const Pointer& rhs) = delete;
@@ -48,9 +48,9 @@ export template <typename T> class Pointer
 };
 \end{cpp}
 
-This smart pointer is about as simple as you can get. All it does is store a dumb raw pointer, and the storage pointed to by the pointer is deleted when the smart pointer is destroyed. The implementation is equally simple: the constructor takes a raw pointer, which is stored as the only data member in the class. The destructor frees the storage referenced by the pointer.
+这个智能指针应尽可能简单，所做的只是存储一个原始的裸指针，当智能指针销毁时，所指向的存储也应删除。实现同样简单：构造函数接受一个裸指针，作为类中唯一的数据成员存储。析构函数释放指针所引用的存储。
 
-You want to be able to use the smart pointer class template like this:
+能够像这样使用智能指针类模板：
 
 \begin{cpp}
 Pointer<int> smartInt { new int };
@@ -62,17 +62,17 @@ smartCell->set(5); // Dereference and member select the set() member function.
 println("{} ", smartCell->getValue());
 \end{cpp}
 
-As you can see from this example, you have to provide implementations of operator* and operator-> for this class. These are implemented in the next two sections.
+从这个例子中，可以了解到需要为这个类提供 operator* 和 operator-> 的实现。这些将在接下来的两个部分中实现。
 
 \begin{myWarning}{WARNING}
-You should rarely, if ever, write an implementation of just one of operator* and operator->. You should almost always write both operators together. It would confuse the users of your class if you failed to provide both.
+很少（如果不是从不）只重载 operator* 或 operator-> 的实现，两个运算符应该一起重载。如果没有提供这两个运算符，会使用户对这个类感到困惑。
 \end{myWarning}
 
-\mySubsubsection{15.7.1.}{Implementing operator*}
+\mySubsubsection{15.7.1.}{实现 operator*}
 
-When you dereference a pointer, you expect to be able to access the memory to which the pointer points. If that memory contains a simple type such as an int, you should be able to change its value directly. If the memory contains a more complicated type, such as an object, you should be able to access its data members or member functions with the . operator.
+当解引用一个指针时，期望能够访问指针所指向的内存。如果那个内存包含一个简单的类型，如 int，就能够直接改变它的值。如果内存包含一个更复杂的类型，如一个对象，应该能够使用点操作符 . 来访问它的数据成员或成员函数。
 
-To provide these semantics, you should return a reference from operator*. For the Pointer class this is done as follows:
+为了提供这些语义，应该在 operator* 中返回一个引用。对于 Pointer 类，实现是这样的：
 
 \begin{cpp}
 export template <typename T> class Pointer
@@ -85,24 +85,25 @@ export template <typename T> class Pointer
 };
 \end{cpp}
 
-As you can see, operator* returns a reference to the object or variable to which the underlying raw pointer points. As with overloading the subscripting operators earlier in this chapter, it’s useful to provide both const and non-const overloads of the member function, which return a reference-toconst and a reference-to-non-const, respectively.
+operator* 返回底层原始指针所指向的对象或变量的引用。就像重载下标操作符一样，提供两个版本的成员函数（const 和非 const）是有用的，分别返回引用到常量和引用到非常量。
 
-\mySubsubsection{15.7.2.}{Implementing operator–>}
+\mySubsubsection{15.7.2.}{实现 operator–>}
 
-The arrow operator is a bit trickier. The result of applying the arrow operator should be a member or member function of an object. However, to implement it like that, you would have to be able to implement the equivalent of operator* followed by operator.; C++ doesn’t allow you to overload operator. for good reason: it’s impossible to write a single prototype that allows you to capture any possible member or member function selection. Therefore, C++ treats operator-> as a special case.
-Consider this line:
+箭头操作符稍微复杂一些，箭头操作符的结果应该是一个对象的成员或成员函数。然而，要像那样实现，需要实现 operator* 后的 operator; 的等效操作。C++ 不允许重载 operator. 是有原因的：不可能写出一个单一的原型，来捕获可能的成员或成员函数。因此，C++ 将 operator-> 视为特殊情况。
+
+看看这行代码：
 
 \begin{cpp}
 smartCell->set(5);
 \end{cpp}
 
-C++ translates this to the following:
+C++ 将这行翻译为：
 
 \begin{cpp}
 (smartCell.operator->())->set(5);
 \end{cpp}
 
-As you can see, C++ applies another operator-> to whatever you return from your overloaded operator->. Therefore, you must return a pointer, like this:
+C++ 对从重载的 operator-> 返回的东西应用另一个 operator->。因此，必须要返回一个指针，就像这样：
 
 \begin{cpp}
 export template <typename T> class Pointer
@@ -115,13 +116,13 @@ export template <typename T> class Pointer
 };
 \end{cpp}
 
-You may find it confusing that operator* and operator-> are asymmetric, but once you see them a few times, you’ll get used to it.
+聪明的你应该发现了 operator* 和 operator-> 的不对称，但看多了就会习惯。
 
-\mySubsubsection{15.7.3.}{What in the World Are operator.* and operator–>*?}
+\mySubsubsection{15.7.3.}{什么是 operator.* 和 operator->*？}
 
-It’s perfectly legitimate in C++ to take the address of class data members and member functions to obtain pointers to them. However, you can’t access a non-static data member or call a non-static member function without an object. The whole point of class data members and member functions is that they exist on a per-object basis. Thus, when you want to call the member function or access the data member via the pointer, you must dereference the pointer in the context of an object. The syntax details for using operator.* and ->* is deferred until Chapter 19, as it requires knowledge of how to define function pointers.
+C++ 中，获取类数据成员和成员函数的地址，以获取指针完全合法。然而，没有对象，就无法访问非静态数据成员或调用非静态成员函数。类数据成员和成员函数的目的是以每个对象为基础的存在，所以想通过指针调用成员函数或访问数据成员时，必须在该对象的上下文中解引用指针。使用 operator.* 和 ->* 的语法细节将在第19章中介绍(需要知道如何定义函数指针)。
 
-C++ does not allow you to overload operator.* (just as you can’t overload operator.), but you could overload operator->*. However, it is tricky, and, given that most C++ programmers don’t even know that you can access member functions and data members through pointers, it’s probably not worth the trouble. The shared\_ptr smart pointer in the Standard Library, for example, does not overload operator->*.
+C++ 不允许重载 operator.*（就像不能重载 operator.），但可以重载 operator->*。然而，这很复杂，考虑到大多数 C++ 开发者可能都不知道，可以通过指针访问成员函数和数据成员，这样的重载可能得不偿失。例如，标准库中的 shared\_ptr 智能指针就没有重载 operator->*。
 
 
 
