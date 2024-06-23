@@ -516,615 +516,700 @@ C和C++开发者通常使用单个int或long来存储一组标志，每个标志
 \endhead
 %
 \multirow{2}{*}{vector} &
-\multicolumn{1}{l|}{Sequential} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Amortized O(1)\\ at the end; O(N)\\ otherwise.\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}O(1) at the end;\\ O(N) otherwise.\end{tabular}} &
+\multicolumn{1}{l|}{顺序} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}末尾时为O(1)\\ 其他情况为O(N)\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}末尾时为O(1)\\ 其他情况为O(N)\end{tabular}} &
 O(1) \\ \cline{2-5}
 &
-\multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}When to Use: This should be your default container. Only use another\\ container after using a profiler to confirm it is faster than a vector.\end{tabular}} \\ \hline
+\multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}何时使用：这应该是首选容器。
+\end{tabular}} \\ \hline
 \multirow{2}{*}{list} &
-\multicolumn{1}{l|}{Sequential} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}O(1) at the beginning\\ and the end, and\\ once you are at the\\ position where you\\ want to insert the\\ element.\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}O(1) at the\\ beginning and\\ the end, and\\ once you are\\ at the position\\ where you want\\ to delete the\\ element.\end{tabular}} &
-\begin{tabular}[c]{@{}l@{}}O(1) to\\ access the\\ first or last\\ element; O(N)\\ otherwise.\end{tabular} \\ \cline{2-5}
+\multicolumn{1}{l|}{顺序} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}开头和结尾为O(1)\\其他情况为O(N)
+\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}} 开头和结尾为O(1)\\其他情况为O(N)\end{tabular}} &
+\begin{tabular}[c]{@{}l@{}}访问第一个或\\最后一个元素\\为 O(1)\\其他情况为O(N)
+\end{tabular} \\ \cline{2-5}
 &
-\multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}When to Use: Rarely. You should use a vector, unless a profiler tells you a\\ list is faster for your use case.\end{tabular}} \\ \hline
+\multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}何时使用：很少使用。
+\end{tabular}} \\ \hline
 \multirow{2}{*}{forward\_list} &
-\multicolumn{1}{l|}{Sequential} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}O(1) at the\\ beginning, and\\ once you are at the\\ position where you\\ want to insert the\\ element.\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}O(1) at the\\ beginning, and\\ once you are\\ at the position\\ where you want\\ to delete the\\ element.\end{tabular}} &
-\begin{tabular}[c]{@{}l@{}}O(1) to access\\ the first\\ element; O(N)\\ otherwise.\end{tabular} \\ \cline{2-5}
+\multicolumn{1}{l|}{顺序} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}开头处为O(1)\\其他情况为O(N)\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}开头处为O(1)\\其他情况为O(N)\end{tabular}} &
+\begin{tabular}[c]{@{}l@{}}访问第一个元素\\为 O(1)\\其他情况为O(N)\end{tabular} \\ \cline{2-5}
 &
-\multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}When to Use: Rarely. You should use a vector, unless a profiler tells you a\\ forward\_list is faster for your use case.\end{tabular}} \\ \hline
+\multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}何时使用：很少使用。\end{tabular}} \\ \hline
 \multirow{2}{*}{deque} &
-\multicolumn{1}{l|}{Sequential} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}O(1) at the\\ beginning or end;\\ O(N) otherwise.\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}O(1) at the\\ beginning or end;\\ O(N) otherwise.\end{tabular}} &
+\multicolumn{1}{l|}{顺序} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}开头或结束处为O(1)\\其他情况为O(N)\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}开头或结束处为O(1)\\其他情况为O(N)\end{tabular}} &
 O(1) \\ \cline{2-5}
 &
-\multicolumn{4}{l|}{When to Use: Not usually needed; use a vector instead.} \\ \hline
+\multicolumn{4}{l|}{何时使用：通常不使用。
+} \\ \hline
 \multirow{2}{*}{array} &
-\multicolumn{1}{l|}{Sequential} &
+\multicolumn{1}{l|}{顺序} &
 \multicolumn{1}{l|}{N/A} &
 \multicolumn{1}{l|}{N/A} &
 O(1) \\ \cline{2-5}
 &
-\multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}When to Use: When you need a fixed-size array to replace a standard C-style\\ array.\end{tabular}} \\ \hline
+\multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}何时使用：当需要一个固定大小的数组来替换标准 C 风格的数组时。
+\end{tabular}} \\ \hline
 \multirow{2}{*}{queue} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Container\\ adapter\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Depends on the\\ underlying container;\\ O(1) for list and\\ deque.\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Depends on\\ the underlying\\ container; O(1)\\ for list and\\ deque.\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}容器适配器
+\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}取决于底层容器\\对于list和deque\\为 O(1)
+\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}取决于底层容器\\对于list和deque\\为 O(1)\end{tabular}} &
 N/A \\ \cline{2-5}
 &
-\multicolumn{4}{l|}{When to Use: When you want a FIFO structure.} \\ \hline
+\multicolumn{4}{l|}{何时使用：需要一个先进先出（FIFO）结构时。
+} \\ \hline
 \multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}priority\_\\ queue\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Container\\ adapter\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Depends on the\\ underlying container;\\ amortized O(log(N))\\ for vector,\\ O(log(N)) for deque.\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Depends on\\ the underlying\\ container;\\ O(log(N)) for\\ vector and\\ deque.\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}容器适配器\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}取决于底层容器\\对于vector为 O(log(N))\\对于deque为 O(log(N))
+\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}取决于底层容器\\对于deque和vector\\为 O(log(N))\end{tabular}} &
 N/A \\ \cline{2-5}
 &
-\multicolumn{4}{l|}{When to Use: When you want a queue with priority.} \\ \hline
+\multicolumn{4}{l|}{何时使用：需要一个带有优先级的队列时
+} \\ \hline
 \multirow{2}{*}{stack} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Container\\ adapter\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Depends on the\\ underlying container;\\ O(1) for list and\\ deque, amortized\\ O(1) for vector.\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Depends on\\ the underlying\\ container; O(1)\\ for list, vector,\\ and deque.\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}容器适配器\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}取决于底层容器\\对于list、deque\\和vector为 O(1)
+\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}取决于底层容器\\对于list、deque\\和vector为 O(1)\end{tabular}} &
 N/A \\ \cline{2-5}
 &
-\multicolumn{4}{l|}{When to Use: When you want a FILO/LIFO structure.} \\ \hline
+\multicolumn{4}{l|}{何时使用：需要一个后进先出（FILO）/先进先出（LIFO）结构时
+} \\ \hline
 \multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}set\\ multiset\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Sorted\\ associative\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}排序关联容器\end{tabular}} &
 \multicolumn{1}{l|}{O(log(N))} &
 \multicolumn{1}{l|}{O(log(N))} &
 O(log(N)) \\ \cline{2-5}
 &
-\multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}When to Use: When you want a sorted collection of elements with equal\\ lookup, insertion, and deletion times. Use a set when you want a collection of\\ elements without duplicates.\end{tabular}} \\ \hline
+\multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}何时使用：需要一个元素排序的集合，并且查找、插入和删除的时间相等。\\当需要一个没有重复元素的集合时，可以使用set。
+\end{tabular}} \\ \hline
 \multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}map\\ multimap\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Sorted\\ associative\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}排序关联容器\end{tabular}} &
 \multicolumn{1}{l|}{O(log(N))} &
 \multicolumn{1}{l|}{O(log(N))} &
 O(log(N)) \\ \cline{2-5}
 &
-\multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}When to Use: When you want a sorted collection to associate keys with\\ values, that is, an associative array, with equal lookup, insertion, and deletion\\ times.\end{tabular}} \\ \hline
+\multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}何时使用：需要一个排序的集合来将键与值关联起来，\\即一个关联数组，并且查找、插入和删除的时间相等。
+\end{tabular}} \\ \hline
 \multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}unordered\_map\\ unordered\_\\ multimap\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Unordered\\ associative /\\ hash table\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Average case O(1);\\ worst case O(N).\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Average case\\ O(1); worst case\\ O(N).\end{tabular}} &
-\begin{tabular}[c]{@{}l@{}}Average case\\ O(1); worst\\ case O(N).\end{tabular} \\ \cline{2-5}
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}非排序关联容器 /\\ 哈希表\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}平均为O(1)\\ 最坏情况为O(N)\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}平均为O(1)\\ 最坏情况为O(N)\end{tabular}} &
+\begin{tabular}[c]{@{}l@{}}平均为O(1)\\最坏情况为O(N)\end{tabular} \\ \cline{2-5}
 &
-\multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}When to Use: When you want to associate keys with values with equal\\ lookup, insertion, and deletion times, and you don’t require the elements\\ to be sorted. Performance can be better than with a normal map, but that\\ depends on the elements.\end{tabular}} \\ \hline
+\multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}何时使用：想要将键与值关联起来，并且查找、插入和删除的时间相等，\\同时不要求排序元素。性能可能比普通map更好(这取决于元素)。\end{tabular}} \\ \hline
 \multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}unordered\_set\\ unordered\_\\ multiset\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Unordered\\ associative/\\ hash table\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Average case O(1);\\ worst case O(N).\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Average case\\ O(1); worst case\\ O(N).\end{tabular}} &
-\begin{tabular}[c]{@{}l@{}}Average case\\ O(1); worst\\ case O(N).\end{tabular} \\ \cline{2-5}
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}非排序关联容器 /\\ 哈希表\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}平均为O(1)\\ 最坏情况为O(N)\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}平均为O(1)\\最坏情况为O(N)\end{tabular}} &
+\begin{tabular}[c]{@{}l@{}}平均为O(1)\\最坏情况为O(N)\end{tabular} \\ \cline{2-5}
 &
-\multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}When to Use: When you want a collection of elements with equal lookup,\\ insertion, and deletion times, and you don’t require the elements to be\\ sorted. Performance can be better than with a normal set, but that depends\\ on the elements.\end{tabular}} \\ \hline
+\multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}何时使用：需要一个元素的集合，并且查找、插入和删除的时间相等，\\同时不要求排序元素。性能可能比普通集合更好(取决于元素)。
+\end{tabular}} \\ \hline
 \multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}flat\_set\\ flat\_multiset\\ (C++23)\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Flat set\\ associative\\ container\\ adapter\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Flat set\\关联容器适配器
+\end{tabular}} &
 \multicolumn{1}{l|}{O(N)} &
 \multicolumn{1}{l|}{O(N)} &
 O(log(N)) \\ \cline{2-5}
 &
-\multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}When to Use: When you want a sorted collection of elements. Because the\\ adapters use underlying sequential containers that have very cache-friendly\\ memory layout, the performance is often better than the corresponding\\ ordered container.\end{tabular}} \\ \hline
+\multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}何时使用：需要一个排序的元素集合时。因为适配器使用底层顺序容器，\\这些容器具有友好的缓存布局，所以性能通常比相应的有序容器更好。
+\end{tabular}} \\ \hline
 \multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}flat\_map\\ flat\_multimap\\ (C++23)\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Flat map\\ associative\\ container\\ adapter\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Flat map\\ 关联容器适配器\end{tabular}} &
 \multicolumn{1}{l|}{O(N)} &
 \multicolumn{1}{l|}{O(N)} &
 O(log(N)) \\ \cline{2-5}
 &
-\multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}When to Use: When you want a sorted collection to associate keys with\\ values. Because the adapters use underlying sequential containers that have\\ very cache-friendly memory layout, the performance is often better than the\\ corresponding ordered container.\end{tabular}} \\ \hline
+\multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}何时使用：需要一个排序的集合来将键与值关联起来时。因为适配器使用底层\\顺序容器，这些容器具有友好的缓存布局，所以性能通常比相应的有序容器更好。
+\end{tabular}} \\ \hline
 \multirow{2}{*}{bitset} &
-\multicolumn{1}{l|}{Special} &
+\multicolumn{1}{l|}{特殊容器} &
 \multicolumn{1}{l|}{N/A} &
 \multicolumn{1}{l|}{N/A} &
 O(1) \\ \cline{2-5}
 &
-\multicolumn{4}{l|}{When to Use: When you want a collection of flags.} \\ \hline
+\multicolumn{4}{l|}{何时使用：需要一个标志集合。} \\ \hline
 \end{longtable}
 
-Note that strings are technically containers as well. Thus, some of the algorithms described in the material that follows also work on strings.
+注意，字符串也是容器。因此，接下来的一些算法也适用于字符串。
 
 \begin{myNotic}{NOTE}
-vector should be your default container! In practice, insertion and deletion in a vector are often faster than in a list or forward\_list. This is because of how memory and caches work on modern CPUs and because of the fact that for a list or forward\_list, you first need to iterate to the position where you want to insert or delete an element. Memory for a list or forward\_list might be fragmented, so iteration is much slower than for a vector.
+vector应该是首选容器！vector中的插入和删除通常比列表或forward\_list更快。因为现代 CPU 上的内存和缓存工作方式，以及list或forward\_list首先需要迭代到想插入或删除元素的位置。list或forward\_list的内存可能非常碎片化，所以迭代时间比vector需要的多。
 \end{myNotic}
 
-\mySubsubsection{16.2.25.}{Algorithms}
+\mySubsubsection{16.2.25.}{算法}
 
-In addition to containers, the Standard Library provides implementations of many generic algorithms. An algorithm is a strategy for performing a particular task, such as sorting or searching. These algorithms are implemented as function templates, so they work on most of the different container types. Note that the algorithms are not generally part of the containers. The Standard Library takes the approach of separating the data (containers) from the functionality (algorithms). Although this approach seems counter to the spirit of object-oriented programming, it is necessary in order to support generic programming in the Standard Library. The guiding principle of orthogonality maintains that algorithms and containers are independent, with (almost) any algorithm working with (almost) any container.
+除了容器，标准库还提供了许多通用算法的实现，算法是执行特定任务（如排序或搜索）的策略。这些算法实现为函数模板，因此适用于大多数不同的容器类型，并且算法通常不是容器的一部分。标准库采取将数据（容器）与功能（算法）分离的方法。尽管这种方法似乎与面向对象编程的精神相悖，但为了支持标准库中的通用编程，这是必要的。正交性的指导原则保持算法和容器独立，任何算法都可以与容器一起工作。
 
 \begin{myNotic}{NOTE}
-Although the algorithms and containers are theoretically independent, some containers provide certain algorithms in the form of class member functions because the generic algorithms do not perform well on those particular containers. For example, set provides its own find() algorithm that is faster than the generic find() algorithm. You should use the container-specific member function form of an algorithm, if provided, because it is generally more efficient or appropriate for the container at hand.
+尽管算法和容器在理论上独立，但一些容器以类成员函数的形式提供某些算法，这些通用算法在那些特定容器上表现不佳。例如，set 提供了自己的 find() 算法，比通用 find() 算法更快。如果提供，应该使用容器特定的成员函数形式的算法，因为其对当前容器更有效或更合适。
 \end{myNotic}
 
-Note that the generic algorithms do not work directly on containers; instead, they either use iterators or work on ranges, both discussed in detail in Chapter 17, “Understanding Iterators and the Ranges Library.”
+注意，通用算法不直接在容器上工作；相反，要么使用迭代器，要么在范围上工作，这两个内容在第 17 章中会详细介绍。
 
-This section gives an overview of what kinds of algorithms are available in the Standard Library without going into detail. Chapter 20, “Mastering Standard Library Algorithms,” discusses a selection of algorithms with coding examples. For the exact prototypes of all the available algorithms, consult your favorite Standard Library reference.
+本节概述了标准库中可用的算法种类，而不涉及细节，第 20 章介绍了算法选择。对于所有可用算法的原型，请查询标准库手册。
 
-There are more than 100 algorithms in the Standard Library. The following sections divide these algorithms into different categories. The algorithms are defined in <algorithm> unless otherwise noted. Note that whenever the following algorithms are specified as working on a “sequence” of elements, that sequence is presented to the algorithm via iterators.
+标准库中有超过 100 个算法。以下部分将这些算法分为不同的类别。除非另有说明，否则算法定义在 <algorithm> 中。注意，当以下算法指定为在“序列”元素上工作时，该序列可以通过迭代器传递给算法。
 
 \begin{myNotic}{NOTE}
-When examining the list of algorithms, remember that the Standard Library is designed with generality in mind, so it adds generality that might never be used but that, if required, would be essential. You may not need every algorithm or need to worry about the more obscure parameters that are there for anticipated generality. It is important only to be aware of what’s available in case you ever find it useful.
+检查算法列表时，请记住标准库是以通用性为设计目标的，所以增加了可能永远不会使用，但有需要则是必不可少的通用性。可能不需要每个算法，也不需要担心那些为了通用性而存在的晦涩参数。重要的是要了解有什么可用，以备不时之需。
 \end{myNotic}
 
-\mySamllsection{Non-modifying Sequence Algorithms}
+\mySamllsection{不修改序列的算法}
 
-The non-modifying algorithms are those that look at a sequence of elements and return some information about the elements. As “non-modifying” algorithms, they cannot change the values of elements or the order of elements within the sequence. This category contains three types of algorithms: searching, comparing, and counting. The following sections briefly summarize the various nonmodifying algorithms. With these algorithms, you should rarely need to write a for loop to iterate over a sequence of values.
+不修改算法是那些查看元素序列，并返回有关元素信息的方法，且不更改序列中元素的值或元素的顺序。这一类别包含三种类型的算法：搜索、比较和计数。以下部分简要总结了各种非修改算法。有了这些算法，就不需要编写for循环来遍历值序列。
 
-\mySamllsection{Searching Algorithms}
+\mySamllsection{搜索算法}
 
-These algorithms do not require the sequence to be sorted. N is the size of the sequence to search in, and M is the size of the pattern to find:
+这些算法不需要对序列进行排序。N是要搜索的序列的大小，M是要找到的范例大小：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{NAME}     & \textbf{SYNOPSIS}                                                                                               & \textbf{COMPLEXITY} \\ \hline
+\textbf{名称}     & \textbf{简介}                                                                                               & \textbf{复杂度} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 adjacent\_find() &
-\begin{tabular}[c]{@{}l@{}}Finds the first instance of two consecutive elements that\\ are equal to each other or are equivalent to each other as\\ specified by a predicate.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}查找第一个连续两个元素相等或\\根据谓词指定的等价实例。
+\end{tabular} &
 O(N) \\ \hline
 \begin{tabular}[c]{@{}l@{}}find()\\ find\_if()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Finds the first element that matches a value or causes a\\ predicate to return true.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}查找第一个与值匹配或使谓词返\\回true的元素。
+\end{tabular} &
 O(N) \\ \hline
-find\_first\_of() & \begin{tabular}[c]{@{}l@{}}Like find, but searches for one of several elements at the\\ same time.\end{tabular} & O(N*M)              \\ \hline
-find\_if\_not()   & \begin{tabular}[c]{@{}l@{}}Finds the first element that causes a predicate to return\\ false.\end{tabular}      & O(N)                \\ \hline
+find\_first\_of() & \begin{tabular}[c]{@{}l@{}}类似于 find，同时搜索多个元素。
+\end{tabular} & O(N*M)              \\ \hline
+find\_if\_not()   & \begin{tabular}[c]{@{}l@{}}查找第一个使谓词返回false的元素。
+\end{tabular}      & O(N)                \\ \hline
 find\_end() &
-\begin{tabular}[c]{@{}l@{}}Finds the last subsequence in a sequence that matches\\ another sequence or whose elements are equivalent, as\\ specified by a predicate.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}在序列中找到最后一个与另一个\\序列匹配或其元素等价（由谓词\\指定）的子序列。
+\end{tabular} &
 O(M*(N-M)) \\ \hline
 search() &
-\begin{tabular}[c]{@{}l@{}}Finds the first subsequence in a sequence that matches\\ another sequence or whose elements are equivalent, as\\ specified by a predicate$^{1}$.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}在序列中找到第一个与另一个序\\列匹配或其元素等价（由谓词指定）\\的子序列。
+    $^{1}$\end{tabular} &
 O(N*M)$^{1}$ \\ \hline
 search\_n() &
-\begin{tabular}[c]{@{}l@{}}Finds the first instance of n consecutive elements that are\\ equal to a given value or relate to that value according to\\ a predicate.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}查找第一个连续 n 个元素等于给定\\值或根据谓词与该值相关的实例。
+\end{tabular} &
 O(N) \\ \hline
 \end{longtable}
 
-$^{1}$search() accepts an optional extra parameter to specify the searching algorithm to use (default\_searcher, boyer\_moore\_searcher, or boyer\_moore\_horspool\_searcher). With the Boyer–Moore searchers, the worst-case complexity is O(N+M) when the pattern is not found, and O(N*M) when the pattern is found.
+$^{1}$search() 接受一个可选参数来指定要使用的搜索算法（default\_searcher、boyer\_moore\_searcher 或 boyer\_moore\_horspool\_searcher）。使用 Boyer–Moore 搜索器时，当模式未找到时，最坏情况复杂度为 O(N+M)；当模式找到时，复杂度为 O(N*M)。
 
-\mySamllsection{Comparison Algorithms}
+\mySamllsection{比较算法}
 
-The following comparison algorithms are provided. None of them requires the source sequences to be ordered. All of them have a linear worst-case complexity:
+提供了以下比较算法，都不要求源序列有序，都具有线性最坏情况的复杂度：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{NAME} &
-\textbf{SYNOPSIS} \\ \hline
+\textbf{名称} &
+\textbf{简介} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 equal() &
-\begin{tabular}[c]{@{}l@{}}Determines whether two sequences are equal by\\ checking whether parallel elements are equal or\\ match a predicate.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}通过检查并行元素是否相等或匹配谓词来确定两个序列\\是否相等。
+\end{tabular} \\ \hline
 mismatch() &
-\begin{tabular}[c]{@{}l@{}}Returns the first element in each sequence that\\ does not match the element in the same location\\ in the other sequence.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}返回每个序列中第一个与另一个序列中相同位置元素不\\匹配的元素。
+\end{tabular} \\ \hline
 lexicographical\_compare() &
-\begin{tabular}[c]{@{}l@{}}Compares two sequences to determine their\\ “lexicographical” ordering. This algorithm\\ compares each element of the first sequence\\ with its equivalent element in the second. If one\\ element is less than the other, that sequence is\\ lexicographically first. If the elements are equal, it\\ compares the next elements in order.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}比较两个序列以确定“字典序”排序。这个算法将第一\\个序列的每个元素与其在第二个序列中的等价元素进行\\比较。如果一个元素小于另一个元素，则该序列在字典\\序上排在前面。如果元素相等，则按顺序比较下一个元素。
+\end{tabular} \\ \hline
 lexicographical\_compare\_three\_way() &
-\begin{tabular}[c]{@{}l@{}}Compares two sequences to determine their\\ “lexicographical” ordering using three-way\\ comparisons and returns a comparison category\\ type (strong\_ordering, weak\_ordering, or\\ partial\_ordering).\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}使用三向比较比较两个序列以确定“字典序”排序，并\\返回比较类别类型（strong\_ordering、weak\_ordering 或 \\partial\_ordering）。\end{tabular} \\ \hline
 all\_of() &
-\begin{tabular}[c]{@{}l@{}}Returns true if a given predicate returns true\\ for all the elements in the sequence or if the\\ sequence is empty; false otherwise.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}如果给定谓词对序列中的所有元素返回true，或者如果\\序列为空，则返回true；否则返回false。
+\end{tabular} \\ \hline
 any\_of() &
-\begin{tabular}[c]{@{}l@{}}Returns true if a given predicate returns true\\ for at least one element in the sequence; false\\ otherwise.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}如果给定谓词对序列中至少一个元素返回true，则返回\\true；否则返回false。
+\end{tabular} \\ \hline
 none\_of() &
-\begin{tabular}[c]{@{}l@{}}Returns true if a given predicate returns false\\ for all the elements in the sequence or if the\\ sequence is empty; false otherwise.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}如果给定谓词对序列中的所有元素返回false，或者如果\\序列为空，则返回true；否则返回false。
+\end{tabular} \\ \hline
 \end{longtable}
 
-\mySamllsection{Counting Algorithms}
+\mySamllsection{计数算法}
 
-The following counting algorithms are available. None of them requires the source sequences to be ordered. All of them have a linear worst-case complexity:
+以下计数算法可以使用，不要求源序列有序，并具有线性最坏情况的复杂度：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{NAME} &
-\textbf{SYNOPSIS} \\ \hline
+\textbf{名称} &
+\textbf{简介} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 \begin{tabular}[c]{@{}l@{}}count()\\ count\_if()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Counts the number of elements matching a value or that cause a predicate to\\ return true.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}计算与值匹配或使谓词返回true的元素的数量。
+\end{tabular} \\ \hline
 \end{longtable}
 
-\mySamllsection{Modifying Sequence Algorithms}
+\mySamllsection{修改序列的算法}
 
-The modifying algorithms modify some or all of the elements in a sequence. Some of them modify elements in place so that the original sequence changes. Others copy the results to a different sequence so that the original sequence remains unchanged. All of them have a linear worst-case complexity. The following table summarizes the modifying algorithms:
+修改算法会修改序列中的一些或所有元素。其中一些算法就地修改元素，使得原始序列发生变化。其他的将结果复制到不同的序列，使得原始序列保持不变。算法都具有线性最坏情况的复杂度。下表总结了修改序列的算法：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{NAME} &
-\textbf{SYNOPSIS} \\ \hline
+\textbf{名称} &
+\textbf{简介} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 \begin{tabular}[c]{@{}l@{}}copy()\\ copy\_backward()\end{tabular} &
-Copies elements from one sequence to another. \\ \hline
+从一个序列复制元素到另一个序列。
+ \\ \hline
 copy\_if() &
-\begin{tabular}[c]{@{}l@{}}Copies elements for which a predicate returns true from one sequence\\ to another\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}将一个序列中谓词返回true的元素复制到另一\\个序列。
+\end{tabular} \\ \hline
 copy\_n() &
-Copies n elements from one sequence to another. \\ \hline
+从一个序列复制 n 个元素到另一个序列。
+ \\ \hline
 fill() &
-Sets all elements in the sequence to a new value. \\ \hline
+将序列中的所有元素设置为新值。
+ \\ \hline
 fill\_n() &
-Sets the first n elements in the sequence to a new value. \\ \hline
+将序列中的前 n 个元素设置为新值。
+ \\ \hline
 generate() &
-\begin{tabular}[c]{@{}l@{}}Calls a given function to generate a new value for each element in the\\ sequence.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}调用给定函数为序列中的每个元素生成新值。\end{tabular} \\ \hline
 generate\_n() &
-\begin{tabular}[c]{@{}l@{}}Calls a given function to generate a new value for the first n elements in\\ the sequence.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}调用给定函数为序列中的前 n 个元素生成新值。
+\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}move()\\ move\_backward()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Moves elements from one sequence to another using efficient move\\ semantics (see Chapter 9).\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}使用有效的移动语义将元素从一个序列移动到\\另一个序列（参见第 9 章）。
+\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}remove()\\ remove\_if()\\ remove\_copy()\\ remove\_copy\_if()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Removes all elements that match a given value or that cause a predicate\\ to return true, either in place or by copying the results to a different\\ sequence.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}删除所有与给定值匹配或使谓词返回true的元\\素，可以就地或在复制结果到不同序列时进行。
+\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}replace()\\ replace\_if()\\ replace\_copy()\\ replace\_copy\_if()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Replaces all elements matching a value or that cause a predicate to\\ return true with a new element, either in place or by copying the results\\ to a different sequence.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}将所有与值匹配或使谓词返回真的元素替换为\\新元素，可以就地或在复制结果到不同序列时\\进行。
+\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}reverse()\\ reverse\_copy()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Reverses the order of the elements in the sequence, either in place or by\\ copying the results to a different sequence.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}反转序列中元素的顺序，可以就地或在复制结\\果到不同序列时进行。
+\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}rotate()\\ rotate\_copy()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Swaps the first and second “halves” of the sequence, either in place or\\ by copying the results to a different sequence. The two subsequences to\\ be swapped need not be equal in size.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}交换序列的前后半部分，可以就地或在复制结\\果到不同序列时进行。要交换的两个子序列在\\大小上不需要相等。
+\end{tabular} \\ \hline
 sample() &
-Selects n random elements from the sequence. \\ \hline
+从序列中随机选择 n 个元素。
+ \\ \hline
 \begin{tabular}[c]{@{}l@{}}shift\_left()\\ shift\_right()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Shifts the elements in a sequence left or right by a given number of\\ positions. Elements are moved to their new position. Elements that fall\\ of either end of the sequence are removed. shift\_left() returns an\\ iterator to the end of the new sequence; shift\_right() returns an\\ iterator to the beginning of the new sequence.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}将序列中的元素向左或向右移动给定数量的位\\置，元素移动到新位置，并从序列两端移出的\\元素移除。shift\_left() 返回指向新序列末尾的迭\\代器；shift\_right() 返回指向新序列开头的迭代器。\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}shuffle()\\ random\_shuffle()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Shuffles the sequence by randomly reordering the elements. It is\\ possible to specify the properties of the random number generator used\\ for shuffling. random\_shuffle() is deprecated since C++14, and is\\ removed starting with C++17.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}通过随机重新排序元素来打乱序列。可以指定\\用于混洗随机数生成器的属性。random\_shuffle() \\自 C++14 起弃用，并在 C++17 中移除。\end{tabular} \\ \hline
 transform() &
-\begin{tabular}[c]{@{}l@{}}Calls a unary function on each element of a sequence or a binary function\\ on parallel elements of two sequences, and stores the results in a\\ destination sequence. If the source and destination sequences are the\\ same, the transformation happens in-place.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}对序列的每个元素调用一元函数，或对两个序\\列的并行元素调用二元函数，并将结果存储在\\目标序列中。如果源序列和目标序列相同，则\\转换立即发生。
+\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}unique()\\ unique\_copy()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Removes consecutive duplicates from the sequence, either in place or by\\ copying results to a different sequence.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}从序列中移除连续的重复项，可以就地或在复\\制结果到不同序列时进行。
+\end{tabular} \\ \hline
 \end{longtable}
 
-\mySamllsection{Operational Algorithms}
+\mySamllsection{运算算法}
 
-Operational algorithms execute a function on individual elements of a sequence. There are two operational algorithms provided. Both have a linear complexity and do not require the source sequence to be ordered:
+运算算法对序列的各个元素执行函数。提供了两种操作算法，具有线性的复杂度，并不要求源序列有序：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{NAME} &
-\textbf{SYNOPSIS} \\ \hline
+\textbf{名称} &
+\textbf{简介} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 for\_each() &
-\begin{tabular}[c]{@{}l@{}}Executes a function on each element in the sequence. The sequence is\\ specified with a begin and end iterator.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}对序列中的每个元素执行一个函数。\\序列通过开始和结束迭代器指定。
+\end{tabular} \\ \hline
 for\_each\_n() &
-\begin{tabular}[c]{@{}l@{}}Similar to for\_each() but only processes the first n elements in the sequence.\\ The sequence is specified by a begin iterator and a number of elements (n).\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}类似于 for\_each()，但只处理序列中的前 n 个元素。\\序列由一个开始迭代器和一个元素数量（n）指定。
+\end{tabular} \\ \hline
 \end{longtable}
 
-\mySamllsection{Swap Algorithms}
+\mySamllsection{交换算法}
 
-The C++ Standard Library provides the following swap algorithms:
+C++ 标准库提供了以下交换算法：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{NAME}                                                         & \textbf{SYNOPSIS}                            \\ \hline
+\textbf{名称}                                                         & \textbf{简介}                            \\ \hline
 \endfirsthead
 %
 \endhead
 %
-\begin{tabular}[c]{@{}l@{}}iter\_swap()\\ swap\_ranges()\end{tabular} & Swaps two elements or sequences of elements. \\ \hline
+\begin{tabular}[c]{@{}l@{}}iter\_swap()\\ swap\_ranges()\end{tabular} & 交换两个元素或元素序列。 \\ \hline
 \end{longtable}
 
-\mySamllsection{Partitioning Algorithms}
+\mySamllsection{划分算法}
 
-A sequence is partitioned on a certain predicate, if all elements for which the predicate returns true are before all elements for which it returns false. The first element in the sequence that does not satisfy the predicate is called the partition point. The Standard Library provides the following partition algorithms:
+如果一个序列根据某个谓词进行划分，那么所有使谓词返回 true 的元素都位于所有使谓词返回 false 的元素之前，序列中第一个不满足谓词的元素称为划分点。标准库提供了以下划分算法：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{NAME} &
-\textbf{SYNOPSIS} &
-\textbf{COMPLEXITY} \\ \hline
+\textbf{名称} &
+\textbf{简介} &
+\textbf{复杂度} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 is\_partitioned() &
-\begin{tabular}[c]{@{}l@{}}Returns true if all elements for which a predicate\\ returns true are before all elements for which it\\ returns false.\end{tabular} &
-Linear \\ \hline
+\begin{tabular}[c]{@{}l@{}}如果所有使谓词返回 true 的元素，都位于所有使谓词返回 false 的元素之\\前，则返回 true。
+\end{tabular} &
+线性 \\ \hline
 partition() &
-\begin{tabular}[c]{@{}l@{}}Sorts the sequence such that all elements for which\\ a predicate returns true are before all elements for\\ which it returns false, without preserving the original\\ order of the elements within each partition.\end{tabular} &
-Linear \\ \hline
+\begin{tabular}[c]{@{}l@{}}对序列进行排序，使得所有使谓词返回 true 的元素都位于所有使谓词返回 \\false 的元素之前，但不保留每个分区内部元素的原始顺序。
+\end{tabular} &
+线性 \\ \hline
 stable\_partition() &
-\begin{tabular}[c]{@{}l@{}}Sorts the sequence such that all elements for which\\ a predicate returns true are before all elements for\\ which it returns false, while preserving the original\\ order of the elements within each partition.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Linear\\ logarithmic\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}对序列进行排序，使得所有使谓词返回 true 的元素都位于所有使谓词返回 \\false 的元素之前，同时保留每个分区内部元素的原始顺序。
+\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}线性\\ 对数\end{tabular} \\ \hline
 partition\_copy() &
-\begin{tabular}[c]{@{}l@{}}Copies elements from one sequence to two different\\ sequences. The target sequence is selected based on\\ the result of a predicate, either true or false.\end{tabular} &
-Linear \\ \hline
+\begin{tabular}[c]{@{}l@{}}将元素从一个序列复制到两个不同的序列中。目标序列根据谓词的结果选\\择，要么是 true，要么是 false。
+\end{tabular} &
+线性 \\ \hline
 partition\_point() &
-\begin{tabular}[c]{@{}l@{}}Returns an iterator such that all elements before this\\ iterator return true for a predicate and all elements\\ after this iterator return false for that predicate.\end{tabular} &
-Logarithmic \\ \hline
+\begin{tabular}[c]{@{}l@{}}返回一个迭代器，使得此迭代器之前的所有元素对某个谓词返回 true，而\\此迭代器之后的所有元素对同一谓词返回 false。
+\end{tabular} &
+对数 \\ \hline
 \end{longtable}
 
-\mySamllsection{Sorting Algorithms}
+\mySamllsection{排序算法}
 
-The Standard Library provides several different sorting algorithms with varying performance guarantees:
+标准库提供了几种不同的排序算法，它们具有不同的性能：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{NAME} &
-\textbf{SYNOPSIS} &
-\textbf{COMPLEXITY} \\ \hline
+\textbf{名称} &
+\textbf{简介} &
+\textbf{复杂度} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 is\_sorted() &
-\begin{tabular}[c]{@{}l@{}}Returns true if a sequence is sorted, false\\ otherwise.\end{tabular} &
-Linear \\ \hline
+\begin{tabular}[c]{@{}l@{}}如果序列已排序，则返回 true，否则返回 false。
+    \end{tabular} &
+线性 \\ \hline
 is\_sorted\_until() &
-\begin{tabular}[c]{@{}l@{}}Finds the largest sorted subrange starting at the\\ beginning of the given range of elements.\end{tabular} &
-Linear \\ \hline
+\begin{tabular}[c]{@{}l@{}}找到给定元素范围，从开始处起，最大的已排序子范围。\end{tabular} &
+线性 \\ \hline
 nth\_element() &
-\begin{tabular}[c]{@{}l@{}}Relocates the $n^{th}$ element of the sequence such that\\ the element in the position pointed to by $n^{th}$  is the\\ element that would be in that position if the whole\\ range were sorted, and it rearranges all elements\\ such that all elements preceding the $n^{th}$  element are\\ less than the new $n^{th}$  element, and the ones following\\ it are greater than the new $n^{th}$  element.\end{tabular} &
-Linear \\ \hline
+\begin{tabular}[c]{@{}l@{}}将序列的第 $n^{th}$ 个元素重新定位，使得指向第 $n^{th}$ 个位\\置的元素是如果整个范围排序时该位置上的元素，并且\\它重新排列所有元素，使得所有在新的第 $n^{th}$ 个元素之\\前的元素都小于新的第 $n^{th}$ 个元素，而其后的元素都大\\于新的第 $n^{th}$ 个元素。\end{tabular} &
+线性 \\ \hline
 \begin{tabular}[c]{@{}l@{}}partial\_sort()\\ partial\_sort\_copy()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Partially sorts the sequence: the first n elements\\ (specified by iterators) are sorted; the rest are not.\\ They are sorted either in place or by copying them to\\ a new sequence.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Linear\\ logarithmic\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}部分排序序列：排序前 n 个元素（由迭代器指定）；其\\余的元素不排序。它们可以在原地进行排序，也可以\\通过将其复制到新序列中进行排序。
+\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}线性\\ 对数\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}stable\_sort()\\ sort()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Sorts elements in place, either preserving the order\\ of duplicate elements (stable) or not.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Linear\\ logarithmic\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}原地对元素进行排序，可以选择保留重复元素的顺序\\（稳定排序）或不保留。
+\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}线性\\ 对数\end{tabular} \\ \hline
 \end{longtable}
 
-\mySamllsection{Binary Search Algorithms}
+\mySamllsection{二分搜索算法}
 
-The following binary search algorithms are normally used on sorted sequences. Technically, they only require the sequence to be at least partitioned on the element that is searched for. This could, for example, be achieved by applying std::partition(). A sorted sequence also meets this requirement. All these algorithms have logarithmic complexity:
+以下二分搜索算法通常用于已排序的序列，只要求序列在要搜索的元素上进行划分。例如，通过应用 std::partition() 来实现。已排序的序列满足这个要求，这些算法的复杂度都为对数：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{NAME}    & \textbf{SYNOPSIS}                                                      \\ \hline
+\textbf{名称}    & \textbf{简介}                                                      \\ \hline
 \endfirsthead
 %
 \endhead
 %
-lower\_bound() & \begin{tabular}[c]{@{}l@{}}Finds the first element in a sequence not less than (that is, greater or equal\\ to) a given value.\end{tabular} \\ \hline
-upper\_bound()   & Finds the first element in a sequence greater than a given value.      \\ \hline
-equal\_range() & \begin{tabular}[c]{@{}l@{}}Returns a pair containing the result of both lower\_bound() and\\ upper\_bound().\end{tabular}                   \\ \hline
-binary\_search() & Returns true if a given value is found in a sequence; false otherwise. \\ \hline
+lower\_bound() & \begin{tabular}[c]{@{}l@{}}找到序列中第一个不小于（即大于或等于）给定值的元素。
+\end{tabular} \\ \hline
+upper\_bound()   & 找到序列中第一个大于给定值的元素。
+      \\ \hline
+equal\_range() & \begin{tabular}[c]{@{}l@{}}返回一个包含 lower\_bound() 和 upper\_bound() 结果的 pair 对象。\end{tabular}                   \\ \hline
+binary\_search() & 如果在序列中找到给定值，则返回 true；否则返回 false。 \\ \hline
 \end{longtable}
 
-\mySamllsection{Set Algorithms on Sorted Sequences}
+\mySamllsection{排序序列上的集合算法}
 
-Set algorithms are special modifying algorithms that perform set operations on sequences. They are most appropriate on sequences from set containers, but work on sorted sequences from most containers:
+集合算法是特殊的修改算法，对序列执行集合操作。最适合用于集合容器的序列，但也适用于大多数容器的已排序序列：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{NAME} &
-\textbf{SYNOPSIS} &
-\textbf{COMPLEXITY} \\ \hline
+\textbf{名称} &
+\textbf{简介} &
+\textbf{复杂度} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 includes() &
-\begin{tabular}[c]{@{}l@{}}Determines whether every element from\\ one sorted sequence is in another sorted\\ sequence.\end{tabular} &
-Linear \\ \hline
+\begin{tabular}[c]{@{}l@{}}确定一个已排序序列中的每个元素是否都在另一个\\已排序序列中。
+\end{tabular} &
+线性 \\ \hline
 \begin{tabular}[c]{@{}l@{}}set\_union()\\ set\_intersection()\\ set\_difference()\\ set\_symmetric\_difference()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Performs the specified set operation on\\ two sorted sequences, copying results to a\\ third sorted sequence.\end{tabular} &
-Linear \\ \hline
+\begin{tabular}[c]{@{}l@{}}对两个已排序序列执行指定的集合操作，将结果复\\制到第三个已排序序列中。
+\end{tabular} &
+线性 \\ \hline
 \end{longtable}
 
-\mySamllsection{Other Algorithms on Sorted Sequences}
+\mySamllsection{排序序列上的其他算法}
 
-The Standard Library provides the following additional algorithms that work on sorted sequences:
+标准库提供了以下算法，适用于已排序的序列：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{NAME} &
-\textbf{SYNOPSIS} &
-\textbf{COMPLEXITY} \\ \hline
+\textbf{名称} &
+\textbf{简介} &
+\textbf{复杂度} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 inplace\_merge() &
-Merges two sorted sequences in place. &
-\begin{tabular}[c]{@{}l@{}}Linear\\ logarithmic\end{tabular} \\ \hline
+原地将两个已排序序列合并。 &
+\begin{tabular}[c]{@{}l@{}}线性\\ 对数\end{tabular} \\ \hline
 merge() &
-\begin{tabular}[c]{@{}l@{}}Merges two sorted sequences by copying them to a new\\ sequence.\end{tabular} &
-Linear \\ \hline
+\begin{tabular}[c]{@{}l@{}}通过将两个已排序序列复制到新序列中来合并它们。
+\end{tabular} &
+线性 \\ \hline
 \end{longtable}
 
-\mySamllsection{Heap Algorithms}
+\mySamllsection{堆算法}
 
-A heap is a standard data structure in which the elements of an array or sequence are ordered in a semi-sorted fashion so that finding the “top” element is quick. For example, a heap data structure is typically used to implement a priority\_queue. Six algorithms allow you to work with heaps:
+堆是一种标准数据结构，其中数组或序列的元素以半排序的方式排列，以便快速找到“顶部”元素。例如，堆数据结构通常用于实现 priority\_queue。有六个算法可以与堆一起工作：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{NAME} &
-\textbf{SYNOPSIS} &
-\textbf{COMPLEXITY} \\ \hline
+\textbf{名称} &
+\textbf{简介} &
+\textbf{复杂度} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 is\_heap() &
-\begin{tabular}[c]{@{}l@{}}Returns true if a range of elements is a heap, false\\ otherwise.\end{tabular} &
-Linear \\ \hline
+\begin{tabular}[c]{@{}l@{}}如果元素范围是一个堆，则返回 true；否则返回 false。
+\end{tabular} &
+线性 \\ \hline
 is\_heap\_until() &
-\begin{tabular}[c]{@{}l@{}}Finds the largest subrange that is a heap, starting at the\\ beginning of the given range of elements.\end{tabular} &
-Linear \\ \hline
+\begin{tabular}[c]{@{}l@{}}找到从给定元素范围开始处，最大堆的子范围。
+\end{tabular} &
+线性 \\ \hline
 make\_heap() &
-Creates a heap from a range of elements. &
-Linear \\ \hline
+使用元素范围创建一个堆。
+ &
+线性 \\ \hline
 \begin{tabular}[c]{@{}l@{}}push\_heap()\\ pop\_heap()\end{tabular} &
-Adds an element to, or removes an element from, a heap. &
-Logarithmic \\ \hline
+向堆中添加一个元素或从堆中移除一个元素。
+ &
+对数 \\ \hline
 sort\_heap() &
-\begin{tabular}[c]{@{}l@{}}Converts a heap into a range of ascending sorted\\ elements.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Linear\\ logarithmic\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}将堆转换为升序排序的元素范围。
+\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}线性\\ 对数\end{tabular} \\ \hline
 \end{longtable}
 
-\mySamllsection{Minimum/Maximum Algorithms}
+\mySamllsection{最小/最大算法}
 
-The following algorithms are provided to find minimum and maximum elements and to clamp values:
+提供了以下算法以查找最小和最大元素，以及钳制值：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{NAME}                                                           & \textbf{SYNOPSIS}                                                \\ \hline
+\textbf{名称}                                                           & \textbf{简介}                                                \\ \hline
 \endfirsthead
 %
 \endhead
 %
 clamp() &
-\begin{tabular}[c]{@{}l@{}}Makes sure a value (v) is between a given minimum (lo) and maximum\\ (hi). Returns a reference to lo if v \textless lo; returns a reference to hi if v \textgreater hi;\\ otherwise returns a reference to v.\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}min()\\ max()\end{tabular}                   & Returns the minimum or maximum of two or more values.            \\ \hline
-minmax()                                                                & Returns the minimum and maximum of two or more values as a pair. \\ \hline
-\begin{tabular}[c]{@{}l@{}}min\_element()\\ max\_element()\end{tabular} & Returns the minimum or maximum element in a sequence.            \\ \hline
-minmax\_element()                                                       & Returns the minimum and maximum element in a sequence as a pair. \\ \hline
+\begin{tabular}[c]{@{}l@{}}确保一个值（v）介于给定的最小值（lo）和最大值（hi）之间。\\如果 v < lo，则返回 lo 的引用；如果 v > hi，则返回 hi 的引用；\\否则返回 v 的引用。
+\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}min()\\ max()\end{tabular}                   & 返回两个或多个值中的最小值或最大值。
+            \\ \hline
+minmax()                                                                & 返回两个或多个值中的最小值和最大值作为一个 pair 对象。
+ \\ \hline
+\begin{tabular}[c]{@{}l@{}}min\_element()\\ max\_element()\end{tabular} & 返回序列中的最小或最大元素。
+            \\ \hline
+minmax\_element()                                                       & 返回序列中的最小和最大元素作为一个 pair 对象。
+ \\ \hline
 \end{longtable}
 
 
-\mySamllsection{Numerical Processing Algorithms}
+\mySamllsection{数值处理算法}
 
-The following numerical processing algorithms are defined in <numeric>. None of them require the source sequences to be ordered. All of them have a linear complexity:
+以下数值处理算法定义在 <numeric> 中，都不要求源序列有序，都具有线性复杂度：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{NAME} &
-\textbf{SYNOPSIS} \\ \hline
+\textbf{名称} &
+\textbf{简介} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 iota() &
-\begin{tabular}[c]{@{}l@{}}Fills a sequence with successively incrementing values starting\\ with a given value.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}使用从给定值开始连续递增的值填充一个序列。
+\end{tabular} \\ \hline
 adjacent\_difference() &
-\begin{tabular}[c]{@{}l@{}}Generates a new sequence in which each element is the\\ difference (or other binary operation) of the second and first\\ of each adjacent pair of elements in the source sequence.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}生成一个新序列，其中每个元素是源序列中每\\对相邻元素的第二元素和第一元素之间的差值\\（或其他二元操作）。
+\end{tabular} \\ \hline
 partial\_sum() &
-\begin{tabular}[c]{@{}l@{}}Generates a new sequence in which each element is the sum\\ (or other binary operation) of an element and all its preceding\\ elements in the source sequence.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}生成一个新序列，其中每个元素是源序列中一\\个元素及其所有前导元素之和（或其他二元操\\作）。
+\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}exclusive\_scan()\\ inclusive\_scan()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}These are similar to partial\_sum(). An inclusive scan is\\ identical to a partial sum if the given summation operation\\ is associative. However, inclusive\_scan() sums in a\\ nondeterministic order, while partial\_sum() left to right,\\ so for nonassociative summation operations the result of\\ the former is nondeterministic. The exclusive\_scan()\\ algorithm also sums in a nondeterministic order.\\ For inclusive\_scan(), the $i^{th}$ element is included in the $i^{th}$\\ sum, just as for partial\_sum(). For exclusive\_scan(), the\\ $i^{th}$ element is not included in the ith sum.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}这些算法与 partial\_sum() 类似。如果给定的求\\和操作是结合的，那么包括扫描（\\inclusive\_scan）与部分和相同。然而，\\inclusive\_scan() 以不确定的顺序进行求和，而 \\partial\_sum()则是从左到右，所以对于非结合\\的求和操作，前者的结果是随机。exclusive\_scan()\\ 算法也以非确定性的顺序进行求和。对于 \\inclusive\_scan()，第 $i^{th}$ 元素包含在第 $i^{th}$ 个和中，\\就像 partial\_sum() 一样。对于 exclusive\_scan()，\\第 $i^{th}$ 元素不包括在第 $i^{th}$ 个和当中。\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}transform\_exclusive\_scan()\\ transform\_inclusive\_scan()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Applies a transformation to each element in a sequence, then\\ performs an exclusive/inclusive scan.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}对序列中的每个元素应用一个转换，然后执行\\一个独占/包括扫描。
+\end{tabular} \\ \hline
 accumulate() &
-\begin{tabular}[c]{@{}l@{}}“Accumulates” the values of all the elements in a sequence.\\ The default behavior is to sum the elements, but the caller\\ can supply a different binary function instead.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}“累积”序列中所有元素的值。默认行为是求和\\元素，但调用者可以提供一个二元函数代替。
+\end{tabular} \\ \hline
 inner\_product() &
-\begin{tabular}[c]{@{}l@{}}Similar to accumulate(), but works on two sequences. This\\ algorithm calls a binary function (multiplication by default) on\\ parallel elements in the sequences, accumulating the result\\ using another binary function (addition by default). If the\\ sequences represent mathematical vectors, the algorithm\\ calculates the dot product of the vectors.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}与 accumulate() 类似，但作用于两个序列。这个\\算法调用一个二元函数（默认为乘法）在序列\\的并行元素上，使用另一个二元函数（默认为\\加法）累积结果。如果序列代表数学向量，该\\算法计算向量的点积。
+\end{tabular} \\ \hline
 reduce() &
-\begin{tabular}[c]{@{}l@{}}Similar to accumulate(), but supports parallel execution.\\ The order of evaluation for reduce() is nondeterministic,\\ while it’s from left to right for accumulate(). This means that\\ the behavior of the former is nondeterministic if the given\\ binary operation is not associative or not commutative.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}与 accumulate() 类似，但支持并行执行。reduce() \\的求值顺序是非确定性的，而 accumulate() 是从\\左到右的。如果给定的二元操作不是结合的或不\\是交换的，那么前者的行为不确定。
+\end{tabular} \\ \hline
 transform\_reduce() &
-\begin{tabular}[c]{@{}l@{}}Applies a transformation to each element in a sequence, then\\ performs a reduce().\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}对序列中的每个元素应用转换，然后执行 reduce()。
+\end{tabular} \\ \hline
 \end{longtable}
 
-\mySamllsection{Permutation Algorithms}
+\mySamllsection{排列算法}
 
-A permutation of a sequence contains the same elements but in a different order. The following algorithms are provided to work with permutations:
+一个序列的排列包含相同的元素，但顺序不同。提供了以下算法以处理排列：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{NAME} &
-\textbf{SYNOPSIS} &
-\textbf{COMPLEXITY} \\ \hline
+\textbf{名称} &
+\textbf{简介} &
+\textbf{复杂度} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 is\_permutation() &
-\begin{tabular}[c]{@{}l@{}}Returns true if the elements in one range are a\\ permutation of the elements in another range.\end{tabular} &
-Quadratic \\ \hline
+\begin{tabular}[c]{@{}l@{}}如果一个范围内的元素是另一个范围内元素的排列，\\则返回 true。
+\end{tabular} &
+
+二次方 \\ \hline
 \begin{tabular}[c]{@{}l@{}}next\_permutation()\\ prev\_permutation()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Modifies the sequence by transforming it into its “next”\\ or “previous” lexicographical permutation. Successive\\ calls to one or the other will permute the sequence into\\ all possible permutations of its elements, if you start\\ with a properly sorted sequence. This algorithm returns\\ false if no more permutations exist.\end{tabular} &
-Linear \\ \hline
+\begin{tabular}[c]{@{}l@{}}通过将其转换为“下一个”或“上一个”字典排列来\\修改序列。如果从一个适当排序的序列开始，连续调\\用其中一个将把序列排列成其元素的所有可能排列。\\如果不存在更多的排列，则该算法返回 false。
+\end{tabular} &
+线性 \\ \hline
 \end{longtable}
 
-\mySamllsection{Choosing an Algorithm}
+\mySamllsection{如何选择算法}
 
-The number and capabilities of the algorithms might overwhelm you at first. It can be difficult to see how to apply them in the beginning. However, now that you have an idea of the available options, you are better able to tackle your program designs. The following chapters cover the details of how to use these algorithms in your code.
+算法的数量和能力可能会让你感到不知所措，可能难以看出如何应用它们。然而，现在已经了解了可用的选项，就能更好地进行程序设计了。接下来的章节将详细介绍，如何在代码中使用这些算法。
 
+\mySubsubsection{16.2.26.}{范围库}
 
+范围库（ranges library）使得处理元素序列变得更加容易和优雅。范围提供了更美观、更易于阅读的语法，并消除了 begin/end 迭代器不匹配的可能性。此外，范围适配器允许以延迟的方式转换和过滤底层序列，并且提供了范围工厂来构建范围。
 
-\mySubsubsection{16.2.26.}{Ranges Library}
+前面章节中讨论的大多数算法都有与迭代器一起使用范围的变体，这些通常称为基于范围的算法或受限算法，它们具有以概念（concepts）形式的适当的模板类型参数约束。这允许编译器在错误使用受限算法时，报出更容易理解的错误消息。
 
-The ranges library makes it easier and more elegant to work with sequences of elements. Ranges provide nicer and easier-to-read syntax and eliminate the possibility of mismatching begin/end iterators. Additionally, range adapters allow you to lazily transform and filter underlying sequences, and range factories are provided to build up ranges.
-
-Most algorithms discussed in the previous sections have variants that work with ranges in addition to iterators. Those variants are often called range-based algorithms or constrained algorithms because they have proper template type parameter constraints in the form of concepts. This allows the compiler to issue better error messages if such a constrained algorithm is used wrongly.
-
-Additionally, C++23 introduces the following algorithms that are available only in a constrained variant. All of them have a linear complexity.
-
-\CXXTwentythreeLogo{-40}{-50}
+另外，C++23 引入了以下仅在受限变体中可用的算法，算法都具有线性复杂度。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{NAME} &
-\textbf{SYNOPSIS} \\ \hline
+\textbf{名称} &
+\textbf{简介} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 \begin{tabular}[c]{@{}l@{}}contains()\\ contains\_subrange()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Returns true if a given range contains a given value,\\ respectively, a given subrange, false otherwise.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}如果给定范围包含给定值或给定子范围，则返回true，否则返回false。
+\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}starts\_with()\\ ends\_with()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Returns true if a given range starts, respectively, ends with\\ another given range, false otherwise.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}如果给定范围以另一个给定范围开始或结束，则返回true，否则返回false。
+\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}find\_last()\\ find\_last\_if()\\ find\_last\_if\_not()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Finds the last element in a given range that either matches\\ a given value, or for which a given predicate returns true,\\ or for which a given predicate returns false. The result is a\\ subrange starting at the found element until the end of the\\ range.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}在给定范围内找到最后一个匹配给定值，或给定谓词返回true，或给定谓词\\返回false的元素。结果是一个子范围，从找到的元素开始直到范围的末尾。
+\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}fold\_left()\\ fold\_left\_first()\\ fold\_right()\\ fold\_right\_last()\\ fold\_left\_with\_iter()\\ fold\_left\_first\_with\_iter()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Folds the elements of a given range left or right. fold\_\\ left() and fold\_right() accept an initial value as one of\\ their arguments, and return the result of the fold operation.\\ fold\_left\_first() uses the first element in a given range\\ as the starting value, while fold\_right\_last() uses the\\ last element in a given range as the starting value. Both\\ of these return an optional containing the result, or an\\ empty optional if applied to an empty range. The last two\\ variants return an instance of fold\_left\_with\_iter\_\\ result, respectively, fold\_left\_first\_with\_iter\_\\ result that you can use to inspect the result of the fold\\ operation.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}对给定范围的元素进行左折叠或右折叠。fold\_left() 和 fold\_right() 接受一个\\初始值作为它们的参数之一，并返回折叠操作的结果。fold\_left\_first() 使用\\给定范围中的第一个元素作为起始值，而 fold\_right\_last() 使用给定范围中\\的最后一个元素作为起始值。这两个函数都返回一个包含结果的optional，\\如果应用于空范围，则返回一个空的optional。最后两个变体分别返回一个 \\fold\_left\_with\_iter\_result 或 fold\_left\_first\_with\_iter\_result 实例，可以使用它\\们来检查折叠操作的结果。
+\end{tabular} \\ \hline
 \end{longtable}
 
-The ranges library is defined in <ranges> and lives in the std::ranges namespace. Chapter 17 discusses the ranges library, while Chapter 20 discusses unconstrained and constrained algorithms with coding examples.
+\CXXTwentythreeLogo{-40}{400}
 
-\mySubsubsection{16.2.27.}{What’s Missing from the Standard Library}
+范围库定义在<ranges>中，位于std::ranges命名空间内。第17章介绍了范围库，而第20章介绍了无约束和约束算法，并附有代码示例。
 
-The Standard Library is powerful, but it’s not perfect. Here are two examples of missing functionality:
+\mySubsubsection{16.2.27.}{标准库中缺少的功能}
+
+标准库虽然强大，但并不完美。以下是缺少的两个功能：
 
 \begin{itemize}
 \item
-The Standard Library does not guarantee any thread safety for accessing containers simultaneously from multiple threads.
+标准库不保证在多个线程同时访问容器时的线程安全。
 
 \item
-The Standard Library does not provide any generic tree or graph structures. Although map and set are generally implemented as balanced binary trees, the Standard Library does not expose this implementation in the interface. If you need a tree or graph structure for something like writing a parser, you need to implement your own or find an implementation in another library.
+标准库没有提供通用树或图结构。虽然map和set通常实现为平衡二叉树，但标准库在接口中并没有暴露这种实现。如果需要像编写解析器这样的树或图结构，需要自己实现或者去其他库中找。
 \end{itemize}
 
-It is important to keep in mind that the Standard Library is extensible. You can write your own containers and algorithms that work with existing algorithms and containers. So, if the Standard Library doesn’t provide exactly what you need, consider writing your desired code such that it works with the Standard Library. Chapter 25 covers the topic of customizing and extending the Standard Library with custom algorithms and custom containers. Alternatively, you can consider buying or licensing a Standard Library-compliant third-party library that provides the required functionality. See Chapter 4, “Designing Professional C++ Programs,” for a discussion on using third-party libraries and licensing options.
+标准库是可扩展的，可以编写自己的容器和算法，使其与现有的算法和容器一起工作。所以，如果标准库没有提供需要的功能，可以考虑编写想要的功能，使其与标准库一起工作。第25章介绍了自定义和扩展标准库的主题，包括自定义算法和自定义容器。另外，也可以考虑购买或授权使用符合标准库要求的第三方库，以提供所需的功能。有关使用第三方库和许可选项的讨论，请参见第4章。
 
 
 
