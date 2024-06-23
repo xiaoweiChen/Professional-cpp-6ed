@@ -1,134 +1,135 @@
 
-This section introduces the various components of the Standard Library from a design perspective.
-You will learn what facilities are available for you to use, but you will not learn many coding details. Those details are covered in other chapters.
+本节从设计的角度介绍了标准库的各种组件。
 
-\mySubsubsection{16.2.1.}{Strings}
+将了解到可用的各种工具，但不会有太多编码细节。这些细节在其他章节中进行介绍。
 
-C++ provides a built-in string class, defined in <string>. This C++ string class is superior in almost every way compared to C-style strings of character arrays. It handles the memory management; provides some bounds checking, assignment semantics, and comparisons; and supports manipulations such as concatenation, substring extraction, and substring or character replacement.
+\mySubsubsection{16.2.1.}{字符串}
+
+C++提供了一个内置的字符串类，定义在<string>中。这个C++字符串类在几乎所有方面都比C风格的字符数组字符串更优秀。它处理内存管理；提供了边界检查、赋值语义和比较；并支持连接、提取子字符串和替换子字符串或字符等操作。
 
 \begin{myNotic}{NOTE}
-Technically, std::string is a type alias for a char instantiation of the std::basic\_string class template. However, you need not worry about these details; you can use string as if it were a bona fide nontemplate class.
+从技术上讲，std::string是std::basic\_string类模板的char实例化的类型别名。不必担心这些细节，可以像使用非模板类一样使用string。
 \end{myNotic}
 
-The Standard Library also provides a string\_view class, defined in <string\_view>. It is a read-only view of any kind of string representation and can be used as a drop-in replacement for const string\&, but without the overhead. It never copies strings!
+标准库还提供了一个string\_view类，定义在<string\_view>中，对任何类型的字符串表示的只读视图，可以用作const string\&的平替，并且无开销，因为它不复制字符串！
 
-C++ provides support for Unicode and localization. Unicode allows you to write programs that work with text in different languages, such as Arabic, Chinese, Japanese, and so on. Locales, defined in <locale>, allow you to format data such as numbers and dates according to the rules of a certain country or region.
+C++支持Unicode和本地化。Unicode编写能够在不同语言中处理文本的程序，如阿拉伯语、中文、日语等。本地化，定义在<locale>中，根据某个国家或地区的规则格式化数据，如数字和日期。
 
-C++ includes a powerful type-safe string formatting library, accessed through std::format() and defined in <format>. The library is extensible and allows you to add support for your own custom types. C++23 adds helper functions std::print() and println() to make it easier to print formatted text to the console.
+C++包括一个强大的类型安全的字符串格式化库，可以通过std::format()使用，定义在<format>中。这个库可扩展，允许添加对自己自定义类型的支持。C++23增加了辅助函数std::print()和println()，以简化向控制台打印格式化文本的操作。
 
-In case you missed it, Chapter 2, “Working with Strings and String Views,” provides all the details of the string and string\_view classes and the string formatting library, while Chapter 21, “String Localization and Regular Expressions,” discusses Unicode and localization.
+\mySubsubsection{16.2.2.}{正则表达式}
 
-\mySubsubsection{16.2.2.}{Regular Expressions}
+正则表达式通过<regex>提供的功能实现，使得执行模式匹配变得简单，常用于文本处理中。模式匹配允许在字符串中搜索特殊模式，并可以选择用新模式替换。正则表达式在第21章中进行介绍。
 
-Regular expressions are available through functionality provided by <regex>. They make it easy to perform pattern-matching, often used in text processing. Pattern-matching allows you to search for special patterns in strings and optionally to replace them with a new pattern. Regular expressions are discussed in Chapter 21.
+\mySubsubsection{16.2.3.}{I/O 流}
 
-\mySubsubsection{16.2.3.}{I/O Streams}
+C++包括一个用于输入和输出的模型，称为流。C++库提供了用于从文件、控制台/键盘和字符串读取和写入内置类型的例程。C++还提供了编写自己的例程以读取和写入自己的对象的设施。大部分I/O功能定义在<fstream>, <iomanip>, <ios>, <iosfwd>, <iostream>, <istream>, <ostream>, <sstream>, <streambuf>和<strstream>中。C++23引入了基于span的流，定义在<spanstream>中。第1章回顾了I/O流的基础知识，而第13章中详细介绍了流。
 
-C++ includes a model for input and output called streams. The C++ library provides routines for reading and writing built-in types from and to files, console/keyboard, and strings. C++ also provides the facilities for coding your own routines for reading and writing your own objects. Most of the I/O functionality is defined in <fstream>, <iomanip>, <ios>, <iosfwd>, <iostream>, <istream>, <ostream>, <sstream>, <streambuf>, and <strstream>. C++23 introduces span-based streams, defined in <spanstream>. Chapter 1, “A Crash Course in C++ and the Standard Library,” reviews the basics of I/O streams, and Chapter 13, “Demystifying C++ I/O,” discusses streams in detail.
+\mySubsubsection{16.2.4.}{智能指针}
 
-\mySubsubsection{16.2.4.}{Smart Pointers}
+健壮编程中面临的问题是，在何时删除一个对象(可能会有几种失败的情况)。第一个问题是不删除对象（未能释放存储空间），这称为\textbf{内存泄漏}，对象累积并占用空间，但未使用。另一个问题是，一块代码删除了存储空间，而另一块代码仍在指向该存储空间，导致指针指向不再使用，或已为其他目的重新分配的存储空间，这称为\textbf{悬空指针}。还有一个问题是，一块代码释放了存储空间，另一块代码尝试再次释放相同的存储空间，这称为\textbf{双重删除}。
 
-One of the problems faced in robust programming is knowing when to delete an object. There are several failures that can happen. A first problem is not deleting the object at all (failing to free the storage). These are known as memory leaks, where objects accumulate and take up space but are not used. Another problem is where a piece of code deletes the storage while another piece of code is still pointing to that storage, resulting in pointers to storage that either is no longer in use or has been reallocated for another purpose. These are known as dangling pointers. Yet another problem is when one piece of code frees the storage and another piece of code attempts to free the same storage again.
-This is known as double deletion.
+所有这些问题会导致程序失败。有些失败容易发现并可能导致应用程序崩溃；其他则会导致程序产生错误结果，这些错误大多数难以发现和修复。
 
-All of these problems tend to result in program failures of some sort. Some failures are readily detected and might crash your application; others cause the program to produce erroneous results.
-Most of these errors are difficult to discover and repair.
+C++通过智能指针解决了所有这些问题：unique\_ptr, shared\_ptr和weak\_ptr，都定义在<memory>中。这些智能指针在第7章中进行了介绍。
 
-C++ addresses all these problems with smart pointers: unique\_ptr, shared\_ptr, and weak\_ptr, all defined in <memory>. These smart pointers are discussed in Chapter 7, “Memory Management.”
+\mySubsubsection{16.2.5.}{异常}
 
-\mySubsubsection{16.2.5.}{Exceptions}
+C++语言支持异常，允许函数将各种类型的错误传递给调用函数。C++标准库提供了一个异常类层次结构，可以在代码中使用，也可以从中派生以创建自己的异常类型。大部分异常支持定义在<exception>, <stdexcept>和<system\_error>中。第14章涵盖了异常和标准异常类的细节。
 
-The C++ language supports exceptions, which allow functions to pass errors of various types up to calling functions. The C++ Standard Library provides a class hierarchy of exceptions that you can use in your code as is, or that you can derive from to create your own exception types. Most of the exception support is defined in <exception>, <stdexcept>, and <system\_error>. Chapter 14, “Handling Errors,” covers the details of exceptions and the standard exception classes.
+\mySubsubsection{16.2.6.}{标准整数类型}
 
-\mySubsubsection{16.2.6.}{Standard Integer Types}
+<stdint.h>头文件定义了许多标准整数类型，如intx\_t和uintx\_t，其中x等于8、16、32或64，还包括指定那些类型的最小和最大值的宏。这些整数类型在第34章中会进行介绍。
 
-The <cstdint> header file defines a number of standard integer types such as intx\_t and uintx\_t with x equal to 8, 16, 32, or 64. It also includes macros specifying minimum and maximum values of those types. These integer types are discussed in the context of writing cross-platform code in Chapter 34, “Developing Cross-Platform and Cross-Language Applications.”
+\mySubsubsection{16.2.7.}{数值库}
 
-\mySubsubsection{16.2.7.}{Numerics Library}
+C++标准库提供了一系列数学实用类和函数的集合。
 
-The C++ Standard Library provides a collection of mathematical utility classes and functions.
+一系列常见的数学函数可用，如abs(), remainder(), fma(), exp(), log(), pow(), sqrt(), sin(), atan2(), sinh(), erf(), tgamma(), ceil(), floor()等。库还支持许多数学特殊函数，用于处理勒让德多项式、贝塔函数、椭圆积分、贝塞尔函数、圆柱诺伊曼函数等。这些特殊函数具有确定的名称和符号，常用于数学分析、泛函分析、几何、物理和其他应用。lerp()函数计算线性插值或外推：lerp(a,b,t)计算a+t(b-a)。线性插值计算给定数据点之间的某个值，而外推计算低于或高于最小或最大数据点的值。这些函数大多定义在<cmath>中，一些在<cstdlib>中。
 
-A whole range of common mathematical functions is available, such as abs(), remainder(), fma(), exp(), log(), pow(), sqrt(), sin(), atan2(), sinh(), erf(), tgamma(), ceil(), floor(), and more. The library also supports a number of mathematical special functions to work with Legendre polynomials, beta functions, elliptic integrals, Bessel functions, cylindrical Neumann functions, and so on. These special functions have established names and notations and are often used in mathematical analysis, functional analysis, geometry, physics, and other applications. The lerp() function calculates a linear interpolation or extrapolation: lerp(a,b,t) calculates a+t(b-a). Linear interpolation calculates a certain value between given data points, while extrapolation calculates values that are either lower or higher than the minimum or maximum data point. Most of these functions are defined in <cmath>, some in <cstdlib>.
+<numeric>定义了gcd()和lcm()，分别计算两个整数类型的最大公约数和最小公倍数。midpoint()函数计算两个值（整数、浮点数或指针）的中点。
 
-<numeric> defines gcd() and lcm() that calculate the greatest common divisor and least common multiple of two integer types, respectively. The midpoint() function calculates the midpoint of two values (integers, floating-point numbers, or pointers).
+从C++23起，其中许多函数就标记为constexpr（参见第9章），可以用于执行编译时计算。咨询标准库手册，了解哪些函数是constexpr。
 
-Starting with C++23, quite a few of these functions are marked as constexpr (see Chapter 9), so they can be used to perform compile-time computations. Consult your favorite Standard Library reference to learn exactly which functions are constexpr.
+有一个复数类叫做complex，定义在<complex>中，提供了一个抽象类，用于处理包含实部和虚部的数字。
 
-There is a complex number class called complex, defined in <complex>, which provides an abstraction for working with numbers that contain both real and imaginary components.
+编译时分数算术库提供了一个ratio类模板，定义在<ratio>中。这个ratio类模板可以精确表示由分子和分母定义的任何有限有理数。这个库在第22章中进行介绍。
 
-The compile-time rational arithmetic library provides a ratio class template, defined in <ratio>.
-This ratio class template can exactly represent any finite rational number defined by a numerator and denominator. This library is discussed in Chapter 22, “Date and Time Utilities.”
+标准库还包含一个名为valarray的类，定义在<valarray>中，类似于vector，但对于高性能数值应用进行了更多优化。库提供了几个类，来表示向量切片的概念。从这些构建块中，可以构建执行矩阵数学的类。虽然没有内置的矩阵类，但是像Boost这样的第三方库支持矩阵。valarray类在本书中不会进一步的进行介绍。
 
-The Standard Library also contains a class called valarray, defined in <valarray>, which is similar to vector but is more optimized for high-performance numerical applications. The library provides several related classes to represent the concept of vector slices. From these building blocks, it is possible to build classes to perform matrix mathematics. There is no built-in matrix class; however, there are third-party libraries like Boost that include matrix support. The valarray class is not further discussed in this book.
-
-A selection of often-used mathematical constants is available, all defined in <numbers> in the std::numbers namespace. Here are just a few of the available constants:
+std::numbers命名空间中定义了一系列常用的数学常数，都在<numbers>中定义。这里只列出其中几个常用的：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{CONSTANT} & \textbf{DESCRIPTION} & \textbf{APPROXIMATION} \\ \hline
+\textbf{常量} & \textbf{描述} & \textbf{近似值} \\ \hline
 \endfirsthead
 %
 \endhead
 %
-pi                & The value of pi (π)  & 3.141592653589793      \\ \hline
-inv\_pi           & The inverse of pi    & 0.3183098861837907     \\ \hline
-sqrt2             & The square root of 2 & 1.4142135623730951     \\ \hline
-e                 & Euler’s number e     & 2.718281828459045      \\ \hline
-phi               & The golden ratio     & 1.618033988749895      \\ \hline
+pi                & pi (π)的值  & 3.141592653589793      \\ \hline
+inv\_pi           & pi的倒数    & 0.3183098861837907     \\ \hline
+sqrt2             & 2的平方根 & 1.4142135623730951     \\ \hline
+e                 & 欧拉数e     & 2.718281828459045      \\ \hline
+phi               & 黄金分割比     & 1.618033988749895      \\ \hline
 \end{longtable}
 
-\mySubsubsection{16.2.8.}{Integer Comparisons}
+\mySubsubsection{16.2.8.}{整数比较}
 
+以下是比较函数可用：std::cmp\_equal(), cmp\_not\_equal(), cmp\_less(), cmp\_less\_equal(), cmp\_greater(), 和 cmp\_greater\_equal()，都定义在<utility>中。这些函数执行两个整数的比较，并且可以安全地用于混合有符号和无符号的比较。
 
-
-The following comparison functions are available: std::cmp\_equal(), cmp\_not\_equal(), cmp\_less(), cmp\_less\_equal(), cmp\_greater(), and cmp\_greater\_equal(), all defined in <utility>. These perform comparisons of two integers and are safe to use on mixed signed and unsigned comparisons.
-
-For example, the following code compares the signed value -1 and the unsigned value 0u using operator>. The output is 1 (= true), because the -1 is first converted to an unsigned integer and hence becomes a big number such as 4,294,967,295, which is definitely greater than 0:
+例如，以下代码使用operator>比较有符号值-1和无符号值0u。输出是1(= true)，因为-1首先被转换为无符号整数，因此会变成了一个很大的数字，如4,294,967,295，这肯定大于0：
 
 \begin{cpp}
 println("{}", (-1 > 0u)); // true
 \end{cpp}
 
-Use cmp\_greater() to get the correct output:
+使用cmp\_greater()来获得正确的输出：
 
 \begin{cpp}
 println("{}", cmp_greater(-1, 0u)); // false
 \end{cpp}
 
+\mySubsubsection{16.2.9.}{位操作}
 
-
-\mySubsubsection{16.2.9.}{Bit Manipulation}
-
-The Standard Library supports the following functions to work with bits, all defined in <bit>. All of these functions require an unsigned integral type as first argument:
+标准库支持以下函数来处理位，都定义在<bit>中。所有这些函数都需要一个无符号整数类型作为第一个参数：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{FUNCTION}  & \textbf{DESCRIPTION}                                                                                                                      \\ \hline
+\textbf{函数}  & \textbf{描述}                                                                                                                      \\ \hline
 \endfirsthead
 %
 \endhead
 %
-has\_single\_bit() & \begin{tabular}[c]{@{}l@{}}Returns true if a given value contains only a single bit, that is, is an\\ integral power of two.\end{tabular} \\ \hline
-bit\_ceil()        & \begin{tabular}[c]{@{}l@{}}Returns the smallest integral power of two greater than or equal to a\\ given value.\end{tabular}              \\ \hline
-bit\_floor()       & \begin{tabular}[c]{@{}l@{}}Returns the largest integral power of two smaller than or equal to a given\\ value.\end{tabular}               \\ \hline
-bit\_width()       & Returns the number of bits needed to store a given value.                                                                                 \\ \hline
+has\_single\_bit() & \begin{tabular}[c]{@{}l@{}}给定值只包含单个位，即是一个整数的2的幂，则返回true。
+\end{tabular} \\ \hline
+bit\_ceil()        & \begin{tabular}[c]{@{}l@{}}返回大于或等于给定值的最小的2的整数幂。
+\end{tabular}              \\ \hline
+bit\_floor()       & \begin{tabular}[c]{@{}l@{}}返回小于或等于给定值的最大的2的整数幂。
+\end{tabular}               \\ \hline
+bit\_width()       & 返回存储给定值所需的位数。
+                                                                                 \\ \hline
 \begin{tabular}[c]{@{}l@{}}rotl()\\ rotr()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Rotates the bits of a given value to the left or right respectively over a\\ given number of positions.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}将给定值的位向左或向右旋转。
+\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}countl\_zero()\\ countl\_one()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Returns the number of consecutive zero or one bits respectively in a given\\ value starting from the left, that is, starting with the most-significant bit.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}返回从左边开始，即从最高有效位开始的给定值中连续0或1比特的数量。
+\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}countr\_zero()\\ countr\_one()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Returns the number of consecutive zero or one bits, respectively, in\\ a given value starting from the right, that is, starting with the least\\ significant bit.\end{tabular} \\ \hline
-popcount()         & Returns the number of one bits in a given value.                                                                                          \\ \hline
-byteswap()(C++23)  & Reverses the individual bytes of integral types.                                                                                          \\ \hline
+\begin{tabular}[c]{@{}l@{}}返回从右边开始，即从最低有效位开始的给定值中连续0或1比特的数量。
+\end{tabular} \\ \hline
+popcount()         & 返回给定值中1比特的数量。
+                                                                                          \\ \hline
+byteswap()(C++23)  & 反转整数类型的各个字节。
+                                                                                          \\ \hline
 \end{longtable}
 
-Here are a few examples:
+以下是一些例子：
 
 \begin{cpp}
 println("{}", popcount(0b10101010u)); // 4
@@ -152,82 +153,82 @@ uint32_t after { byteswap(before) }; // C++23 std::byteswap().
 println("{:x}", after); // 78563412
 \end{cpp}
 
-\mySubsubsection{16.2.10.}{Time and Date Utilities}
+\mySubsubsection{16.2.10.}{时间和日期工具}
 
-The Standard Library includes the chrono library, defined in <chrono>. This library makes it easy to work with dates and time, to time certain durations, and more. The library supports calendars to work with dates, and time zones, including functionality to convert times between different time zones. The <ctime> header provides a number of C-style time and date utilities.
+标准库包括chrono库，定义在<chrono>中。这个库使得处理日期和时间变得简单，可以计算特定的时间长度等。库支持日历来处理日期，以及时区，包括在不同时区之间转换时间的功能。<ctime>头文件提供了一些C风格的时间和日期工具。
 
-Chapter 22 discusses the time and date utilities in detail.
+第22章详细介绍了时间和日期工具。
 
-\mySubsubsection{16.2.11.}{Random Numbers}
+\mySubsubsection{16.2.11.}{随机数}
 
-C++ already has support for generating pseudo-random numbers for a long time with the srand() and rand() functions. However, those functions provide only low-quality basic random numbers. For example, you cannot change the distribution of the generated random numbers.
+C++长期以来一直支持使用srand()和rand()函数生成伪随机数，但这些函数只提供低质量的随机数。例如，不能改变生成的随机数的分布。
 
-Since C++11, a powerful random number generation library is available. This library is defined in <random> and comes with random number engines, random number engine adapters, and random number distributions. These can be used to generate high-quality random numbers and support different distributions, such as normal distributions, negative exponential distributions, and so on.
+自从C++11以来，一个强大的随机数生成库已经可用。这个库定义在<random>中，并带有随机数引擎、随机数引擎适配器和随机数分布。这些可以用来生成高质量的随机数，并支持不同的分布，如正态分布、负指数分布等。
 
-Consult Chapter 23, “Random Number Facilities,” for details on this library.
+有关这个库的详细信息，请参阅第23章。
 
-\mySubsubsection{16.2.12.}{Initializer Lists}
+\mySubsubsection{16.2.12.}{初始化列表}
 
-Initializer lists are defined in <initializer\_list>. They make it easy to write functions that can accept a variable number of arguments and are discussed in Chapter 1.
+初始化列表定义在<initializer\_list>中，使得编写可以接受可变数量参数的函数变得简单，并在第1章中有所讨论。
 
-\mySubsubsection{16.2.13.}{Pair and Tuple}
+\mySubsubsection{16.2.13.}{pair和tuple}
 
-<utility> defines the pair class template, which can store two elements of possibly different types. This is known as storing heterogeneous elements. All Standard Library containers discussed further in this chapter store homogeneous elements, meaning that all the elements in the container must have the same type. A pair allows you to store exactly two elements of completely unrelated types in one object. The pair class template is introduced in Chapter 1.
+<utility>定义了pair类模板，可以存储两个可能不同类型的元素，这称为存储异构元素。本章后面讨论的所有标准库容器都存储同构元素，所以容器中的所有元素必须具有相同的类型。pair类模板允许将两个完全无关类型的元素存储在一个对象中，这在第1章中有过介绍。
 
-tuple, defined in <tuple>, is a generalization of pair. It is a sequence with a fixed size that can have heterogeneous elements. The number and type of elements for a tuple instantiation is fixed at compile time. Tuples are discussed in Chapter 24, “Additional Vocabulary Types.”
+tuple，定义在<tuple>中，是pair的泛化，是一个具有固定大小且可以拥有异构元素的序列。tuple的元素数量和类型在编译时固定，tuple将在第24章中进行介绍。
 
-\mySubsubsection{16.2.14.}{Vocabulary Types}
+\mySubsubsection{16.2.14.}{词汇类型}
 
-Vocabulary types are types that you will use all the time, just as much as primitive types such as int and double. Using vocabulary types makes your code safer, more efficient, and easier to write, read, and maintain. Examples of vocabulary types discussed earlier in this book are vector, optional, string, unique\_ptr, shared\_ptr, and so on.
+词汇类型是会频繁使用的类型，就像整数和双精度类型这样的基本类型一样。使用词汇类型可使代码更安全、更高效，也更易于编写、阅读和维护。本书中讨论的词汇类型示例包括vector、optional、string、unique\_ptr、shared\_ptr等。
 
-Chapter 24 discusses the following additional vocabulary types:
+第24章讨论了以下词汇类型：
 
 \begin{itemize}
 \item
-variant, defined in <variant>, can hold a single value of one of a given set of types.
+variant，定义在<variant>中，可以存储一组给定类型中的单个值。
 
 \item
-any, defined in <any>, can hold a single value of any type.
+any，定义在<any>中，可以存储任何类型的单个值。
 
 \item
-tuple, defined in <tuple>, is a generalization of pair. It can store any number of values, each with its own specific type.
+元组，定义在<tuple>中，是对的泛化。可以存储任意数量的值，每个值都有其特定的类型。
 
 \item
-optional, defined in <optional>, holds a value of a specific type or nothing. It can be used for class data members, function parameters, return types of a function, and so on, if you want to allow for values to be optional. It is introduced in Chapter 1. Chapter 24 explains that optionals support monadic operations, allowing you to easily chain operations on optionals without having to worry whether an optional is empty before applying another operation to it.
+optional，定义在<optional>中，持有特定类型的值或无值。可以用于类数据成员、函数参数、函数的返回类型等。在第1章中介绍过，第24章解释了optional支持单调操作，允许在optional上进行链式操作，而无需担心在应用另一个操作之前，optional是否为空。
 
 \item
-expected, defined in <expected>, holds a value of a specific type, or an error value of a, possibly different, type. This can be useful as the return type of a function because it allows the function to return either the requested data back to the caller or the reason why something went wrong.
+expected，定义在<expected>中，持有特定类型的值，或一个可能不同的错误类型的值。这可以作为函数的返回类型，因为函数允许将请求的数据返回给调用者，或者返回出错的原因。
 \end{itemize}
 
 \CXXTwentythreeLogo{-40}{30}
 
-\mySubsubsection{16.2.15.}{Function Objects}
+\mySubsubsection{16.2.15.}{函数对象}
 
-A class that implements a function call operator is called a function object. Function objects can, for example, be used as predicates for certain Standard Library algorithms. <functional> defines a number of predefined function objects and supports creating new function objects based on existing ones.
+实现函数调用运算符的类称为函数对象。函数对象可以用于某些标准库算法的谓词，<functional>定义了一些预定义的函数对象，并支持基于现有对象创建新的函数对象。
 
-Function objects are discussed in detail in Chapter 19, “Function Pointers, Function Objects, and Lambda Expressions.”
+函数对象在第19章中会详细介绍。
 
-\mySubsubsection{16.2.16.}{Filesystem}
+\mySubsubsection{16.2.16.}{文件系统}
 
-Everything for the filesystem support library is defined in <filesystem> and lives in the std::filesystem namespace. It allows you to write portable code to work with a filesystem. You can use it for querying whether something is a directory or a file, iterating over the contents of a directory, manipulating paths, and retrieving information about files such as their size, extension, creation time, and so on. The filesystem support library is discussed in Chapter 13.
+文件系统支持库的所有内容都定义在<filesystem>中，位于std::filesystem命名空间中。允许编写可移植的代码来处理文件系统，可以使用它来查询某物是否是目录或文件，遍历目录的内容，操作路径，以及获取关于文件的信息，如其大小、扩展名、创建时间和等等。文件系统支持库在第13章中介绍过。
 
-\mySubsubsection{16.2.17.}{Multithreading}
+\mySubsubsection{16.2.17.}{多线程}
 
-All major CPU vendors are selling processors with multiple cores. They are being used for everything from servers to consumer computers and even smartphones. If you want your software to take advantage of all these cores, then you need to write multithreaded code. The Standard Library provides a couple of basic building blocks for writing such code. Individual threads can be created using the thread class from <thread>. The library also defines jthread, a thread that can be cancelled and that automatically performs a join operation when it is destructed.
+所有主要的CPU供应商都在销售具有多个核心的处理器，用于从服务器到消费类计算机甚至智能手机的各个方面。如果想让你的软件利用所有这些核心，就需要编写多线程代码。标准库为编写此类代码提供了几个基本构建块，可以使用<thread>中的thread类创建单个线程。库还定义了jthread，一个可以取消的线程，当它销毁时会自动执行join操作。
 
-In multithreaded code you need to take care that several threads are not reading and writing to the same piece of data at the same time, because that will cause data races. To prevent this, you can use atomics, defined in <atomic>, which give you thread-safe atomic access to a piece of data. Other thread synchronization mechanisms are provided by <condition\_variable> and <mutex>. There is also support for the following synchronization primitives: semaphores (<semaphore>), latches (<latch>), and barriers (<barrier>).
+多线程代码中需要小心，以确保几个线程不会同时读写同一块数据，因为这会导致数据竞争。为防止这种情况，可以使用<atomic>中定义的原子变量，它们提供了对数据的线程安全原子访问。其他线程同步机制由<condition\_variable>和<mutex>提供。还有支持以下同步原语：信号量（<semaphore>）、门闩（<latch>）和栅栏（<barrier>）。
 
-If you just need to calculate something, possibly on a different thread, and get the result back with proper exception handling, you can use async and future. These are defined in <future> and are easier to use than directly using thread or jthread.
+如果只需要计算一些东西，可能在不同的线程上，并带有适当的异常处理得到结果，可以使用async和future，这些都定义在<future>中，比直接使用thread或jthread更容易使用。
 
-Writing multithreaded code is discussed in detail in Chapter 27, “Multithreaded Programming with C++.”
+多线程编程在第27章中会详细介绍。
 
-\mySubsubsection{16.2.18.}{Type Traits}
+\mySubsubsection{16.2.18.}{类型特征}
 
-Type traits are defined in <type\_traits> and provide information about types at compile time. They are useful when writing advanced templates and are discussed in Chapter 26, “Advanced Templates.”
+类型特征定义在<type\_traits>中，并在编译时提供有关类型的信息。在编写高级模板时非常有用，会在第26章中进行介绍。
 
-\mySubsubsection{16.2.19.}{Standard Library Feature-Test Macros}
+\mySubsubsection{16.2.19.}{标准库特性测试宏}
 
-Feature-test macros are available for Standard Library features. These are similar to the featuretest macros for core language features (discussed in Chapter 11, “Modules, Header Files, and Miscellaneous Topics”) and allow you to verify whether a certain feature is supported by your Standard Library implementation. All these macros start with \_\_cpp\_lib\_. The following lists a few examples. Consult your favorite Standard Library Reference for a complete list of all possible Standard Library feature-test macros.
+标准库特性测试宏可用于标准库特性。这些与核心语言特性（在第11章中介绍过）的特性测试宏类似，并允许验证标准库实现是否支持某个特定特性。所有这些宏都以\_\_cpp\_lib\_开头。以下列出了一些示例。请参阅标准库手册，以获取所有可能的标准库特性测试宏的完整列表。
 
 \begin{itemize}
 \item
@@ -239,13 +240,11 @@ Feature-test macros are available for Standard Library features. These are simil
 \item
 \_\_cpp\_lib\_scoped\_lock
 
-
 \item
 \_\_cpp\_lib\_atomic\_float
 
 \item
 \_\_cpp\_lib\_constexpr\_vector
-
 
 \item
 \_\_cpp\_lib\_constexpr\_tuple
@@ -260,21 +259,21 @@ Feature-test macros are available for Standard Library features. These are simil
 . . .
 \end{itemize}
 
-The value of such a macro is a number representing the month and year when a specific feature was added or updated. The date is formatted as YYYYMM. For example, the value of \_\_cpp\_lib\_ filesystem is 201703, i.e., March 2017.
+此类宏的值是一个数字，代表特定功能添加或更新的月份和年份。日期格式为YYYYMM。例如，\_\_cpp\_lib\_filesystem的值为201703，即2017年3月。
 
-As Chapter 11 explains, the core language feature-test macros are always available for you to use, without having to include any header. However, the Standard Library feature-test macros are defined in <version>. As all feature-test macros are macros, you know from Chapter 11 that importing the named module std or std.compat will not make those macros available to your code. Chapter 11 also explains that all C++ headers, such as <version>, are importable; thus, you have two options to get access to the macros defined in <version>:
+如第11章所述，核心语言功能测试宏始终可用，无需包含任何头文件。然而，标准库功能测试宏定义在<version>中。由于所有功能测试宏都是宏，从第11章可知，导入命名模块std或std.compat不会使这些宏。第11章还解释了所有C++头文件，如<version>，都是可导入的；因此，有两种方法来获取<version>中定义宏的访问权限：
 
 \begin{cpp}
 import <version>;
 \end{cpp}
 
-or
+或
 
 \begin{cpp}
 #include <version>
 \end{cpp}
 
-Here is a full example:
+以下是一个完整示例：
 
 \begin{cpp}
 import std;
@@ -292,214 +291,214 @@ int main()
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-You will rarely need these feature-test macros, unless you are writing crossplatform and cross-compiler code. In that case, you might want to know if certain functionality is supported by a given Standard Library implementation so that you can provide fallback code in case a feature is missing. Chapter 34, “Developing Cross-Platform and Cross-Language Applications,” discusses cross-platform development.
+除非正在编写跨平台和跨编译器的代码，否则通常不需要这些功能测试宏。这种情况下，可能需要知道给定的标准库实现是否支持某些功能，以便在缺少功能时提供后备代码。第34章介绍了跨平台开发。
 \end{myNotic}
 
 \mySubsubsection{16.2.20.}{<version>}
 
-<version> can be used to query for implementation-dependent information about the C++ Standard Library that you are using. What exactly your <version> provides depends on your library implementation. The following could possibly be exposed: version number, release date, and copyright notice.
+<version>可用于查询有关正在使用的C++标准库的实现相关信息，<version>提供的确切内容取决于库实现。可能的内容包括版本号、发布日期和版权声明。
 
-Additionally, as explained in the previous section, <version> exposes all Standard Library featuretest macros.
+另外，如前一节所述，<version>公开了所有标准库功能测试宏。
 
-\mySubsubsection{16.2.21.}{Source Location}
+\mySubsubsection{16.2.21.}{源位置}
 
-std::source\_location, defined in <source\_location>, can be used to query information about your source code, such as filename, function name, line number, and column number, and replaces the old C-style macros \_\_FILE\_\_ and \_\_LINE\_\_. Example use cases are to provide source code information when logging messages or when throwing exceptions. Chapter 14 gives an example of both these use cases.
+<std::source\_location>，定义在<source\_location>中，可用于查询有关源代码的信息，如文件名、函数名、行号和列号，并替换旧的C样式宏\_\_FILE\_\_和\_\_LINE\_\_。示例用例包括在记录消息或抛出异常时提供源代码信息，第14章给出了这两种用例的示例。
 
-\mySubsubsection{16.2.22.}{Stack Trace}
+\mySubsubsection{16.2.22.}{堆栈跟踪}
 
 \CXXTwentythreeLogo{-40}{15}
 
-<stacktrace> defines the std::stacktrace and std::stacktrace\_entry classes. These can be used to get a stack trace at any given moment in time and to iterate and inspect each individual entry, known as a frame. See Chapter 14 for an example.
+<stacktrace>定义了std::stacktrace和std::stacktrace\_entry类。这些类可用于在相应的时间内获取堆栈并跟踪，遍历和检查每个单独的条目，这些条目称为帧。请参阅第14章的示例。
 
-\mySubsubsection{16.2.23.}{Containers}
+\mySubsubsection{16.2.23.}{容器}
 
-The Standard Library provides implementations of commonly used data structures such as linked lists and queues. When you use C++, you should not need to write such data structures again. The data structures are implemented using a concept called containers, which store information called elements, in a way that implements the data structure (linked list, queue, and so on) appropriately. Different data structures have different insertion, deletion, and access behavior and performance characteristics. It is important to be familiar with the available data structures so that you can choose the most appropriate one for any given task.
+标准库提供了常用数据结构（如链表和队列）的实现。使用C++时，不应需要再次编写这些数据结构。这些数据结构使用一种容器的概念实现，这些容器以适当的方式存储称为元素的信息（链表、队列等）。不同的数据结构具有不同的插入、删除和访问行为以及性能特征。熟悉可用的数据结构很重要，这样就可以为给定的任务选择最合适的容器。
 
-All the containers in the Standard Library are class templates, so you can use them to store any type, from built-in types such as int and double to your own classes. Each container instance stores objects of only one type; that is, they are homogeneous collections. If you need non-fixed-sized heterogeneous collections, you can wrap each element in an std::any instance and store those any instances in a container. Alternatively, you can store std::variant instances in a container. A variant can be used if the number of different required types is limited and known at compile time. Or you can create a class that has multiple derived classes, and each derived class can wrap an object of your required type. Both any and variant are discussed in Chapter 24.
+标准库中的所有容器都是类模板，因此可以使用它们存储任何类型，从内置类型（如int和double）到自己的类型。每个容器实例只存储一种类型的对象，它们是同质集合。如果需要非固定大小的异构集合，可以将每个元素包装在std::any实例中，并将这些any实例存储在容器中。或者，可以在容器中存储std::variant实例。如果所需类型的不同数量有限且在编译时已知，则可以使用variant。或者，可以创建一个具有多个派生类的类，每个派生类可以包装所需类型的对象。any和variant都会在第24章中介绍。
 
 \begin{myNotic}{NOTE}
-The C++ Standard Library containers are homogeneous: they allow elements of only one type in each container
+C++标准库容器是同质的：每个容器只允许一种类型的元素。
 \end{myNotic}
 
-The C++ standard specifies the interface, but not the implementation, of each container and algorithm. Thus, different vendors are free to provide different implementations. However, the standard also specifies performance requirements as part of the interface, which the implementations must meet.
+C++标准规定了每个容器和算法的接口，但没有规定其实现。因此，不同的供应商可以提供不同的实现。然而，标准还将性能要求作为接口的一部分，实现必须满足这些要求。
 
-This section provides an overview of the various containers available in the Standard Library.
+本节提供了标准库中各种容器的概述。
 
-\mySamllsection{Sequential Containers}
+\mySamllsection{顺序容器}
 
-The Standard Library provides five sequential containers: vector, list, forward\_list, deque, and array.
+标准库提供了五种顺序容器：vector、list、forward\_list、deque和array。
 
 \mySamllsection{vector}
 
-vector is defined in <vector> and stores a sequence of elements while providing random access to these elements. You can think of a vector as an array of elements that grows dynamically as you insert elements and additionally provides some bounds checking. Like an array, the elements of a vector are stored in contiguous memory.
+vector定义在<vector>中，存储一系列元素，同时提供对这些元素的随机访问。可以将vector视为一个动态数组：一个元素，它在插入元素时会动态增长，并提供一些边界检查。与数组一样，vector的元素存储在连续的内存中。
 
 \begin{myNotic}{NOTE}
-A vector in C++ is a synonym for a dynamic array: an array that grows and shrinks automatically in response to the number of elements it stores.
+C++中的vector是动态数组的同义词：根据其存储的元素数量自动增长和收缩的数组。
 \end{myNotic}
 
-vector provides fast element insertion and deletion (amortized constant time) at the end of the vector. Amortized constant time insertion means that most of the time insertions are done in constant time O(1) (Chapter 4, “Designing Professional C++ Programs,” explains big-O notation). However, sometimes the vector needs to grow in size to accommodate new elements, which has a complexity of O(N). On average, this results in O(1) complexity or amortized constant time. Details are explained in Chapter 18, “Standard Library Containers.” A vector has slower (linear time) insertion and deletion anywhere else, because the operation must move all the elements “up” or “down” by one to make room for the new element or to fill the space left by the deleted element. Like arrays, vectors provide fast (constant time) access to any of their elements.
+vector在vector末尾提供快速元素插入和删除（常数时间），常数时间插入意味着大多数插入操作都是常量时间O(1)（第4章解释了big-O符号）。然而，有时vector需要增长大小以容纳新元素，这具有O(N)的复杂度。平均而言，这导致O(1)复杂度或常数时间。细节会在第18章中解释。vector在其他地方的插入和删除速度较慢（线性时间），因为操作必须将所有元素“上”或“下”移动一个位置，以为新元素腾出空间或填充被删除元素留下的空间。与数组一样，vector提供对任何元素的快速（常数时间）访问。
 
-Even though inserting and removing elements in the middle of a vector requires moving other elements up or down, a vector should be your default container! Often, a vector will be faster than, for example, a linked list, even for inserting and removing elements in the middle. The reason is that a vector is stored contiguously in memory, while a linked list is scattered around in memory. Computers are extremely efficient to work with contiguous data, which makes vector operations fast. You should only use something like a linked list if a performance profiler (discussed in Chapter 29, “Writing Efficient C++”) tells you that it performs better than a vector.
+尽管在vector中间插入和删除元素需要移动其他元素，但vector应该是首选容器！通常，vector甚至比链表更快，即使在中间插入和删除元素也是如此。原因是vector在内存中连续存储，而链表在内存中分散。计算机非常有效地处理连续数据，这使得vector操作变得快速。只有当性能分析器（在第29章中介绍）告诉它比vector性能更好时，才应该使用链表之类的容器。
 
 \begin{myNotic}{NOTE}
-The vector container should be your default container.
+vector容器应该是首选容器。
 \end{myNotic}
 
-There is a template specialization available for vector<bool> to store Boolean values in a vector.
-This specialization optimizes space allocation for the Boolean elements; however, the standard does not specify how an implementation of vector<bool> should optimize space. The difference between the vector<bool> specialization and the bitset discussed later in this chapter is that the bitset container is of fixed size, while vector<bool> automatically grows or shrinks when needed.
+vector<bool>有一个模板特化，用于在vector中存储布尔值。
+
+此特化优化了布尔元素的空间分配；然而，标准并没有规定vector<bool>的实现应该如何优化空间。vector<bool>特化与本章后面讨论的bitset容器的区别在于，bitset容器大小固定，而vector<bool>在需要时会自动增长或收缩。
 
 \mySamllsection{list}
 
-list is a doubly linked list structure and is defined in <list>. Like an array or vector, it stores a sequence of elements. However, unlike an array or vector, the elements of a list are not necessarily contiguous in memory. Instead, each element in the list specifies where to find the next and previous elements in the list (usually via pointers), which is why it’s called a doubly linked list.
+list是一个双向链表结构，定义在<list>中。与数组或vector一样，存储一系列元素。然而，与数组或vector不同，list的元素在内存中不一定是连续的。相反，list中的每个元素都指定了在list中找到下一个和上一个元素的位置（通常通过指针），这就是为什么它称为双向链表。
 
-The performance characteristics of a list are the exact opposite of a vector. They provide slow (linear time) element lookup and access, but quick (constant time) insertion and deletion of elements once the relevant position has been found. Still, as discussed in the previous section, a vector is usually faster than a list. Use a profiler (discussed in Chapter 29) to be sure.
+list的性能特征与vector完全相反，提供慢速（线性时间）元素查找和访问，但找到相关位置后，就快速（常数时间）插入和删除元素。然而，如前一节所述，vector通常比list更快。
 
 \mySamllsection{forward\_list}
 
-forward\_list, defined in <forward\_list>, is a singly linked list, compared to the list container, which is doubly linked. forward\_list supports forward iteration only and requires a bit less memory than a list. Like list, forward\_list allows constant-time insertion and deletion anywhere once the relevant position has been found, and there is no fast random access to elements.
+forward\_list定义在<forward\_list>中，是一个单向链表，与双向链表的list容器相比。forward\_list只支持前向迭代，并且比list占用更少的内存。与list一样，找到相关位置后，forward\_list可以以常数时间插入和删除元素，但没有对元素的快速随机访问。
 
 \mySamllsection{deque}
 
-The name deque is an abbreviation for a double-ended queue. A deque, defined in <deque>, provides quick (constant time) element access. It also provides fast (constant time) insertion and deletion at both ends of the sequence, but it provides slow (linear time) insertion and deletion in the middle of the sequence. The elements of a deque are not stored contiguously in memory, and thus a deque might be slower than a vector.
+deque是双端队列的缩写。deque定义在<deque>中，提供快速（常数时间）的元素访问。还允许在序列的两端以快速（常数时间）插入和删除元素，但在序列中间插入和删除元素则较慢（线性时间）。deque的元素在内存中不是连续存储的，因此deque可能比vector慢。
 
-You could use a deque instead of a vector when you need to insert or remove elements from either end of the sequence but still need fast access to all elements. However, this requirement does not apply to many programming problems; in most cases, a vector is recommended.
+当需要从序列的两端插入或删除元素但仍需要快速访问所有元素时，以使用deque代替vector。然而，这种要求并不适用于常规编程问题；大多数情况下，推荐使用vector。
 
 \mySamllsection{array}
 
-array, defined in <array>, is a replacement for standard C-style arrays. Sometimes you know the exact number of elements in your container up front, and you don’t need the flexibility of a vector or a list, which are able to grow dynamically to accommodate new elements. An array is perfect for such fixed-sized collections, and it has a bit less overhead compared to a vector; it’s basically a thin wrapper around standard C-style arrays. There are a number of advantages in using arrays instead of standard C-style arrays: they always know their own size and do not automatically get cast to a pointer to avoid certain types of bugs. Also, arrays do not provide insertion or deletion; they have a fixed size. The advantage of having a fixed size is that this allows an array to be allocated on the stack, rather than always demanding access to the free store as vector does. Access to elements is very fast (constant time), just as with vectors.
+array定义在<array>中，是标准C风格数组的替代品。有时事先知道容器中元素的确切数量，并且不需要vector或list这样的动态增长能力以适应新元素。对于这种固定大小的集合，array是完美的选择，并且与vector相比具有较少的开销；基本上是标准C风格数组的薄包装。使用array而不是标准C风格数组有许多优点：总是知道自己的大小，并且不会自动转换为指针，以避免某些类型的错误。此外，array不提供插入或删除操作；具有固定大小。固定大小的优点是，这允许array在栈上分配，而不是像vector那样总是要求访问自由存储。访问元素非常快（常数时间），就像vector一样。
 
 \begin{myNotic}{NOTE}
-The vector, list, forward\_list, deque, and array containers are called sequential containers because they store a sequence of elements.
+因为存储元素的序列，vector、list、forward\_list、deque和array容器称为顺序容器。
 \end{myNotic}
 
-\mySamllsection{Sequential Views}
+\mySamllsection{顺序视图}
 
-The Standard Library provides two sequential views: span and mdspan.
+标准库提供了两个顺序视图：span和mdspan。
 
 \mySamllsection{span}
 
-A span, defined in <span>, represents a view on a contiguous sequence of data. It can be either a read-only view or a view with read/write access to the underlying elements. A span allows you to write a single function that can work with data coming from, for example, vectors, arrays, C-style arrays, and so on. Chapter 18 discusses span in more detail.
+span定义在<span>中，表示对连续数据序列的视图。可以是只读视图，也可以是对基础元素具有读写访问权限的视图。span允许存在单一函数，处理来自vector、array、C风格数组等的数据。第18章详细介绍了span。
 
 \begin{myNotic}{NOTE}
-When writing a function accepting, for example, a const vector<T>\&, consider accepting a span<const T> instead, so the function can work with views and subviews of data sequences coming from vectors, arrays, C-style arrays, and more.
+编写一个接受例如const vector<T>\&的函数时，考虑接受span<const T>代替，这样函数可以处理来自vector、array、C风格数组等的数据序列的视图和子视图。
 \end{myNotic}
 
 \mySamllsection{mdspan}
 
 \CXXTwentythreeLogo{-40}{5}
 
-An mdspan, defined in <mdspan>, is similar to a span but represents a multidimensional view on a contiguous sequence of data. Just as a span, it can be a read-only view or a view with read/write access to the underlying elements. Chapter 18 discusses mdspan in more detail.
+mdspan定义在<mdspan>中，与span类似，但它表示对连续数据序列的多维视图。与span一样，可以是只读视图，也可以是对基础元素具有读写访问权限的视图。第18章详细介绍了mdspan。
 
+\mySamllsection{容器适配器}
 
-\mySamllsection{Container Adapters}
-
-The Standard Library provides three nonassociative container adapters: queue, priority\_queue, and stack.
+标准库提供了三个非关联容器适配器：queue、priority\_queue和stack。
 
 \mySamllsection{queue}
 
-The name queue comes directly from the definition of the English word queue, which means a line of people or objects. The queue container is defined in <queue> and provides standard first in, first out (or FIFO) semantics. A queue is a container in which you insert elements at one end and take them out at the other end. Both insertion (amortized constant time) and removal (constant time) of elements are quick.
+queue的名字直接来源于英文单词queue，意为人员或物体的队列。queue容器定义在<queue>中，提供标准的先进先出（FIFO）语义。queue是一种容器，可以在一端插入元素，从另一端取出元素。元素的插入（摊销常数时间）和删除（常数时间）都很快。
 
-You should use a queue structure when you want to model real-life “first-come, first-served” semantics. For example, consider a bank. As customers arrive at the bank, they get in line. As tellers become available, they serve the next customer in line, thus providing “first-come, first-served” behavior. You could implement a bank simulation by storing customer objects in a queue. As customers arrive at the bank, they are added to the end of the queue. As tellers serve customers, they start with customers at the front of the queue.
+想要模拟现实生活中的“先来先服务”语义时，应该使用queue结构。例如，考虑一个银行。顾客到达银行时，他们会排队。当出纳员空闲时，他们会服务队列前面的下一个顾客，从而提供“先来先服务”的行为。可以通过在queue中存储顾客对象来实现银行模拟。当顾客到达银行时，他们添加到队列的末尾。当出纳员服务顾客时，从队列的前面开始服务。
 
 \mySamllsection{priority\_queue}
 
-A priority\_queue, also defined in <queue>, provides queue functionality in which each element has a priority. Elements are removed from the queue in priority order. In the case of priority ties, the order in which elements are removed is undefined. priority\_queue insertion and deletion are generally slower than simple queue insertion and deletion, because the elements must be reordered to support the priority ordering. You can use priority\_queues to model “queues with exceptions.” For example, in the earlier bank simulation, suppose that customers with business accounts take priority over regular customers.
+priority\_queue也在<queue>中定义，提供具有优先级的队列功能。元素按优先级从队列中移除。优先级相同的情况下，元素移除的顺序是不确定的。priority\_queue的插入和删除通常比简单queue的插入和删除慢，因为必须重新排序以支持优先级顺序。可以使用priority\_queues来模拟“带有例外的队列”。例如，在前面提到的银行模拟中，假设商业账户的顾客优先于普通顾客。
 
-Many real-life banks implement this behavior with two separate lines: one for business customers and one for everyone else. Any customers in the business queue are taken before customers in the other line. However, banks could also provide this behavior with a single line in which business customers move to the front of the line ahead of any non-business customers. In your program, you could use a priority\_queue in which customers have one of two priorities: business or regular. All business customers would be serviced before all regular customers.
+许多现实生活中的银行通过两个独立的队列实现这种行为：一个用于商业客户，另一个用于其他所有人，商业队列中的客户都会在其他人之前服务。然而，银行也可以通过一个队列实现这种行为，其中商业客户会跳到队列前面，优先于非商业客户。在程序中，可以使用一个priority\_queue，其中顾客具有两个优先级之一：商业或普通客户。所有商业客户都会在所有普通客户之前接受服务。
 
 \mySamllsection{stack}
 
-<stack> defines the stack class, which provides standard first-in, last-out (FILO) semantics, also known as last-in, first-out (LIFO). Like a queue, elements are inserted and removed from the container. However, in a stack, the most recent element inserted is the first one removed. The name stack derives from a visualization of this structure as a stack of objects in which only the top object is visible. When you add an object to the stack, you hide all the objects underneath it.
+<stack>定义了stack类，提供标准的先进后出（FILO）语义，也称为后进先出（LIFO）。与queue一样，元素可插入和移除。但在stack中，最后插入的元素是第一个移除的。stack的名字来源于将这种结构可视化为一个堆叠的对象，其中只有顶部的对象是可见的。当向stack中添加一个对象时，会隐藏它下面的所有对象。
 
-The stack container provides fast (constant time) insertion and removal of elements. You should use the stack structure when you want FILO semantics. For example, an error-processing tool might want to store errors on a stack so that the most recent error is the first one available for a human administrator to read. Processing errors in a FILO order is often useful because newer errors sometimes obviate older ones.
+stack容器提供快速（常数时间）的元素插入和删除。当需要FILO语义时，应该使用stack结构。例如，一个错误处理工具可能希望将错误存储在stack上，以便最 recent的错误是第一个可供人类管理员阅读的。以FILO顺序处理错误通常很有用，因为较新的错误有时会使较旧的错误变得无关紧要。
 
 \begin{myNotic}{NOTE}
-Technically, the queue, priority\_queue, and stack containers are container adapters. They are simple interfaces built on top of one of the standard sequential containers vector, list, or deque.
+queue、priority\_queue和stack是容器适配器，是建立在标准顺序容器vector、list或deque上的简单接口。
 \end{myNotic}
 
-\mySamllsection{Ordered Associative Containers}
+\mySamllsection{有序关联容器}
 
-The Standard Library provides four ordered associative containers: set, multiset, map, and multimap. They are called sorted or ordered associative containers because they sort their elements.
+标准库提供了四个有序关联容器：set、multiset、map和multimap。它们被称为排序或有序关联容器，因为它们对元素进行排序。
 
 \mySamllsection{set}
 
-The set class template is defined in <set>, and, as the name suggests, it is a set of elements, loosely analogous to the notion of a mathematical set: each element is unique, and there is at most one instance of the element in the set. One difference between the mathematical concept of set and set as implemented in the Standard Library is that in the Standard Library the elements are kept in an order. The reason for the order is that an order makes it much faster to verify whether a certain element is already in a set. When a client enumerates the elements, they’ll come out in the ordering imposed by the type’s operator< or a user-defined comparator. The set provides logarithmic insertion, deletion, and lookup. This means that, in theory, insertions and deletions are faster than for a vector but slower than for a list; while lookups are faster than for a list, but slower than for a vector. As always, use a profiler to make sure which container is faster for your use case.
+set类模板定义在<set>中，它是一组元素，松散地类似于数学集合的概念：每个元素都是唯一的，集合中至多有一个该元素的实例。数学集合概念中的set与标准库中实现的set之间的一个区别在于，标准库中的元素保持顺序。保持顺序的原因是，顺序可以大大加快验证某个元素是否已存在于set中的速度。当客户端枚举元素时，将按照类型操作符operator<或用户定义的比较器所施加的顺序出现。set提供对数插入、删除和查找。所以，从理论上讲，插入和删除比vector快，但比list慢；而查找比list快，但比vector慢。与往常一样，可以使用分析器来确定哪个容器更快。
 
-You could use a set when you need the elements to be in an order, to have equal amounts of insertion/deletion and lookups, and you want to optimize performance for both as much as possible. For example, an inventory-tracking program in a busy bookstore might want to use a set to store the books. The list of books in stock must be updated whenever books arrive or are sold, so insertion and deletion should be quick. Customers also need the ability to look for a specific book, so the program should provide fast lookup as well.
+当需要元素保持顺序，插入/删除和查找的数量相等，并且希望尽可能优化两者的性能时，可以使用set。例如，繁忙书店中的库存跟踪程序可能希望使用set来存储书籍。库存中的书籍列表必须在书籍到达或售出时更新，因此插入和删除应该很快。客户还需要能够查找特定书籍，因此程序应该提供快速查找。
 
-Elements in a set cannot be modified, because this could invalidate the order of the elements. If you need to change an element, remove that element first and insert a new one with the new value.
+set中的元素不能被修改，因为这可能会使元素的顺序无效。如果需要更改一个元素，首先删除该元素，然后插入一个具有新值的元素。
 
 \begin{myNotic}{NOTE}
-A set could be an option instead of a vector or list if you need order and want equal performance for insertion, deletion, and lookup. It could also be an option if you want to enforce that there are no duplicate elements.
+如果需要顺序，并且希望在插入、删除和查找方面具有相同的性能，set可以作为vector或list的候选。需要强制不包含重复元素的话，set也是可以选择使用的。
 \end{myNotic}
 
-A set does not allow duplicate elements. That is, each element in a set must be unique.
+set不允许重复元素，set中的每个元素必须唯一。
 
 \mySamllsection{multiset}
 
-The multiset class template, also defined in <set>, is almost identical to set, except that a multiset can store duplicate elements.
+multiset类模板也在<set>中定义，除了可以存储重复元素外，几乎与set相同。
 
 \mySamllsection{map}
 
-<map> defines the map class template, which is an associative array. You can use it as an array in which the index can be any type, for example, a string. A map stores key/value pairs and keeps its elements in sorted order, based on the keys, not the values. It also provides an operator[], which a set does not provide. In most other respects, it is identical to a set. You could use a map when you want to associate keys and values. For example, in the earlier bookstore example, you might want to store the books in a map where the key is the ISBN number of the book and the value is a Book object containing detailed information for that specific book.
+<map>定义了map类模板，是一个关联数组。可以使用它作为一个数组，其索引可以是任何类型，例如字符串。map存储键/值对，并保持其元素按键排序，而不是按值排序。它还提供了一个operator[](set不提供)。其他方面，map与set几乎相同。当想要关联键和值时，可以使用map。例如，在之前提到的书店示例中，可能希望将书籍存储在map中，其中键是书籍的ISBN号，值是一个包含特定书籍详细信息的Book对象。
 
 \mySamllsection{multimap}
 
-<map> also defines the multimap class template, which is virtually identical to map, except that a multimap can store elements with duplicate keys.
+<map>还定义了multimap类模板，它与map几乎相同，只是multimap可以存储具有重复键的元素。
 
 \begin{myNotic}{NOTE}
-The set, multiset, map, and multimap containers are called associative containers because they associate keys and values. This term might be slightly confusing when applied to sets and multisets, because for these the keys are themselves the values.
+set、multiset、map和multimap容器称为关联容器，它们关联键和值。当应用于set和multiset时，这个术语可能有些令人困惑，对于这些容器，键本身就是值。
 \end{myNotic}
 
-\mySamllsection{Unordered Associative Containers/Hash Tables}
+\mySamllsection{无序关联容器/哈希表}
 
-The Standard Library supports hash tables, also called unordered associative containers. There are four unordered associative containers:
+标准库支持哈希表，也称为无序关联容器。有四种无序关联容器：
 
 \begin{itemize}
 \item
-unordered\_map and unordered\_multimap
+unordered\_map 和 unordered\_multimap
 
 \item
-unordered\_set and unordered\_multiset
+unordered\_set 和 unordered\_multiset
 \end{itemize}
 
-The first two containers are defined in <unordered\_map>, while the latter two are defined in <unordered\_set>. Better names would have been hash\_map, hash\_set, and so on. Unfortunately, hash tables were not part of the C++ Standard Library before C++11, which means a lot of thirdparty libraries implemented hash tables themselves by using names with “hash” as a prefix, like hash\_map. Because of this, the C++ standard committee decided to use the prefix “unordered” instead of “hash” to avoid name clashes.
+前两个容器定义在<unordered\_map>中，而后两个定义在<unordered\_set>中。更好的名字可能是hash\_map、hash\_set等。但在C++11之前，哈希表不是C++标准库的一部分，所以许多第三方库自己实现了带有“hash”前缀的名称，如hash\_map。因此，C++标准委员会决定使用“unordered”，而不是“hash”作为前缀，以避免名称冲突。
 
-These unordered associative containers behave similar to their ordered counterparts. An unordered\_map is similar to a standard map except that the standard map sorts its elements, while the unordered\_map doesn’t sort its elements.
+这些无序关联容器的行为与它们的有序对应物类似。unordered\_map类似于标准map，只是标准map对其元素进行排序，而unordered\_map不对其元素进行排序。
 
-Insertion, deletion, and lookup with these unordered associative containers can be done on average in constant time. In a worst-case scenario, it will be in linear time. Lookup of elements in an unordered container can be much faster than with a normal map or set, especially when there are a lot of elements in the container.
+这些无序关联容器的插入、删除和查找平均可以在常数时间内完成。最坏的情况下，是线性时间。在无序容器中查找元素可以比在普通map或set中快得多，尤其是当容器中有许多元素时。
 
-Chapter 18 explains how these unordered associative containers work and why they are called hash tables.
+第18章介绍了这些无序关联容器的工作原理，以及为什么它们称为哈希表。
 
-\mySamllsection{Flat Associative Container Adapters}
+\mySamllsection{平面关联容器适配器}
 
 \CXXTwentythreeLogo{-40}{5}
 
-C++23 introduces four flat associative container adapters:
+C++23引入了四个平面关联容器适配器：
 
 \begin{itemize}
 \item
-flat\_map and flat\_multimap defined in <flat\_map>
+flat\_map和flat\_multimap定义在<flat\_map>中
 
 \item
-flat\_set and flat\_multiset defined in <flat\_set>
+flat\_set和flat\_multiset定义在<flat\_set>中
 \end{itemize}
 
-These are adapters on top of sequential containers and provide an associative container interface. The adapted sequential containers must support random-access iterators, such as vector and deque. The flat\_map and flat\_multimap adapters require two underlying sequential containers, one to store the keys and another one to store the values. flat\_set and flat\_multiset require only one underlying sequential container to store their keys.
+这些是建立在顺序容器之上的适配器，提供关联容器接口。适配的顺序容器必须支持随机访问迭代器，如vector和deque。flat\_map和flat\_multimap适配器需要两个底层顺序容器，一个存储键，另一个存储值。flat\_set和flat\_multiset只需要一个底层顺序容器来存储它们的键。
 
-The interface provided by these adapters is almost identical to their ordered counterpart associative container. The only difference is that the flat adapters don’t provide any of the node-related member functions, as the flat adapters are not node-based data structures. Besides that, they are almost an immediate drop-in replacement for their ordered counterparts.
+这些适配器提供的接口，几乎与它们的有序对应关联容器的接口相同。唯一的区别是，flat适配器不提供与节点相关的成员函数，因为flat适配器不是基于节点的数据结构。除此之外，它们可以立即替换它们的有序对应物。
 
-Chapter 18 gives more details about these flat associative container adapters.
+第18章提供了关于这些平面关联容器适配器的更多细节。
 
 \mySamllsection{bitset}
 
-C and C++ programmers commonly store a set of flags in a single int or long, using one bit for each flag. Bits are set and accessed with the bitwise operators: \&, |, \^{}, ~, <{}<, and >{}>. The C++ Standard Library provides a bitset class that abstracts this bit field manipulation, so you shouldn’t need to use the bit manipulation operators anymore for such use cases.
+C和C++开发者通常使用单个int或long来存储一组标志，每个标志使用一个位。位是通过位运算符：\&、|、\^{}、~、<{}<和>{}>进行设置和访问的。C++标准库提供了一个bitset类，其抽象了这种位字段操作，因此不需要再使用位操作符来处理此类情况。
 
-<bitset> defines the bitset container, but this is not a container in the normal sense, in that it does not implement a specific data structure in which you insert and remove elements. A bitset has a fixed size. You can think of them as a sequence of Boolean values that you can read and write. However, unlike the C-style way of handling bits, the bitset is not limited to the size of an int or other elementary data types. Thus, you can have a 40-bit bitset or a 213-bit bitset. The implementation will use as much storage as it needs to implement N bits when you declare your bitset with bitset<N>.
+定义了bitset容器，但这不是传统意义上的容器，因为它不实现一个特定的数据结构，可以在其中插入和删除元素。bitset具有固定大小，可以将其视为一个布尔值的序列，可以读取和写入。然而，与C风格处理位的方式不同，bitset不受int或其他基本数据类型的大小限制。因此，可以有一个40位的bitset或一个213位的bitset。当声明bitset<N>时，实现将使用所需存储来实现N位。
 
-\mySamllsection{Summary of Standard Library Containers}
+\mySamllsection{标准库容器的总结}
 
-The following table summarizes the containers provided by the Standard Library. It uses the big-O notation introduced in Chapter 4 to present the performance characteristics on a container of N elements. An N/A entry in the table means that the operation is not part of the container semantics:
+以下表格总结了标准库提供的容器，使用第4章中介绍的大O记号来展示对N个元素的容器的性能特征。表格中的N/A表示该操作不是容器语义的一部分：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{multirow}
@@ -507,11 +506,11 @@ The following table summarizes the containers provided by the Standard Library. 
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|llll|}
 \hline
-\textbf{NAME} &
-\multicolumn{1}{l|}{\textbf{TYPE}} &
-\multicolumn{1}{l|}{\textbf{\begin{tabular}[c]{@{}l@{}}INSERT\\ PERFORMANCE\end{tabular}}} &
-\multicolumn{1}{l|}{\textbf{\begin{tabular}[c]{@{}l@{}}DELETE\\ PERFORMANCE\end{tabular}}} &
-\textbf{\begin{tabular}[c]{@{}l@{}}LOOKUP\\ PERFORMANCE\end{tabular}} \\ \hline
+\textbf{名称} &
+\multicolumn{1}{l|}{\textbf{类型}} &
+\multicolumn{1}{l|}{\textbf{\begin{tabular}[c]{@{}l@{}}插入时间\end{tabular}}} &
+\multicolumn{1}{l|}{\textbf{\begin{tabular}[c]{@{}l@{}}删除时间\end{tabular}}} &
+\textbf{\begin{tabular}[c]{@{}l@{}}查找时间\end{tabular}} \\ \hline
 \endfirsthead
 %
 \endhead
