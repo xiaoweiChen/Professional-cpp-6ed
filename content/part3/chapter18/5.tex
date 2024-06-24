@@ -9,10 +9,10 @@ Ordered associative containers: map, multimap, set, and multiset.
 \item
 Unordered associative containers: unordered\_map, unordered\_multimap, unordered\_set, and unordered\_multiset. These are also known as hash tables.
 
-\CXXTwentythreeLogo{-40}{-50}
-
 \item
 Flat associative container adapters: flat\_map, flat\_multimap, flat\_set, and flat\_multiset. These adapt sequential containers to behave as ordered associative containers.
+
+\CXXTwentythreeLogo{-45}{20}
 \end{itemize}
 
 \mySubsubsection{18.5.1.}{Ordered Associative Containers}
@@ -796,7 +796,7 @@ The unordered associative containers are hash tables. That is because the implem
 
 The result of a hash function is not always unique. The situation in which two or more keys hash to the same bucket index is called a collision. A collision can occur when different keys result in the same hash value or when different hash values transform to the same bucket index. There are many approaches to handling collisions, including quadratic re-hashing and linear chaining, among others. If you are interested, consult one of the references in the “Algorithms and Data Structures” section in Appendix B. The Standard Library does not specify which collision-handling algorithm is required, but most current implementations have chosen to resolve collisions by linear chaining. With linear chaining, buckets do not directly contain the data values associated with the keys but contain a pointer to a linked list. This linked list contains all the data values for that specific bucket. Figure 18.1 shows how this works.
 
-\myGraphic{0.7}{content/part3/chapter18/images/1.png}{FIGURE 18.1}
+\myGraphic{0.9}{content/part3/chapter18/images/1.png}{图 18.1}
 
 In Figure 18.1, there are two collisions. The first collision is because applying the hash function to the keys “Marc G.” and “John D.” results in the same hash value that maps to bucket index 128. This bucket then points to a linked list containing the keys “Marc G.” and “John D.” together with their associated data values. The second collision is caused by the hash values for “Scott K.” and “Johan G.” mapping to the same bucket index 129.
 
@@ -880,7 +880,7 @@ The following table summarizes the differences between map and unordered\_map. A
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{OPERATION}                           & \textbf{map} & \textbf{unordered\_map} \\ \hline
+\textbf{操作}                           & \textbf{map} & \textbf{unordered\_map} \\ \hline
 \endfirsthead
 %
 \endhead

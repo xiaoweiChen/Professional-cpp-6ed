@@ -96,9 +96,9 @@ void print(span<const int> values)
 When writing a function accepting a const vector<T>\&, consider accepting a span<const T> instead, so the function can work with views and subviews of data sequences coming from vectors, arrays, C-style arrays and more. If the function accepts a vector<T>\&, consider accepting a span<T>, unless the function needs to add or remove elements from the vector.
 \end{myNotic}
 
-\CXXTwentythreeLogo{-40}{-50}
-
 \mySubsubsection{18.3.2.}{mdspan}
+
+\CXXTwentythreeLogo{-40}{15}
 
 std::mdspan, defined in <mdspan>, is similar to std::span but allows you to create multidimensional views over a contiguous sequence of data. Just as span, an mdspan doesn’t own the data, so it is cheap to copy. An mdspan has four template type parameters:
 
