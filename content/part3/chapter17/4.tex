@@ -1,27 +1,27 @@
 
 
-The iterator support of the C++ Standard Library allows algorithms to work independently of the actual containers, as they abstract away the mechanism to navigate through the elements of a container. As you’ve seen in all iterator examples up to now, most algorithms need an iterator pair consisting of a begin iterator that refers to the first element in the sequence, and an end iterator referring to one past the last element in the sequence. This makes it possible for algorithms to work on all kinds of containers, but it’s a bit cumbersome to always have to provide two iterators to specify a sequence of elements and to make sure you don’t provide mismatching iterators. Ranges provided by the ranges library are an abstraction layer on top of iterators, eliminating mismatching iterator errors, and adding extra functionality such as allowing range adapters to lazily filter and transform underlying sequences of elements. The ranges library, defined in <ranges>, consists of the following major components:
+C++ 标准库的迭代器支持算法独立于实际容器工作，因为它们抽象了遍历容器元素的方法。如您所见的所有迭代器示例，大多数算法需要一个迭代器对，包括一个指向序列中第一个元素的 begin 迭代器，以及一个指向最后一个元素之后的 end 迭代器。这使得算法能够处理各种容器，但始终需要提供两个迭代器来指定一个元素序列，并确保提供匹配的迭代器，这里会有些繁琐。范围库提供的范围是对迭代器之上的抽象层，消除了不匹配迭代器的错误，并添加了额外的功能，例如允许范围适配器延迟过滤和转换底层元素序列。范围库，定义在 <ranges> 中，由以下组件组成：
 
 \begin{itemize}
 \item
-Ranges: A range is a concept (see Chapter 12) defining the requirements for a type that allows iteration over its elements. Any data structure that supports begin() and end() is a valid range. For example, std::array, vector, string\_view, span, fixed-size C-style arrays, and so on, are all valid ranges.
+范围：范围是一个概念（参见第 12 章），定义了一个类型，允许迭代其元素。任何支持 begin() 和 end() 的数据结构都是有效的范围。例如，std::array、vector、string\_view、span、固定大小的 C 风格数组等，都是有效的范围。
 
 \item
-Constrained algorithms: Chapters 16 and 20 discuss the available Standard Library algorithms accepting iterator pairs to perform their work. For most of these algorithms there are equivalent range-based and constrained variants that accept iterator pairs or ranges.
+受约束的算法：第 16 章和第 20 章讨论了接受迭代器对的可用标准库算法，以执行其工作。对于这些算法中的大多数，都有等效的范围基础和受约束的变体，它们接受迭代器对或范围。
 
 \item
-Projection: A lot of the constrained algorithms accept a projection callback. This callback is called for each element in the range and can transform an element to some other value before it is passed to the algorithm.
+投影：许多受约束的算法接受一个投影回调。这个回调对范围内的每个元素进行调用，并可以将一个元素转换为另一个值，然后再传递给算法。
 
 \item
-Views: A view can be used to transform or filter the elements of an underlying range. Views can be composed together to form pipelines of operations to be applied to a range.
+视图：视图可以用来转换或过滤底层范围中的元素。视图可以组合在一起，形成应用于范围的操作流水线。
 
 \item
-Factories: A range factory is used to construct a view that produces values on demand.
+工厂：范围工厂用于构造生成值的视图。
 \end{itemize}
 
-Iteration over the elements in a range can be done with iterators that can be retrieved with accessors such as ranges::begin(), end(), rbegin(), and so on. Ranges also support ranges::empty(), data(), cdata(), and size(). The latter returns the number of elements in a range but works only if the size can be retrieved in constant time. Otherwise, use std::distance() to calculate the number of elements between a begin and end iterator of a range. All these accessors are not member functions but stand-alone free functions, all requiring a range as argument.
+对范围内的元素进行迭代可以使用可以从访问器（如 ranges::begin()、end()、rbegin() 等）检索到的迭代器。范围还支持 ranges::empty()、data()、cdata() 和 size()。后者返回范围内的元素数量，但仅在可以以常数时间检索大小时才有效。否则，使用 std::distance() 计算范围内的 begin 和 end 迭代器之间的元素数量。所有这些访问器都不是成员函数，而是独立函数，都需要一个范围作为参数。
 
-Additionally, std::format(), print(), and println() have full support for formatting and printing ranges, as is demonstrated by numerous examples throughout this section.
+此外，std::format()、print() 和 println() 支持格式化和打印范围，这一点在本节中会通过许多示例进行展示。
 
 \mySubsubsection{17.4.1.}{Constrained Algorithms}
 

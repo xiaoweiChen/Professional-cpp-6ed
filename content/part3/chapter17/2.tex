@@ -1,25 +1,25 @@
 
-The Standard Library provides four stream iterators. These are iterator-like class templates that allow you to treat input and output streams as input and output iterators. Using these stream iterators, you can adapt input and output streams so that they can serve as sources and destinations, respectively, for various Standard Library algorithms. The following stream iterators are available:
+标准库提供了四种流迭代器。这些类似于迭代器的类模板，可以将输入和输出流视为输入和输出迭代器。使用这些流迭代器，可以适配输入和输出流，使它们分别能够作为各种标准库算法的源和目标。以下是可以使用的流迭代器：
 
 \begin{itemize}
 \item
-ostream\_iterator: Output iterator writing to a basic\_ostream
+ostream\_iterator: 写入 basic\_ostream 的输出迭代器
 
 \item
-istream\_iterator: Input iterator reading from a basic\_istream
+istream\_iterator: 从 basic\_istream 读取的输入迭代器
 
 \item
-ostreambuf\_iterator: Output iterator writing to a basic\_streambuf
+ostreambuf\_iterator: 写入 basic\_streambuf 的输出迭代器
 
 \item
-istreambuf\_iterator: Input iterator reading from a basic\_streambuf
+istreambuf\_iterator:  从 basic\_streambuf 读取的输入迭代器
 \end{itemize}
 
-\mySubsubsection{17.2.1.}{Output Stream Iterator: ostream\_iterator}
+\mySubsubsection{17.2.1.}{输出流迭代器: ostream\_iterator}
 
-ostream\_iterator is an output stream iterator. It is a class template that takes the element type as a template type parameter. The constructor takes an output stream and a delimiter string to write to the stream following each element. The ostream\_iterator class writes elements using operator<{}<.
+ostream\_iterator 是一个输出流迭代器，是一个类模板，接受元素类型作为模板类型参数。构造函数接受一个输出流和一个分隔字符串，用于在每个元素之后写入流。ostream\_iterator 类使用 operator<{}< 写入元素。
 
-Let’s look at an example. Suppose you have the following myCopy() function template that copies a common range given as a begin and end iterator to a target range given as a begin iterator. The second template type parameter is constrained to be an output iterator that accepts values of type std::iter\_reference\_t<InputIter> which is the type of the values referred to by the given InputIter.
+来看一个例子，有以下的 myCopy() 函数模板，将给定开始和结束迭代器的范围复制到一个给定开始迭代器的目标范围。第二个模板类型参数限制为 std::iter\_reference\_t<InputIter> 类型的值的输出迭代器，这是给定 InputIter 指向的值的类型。
 
 \begin{cpp}
 template <input_iterator InputIter,
@@ -30,7 +30,7 @@ void myCopy(InputIter begin, InputIter end, OutputIter target)
 }
 \end{cpp}
 
-The first two parameters of myCopy() are the begin and end iterator of the range to copy, and the third parameter is an iterator to the destination range. You have to make sure the destination range is big enough to hold all the elements from the source range. Using the myCopy() function template to copy the elements of one vector to another one is straightforward.
+myCopy() 的前两个参数是要复制的范围的开始和结束迭代器，第三个参数是目标范围的迭代器。必须确保目标范围足够大，能够容纳来自源范围的所有元素。使用 myCopy() 函数模板会直接将一个vector的元素复制到另一个vector。
 
 \begin{cpp}
 vector myVector { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
@@ -39,7 +39,7 @@ vector<int> vectorCopy(myVector.size());
 myCopy(cbegin(myVector), cend(myVector), begin(vectorCopy));
 \end{cpp}
 
-Now, by using an ostream\_iterator, the myCopy() function template can also be used to print elements of a container with just a single line of code. The following code snippet prints the contents of myVector and vectorCopy:
+现在，通过使用一个 ostream\_iterator，myCopy() 函数模板也可以用来仅用一行代码打印容器元素。以下代码片段打印 myVector 和 vectorCopy 的内容：
 
 \begin{cpp}
 // Use the same myCopy() to print the contents of both vectors.
@@ -49,18 +49,18 @@ myCopy(cbegin(vectorCopy), cend(vectorCopy), ostream_iterator<int> { cout, " " }
 println("");
 \end{cpp}
 
-The output is as follows:
+输出如下：
 
 \begin{shell}
 1 2 3 4 5 6 7 8 9 10
 1 2 3 4 5 6 7 8 9 10
 \end{shell}
 
-\mySubsubsection{17.2.2.}{Input Stream Iterator: istream\_iterator}
+\mySubsubsection{17.2.2.}{输入流迭代器: istream\_iterator}
 
-You can use the input stream iterator, istream\_iterator, to read values from an input stream using the iterator abstraction. It is a class template that takes the element type as a template type parameter. Its constructor takes an input stream as a parameter. Elements are read using operator>{}>. You can use an istream\_iterator as a source for algorithms and container member functions.
+可以使用输入流迭代器 istream\_iterator 从输入流中读取值，利用迭代器抽象。它是一个类模板，接受元素类型作为模板类型参数。其构造函数接受一个输入流作为参数。元素通过 operator>{}> 读取。可以将 istream\_iterator 用作算法和容器成员函数的源。
 
-Suppose you have the following sum() function template that calculates the sum of all the elements in a given common range:
+假设有一个 sum() 函数模板，用于计算给定普通范围内所有元素的和：
 
 \begin{cpp}
 template <input_iterator InputIter>
@@ -72,7 +72,7 @@ auto sum(InputIter begin, InputIter end)
 }
 \end{cpp}
 
-Now, an istream\_iterator can be used to read integers from the console until the end of the stream is reached. On Windows, this happens when you press Ctrl+Z followed by Enter, while on Linux you press Enter followed by Ctrl+D. The sum() function is used to calculate the sum of all the integers. A default constructed istream\_iterator represents the end iterator.
+现在，可以使用 istream\_iterator 从控制台读取整数，直到到达流的末尾。在 Windows 上，这发生在按下 Ctrl+Z 后跟 Enter 的情况下，而在 Linux 上则是按下 Enter 后跟 Ctrl+D。sum() 函数用于计算所有整数的和，默认构造的 istream\_iterator 表示结束迭代器。
 
 \begin{cpp}
 println("Enter numbers separated by whitespace.");
@@ -84,9 +84,9 @@ println("Sum: {}", result);
 \end{cpp}
 
 
-\mySubsubsection{17.2.3.}{Input Stream Iterator: istreambuf\_iterator}
+\mySubsubsection{17.2.3.}{输入流迭代器: istreambuf\_iterator}
 
-One use case of the istreambuf\_iterator input stream iterator is to easily read the contents of an entire file with a single statement. A default constructed istreambuf\_iterator represents the end iterator. Here is an example:
+istreambuf\_iterator 输入流迭代器是用单个语句，读取整个文件的内容。默认构造的 istreambuf\_iterator 表示结束迭代器，这里有一个例子：
 
 \begin{cpp}
 ifstream inputFile { "some_data.txt" };

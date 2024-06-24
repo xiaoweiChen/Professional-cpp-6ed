@@ -1,36 +1,36 @@
 
-The Standard Library provides a number of iterator adapters, which are special iterators, all defined in <iterator>. They are split into two groups. The first group of adapters are created from a container and are usually used as output iterators:
+标准库提供了许多迭代器适配器，这些特殊迭代器都在 <iterator> 中定义，分为两组。第一组适配器由容器创建，通常用作输出迭代器：
 
 \begin{itemize}
 \item
-back\_insert\_iterator: Uses push\_back() to insert elements into a container
+back\_insert\_iterator: 使用 push\_back() 将元素插入容器
 
 \item
-front\_insert\_iterator: Uses push\_front() to insert elements into a container
+front\_insert\_iterator: 使用 push\_front() 将元素插入容器
 
 \item
-insert\_iterator: Uses insert() to insert elements into a container
+insert\_iterator: 使用 insert() 将元素插入容器
 \end{itemize}
 
-Other adapters are created from another iterator, not a container, and are usually used as input iterators. Two common adapters are:
+其他适配器由另一个迭代器创建，通常用作输入迭代器。常见的两个适配器是：
 
 \begin{itemize}
 \item
-reverse\_iterator: Reverse the iteration order of another iterator.
+reverse\_iterator: 反转另一个迭代器的迭代顺序。
 
 \item
-move\_iterator: The dereferencing operator for a move\_iterator automatically converts the value to an rvalue reference, so it can be moved to a new destination.
+move\_iterator: move\_iterator的解引用操作符，自动将值转换为右值引用，因此可以将其移动到新的位置。
 \end{itemize}
 
-It’s also possible to write your own iterator adapters, but this is not covered in this book. Consult one of the Standard Library references listed in Appendix B, “Annotated Bibliography,” for details.
+也可以编写自己的迭代器适配器，但这本书中没有介绍。相关信息，请参阅附录 B 中列出的标准库手册。
 
-\mySubsubsection{17.3.1.}{Insert Iterators}
+\mySubsubsection{17.3.1.}{插入迭代器}
 
-The myCopy() function template as implemented earlier in this chapter does not insert elements into a container; it simply replaces old elements in a range with new ones. To make such algorithms more useful, the Standard Library provides three insert iterator adapters that really insert elements into a container: insert\_iterator, back\_insert\_iterator, and front\_insert\_iterator. They are all parametrized on a container type and take an actual container reference in their constructor. Because they supply the necessary iterator interfaces, these adapters can be used as the destination iterators for algorithms like myCopy(). However, instead of replacing elements in the container, they make calls on their container to actually insert new elements.
+myCopy() 函数模板，如本章前面实现的那样，并不将元素插入到容器中，只是用新元素替换范围中的旧元素。为了使这类算法更有用，标准库提供了三种插入迭代器适配器，可以将元素插入到容器中：insert\_iterator、back\_insert\_iterator 和 front\_insert\_iterator。它们都针对容器类型参数化，并在构造函数中接收实际容器的引用。它们提供了必要的迭代器接口，这些适配器可以用作像 myCopy() 这样的算法的目标迭代器。然而，它们不会替换容器中的元素，而是通过对其容器调用适当的函数来实际插入新元素。
 
-The basic insert\_iterator calls insert(position,element) on the container, back\_insert\_iterator calls push\_back(element), and front\_insert\_iterator calls push\_front(element).
+insert\_iterator 调用容器的 insert(position, element) ，back\_insert\_iterator 调用容器的 push\_back(element)，front\_insert\_iterator 调容器的用 push\_front(element)。
 
-The following example uses a back\_insert\_iterator with myCopy() to populate vectorTwo with copies of all elements from vectorOne. Note that vectorTwo is not first resized to have enough elements, the insert iterator takes care of properly inserting new elements.
+以下示例使用 back\_insert\_iterator 和 myCopy() 来用 vectorOne 中所有元素的副本填充 vectorTwo。注意，vectorTwo 没有先调整大小以拥有足够的元素，不过插入迭代器依旧会正确地插入新元素。
 
 \begin{cpp}
 vector vectorOne { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
@@ -42,25 +42,25 @@ myCopy(cbegin(vectorOne), cend(vectorOne), inserter);
 println("{:n}", vectorTwo);
 \end{cpp}
 
-As you can see, when you use insert iterators, you don’t need to size the destination containers ahead of time.
+使用插入迭代器时，不需要提前调整目标容器的尺寸。
 
-You can also use the std::back\_inserter() utility function to create a back\_insert\_iterator. In the previous example, you can remove the line that defines the inserter variable and rewrite the myCopy() call as follows. The result remains the same.
+还可以使用 std::back\_inserter() 实用函数来创建 back\_insert\_iterator。之前的例子中，可以删除定义 inserter 变量的那一行，并重写 myCopy() 调用如下，结果不变。
 
 \begin{cpp}
 myCopy(cbegin(vectorOne), cend(vectorOne), back_inserter(vectorTwo));
 \end{cpp}
 
-With class template argument deduction (CTAD), this can also be written as follows:
+利用类模板参数推断（CTAD），这也可以写成以下形式：
 
 \begin{cpp}
 myCopy(cbegin(vectorOne), cend(vectorOne), back_insert_iterator { vectorTwo });
 \end{cpp}
 
-The front\_insert\_iterator and insert\_iterator work similarly, except that the insert\_iterator also takes an initial iterator position in its constructor, which it passes to the first call to insert(position,element). Subsequent iterator position hints are generated based on the return value from each insert() call.
+front\_insert\_iterator 和 insert\_iterator 的工作方式类似，只是 insert\_iterator 还接受一个初始迭代器位置作为其构造函数的参数，它将这个位置传递给第一个 insert(position, element)，后续的迭代器位置会根据每次 insert() 调用的返回值生成。
 
-One benefit of using an insert\_iterator is that it allows you to use associative containers as destinations of modifying algorithms. Chapter 20, “Mastering Standard Library Algorithms,” explains that the problem with associative containers is that you are not allowed to modify the keys over which you iterate. By using an insert\_iterator, you insert elements instead of modifying existing ones. Associative containers have an insert() member function that takes an iterator position and can use the position as a “hint,” which they can ignore. When you use an insert\_iterator on an associative container, you can pass the begin() or end() iterator of the container as the hint. The insert\_iterator modifies the iterator hint that it passes to insert() after each call to insert(), such that the position is one past the just-inserted element.
+使用 insert\_iterator 的好处是，可以将关联容器作为修改算法的目标。第 20 章会介绍，关联容器的问题在于不允许修改迭代过程中的键。通过使用 insert\_iterator，插入元素而不是修改现有的元素。关联容器有一个 insert() 成员函数，接受一个迭代器位置并可以使用该位置作为“提示”，也可以选择忽略。当在关联容器上使用 insert\_iterator 时，可以将容器的 begin() 或 end() 迭代器作为提示传递。insert\_iterator 在每次调用 insert() 后修改它传递给 insert() 的迭代器提示，使得迭代器指向刚插入元素之后的位置。
 
-Here is the previous example modified so that the destination container is a set instead of a vector:
+以下是将目标容器更改为集合的示例：
 
 \begin{cpp}
 vector vectorOne { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
@@ -72,37 +72,36 @@ myCopy(cbegin(vectorOne), cend(vectorOne), inserter);
 println("{:n}", setOne);
 \end{cpp}
 
-Similar to the back\_insert\_iterator example, you can use the std::inserter() utility function to create an insert\_iterator:
+类似于 back\_insert\_iterator 示例，也可以使用 std::inserter() 函数来创建 insert\_iterator：
 
 \begin{cpp}
 myCopy(cbegin(vectorOne), cend(vectorOne), inserter(setOne, begin(setOne)));
 \end{cpp}
 
-Or, use class template argument deduction:
+或者，使用类模板参数进行推断：
 
 \begin{cpp}
 myCopy(cbegin(vectorOne), cend(vectorOne),
     insert_iterator { setOne, begin(setOne) });
 \end{cpp}
 
+\mySubsubsection{17.3.2.}{反向迭代器}
 
-\mySubsubsection{17.3.2.}{Reverse Iterators}
-
-The Standard Library provides an std::reverse\_iterator class template that iterates through a bidirectional or random-access iterator in a reverse direction. Every reversible container in the Standard Library, which happens to be every container that’s part of the standard except forward\_list and the unordered associative containers, supplies a reverse\_iterator type alias and member functions called rbegin() and rend(). These reverse\_iterator type aliases are of type std::reverse\_iterator<T> with T equal to the iterator type alias of the container. The member function rbegin() returns a reverse\_iterator pointing to the last element of the container, and rend() returns a reverse\_iterator pointing to the element before the first element of the container. Applying operator++ to a reverse\_iterator calls operator-{}- on the underlying container iterator, and vice versa. For example, iterating over a collection from the beginning to the end can be done as follows:
+标准库提供了 std::reverse\_iterator 类模板，通过一个双向或随机访问迭代器在反向方向上遍历。标准库中的每个可逆容器（实际上是标准库中除 forward\_list 和无序关联容器之外的所有容器）都提供 reverse\_iterator 类型别名和名为 rbegin() 和 rend() 的成员函数。这些 reverse\_iterator 类型别名是类型 std::reverse\_iterator<T> 的别名，其中 T 等于容器的迭代器类型别名。成员函数 rbegin() 返回一个指向容器最后一个元素的 reverse\_iterator，而 rend() 返回一个指向容器第一个元素之前元素的 reverse\_iterator。对 reverse\_iterator 应用 operator++ 会调用底层容器迭代器的 operator-{}-，反之亦然。例如，遍历一个集合从开始到结束可以这样做：
 
 \begin{cpp}
 for (auto iter { begin(collection) }; iter != end(collection); ++iter) {}
 \end{cpp}
 
-Iterating over the elements in the collection from the end to the beginning can be done using a reverse\_iterator by calling rbegin() and rend(). Note that you still call ++iter.
+从集合的末尾到开始遍历元素可以使用 reverse\_iterator 通过调用 rbegin() 和 rend()。注意，这里仍然使用 ++iter。
 
 \begin{cpp}
 for (auto iter { rbegin(collection) }; iter != rend(collection); ++iter) {}
 \end{cpp}
 
-An std::reverse\_iterator is useful mostly with algorithms in the Standard Library or your own functions that have no equivalents that work in reverse order. The myFind() function introduced earlier in this chapter searches for the first element in a sequence. If you want to find the last element in the sequence, you can use a reverse\_iterator. Note that when you call an algorithm such as myFind() with a reverse\_iterator, it returns a reverse\_iterator as well. You can always obtain the underlying iterator from a reverse\_iterator by calling its base() member function. However, because of how reverse\_iterator is implemented, the iterator returned from base() always refers to one element past the element referred to by the reverse\_iterator on which it’s called. To get to the same element, you must subtract one.
+std::reverse\_iterator 主要用于标准库中的算法或自定义函数，这些函数没有可以反向工作的等效函数。本章前面介绍的 myFind() 函数在序列中搜索第一个元素。如果想找到序列中的最后一个元素，可以使用 reverse\_iterator。当使用 reverse\_iterator 调用像 myFind() 这样的算法时，也会返回一个 reverse\_iterator。可以通过调用其 base() 成员函数从 reverse\_iterator 获得底层迭代器，由于 reverse\_iterator 的实现方式，base() 返回的迭代器指向 reverse\_iterator 所指向的元素之后的一个元素。为了得到相同的元素，必须减去一。
 
-Here is an example of myFind() with a reverse\_iterator:
+以下是一个使用 reverse\_iterator 的 myFind() 示例：
 
 \begin{cpp}
 vector myVector { 11, 22, 33, 22, 11 };
@@ -118,16 +117,16 @@ if (it1 != end(myVector) && it2 != rend(myVector)) {
 }
 \end{cpp}
 
-The output of this program is as follows:
+这个程序的输出如下所示：
 
 \begin{shell}
 Found at position 1 going forward.
 Found at position 3 going backward.
 \end{shell}
 
-\mySubsubsection{17.3.3.}{Move Iterators}
+\mySubsubsection{17.3.3.}{移动迭代器}
 
-Chapter 9, “Mastering Classes and Objects,” discusses move semantics, which can be used to prevent unnecessary copying in cases where you know that the source object will be destroyed after an assignment operation or copy construction, or explicitly when using std::move(). The Standard Library provides an iterator adapter called std::move\_iterator. The dereferencing operator of a move\_iterator automatically converts the value to an rvalue reference, which means that the value can be moved to a new destination without the overhead of copying. Before you can use move semantics, you need to make sure your objects are supporting it. The following MoveableClass supports move semantics. For more details, see Chapter 9.
+第9章介绍了移动语义，知道了源对象在赋值操作或复制构造之后会销毁的情况下，或者在使用 std::move() 时，可以用来防止不必要的复制。标准库提供了一个迭代器适配器，称为 std::move\_iterator。move\_iterator 的解引用运算符自动将值转换为右值引用，所以值可以不经过复制而移动到新的目的地。在使用移动语义之前，需要确保你的对象支持移动语义，以下 MoveableClass 支持移动语义。详细信息，参见第9章。
 
 \begin{cpp}
 class MoveableClass
@@ -153,7 +152,7 @@ class MoveableClass
 };
 \end{cpp}
 
-The constructors and assignment operators are not doing anything useful here, except printing a message to make it easy to see which one is being called. Now that you have this class, you can define a vector and store a few MoveableClass instances in it as follows:
+这里，构造函数和赋值运算符没有做任何事情，只是打印一条消息，以便了解调用了哪个函数。现在你有了这个类，可以定义一个 vector 并将其中的几个 MoveableClass 实例存储在 vector 中：
 
 \begin{cpp}
 vector<MoveableClass> vecSource;
@@ -162,7 +161,7 @@ vecSource.push_back(mc);
 vecSource.push_back(mc);
 \end{cpp}
 
-The output could be as follows. The numbers behind each line are not part of the output but are added to make it easier for the upcoming discussion to refer to specific lines.
+输出可能是这样的，每行后面的数字不是输出的一部分，为什么这样做后面有说明：
 
 \begin{cpp}
 Default constructor // [1]
@@ -171,38 +170,38 @@ Copy constructor // [3]
 Move constructor // [4]
 \end{cpp}
 
-The second line of the code creates a MoveableClass instance by using the default constructor, [1]. The first push\_back() call triggers the copy constructor to copy mc into the vector, [2]. After this operation, the vector has space for one element, the first copy of mc. Note that this discussion is based on the growth strategy and the initial size of a vector as implemented by Microsoft Visual C++ 2022. The C++ standard does not specify the initial capacity of a vector or its growth strategy, so the output can be different with different compilers.
+代码的第二行通过使用默认构造函数创建 MoveableClass 实例，[1]。第一个 push\_back() 调用触发了复制构造函数来复制 mc 到 vector 中，[2]。在此之后，vector 有空间存放一个元素，即 mc 的第一个副本。注意，这个是基于 Microsoft Visual C++ 2022 对 vector 的增长策略和初始大小实现的。C++ 标准没有指定 vector 的初始容量或其增长策略，所以输出可能会因不同的编译器而异。
 
-The second push\_back() call triggers the vector to resize itself, to allocate space for the second element. This resizing causes the move constructor to be called to move every element from the old vector to the new resized vector, [4]. The copy constructor is triggered to copy mc a second time into the vector, [3]. The order of moving and copying is undefined, so [3] and [4] could be reversed.
+第二个 push\_back() 调用触发了 vector 自身的大小调整，为第二个元素分配空间。这个调整导致移动构造函数被调用，将每个元素从旧 vector 移动到新的调整大小后的 vector 中，[4]。将调用复制构造函数，将 mc 第二次复制到 vector 中，[3]。移动和复制的顺序未定义，所以 [3] 和 [4] 可能会颠倒。
 
-You can create a new vector called vecOne that contains a copy of the elements from vecSource as follows:
+可以创建一个新的 vector，名为 vecOne，它包含 vecSource 中的元素副本，如下所示：
 
 \begin{cpp}
 vector<MoveableClass> vecOne { cbegin(vecSource), cend(vecSource) };
 \end{cpp}
 
-Without using move\_iterators, this code triggers the copy constructor two times, once for every element in vecSource:
+不使用 move\_iterators，这段代码会触发复制构造函数两次，一次对 vecSource 中的每个元素：
 
 \begin{shell}
 Copy constructor
 Copy constructor
 \end{shell}
 
-By using std::make\_move\_iterator() to create move\_iterators, the move constructor of MoveableClass is called instead of the copy constructor:
+通过使用 std::make\_move\_iterator() 创建 move\_iterator，调用MoveableClass 的移动构造函数：
 
 \begin{cpp}
 vector<MoveableClass> vecTwo { make_move_iterator(begin(vecSource)),
                                make_move_iterator(end(vecSource)) };
 \end{cpp}
 
-This generates the following output:
+会产生以下输出：
 
 \begin{shell}
 Move constructor
 Move constructor
 \end{shell}
 
-You can also use class template argument deduction (CTAD) with move\_iterator:
+也可以使用类模板参数推断（CTAD）与 move\_iterator：
 
 \begin{cpp}
 vector<MoveableClass> vecTwo { move_iterator { begin(vecSource) },
@@ -210,7 +209,7 @@ vector<MoveableClass> vecTwo { move_iterator { begin(vecSource) },
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-Remember that you should no longer use an object once it has been moved to another object.
+当一个对象移动到为另一个对象，就不能再使用这个源对象了。
 \end{myWarning}
 
 

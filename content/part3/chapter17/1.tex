@@ -1,47 +1,56 @@
 
-The Standard Library uses the iterator pattern to provide a generic abstraction for accessing the elements of a container. Each container provides a container-specific iterator, which is a glorified pointer that knows how to iterate over the elements of that specific container, i.e., an iterator supports traversing the elements of a container. The different iterators for the various containers adhere to standard interfaces defined by the C++ standard. Thus, even though the containers provide different functionality, the iterators present a common interface to code that wants to work with elements of the containers. This results in code that is easier to read and write, less error-prone (e.g., iterators are easier to use correctly compared to pointer arithmetic), more efficient (especially for containers that do not support random access, such as std::list and forward\_list; see Chapter 16), and easier to debug (e.g., iterators could perform bounds checking in debug builds of your code). Additionally, when using iterators to iterate over the contents of a container, the underlying implementation of the container could change completely without any impact on your iterator-based code.
+标准库使用迭代器模式来访问容器的元素，每个容器都提供一个特定于容器的迭代器，这是一种高级指针，了解如何遍历该特定容器的元素，即迭代器支持遍历容器的元素。不同容器的各种迭代器遵循C++标准定义的标准接口，所以容器提供不同的功能，迭代器也为想要处理容器元素的代码提供了一个通用接口。这会让代码更易于阅读和编写，出错率更低（例如，与指针算术相比，迭代器更容易正确使用），效率更高（特别是对于不支持随机访问的容器，如std::list和forward\_list；参见第16章），并且更容易调试（例如，迭代器可以在代码的调试版本中执行边界检查）。此外，当使用迭代器遍历容器的内容时，容器的底层实现可以完全改变，而不会对基于迭代器的代码产生影响。
 
-You can think of an iterator as a pointer to a specific element of the container. Like pointers to elements in an array, iterators can move to the next element with operator++. Similarly, you can usually use operator* and operator-> on the iterator to access the actual element or field of the element. Some iterators allow comparison with operator== and operator!=, and support operator-{}- for moving to previous elements.
+可以将迭代器视为指向容器中特定元素的指针。与指向数组元素的指针一样，迭代器可以使用operator++移动到下一个元素。类似地，通常可以在迭代器上使用operator*和operator->来访问实际元素或元素的字段。一些迭代器可以用operator==和operator!=进行比较，并支持operator-{}-以移动到前一个元素。
 
-All iterators must be copy constructible, copy assignable, and destructible. Lvalues of iterators must be swappable. Different containers provide iterators with slightly different additional capabilities. The standard defines six categories of iterators, as summarized in the following table:
+所有迭代器必须可复制构造、可复制赋值和可析构，迭代器的左值必须可交换。不同容器提供的迭代器具有略微不同的附加功能。标准定义了六种迭代器类别，如下表所总结：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{ITERATOR CATEGORY} &
-\textbf{OPERATIONS REQUIRED} &
-\textbf{COMMENTS} \\ \hline
+\textbf{迭代器类别} &
+\textbf{操作要求} &
+\textbf{注解} \\ \hline
 \endfirsthead
 %
 \endhead
 %
-\begin{tabular}[c]{@{}l@{}}Input (also\\ known as Read)\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}operator++, *, -\textgreater{}, =, ==, !=\\ copy constructor\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Provides read-only access, forward\\ only (no operator-- to move\\ backward).\\ Iterators can be assigned, copied, and\\ compared for equality.\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}Output (also\\ known as Write)\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}operator++, *, =\\ copy constructor\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Provides write-only access,\\ forward only.\\ Iterators can be assigned, but cannot\\ be compared for equality.\\ Specific to output iterators is that you\\ can do *iter = value.\\ Note the absence of operator-\textgreater{}.\\ Provides both prefix and postfix\\ operator++.\end{tabular} \\ \hline
-Forward &
-\begin{tabular}[c]{@{}l@{}}Capabilities of input iterators,\\ plus default constructor\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Provides read access, forward only.\\ Iterators can be assigned, copied, and\\ compared for equality.\end{tabular} \\ \hline
-Bidirectional &
-\begin{tabular}[c]{@{}l@{}}Capabilities of forward\\ iterators, plus\\ operator--\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Provides everything a forward\\ iterator provides.\\ Iterators can also move backward to a\\ previous element.\\ Provides both prefix and postfix\\ operator--.\end{tabular} \\ \hline
-Random access &
-\begin{tabular}[c]{@{}l@{}}Bidirectional capability, plus\\ the following:\\ operator+, -, +=, -=, \textless{},\\ \textgreater{}, \textless{}=, \textgreater{}=, {[}{]}\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Equivalent to raw pointers: support\\ pointer arithmetic, array index syntax,\\ and all forms of comparison.\end{tabular} \\ \hline
-Contiguous &
-\begin{tabular}[c]{@{}l@{}}Random-access capability and\\ logically adjacent elements\\ of the container must be\\ physically adjacent in memory\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Examples of this are iterators\\ of std::array, vector (not\\ vector\textless{}bool\textgreater{}), string, and\\ string\_view.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}输入 (也称为Read)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}operator++, *, -\textgreater{}, =, ==, !=\\ 复制构造函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}提供只读访问，仅前向\\（没有operator-{}-来向后移动）\\移动。迭代器可赋值、复制，\\并且可以比较是否相等。
+\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}输出 (也称为Write)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}operator++, *, =\\ 复制构造函数\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}提供只写访问，仅向前移动。\\迭代器可赋值，但不能比较\\是否相等。输出迭代器的一\\个特点是可以执行 \\*iter = value，这里没有 operator->。\\提供前缀和后缀 operator++。
+\end{tabular} \\ \hline
+前向 &
+\begin{tabular}[c]{@{}l@{}}具有输入迭代器的功能，\\另外还有默认构造函数。
+\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}提供读取访问，仅向前移动。\\迭代器可赋值、复制，并且\\可以比较是否相等。
+\end{tabular} \\ \hline
+双向 &
+\begin{tabular}[c]{@{}l@{}}具有前向迭代器的功能，\\另外还有 operator-{}-。
+\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}提供前向迭代器提供的所有\\功能，迭代器还可以向后移\\动到前一个元素。提供前缀\\和后缀 operator-{}-。
+\end{tabular} \\ \hline
+随机访问 &
+\begin{tabular}[c]{@{}l@{}}具有双向迭代器的功能，\\另外还有以下特点:\\ operator+, -, +=, -=, \textless{}, \textgreater{}, \\\textless{}=, \textgreater{}=, {[}{]}\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}等同于原始指针：支持指针\\算术、数组索引语法，以及\\所有形式的比较。
+\end{tabular} \\ \hline
+连续 &
+\begin{tabular}[c]{@{}l@{}}具有随机访问能力，且\\容器中逻辑上相邻的元\\素在内存中必须物理上\\相邻。
+\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}这些迭代器的例子包括 \\std::array、vector（不包\\括 vector<bool>）、string \\和 string\_view 的迭代器。
+\end{tabular} \\ \hline
 \end{longtable}
 
-According to this table, there are six types of iterators: input, output, forward, bidirectional, random access, and contiguous. There is no formal class hierarchy of these iterators. However, one can deduce a hierarchy based on the functionality they are required to provide. Specifically, every contiguous iterator is also random access, every random-access iterator is also bidirectional, every bidirectional iterator is also forward, and every forward iterator is also input. Iterators that additionally satisfy the requirements for output iterators are called mutable iterators; otherwise, they are called constant iterators. Figure 17.1 shows such hierarchy. Dotted lines are used because the figure is not a real class hierarchy.
+根据这个表格，有六种类型的迭代器：输入（Input）、输出（Output）、前向（Forward）、双向（Bidirectional）、随机访问（Random Access）和连续（Contiguous）。这些迭代器之间没有正式的类层次结构，可以根据它们需要提供的功能推断出一个层次结构。具体来说，每个连续迭代器也是随机访问迭代器，每个随机访问迭代器也是双向迭代器，每个双向迭代器也是前向迭代器，每个前向迭代器也是输入迭代器。此外满足输出迭代器要求的迭代器称为可变迭代器；否则，称为常量迭代器。图17.1显示了这样的层次结构。使用虚线是因为这不是一个真正的类层次结构。
 
-\myGraphic{0.3}{content/part3/chapter17/images/1.png}{图 17.1}
+\myGraphic{0.2}{content/part3/chapter17/images/1.png}{图 17.1}
 
-The standard technique for an algorithm to specify what kind of iterators it requires is to use names similar to the following for its iterator template type parameters: InputIterator, OutputIterator, ForwardIterator, BidirectionalIterator, RandomAccessIterator, and ContiguousIterator. These names are just names: they don’t provide binding type checking. Therefore, you could, for example, try to call an algorithm expecting a RandomAccessIterator by passing a bidirectional iterator. The template cannot do type checking, so it would allow this instantiation. However, the code in the function that uses the random-access iterator capabilities would fail to compile on the bidirectional iterator. Thus, the requirement is enforced, just not where you would expect. The error message can therefore be somewhat confusing. For example, attempting to use the generic sort() algorithm, which requires a random-access iterator, on a list, which provides only a bidirectional iterator, can result in a cryptic error. The following is the error generated by Visual C++ 2022:
+算法指定需要什么类型迭代器的标准技术，会使用类似于以下名称的迭代器模板类型参数：InputIterator、OutputIterator、ForwardIterator、BidirectionalIterator、RandomAccessIterator 和 ContiguousIterator。这些名称只是名称：不提供绑定类型检查。因此，可以尝试通过传递一个双向迭代器来调用一个期望 RandomAccessIterator 的算法。模板不能进行类型检查，所以它会允许这种实例化，使用随机访问迭代器功能的函数中的代码在双向迭代器上会编译失败。因此，这个要求会强制执行，只是不在期望的地方，所以错误消息可能会有些令人困惑。例如，在一个只提供双向迭代器的列表上使用随机访问迭代器的 sort() 算法，可能会导致一个“神秘”的错误。以下是 Visual C++ 2022 生成的错误信息：
 
 \begin{shell}
 ...\MSVC\14.37.32705\include\algorithm(8061,45): error C2676: binary '-': 'const
@@ -54,121 +63,125 @@ predefined operator
     ]
 \end{shell}
 
-Later in this chapter, the ranges library is introduced, which comes with range-based and constrained versions of most Standard Library algorithms. These constrained algorithms have proper type constraints (see Chapter 12, “Writing Generic Code with Templates”) for their template type parameters. Hence, the compiler can provide clearer error messages if you try to execute such an algorithm on a container that provides the wrong type of iterators.
+本章稍后部分，将介绍范围库，其提供了大多数标准库算法的基于范围和受限版本。这些受限算法对其模板类型参数进行类型约束（参见第12章），从而可在提供错误类型迭代器的容器上执行此类算法，编译器可以提供更清晰的错误消息。
 
 \begin{myNotic}{NOTE}
-Iterators mediate between algorithms and containers. They provide a standard interface to traverse the elements of a container in sequence so that any algorithm can work on any container as long as the container provides the algorithm’s required iterator category.
+迭代器在算法和容器之间进行协调。它们提供了一个标准接口，按顺序遍历容器的元素，这样算法都可以在容器上工作，只要容器提供了算法所需的迭代器类别即可。
 \end{myNotic}
 
-Iterators are implemented similarly to smart pointer classes in that they overload the specific desired operators. Consult Chapter 15, “Overloading C++ Operators,” for details on operator overloading.
+迭代器的实现类似于智能指针类，其重载了特定的所需操作符。有关操作符重载的详细信息，请参阅第15章。
 
-The basic iterator operations are similar to those supported by raw pointers, so a raw pointer can be a legitimate iterator for certain containers. In fact, the vector iterator could technically be implemented as a simple raw pointer. However, as a client of the containers, you need not worry about the implementation details; you can simply use the iterator abstraction.
+基本的迭代器操作与原始指针支持的操作类似，原始指针可以是某些容器的有效迭代器。实际上，vector 迭代器在技术上可以作为原始指针来实现。作为容器的客户端，不需要担心实现细节；可以简单地使用迭代器就好。
 
 \begin{myNotic}{NOTE}
- Iterators might, or might not, be implemented internally as pointers, so this text uses the term refers to instead of points to when discussing the elements accessible via an iterator.
+迭代器可能在内部实现为指针，也可能不是，因此当讨论通过迭代器可访问的元素时，本文使用“引用”，而不是“指向”。
 \end{myNotic}
 
-\mySubsubsection{17.1.1.}{Getting Iterators for Containers}
+\mySubsubsection{17.1.1.}{获取容器的迭代器}
 
-Every data structure of the Standard Library that supports iterators provides public type aliases for its iterator types, called iterator and const\_iterator. For example, a const iterator for a vector of ints has as type std::vector<int>::const\_iterator. Containers that allow you to iterate over their elements in reverse order also provide public type aliases called reverse\_iterator and const\_reverse\_iterator. This way, clients can use the container iterators without worrying about the actual types.
+标准库中支持迭代器的每个数据结构，都为其迭代器类型提供了公共类型别名，称为 iterator 和 const\_iterator。例如，int 类型的 vector 的常量迭代器类型为 std::vector<int>::const\_iterator。允许以逆序遍历其元素的容器，还提供了 reverse\_iterator 和 const\_reverse\_iterator 的公共类型别名。这样，客户端可以在不了解实际类型的情况下使用容器迭代器。
 
 \begin{myNotic}{NOTE}
-const\_iterators and const\_reverse\_iterators provide read-only access to elements of a container.
+const\_iterators 和 const\_reverse\_iterators 提供对容器元素的只读访问。
 \end{myNotic}
 
-The containers also provide a member function begin() that returns an iterator referring to the first element in the container. The end() member function returns an iterator to the “past-the-end” value of the sequence of elements. That is, end() returns an iterator that is equal to the result of applying operator++ to an iterator referring to the last element in the sequence. Together, begin() and end() provide a half-open range that includes the first element but not the last. The reason for this apparent complication is to support empty ranges (containers without any elements), in which case begin() is equal to end(). The half-open range bounded by iterators begin() and end() is often written mathematically like this: [begin, end).
+容器还提供了一个成员函数 begin()，返回一个指向容器中第一个元素的迭代器。end() 成员函数返回一个指向元素序列的“超出末尾”值的迭代器，end() 返回一个迭代器，等于将 operator++ 应用于指向序列中最后一个元素的迭代器的结果。begin() 和 end() 一起提供了一个半开区间，包括第一个元素但不包括最后一个元素。这种明显的复杂性是为了支持空范围（没有任何元素的容器），这时begin() 等于 end()。由迭代器 begin() 和 end() 界定的半开区间，在数学上通常这样表示：[begin, end)。
 
-Additionally, the following member functions are available:
+此外，还提供了以下成员函数：
 
 \begin{itemize}
 \item
-cbegin() and cend() returning const iterators
+cbegin() 和 cend() 返回常量迭代器
 
 \item
-rbegin() and rend() returning reverse iterators
+rbegin() 和 rend() 返回逆序迭代器
 
 \item
-crbegin() and crend() returning const reverse iterators
+crbegin() 和 crend() 返回常量逆序迭代器
 \end{itemize}
 
 \begin{myNotic}{NOTE}
-A sequence specified by two iterators is called a common range to disambiguate it from ranges defined by the ranges library, discussed later in this chapter.
+由两个迭代器指定的序列称为普通范围，以区别于本章后面讨论的由范围库定义的范围。
 \end{myNotic}
 
-<iterator> also provides the following global nonmember functions to retrieve specific iterators for a container:
+<iterator> 还提供了以下全局非成员函数，用于获取容器的特定迭代器：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{FUNCTION NAME} &
-\textbf{FUNCTION SYNOPSIS} \\ \hline
+\textbf{函数名称} &
+\textbf{简介} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 \begin{tabular}[c]{@{}l@{}}begin()\\ end()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Returns a non-const iterator to the first, and one past the last, element in\\ a sequence\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}返回指向序列中第一个元素的非const迭代器，以及指向最后一个元素之后位置的迭代器。
+\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}cbegin()\\ cend()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Returns a const iterator to the first, and one past the last, element in\\ a sequence\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}返回指向序列中第一个元素的const迭代器，以及指向最后一个元素之后位置的迭代器。
+\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}rbegin()\\ rend()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Returns a non-const reverse iterator to the last, and one before the first,\\ element in a sequence\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}返回指向序列中最后一个元素的非const反向迭代器，以及指向第一个元素之前位置的迭代器。
+\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}crbegin()\\ crend()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Returns a const reverse iterator to the last, and one before the first, element\\ in a sequence\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}返回指向序列中最后一个元素的const反向迭代器，以及指向第一个元素之前位置的迭代器。
+\end{tabular} \\ \hline
 \end{longtable}
 
 \begin{myNotic}{NOTE}
-It’s recommended to use these nonmember functions instead of the member versions.
+建议使用这些非成员函数。
 \end{myNotic}
 
-These nonmember functions are defined in the std namespace; however, especially when writing generic code for class and function templates, it is recommended to use these non-member functions as follows:
+这些非成员函数定义在 std 命名空间中，特别是在为类和函数模板编写通用代码时，建议按以下方式使用这些非成员函数：
 
 \begin{cpp}
 using std::begin;
 begin(...);
 \end{cpp}
 
-Note that begin() is called without any namespace qualification, as this enables argument-dependent lookups (ADL).
+请注意，因为可以进行参数依赖查找（ADL），所以begin() 调用时没有使用命名空间限定，。
 
 \begin{myNotic}{NOTE}
-ADL allows you to call unqualified functions. The compiler tries to find those functions first in the namespace of the arguments passed to them. If not found there, the usual name lookup rules apply.
+ADL 允许调用非限定函数。编译器首先尝试在传递给参数的命名空间中，找到这些函数。如果在那里找不到，则使用名称查找规则。
 \end{myNotic}
 
-When you specialize one of these nonmember functions for your own types, you can either put those specializations in the std namespace or put them in the same namespace as the type for which you are specializing them. The latter is recommended as this enables ADL. Thanks to ADL, you can then call your specialization without having to qualify it with any namespace, because the compiler is able to find the correct specialization in your namespace based on the types of arguments passed to the specialized function template.
+当为自定义类型特化这些非成员函数时，可以在 std 命名空间中放置这些特化，或者将它们放在特化的类型的同一命名空间中。因为可以使用 ADL，所以推荐使用后者的方式。因为 ADL可用，所以可以在不使用命名空间限定的情况下调用相应的特化，编译器可以根据传递给特化函数模板的参数类型，在命名空间中找到正确的特化。
 
-By combining ADL (calling begin(...) without any namespace qualification) with the using std::begin declaration, the compiler first looks up the right overload in the namespace of the type of its argument using ADL. If the compiler cannot find an overload using ADL, it tries to find an appropriate overload in the std namespace due to the using declaration. Just calling begin() without the using declaration would only call user-defined overloads through ADL, and just calling std::begin() would only look in the std namespace.
+通过 ADL（不带任何命名空间限定地调用 begin(...)）和 using std::begin 声明，编译器首先使用 ADL 在其参数类型的命名空间中查找正确的重载。如果编译器无法通过 ADL 找到重载，尝试在 std 命名空间中找到适当的重载，这是由于 using 声明。只调用 begin() ，而不使用 using 声明，将仅通过 ADL 调用用户定义的重载，而只调用 std::begin() 是，将只在 std 命名空间中查找。
 
-Of course, ADL is not limited to the functions discussed in this section but can be used with any function.
+当然，ADL 不仅限于本节讨论的函数，可以与任何函数一起使用。
 
 \begin{myNotic}{NOTE}
-Normally it is not allowed to add anything to the std namespace; however, it is legal to put specializations of Standard Library templates in the std namespace.
+通常不允许向 std 命名空间中添加任何内容；然而，将标准库模板的特化放在 std 命名空间中，没有问题。
 \end{myNotic}
 
-\mySubsubsection{17.1.2.}{Iterator Traits}
+\mySubsubsection{17.1.2.}{迭代器特性}
 
-Some algorithm implementations need additional information about their iterators. For example, they might need to know the type of the elements referred to by the iterator to store temporary values, or perhaps they want to know whether the iterator is bidirectional or random access.
+某些算法实现需要关于迭代器的额外信息。例如，需要知道迭代器指向的元素类型以存储临时值，或者可能想要知道迭代器是否为双向的或随机访问迭代器。
 
-C++ provides a class template called iterator\_traits, defined in <iterator>, that allows you to retrieve this information. You instantiate the iterator\_traits class template with the iterator type of interest, and access one of five type aliases:
+C++ 提供了一个名为 iterator\_traits 的类模板，定义在 <iterator> 头文件中，允许检索这些信息。可以使用感兴趣的迭代器类型实例化 iterator\_traits 类模板，并访问五个类型别名之一：
 
 \begin{itemize}
 \item
-value\_type: The type of elements referred to
+value\_type: 迭代器指向的元素类型
 
 \item
-difference\_type: A type capable of representing the distance, i.e., number of elements, between two iterators
+difference\_type: 一种能够表示两个迭代器之间距离的类型，即元素的数目
 
 \item
-iterator\_category: The type of iterator: input\_iterator\_tag, output\_iterator\_tag, forward\_iterator\_tag, bidirectional\_iterator\_tag, random\_access\_iterator\_tag, or contiguous\_iterator\_tag
+iterator\_category: 迭代器类型：input\_iterator\_tag、output\_iterator\_tag、forward\_iterator\_tag、bidirectional\_iterator\_tag、random\_access\_iterator\_tag 或 contiguous\_iterator\_tag
 
 \item
-pointer: The type of a pointer to an element
+pointer: 指向元素的指针类型
 
 \item
-reference: The type of a reference to an element
+reference: 对元素的引用类型
 \end{itemize}
 
-For example, the following function template declares a temporary variable of the type that an iterator of type IteratorType refers to. Note the use of the typename keyword in front of iterator\_traits. You must specify typename explicitly whenever you access a type based on one or more template type parameters. In this case, the template type parameter IteratorType is used to access the value\_type type of iterator\_traits.
+例如，以下函数模板声明了一个临时变量，其类型为 IteratorType 类型的迭代器所指向的类型。在 iterator\_traits 前面使用了 typename 关键字，每当前提是基于一个或多个模板类型参数访问类型时，必须明确指定 typename。这种情况下，模板类型参数 IteratorType 用于访问 iterator\_traits 的 value\_type 类型。
 
 \begin{cpp}
 template <typename IteratorType>
@@ -180,20 +193,20 @@ void iteratorTraitsTest(IteratorType it)
 }
 \end{cpp}
 
-This function can be tested with the following code:
+可以使用以下代码测试这个函数：
 
 \begin{cpp}
 vector v { 5 };
 iteratorTraitsTest(cbegin(v));
 \end{cpp}
 
-With this code, the variable temp in iteratorTraitsTest() is of type int. The output is 5.
+这段代码中，iteratorTraitsTest() 中的变量 temp 是 int 类型的。输出是 5。
 
-Of course, the auto keyword could be used in this example to simplify the code, but that wouldn’t show you how to use iterator\_traits.
+当然，auto 关键字可以用于这个例子中简化代码，但不会展示如何使用 iterator\_traits。
 
-\mySubsubsection{17.1.3.}{Examples}
+\mySubsubsection{17.1.3.}{示例}
 
-The following example simply uses a for loop and iterators to iterate over every element in a vector and prints them to standard output:
+以下示例简单地使用 for 循环和迭代器遍历 vector 中的每个元素，并将它们打印到标准输出：
 
 \begin{cpp}
 vector values { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
@@ -202,9 +215,9 @@ for (auto iter { cbegin(values) }; iter != cend(values); ++iter) {
 }
 \end{cpp}
 
-You might be tempted to test for the end of a common range using operator<, as in iter<cend(values). That is not recommended, however. The canonical way to test for the end of a range is to use !=, as in iter!=cend(values). The reason is that the != operator works on all types of iterators, while the < operator is not supported by bidirectional and forward iterators.
+这里使用 operator< 来测试常见范围的结束很有诱惑力，如 iter<cend(values)。然而，这并不推荐。测试范围结束的标准方式是使用 !=，如 iter!=cend(values)。原因是 != 运算符适用于所有类型的迭代器，而 < 运算符不支持双向和前向迭代器。
 
-A helper function can be implemented that accepts a common range of elements given as a begin and end iterator and prints all elements in that range to standard output. The input\_iterator concept is used to constrain the template type parameter to input iterators.
+可以实现一个辅助函数，该函数接受一个给定开始和结束迭代器的元素范围，并将该范围内的所有元素打印到标准输出。input\_iterator 概念用于将模板类型参数限制为输入迭代器。
 
 \begin{cpp}
 template <input_iterator Iter>
@@ -214,13 +227,13 @@ void myPrint(Iter begin, Iter end)
 }
 \end{cpp}
 
-This helper function can be used as follows:
+可以这样使用辅助函数：
 
 \begin{cpp}
 myPrint(cbegin(values), cend(values));
 \end{cpp}
 
-A second example is a myFind() function template that finds a given value in a given common range. If the value is not found, the end iterator of the range is returned. Note the special type of the value parameter. It uses iterator\_traits to get the type of the values to which the given iterators point to.
+第二个示例是一个 myFind() 函数模板，用于在给定范围内查找给定值。如果找不到该值，则返回范围的结束迭代器。注意 value 参数的特殊类型，使用 iterator\_traits 获取给定迭代器指向值的类型。
 
 \begin{cpp}
 template <input_iterator Iter>
@@ -234,7 +247,7 @@ auto myFind(Iter begin, Iter end,
 }
 \end{cpp}
 
-This function template can be used as follows. The std::distance() function is used to compute the distance between two iterators of a container.
+这个函数模板可以如下使用，std::distance() 函数用于计算容器中两个迭代器之间的距离。
 
 \begin{cpp}
 vector values { 11, 22, 33, 44 };
@@ -244,11 +257,11 @@ if (result != cend(values)) {
 }
 \end{cpp}
 
-More examples of using iterators are given throughout this and subsequent chapters.
+本书的后续章节中，将提供更多使用迭代器的示例。
 
-\mySubsubsection{17.1.4.}{Function Dispatching Using Iterator Traits}
+\mySubsubsection{17.1.4.}{使用迭代器特征进行函数调度}
 
-The Standard Library provides the std::advance(iter, n) function to advance a given iterator, iter, by n positions. This function works on all types of iterators. For random-access iterators, it simply does iter += n. For other iterators, it does ++iter or -{}-iter in a loop n times, depending on whether n is positive or negative. You might wonder how such behavior is implemented. It can be implemented using function dispatching. Based on the iterator category, the request is dispatched to a specific helper function. Here’s a simplified implementation of our own myAdvance(iter, n) function demonstrating such function dispatching:
+标准库提供了 std::advance(iter, n) 函数，用于将给定的迭代器 iter 前进 n 个位置，这个函数适用于所有类型的迭代器。对于随机访问迭代器，简单地执行 iter += n。对于其他迭代器，它会根据 n 是正数还是负数，在循环中执行 ++iter 或 -{}-iter n 次。可能会想知道这样的行为是如何实现的，可以利用函数分派来实现。根据迭代器类别，请求可调度给特定的辅助函数。下面是 myAdvance(iter, n) 函数的简化实现，展示了这样的函数调度：
 
 \begin{cpp}
 template <typename Iter, typename Distance>
@@ -278,7 +291,7 @@ void myAdvance(Iter& iter, Distance n)
 }
 \end{cpp}
 
-This implementation of myAdvance() can be used on random-access iterators from vectors, on bidirectional iterators from lists, and so on:
+这个 myAdvance() 实现可以用于来自vector的随机访问迭代器，来自列表的双向迭代器等：
 
 \begin{cpp}
 template <typename Iter>
@@ -296,14 +309,14 @@ int main()
 }
 \end{cpp}
 
-The output is as follows:
+输出如下：
 
 \begin{shell}
 *iter = 1 | 3 ahead = 4 | 2 back = 2
 *iter = 1 | 3 ahead = 4 | 2 back = 2
 \end{shell}
 
-With concepts (see Chapter 12), the myAdvance() implementation can be simplified. Instead of using helper functions, you can just provide myAdvance() overloads with appropriate constraints:
+使用概念（参见第12章），myAdvance() 的实现可以简化。不需要使用辅助函数，需要提供适当约束 myAdvance() 的重载：
 
 \begin{cpp}
 template <input_iterator Iter, typename Distance>
