@@ -511,24 +511,24 @@ push\_back()和insert()有接受左值或右值作为参数的重载版本，两
 
 \CXXTwentythreeLogo{-40}{-50}
 
-C++23 adds the following member functions: assign\_range() to replace all elements in a vector with the elements of a given range, insert\_range() to insert all elements of a given range into a vector at a given position, and append\_range() to append all elements of a given range to the end of a vector. Chapter 17 discusses ranges in detail.
+C++23增加了以下成员函数：assign\_range() 用给定范围的元素替换vector中的所有元素，insert\_range() 在vector的给定位置插入给定范围的所有元素，以及append\_range() 将给定范围的所有元素追加到vector的末尾。第17章已经详细介绍了范围。
 
-You can remove elements from any point in a vector with erase(), and you can remove all elements with clear(). There are two overloads of erase(): one accepting a single iterator to remove a single element, and one accepting two iterators specifying a range of elements to remove.
+可以使用erase()从vector的任何位置移除元素，并可以使用clear()移除所有元素。erase()有两个重载版本：一个接受单个迭代器以移除单个元素，另一个接受两个迭代器以指定要移除的元素范围。
 
-Let’s look at an example program that demonstrates some of the member functions for adding and removing elements. The following code snippet demonstrates clear(), push\_back(), pop\_back(), the C++23 append\_range(), the two-argument version of erase(), and the following overloads of insert():
+来看一个示例程序，演示了一些用于添加和移除元素的成员函数。以下代码片段演示了clear()，push\_back()，pop\_back()，C++23添加的append\_range()，erase()的双参数版本，以及insert()的重载：
 
 \begin{itemize}
 \item
-insert(const\_iterator pos, const T\& x): The value x is inserted at position pos.
+insert(const\_iterator pos, const T\& x): 在位置pos插入值x。
 
 \item
-insert(const\_iterator pos, size\_type n, const T\& x): The value x is inserted n times at position pos.
+insert(const\_iterator pos, size\_type n, const T\& x): 在位置pos插入值x n次。
 
 \item
-insert(const\_iterator pos, InputIterator first, InputIterator last): The elements in the range [first, last) are inserted at position pos.
+insert(const\_iterator pos, InputIterator first, InputIterator last): 在位置pos插入范围[first, last)内的元素。
 \end{itemize}
 
-Here is the code snippet:
+下面是代码段：
 
 \begin{cpp}
 vector vectorOne { 1, 2, 3, 5 };
@@ -570,7 +570,7 @@ vectorTwo.pop_back();
 println("{:n}", vectorTwo);
 \end{cpp}
 
-The output of the program is as follows:
+输出如下所示
 
 \begin{shell}
 1, 2, 3, 5
@@ -583,19 +583,19 @@ The output of the program is as follows:
 100, 100, 100, 100, 100, 100, 100, 100, 100
 \end{shell}
 
-Recall that iterator pairs represent half-open ranges, and insert() adds elements before the element referred to by a given iterator position. Thus, you can insert the entire contents of vectorTwo at the end of vectorOne, like this:
+迭代器对表示半开区间，而 insert() 函数在给定迭代器位置之前添加元素。因此，可以在 vectorOne 的末尾插入整个 vectorTwo 内容：
 
 \begin{cpp}
 vectorOne.insert(cend(vectorOne), cbegin(vectorTwo), cend(vectorTwo));
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-Member functions such as insert() and erase() that take a common iterator range as argument assume that the beginning and ending iterators refer to elements in the same container and that the end iterator refers to an element at or past the begin iterator. The member functions will not work correctly if these preconditions are not met!
+接受公共迭代器范围作为参数的成员函数，如 insert() 和 erase()，假定起始和结束迭代器引用的是同一容器中的元素，并且结束迭代器引用的是开始迭代器所在位置或之后的元素。如果这些先决条件不满足，成员函数将无法正确工作！
 \end{myWarning}
 
-If you want to remove all elements satisfying a condition, one solution would be to write a loop iterating over all the elements and erasing every element that matches the condition. However, this solution has quadratic complexity, which is bad for performance. This quadratic complexity can be avoided by using the remove-erase-idiom, which has a linear complexity. The remove-erase-idiom is discussed in Chapter 20.
+如果想删除所有满足特定条件的元素，一种解决方案是编写一个循环，遍历所有元素并删除每个匹配条件的元素。然而，这个解决方案具有二次复杂度，这对性能不利。通过使用 删除删除-擦除-习语，可以避免这种二次复杂度，其具有线性复杂度。删除-擦除-习语将在第 20 章中介绍。
 
-Starting with C++20, however, there is a more elegant solution in the form of the std::erase() and std::erase\_if() non-member functions, defined for all Standard Library containers. The former is demonstrated in the following code snippet:
+然而，从 C++20 开始，有一个更优雅的解决方案，即 std::erase() 和 std::erase\_if() 非成员函数，为所有标准库容器定义：
 
 \begin{cpp}
 vector values { 1, 2, 3, 2, 1, 2, 4, 5 };
@@ -605,57 +605,57 @@ erase(values, 2); // Removes all values equal to 2.
 println("{:n}", values);
 \end{cpp}
 
-The output is as follows:
+输出如下所示：
 
 \begin{shell}
 1, 2, 3, 2, 1, 2, 4, 5
 1, 3, 1, 4, 5
 \end{shell}
 
-erase\_if() works similarly, but instead of passing a value as second argument, a predicate is passed that returns true for elements that should be removed, and false for elements that should be kept.
+erase\_if() 类似，但不是传递一个值作为第二个参数，而是传递一个谓词，该谓词对于应该删除的元素返回 true，对于应该保留的元素返回 false。
 
-The predicate can take the form of a function pointer, a function object, or a lambda expression, all of which are discussed in detail in Chapter 19, “Function Pointers, Function Objects, and Lambda Expressions.”
+谓词可以是函数指针、函数对象或 Lambda 表达式的形式，这些在第 19 章中有详细介绍。
 
-\mySamllsection{Move Semantics}
+\mySamllsection{移动语义}
 
-Adding elements to a vector can make use of move semantics to improve performance in certain situations. For example, suppose you have the following vector of strings:
+向vector中添加元素时，可以利用移动语义在某些情况下提高性能。例如，有一个vector<string>：
 
 \begin{cpp}
 vector<string> vec;
 \end{cpp}
 
-You can add an element to this vector as follows:
+可以向这个vector中添加一个元素：
 
 \begin{cpp}
 string myElement(5, 'a'); // Constructs the string "aaaaa"
 vec.push_back(myElement);
 \end{cpp}
 
-However, because myElement is not a temporary object, push\_back() makes a copy of myElement and puts it into the vector.
+然而，由于 myElement 不是临时对象，push\_back() 会复制 myElement 并将其放入vector中。
 
-The vector class also defines a push\_back(T\&\&), which is the move equivalent of push\_back(const T\&). So, copying can be avoided if you call push\_back() as follows:
+vector 类还定义了一个 push\_back(T\&\&)，这是 push\_back(const T\&) 的移动版本。因此，可按按如下方式调用 push\_back()，可以避免复制：
 
 \begin{cpp}
 vec.push_back(move(myElement));
 \end{cpp}
 
-This statement explicitly says that myElement should be moved into the vector. Note that after this call, myElement is in a valid but otherwise indeterminate state. You should not use myElement anymore, unless you first bring it back to a determinate state, for example by calling clear() on it! You can also call push\_back() as follows:
+这个语句明确表示 myElement 应该被移动到vector中。此调用之后，myElement 处于有效但不确定的状态。除非首先将其恢复为确定状态，例如：对其调用 clear()，否则不应再使用 myElement！也可以按如下方式使用push\_back()：
 
 \begin{cpp}
 vec.push_back(string(5, 'a'));
 \end{cpp}
 
-This call to push\_back() triggers a call to the move overload because the call to the string constructor results in a temporary object. The push\_back() member function moves this temporary string object into the vector, avoiding any copying.
+这次对 push\_back() 的调用触发了对移动重载的调用，对 string 构造函数的调用产生了一个临时对象。push\_back() 成员函数将这个临时字符串对象移动到vector中，以避免复制。
 
-\mySamllsection{Emplace Operations}
+\mySamllsection{原位操作}
 
-C++ supports emplace operations on most Standard Library containers, including vector. Emplace means “to put into place.” An example is the emplace\_back() member function of vector, which does not copy or move anything. Instead, it makes space in the container and constructs the object in place, as in this example:
+C++ 在大多数标准库容器上支持原位操作，包括 vector，原位意味着“就地置入”。一个例子是 vector 的 emplace\_back() 成员函数，既不复制也不移动，它在容器中腾出空间并在该位置构造对象：
 
 \begin{cpp}
 vec.emplace_back(5, 'a');
 \end{cpp}
 
-The emplace member functions take a variable number of arguments as a variadic template. Variadic templates are discussed in Chapter 26, “Advanced Templates,” but those details are not required to understand how to use emplace\_back(). Basically, the arguments passed to emplace\_back() are forwarded to a constructor of the type stored in the vector. The difference in performance between emplace\_back() and push\_back() using move semantics depends on how your specific compiler implements these operations. In most situations, you can pick the one based on the syntax that you prefer:
+emplace 成员函数接受可变数量的参数作为可变参数模板。可变参数模板将在第 26 章中介绍，但这些细节并非使用 emplace\_back() 所必需。基本上，传递给 emplace\_back() 的参数可转发到存储在vector中的类型的构造函数。大多数情况下，可以根据喜好选择 emplace\_back() 和带有移动语义的 push\_back()：
 
 \begin{cpp}
 vec.push_back(string(5, 'a'));
@@ -663,43 +663,43 @@ vec.push_back(string(5, 'a'));
 vec.emplace_back(5, 'a');
 \end{cpp}
 
-The emplace\_back() member function returns a reference to the inserted element. There is also an emplace() member function that constructs an object in place at a specific position in the vector and returns an iterator to the inserted element.
+emplace\_back() 成员函数返回对插入元素的引用。这里还有一个 emplace() 成员函数，可以在vector的特定位置原位构造对象，并返回指向插入元素位置的迭代器。
 
-\mySamllsection{Algorithmic Complexity and Iterator Invalidation}
+\mySamllsection{算法的复杂度和失效的迭代器}
 
-Inserting or erasing elements in a vector causes all subsequent elements to shift up or down to make room for, or fill in the holes left by, the affected elements. Thus, these operations take linear complexity. Furthermore, all iterators referring to the insertion or removal point or subsequent positions are invalid following the action. The iterators are not “magically” moved to keep up with the elements that are shifted up or down in the vector—that’s up to you.
+在vector中插入或删除元素会导致所有后续元素向上或向下移动，以为受影响的元素腾出空间，或填补留下的空隙，所以这些操作具有线性复杂度。此外，所有引用插入或删除点或后续位置的迭代器，在操作后都会失效。迭代器不会“神奇地”移动，以保持与vector中向上或向下移动的元素同步——这取决于开发者。
 
-Also keep in mind that an internal vector reallocation can cause invalidation of all iterators referring to elements in the vector, not just those referring to elements past the point of insertion or deletion. See the next section for details.
+还要记住，vector的内部重新分配，可能导致引用vector中元素的所有迭代器失效，不仅仅是引用插入或删除点之后元素的迭代器。下一节将详细介绍。
 
-\mySamllsection{vector Example: A Round-Robin Class}
+\mySamllsection{vector的示例：循环队列类}
 
-A vector allocates memory automatically to store the elements that you insert. Recall that the vector requirements dictate that the elements must be in contiguous memory, like in standard C-style arrays. Because it’s impossible to request to add memory to the end of a current chunk of memory, every time a vector allocates more memory, it must allocate a new, larger chunk in a separate memory location and copy/move all the elements to the new chunk. This process is time-consuming, so vector implementations attempt to avoid it by allocating more space than needed when they have to perform a reallocation. That way, they can avoid reallocating memory every time you insert an element.
+vector自动分配内存以存储插入的元素。回想一下，vector要求元素必须位于连续的内存中，就像标准C风格数组一样。因为无法请求在当前内存块的末尾添加内存，所以每次vector分配更多内存时，必须在单独的内存位置分配一个新的、更大的块，并将所有元素复制/移动到新块中。这个过程很耗时，所以vector实现试图在必须执行重新分配时，分配比所需更多的空间。这样，可以避免每次插入元素时重新分配内存。
 
-One obvious question at this point is why you, as a client of vector, care how it manages its memory internally. You might think that the principle of abstraction should allow you to disregard the internals of the vector memory allocation scheme. Unfortunately, there are two reasons why you need to understand how it works:
+这里就有一个问题了，作为vector的客户，为什么要关心它如何内部管理其内存？开发者可能会认为，根据抽象原则，应该允许使用者忽略vector内部的内存分配方案。不幸的是，有两个原因需要开发者了解这里的内存分配：
 
 \begin{itemize}
 \item
-Efficiency: The vector allocation scheme can guarantee that an element insertion runs in amortized constant time: most of the time the operation is constant, but once in a while (if it requires a reallocation), it’s linear. If you are worried about efficiency, you can control when a vector performs reallocations.
+效率：vector分配方案可以保证元素插入的均摊时间为常数时间：大多数情况下操作是常数的，但偶尔（如果需要重新分配）是线性的。如果关心效率，可以控制vector何时执行重新分配。
 
 \item
-Iterator invalidations: A reallocation invalidates all iterators referring to elements in a vector.
+迭代器失效：重新分配会使引用vector中元素的所有迭代器失效。
 \end{itemize}
 
-Thus, the vector interface allows you to query and control the vector reallocations, both explained in the upcoming subsections.
+因此，vector接口允许查询和控制vector重新分配，这两个都在接下来的小节中介绍。
 
 \begin{myWarning}{WARNING}
-If you don’t control the reallocations explicitly, you should assume that all insertions cause a reallocation and thus invalidate all iterators.
+如果不显式控制重新分配，应该假设所有插入都会导致重新分配，从而导致所有迭代器无效。
 \end{myWarning}
 
-\mySamllsection{Size and Capacity}
+\mySamllsection{大小与容量}
 
-vector provides two member functions for obtaining information about its size: size() and capacity(). The size() member function returns the number of elements in a vector, while capacity() returns the number of elements that it can hold without a reallocation. Thus, the number of elements that you can insert without causing a reallocation is capacity() – size().
+vector 提供了两个成员函数来获取关于其大小的信息：size() 和 capacity()。size() 成员函数返回vector中的元素数量，而 capacity() 返回在不重新分配的情况下可以容纳的元素数量。因此，可以在不导致重新分配的情况下插入的元素数量是 capacity() - size()。
 
 \begin{myNotic}{NOTE}
-You can query whether a vector is empty with the empty() member function. A vector can be empty but have nonzero capacity.
+可以使用 empty() 成员函数来查询一个vector是否为空。一个vector可以是空的，但容量并非为零。
 \end{myNotic}
 
-There are also non-member std::size() and std::empty() global functions, which can be used with all containers. They can also be used with statically allocated C-style arrays not accessed through pointers, and with initializer\_lists. Here is an example of using them with a vector:
+还有两个非成员全局函数 std::size() 和 std::empty()，可以用于所有容器。也可以用于通过指针访问的静态分配的 C 风格数组，以及 initializer\_lists。以下是与vector一起使用的示例：
 
 \begin{cpp}
 vector vec { 1, 2, 3 };
@@ -707,32 +707,32 @@ println("{}", size(vec)); // 3
 println("{}", empty(vec)); // false
 \end{cpp}
 
-Additionally, std::ssize(), a global non-member helper function, returns the size as a signed integral type. Here’s an example:
+此外，全局非成员辅助函数 std::ssize() 返回大小作为有符号的整数类型。例如：
 
 \begin{cpp}
 auto s1 { size(vec) }; // Type is size_t (unsigned)
 auto s2 { ssize(vec) }; // Type is long long (signed)
 \end{cpp}
 
-\mySamllsection{Reserving Capacity}
+\mySamllsection{预留容量}
 
-If you don’t care about efficiency or iterator invalidations, there is never a need to control the vector memory allocation explicitly. However, if you want to make your program as efficient as possible or you want to guarantee that iterators will not be invalidated, you can force a vector to preallocate enough space to hold all of its elements. Of course, you need to know how many elements it will hold, which is sometimes impossible to predict.
+如果不关心效率或迭代器无效化，那就没有必要显式控制vector的内存分配。但想使程序尽可能高效，或者想保证迭代器不会无效化，可以强制一个vector预先分配足够的空间来容纳其所有元素。当然，需要知道它将容纳多少元素，这有时无法预测。
 
-One way to preallocate space is to call reserve(), which allocates enough memory to hold the specified number of elements. The upcoming round-robin class example shows the reserve() member function in action.
+预留空间的一种方法是调用 reserve()，分配足够的内存来容纳指定的元素数量。下面Round-Robin类示例中，就使用了 reserve() 成员函数。
 
 \begin{myWarning}{WARNING}
-Reserving space for elements changes the capacity, but not the size. That is, it doesn’t actually create elements. Don’t access elements past a vector’s size.
+为元素预留空间会改变容量，但不会改变大小，实际上并没有创建元素。不要越界访问vector！
 \end{myWarning}
 
-Another way to preallocate space is to specify, in the constructor, or with the resize() or assign() member function, how many elements you want a vector to store. This member function actually creates a vector of that size (and probably of that capacity).
+预留空间的另一种方法是在构造函数中指定想要一个vector存储多少元素，或者使用 resize() 或 assign() 成员函数。这写成员函数实际上，创建了一个具有该大小（可能也是该容量）的vector。
 
-\mySamllsection{Reclaiming All Memory}
+\mySamllsection{回收所有内存}
 
-A vector automatically allocates more memory if needed; however, it will never release any memory, unless the vector is destroyed. Removing elements from a vector decreases the size of the vector, but never its capacity. How then can you reclaim its memory?
+vector在需要时会自动分配更多内存；然而，除非销毁vector，否则永远不会释放内存。从vector中移除元素会减少vector的大小，但永远不会减少其容量。那么，该如何回收其内存呢？
 
-One option is to use the shrink\_to\_fit() member function, which requests a vector to reduce its capacity to its size. However, it’s just a request, and a Standard Library implementation is allowed to ignore this request.
+一个选项是使用shrink\_to\_fit()成员函数，它会让vector的容量减少到其大小。然而，这只是一个请求，标准库实现中允许忽略这个请求。
 
-Reclaiming all memory of a vector can be done using the following trick: swap the vector with an empty one. The following code snippet shows how memory of a vector called values can be reclaimed with a single statement. The third line of code constructs a temporary empty defaultconstructed vector of the same type as values and swaps this with values. All memory that was allocated for values now belongs to this temporary vector, which is automatically destroyed at the end of that statement freeing all its memory. The end result is that all memory that was allocated for values is reclaimed, and values is left with a capacity of zero.
+回收vector的所有内存可以使用以下技巧：将vector与一个空vector交换。以下代码片段展示了如何通过单条语句，回收名为values的vector的内存。代码的第三行构造了一个与values类型相同的临时空默认构造vector，并将其与values交换。为values分配的所有内存现在属于这个临时vector，该临时vector在该语句结束时自动销毁，释放其所有内存。最终结果是回收了为values分配的所有内存，而values的容量为零。
 
 \begin{cpp}
 vector<int> values;
@@ -740,11 +740,11 @@ vector<int> values;
 vector<int>().swap(values);
 \end{cpp}
 
-\mySamllsection{Directly Accessing the Data}
+\mySamllsection{直接访问数据}
 
-A vector stores its data contiguously in memory. You can get a pointer to this block of memory with the data() member function.
+vector在内存中连续存储其数据，可以使用data()成员函数获取这块内存的指针。
 
-There is also a non-member std::data() function that can be used to get a pointer to the data. It works for the array and vector containers, strings, statically allocated C-style arrays not accessed through pointers, and initializer\_lists. Here is an example for a vector:
+还有一个非成员std::data()函数，可以用来获取数据的指针。其适用于array和vector容器、字符串、通过指针访问的静态分配的C风格数组，以及initializer\_list。这里有一个vector的例子：
 
 \begin{cpp}
 vector vec { 1, 2, 3 };
@@ -752,11 +752,11 @@ int* data1 { vec.data() };
 int* data2 { data(vec) };
 \end{cpp}
 
-Another way to get access to the memory block of a vector is by taking the address of the first element, as in: \&vec[0]. You might find this kind of code in legacy code bases, but it is not safe for empty vectors; as such, I recommend not to use it and instead use data().
+另一种获取vector内存块访问权限的方法是获取第一个元素的地址，如：\&vec[0]。可能会在旧代码库中找到这种代码，但对于空vector来说，这非常不安全；因此，我建议不要使用它，而是使用data()。
 
-\mySamllsection{Move Semantics}
+\mySamllsection{移动语义}
 
-All Standard Library containers support move semantics by including a move constructor and move assignment operator. See Chapter 9 for details on move semantics. Standard Library containers can be returned from functions by value without performance penalty. Take a look at the following function:
+所有标准库容器都通过包含，移动构造函数和移动赋值运算符来支持移动语义。有关移动语义的详细信息，请参见第9章。标准库容器可以从函数中以值的形式返回，而不会产生性能损失。来看看下面的函数：
 
 \begin{cpp}
 vector<int> createVectorOfSize(size_t size)
@@ -770,21 +770,21 @@ vector<int> myVector;
 myVector = createVectorOfSize(123);
 \end{cpp}
 
-Without move semantics, assigning the result of createVectorOfSize() to myVector might call the copy assignment operator. With the move semantics support in the Standard Library containers, copying of the vector is avoided. Instead, the assignment to myVector triggers a call to the move assignment operator.
+如果没有移动语义，将createVectorOfSize()的结果赋值给myVector可能会调用复制赋值运算符。有了标准库容器对移动语义的支持，就可以避免复制vector。相反，将结果赋值给myVector，会调用移动赋值运算符。
 
-Keep in mind, though, that for move semantics to work properly with Standard Library containers, the move constructor and move assignment operator of the type stored in the container must be marked as noexcept! Why are these move member functions not allowed to throw any exceptions? Imagine that they are allowed to throw exceptions. Now, when adding, for example, new elements to a vector, it might be that the capacity of the vector is not sufficient and that it needs to allocate a bigger block of memory. Subsequently, the vector must either copy or move all the data from the original memory block to the new one. If this would be done using a move member function that can potentially throw, then it might happen that an exception gets thrown when part of the data has already been moved to the new memory block. What can we do then? Not much. To avoid these kinds of problems, Standard Library containers will only use move member functions if they guarantee not to throw any exceptions. If they are not marked noexcept, the copy member functions will be used instead to guarantee strong exception safety.
+但要使标准库容器与移动语义正常工作，容器中存储的类型必须将移动构造函数和移动赋值运算符标记为noexcept！为什么这些移动成员函数不允许抛出任何异常呢？如果它们抛出异常，向vector中添加新元素时，可能会出现vector容量不足，需要分配更大的内存块的情况。随后，vector必须将所有数据从原始内存块复制或移动到新内存块。如果使用可能抛出异常的移动成员函数来完成，在部分数据已经移动到新内存块时，可能会抛出异常。那时我们能做什么呢？不多。为了避免这类问题，标准库容器只会在移动成员函数保证不抛出异常时使用。如果没有标记为noexcept，则会使用复制成员函数来保证强异常安全。
 
-When implementing your own Standard Library–like containers, there is a useful helper function available called std::move\_if\_noexcept(), defined in <utility>. This can be used to call either the move constructor or the copy constructor depending on whether the move constructor is noexcept. In itself, move\_if\_noexcept() doesn’t do much. It accepts a reference as a parameter and converts it to either an rvalue reference if the move constructor is noexcept or to a reference-toconst otherwise, but this simple trick allows you to call the correct constructor with a single call.
+实现自己的类似标准库的容器时，有一个有用的辅助函数可用，称为std::move\_if\_noexcept()，定义在<utility>中。这可以用来根据移动构造函数是否为noexcept，来调用移动构造函数或复制构造函数。move\_if\_noexcept()本身并不做太多事情，接受一个引用作为参数，并将其转换为右值引用（如果移动构造函数是noexcept）或const引用（否则），但这个简单的技巧可以用来调用正确的构造函数。
 
-The Standard Library does not provide a similar helper function to call the move assignment operator or copy assignment operator depending on whether the former is noexcept. Implementing one yourself is not too complicated, but requires some template metaprogramming techniques and type traits to inspect properties of types. Both topics are discussed in Chapter 26, which also gives an example of implementing your own move\_assign\_if\_noexcept().
+标准库没有提供类似的辅助函数，根据移动赋值运算符是否为noexcept来调用移动赋值运算符或复制赋值运算符。自己实现一个并不太复杂，但需要一些模板元编程技术和类型特征来检查类型的属性。这两个主题将在第26章中进行介绍，其中还给出了move\_assign\_if\_noexcept()实现的示例。
 
-\mySamllsection{vector Example: A Round-Robin Class}
+\mySamllsection{vector 示例：循环调度(Round-Robin)类}
 
-A common problem in computer science is distributing requests among a finite list of resources. For example, a simple operating system could keep a list of processes and assign a time slice (such as 100ms) to each process to let the process perform some of its work. After the time slice is finished, the OS suspends the process, and the next process in the list is given a time slice to perform some of its work. One of the simplest algorithmic solutions to this problem is round-robin scheduling. When the time slice of the last process is finished, the scheduler starts over again with the first process. For example, in the case of three processes, the first-time slice would go to the first process, the second slice to the second process, the third slice to the third process, and the fourth slice back to the first process. The cycle would continue in this way indefinitely.
+计算机科学中的一个常见问题是,将在有限资源列表中分配请求。例如，一个简单的操作系统可以维护一个进程列表，并为每个进程分配一个时间片（如 100 毫秒），让进程执行其部分工作。时间片结束后，操作系统挂起该进程，列表中的下一个进程获得一个时间片以执行其部分工作。这个问题最简单的算法解决方案是循环调度。当最后一个进程的时间片结束时，调度程序从第一个进程重新开始。例如，在三个进程的情况下，第一个时间片将分配给第一个进程，第二个时间片给第二个进程，第三个时间片给第三个进程，第四个时间片又回到第一个进程。这个循环将以此方式无限期地继续。
 
-Suppose that you decide to write a generic round-robin scheduling class that can be used with any type of resource. The class should support adding and removing resources and should support cycling through the resources to obtain the next one. You could use a vector directly, but it’s often helpful to write a wrapper class that provides more directly the functionality you need for your specific application. The following example shows a RoundRobin class template with comments explaining the code.
+假设决定编写一个通用的循环调度类，可以用于任何类型的资源。该类应支持添加和删除资源，并支持循环获取下一个资源。可以直接使用 vector，但编写一个包装类通常更有帮助，它可以直接提供特定应用程序所需的功能。以下示例展示了一个带有注释解释代码的 RoundRobin 类模板。
 
-First, here is the class definition, exported from a module called round\_robin:
+首先，从名为 round\_robin 的模块导出类定义：
 
 \begin{cpp}
 export module round_robin;
@@ -822,11 +822,11 @@ class RoundRobin final
 };
 \end{cpp}
 
-As you can see, the public interface is straightforward: only three member functions plus the constructor. The resources are stored in a vector called m\_elements. The iterator m\_nextElement always refers to the element that will be returned with the next call to getNext(). If getNext() hasn’t been called yet, m\_nextElement is equal to begin(m\_elements). Note the use of the typename keyword in front of the line declaring m\_nextElement. So far, you’ve only seen that keyword used to specify template type parameters, but there is another use for it. You must specify typename explicitly whenever you access a type based on one or more template parameters. In this case, the template parameter T is used to access the iterator type. Thus, you must specify typename.
+公共接口非常简单：只有三个成员函数加上构造函数。资源存储在一个名为 m\_elements 的 vector 中。迭代器 m\_nextElement 始终指向下一个 getNext() 的返回元素。如果还没有调用 getNext()，m\_nextElement 等于 begin(m\_elements)。注意在声明 m\_nextElement 的行前使用了 typename 关键字。目前为止，只看到过使用该关键字指定模板类型参数的情况，但它还有另一种用途。每当访问基于一个或多个模板参数的类型时，必须显式指定 typename。这种情况下，模板参数 T 用于访问迭代器类型，所以必须指定 typename。
 
-The class also prevents copy construction and copy assignment because of the m\_nextElement data member. To make copy construction and copy assignment work, you would have to implement an assignment operator and copy constructor and make sure m\_nextElement is valid in the destination object.
+该类还阻止了复制构造和复制赋值，因为 m\_nextElement 数据成员。要使复制构造和复制赋值工作，需要实现一个赋值运算符和一个复制构造函数，并确保目标对象中的 m\_nextElement 有效。
 
-The implementation of the RoundRobin class follows with comments explaining the code. Note the use of reserve() in the constructor, and the extensive use of iterators in add(), remove(), and getNext(). The trickiest aspect is handling m\_nextElement in the add() and remove() member functions.
+RoundRobin 类的实现随后跟着注释解释代码，构造函数中使用了 reserve()，以及在 add()、remove() 和 getNext() 中使用了迭代器。最棘手的部分是在 add() 和 remove() 成员函数中，对 m\_nextElement进行处理。
 
 \begin{cpp}
 template <typename T> RoundRobin<T>::RoundRobin(std::size_t numExpected)
@@ -911,7 +911,7 @@ template <typename T> T& RoundRobin<T>::getNext()
 }
 \end{cpp}
 
-Here’s a simple implementation of a scheduler that uses the RoundRobin class template, with comments explaining the code:
+下面是一个使用RoundRobin类模板的简单实现:
 
 \begin{cpp}
 // Basic Process class.
@@ -979,7 +979,7 @@ int main()
 }
 \end{cpp}
 
-The output should be as follows:
+输出如下所示:
 
 \begin{shell}
 Process 1 performing work during time slice.
@@ -993,96 +993,95 @@ Process 3 performing work during time slice.
 Process 1 performing work during time slice.
 \end{shell}
 
-\mySubsubsection{18.2.2.}{The vector<bool> Specialization}
+\mySubsubsection{18.2.2.}{vector<bool>}
 
-The C++ standard requires a partial specialization of vector for bools, with the intention that it optimizes space allocation by “packing” the Boolean values. Recall that a bool is either true or false and thus could be represented by a single bit, which can take on exactly two values. C++ does not have a native type that stores exactly one bit. Some compilers represent a Boolean value with a type the same size as a char; other compilers use an int. The vector<bool> specialization is supposed to store the “array of bools” in single bits, thus saving space.
+C++标准要求为bool类型提供一个vector的偏特化，目的是通过“打包”布尔值来优化空间分配。回想一下，bool要么是true，要么是false，因此可以用单个位来表示，这个位可以精确地取两个值。C++没有一种原生类型可以存储恰好一个位。一些编译器使用与char大小相同的类型来表示布尔值；其他编译器使用int。vector<bool>以单个位存储“布尔数组”，从而可以节省空间。
 
 \begin{myNotic}{NOTE}
-You can think of the vector<bool> as a bit-field instead of a vector. The bitset container described later in this chapter provides a more fullfeatured bit-field implementation than does vector<bool>. However, the benefit of vector<bool> is that it can change size dynamically.
+可以将vector<bool>视为位字段，而不是vector。本章后面描述的bitset容器提供了比vector<bool>更完整的位字段实现，而vector<bool>的优点是可以动态改变大小。
 \end{myNotic}
 
-In a half-hearted attempt to provide some bit-field routines for vector<bool>, there is one additional member function called flip() that complements bits; that is, true becomes false, and false becomes true, similar to the logical NOT operator. This member function can be called either on the container—in which case it complements all the elements in the container—or on a single reference returned from operator[] or a similar member function, in which case it complements that single element.
+为了向vector<bool>提供一些位字段例程，有一个成员函数称为flip()，它会翻转位值；即，true变为false，false变为true，类似于逻辑非运算符。这个成员函数可以调用容器（这种情况下，会翻转容器中的所有元素），或者调用从operator[]或类似成员函数返回的单个引用，翻转该单个元素。
 
-At this point, you should be wondering how you can call a member function on a reference to bool. The answer is that you can’t. The vector<bool> specialization actually defines a class called reference that serves as a proxy for the underlying bool (or bit). When you call operator[], at(), or a similar member function, then vector<bool> returns a reference object, which is a proxy for the real bool.
+此时，可能会想知道如何对bool的引用调用成员函数，而答案是不能。vector<bool>特化实际上定义了一个名为reference的类，作为底层bool（或位）的代理。当调用operator[]、at()或类似的成员函数时，vector<bool>返回一个引用对象，这实际是bool的代理类。
 
 \begin{myWarning}{WARNING}
-The fact that references returned from vector<bool> are really proxies means that you can’t take their addresses to obtain pointers to the actual elements in the container.
+从vector<bool>返回的引用实际上是代理，所以不能获取它们的地址，从而获得容器中实际元素的指针。
 \end{myWarning}
 
-In practice, the little amount of space saved by packing bools hardly seems worth the extra effort. Even worse, accessing and modifying elements in a vector<bool> is much slower than, for example, in a vector<int>. Many C++ experts recommend avoiding vector<bool> in favor of the bitset. If you do need a dynamically sized bit field, then just use something like vector<std::int\_fast8\_t> or vector<unsigned char>. The std::int\_fast8\_t type is defined in <cstdint>. It is a signed integer type for which the compiler has to use the fastest integer type it has that is at least 8 bits.
+实际上，通过打包bool节省的少量空间不值得付出什么，但访问和修改vector<bool>中的元素要比vector<int>慢得多。许多C++专家建议避免使用vector<bool>，而选择bitset。如果确实需要一个动态大小的位字段，只需使用vector<std::int\_fast8\_t>或vector<unsigned char>。std::int\_fast8\_t类型定义在<cstdint>中，是一种有符号整数类型，编译器必须使用至少8位的最快整数类型。
 
 \mySubsubsection{18.2.3.}{deque}
 
-deque (abbreviation for double-ended queue) is almost identical to vector, but is used far less frequently. It is defined in <deque>. The principal differences are as follows:
+deque（双端队列的缩写）与vector几乎相同，但使用频率要低得多，在<deque>中定义。主要区别如下：
 
 \begin{itemize}
 \item
-Elements are not stored contiguously in memory.
+内存中，元素不连续。
 
 \item
-A deque supports true constant-time insertion and removal of elements at both the front and the back (a vector supports amortized constant time at just the back).
+deque在两端（前端和后端）支持真正的常数时间插入和删除元素（vector仅在后端插入为常数时间）。
 
 \item
-A deque provides the following member functions that vector omits:
+deque提供了vector没有的成员函数：
 \begin{itemize}
 \item
-push\_front(): Inserts an element at the beginning.
+push\_front(): 在开始处插入一个元素。
 
 \item
-pop\_front(): Removes the first element.
+pop\_front(): 删除第一个元素。
 
 \item
-emplace\_front(): Creates a new element in-place at the beginning and returns a reference to the inserted element.
+emplace\_front(): 在开始处就地创建一个新元素，并返回对插入元素的引用。
 
 \item
-prepend\_range(): Adds all elements of a given range to the beginning of a deque.
-Available since C++23.
+prepend\_range(): 将给定范围的所有元素添加到deque的开始处。自C++23起可用。
 \end{itemize}
 
 \item
-A deque never moves its elements to a bigger array (as vector does) when inserting elements at the front or at the back. This also means that a deque does not invalidate any iterators in such cases.
+插入元素时，deque不会将其元素移动到更大的数组中（如vector所做的那样），所以deque不会使迭代器失效。
 
 \item
-A deque does not expose its memory management scheme via reserve() or capacity().
+deque不通过reserve()或capacity()公开其内存管理方案。
 \end{itemize}
 
-deques are rarely used, as opposed to vectors, so they are not further discussed. Consult a Standard Library Reference for a detailed list of all supported member functions.
+与vector相比，deque很少使用，因此不再进一步讨论。有关所有支持的成员函数的详细列表，请参阅标准库手册。
 
 \mySubsubsection{18.2.4.}{list}
 
-The Standard Library list class template, defined in <list>, is a standard doubly linked list. It supports constant-time insertion and deletion of elements at any point in the list but provides slow (linear) time access to individual elements. In fact, the list does not even provide random-access operations like operator[]. Only through iterators can you access individual elements.
+标准库中的列表类模板，定义在 <list> 中，是一个标准的双向链表，支持在列表的任何位置进行常数时间的元素插入和删除，但提供对单个元素的缓慢（线性）访问。实际上，list不提供像 operator[] 这样的随机访问操作，只能通过迭代器访问单个元素。
 
-Most of the list operations are identical to those of vector, including the constructors, destructor, copying operations, assignment operations, and comparison operations. This section focuses on those member functions that differ from those of vector.
+列表的大多数操作都与 vector 相同，包括构造函数、析构函数、复制操作、赋值操作和比较操作。本节重点介绍与 vector 不同的成员函数。
 
-\mySamllsection{Accessing Elements}
+\mySamllsection{元素访问}
 
-The only member functions provided by a list to access elements are front() and back(), both of which run in constant time. These member functions return a reference to the first and last elements in a list. All other element access must be performed through iterators.
+list提供的唯一访问元素的成员函数是 front() 和 back()，两者都在常数时间内运行。这些成员函数返回list中第一个和最后一个元素的引用，所有其他元素访问必须通过迭代器完成。
 
-Just as vector, list supports begin(), end(), rbegin(), rend(), cbegin(), cend(), crbegin(), and crend().
+与 vector 一样，列表支持 begin()、end()、rbegin()、rend()、cbegin()、cend()、crbegin() 和 crend()。
 
 \begin{myWarning}{WARNING}
-Lists do not provide random access to elements.
+list不提供对元素的随机访问。
 \end{myWarning}
 
-\mySamllsection{Iterators}
+\mySamllsection{迭代器}
 
-A list iterator is bidirectional, not random access like a vector iterator. That means that you cannot add and subtract list iterators from each other or perform other pointer arithmetic on them. For example, if p is a list iterator, you can traverse through the elements of the list by doing ++p or --p, but you cannot use the addition or subtraction operator; p+n and p-n do not work.
+list迭代器是双向的，所以不能像操作指针那样对列表迭代器进行加减运算或其他指针算术。例如， p 是一个list迭代器，您以通过执行 ++p 或 --p 来遍历列表中的元素，但不能使用加法或减法运算符；p+n 和 p-n 不起作用。
 
-\mySamllsection{Adding and Removing Elements}
+\mySamllsection{添加和删除元素}
 
-A list supports the same add and remove element member functions as a vector, including push\_ back(), pop\_back(), emplace(), emplace\_back(), the five forms of insert(), assign\_range(), insert\_range(), append\_range(), the two forms of erase(), and clear(). Like a deque, it also provides push\_front(), emplace\_front(), pop\_front(), and prepend\_range(). Member functions adding or removing a single element run in constant time, once you’ve found the correct position, while member functions adding or removing multiple elements run in linear time. Thus, a list could be appropriate for applications that perform many insertions and deletions from the data structure, but do not need quick index-based element access. But even then, a vector might still be faster. Use a performance profiler to make sure.
+list支持与 vector 相同的添加和删除元素成员函数，包括 push\_back()、pop\_back()、emplace()、emplace\_back()、五种形式的 insert()、assign\_range()、insert\_range()、append\_range()、两种形式的 erase() 和 clear()。像 deque 一样，还提供 push\_front()、emplace\_front()、pop\_front() 和 prepend\_range()。添加或删除单个元素的成员函数在找到正确位置后运行在常数时间内，而添加或删除多个元素的成员函数运行在线性时间内，所以list适用于经常从数据结构中进行插入和删除操作的应用，但不需要快速基于索引的元素访问。即便如此，vector 可能仍然更快，可以使用性能分析器来确定。
 
-\mySamllsection{list Size}
+\mySamllsection{list大小}
 
-Like deques, and unlike vectors, lists do not expose their underlying memory model. Consequently, they support size(), empty(), and resize(), but not reserve() or capacity(). Note that the size() member function on a list has constant complexity.
+与 deque 一样，list不像 vector 那样暴露其底层内存模型。因此，它支持 size()、empty() 和 resize()，但不支持 reserve() 或 capacity()。请注意，list的 size() 成员函数具有常数复杂度。
 
-\mySamllsection{Special list Operations}
+\mySamllsection{list的特殊操作}
 
-A list provides several special operations that exploit its quick element insertion and deletion. This section provides an overview of some of these operations with examples. Consult a Standard Library Reference for a thorough reference of all the member functions.
+list提供了一些特殊操作，利用其快速元素插入和删除的特性，本节提供了一些这些操作的概述和示例。要了解所有成员函数的完整参考，请查阅标准库手册。
 
-\mySamllsection{Splicing}
+\mySamllsection{拼接}
 
-The linked-list characteristics of a list allow it to splice, or insert, an entire list at any position in another list in constant time. The simplest version of this member function works as follows:
+list的链表特性允许在另一个list的任何位置以常数时间插入整个列表，这称为拼接。这个成员函数的最简单使用如下所示：
 
 \begin{cpp}
 // Store the a words in the main dictionary.
@@ -1108,56 +1107,61 @@ if (!bWords.empty()) {
 println("{:n:}", dictionary);
 \end{cpp}
 
-The result from running this program looks like this:
+程序运行的结果如下：
 
 \begin{shell}
 aardvark, ambulance, bathos, balderdash, canticle, consumerism
 \end{shell}
 
-There are also two other overloads of splice(): one that inserts a single element from another list and one that inserts a range from another list. Additionally, all overloads of splice() are available with either a normal reference or an rvalue reference to the source list.
+还有两个其他版本的splice()：一个将另一个列表中的单个元素插入，另一个将另一个列表中的一个范围插入。此外，所有版本的splice()都可以使用源列表的普通引用或右值引用。
 
 \begin{myWarning}{WARNING}
-Splicing is destructive to the list passed as an argument, i.e., it removes the spliced elements from one list to insert them into the other.
+拼接（splicing）对作为参数传递的列表具有破坏性，即它从列表中移除拼接元素，以将它们插入到另一个列表中。
 \end{myWarning}
 
-\mySamllsection{More Efficient Versions of Algorithms}
+\mySamllsection{更高效的算法}
 
-In addition to splice(), a list provides special implementations of several of the generic Standard Library algorithms. The generic forms are covered in Chapter 20. Here, only the specific versions provided by list are discussed.
+除了splice()之外，list还提供了几个泛型标准库算法的高级实现，泛型形式在第20章中介绍。这里，只讨论list提供的特定版本。
 
 \begin{myNotic}{NOTE}
-When you have a choice, use the list-specific member functions rather than the generic Standard Library algorithms because the former are more efficient. Sometimes you don’t have a choice, and you must use the list-specific member functions; for example, the generic std::sort() algorithm requires random-access iterators, which a list does not provide.
+当有选择时，请使用列表特定的成员函数，而非泛型标准库算法，因为前者更高效。有时别无选择，必须使用列表特定的成员函数；例如，泛型std::sort()算法需要随机访问迭代器，而list不提供。
 \end{myNotic}
 
-The following table summarizes the algorithms for which list provides special implementations as member functions. See Chapter 20 for more details on the algorithms.
+以下表格总结了列表作为成员函数提供的特殊实现的算法。有关算法的更多详细信息，请参阅第20章。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{MEMBER FUNCTION} &
-\textbf{DESCRIPTION} \\ \hline
+\textbf{成员函数} &
+\textbf{描述} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 \begin{tabular}[c]{@{}l@{}}remove()\\ remove\_if()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Removes all elements matching certain criteria from a list and returns the\\ number of removed elements.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}从列表中移除所有符合特定条件的元素，并返回移除的元素数量。
+\end{tabular} \\ \hline
 unique() &
-\begin{tabular}[c]{@{}l@{}}Removes duplicate consecutive elements from a list, based on\\ operator== or a user-supplied binary predicate, and returns the number of\\ removed elements.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}从列表中移除连续的重复元素，基于operator==或用户提供的二元谓词，并\\返回移除的元素数量。
+\end{tabular} \\ \hline
 merge() &
-\begin{tabular}[c]{@{}l@{}}Merges two lists. Both lists must be sorted according to operator\textless or\\ a user-defined comparator. Like splice(), merge() is destructive to the\\ list passed as an argument.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}合并两个列表。两个列表必须根据operator<或用户定义的比较器排序。与\\splice()类似，merge()对作为参数传递的列表具有破坏性。
+\end{tabular} \\ \hline
 sort() &
-Performs a stable sort on elements in a list. \\ \hline
+对列表中的元素执行稳定的排序。
+ \\ \hline
 reverse() &
-Reverses the order of the elements in a list. \\ \hline
+反转列表中元素的顺序。
+ \\ \hline
 \end{longtable}
 
-\mySamllsection{list Example: Determining Enrollment}
+\mySamllsection{list示例：确定注册情况}
 
-Suppose that you are writing a computer registration system for a university. One feature you might provide is the ability to generate a complete list of enrolled students in the university from lists of the students in each class. For the sake of this example, assume that you must write only a single function that takes a vector of lists of student names (as strings), plus a list of students that have been dropped from their courses because they failed to pay tuition. This function should generate a complete list of all the students in all the courses, without any duplicates, and without those students who have been dropped. Note that students might be in more than one course.
+假设正在为大学编写一个计算机注册系统,能提供的功能之一是,从每个班级的学生名单中生成大学的完整注册学生列表。为了这个示例，必须编写一个函数，该函数接受一个学生姓名（字符串）的列表，以及一个由于未支付学费而从其课程中删除的学生名单。该函数应生成所有课程中所有学生的完整列表，没有重复，也没有删除的学生。请注意，学生可能同期参加多个课程。
 
-Here is the code for this function, with comments explaining the code. With the power of Standard Library lists, the function is practically shorter than its written description! Note that the Standard Library allows you to “nest” containers: in this case, you can use a vector of lists.
+以下是此函数的代码，有了标准库列表的强大功能，这个函数实际上很好实现！注意，标准库允许“嵌套”容器：这个例子中，可以使用vector<list<string>{}>。
 
 \begin{cpp}
 // courseStudents is a vector of lists, one for each course. The lists
@@ -1197,16 +1201,16 @@ list<string> getTotalEnrollment(const vector<list<string>>& courseStudents,
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-This example demonstrates the use of the list-specific algorithms. As stated several times before, often a vector is faster than a list. So, the recommended solution to the student enrollment problem would be to only use vectors and to combine these with generic Standard Library algorithms, but those are discussed in Chapter 20.
+此示例展示了列表特定算法的使用。通常vector比list更快，所以解决学生注册问题的推荐方案是仅使用vector，并结合泛型标准库算法，这些将在第20章中进行介绍。
 \end{myNotic}
 
 \mySubsubsection{18.2.5.}{forward\_list}
 
-A forward\_list, defined in <forward\_list>, is similar to a list except that it is a singly linked list, while list is a doubly linked list. This means that forward\_list supports only forward iteration, and because of this, ranges need to be specified differently compared to a list. If you want to modify any list, you need access to the element before the first element of interest. Because a forward\_list does not have an iterator that supports going backward, there is no easy way to get to the preceding element. For this reason, ranges that will be modified—for example, ranges supplied to erase() and splice()—must be open at the beginning. The begin() function that was discussed earlier returns an iterator to the first element and thus can only be used to construct a range that is closed at the beginning. The forward\_list class therefore provides a before\_begin() member function, which returns an iterator that points to an imaginary element before the beginning of the list. You cannot dereference this iterator as it points to invalid data. However, incrementing this iterator by 1 makes it the same as the iterator returned by begin(); as a result, it can be used to make a range that is open at the beginning.
+forward\_list，定义在<forward\_list>中，与list类似，但它是单向链表。forward\_list只支持前向迭代，与list相比，范围需要以不同的方式指定。如果想对列表进行，需要访问感兴趣元素的前一个元素。由于forward\_list没有支持反向的迭代器，无法轻松获取前一个元素，所以将修改的范围内（例如，提供给erase()和splice()的范围）必须从开始处打开。之前讨论的begin()函数返回指向第一个元素的迭代器，因此只能用于构造从开始处闭合的范围，所以forward\_list类提供了一个before\_begin()成员函数，其返回一个指向列表开始处之前虚拟元素的迭代器。不能解引用这个迭代器，因为它指向无效的数据。然而，将这个迭代器增加1使其与begin()返回的迭代器相同，所以可以用于构造一个从开始处打开的范围。
 
-Constructors and assignment operators are similar between a list and a forward\_list. The C++ standard requires that forward\_list minimizes its memory use. That’s the reason why there is no size() member function, because by not providing it, there is no need to store the size of the list. Additionally, a list has to store a pointer to the previous and the next element in the list, while a forward\_list only needs to store a pointer to the next element, further reducing memory use. For example, each element in a list<int> on a 64-bit system requires 20 bytes (two 64-bit pointers, 16 bytes, and the int itself, 4 bytes). A forward\_list<int> requires only 12 bytes (one 64-bit pointer, 8 bytes, and the int, 4 bytes) per element.
+构造函数和赋值运算符在list和forward\_list相似。C++标准要求forward\_list最小化其内存使用，这就是为什么没有size()成员函数，没有必要存储列表的大小。此外，list需要存储列表中前一个和后一个元素的指针，而forward\_list只需要存储后一个元素的指针，从而进一步减少内存使用。例如，在64位系统上，每个list<int>元素需要20字节（两个64位指针，16字节，以及自身的int，4字节）。每个forward\_list<int>元素只需要12字节（一个64位指针，8字节，以及自身的int，4字节）。
 
-The following table sums up the differences between a list and a forward\_list. A filled box (■) means the container supports that operation, while an empty box (□) means the operation is not supported.
+以下表格总结了list和forward\_list之间的差异。填充的方框（■）表示容器支持该操作，而一个空方框（□）表示该操作容器不受支持。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -1266,7 +1270,7 @@ swap()                                       & ■             & ■            
 unique()                                     & ■             & ■                      \\ \hline
 \end{longtable}
 
-The following example demonstrates the use of forward\_lists:
+下面的例子演示了forward\_list的用法:
 
 \begin{cpp}
 // Create 3 forward lists using an initializer_list
@@ -1292,7 +1296,7 @@ list1.insert_after(iter, cbegin(list3), cend(list3));
 println("{:n}", list1);
 \end{cpp}
 
-To insert list3 at the end of list1, you need an iterator to the last element of list1. However, because this is a forward\_list, you cannot use --end(list1), so you need to iterate over the list from the beginning and stop at the last element. The output is as follows:
+要在列表 list1 的末尾插入 list3，需要一个指向 list1 最后一个元素的迭代器。但由于这是一个 forward\_list，不能使用 --end(list1)，需要从开始遍历列表，直到最后一个元素。输出如下：
 
 \begin{shell}
 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
@@ -1300,11 +1304,11 @@ To insert list3 at the end of list1, you need an iterator to the last element of
 
 \mySubsubsection{18.2.6.}{array}
 
-An array, defined in <array>, is similar to a vector except that it is of a fixed size; it cannot grow or shrink in size. The purpose of a fixed size is to allow an array to be allocated on the stack, rather than always demanding access to the free store as vector does.
+array，定义在 <array> 中，与 vector 类似，只是它是固定大小的，不能改变大小。固定大小的目的是允许数组在栈上分配，而不是像 vector 那样总是要求访问堆区。
 
-For arrays containing primitive types (integers, floating-point numbers, characters, Booleans, and so on), initialization of elements is different compared to how they are initialized for containers such as vector, list, and so on. If no initialization values are given to an array when it is created, then the array elements will be uninitialized, i.e., contain garbage. For other containers, such as vector and list, elements are always initialized, either with given values or using zero initialization. As such, arrays behave virtually identical to C-style arrays.
+对于包含原始类型（整数、浮点数、字符、布尔值等）的array，初始化元素的方式与在 vector、list 等容器中初始化元素的方式不同。如果创建array时没有提供初始化值，那么数组元素将未初始化，即包含垃圾值。对于其他容器，如 vector 和 list，元素始终初始化，要么使用给定的值，要么使用零初始化，所以array的行为几乎与 C 风格数组完全相同。
 
-Just like vectors, arrays support random-access iterators, and elements are stored in contiguous memory. An array has support for front(), back(), at(), and operator[]. It also supports a fill() member function to fill the array with a specific element. Because it is fixed in size, it does not support push\_back(), pop\_back(), insert(), erase(), clear(), resize(), reserve(), capacity(), or any of the range-based member functions. A disadvantage compared to a vector is that the swap() member function of an array runs in linear time, while it has constant complexity for a vector. An array can also not be moved in constant time, while a vector can. An array has a size() member function, which is a clear advantage over C-style arrays. The following example demonstrates how to use the array class. Note that the array declaration requires two template parameters: the first specifies the type of the elements, and the second specifies the fixed number of elements in the array.
+与 vector 一样，array支持随机访问迭代器，并且元素存储在连续的内存中。array支持 front()、back()、at() 和 operator[]，还支持 fill() 成员函数来用特定元素填充数组。因为它是固定大小的，所以不支持 push\_back()、pop\_back()、insert()、erase()、clear()、resize()、reserve()、capacity() 或于范围的成员函数。与 vector 相比的缺点是，array的 swap() 成员函数得时间复杂度为线性，而 vector 的 swap() 具有常数复杂度。array也不能在常数时间内移动，而 vector 可以。array有一个 size() 成员函数，这是它比 C 风格数组的一个明显优势。以下示例演示了如何使用array类。请注意，array声明需要两个模板参数：第一个指定元素的类型，第二个指定数组中固定元素的个数。
 
 \begin{cpp}
 // Create an array of 3 integers and initialize them
@@ -1327,7 +1331,7 @@ for (auto iter { cbegin(arr) }; iter != cend(arr); ++iter) {
 }
 \end{cpp}
 
-The output is as follows:
+输出如下所示:
 
 \begin{shell}
 Array size = 3
@@ -1337,7 +1341,7 @@ Performing arr.fill(3)...
 3 3 3
 \end{shell}
 
-You can use the std::get<n>() function template to retrieve an element from an std::array at the given index n. The index has to be a constant expression, so it cannot, for example, be a loop variable. The benefit of using std::get<n>() is that the compiler checks at compile time that the given index is valid; otherwise, it results in a compilation error, as in this example:
+可以使用 std::get<n>() 函数模板从 std::array 中检索给定索引 n 的元素。索引必须是一个常量表达式，因此不能是一个循环变量。使用 std::get<n>() 的好处是，编译器在编译时检查给定索引是否有效；否则，会导致编译错误：
 
 \begin{cpp}
 array myArray { 11, 22, 33 }; // std::array supports CTAD.
@@ -1345,7 +1349,7 @@ println("{}", std::get<1>(myArray));
 println("{}", std::get<10>(myArray)); // BUG! Compilation error!
 \end{cpp}
 
-std::to\_array(), defined in <array>, converts a given C-style array to an std::array, using copy-initialization of the elements. The function works only for one-dimensional arrays. Here is a quick example:
+std::to\_array()，定义在 <array> 中，将给定的 C 风格数组转换为 std::array，使用元素的复制初始化。该函数仅适用于一维数组：
 
 \begin{cpp}
 auto arr1 { to_array({ 11, 22, 33 }) }; // Type is array<int, 3>
