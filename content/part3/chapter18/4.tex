@@ -1,29 +1,29 @@
 
-In addition to the standard sequential containers, the Standard Library provides three container adapters: queue, priority\_queue, and stack. Each of these adapters is a wrapper around one of the sequential containers. They allow you to swap the underlying container without having to change the rest of the code. The intent of the adapters is to simplify the interface and to provide only those features that are appropriate for the stack, queue, or priority\_queue abstraction. These adapters do not provide access to the underlying container and hence are a perfect example of the data-hiding principle explained in Chapter 4, “Designing Professional C++ Programs.” For instance, the adapters don’t provide the capability to erase multiple elements simultaneously, nor do they provide iterators. The latter means you cannot use them with range-based for loops or with any of the standard iteratorbased algorithms discussed in Chapter 20. However, starting with C++23, the std::format() and print() functions do support formatting and printing the contents of these container adapters.
+除了标准顺序容器之外，标准库还提供了三个容器适配器：queue、priority\_queue和stack。这些适配器都是顺序容器的包装器，允许交换底层容器，而无需更改其余代码。适配器的目的是简化接口，并提供仅适用于stack、queue或priority\_queue抽象的适当功能。这些适配器不提供对底层容器的访问，因此是第4章中解释的数据隐藏原则的完美示例。例如，适配器不支持同时擦除多个元素的功能，也不提供迭代器。后者意味着不能使用它们进行基于范围的for循环，也不能使用第20章中讨论的标准迭代器算法。但从C++23开始，std::format()和print()函数支持格式化和打印这些容器适配器的内容。
 
 \mySubsubsection{18.4.1.}{queue}
 
-The queue container adapter, defined in <queue>, provides standard first-in, first-out semantics. As usual, it’s written as a class template, which looks like this:
+queue容器适配器，定义在< queue >中，提供标准的先进先出语义。通常，它是一个类模板：
 
 \begin{cpp}
 template <typename T, typename Container = deque<T>> class queue;
 \end{cpp}
 
-The T template parameter specifies the type that you intend to store in the queue. The second template parameter allows you to stipulate the underlying container that the queue adapts. However, the queue requires the sequential container to support both push\_back() and pop\_front(), so you have only two built-in choices: deque and list. For most purposes, you can just stick with the default deque.
+T模板参数指定存储在队列中的类型，第二个模板参数指定队列适配的底层容器。然而，队列要求顺序容器支持push\_back()和pop\_front()，因此只有两个内置选择：deque和list。对于大多数情况，可以使用默认的deque。
 
-\mySamllsection{queue Operations}
+\mySamllsection{queue的操作}
 
-The queue interface is extremely simple: there are only nine member functions, a set of constructors, and comparison operators. New in C++23 is a constructor accepting an iterator pair, [begin, end), which constructs a queue containing the elements from the given iterator range. The push()and emplace() member functions add a new element to the tail of the queue, while pop() removes the element at the head of the queue. C++23 adds push\_range() to add a range of elements to the queue. You can retrieve references to, without removing, the first and last elements with front() and back(), respectively. As usual, when called on const objects, front() and back() return references-to-const; and when called on non-const objects, they return references-to-non-const (read/write).
+queue接口非常简单：只有九个成员函数、一组构造函数和比较运算符。C++23中新增了一个接受迭代器对的构造函数[begin, end)，构造一个包含给定迭代器范围内元素的队列。push()和emplace()成员函数将新元素添加到队列的尾部，而pop()删除队列头部的元素。C++23添加了push\_range()以将一系列元素添加到队列中，可以使用front()和back()分别检索对队列头尾元素的引用（不移除）。通常，当在const对象上调用时，front()和back()返回对const的引用；当在非const对象上调用时，返回对非const的引用（读/写）。
 
 \begin{myWarning}{WARNING}
-pop() does not return the element popped. If you want to retain a copy, you must first retrieve it with front().
+pop()不返回弹出的元素。如果想保留一个副本，必须先用front()检索。
 \end{myWarning}
 
-The queue also supports size(), empty(), and swap().
+queue还支持size()、empty()和swap()。
 
-\mySamllsection{queue Example: A Network Packet Buffer}
+\mySamllsection{queue示例：网络数据包缓冲区}
 
-When two computers communicate over a network, they send information to each other divided into discrete chunks called packets. The networking layer of the computer’s operating system must pick up the packets and store them as they arrive. However, the computer might not have enough bandwidth to process all of them at once. Thus, the networking layer usually buffers, or stores, the packets until the higher layers have a chance to attend to them. The packets should be processed in the order they arrive, so this problem is perfect for a queue structure. The following is a small PacketBuffer class, with comments explaining the code, which stores incoming packets in a queue until they are processed. It’s a class template so that different layers of the networking stack can use it for different kinds of packets, such as IP packets or TCP packets. It allows the client to specify a maximum size because operating systems usually limit the number of packets that can be stored, so as not to use too much memory. When the buffer is full, subsequently arriving packets are ignored.
+当两台计算机通过网络通信时，它们会将信息划分为数据包的离散块并发送给对方。计算机的操作系统网络层，必须接收这些数据包，并在包到达时存储起来。然而，计算机可能没有足够的带宽一次性处理所有数据包，所以网络层通常会缓冲或存储数据包，直到有机会处理它们。数据包应该按照它们到达的顺序进行处理，所以这个问题非常适合使用队列结构。以下是一个小的 PacketBuffer 类，代码中有注释解释，它将传入的数据包存储在队列中，直到它们被处理。它是一个类模板，因此网络堆栈的不同层次可以使用它来处理不同类型的数据包，例如： IP 数据包或 TCP 数据包，允许客户端指定最大大小，因为操作系统通常限制可以存储的数据包数量，以避免使用过多内存。当缓冲区已满时，将忽略随后到达的数据包。
 
 \begin{cpp}
 export template <typename T>
@@ -76,9 +76,7 @@ template <typename T> T PacketBuffer<T>::getNextPacket()
 }
 \end{cpp}
 
-A practical application of this class would require multiple threads. However, without explicit synchronization, no Standard Library object can be used safely from multiple threads when at least one of the threads modifies the object. C++ provides synchronization classes to allow thread-safe access to shared objects. This is discussed in Chapter 27, “Multithreaded Programming with C++.” The focus in this example is on the queue class, so here is a single-threaded example of using the PacketBuffer:
-
-\mySubsubsection{18.4.2.}{priority\_queue}
+这个类的一个实际应用场景需要使用多个线程，但如果没有显式的同步机制，当至少一个线程修改该对象时，就不能安全地从多个线程中使用标准库对象。C++提供了同步类，以允许对共享对象进行线程安全的访问。这将在第27章中进行介绍。这个例子的重点是在queue类上，所以这里是使用了PacketBuffer的单线程示例：
 
 \begin{cpp}
 class IPPacket final
@@ -111,7 +109,7 @@ int main()
 }
 \end{cpp}
 
-The output of this program is as follows:
+代码的输出如下所示:
 
 \begin{shell}
 Packet 4 dropped (queue is full).
@@ -121,40 +119,40 @@ Processing packet 3
 Queue is empty.
 \end{shell}
 
-\mySamllsection{priority\_queue Operations}
+\mySubsubsection{18.4.2.}{priority\_queue}
 
-A priority queue is a queue that keeps its elements in sorted order. Instead of a strict FIFO ordering, the element at the head of the queue at any given time is the one with the highest priority. This element could be the oldest on the queue or the most recent. If two elements have equal priority, their relative order in the queue is undefined.
+优先队列是一种保持其元素排序的队列。与严格的先进先出（FIFO）排序不同，优先队列在任何给定时间队列头部的元素是优先级最高的元素。这个元素可能是队列中最老的，也可能是最近的。如果两个元素具有相同的优先级，它们在队列中的相对顺序未定义。
 
-The priority\_queue container adapter is also defined in <queue>. Its template definition looks something like this (slightly simplified):
+priority\_queue 容器适配器也在 <queue> 中定义，其模板定义看起来像这样（略微简化）：
 
 \begin{cpp}
 template <typename T, typename Container = vector<T>,
           typename Compare = less<T>>;
 \end{cpp}
 
-It’s not as complicated as it looks. You’ve seen the first two parameters before: T is the element type stored in the priority\_queue, and Container is the underlying container on which the priority\_ queue is adapted. The priority\_queue uses vector as the default, but deque works as well. list does not work because the priority\_queue requires random access to its elements. The third parameter, Compare, is trickier. As you’ll learn more about in Chapter 19, less is a class template that supports comparison of two objects of type T with operator<. This means the priority of elements in a priority\_queue is determined according to operator<. You can customize the comparison used, but that’s a topic for Chapter 19. For now, just make sure the types stored in a priority\_queue support operator<. Of course, since C++20 it’s enough to provide operator<=> which then automatically provides operator<.
+看起来并没有那么复杂，之前已经见过前两个参数：T 是存储在 priority\_queue 中的元素类型，Container 是优先队列适配的容器。priority\_queue 默认使用 vector，也适用于 deque，但不适用于list，因为 priority\_queue 需要对其元素进行随机访问。第三个参数Compare，比较复杂，将在第 19 章中了解更多关于 less 的信息。它是一个类模板，支持使用 operator< 比较两个类型为 T 的对象。所以优先队列中元素的优先级是根据 operator< 确定，可以自定义使用的比较，但这是第 19 章的内容。现在，只需确保存储在 priority\_queue 中的类型支持 operator<。当然，从 C++20 起，提供 operator<=> 就足够了(会自动提供 operator<)。
 
 \begin{myNotic}{NOTE}
-The head element of a priority\_queue is the one with the “highest” priority; by default, this is determined according to operator< such that elements that are “less” than other elements have lower priority.
+priority\_queue 的头部元素是具有“最高”优先级的元素；默认情况下，这是根据 operator< 确定的，使得“小于”其他元素的元素具有较低的优先级。
 \end{myNotic}
 
-\mySamllsection{priority\_queue Operations}
+\mySamllsection{priority\_queue的操作}
 
-A priority\_queue provides even fewer operations than does a queue. The push(), emplace(), and push\_range() (C++23) member functions allow you to insert elements, pop() allows you to remove elements, and top() returns a reference-to-const to the head element.
+priority\_queue提供的操作比queue还要少。push()、emplace()和push\_range()（C++23）成员函数可以插入元素，pop()移除元素，而top()返回对头部元素的const引用。
 
 \begin{myWarning}{WARNING}
-top() returns a reference-to-const even when called on a non-const object, because modifying the element might change its order, which is not allowed.  A priority\_queue provides no mechanism to obtain the tail element.
+即使在对非const对象调用时，top()也返回const引用，因为修改元素可能会改变其顺序，这是不允许的。priority\_queue不提供获取尾部元素的方法。
 \end{myWarning}
 
 \begin{myWarning}{WARNING}
-pop() does not return the element popped. If you want to retain a copy, you must first retrieve it with top().
+pop()不返回弹出的元素。如果想保留一个副本，必须先用top()检索。
 \end{myWarning}
 
-Like a queue, a priority\_queue supports size(), empty(), and swap(). However, it does not provide any comparison operators.
+与queue一样，priority\_queue支持size()、empty()和swap()，但不提供比较运算符。
 
-\mySamllsection{priority\_queue Example: An Error Correlator}
+\mySamllsection{priority\_queue 示例: 错误相关器}
 
-Single failures on a system can often cause multiple errors to be generated from different components. A good error-handling system uses error correlation to process the most important errors first. You can use a priority\_queue to write a simple error correlator. Assume all error events encode their own priority. The error correlator simply sorts error events according to their priority so that the highest-priority errors are always processed first. Here are the class definitions:
+系统上的单个故障通常会导致来自不同组件的多个错误，一个好的错误处理系统使用错误相关性来首先处理最重要的错误。可以使用优先级队列来编写一个简单的错误相关器。假设所有错误事件都编码了优先级，错误相关器可以简单地根据错误的优先级对错误事件进行排序，以便总是首先处理优先级最高的错误。以下是类定义：
 
 \begin{cpp}
 // Sample Error class with just a priority and a string error description.
@@ -205,7 +203,7 @@ export class ErrorCorrelator final
 };
 \end{cpp}
 
-Here is a simple test showing how to use the ErrorCorrelator. Realistic use would require multiple threads so that one thread adds errors, while another processes them. As mentioned earlier with the queue example, this requires explicit synchronization, which is discussed in Chapter 27.
+以下是一个简单的测试，展示了如何使用ErrorCorrelator。实际应用场景需要使用多个线程，一个线程添加错误，而另一个线程处理它们。正如前面在队列示例中提到的，这需要显式同步，这将在第27章中介绍。
 
 \begin{cpp}
 ErrorCorrelator ec;
@@ -224,7 +222,7 @@ while (true) {
 }
 \end{cpp}
 
-The output of this program is as follows:
+输出为：
 
 \begin{shell}
 Unable to allocate memory! (priority 10)
@@ -235,27 +233,27 @@ Finished processing errors
 
 \mySubsubsection{18.4.3.}{stack}
 
-A stack is almost identical to a queue, except that it provides first-in, last-out (FILO) semantics, also known as last-in, first-out (LIFO), instead of FIFO. It is defined in <stack>. The template definition looks like this:
+stack与queue几乎相同，不同之处在于它提供的是先进后出（FILO）语义，也称为后进先出（LIFO），而不是FIFO。定义在<stack>中，模板定义如下所示：
 
 \begin{cpp}
 template <typename T, typename Container = deque<T>> class stack;
 \end{cpp}
 
-You can use vector, list, or deque as the underlying container for the stack.
+可以使用vector、list或deque作为stack的基础容器。
 
-\mySamllsection{stack Operations}
+\mySamllsection{stack的操作}
 
-Just as for queue, C++23 adds a constructor accepting an iterator pair, [begin, end), which constructs a stack containing the elements from the given iterator range. Also like queue, stack provides push(), emplace(), pop(), and push\_range() (C++23). The difference is that push() and push\_ range() add new elements to the top of the stack, “pushing down” all elements inserted earlier, and pop() removes the element from the top of the stack, which is the most recently inserted element. The top() member function returns a reference-to-const to the top element if called on a const object, and a reference-to-non-const if called on a non-const object.
+与deque一样，C++23为stack添加了一个接受迭代器对的构造函数[begin, end)，使用给定迭代器范围内的元素构建一个stack。也与deque类似，stack提供了push()、emplace()、pop()和push\_range()（C++23）。不同之处在于，push()和push\_range()将新元素添加到栈顶，将之前插入的所有元素“推下”，而pop()移除栈顶的元素，即最近插入的元素。top()成员函数在调用const对象时返回对栈顶元素的常量引用，在调用非常量对象时返回非常量引用。
 
 \begin{myWarning}{WARNING}
-pop() does not return the element popped. If you want to retain a copy, you must first retrieve it with top().
+pop()不会返回弹出的元素。如果想保留一个副本，必须首先使用top()检索。
 \end{myWarning}
 
-The stack supports empty(), size(), swap(), and the standard comparison operators.
+stack支持empty()、size()、swap()以及标准比较运算符。
 
-\mySamllsection{stack Example: Revised Error Correlator}
+\mySamllsection{stack示例：修改后的错误相关器}
 
-You can rewrite the previous ErrorCorrelator class so that it gives out the most recent error instead of the one with the highest priority. The only change required is to change m\_errors from a priority\_queue to a stack. With this change, the errors are distributed in LIFO order instead of priority order. Nothing in the member function definitions needs to change because the push(), pop(), top(), and empty() member functions exist on both a priority\_queue and a stack.
+可以将之前的ErrorCorrelator类重写，使其输出最近的错误，而不是优先级最高的错误。所需的唯一更改是将m\_errors从priority\_queue更改为stack。这样，错误以LIFO顺序，而不是以优先级顺序分发。因为push()、pop()、top()和empty()成员函数在priority\_queue和stack上都存在，所以成员函数的定义不需要更改。
 
 
 

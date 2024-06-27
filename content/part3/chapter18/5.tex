@@ -1,29 +1,29 @@
 
 
-The C++ Standard Library provides several different types of associative containers:
+C++标准库提供了几种不同类型的关联容器：
 
 \begin{itemize}
 \item
-Ordered associative containers: map, multimap, set, and multiset.
+有序关联容器： map, multimap, set和 multiset.
 
 \item
-Unordered associative containers: unordered\_map, unordered\_multimap, unordered\_set, and unordered\_multiset. These are also known as hash tables.
+无序关联容器：unordered\_map, unordered\_multimap, unordered\_set, 和unordered\_multiset。 这些也称为哈希表。
 
 \item
-Flat associative container adapters: flat\_map, flat\_multimap, flat\_set, and flat\_multiset. These adapt sequential containers to behave as ordered associative containers.
+平面关联容器适配器： flat\_map, flat\_multimap, flat\_set和 flat\_multiset。这些适配顺序容器以表现出有序关联容器的特性。
 
 \CXXTwentythreeLogo{-45}{20}
 \end{itemize}
 
-\mySubsubsection{18.5.1.}{Ordered Associative Containers}
+\mySubsubsection{18.5.1.}{有序关联容器}
 
-Unlike the sequential containers, the ordered associative containers do not store elements in a linear configuration. Instead, they provide a mapping of keys to values. They generally offer insertion, deletion, and lookup times that are equivalent to each other.
+与顺序容器不同，有序关联容器不将元素存储在线性配置中。相反，它们提供键到值的映射，插入、删除和查找的时间相等。
 
-There are four ordered associative containers provided by the Standard Library: map, multimap, set, and multiset. Each of these containers stores its elements in a sorted, tree-like data structure.
+标准库提供了四种有序关联容器：map、multimap、set和multiset。这些容器将元素存储在有序、树状的数据结构中。
 
-\mySamllsection{The pair Utility Class}
+\mySamllsection{pair 工具类}
 
-Before delving deeper into the ordered associative containers, let’s revisit the pair class template briefly introduced in Chapter 1. It is defined in <utility> and groups together two values of possibly different types. The values are accessible through the first and second public data members. All comparison operators are supported and compare both the first and second values. Here are some examples:
+深入研究有序关联容器之前，简要回顾一下在第1章中介绍的pair类模板。其定义在<utility>中，并将两个可能不同类型的值组合在一起。这些值可以通过first和second公共数据成员访问，所有比较运算符都得到支持，并且可同时比较first和second值。以下是几个示例：
 
 \begin{cpp}
 // Two-argument constructor and default constructor
@@ -52,20 +52,20 @@ if (myOtherPair == myThirdPair) {
 }
 \end{cpp}
 
-The output is as follows:
+输出为：
 
 \begin{shell}
 myPair is less than myOtherPair
 myOtherPair is equal to myThirdPair
 \end{shell}
 
-With class template argument deduction, you can omit the template type arguments. Here is an example. Note the use of the standard string literal s.
+使用类模板参数推导（CTAD），可以省略模板类型参数。这里有一个例子。注意对标准字符串字面量s的使用。
 
 \begin{cpp}
 pair myPair { "hello"s, 5 }; // Type is pair<string, int>.
 \end{cpp}
 
-Before C++17 introduced support for CTAD, an std::make\_pair() utility function template could be used to construct a pair from two values. The following are three ways to construct a pair of an int and a double:
+C++17引入对CTAD的支持之前，可以使用std::make\_pair()工具函数模板从两个值构造一个pair。以下是构造一个int和double的pair的三种方式：
 
 \begin{cpp}
 pair<int, double> pair1 { make_pair(5, 10.10) };
@@ -75,17 +75,17 @@ pair pair3 { 5, 10.10 }; // CTAD
 
 \mySamllsection{map}
 
-A map, defined in <map>, stores key/value pairs instead of just single values. Insertion, lookup, and deletion are all based on the key; the value is just “along for the ride.” The term map comes from the conceptual understanding that the container “maps” keys to values.
+map，定义在< map >中，存储键/值对而不是单个值。插入、查找和删除都基于键；值只是“顺便携带”
 
-A map keeps elements in sorted order, based on the keys, so that insertion, deletion, and lookup all take logarithmic time. Because of the order, when you enumerate the elements, they come out in the ordering imposed by the type’s operator< or a user-defined comparator. It is usually implemented as some form of balanced tree, such as a red-black tree. However, the tree structure is not exposed to the client.
+map根据键保持元素排序，因此插入、删除和查找的时间复杂度都是对数。由于顺序，当枚举元素时，会按照类型operator<或按用户定义比较器的顺序出现。它通常实现为某种形式的平衡树，如红黑树，但树结构对客户端不可见。
 
-You should use a map whenever you need to store and retrieve elements based on a “key” and you would like to have them in a certain order.
+当需要基于“键”存储和检索元素，并且希望按特定顺序排列时，应该使用map。
 
-\mySamllsection{Constructing maps}
+\mySamllsection{构造 map}
 
-The map class template takes four types: the key type, the value type, the comparator type, and the allocator type. As always, the allocator is ignored in this chapter. The comparator is similar to the comparator for a priority\_queue described earlier. It allows you to change the default comparator. In this chapter, only the default less comparator is used. When using the default, make sure that your keys all respond to operator< appropriately. If you’re interested in further detail, Chapter 19 explains how to write your own comparators.
+map类模板接受四种类型：键类型、值类型、比较器类型和分配器类型，本章忽略分配器。比较器与前面描述的priority\_queue的比较器类似，允许更改默认比较器。在本章中，只使用默认的less比较器。使用默认比较器时，请确保所有键都支持operator<。如果对更多细节感兴趣，第19章将解释如何自定义比较器。
 
-If you ignore the comparator and allocator parameters, constructing a map is just like constructing a vector or a list, except that you specify the key and value types separately in the template instantiation. For example, the following code constructs a map that uses ints as the key and objects of the Data class as values:
+如果忽略比较器和分配器参数，构造map就像构造vector或list一样，除了在模板实例化中分别指定键和值类型。例如，以下代码构造了一个使用int作为键和Data类对象作为值的map：
 
 \begin{cpp}
 class Data final
@@ -101,9 +101,9 @@ class Data final
 map<int, Data> dataMap;
 \end{cpp}
 
-Internally, dataMap stores a pair<int, Data> for each element in the map.
+内部，dataMap为map中的每个元素存储一个pair<int, Data>。
 
-A map also supports uniform initialization. The following map internally stores instances of pair<string, int>:
+map也支持统一初始化。以下map在内部存储pair<string, int>的实例：
 
 \begin{cpp}
 map<string, int> m {
@@ -111,7 +111,7 @@ map<string, int> m {
 };
 \end{cpp}
 
-Class template argument deduction does not work as usual. For example, the following does not compile:
+类模板参数推导不按预期工作，以下代码无法编译：
 
 \begin{cpp}
 map m {
@@ -119,7 +119,7 @@ map m {
 };
 \end{cpp}
 
-This does not work because the compiler cannot deduce pair<string, int> from, for example, \{"Marc G."s, 12\}. If you really want, you can write the following (note the s suffix for the string literals!):
+这不起作用，因为编译器无法从\{"Marc G."s, 12\}推导出pair<string, int>。如果真的想这样做，可以编写以下内容（注意字符串字面量的s后缀！）：
 
 \begin{cpp}
 map m {
@@ -129,27 +129,27 @@ map m {
 
 \CXXTwentythreeLogo{-40}{-50}
 
-\mySamllsection{Formatting and Printing Maps}
+\mySamllsection{格式化和打印Map}
 
-Just as for vectors, std::format() and the print() functions can be used to format and print entire maps with a single statement. For vectors, the output is surrounded by square brackets, and each element is separated with a comma. For maps, the output is slightly different: the output is surrounded by curly brackets, each key/value pair is separated by a comma, and a colon separates the key and the value. For example, printing the map from the previous section, m, gives the following output:
+与vector一样，std::format()和print()函数可以用来格式化和打印整个map，只需一条语句。对于vector，输出用方括号括起来，每个元素之间用逗号分隔。对于map，输出略有不同：输出用花括号括起来，每个键/值对之间用逗号分隔，键和值之间用冒号分隔。例如，打印上一节中的map m，输出为：
 
 \begin{cpp}
 {"Marc G.": 12, "Peter V.W.": 56, "Warren B.": 34}
 \end{cpp}
 
-\mySamllsection{Inserting Elements}
+\mySamllsection{插入元素}
 
-Inserting an element into sequential containers such as vector and list always requires you to specify the position at which the element is to be added. A map, along with the other ordered associative containers, is different. The map’s internal implementation determines the position in which to store the new element; you need only to supply the key and the value.
+将元素插入顺序容器，如vector和list，需要指定元素要添加的位置。与map以及其他有序关联容器不同，其内部实现决定了新元素应存储的位置，只需提供键和值。
 
 \begin{myNotic}{NOTE}
-map and the other ordered associative containers do provide a version of insert() that takes an iterator position. However, that position is only a “hint” to the container as to the correct position. The container is not required to insert the element at that position.
+map和其他有序关联容器确实提供了一个带有迭代器位置的insert()版本。那个位置只是对容器的一个“提示”，即正确位置。容器不必将元素插入那个位置。
 \end{myNotic}
 
-When inserting elements, it is important to keep in mind that maps require unique keys: every element in the map must have a different key. If you want to support multiple elements with the same key, you have two options: either you can use a map and store another container such as a vector as the value for a key or you can use multimaps, described later.
+在插入元素时，重要的是要注意map需要唯一的键：map中的每个元素都必须有不同的键。如果想支持具有相同键的多个元素，有两个选择：要么使用map，并将另一个容器（如vector）作为键的值存储，或者使用稍后介绍的multimap。
 
-\mySamllsection{The insert() Member Function}
+\mySamllsection{insert()成员函数}
 
-The insert() member function can be used to add elements to a map and has the advantage of allowing you to detect whether a key already exists. You must specify the key/value pair as a pair object or as an initializer\_list. The return type of the basic form of insert() is a pair of an iterator and a bool. The reason for the complicated return type is that insert() does not overwrite a value if one already exists with the specified key. The bool element of the returned pair specifies whether the insert() actually inserted the new key/value pair. The iterator refers to the element in the map with the specified key (with a new or old value, depending on whether the insert succeeded or failed). map iterators are discussed in more detail in the next section. Continuing the map example from the previous section, you can use insert() as follows:
+insert()成员函数可用于向map添加元素，其优点是可以检测键是否已经存在。必须将键/值对作为pair对象或作为初始化列表指定，insert()基本形式的返回类型是一个包含迭代器和布尔值的pair。返回类型复杂的原因是，insert()不会覆盖已经存在指定键的值。返回的pair中的布尔值元素指明insert()是否实际插入了新的键/值对，迭代器指向具有指定键的map中的元素（根据插入是否成功或失败，是新的还是旧的值）。map迭代器的详细介绍将在下一节中进行。继续上一节的map示例，可以这样使用insert()：
 
 \begin{cpp}
 map<int, Data> dataMap;
@@ -163,22 +163,22 @@ if (ret.second) { println("Insert succeeded!"); }
 else { println("Insert failed!"); }
 \end{cpp}
 
-The type of the ret variable is a pair as follows:
+ret变量的类型为：
 
 \begin{cpp}
 pair<map<int, Data>::iterator, bool> ret;
 \end{cpp}
 
-The first element of the pair is a map iterator for a map with keys of type int and values of type Data. The second element of the pair is a Boolean value.
+pair的第一个元素是具有int类型键和Data类型值的map的迭代器，pair的第二个元素是一个布尔值。
 
-The output of the program is as follows:
+程序的输出如下：
 
 \begin{shell}
 Insert succeeded!
 Insert failed!
 \end{shell}
 
-With if statement initializers, inserting the data into the map and checking the result can be done with a single statement as follows:
+使用if语句初始化器，可以在单个语句中将数据插入map并检查结果：
 
 \begin{cpp}
 if (auto result { dataMap.insert({ 1, Data { 4 } }) }; result.second) {
@@ -188,7 +188,7 @@ if (auto result { dataMap.insert({ 1, Data { 4 } }) }; result.second) {
 }
 \end{cpp}
 
-This can further be combined with structured bindings:
+这还可以与结构化绑定一起使用：
 
 \begin{cpp}
 if (auto [iter, success] { dataMap.insert({ 1, Data { 4 } }) }; success) {
@@ -198,9 +198,9 @@ if (auto [iter, success] { dataMap.insert({ 1, Data { 4 } }) }; success) {
 }
 \end{cpp}
 
-\mySamllsection{The insert\_or\_assign() Member Function}
+\mySamllsection{The insert\_or\_assign()成员函数}
 
-insert\_or\_assign() has a similar return type as insert(). However, if an element with the given key already exists, insert\_or\_assign() overwrites the old value with the new value, while insert() does not overwrite the old value in that case. Another difference with insert() is that insert\_or\_assign() has two separate parameters: the key and the value. Here is an example:
+insert\_or\_assign()的返回类型与insert()类似，但如果已经存在具有给定键的元素，insert\_or\_assign()将用新值覆盖旧值，而insert()在这种情况下不会覆盖旧值。insert\_or\_assign()与insert()的另一个区别在于，它有两个独立的参数：键和值。以下是使用insert\_or\_assign()的示例：
 
 \begin{cpp}
 auto ret { dataMap.insert_or_assign(1, Data { 7 }) };
@@ -210,9 +210,9 @@ else { println("Overwritten."); }
 
 \CXXTwentythreeLogo{-40}{-50}
 
-\mySamllsection{The insert\_range() Member Function}
+\mySamllsection{insert\_range()成员函数}
 
-C++23 adds insert\_range() for map, which can be used to insert all elements of a given range to the map, and returns an iterator to the first element that was added. Here is an example:
+C++23为map添加了insert\_range()，将给定范围内的所有元素插入到map中，并返回添加的第一个元素的迭代器。以下是使用insert\_range()的示例：
 
 \begin{cpp}
 vector<pair<int, Data>> moreData { {2, Data{22}}, {3, Data{33}}, {4, Data{44}} };
@@ -221,7 +221,7 @@ dataMap.insert_range(moreData);
 
 \mySamllsection{operator[]}
 
-Another member function to insert elements into a map is through the overloaded operator[]. The difference is mainly in the syntax: you specify the key and value separately. Additionally, operator[] always succeeds. If no value with the given key exists, it creates a new element with that key and value. If an element with the key already exists, operator[] replaces the value with the newly specified value. Here is part of the previous example using operator[] instead of insert():
+向map中插入元素的另一种成员函数是通过重载的operator[]。主要区别在于语法：分别指定键和值。此外，operator[]总是成功。如果没有与给定键对应的值，将创建一个具有该键和值的新元素。如果已经有具有该键的元素，operator[]将用新指定的值替换该值。以下是使用operator[]代替insert()的示例的一部分：
 
 \begin{cpp}
 map<int, Data> dataMap;
@@ -229,9 +229,9 @@ dataMap[1] = Data { 4 };
 dataMap[1] = Data { 6 }; // Replaces the element with key 1
 \end{cpp}
 
-There is, however, one major caveat to operator[]: it always constructs a new value object, even if it doesn’t need to use it. Thus, it requires a default constructor for the element values and can be less efficient than insert().
+然而，operator[]有一个主要缺点：总是构造一个新的值对象，即使不需要使用。因此，需要元素的默认构造函数，并且可能不如insert()高效。
 
-The fact that operator[] creates a new element in a map if the requested element does not already exist means that this operator is not marked as const. This sounds obvious, but might sometimes look counterintuitive. For example, suppose you have the following function:
+由于operator[]在请求的元素不存在时在map中创建新元素，所以这个运算符没有标记为const。例如，有以下函数：
 
 \begin{cpp}
 void func(const map<int, int>& m)
@@ -240,15 +240,15 @@ void func(const map<int, int>& m)
 }
 \end{cpp}
 
-This fails to compile, even though you appear to be just reading the value m[1]. It fails because the parameter m is a reference-to-const to a map, and operator[] is not marked as const. In such cases, you should instead use the find() or at() member function described in the section “Looking Up Elements.”
+这无法编译，即使只是想读取m[1]的值。这是因为参数m是对map的const引用，而operator[]没有标记为const。这种情况下，应该使用find()或at()成员函数。
 
-\mySamllsection{Emplace Member Functions}
+\mySamllsection{Emplace成员函数}
 
-A map supports emplace() and emplace\_hint() to construct elements in-place, similar to the emplace member functions of a vector. There is also a try\_emplace() member function that inserts an element in-place if the given key does not exist yet, or does nothing if the key already exists in the map.
+map支持emplace()和emplace\_hint()，用于在原地构造元素，类似于vector的emplace成员函数。还有一个try\_emplace()成员函数，如果给定的键不存在，则在原地插入元素，如果键已经存在于map中，则不做任何事情。
 
-\mySamllsection{map Iterators}
+\mySamllsection{map迭代器}
 
-map iterators work similarly to the iterators on the sequential containers. The major difference is that the iterators refer to key/value pairs instead of just the values. To access the value, you must retrieve the second field of the pair object. map iterators are bidirectional, meaning you can traverse them in both directions. Here is how you can iterate through the map from the previous example:
+map迭代器的工作方式与顺序容器上的迭代器类似。主要区别在于，迭代器指向键/值对，而不仅仅是值。要访问值，必须检索pair对象的第二字段。map迭代器是双向的，所以可以双向遍历。以下是遍历map的方式：
 
 \begin{cpp}
 for (auto iter { cbegin(dataMap) }; iter != cend(dataMap); ++iter) {
@@ -256,21 +256,21 @@ for (auto iter { cbegin(dataMap) }; iter != cend(dataMap); ++iter) {
 }
 \end{cpp}
 
-Take another look at the expression used to access the value:
+再看看用于访问值的表达式：
 
 \begin{cpp}
 iter->second.getValue()
 \end{cpp}
 
-iter refers to a key/value pair, so you can use the -> operator to access the second field of that pair, which is a Data object. You can then call the getValue() member function on that Data object.
+iter指向一个键/值对，因此可以使用->运算符访问该对的第二字段，这是一个Data对象。然后，可以调用该Data对象的getValue()成员函数。
 
-Note that the following code is functionally equivalent:
+请注意，以下代码是功能等效的：
 
 \begin{cpp}
 (*iter).second.getValue()
 \end{cpp}
 
-Using a range-based for loop, the loop can be written more readable and less error prone as follows:
+使用基于范围的for循环，循环可以写得更具有可读性并减少错误：
 
 \begin{cpp}
 for (const auto& p : dataMap) {
@@ -278,7 +278,7 @@ for (const auto& p : dataMap) {
 }
 \end{cpp}
 
-It can be implemented even more elegantly using a combination of a range-based for loop and structured bindings:
+可以使用基于范围的for循环和结构化绑定更优雅地实现元素修改：
 
 \begin{cpp}
 for (const auto& [key, data] : dataMap) {
@@ -287,12 +287,12 @@ for (const auto& [key, data] : dataMap) {
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-You can modify element values through non-const iterators, but the compiler will generate an error if you try to modify the key of an element, even through a non-const iterator, because it would destroy the sorted order of the elements in the map.
+可以通过非常量迭代器修改元素值，但如果尝试通过非常量迭代器修改元素的键，编译器将生成错误，这将破坏map中元素的排序顺序。
 \end{myWarning}
 
-\mySamllsection{Looking Up Elements}
+\mySamllsection{查找元素}
 
-A map provides logarithmic lookup of elements based on a supplied key. If you already know that an element with a given key is in a map, the simplest way to look it up is through operator[] as long as you call it on a non-const map or a reference-to-non-const map. The nice thing about operator[] is that it returns a reference to the value that you can use and modify directly, without worrying about pulling the value out of a pair object. Here is an extension of the previous example to call the setValue() member function on the Data object value with key 1:
+map提供基于键的对数查找元素。如果已经知道给定键的元素在map中，最简单的方法是通过operator[]进行查找，只要在非常量map或对非常量map的引用上调用即可。operator[]的好处是返回一个引用，可以直接使用和修改，而不必担心从pair对象中提取值。以下是对前一个示例的扩展，以调用具有键1的Data对象值的setValue()成员函数：
 
 \begin{cpp}
 map<int, Data> dataMap;
@@ -301,17 +301,17 @@ dataMap[1] = Data { 6 };
 dataMap[1].setValue(100);
 \end{cpp}
 
-As an alternative, map provides a find() member function that returns an iterator referring to the key/value pair with the requested key, if it exists, or the end() iterator if the key is not found in the map. This can be useful in the following cases:
+作为替代，map提供了find()成员函数，其返回一个迭代器，指向具有请求键的键/值对，如果存在，或者如果键在map中找不到，则返回end()迭代器。这对于以下情况很有用：
 
 \begin{itemize}
 \item
-If you don’t know whether the element exists, you may not want to use operator[], because it will insert a new element with that key if it doesn’t find one already.
+如果不知道元素是否存在，可能不想使用operator[]，因为如果它找不到已存在的键，会插入一个新的元素。
 
 \item
-If you have a const or a reference-to-const map, in which case you cannot use operator[].
+如果有一个常量或对常量map的引用，这种情况下不能使用operator[]。
 \end{itemize}
 
-Here is an example using find() to perform the same modification to the Data object with key 1:
+以下是一个使用find()执行对键1的Data对象修改的示例：
 
 \begin{cpp}
 auto it { dataMap.find(1) };
@@ -320,25 +320,25 @@ if (it != end(dataMap)) {
 }
 \end{cpp}
 
-As you can see, using find() is a bit clumsier, but it’s sometimes necessary.
+使用find()稍微有些笨拙，但在某些情况下是必要的。
 
-Alternatively, you can use the at() member function, which, just as operator[], returns a reference to the value in the map with the requested key, if it exists. It throws an out\_of\_range exception if the requested key isn’t found in the map. The at() member function works fine on a const or a reference-to-const map. For example:
+或者，可以使用at()成员函数，其与operator[]一样。如果存在，则返回对map中具有请求键的值的引用。如果请求的键在map中找不到，会抛出out\_of\_range异常。at()成员函数在常量或对常量map上正常工作。例如：
 
 \begin{cpp}
 dataMap.at(1).setValue(200);
 \end{cpp}
 
-If you only want to know whether an element with a certain key is in a map, you can use the count() member function. It returns the number of elements in a map with a given key. For maps, the result will always be 0 or 1 because there can be no elements with duplicate keys.
+如果只想知道具有特定键的元素是否在map中，可以使用count()成员函数，返回与给定键在map中的元素数量。对于map，结果将始终为0或1，因为不能有具有重复键的元素。
 
-Additionally, all associative containers (ordered, unordered, and flat) have a member function called contains(). It returns true if a given key exists in a container, false otherwise. With this, it’s no longer necessary to use count() to figure out whether a certain key is in an associative container. Here is an example:
+此外，所有关联容器（有序、无序和扁平）都有一个名为contains()的成员函数。如果给定的键存在于容器中，返回true，否则返回false。有了这个，不再需要使用count()来确定关联容器中是否包含某个键。以下是包含键1的示例：
 
 \begin{cpp}
 auto isKeyInMap { dataMap.contains(1) };
 \end{cpp}
 
-\mySamllsection{Removing Elements}
+\mySamllsection{删除元素}
 
-A map allows you to remove an element at a specific iterator position or to remove all elements in a given iterator range, in amortized constant and logarithmic time, respectively. From the client perspective, these two erase() member functions are equivalent to those in the sequential containers. A great feature of a map, however, is that it also provides a version of erase() to remove an element matching a key. Here is an example:
+map可以在特定迭代器位置删除一个元素，或在给定迭代器范围内删除所有元素，分别以常数时间和对数时间完成。从客户端的角度来看，这两个erase()成员函数与顺序容器中的erase()成员函数等效。然而，map的一个伟大特性是，还提供了一个erase()，用于删除匹配特定键的元素。以下是使用erase()的示例：
 
 \begin{cpp}
 map<int, Data> dataMap;
@@ -348,22 +348,22 @@ dataMap.erase(1);
 println("There are {} elements with key 1.", dataMap.count(1));
 \end{cpp}
 
-The output is as follows:
+输出为：
 
 \begin{shell}
 There are 1 elements with key 1.
 There are 0 elements with key 1.
 \end{shell}
 
-\mySamllsection{Nodes}
+\mySamllsection{节点}
 
-All the ordered and unordered associative containers are node-based data structures. The Standard Library provides direct access to nodes in the form of node handles. The exact type is unspecified, but each container has a type alias called node\_type that specifies the type of a node handle for that container. A node handle can only be moved and is the owner of the element stored in a node. It provides read/write access to both the key and the value.
+所有有序和无序关联容器都是基于节点的数据结构。标准库提供了对节点的直接访问，形式为节点句柄。确切类型未指定，但每个容器都有一个类型别名node\_type，指定了该容器的节点句柄类型。节点句柄只能移动，并且是存储在节点中的元素的拥有者，其提供了对键和值的读写访问。
 
-Nodes can be extracted from an associative container as a node handle using the extract() member function, based either on a given iterator position or on a given key. Extracting a node from a container removes it from the container, because the returned node handle is the sole owner of the extracted element.
+可以使用extract()成员函数基于给定的迭代器位置，或给定的键从关联容器中提取节点，作为节点句柄。从容器中提取节点会将其从容器中删除，因为返回的节点句柄是提取元素的唯一拥有者。
 
-New insert() overloads are provided that allow you to insert a node handle into a container.
+提供了新的insert()重载，允许节点句柄插入到容器中。
 
-By using extract() to extract node handles and using insert() to insert node handles, you can effectively transfer data from one associative container to another one without any copying or moving involved. You can even transfer nodes from a map to a multimap and from a set to a multiset. Continuing with the example from the previous section, the following code snippet transfers the node with key 1 from dataMap to a second map called dataMap2:
+通过使用extract()提取节点句柄和使用insert()插入节点句柄，可以有效地将数据从一个关联容器转移到另一个关联容器，而无需复制或移动。甚至可以将节点从map转移到multimap，并将节点从set转移到multiset。继续使用前面部分的示例，以下代码片段将dataMap中键为1的节点，转移到一个名为dataMap2的第二个map中：
 
 \begin{cpp}
 map<int, Data> dataMap2;
@@ -371,13 +371,13 @@ auto extractedNode { dataMap.extract(1) };
 dataMap2.insert(move(extractedNode));
 \end{cpp}
 
-The last two lines can be combined into one:
+最后两行可以合并为一行：
 
 \begin{cpp}
 dataMap2.insert(dataMap.extract(1));
 \end{cpp}
 
-One additional operation is available to move all nodes from one associative container to another one: merge(). Nodes that cannot be moved because they would cause, for example, duplicates in a target container that does not allow duplicates, are left in the source container. Here is an example:
+对移动所有节点从一个关联容器到另一个容器的一个操作是merge()。如果移动节点会导致目标容器中出现重复（目标容器不允许重复），则源容器中的节点将保持不变。以下是使用merge()的示例：
 
 \begin{cpp}
 map<int, int> src { {1, 11}, {2, 22} };
@@ -387,11 +387,11 @@ println("src = {}", src); // src = {2: 22}
 println("dst = {}", dst); // dst = {1: 11, 2: 22, 3: 33, 4: 44, 5: 55}
 \end{cpp}
 
-After the merge operation, src still contains one element, \{2: 22\}, because the destination already contains such an element, so it cannot be moved.
+merge操作后，src仍然包含一个元素\{2: 22\}，因为目标容器已经包含这样的元素，所以无法移动。
 
-\mySamllsection{map Example: Bank Account}
+\mySamllsection{map 示例: 银行账户}
 
-You can implement a simple bank account database using a map. A common pattern is for the key to be one field of a class or struct that is stored in a map. In this case, the key is the account number. Here are simple BankAccount and BankDB classes:
+可以通过使用map来实现一个简单的银行账户数据库。一个常见的模式是将键设置为一个类或结构体的一个字段，键是账户号码。下面是简单的BankAccount和BankDB类：
 
 \begin{cpp}
 export class BankAccount final
@@ -434,7 +434,7 @@ export class BankDB final
 };
 \end{cpp}
 
-Here are the implementations of the BankDB member functions, with comments explaining the code:
+以下是BankDB成员函数的实现:
 
 \begin{cpp}
 bool BankDB::addAccount(const BankAccount& account)
@@ -486,7 +486,7 @@ void BankDB::mergeDatabase(BankDB& db)
 }
 \end{cpp}
 
-You can test the BankDB class with the following code:
+可以用下面的代码测试BankDB类:
 
 \begin{cpp}
 BankDB db;
@@ -507,7 +507,7 @@ try {
 }
 \end{cpp}
 
-The output is as follows:
+输出为:
 
 \begin{shell}
 Found account 100

@@ -1,9 +1,9 @@
 
-The C++ Standard Library provides two sequential views: std::span and std::mdspan. The latter is new in C++23. A span provides a one-dimensional, non-owning view over a contiguous sequence of data. An mdspan generalizes this concept and allows the creation of multidimensional, non-owning views over a contiguous sequence of data.
+C++标准库提供了两种顺序视图：std::span和std::mdspan，后者是C++23中新增的。span提供了一个一维的、非拥有的视图，用于连续数据序列。mdspan泛化了这一概念，允许创建多维的、非拥有的视图，用于连续数据序列。
 
 \mySubsubsection{18.3.1.}{span}
 
-Suppose you have this function to print the contents of a vector:
+假设有一个用于打印vector内容的函数：
 
 \begin{cpp}
 void print(const vector<int>& values)
@@ -13,7 +13,7 @@ void print(const vector<int>& values)
 }
 \end{cpp}
 
-Suppose further that you also want to print the contents of C-style arrays. One option is to overload the print() function to accept a pointer to the first element of the array, and the number of elements to print:
+假设还希望打印C风格数组的内容。一个选择是重载print()函数，以接受指向数组第一个元素的指针，以及要打印的元素数量：
 
 \begin{cpp}
 void print(const int values[], size_t count)
@@ -23,9 +23,9 @@ void print(const int values[], size_t count)
 }
 \end{cpp}
 
-If you also want to print std::arrays, you could provide a third overload, but what would the function parameter type be? For an std::array, you have to specify the type and the number of elements in the array as template parameters. You see, it’s getting complicated.
+如果希望打印std::array，可以提供第三个重载，但函数参数类型应该是什么？对于std::array，必须将数组的类型和元素数量作为模板参数指定，这就变得复杂了。
 
-std::span, defined in <span>, comes to the rescue here, as it allows you to write a single function that works with vectors, C-style arrays, and std::arrays of any size. Here is a single implementation of print() using span:
+std::span，定义在< span >中，在这里提供了帮助，可以编写一个使用span的单一函数，该函数可以与任何std::vector、C风格数组和std::array一起工作。使用span的print()函数是实现为：
 
 \begin{cpp}
 void print(span<int> values)
@@ -35,15 +35,15 @@ void print(span<int> values)
 }
 \end{cpp}
 
-Note that, just as with string\_view from Chapter 2, a span is cheap to copy; it basically just contains a pointer to the first element in a sequence and a number of elements. A span never copies data! As such, it is usually passed by value.
+注意，与第2章中的string\_view一样，span的复制成本很低；基本上只包含指向序列中第一个元素的指针和元素数量。span永远不会复制数据，所以通常按值传递。
 
-There are several constructors for creating a span. For example, one can be created to include all elements of a given vector, std::array, or C-style array. A span can also be created to include only part of a container, by passing the address of the first element and the number of elements you want to include in the span.
+创建span有几个构造函数，可以创建一个span,包含给定std::vector、std::array或C风格数组所有元素。还可以通过传递第一个元素的地址和希望在span中包含的元素数量，来创建只包含容器部分内容的span。
 
-A subview can be created from an existing span using the subspan() member function. Its first argument is the offset into the span, and the second argument is the number of elements to include in the subview. There are also two additional member functions called first() and last() returning subviews of a span containing the first n elements or the last n elements respectively.
+可以使用subspan()成员函数从现有span创建子视图，其第一个参数是span中的偏移量，第二个参数是要包含在子视图中的元素数量。还有两个成员函数first()和last()，分别返回包含span的前n个元素或最后n个元素的子视图。
 
-A span has a couple of member functions that are similar to vector and array: begin(), end(), rbegin(), rend(), front(), back(), operator[], data(), size(), and empty().
+span有几个与vector和array相似的成员函数：begin()、end()、rbegin()、rend()、front()、back()、operator[]、data()、size()和empty()。
 
-The following code snippet demonstrates a few ways to call the print(span) function:
+以下代码段展示了调用print(span)函数的几种方式：
 
 \begin{cpp}
 vector v { 11, 22, 33, 44, 55, 66 };
@@ -69,7 +69,7 @@ print(carr); // The entire C-style array.
 print({ carr + 2, 3 }); // A subview of the C-style array.
 \end{cpp}
 
-The output is as follows:
+输出如下所示：
 
 \begin{shell}
 11 22 33 44 55 66
@@ -82,7 +82,7 @@ The output is as follows:
 7 6 5
 \end{shell}
 
-Unlike string\_view that provides a read-only view of a string, a span can provide read/write access to the underlying elements. Remember that a span just contains a pointer to the first element in a sequence and the number of elements; that is, a span never copies data! As such, modifying an element in a span actually modifies the element in the underlying sequence. If this is not desired, a span of const elements can be created. For example, the print() function has no reason to modify any of the elements in a given span. We can prevent such modifications as follows:
+与提供字符串只读视图的string\_view不同，span可以提供对底层元素的读写访问。请记住，span只包含指向序列中第一个元素的指针和元素数量，所以span永远不会复制数据！因此，修改span中的元素实际上会修改底层序列中的元素。如果不希望这样，可以创建具有const元素的span。例如，print()函数没有理由修改给定span中的任何元素，可以按以下方式防止此类修改：
 
 \begin{cpp}
 void print(span<const int> values)
@@ -93,40 +93,40 @@ void print(span<const int> values)
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-When writing a function accepting a const vector<T>\&, consider accepting a span<const T> instead, so the function can work with views and subviews of data sequences coming from vectors, arrays, C-style arrays and more. If the function accepts a vector<T>\&, consider accepting a span<T>, unless the function needs to add or remove elements from the vector.
+编写接受const vector<T>\&的函数时，可以考虑改为接受span<const T>，这样函数就可以处理来自vector、array、C风格数组等数据序列的视图和子视图。如果函数接受vector<T>\&，除非函数需要向vector中添加或删除元素，否则可以考虑使用span<T>。
 \end{myNotic}
 
 \mySubsubsection{18.3.2.}{mdspan}
 
 \CXXTwentythreeLogo{-40}{15}
 
-std::mdspan, defined in <mdspan>, is similar to std::span but allows you to create multidimensional views over a contiguous sequence of data. Just as span, an mdspan doesn’t own the data, so it is cheap to copy. An mdspan has four template type parameters:
+std::mdspan，定义在 <mdspan> 中，与 std::span 类似，允许创建一个连续数据序列的多维视图。与 span 一样，mdspan 不拥有数据，因此复制成本低廉。mdspan 有四个模板类型参数：
 
 \begin{itemize}
 \item
-ElementType: The type of the underlying elements.
+ElementType: 底层元素的类型。
 
 \item
-Extents: The number of dimensions and their size, a specialization of std::extents.
+Extents: 维度的数量及其大小，是 std::extent 的一个特化。
 
 \item
-LayoutPolicy: A policy specifying how to convert a multidimensional index to a one-dimensional index into the underlying contiguous sequence of data. You can implement whichever layout policy you need, such as tiled layout, Hilbert curve, and so on. The following standard policies are available:
+LayoutPolicy: 策略，指定如何将多维索引转换为一个一维索引，以便访问底层连续数据序列。可以实现需要的布局策略，如平铺布局、希尔伯特曲线等。以下是一些标准策略：
 \begin{itemize}
 \item
-layout\_right: Row-major multidimensional array layout, where the rightmost extent has stride 1. This is the default policy.
+layout\_right: 行主序多维数组布局，其中最右边的范围具有跨度 1。这是默认策略。
 
 \item
-layout\_left: Column-major multidimensional array layout, where the leftmost extent has stride 1.
+layout\_left: 列主序多维数组布局，其中最左边的范围具有跨度 1。
 
 \item
-layout\_stride: A layout mapping with user-defined strides.
+layout\_stride: 具有用户定义跨度的布局映射。
 \end{itemize}
 
 \item
-AccessorPolicy: A policy specifying how to convert the one-dimensional index into the underlying contiguous sequence of data into a reference to the actual element at that location. The default is std::default\_accessor.
+AccessorPolicy: 策略，指定如何将一维索引转换为对底层连续数据序列中实际元素的引用。默认值为 std::default\_accessor。
 \end{itemize}
 
-There are numerous constructors available. One of them is a constructor accepting a pointer to the contiguous sequence of data as the first parameter, followed by one or more dimension extents. Such extents passed as constructor arguments are called dynamic extents. Data can be accessed using a multidimensional operator[]. The size() member function returns the number of elements in an mdspan, and empty() returns true if an mdspan is empty. The stride(n) member function can be used to query the stride of dimension n. The size of the dimensions can be queried using the extents() member function. It returns an std::extents instance on which you can call extent(n) to query the size of dimension n. Here is an example:
+mdspan 有许多构造函数可用。其中一个是接受指向连续数据序列的指针作为第一个参数的构造函数，后跟一个或多个维度的大小，这些作为构造函数参数传递的大小称为动态大小。可以使用多维 operator[] 访问数据。size() 成员函数返回 mdspan 中的元素数量，而 empty() 在 mdspan 为空时返回 true。stride(n) 成员函数可用于查询第 n 维的跨度。可以使用 extents() 成员函数查询维度的大小。其返回一个 std::extent 实例，可以用 extent(n) 来查询第 n 维的大小。以下是一个示例：
 
 \begin{cpp}
 template <typename T> void print2Dmdspan(const T& mdSpan)
@@ -149,33 +149,33 @@ int main()
 }
 \end{cpp}
 
-The output is as follows:
+输出为：
 
 \begin{shell}
 1 2 3 4
 5 6 7 8
 \end{shell}
 
-This code uses the default row-major layout policy. The following code snippet uses the columnmajor layout policy instead. Because the layout policy is the third template type parameter, you have to specify the first and second template type parameters as well. Instead of passing the size of each dimension as an argument to the constructor, the code now passes an std::extents as the second template type parameter:
+此代码使用默认的行主序布局策略。以下代码段改为使用列主序布局策略，因为布局策略是第三个模板类型参数，所以还必须指定前两个模板类型参数。代码不再将每个维度的大小作为参数传递给构造函数，而是将一个 std::extent 作为第二个模板类型参数传递：
 
 \begin{cpp}
 mdspan<int, extents<int, 2, 4>, layout_left> data2D { data.data() };
 \end{cpp}
 
-The output now is as follows:
+输出现在如下所示：
 
 \begin{shell}
 1 3 5 7
 2 4 6 8
 \end{shell}
 
-This mdspan definition specifies the extent of all dimensions as compile-time constants, i.e., static extents. It is also possible to combine static and dynamic extents. The following example specifies the first dimension as a compile-time constant, and the second as a dynamic extent. You then must pass the size of all dynamic extents as arguments to the constructor.
+此 mdspan 定义将所有维度的大小指定为编译时常量，即静态大小。也可以将静态大小和动态大小结合使用。以下示例将第一个维度指定为编译时常量，第二个维度为动态大小，但必须将所有动态大小的值作为参数传递给构造函数。
 
 \begin{cpp}
 mdspan<int, extents<int, 2, dynamic_extent>> data2D { data.data(), 4 };
 \end{cpp}
 
-The output is again as follows:
+输出如下所示：
 
 \begin{shell}
 1 2 3 4
