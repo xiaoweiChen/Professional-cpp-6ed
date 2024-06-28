@@ -517,38 +517,39 @@ Unable to find account: No account with number 1000.
 
 \mySamllsection{multimap}
 
-A multimap is a map that allows multiple elements with the same key. Like maps, multimaps support uniform initialization. The interface is almost identical to the map interface, with the following differences:
+multimap中同一键可对应多个元素。与map一样，multimap支持统一初始化。其接口与map接口几乎相同，但有以下区别：
 
 \begin{itemize}
 \item
-multimaps do not provide operator[] and at(). The semantics of these do not make sense if there can be multiple elements with a single key.
+multimap不提供 operator[] 和 at()。如果可以有多个元素对应单个键，则这些操作的语义没有意义。
 
 \item
-Inserts on multimaps always succeed. Thus, the multimap::insert() member function that adds a single element returns just an iterator instead of a pair.
+multimap的插入操作总是成功的，添加单个元素的 multimap::insert() 成员函数只返回一个迭代器，而不是一个 pair。
 
 \item
-The insert\_or\_assign() and try\_emplace() member functions supported by map are not supported by multimap.
+支持的 insert\_or\_assign() 和 try\_emplace() 成员函数在multimap中不支持。
 \end{itemize}
 
 \begin{myNotic}{NOTE}
-multimaps allow you to insert identical key/value pairs. If you want to avoid this redundancy, you must check explicitly before inserting a new element.
+multimap允许插入相同的键/值对。如果想要避免这种冗余，必须在插入新元素之前显式检查。
 \end{myNotic}
 
-The trickiest aspect of multimaps is looking up elements. You can’t use operator[], because it is not provided. find() isn’t very useful because it returns an iterator referring to any one of the elements with a given key (not necessarily the first element with that key).
+multimap最棘手的部分是查找元素，但不能使用 operator[]。find() 并不是很有用，因为只返回一个迭代器，指向具有给定键的任一元素（不一定是该键的第一个元素）。
 
-However, multimaps store all elements with the same key together and provide member functions to obtain iterators for this subrange of elements with the same key in the container. The lower\_bound() and upper\_bound() member functions each return a single iterator referring to the first and one-past-the-last elements matching a given key. If there are no elements matching that key, the iterators returned by lower\_bound() and upper\_bound() will be equal to each other.
+然而，multimap将所有具有相同键的元素存储在一起，并提供成员函数来获取容器中具有相同键的元素子范围的迭代器。lower\_bound() 和 upper\_bound() 成员函数各自返回一个迭代器，指向与给定键匹配的第一个元素和最后一个元素之后的位置。如果没有与该键匹配的元素，lower\_bound() 和 upper\_bound() 返回的迭代器将彼此相等。
 
-If you need to obtain both iterators bounding the elements with a given key, it’s more efficient to use equal\_range() instead of calling lower\_bound() followed by calling upper\_bound(). The equal\_range() member function returns a pair of the two iterators that would be returned by lower\_bound() and upper\_bound().
+如果需要获取界定具有给定键的元素的两个迭代器，使用 equal\_range() 比先调用 lower\_bound() 再调用 upper\_bound() 更高效。equal\_range() 成员函数返回 lower\_bound() 和 upper\_bound()，将返回的那两个迭代器组成的一对。
 
 \begin{myNotic}{NOTE}
-The lower\_bound(), upper\_bound(), and equal\_range() member functions exist for maps as well, but their usefulness is limited because a map cannot have multiple elements with the same key.
+lower\_bound()、upper\_bound() 和 equal\_range() 成员函数在map中同样存在，但它们的实用性有限，因为map不能有多个元素对应同一键。
 \end{myNotic}
 
-\mySamllsection{multimap Example: Buddy Lists}
+\mySamllsection{multimap 示例: 好友列表}
 
-Most of the numerous online chat programs allow users to have a “buddy list” or list of friends. The chat program confers special privileges on users in the buddy list, such as allowing them to send unsolicited messages to the user.
+大多数在线聊天程序允许用户拥有一个“好友列表”或朋友列表，聊天程序赋予好友列表中的用户特殊权限，例如：允许他们向用户发送未经请求的消息。
 
-One way to implement the buddy lists for an online chat program is to store the information in a multimap. One multimap could store the buddy lists for every user. Each entry in the container stores one buddy for a user. The key is the user, and the value is the buddy. For example, if Harry Potter and Ron Weasley had each other on their individual buddy lists, there would be two entries of the form “Harry Potter” maps to “Ron Weasley” and “Ron Weasley” maps to “Harry Potter.” A multimap allows multiple values for the same key, so the same user is allowed multiple buddies. Here is the BuddyList class definition:
+实现好友列表的一种方法是将信息存储在multimap中，一个multimap可以存储每个用户的好友列表。容器中的每个条目存储一个用户的好友。键是用户，值是好友。例如，如果哈利·波特和罗恩·韦斯莱彼此都在各自的好友列表中，就会有两条形式为“哈利·波特”映射到“罗恩·韦斯莱”和“罗恩·韦斯莱”映射到“哈利·波特”的条目。多映射允许同一键有多个值，因此同一用户可以有多个好友。以下是BuddyList类的定义：
+
 
 \begin{cpp}
 export class BuddyList final
@@ -567,7 +568,7 @@ export class BuddyList final
 };
 \end{cpp}
 
-Here are the implementations, with comments explaining the code. It demonstrates the use of lower\_bound(), upper\_bound(), and equal\_range().
+这里提供了代码实现，展示了 lower\_bound()、upper\_bound() 和 equal\_range() 的使用方法。
 
 \begin{cpp}
 void BuddyList::addBuddy(const string& name, const string& buddy)
@@ -632,9 +633,9 @@ vector<string> BuddyList::getBuddies(const string& name) const
 }
 \end{cpp}
 
-Note that removeBuddy() can’t simply use the version of erase() that erases all elements with a given key, because it should erase only one element with the key, not all of them. Note also that getBuddies() can’t use insert() on the vector to insert the elements in the range returned by equal\_range(), because the elements referred to by the multimap iterators are key/value pairs, not strings. The getBuddies() member function must iterate explicitly through the range extracting the string from each key/value pair and pushing that onto the new vector to be returned.
+请注意，removeBuddy() 不能简单地使用erase()删除所有具有给定键的元素，因为它应该只删除该键的一个元素，而不是所有元素。还要注意，getBuddies() 不能在vector上使用insert()来插入equal\_range()返回范围中的元素，因为由multimap迭代器引用的元素是键/值对，而不是字符串。getBuddies() 成员函数必须显式地遍历该范围，从每个键/值对中提取字符串并将其推送到要返回的新vector中。
 
-Alternatively, with the C++23 ranges functionality discussed in Chapter 17, getBuddies() can be implemented as follows without any explicit loops:
+或者，使用第17章讨论的C++23范围功能，getBuddies() 可以进行如下实现，而无需显式循环：
 
 \begin{cpp}
 vector<string> BuddyList::getBuddies(const string& name) const
@@ -644,7 +645,7 @@ vector<string> BuddyList::getBuddies(const string& name) const
 }
 \end{cpp}
 
-Here is a test of the BuddyList:
+下面是对BuddyList的测试:
 
 \begin{cpp}
 BuddyList buddies;
@@ -666,7 +667,7 @@ for (const auto& name : harrysFriends) {
 }
 \end{cpp}
 
-The output is as follows:
+输出为:
 
 \begin{shell}
 Harry's friends:
@@ -677,15 +678,15 @@ Harry's friends:
 
 \mySamllsection{set}
 
-A set, defined in <set>, is similar to a map. The difference is that instead of storing key/value pairs, in sets the value is the key. sets are useful for storing information in which there is no explicit key, but which you want to have in sorted order without any duplicates, with quick insertion, lookup, and deletion.
+set（集合），定义在<set>中，与map类似。不同之处在于，set不存储键/值对，而是值就是键。set适用于存储没有显式键但希望有序且不重复的信息，同时支持快速插入、查找和删除。
 
-The interface supplied by set is almost identical to that of map. The main difference is that set doesn’t provide operator[], insert\_or\_assign(), and try\_emplace().
+set提供的接口与map几乎相同。主要区别在于set不提供operator[]、insert\_or\_assign()和try\_emplace()。
 
-You cannot change the value of elements in a set because modifying elements of a set while they are in the container would destroy the order.
+不能更改set中元素的值，因为修改集合中的元素会破坏其顺序。
 
-\mySamllsection{set Example: Access Control List}
+\mySamllsection{set 示例: 访问控制列表}
 
-One way to implement basic security on a computer system is through access control lists. Each entity on the system, such as a file or a device, has a list of users with permissions to access that entity. Users can generally be added to and removed from the permissions list for an entity only by users with special privileges. Internally, a set provides a nice way to represent the access control list. You could use one set for each entity, containing all the usernames that are allowed to access the entity. Here is a class definition for a simple access control list:
+计算机系统上实现基本安全性的一种方法是，访问控制列表。系统上的每个实体（如文件或设备）都有一个用户列表，这些用户有权访问该实体。通常，只有具有特殊权限的用户才能将其他用户添加到或从权限列表中移除。在内部，集合提供了一种很好的方式来表示访问控制列表。可以为每个实体使用一个set，包含所有允许访问该实体的用户名。这是一个简单访问控制列表的类定义：
 
 \begin{cpp}
 export class AccessList final
@@ -728,14 +729,14 @@ export class AccessList final
 };
 \end{cpp}
 
-Take a look at the interesting one-line implementation of getAllUsersAsVector(). That one line constructs a vector<string> to return, by passing a begin and end iterator of m\_allowed to the vector constructor. If you want, you can split this over two lines:
+getAllUsersAsVector()中有一行实现很有趣，将m\_allowed的begin和end迭代器传递给vector构造函数,来构造一个vector<string>。如果愿意，可以将其拆分为两行：
 
 \begin{cpp}
 std::vector<std::string> users { begin(m_allowed), end(m_allowed) };
 return users;
 \end{cpp}
 
-Finally, here is a simple test program:
+最后，这里有一个简单的测试程序：
 
 \begin{cpp}
 AccessList fileX { "mgregoire", "baduser" };
@@ -759,9 +760,9 @@ for (const auto& user : fileX.getAllUsersAsVector()) { print("{} ", user); }
 println("");
 \end{cpp}
 
-One of the constructors for AccessList uses an initializer\_list as a parameter so that you can use the uniform initialization syntax, as demonstrated in the test program for initializing fileX.
+AccessList的一个构造函数使用initializer\_list作为参数，这样就可以使用统一初始化语法，如在测试程序中对fileX进行的初始化。
 
-The output of this program is as follows:
+此程序的输出如下：
 
 \begin{shell}
 mgregoire has permissions
@@ -770,7 +771,7 @@ Users with access: mgregoire pvw
 Users with access: mgregoire pvw
 \end{shell}
 
-Note that the m\_allowed data member needs to be a set of std::strings, and not of string\_views. Changing it to a set of string\_views will introduce problems with dangling pointers. For example, suppose you have the following code:
+注意，m\_allowed数据成员需要是一个std::string的集合，而不是string\_view的集合。将其更改为string\_view的set，会引入悬空指针的问题。例如，有以下代码：
 
 \begin{cpp}
 AccessList fileX;
@@ -780,34 +781,35 @@ AccessList fileX;
 }
 \end{cpp}
 
-This code snippet creates a string called user and then adds that to the fileX access control list. However, the string and the call to addUser() are inside a set of curly brackets; that is, the string has a shorter lifetime than fileX. At the closing curly bracket, the string goes out of scope and is destroyed. This would leave the fileX access control list with a string\_view pointing to a destroyed string, i.e., a dangling pointer! This problem is avoided by using a set of strings.
+这段代码创建了一个名为user的string，然后将其添加到fileX访问控制列表中。然而，string和addUser()的调用位于一对花括号内；所以，string的生命周期比fileX短。关闭花括号时，string超出作用域并销毁。这将导致fileX访问控制列表中的string\_view指向一个销毁的string，即悬空指针！通过使用string的set可以避免这个问题。
 
 \mySamllsection{multiset}
 
-A multiset is to a set what a multimap is to a map. A multiset supports all the operations of a set, but it allows multiple elements that are equal to each other to be stored in the container simultaneously. An example of a multiset is not shown because it’s so similar to set and multimap.
+multiset对于set来说，就像multimap对于map一样。multiset支持set的所有操作，也可同时存储多个相等的元素。这里没有显示multiset的示例，因为它与set和multimap非常相似。
 
-\mySubsubsection{18.5.2.}{Unordered Associative Containers Or Hash Tables}
+\mySubsubsection{18.5.2.}{无序关联容器或哈希表}
 
-The Standard Library has support for unordered associative containers or hash tables. There are four of them: unordered\_map, unordered\_multimap, unordered\_set, and unordered\_multiset. The map, multimap, set, and multiset containers discussed earlier sort their elements, while these unordered variants do not sort their elements.
+标准库支持无序关联容器或哈希表，有四个：unordered\_map、unordered\_multimap、unordered\_set和unordered\_multiset。前面讨论的map、multimap、set和multiset容器会对其元素进行排序，而这些无序版本不会对元素进行排序。
 
-\mySamllsection{Hash Functions}
+\mySamllsection{哈希函数}
 
-The unordered associative containers are hash tables. That is because the implementation makes use of hash functions. The implementation usually consists of some kind of array where each element in the array is called a bucket. Each bucket has a specific numerical index like 0, 1, 2, up until the last bucket. A hash function transforms a key into a hash value, which is then transformed into a bucket index. The value associated with that key is then stored in that bucket.
+无序关联容器是哈希表，因为实现使用了哈希函数。实现通常由某种数组组成，数组中的每个元素都称为一个桶（bucket）。每个桶都有一个特定的数字索引，如0、1、2，直到最后一个桶。哈希函数将键转换为一个哈希值，然后该值转换为桶索引。与该键关联的值会存储在该桶中。
 
-The result of a hash function is not always unique. The situation in which two or more keys hash to the same bucket index is called a collision. A collision can occur when different keys result in the same hash value or when different hash values transform to the same bucket index. There are many approaches to handling collisions, including quadratic re-hashing and linear chaining, among others. If you are interested, consult one of the references in the “Algorithms and Data Structures” section in Appendix B. The Standard Library does not specify which collision-handling algorithm is required, but most current implementations have chosen to resolve collisions by linear chaining. With linear chaining, buckets do not directly contain the data values associated with the keys but contain a pointer to a linked list. This linked list contains all the data values for that specific bucket. Figure 18.1 shows how this works.
+哈希函数的结果并不唯一，当两个或多个键哈希到同一个桶索引时，这种情况称为碰撞。当不同的键产生相同的哈希值，或者不同的哈希值转换到相同的桶索引时，可能会发生碰撞。处理碰撞有许多方法，包括二次哈希和线性链表等。如果感兴趣，可以参考附录B中的参考文献。标准库没有指定需要哪种碰撞处理算法，但大多数当前实现选择通过线性链表解决碰撞。线性链表中，桶不直接包含与键关联的数据值，而是包含指向链表的指针，这个链表包含该特定桶的所有数据值。图18.1显示了这是如何工作的。
 
 \myGraphic{0.9}{content/part3/chapter18/images/1.png}{图 18.1}
 
-In Figure 18.1, there are two collisions. The first collision is because applying the hash function to the keys “Marc G.” and “John D.” results in the same hash value that maps to bucket index 128. This bucket then points to a linked list containing the keys “Marc G.” and “John D.” together with their associated data values. The second collision is caused by the hash values for “Scott K.” and “Johan G.” mapping to the same bucket index 129.
+图18.1中，有两个碰撞。第一个碰撞是因为对键“Marc G.”和“John D.”应用哈希函数得到相同的哈希值，该值映射到桶索引128。然后这个桶指向一个链表，包含键“Marc G.”和“John D.”以及它们关联的数据值。第二个碰撞是由键“Scott K.”和“Johan G.”的哈希值映射到相同的桶索引129引起的。
 
-From Figure 18.1, it is also clear how lookups based on keys work and what the complexity is.
-A lookup involves a single hash function call to calculate the hash value. This hash value is then transformed to a bucket index. Once the bucket index is known, one or more equality operations are required to find the right key in the linked list. This shows that lookups can be much faster compared to lookups with normal maps, but it all depends on how many collisions there are.
+从图18.1中也可以清楚地看出基于键的查找是如何工作的，以及其复杂度如何。
 
-The choice of the hash function is important. A hash function that creates no collisions is known as a perfect hash. A perfect hash has a lookup time that is constant; a regular hash has a lookup time that is, on average, close to 1, independent of the number of elements. As the number of collisions increases, the lookup time increases, reducing performance. Collisions can be reduced by increasing the basic hash table size, but you need to take cache sizes into account.
+查找涉及一次哈希函数调用以计算哈希值，哈希值转换为一个桶索引。当知道了桶索引，就需要进行一个或多个相等性操作以在链表中找到正确的键。这查找可比map的查找快得多，但也取决于碰撞的数量。
 
-The C++ standard provides hash functions for pointers and all primitive data types such as bool, char, int, float, double, and so on. Hash functions are also provided for several Standard Library classes, such as optional, bitset, unique\_ptr, shared\_ptr, string, string\_view, vector<bool>, and more. If there is no standard hash function available for the type of keys you want to use, then you have to implement your own hash function. Creating a perfect hash is a nontrivial exercise, even when the set of keys is fixed and known. It requires deep mathematical analysis. Even creating a nonperfect one, but one that is good enough and has decent performance, is still challenging. It’s outside the scope of this book to explain the mathematics behind hash functions in detail. Instead, only an example of a simple hash function is given.
+哈希函数的选择很重要，不产生碰撞的哈希函数称为完美哈希。完美哈希的查找时间恒定；普通哈希的查找时间平均接近1，与元素数量无关。随着碰撞数量的增加，查找时间增加，性能降低。通过增加基本哈希表的大小可以减少碰撞，但需要考虑缓存大小。
 
-The following code demonstrates how to write a custom hash function. The code defines a class IntWrapper that just wraps a single integer. An operator== is provided because that’s a requirement for keys used in unordered associative containers.
+C++标准为指针和所有基本数据类型（如bool、char、int、float、double等）提供了哈希函数。还为几个标准库类提供了哈希函数，如optional、bitset、unique\_ptr、shared\_ptr、string、string\_view、vector<bool>等。如果想要使用的键类型没有标准的哈希函数，那么必须实现自己的哈希函数。即使键集固定且已知，创建完美哈希也不简单，需要深度的数学分析。即使创建一个不完美，但足够好且性能不错的哈希函数仍然具有挑战性。解释哈希函数背后的数学知识超出了本书的范围，这里只给出了一个简单哈希函数的示例。
+
+以下代码演示了如何编写自定义哈希函数。代码定义了一个只包装单个整数的类IntWrapper。提供了一个operator==，因为这是无序关联容器中使用键的要求。
 
 \begin{cpp}
 class IntWrapper
@@ -821,7 +823,7 @@ class IntWrapper
 };
 \end{cpp}
 
-To write the actual hash function for IntWrapper, you write a specialization of the std::hash class template for IntWrapper. The std::hash class template is defined in <functional>. This specialization needs an implementation of the function call operator that calculates and returns the hash of a given IntWrapper instance. For this example, the request is simply forwarded to the standard hash function for integers:
+要为IntWrapper编写实际的哈希函数，需要为IntWrapper编写std::hash类模板特化。std::hash类模板定义在<functional>中，这个特化需要一个实现函数调用运算符，该运算符计算，并返回给定IntWrapper实例的哈希值。对于这个例子，请求只是简单地转发给标准整数哈希函数：
 
 \begin{cpp}
 namespace std
@@ -835,11 +837,11 @@ namespace std
 }
 \end{cpp}
 
-Note that you normally are not allowed to put anything in the std namespace; however, std class template specializations are an exception to this rule. The implementation of the function call operator is just one line. It creates an instance of the standard hash function for integers——std::hash<int>\{\}—and then calls the function call operator on it with x.getValue() as argument. Note that this forwarding works in this example because IntWrapper contains just one data member, an integer. If the class contained multiple data members, then a hash value would need to be calculated taking all those data members into account; however, those details fall outside the scope of this book.
+注意，通常不允许在std命名空间中放置内容；然而，std类模板特化是这一规则的例外。函数调用运算符的实现只有一行。创建了一个标准整数哈希函数的实例——std::hash<int>\{\}——然后在它上面调用函数调用运算符，参数是x.getValue()。注意，这种转发在这个例子中有效，因为IntWrapper只包含一个数据成员，一个整数。如果类包含多个数据成员，则需要计算一个考虑所有这些数据成员的哈希值，但这些细枝末节都超出了本书介绍的范围。
 
 \mySamllsection{unordered\_map}
 
-unordered\_map is defined in <unordered\_map> as a class template:
+unordered\_map定义在<unordered\_map>中，作为一个类模板：
 
 \begin{cpp}
 template <typename Key,
@@ -850,7 +852,7 @@ template <typename Key,
     class unordered_map;
 \end{cpp}
 
-There are five template type parameters: the key type, the value type, the hash type, the equality comparator type, and the allocator type. The last three parameters have default values. The most important parameters are the first two. As with maps, uniform initialization can be used to initialize an unordered\_map. Iterating over the elements is also similar to maps, as shown in the following example.
+这里有五个模板类型参数：键类型、值类型、哈希类型、相等比较器类型和分配器类型。最后三个参数有默认值。最重要的参数是前两个。与map一样，可以使用统一初始化来初始化一个unordered\_map。遍历元素也与映射类似，如下所示：
 
 \begin{cpp}
 unordered_map<int, string> m {
@@ -865,7 +867,7 @@ println("");
 for (const auto& p : m) { print("{} = {}, ", p.first, p.second); }
 \end{cpp}
 
-The output is as follows:
+输出如下所示：
 
 \begin{shell}
 {4: "Item 4", 3: "Item 3", 2: "Item 2", 1: "Item 1"}
@@ -873,7 +875,7 @@ The output is as follows:
 4 = Item 4, 3 = Item 3, 2 = Item 2, 1 = Item 1,
 \end{shell}
 
-The following table summarizes the differences between map and unordered\_map. A filled box (■) means the container supports that operation, while an empty box (□) means the operation is not supported.
+下表总结了map和unordered\_map之间的区别。一个填充的方框（■）表示容器支持该操作，而一个空方框（□）表示容器不支持该操作。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -932,11 +934,11 @@ try\_emplace()                               & ■            & ■             
 upper\_bound()                               & ■            & □                       \\ \hline
 \end{longtable}
 
-As with map, all keys in an unordered\_map must be unique. The preceding table includes a number of hash-specific member functions. For example, load\_factor() returns the average number of elements per bucket to give you an indication of the number of collisions. The bucket\_count() member function returns the number of buckets in the container. It also provides a local\_iterator and const\_local\_iterator, allowing you to iterate over the elements in a single bucket; however, these may not be used to iterate across buckets. The bucket(key) member function returns the index of the bucket that contains the given key; begin(n) returns a local\_iterator referring to the first element in the bucket with index n, and end(n) returns a local\_iterator referring to one-past-the-last element in the bucket with index n. The example in the next section demonstrates how to use some of these member functions.
+与map一样，unordered\_map中的所有键必须唯一。前一个表包括了一些特定于哈希的成员函数。例如，load\_factor()返回每个桶中的平均元素数量，以给定一个碰撞数量的指数。bucket\_count()成员函数返回容器中的桶数量；还提供了local\_iterator和const\_local\_iterator，允许遍历单个桶中的元素；然而，这些不能用于跨桶遍历。bucket(key)成员函数返回包含给定键的桶的索引；begin(n)返回一个指向索引为n的桶中第一个元素的local\_iterator，end(n)返回一个指向索引为n的桶中最后一个元素之后的local\_iterator。下一节的示例演示了如何使用其中一些成员函数。
 
-\mySamllsection{unordered\_map Example: Phone Book}
+\mySamllsection{unordered\_map示例：电话簿}
 
-The following example uses an unordered\_map to represent a phone book. The name of a person is the key, while the phone number is the value associated with that key.
+以下示例使用unordered\_map来表示一个电话簿。人的名字是键，而电话号码是与该键关联的值。
 
 \begin{cpp}
 void printMap(const auto& m) // Abbreviated function template
@@ -983,7 +985,7 @@ int main()
 }
 \end{cpp}
 
-A possible output is as follows. Note that the output can be different on different systems, because it depends on the implementation of both the hash function and the unordered\_map itself being used.
+一种可能的输出如下。注意，输出在不同的系统上可能会有所不同，它取决于所使用的哈希函数和unordered\_map的实现。
 
 \begin{shell}
 Scott K. (Phone: 654-987321)
@@ -1004,67 +1006,66 @@ Average number of elements in a bucket is 0.5
 
 \mySamllsection{unordered\_multimap}
 
-An unordered\_multimap is an unordered\_map that allows multiple elements with the same key. Their interfaces are almost identical, with the following differences:
+unordered\_multimap是一个允许具有相同键的多个元素的无序map。它们的接口几乎相同，但有以下区别：
 
 \begin{itemize}
 \item
-unordered\_multimaps do not provide operator[] and at(). The semantics of these do not make sense if there can be multiple elements with a single key.
+unordered\_multimap不提供operator[]和at()。如果有多个具有单个键的元素，这些语义就没有意义。
 
 \item
-Inserts on unordered\_multimaps always succeed. Thus, the unordered\_multimap::insert() member function that adds a single element returns just an iterator instead of a pair.
+unordered\_multimap上的插入总会成功。因此，添加单个元素的unordered\_multimap::insert()成员函数只返回一个迭代器，而不是一个pair。
 
 \item
-The insert\_or\_assign() and try\_emplace() member functions supported by unordered\_map are not supported by an unordered\_multimap.
+unordered\_map支持的insert\_or\_assign()和try\_emplace()成员函数，但在unordered\_multimap中没有这几个成员函数。
 \end{itemize}
 
 \begin{myNotic}{NOTE}
-unordered\_multimaps allow you to insert identical key/value pairs. If you want to avoid this redundancy, you must check explicitly before inserting a new element.
+unordered\_multimap可以插入相同的键/值对。如果想要避免这种重复，必须在插入新元素之前进行显式检查。
 \end{myNotic}
 
-As discussed earlier with multimaps, looking up elements in unordered\_multimaps cannot be done using operator[] because it is not provided. You can use find(), but it returns an iterator referring to any one of the elements with a given key (not necessarily the first element with that key). Instead, it’s best to use the equal\_range() member function, which returns a pair of iterators: one referring to the first element matching a given key, and one referring to one-past-the-last element matching that key. The use of equal\_range() is the same as discussed for multimaps, so you can look at the example given for multimaps to see how it works.
+正如之前与multimap的讨论，unordered\_multimap中的元素查找不能使用operator[]。可以使用find()，但它返回一个指向具有给定键的任意一个元素的迭代器（不一定是该键的第一个元素）。最好使用equal\_range()成员函数，返回一对迭代器：一个指向与给定键匹配的第一个元素，另一个指向与该键匹配的最后一个元素之后的位置。equal\_range()的使用与之前讨论的multimap相同，所以以查看为multimap提供的示例来了解它。
 
 \mySamllsection{unordered\_set/unordered\_multiset}
 
-<unordered\_set> defines unordered\_set and unordered\_multiset, which are similar to set and multiset, respectively, except that they do not sort their keys but use a hash function. The differences between unordered\_set and unordered\_map are similar to the differences between set and map as discussed earlier in this chapter, so they are not discussed in detail here. Consult a Standard Library Reference for a thorough summary of unordered\_set and unordered\_multiset operations.
+<unordered\_set>定义了unordered\_set和unordered\_multiset，它们类似于set和multiset，不同之处在于它们不排序其键，而是使用哈希函数。unordered\_set和unordered\_map之间的区别与本章前面讨论的set和map之间的区别类似，因此在这里不详细讨论。要了解unordered\_set和unordered\_multiset操作的完整总结，请参阅标准库手册。
 
-\CXXTwentythreeLogo{-40}{-50}
+\mySubsubsection{18.5.3.}{扁平set和扁平map关联容器适配器}
 
-\mySubsubsection{18.5.3.}{Flat Set and Flat Map Associative Container Adapters}
+\CXXTwentythreeLogo{-40}{15}
 
-C++23 introduces the following new container adapters:
+C++23引入了以下容器适配器：
 
 \begin{itemize}
 \item
-std::flat\_set and flat\_multiset defined in <flat\_set>
+std::flat\_set 和 flat\_multiset，定义在<flat\_set>中
 
 \item
-std::flat\_map and flat\_multimap defined in <flat\_map>
+std::flat\_map 和 flat\_multimap，定义在<flat\_map>中
 \end{itemize}
 
-These are adapters providing an associative container interface on top of sequential containers.
-flat\_set and flat\_map require unique keys, just as set and map, while flat\_multiset and flat\_multimap support duplicate keys, just as multiset and multimap. They all store their data sorted on the keys using std::less as the default comparator. flat\_set and flat\_multiset provide for fast retrieval of a key, while flat\_map and flat\_multimap provide for fast retrieval of a value based on a key. A flat\_set and a flat\_multiset require one underlying sequential container to store their keys. A flat\_map and a flat\_multimap require two underlying containers, one to store the keys and another one to store the values. The underlying container must support random-access iterators, such as vector and deque. By default, vector is used.
+这些适配器在顺序容器之上提供了一个关联容器接口。flat\_set和flat\_map要求唯一键，就像set和map一样，而flat\_multiset和flat\_multimap支持重复键，就像multiset和multimap一样。它们都使用std::less作为默认比较器，按键排序存储其数据。flat\_set和flat\_multiset提供快速检索键的功能，而flat\_map和flat\_multimap提供基于键快速检索值的功能。flat\_set和flat\_multiset需要一个底层顺序容器来存储它们的键。flat\_map和flat\_multimap需要两个底层容器，一个用于存储键，另一个用于存储值。底层容器必须支持随机访问迭代器，如vector和deque。默认情况下，使用vector。
 
-All flat associative container adapters have an interface similar to their ordered counterparts, except that the flat container adapters are not node-based data structures and thus don’t have any concept of node handles as discussed earlier in this chapter in the context of the ordered associative containers. Another difference is that the flat variants provide random-access iterators, while the ordered counterparts provide only bidirectional iterators.
+所有扁平关联容器适配器的接口与有序对应容器相似，只是扁平容器适配器不是基于节点的数据结构，因此没有节点处理的概念。另一个区别是，扁平版本提供了随机访问迭代器，而有序对应物只提供双向迭代器。
 
-With the addition of these flat container adapters, the Standard Library now provides three variants of each associative container type; e.g., there are now three map containers: map, unordered\_map, and flat\_map. All three basically work in a similar fashion, but they store their data in drastically different data structures and thus have different time- and space-efficiency. Because the flat associative container adapters store their data sorted in sequential containers, they all have linear time complexity for adding and removing elements, which can potentially be slower than adding and removing elements from ordered and unordered containers. Lookups have logarithmic complexity, just as the ordered associative containers. However, for the flat variants, lookups and especially iteration over the elements are more efficient than for the ordered ones because the former store their data in sequential containers and thus have a much more efficient and cache-friendly memory layout. They also need less memory per element compared to the ordered or unordered variants. Which one of the three flavors per type to choose for a specific use case depends on the exact requirements of your use case. If performance is important, then I recommend profiling all three of them to find out which one is best suited for a specific use. Profiling is explained in Chapter 29, “Writing Efficient C++.”
+随着这些扁平容器适配器的加入，标准库现在为每种关联容器类型提供了三种版本；例如，现在有三种映射容器：map、unordered\_map和flat\_map。所有三种基本上都以类似的方式工作，但它们以截然不同的数据结构存储数据，因此具有不同的时间和空间效率。由于扁平关联容器适配器按顺序容器中的键排序存储数据，所有添加和删除元素的时间复杂度都为线性，这可能比添加和删除有序和无序容器中的元素要慢。查找具有对数复杂度，就像有序关联容器一样。但对于扁平版本，查找和特别是遍历元素比有序变体更有效，因为前者在顺序容器中存储数据，因此具有更高效和缓存友好的内存布局，每个元素所需的内存也少于有序或无序版本。对于每种类型的三种版本中选择哪一种，取决于特定用例的确切要求。如果性能很重要，我建议为特定用例对所有三种进行基准测试，以找出最适合的那一种。基准测试将在第29章中介绍。
 
-The flat associative container adapters are often just drop-in replacements for their ordered counterparts. For example, the access control list example from earlier has a data member called m\_allowed of type set<string>, an ordered associative container. The code can easily be changed to use a flat\_set instead. Two changes are necessary. First, the type of m\_allowed is changed to the following:
+扁平关联容器适配器通常只是相应有序容器的替换。例如，前面提到的访问控制列表示例有一个名为m\_allowed的set<string>类型的数据成员，这是一个有序关联容器，可以很轻松更改为使用flat\_set：
 
 \begin{cpp}
 std::flat_set<std::string> m_allowed;
 \end{cpp}
 
-Second, the return type of getAllUsers() is changed to a flat\_set:
+其次，getAllUsers()的返回类型可更改为flat\_set：
 
 \begin{cpp}
 const std::flat_set<std::string>& getAllUsers() const { return m_allowed; }
 \end{cpp}
 
-Everything else remains the same.
+其他一切保持不变。
 
-\mySubsubsection{18.5.4.}{Performance of Associative Containers}
+\mySubsubsection{18.5.4.}{关联容器的性能}
 
-As is clear from this section, the C++ Standard Library contains several different associative containers. How do you know which one to use for a certain task? If iterating over the contents of an associative container is important for your use case, then the flat associative container adapters have the best performance, because of the way they store their data in continuous memory. If other operations are more important for you, then the unordered associative containers are usually faster compared to the ordered ones. However, if performance is really important, then the only way to decide on the correct container is by benchmarking all of them for your specific use case. Usually, though, you can just pick the one that is easier to work with. To use the ordered versions with your own class types, you must implement comparison operations for your class, while for the unordered versions, you need to write a hash function. The latter is usually harder to implement.
+从这一节可以看出，C++标准库包含几种不同的关联容器。如何知道为特定任务使用哪一种？如果用例中遍历关联容器的内部内容很重要，那么扁平关联容器适配器具有最佳性能，因为它们以连续内存的方式存储数据。如果更关心其他操作，那么无序关联容器通常比有序容器更快。如果性能非常重要，那么决定正确的容器唯一的方法是通过为特定用例对所有容器进行基准测试。通常，可以选择更容易使用的那个。要使用有序版本，必须为自定义类类型实现比较操作，而对于无序版本，需要编写一个哈希函数。通常，后者更难实现。
 
 
 
