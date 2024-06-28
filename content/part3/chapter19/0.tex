@@ -1,29 +1,26 @@
 \noindent
-\textbf{WHAT’S IN THIS CHAPTER?}
+\textbf{内筒概要}
 
 \begin{itemize}
 \item
-How to use function pointers
+如何使用函数指针
 
 \item
-How to use pointers to class member functions
+如何使用指针类成员函数
 
 \item
-What function objects are
+什么是函数对象
 
 \item
-Which standard function objects are available and how to write your own
+有哪些标准函数对象可用,以及如何编写自己的函数对象
 
 \item
-How to use polymorphic function wrappers
+如何使用多态函数包装器
 
 \item
-What lambda expressions are
+什么是Lambda表达式
 \end{itemize}
 
-\noindent
-\textbf{WILEY.COM DOWNLOADS FOR THIS CHAPTER}
+本章的所有代码示例都可以在\url{https://github.com/Professional-CPP/edition-6}获得。
 
-Please note that all the code examples for this chapter are available as part of this chapter’s code download on the book’s website at \url{www.wiley.com/go/proc++6e} on the Download Code tab.
-
-Functions in C++ are first-class functions, as functions can be used in the same way as normal variables, such as passing them as arguments to other functions, returning them from other functions, and assigning them to variables. A term that often comes up in this context is a callback, representing something that can be called. It can be a function pointer or something that behaves like a function pointer, such as an object with an overloaded operator(), or an inline lambda expression. A class that overloads operator() is called a function object, or functor for short. Conveniently, the Standard Library provides a set of classes that can be used to create callback objects and to adapt existing callback objects. Lambda expressions allow you to create small inline callbacks right at the place where you need them, which improves the readability and maintainability of your code. It’s time to take a closer look at the concept of callbacks, because many of the algorithms explained in the next chapter accept such callbacks to customize their behavior.
+C++中，函数是一等函数，因为函数可以像普通变量一样使用，例如:将它们作为参数传递给其他函数，从其他函数返回它们，以及将它们赋值给变量。经常出现的一个术语是回调（callback），代表可以调用的对象。它可以是一个函数指针，或者像函数指针一样的行为，例如：重载了operator()的对象，或者一个内联的Lambda表达式。重载了operator()的类称为函数对象，或者简称为仿函数。方便的是，标准库提供了一系列类，可以用来创建回调对象，以及适配现有的回调对象。Lambda表达式允许在需要的地方创建小的内联回调，这可以提高代码的可读性和可维护性。现在是时候仔细地了解回调的概念，下一章中的许多算法接受这样的回调进行行为定制。
