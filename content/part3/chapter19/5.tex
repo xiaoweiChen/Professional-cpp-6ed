@@ -1,22 +1,22 @@
 
-The clumsiness of having to create a function or functor class, give it a name that does not conflict with other names, and then use this name is considerable overhead for what is fundamentally a simple concept. In these cases, using anonymous (unnamed) functions represented by lambda expressions is a big convenience. Lambda expressions allow you to write anonymous functions inline. Their syntax is easier and can make your code more compact and easier to read. Lambda expressions are useful to define small callbacks passed to other functions inline, instead of having to define a full function object somewhere else with the callback logic implemented in its overloaded function call operator. This way, all the logic remains in a single place, and it is easier to understand and maintain. Lambda expressions can accept parameters, return values, be templated, access variables from its enclosing scope either by value or by reference, and more. There is a lot of flexibility. Let’s start with building up the syntax of lambda expressions step-by-step.
+编写一个函数或函数对象类，给它一个不与其他名称冲突的名字，然后使用这个名字对于一个本质上简单的概念来说是一个相当大的开销。这时，使用匿名（未命名的）函数，即由 Lambda 表达式表示的函数，可以带来很大的便利。Lambda 表达式允许你内联编写匿名函数。它们的语法更简单，可以使你的代码更紧凑、更易读。Lambda 表达式对于定义小型的回调非常有用，这些回调可以内联传递给其他函数，而不是在其他地方定义一个完整的函数对象，并在其重载的函数调用运算符中实现回调逻辑。这样，所有的逻辑都保留在一个地方，更容易理解和维护。Lambda 表达式可以接受参数、返回值、可以模板化、可以访问其作用域内的变量，无论是按值还是按引用，并且还有更多的灵活性。先让我们逐步了解 Lambda 表达式的语法。
 
-\mySubsubsection{19.5.1.}{Syntax}
+\mySubsubsection{19.5.1.}{语法}
 
-Let’s start with a simple lambda expression. The following example defines a lambda expression that just writes a string to the console. A lambda expression starts with square brackets, [], called the lambda introducer, followed by curly braces, \{\}, which contain the body of the lambda expression. The lambda expression is assigned to the basicLambda auto-typed variable. The second line executes the lambda expression using normal function-call syntax.
+让我们从一个简单的 Lambda 表达式开始。以下示例定义了一个 Lambda 表达式，只是将一个字符串写入控制台。Lambda 表达式以方括号 [] 开始，称为 Lambda 引入者，后面跟着花括号 \{\}，包含 Lambda 表达式的体。Lambda 表达式赋值给基本 Lambda auto类型变量。第二行使用正常的函数调用语法执行 Lambda 表达式。
 
 \begin{cpp}
 auto basicLambda { []{ println("Hello from Lambda"); } };
 basicLambda();
 \end{cpp}
 
-The output is as follows:
+输出如下：
 
 \begin{shell}
 Hello from Lambda
 \end{shell}
 
-The compiler automatically transforms any lambda expression to a function object, also called lambda closure, with a unique, compiler-generated name. For the previous example, the lambda expression is translated to a function object that behaves like the following function object. Note that the function call operator is a const member function and has an auto return type to let the compiler automatically deduce the return type based on the body of the member function.
+编译器会自动将任何 Lambda 表达式转换为一个函数对象，也称为 Lambda 闭包，具有唯一的、由编译器生成的名称。对于前面的示例，Lambda 表达式可转换为一个函数对象，其行为类似于以下函数对象。注意，函数调用运算符是一个常量成员函数，并有一个 auto 返回类型，让编译器根据成员函数体内容，自动推断返回类型。
 
 \begin{cpp}
 class CompilerGeneratedName
@@ -26,18 +26,18 @@ class CompilerGeneratedName
 };
 \end{cpp}
 
-The compiler-generated name of a lambda closure can be something exotic like \_\_Lambda\_17Za. There is no way for you to figure out this name, but luckily, you don’t need to know its name.
+Lambda 闭包的编译器生成名称可能像 \_\_Lambda\_17Za 。无法确定这个名称，但也不需要知道它的名称。
 
-A lambda expression can accept parameters. Parameters are specified between parentheses and multiple parameters are separated by commas, just as with normal functions. Here is an example using one parameter called value:
+Lambda 表达式可以接受参数。参数在括号中指定，多个参数用逗号分隔，就像普通函数一样。这里是一个使用一个名为 value 的参数的示例：
 
 \begin{cpp}
 auto parametersLambda { [](int value){ println("The value is {}", value); } };
 parametersLambda(42);
 \end{cpp}
 
-If a lambda expression does not accept any parameters, you can either specify empty parentheses or simply omit them.
+如果Lambda表达式不接受任何参数，可以指定空括号或者直接省略它们。
 
-In the compiler-generated function object for this lambda expression, the parameters are simply translated to parameters for the overloaded function call operator:
+在这个Lambda表达式的编译器生成的函数对象中，参数简单地转换为重载的函数调用运算符的参数：
 
 \begin{cpp}
 class CompilerGeneratedName
@@ -47,21 +47,21 @@ class CompilerGeneratedName
 };
 \end{cpp}
 
-A lambda expression can return a value. The return type is specified following an arrow, called a trailing return type. The following example defines a lambda expression accepting two parameters and returning their sum:
+Lambda表达式可以返回一个值。返回类型在箭头后指定，称为尾部返回类型。以下示例定义了一个接受两个参数，并返回它们和的Lambda表达式：
 
 \begin{cpp}
 auto sumLambda { [](int a, int b) -> int { return a + b; } };
 int sum { sumLambda(11, 22) };
 \end{cpp}
 
-The return type can be omitted, in which case the compiler deduces the return type of the lambda expression according to the same rules as for function return type deduction (see Chapter 1). In the previous example, the return type can be omitted as follows:
+返回类型可以省略，编译器根据与函数返回类型推导相同的规则推导Lambda表达式的返回类型（见第1章）。前面的例子中，返回类型可以省略：
 
 \begin{cpp}
 auto sumLambda { [](int a, int b){ return a + b; } };
 int sum { sumLambda(11, 22) };
 \end{cpp}
 
-The closure for this lambda expression behaves as follows:
+这个Lambda表达式的闭包行为如下所示：
 
 \begin{cpp}
 class CompilerGeneratedName
@@ -71,7 +71,7 @@ class CompilerGeneratedName
 };
 \end{cpp}
 
-The return type deduction strips any reference and const qualifiers. For example, suppose you have the following Person class:
+返回类型推导会去除引用和const限定符。例如，有以下Person类：
 
 \begin{cpp}
 class Person
@@ -84,30 +84,30 @@ class Person
 };
 \end{cpp}
 
-The type of name1 in the following code snippet is deduced as string; hence, a copy of the person’s name is made, even though getName() returns a const string\&. See Chapter 12 for a discussion of decltype(auto).
+以下代码片段中name1的类型推导为string；因此，即使getName()返回一个const string\&，name1也会进行复制。参见第12章关于decltype(auto)的介绍。
 
 \begin{cpp}
 Person p { "John Doe" };
 decltype(auto) name1 { [] (const Person& person) { return person.getName(); }(p) };
 \end{cpp}
 
-You can use a trailing return type in combination with decltype(auto) to make it so that the deduced type matches the return type of getName(), that is a const string\&:
+可以使用尾部返回类型与decltype(auto)结合，以使推导出的类型与getName()的返回类型匹配，即const string\&：
 
 \begin{cpp}
 decltype(auto) name2 { [](const Person& person) -> decltype(auto) {
         return person.getName(); }(p) };
 \end{cpp}
 
-The lambda expressions up to now in this section are called stateless because they don’t capture anything from the enclosing scope. A lambda expression can be stateful by capturing variables from its enclosing scope. For example, the following lambda expression captures the variable data so that it can be used in its body:
+止本节中讨论的无状态的Lambda表达式，它们没有捕获来自外部作用域的内容。Lambda表达式可以通过捕获外部作用域中的变量转变成有状态的。例如，以下Lambda表达式捕获了变量data：
 
 \begin{cpp}
 double data { 1.23 };
 auto capturingLambda { [data]{ println("Data = {}", data); } };
 \end{cpp}
 
-The square brackets part serves as a capture block. Capturing a variable means that the variable becomes available inside the body of the lambda expression. Specifying an empty capture block, [], means that no variables from the enclosing scope are captured. When you just write the name of a variable in the capture block as in the preceding example, then you are capturing that variable by value.
+方括号部分充当捕获块，捕获变量意味着变量在Lambda表达式的体内可用。指定一个空捕获块[]意味着不捕获外部作用域中的变量。当在捕获块中只写一个变量的名称，就像前面的例子那样，那么是以值的方式捕获该变量。
 
-Captured variables become data members of the lambda closure. Variables captured by value are copied into data members of the functor. These data members have the same constness as the captured variables. In the preceding capturingLambda example, the functor gets a non-const data member called data, because the captured variable, data, is non-const. The compiler-generated functor behaves as follows:
+捕获的变量成为Lambda闭包的数据成员，按值捕获的变量会复制到函数对象的数据成员中，这些数据成员具有与捕获变量相同的常量性。在前面的capturingLambda示例中，函数对象获得了一个非const数据成员data，因为捕获的是非const的data变量。编译器生成的函数对象行为如下所示：
 
 \begin{cpp}
 class CompilerGeneratedName
@@ -120,14 +120,14 @@ class CompilerGeneratedName
 };
 \end{cpp}
 
-In the following example, the functor gets a const data member called data, because the captured variable is const:
+下面的示例中，由于捕获的变量是常量，所以函数对象得到了一个名为 data 的常量数据成员：
 
 \begin{cpp}
 const double data { 1.23 };
 auto capturingLambda { [data]{ println("Data = {}", data); } };
 \end{cpp}
 
-As mentioned earlier, a lambda closure has an overloaded function call operator that is marked as const by default. That means that even if you capture a non-const variable by value in a lambda expression, the lambda expression is not able to modify this copy. You can mark the function call operator as non-const by specifying the lambda expression as mutable, as follows:
+如前所述，Lambda 闭包有一个重载的函数调用运算符，默认情况下标记为 const。所以，即使通过值捕获了一个非常量变量在 Lambda 表达式中，Lambda 表达式也不能修改这个副本。可以通过指定 Lambda 表达式为可变，将函数调用运算符标记为非 const：
 
 \begin{cpp}
 double data { 1.23 };
@@ -135,82 +135,82 @@ auto capturingLambda {
     [data] () mutable { data *= 2; println("Data = {}", data); } };
 \end{cpp}
 
-In this example, the non-const variable data is captured by value; thus, the functor gets a non-const data member that is a copy of data. Because of the mutable keyword, the function call operator is marked as non-const, and so the body of the lambda expression can modify its copy of data.
+在这个例子中，通过值捕获了一个非常量变量 data，因此函数对象得到了一个 data 的非常量数据成员的副本。由于使用了 mutable 关键字，函数调用运算符标记为非 const，因此 Lambda 表达式的体可以直接修改其对 data 的副本。
 
-You can prefix the name of a variable with \& to capture it by reference. The following example captures the variable data by reference so that the lambda expression can directly change data in the enclosing scope:
+可以通过在变量名前加上 \& 来按引用捕获变量。以下示例按引用捕获变量 data，以便 Lambda 表达式可以直接修改作用域内的 data：
 
 \begin{cpp}
 double data { 1.23 };
 auto capturingLambda { [&data]{ data *= 2; } };
 \end{cpp}
 
-With this lambda expression, the compiler-generated functor contains a data member called data of type reference-to-double. When you capture a variable by reference, you have to make sure that the reference is still valid at the time the lambda expression is executed.
+使用这个 Lambda 表达式，编译器生成的函数对象包含一个名为 data 的 double 类型的引用数据成员。当按引用捕获变量时，必须在 Lambda 表达式执行时确保引用仍然有效。
 
-There are two ways to capture all variables from the enclosing scope, called capture defaults:
+有两种方式可以从外层作用域捕获所有变量，称为捕获默认值：
 
 \begin{itemize}
 \item
-{}[=] captures all variables by value.
+{}[=] 通过值捕获所有变量。
 
 \item
-{}[\&] captures all variables by reference.
+{}[\&] 通过引用捕获所有变量。
 \end{itemize}
 
 \begin{myNotic}{NOTE}
-When using a capture default, only those variables that are really used in the body of the lambda expression are captured, either by value (=) or by reference (\&). Unused variables are not captured.
+当使用捕获默认值时，只有那些在 Lambda 表达式体中真正使用的变量才会捕获，无论是通过值（=）还是通过引用（\&）。未使用的变量不会捕获。
 \end{myNotic}
 
-It is also possible to selectively decide which variables to capture and how, by specifying a capture list with an optional capture default. Variables prefixed with \& are captured by reference. Variables without a prefix are captured by value. If present, the capture default must be the first element in the capture list and be either \& or =. Here are some capture block examples:
+也可以选择性地决定捕获哪些变量以及如何捕获，通过指定一个可选的捕获列表。变量前加上 \& 按引用捕获。没有前缀的变量按值捕获。如果存在，捕获默认值必须是捕获列表中的第一个元素，并且必须是 \& 或 =。以下是一些捕获块的示例：
 
 \begin{itemize}
 \item
-{}[\&x] captures only x by reference and nothing else.
+{}[\&x] 只通过引用捕获x，不捕获其他变量。
 
 \item
-{}[x] captures only x by value and nothing else.
+{}[x] 仅按值捕获x，不捕获其他变量。
 
 \item
-{}[=,\&x,\&y] captures by value by default, except variables x and y, which are captured by reference.
+{}[=,\&x,\&y] 默认情况下按值捕获，变量x和y通过引用捕获。
 
 \item
-{}[\&,x] captures by reference by default, except variable x, which is captured by value.
+{}[\&,x]默认情况下按引用捕获，但变量x按值捕获。
 
 \item
-{}[\&x,\&x] is illegal because identifiers cannot be repeated.
+{}[\&x,\&x] 是非法的，标识符不能重复。
 \end{itemize}
 
-When a lambda expression is created in the scope of an object, e.g., inside a member function of a class, then it’s possible to capture this in several ways:
+当在对象的范围内创建 Lambda 表达式时，例如在一个类的成员函数内部，可以通过几种方式捕获：
 
 \begin{itemize}
 \item
-{}[this] captures the current object. In the body of the lambda expression you can access this object, even without using this->. You need to make sure that the object pointed to stays alive until the last time the lambda expression has been executed.
+{}[this] 捕获当前对象。在 Lambda 表达式的体中，可以访问这个对象，甚至不使用 this->。需要确保指针所指向的对象，在最后一次执行 Lambda 表达式时仍然存在。
 
 \item
-{}[*this] captures a copy of the current object. This can be useful in cases where the original object will no longer be alive when the lambda expression is executed.
+{}[*this] 捕获当前对象的副本。这在原始对象在 Lambda 表达式执行时不再存活的情况下很有用。
 
 \item
-{}[=,this] captures everything by value and explicitly captures the this pointer. Before C++20, [=] would implicitly capture the this pointer. In C++20, this has been deprecated, and you need to explicitly capture this if you need it.
+{}[=,this] 默认按值捕获所有变量，并显式捕获 this 指针。在 C++20 之前，[=] 会隐式捕获 this 指针。在 C++20，this 已弃用，如果需要它，则需要显式捕获 this。
 \end{itemize}
 
-Here are a few notes on capture blocks:
+关于捕获块的几点说明：
 
 \begin{itemize}
 \item
-If a by-value (=) or by-reference (\&) capture default is specified, then it is not allowed to additionally capture specific variables by value or by reference respectively. For example, [=,x] and [\&,\&x] are both invalid.
+如果指定了按值（=）或按引用（\&）的捕获默认值，则不允许按值或按引用捕获特定的变量。例如，[=,x] 和 [\&,\&x] 都是无效的。
 
 \item
-Data members of an object cannot be captured, unless by using a lambda capture expression discussed later in this chapter.
+对象的数据成员不能被捕获，除非使用本章后面介绍的 Lambda 捕获表达式。
 
 \item
-When capturing this, either by copying the this pointer, [this], or by copying the current object, [*this], the lambda expression has access to all public, protected, and private data members and member functions of the captured object.
+当捕获 this 时，无论是通过复制 this 指针，[this]，还是通过复制当前对象，[*this]，Lambda 表达式都可以访问捕获对象的public、protected和private数据成员和成员函数。
 \end{itemize}
 
 \begin{myWarning}{WARNING}
-It is not recommended to use a capture default, even though a capture default only captures those variables that are really used in the body of the lambda expression. By using a = capture default, you might accidentally cause an expensive copy. By using an \& capture default, you might accidentally modify a variable in the enclosing scope. I recommend you explicitly specify which variables you want to capture and how.
+不推荐使用捕获默认值，尽管捕获默认值只会捕获 Lambda 表达式体中真正使用的变量。通过使用 = 捕获默认值，可能会导致昂贵的复制。通过使用 \& 捕获默认值，可能会意外地修改外层作用域中的变量。所以，我建议您明确指定想捕获哪些变量，以及如何捕获。
 \end{myWarning}
 
 \begin{myWarning}{WARNING}
-Global variables are always captured by reference, even if asked to capture by value! For example, in the following code snippet, a capture default is used to capture everything by value. Yet, the global variable, global, is captured by reference, and its value is changed after executing the lambda.
+全局变量总是按引用捕获，即使要求按值捕获也是如此！例如，在以下代码段中，使用捕获默认值来按值捕获所有内容。然而，全局变量global按引用捕获，并且在执行Lambda后改变其值。
 
 \begin{cpp}
 int global { 42 };
@@ -222,86 +222,86 @@ int main()
 }
 \end{cpp}
 
-Additionally, capturing a global variable explicitly as follows is not allowed and results in a compilation error:
+此外，不允许按引用捕获全局变量，会导致编译错误：
 
 \begin{cpp}
 auto lambda { [global] { global = 2; } };
 \end{cpp}
 
-Even besides these problems, global variables are never recommended anyway.
+即使没有这些问题，也不推荐使用全局变量。
 \end{myWarning}
 
-The complete syntax of a lambda expression is as follows:
+Lambda 表达式的完整语法如下所示：
 
 \begin{cpp}
 [capture_block] attributes1 (parameters) specifiers noexcept_specifier attributes2
     -> return_type requires1 {body}
 \end{cpp}
 
-or
+或
 
 \begin{cpp}
 [capture_block] <template_params> requires1 attributes1 (parameters) specifiers
     noexcept_specifier attributes2 -> return_type requires2 {body}
 \end{cpp}
 
-Everything is optional except the capture block and the body:
+除了捕获块和函数体之外，其他所有内容都是可选的：
 
 \begin{itemize}
 \item
-Capture block: Called the lambda introducer and specifies how variables from the enclosing scope are captured and made available in the body of the lambda.
+捕获块：称为 Lambda 引入者，指定如何捕获外层作用域中的变量，并使其在 Lambda 表达式的体中可用。
 
 \item
-Template parameters: Allows you to write parametrized lambda expressions, discussed later in this chapter.
+模板参数：允许编写参数化的 Lambda 表达式，在本章后面介绍。
 
 \item
-Parameters: A list of parameters for the lambda expression. If the lambda expression does not require any parameters, you can omit the set of parentheses or specify an empty set, ().[Prior to C++23, you could only omit the empty set of parentheses if you did not need any parameters and you did not specify mutable, constexpr, consteval, a noexcept specifier, attributes, a return type, or a requires clause.] The parameter list is similar to the parameter list for normal functions.
+Lambda 表达式的参数列表。如果 Lambda 表达式不需要参数，可以省略一对括号或指定一个空集合，()。[C++23 之前，如果不需要参数，并且没有指定 mutable、constexpr、consteval、不抛异常指定、特性、返回类型或需求子句，只能省略空集合的括号。]参数列表类似于普通函数的参数列表。
 
 \item
-Specifiers: The following specifiers are available:
+修饰符：有以下修饰符可用
 \begin{itemize}
 \item
-mutable: Marks the function call operator of the lambda closure as mutable; see earlier examples.
+mutable: 将 Lambda 闭包的函数调用运算符标记为可变；参见前面的示例。
 
 \item
-constexpr: Marks the function call operator of the lambda closure as constexpr, so it can be evaluated at compile time. Even if omitted, the function call operator will be constexpr implicitly if it satisfies all restrictions for constexpr functions.
+constexpr: 将 Lambda 闭包的函数调用运算符标记为 constexpr，以便在编译时评估。即使省略，如果满足所有 constexpr 函数的限制，函数调用运算符也将隐式地标记为 constexpr。
 
 \item
-consteval: Marks the function call operator of the lambda closure as consteval, so it becomes an immediate function that must be evaluated at compile time; see Chapter 9, “Mastering Classes and Objects.” constexpr and consteval cannot be combined.
-
-\CXXTwentythreeLogo{-40}{-50}
+consteval: 将 Lambda 闭包的函数调用运算符标记为 consteval，因此必须在编译时计算的立即函数；参见第 9 章。constexpr 和 consteval 不能组合使用。
 
 \item
-static (C++23): Marks the function call operator of the lambda closure as static. This can be specified only for stateless lambda expression, i.e., lambda expressions with an empty capture block! Adding this specifier allows the compiler to better optimize the generated code, especially if such stateless lambda expressions are stored inside an std::function or move\_only\_function wrapper.
+将 Lambda 闭包的函数调用运算符标记为静态。这只能为无状态的 Lambda 表达式指定，即具有空捕获块的 Lambda 表达式！添加此指定允许编译器更好地优化生成的代码，特别是无状态的 Lambda 表达式可存储在 std::function 或 move\_only\_function 包装器内部。
+
+\CXXTwentythreeLogo{-50}{25}
 \end{itemize}
 
 \item
-noexcept specifier: Specifies noexcept clauses for the function call operator of the lambda closure, similar to noexcept clauses for normal functions.
+不抛异常指定：为 Lambda 闭包的函数调用运算符指定不抛异常，类似于为普通函数指定不抛异常的方式。
 
 \CXXTwentythreeLogo{-40}{-50}
 
 \item
-Attributes 1 (C++23): Specifies attributes for the function call operator of the lambda closure, e.g., [[nodiscard]]. Attributes are discussed in Chapter 1.
+属性 1 (C++23): 指定Lambda闭包的函数调用运算符的属性，例如：[[nodiscard]]，在第1章中介绍过。
 
 \item
-Attributes 2: Specifies attributes for the lambda closure itself.
+属性 2: 指定Lambda闭包本身的属性。
 
 \item
-Return type: The type of the returned value. If omitted, the compiler deduces the return type according to the same rules as for function return type deduction; see Chapter 1.
+返回类型: 返回值的类型。如果省略，编译器将根据与函数返回类型推导相同的规则推导返回类型；参见第1章。
 
 \item
-Requires clause 1 and 2: Specifies template type constraints for the function call operator of the lambda closure. Chapter 12, “Writing Generic Code with Templates,” explains how such constraints can be specified.
+Requires子句 1 和 2: 指定Lambda闭包的函数调用运算符的模板类型约束，第12章介绍了如何指定此类约束。
 \end{itemize}
 
 \begin{myNotic}{NOTE}
-For lambda expressions that do not capture anything, the compiler automatically provides a conversion operator that converts the lambda expression to a function pointer. Such lambda expressions can then, for example, be used to pass to functions that accept a function pointer as one of their arguments.
+对于不捕获内容的 Lambda 表达式，编译器会自动提供一种转换运算符，将 Lambda 表达式转换为函数指针。这样的 Lambda 表达式可以用于传递给，接受函数指针作为其参数的函数。
 \end{myNotic}
 
-\mySubsubsection{19.5.2.}{Lambda Expressions as Parameters}
+\mySubsubsection{19.5.2.}{Lambda表达式作为参数}
 
-Lambda expressions can be passed as arguments to functions in two ways. One option is to have a function parameter of type std::function that matches the signature of the lambda expression. Another option is to use a template type parameter.
+Lambda 表达式可以通过两种方式作为函数参数传递。一种选项是将函数参数类型设置为 std::function，其签名与 Lambda 表达式匹配。另一种选项是使用模板类型参数。
 
-For example, a lambda expression can be passed to the findMatches() function from earlier in this chapter:
+例如，可以像下面这样将 Lambda 表达式传递给本章前面定义的 findMatches() 函数：
 
 \begin{cpp}
 vector values1 { 2, 5, 6, 9, 10, 1, 1 };
@@ -311,11 +311,11 @@ findMatches(values1, values2,
     printMatch);
 \end{cpp}
 
-\mySubsubsection{19.5.3.}{Generic Lambda Expressions}
+\mySubsubsection{19.5.3.}{泛型 Lambda 表达式}
 
-It is possible to use auto type deduction for parameters of lambda expressions instead of explicitly specifying concrete types for them. To specify auto-type deduction for a parameter, the type is simply specified as auto, auto\&, or auto*. The type deduction rules are the same as for template argument deduction.
+可以使用 auto 类型推导为 Lambda 表达式的参数，而不是显式指定具体的类型。要为参数指定 auto 类型推导，只需将类型指定为 auto、auto\& 或 auto*。类型推导规则与模板参数推导相同。
 
-The following example defines a generic lambda expression called areEqual. This lambda expression is used as callback for the findMatches() function from earlier in this chapter:
+以下示例定义了一个名为 areEqual 的泛型 Lambda 表达式。这个 Lambda 表达式用作前面章节中 findMatches() 函数的回调：
 
 \begin{cpp}
 // Define a generic lambda expression to find equal values.
@@ -327,7 +327,7 @@ vector values2 { 4, 4, 2, 9, 0, 3, 1 };
 findMatches(values1, values2, areEqual, printMatch);
 \end{cpp}
 
-The compiler-generated functor for this generic lambda expression behaves like this:
+编译器生成的用于这个泛型 Lambda 表达式的函数对象行为如下所示：
 
 \begin{cpp}
 class CompilerGeneratedName
@@ -339,25 +339,25 @@ class CompilerGeneratedName
 };
 \end{cpp}
 
-If the findMatches() function is modified to support not only spans of ints, but also other types, then the areEqual generic lambda expression can still be used without requiring any changes to it.
+如果 findMatches() 函数被修改以支持不仅整数切片，还支持其他类型的切片，那么 areEqual 泛型 Lambda 表达式仍然可以不进行修改地使用。
 
-\mySubsubsection{19.5.4.}{Lambda Capture Expressions}
+\mySubsubsection{19.5.4.}{Lambda的捕获表达式}
 
-Lambda capture expressions allow you to initialize capture variables with any expression. It can be used to introduce variables in the lambda expression that are not captured from the enclosing scope. For example, the following code creates a lambda expression with two variables in its capture block: one called myCapture, initialized with the string “Pi: ” using a lambda capture expression, and one called pi, which is captured by value from the enclosing scope. Note that non-reference capture variables such as myCapture that are initialized with a capture initializer are copy constructed, which means that const qualifiers are stripped.
+Lambda 捕获表达式允许用表达式初始化捕获变量，可以用来在 Lambda 表达式中引入不是从外层作用域捕获的变量。例如，以下代码创建了一个 Lambda 表达式，其捕获块中有两个变量：一个名为 myCapture 的变量，用 Lambda 捕获表达式初始化为字符串 "Pi: "，以及一个名为 pi 的变量，它从外层作用域按值捕获。注意，像 myCapture 这样的非引用捕获变量，如果用捕获初始化器初始化，则进行复制构造，则会去除 const 修饰符。
 
 \begin{cpp}
 double pi { 3.1415 };
 auto myLambda { [myCapture = "Pi: ", pi]{ println("{}{}", myCapture, pi); } };
 \end{cpp}
 
-A lambda capture variable can be initialized with any expression and thus also with std::move(). This is important for objects that cannot be copied, only moved, such as unique\_ptr. By default, capturing by value uses copy semantics, so it’s impossible to capture a unique\_ptr by value in a lambda expression. Using a lambda capture expression, it is possible to capture it by moving, as in this example:
+Lambda 捕获变量可以用表达式初始化，因此也可以用 std::move()。这对于只能移动，不能复制的对象（如 unique\_ptr）很重要。默认情况下，按值捕获使用复制语义，因此无法在 Lambda 表达式中按值捕获 unique\_ptr。使用 Lambda 捕获表达式，可以通过移动来捕获：
 
 \begin{cpp}
 auto myPtr { make_unique<double>(3.1415) };
 auto myLambda { [p = move(myPtr)]{ println("{}", *p); } };
 \end{cpp}
 
-It is allowed, though not recommended, to have the same name for the capture variable as the name in the enclosing scope. The previous example can be written as follows:
+尽管不推荐，但允许捕获变量与外层作用域中的变量同名。前面的示例可以这样写：
 
 \begin{cpp}
 auto myPtr { make_unique<double>(3.1415) };
@@ -365,9 +365,9 @@ auto myLambda { [myPtr = move(myPtr)]{ println("{}", *myPtr); } };
 \end{cpp}
 
 
-\mySubsubsection{19.5.5.}{Templated Lambda Expressions}
+\mySubsubsection{19.5.5.}{模板化Lambda表达式}
 
-Templated lambda expressions allow you to get easier access to type information of parameters of generic lambda expressions. For example, suppose you have a lambda expression that requires a vector to be passed as an argument. However, the type of elements in the vector can be anything; hence, it’s a generic lambda expression using auto for its parameter. The body of the lambda expression wants to figure out what the type of the elements in the vector is. Without templated lambda expressions, this could be done using decltype() and the std::decay\_t type trait. Type traits are explained in Chapter 26, “Advanced Templates,” but those details are not important to grasp the benefits of templated lambda expressions. It suffices to know that decay\_t removes, among other things, any const and reference qualifications from a type. Here is the generic lambda expression:
+模板化Lambda表达式允许访问泛型Lambda表达式参数的类型信息。例如，有一个Lambda表达式，需要一个vector作为参数。然而，vector中的元素类型可以是任何类型；因此，使用auto作为其参数的泛型Lambda表达式。Lambda表达式的函数体想要弄清楚vector中元素的类型是什么。如果没有模板化Lambda表达式，这可以通过decltype()和std::decay\_t类型特征来实现。类型特征会在第26章中介绍，但了解模板化Lambda表达式的优势并不需要这些细节。只需知道decay\_t会从类型中移除一些东西即可，例如任何const和引用限定符。以下是泛型Lambda表达式：
 
 \begin{cpp}
 auto lambda { [](const auto& values) {
@@ -377,14 +377,14 @@ auto lambda { [](const auto& values) {
 } };
 \end{cpp}
 
-You can call this lambda expression as follows:
+可以像这样调用这个Lambda表达式：
 
 \begin{cpp}
 vector values { 1, 2, 100, 5, 6 };
 lambda(values);
 \end{cpp}
 
-Using decltype() and decay\_t is rather convoluted. A templated lambda expression makes this much easier. The following lambda expression forces its parameter to be a vector but still uses a template type parameter for the vector’s element type:
+使用decltype()和decay\_t相当复杂，模板化Lambda表达式使这变得简单得多。以下Lambda表达式强制其参数为vector，但仍使用模板参数类型作为vector的元素类型：
 
 \begin{cpp}
 auto lambda { [] <typename T> (const vector<T> & values) {
@@ -392,27 +392,27 @@ auto lambda { [] <typename T> (const vector<T> & values) {
 } };
 \end{cpp}
 
-Another use of templated lambda expressions is if you want to put certain restrictions on generic lambda expressions. For example, suppose you have the following generic lambda expression:
+模板化Lambda表达式的另一个用途是，如果想在泛型Lambda表达式上施加某些限制。例如，有以下泛型Lambda表达式：
 
 \begin{cpp}
 [](const auto& value1, const auto& value2) { /* ... */ }
 \end{cpp}
 
-This lambda expression accepts two parameters, and the compiler deduces the type of each parameter automatically. Since the type of both parameters is deduced separately, the type of value1 and value2 could be different. If you want to restrict this and want both parameters to have the same type, you can turn this into a templated lambda expression:
+这个Lambda表达式接受两个参数，编译器自动推导每个参数的类型。由于两个参数的类型分别推导，value1和value2的类型可能不同。如果想要限制这个，并且希望两个参数具有相同的类型，可以将这个转换为模板化Lambda表达式：
 
 \begin{cpp}
 [] <typename T> (const T& value1, const T& value2) { /* ... */ }
 \end{cpp}
 
-You can also put constraints on the template types by adding a requires clause, discussed in Chapter 12. Here’s an example:
+也可以通过添加requires子句对模板类型施加限制，这在第12章中讨论。这是一个例子：
 
 \begin{cpp}
 [] <typename T> (const T& value1, const T& value2) requires integral<T> {/* ... */}
 \end{cpp}
 
-\mySubsubsection{19.5.6.}{Lambda Expressions as Return Type}
+\mySubsubsection{19.5.6.}{Lambda表达式作为返回类型}
 
-By using std::function, discussed earlier in this chapter, lambda expressions can be returned from functions. Take a look at the following definition:
+通过使用std::function，在本章前面讨论过，Lambda表达式可以从函数中返回。看看下面的定义：
 
 \begin{cpp}
 function<int(void)> multiplyBy2Lambda(int x)
@@ -421,23 +421,23 @@ function<int(void)> multiplyBy2Lambda(int x)
 }
 \end{cpp}
 
-The body of this function creates a lambda expression that captures the variable x from the enclosing scope by value and returns an integer that is two times the value passed to multiplyBy2Lambda(). The return type of the multiplyBy2Lambda() function is function<int(void)>, which is a function accepting no arguments and returning an integer. The lambda expression defined in the body of the function exactly matches this prototype. The variable x is captured by value, and thus a copy of the value of x is bound to the x in the lambda expression before the lambda is returned from the function. The function can be called as follows:
+这个函数体的Lambda表达式捕获了外部作用域中的变量x的值，并返回一个整数，这个整数是传递给multiplyBy2Lambda()的值的2倍。multiplyBy2Lambda()函数的返回类型是function<int(void)>，这是一个接受无参数并返回整数的函数。函数体中的Lambda表达式恰好与这个原型完全匹配。变量x按值捕获，所以在Lambda返回函数之前，x的值的副本会绑定到Lambda表达式中的x。函数可以像这样调用：
 
 \begin{cpp}
 function<int(void)> fn { multiplyBy2Lambda(5) };
 println("{}", fn());
 \end{cpp}
 
-You can use the auto keyword to make this easier:
+auto关键字使这更容易：
 
 \begin{cpp}
 auto fn { multiplyBy2Lambda(5) };
 println("{}", fn());
 \end{cpp}
 
-The output is 10.
+输出是10。
 
-Function return type deduction (see Chapter 1) allows you to write the multiplyBy2Lambda() function more elegantly, as follows:
+函数返回类型推导（见第1章）允许更优雅地编写multiplyBy2Lambda()函数：
 
 \begin{cpp}
 auto multiplyBy2Lambda(int x)
@@ -446,7 +446,7 @@ auto multiplyBy2Lambda(int x)
 }
 \end{cpp}
 
-The multiplyBy2Lambda() function captures the variable x by value, [x]. Suppose the function is rewritten to capture the variable by reference, [\&x], as follows. This will not work because the lambda expression will be executed later in the program, no longer in the scope of the multiplyBy2Lambda() function, at which point the reference to x is not valid anymore.
+multiplyBy2Lambda()函数按值捕获变量x，[x]。假设函数重写为按引用捕获变量，[\&x]，这不会工作，因为Lambda表达式将在程序的稍后部分执行，不再在multiplyBy2Lambda()函数的作用域内，此时对x的引用不再有效。
 
 \begin{cpp}
 auto multiplyBy2Lambda(int x)
@@ -455,17 +455,17 @@ auto multiplyBy2Lambda(int x)
 }
 \end{cpp}
 
-\mySubsubsection{19.5.7.}{Lambda Expressions in Unevaluated Contexts}
+\mySubsubsection{19.5.7.}{Lambda表达式在未计算上下文中的使用}
 
-Lambda expressions can be used in unevaluated contexts. For instance, the argument passed to decltype() is used only at compile time and never evaluated. Here is an example of using decltype() with a lambda expression:
+Lambda表达式可以在未计算的上下文中使用。例如，传递给decltype()的参数仅在编译时使用，永远不会计算。以下是一个使用decltype()和Lambda表达式的示例：
 
 \begin{cpp}
 using LambdaType = decltype([](int a, int b) { return a + b; });
 \end{cpp}
 
-\mySubsubsection{19.5.8.}{Default Construction, Copying, and Assigning}
+\mySubsubsection{19.5.8.}{无状态Lambda表达式的默认构造、复制和赋值}
 
-Stateless lambda expressions can be default constructed, copied, and assigned to. Here is a quick example:
+无状态的Lambda表达式可以进行默认构造、复制和赋值：
 
 \begin{cpp}
 auto lambda { [](int a, int b) { return a + b; } }; // A stateless lambda
@@ -474,24 +474,24 @@ auto copy { lambda }; // Copy construction.
 copy = lambda2; // Copy assignment.
 \end{cpp}
 
-Combined with using lambda expressions in unevaluated contexts, the following kind of code is valid:
+结合使用Lambda表达式在未计算上下文中的使用，以下类型的代码有效：
 
 \begin{cpp}
 using LambdaType = decltype([](int a, int b) { return a + b; }); // Unevaluated.
 LambdaType getLambda() { return LambdaType{}; /* Default construction. */ }
 \end{cpp}
 
-You can test this function as follows:
+可以像这样测试这个函数：
 
 \begin{cpp}
 println("{}", getLambda()(1, 2));
 \end{cpp}
 
-\CXXTwentythreeLogo{-40}{-50}
+\mySubsubsection{19.5.9.}{递归Lambda表达式}
 
-\mySubsubsection{19.5.9.}{Recursive Lambda Expressions}
+\CXXTwentythreeLogo{-40}{15}
 
-For a normal lambda expression, it is not trivial for it to call itself from within its body, even when you give a name to the lambda expression. For example, the following lambda expression given the name fibonacci tries to call itself twice in the second return statement. This lambda expression will not compile.
+对于一个普通的Lambda表达式，在其体内调用自己是相当复杂的，即使给Lambda表达式起了一个名字。例如，以下名为fibonacci的Lambda表达式试图在第二个返回语句中调用自己两次。这个Lambda表达式将无法编译。
 
 \begin{cpp}
 auto fibonacci = [](int n) {
@@ -500,7 +500,7 @@ auto fibonacci = [](int n) {
 };
 \end{cpp}
 
-With C++23’s explicit object parameters feature, introduced in Chapter 8, “Gaining Proficiency with Classes and Objects,” it is possible to do exactly that. This allows you to write recursive lambda expressions. The following demonstrates such a recursive lambda expression. It uses the explicit object parameter named self and calls itself recursively twice in the second return statement.
+在C++23中，通过引入第8章中的显式对象参数特性，可以编写递归的Lambda表达式。以下演示了这样的递归Lambda表达式，使用名为self的显式对象参数，并在第二个返回语句中递归地调用自己两次。
 
 \begin{cpp}
 auto fibonacci = [](this auto& self, int n) {
@@ -509,14 +509,14 @@ auto fibonacci = [](this auto& self, int n) {
 };
 \end{cpp}
 
-This recursive lambda expression can be tested as follows:
+这个递归的Lambda表达式可以像这样进行测试：
 
 \begin{cpp}
 println("First 20 Fibonacci numbers:");
 for (int i { 0 }; i < 20; ++i) { print("{} ", fibonacci(i)); }
 \end{cpp}
 
-The output is as expected:
+输出如预期：
 
 \begin{shell}
 First 20 Fibonacci numbers:

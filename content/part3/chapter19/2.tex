@@ -1,4 +1,4 @@
-As the previous section explains, you can create and use pointers to stand-alone functions. You also know that you can work with pointers to stand-alone variables. Now, consider pointers to class data members and member functions. It’s perfectly legitimate in C++ to take the addresses of class data members and member functions in order to obtain pointers to them. However, you can’t access a non-static data member or call a non-static member function without an object. The whole point of class data members and member functions is that they exist on a per-object basis. Thus, when you want to call member functions or access data members via a pointer, you must dereference the pointer in the context of an object. Here is an example using the Employee class introduced in Chapter 1, “A Crash Course in C++ and the Standard Library”:
+如前节所述，可以创建和使用独立函数的指针，也可以处理独立变量的指针。现在，考虑指向类数据成员和成员函数的指针。在C++中，获取类数据成员和成员函数的地址以获得指向它们的指针完全合法。然而，不能在没有对象的情况下，访问非静态数据成员或调用非静态成员函数。类数据成员和成员函数的意义在于，基于对象而存在。因此，当想通过指针调用成员函数或访问数据成员时，必须在对象的上下文中取消指针的引用。这里使用第1章的Employee类：
 
 \begin{cpp}
 int (Employee::*functionPtr) () const { &Employee::getSalary };
@@ -6,11 +6,11 @@ Employee employee { "John", "Doe" };
 println("{}", (employee.*functionPtr)());
 \end{cpp}
 
-Don’t panic at the syntax. The first line declares a variable called functionPtr of type pointer to a non-static const member function of Employee that takes no arguments and returns an int. At the same time, it initializes this variable to point to the getSalary() member function of the Employee class. This syntax is quite similar to declaring a simple function pointer, except for the addition of Employee:: before the *functionPtr. Note also that the \& is required in this case.
+不要对语法感到恐慌。第一行声明了一个名为functionPtr的变量，其类型是指向Employee类的非静态const成员函数的指针，该函数不接受参数并返回一个int。同时，将这个变量初始化为指向Employee类的getSalary()成员函数。这个语法与声明一个简单函数指针非常相似，只是增加了Employee::在*functionPtr之前。注意，这种情况下需要\&。
 
-The third line calls the getSalary() member function (via the functionPtr pointer) on the employee object. Note the use of parentheses surrounding employee.*functionPtr. They are needed because operator() has higher precedence than .*.
+第三行调用employee对象的getSalary()成员函数（通过functionPtr指针）。注意使用括号包围employee.*functionPtr。这些是必需的，因为operator()的优先级高于.*。
 
-If you have a pointer to an object, you can use ->* instead of .*, as the following code snippet demonstrates:
+如果有一个指向对象的指针，可以使用->*代替.*，如下面的代码段所示：
 
 \begin{cpp}
 int (Employee::*functionPtr) () const { &Employee::getSalary };
@@ -19,7 +19,7 @@ Employee* employee { &johnD };
 println("{}", (employee->*functionPtr)());
 \end{cpp}
 
-The definition of functionPtr can be made easier to read with a type alias:
+可以使用类型别名使functionPtr的定义更易理解：
 
 \begin{cpp}
 using PtrToGet = int (Employee::*) () const;
@@ -28,7 +28,7 @@ Employee employee { "John", "Doe" };
 println("{}", (employee.*functionPtr)());
 \end{cpp}
 
-Finally, it can be simplified even further using auto:
+最后，可以使用auto进一步简化：
 
 \begin{cpp}
 auto functionPtr { &Employee::getSalary };
@@ -37,13 +37,13 @@ println("{}", (employee.*functionPtr)());
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-You can get rid of the .* or ->* syntax by using std::mem\_fn(), explained later in this chapter in the context of function objects.
+可以使用std::mem\_fn()，这在本书后面介绍函数对象时会解释，以摆脱.*或->*。
 \end{myNotic}
 
-Pointers to member functions and data members won’t come up often during your day-to-day programming. However, it’s important to keep in mind that you cannot dereference a pointer to a non-static member function or data member without an object. Every so often, you may want to try something like passing a pointer to a non-static member function to a function such as qsort() that requires a function pointer, which simply won’t work.
+指向成员函数和数据成员的指针在日常编程中不会经常出现，但不能在没有对象的情况下，取消引用指向非静态成员函数或数据成员的指针。有时，可能想尝试将指向非静态成员函数的指针传递给需要函数指针的函数，如qsort()，但这根本行不通。
 
 \begin{myNotic}{NOTE}
-C++ does permit you to dereference a pointer to a static data member or static member function without an object.
+C++允许在没有对象的情况下，取消引用指向静态数据成员或静态成员函数的指针。
 \end{myNotic}
 
 

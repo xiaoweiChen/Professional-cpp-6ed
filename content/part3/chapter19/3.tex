@@ -1,9 +1,9 @@
 
-You can overload the function call operator in a class such that objects of the class can be used in place of function pointers. These objects are called function objects, or functors for short. The benefits of using a function object instead of a simple function is that a function object can keep state between calls to it.
+可以重载类的函数调用运算符，使得该类的对象可以代替函数指针，这样的对象称为函数对象，简称函子。使用函数对象的好处是，函数对象可以保持状态。
 
-\mySubsubsection{19.3.1.}{Writing Your First Function Object}
+\mySubsubsection{19.3.1.}{第一个函数对象}
 
-As Chapter 15, “Overloading C++ Operators,” explains, to make any class a function object, you just have to provide an overload for the function call operator. Here is a quick reminder:
+如第15章所述，要使类成为一个函数对象，只需提供一个函数调用运算符的重载：
 
 \begin{cpp}
 class IsLargerThan
@@ -26,21 +26,21 @@ int main()
 }
 \end{cpp}
 
-Note that the overloaded function call operator of the IsLargerThan class is marked as const. This is not strictly necessary in this example, but as the next chapter explains, for most Standard Library algorithms, the function call operator of predicates must be const.
+注意，IsLargerThan类的函数调用运算符标记为const。这个例子中，这并不是必要的，但正如下一章所解释，对于大多数标准库算法，谓词函数调用运算符必须为const。
 
-\CXXTwentythreeLogo{-40}{-50}
+从C++23开始，如果重载的operator()不需要访问非静态数据成员和成员函数，可以标记为static。这样做可以让编译器更好地优化代码。
 
-Remember also from Chapter 15 that, starting with C++23, an overloaded operator() can be marked as static if it doesn’t require access to any non-static data members and member functions of the functor. Doing so allows the compiler to better optimize the code.
+\CXXTwentythreeLogo{-40}{15}
 
-\mySubsubsection{19.3.2.}{Function Objects in the Standard Library}
+\mySubsubsection{19.3.2.}{标准库中的函数对象}
 
-Many of the Standard Library algorithms discussed in the next chapter, such as find\_if(), accumulate(), and so on, accept callbacks, for example function pointers and functors, as parameters to customize the algorithm’s behavior. C++ provides several predefined functor classes, defined in <functional>, that perform the most commonly used callback operations. This section gives an overview of these predefined functors.
+下一章中介绍的许多标准库算法，如find\_if()、accumulate()等，接受回调作为参数，以定制算法的行为。C++提供了一些预定义的函数对象类，定义在<functional>中，执行最常用的回调操作。本节概述了这些预定义的函数对象。
 
-Your <functional> might also contain functions like bind1st(), bind2nd(), mem\_fun(), mem\_fun\_ref(), and ptr\_fun(). These functions have officially been removed since the C++17 standard and thus are not further discussed in this book. You should avoid using them.
+<functional>可能还包含像bind1st()、bind2nd()、mem\_fun()、mem\_fun\_ref()和ptr\_fun()这样的函数。这些函数在C++17中已经被官方移除，因此本书中不再介绍，读者们也应该避免使用它们。
 
-\mySamllsection{Arithmetic Function Objects}
+\mySamllsection{算术函数对象}
 
-C++ provides functor class templates for the five binary arithmetic operators: plus, minus, multiplies, divides, and modulus. Additionally, unary negate is supplied. These classes are parametrized on the type of the operands and are wrappers for the actual operators. They take one or two parameters of the template type, perform the operation, and return the result. Here is an example using the plus class template:
+C++提供了五个二元算术运算符（加、减、乘、除、取模）的函数对象类模板，以及一个一元取反的函数对象。这些类根据操作数的类型参数化，是实际运算符的包装器。它们接受模板类型的一个或两个参数，执行操作，并返回结果。以下是一个使用plus类模板的例子：
 
 \begin{cpp}
 plus<int> myPlus;
@@ -48,7 +48,7 @@ int res { myPlus(4, 5) };
 println("{}", res);
 \end{cpp}
 
-This example is of course silly, because there’s no reason to use the plus class template when you could just use operator+ directly. The benefit of the arithmetic function objects is that you can pass them as callbacks to other functions, which you cannot do directly with the arithmetic operators. For example, the following code snippet defines a constrained accumulateData() function template accepting an Operation as its last parameter. The implementation of geometricMean() calls accumulateData() with an instance of the predefined multiplies function object:
+这个例子有些蠢，可以直接使用operator+时，没有理由使用plus类模板。算术函数对象的好处在于，可以将它们作为回调传递给其他函数，这是无法直接使用算术运算符能够完成的。例如，以下代码段定义了一个受约束的accumulateData()函数模板，接受Operation作为最后一个参数。几何平均值的实现调用了accumulateData()，使用预定义的multiplies函数对象的一个实例：
 
 \begin{cpp}
 template <input_iterator Iter, copy_constructible StartValue,
@@ -70,17 +70,17 @@ double geometricMean(span<const int> values)
 }
 \end{cpp}
 
-The expression multiplies<int>\{\} creates a new object of the multiplies functor class template, instantiating it with type int.
+表达式multiplies<int>\{\}创建了一个multiplies函数对象类的实例，其类型为int。
 
-The other arithmetic function objects behave similarly.
+其他算术函数对象的行为类似。
 
 \begin{myWarning}{WARNING}
-The arithmetic function objects are just wrappers around the arithmetic operators. To use them on objects of a certain type, you have to make sure that those types implement the appropriate operations, such as operator* or operator+.
+算术函数对象只是算术运算符的包装器。要使用它们对特定类型的对象进行操作，必须确保这些类型实现了适当的运算符，如operator*或operator+。
 \end{myWarning}
 
-\mySamllsection{Transparent Operator Functors}
+\mySamllsection{透明操作符}
 
-C++ supports transparent operator functors, which allow you to omit the template type argument. For example, you can just specify multiplies<>{}, short for multiplies<void>\{\}, instead of multiplies<int>\{\}:
+C++支持透明操作符函数对象，允许省略模板类型参数。例如，可以简单地指定multiplies<>\{\}，即multiplies<void>\{\}的简写，而不是multiplies<int>\{\}：
 
 \begin{cpp}
 double geometricMeanTransparent(span<const int> values)
@@ -90,14 +90,14 @@ double geometricMeanTransparent(span<const int> values)
 }
 \end{cpp}
 
-An important feature of these transparent operators is that they are heterogeneous. That is, they are not only more concise than the non-transparent functors, but they also have real functional advantages. For instance, the following code uses a transparent operator functor, multiplies<>\{\}, and uses 1.1, a double, as the start value, while the vector contains integers. accumulateData() calculates the result as a double, and result will be 6.6.
+些透明操作符的一个重要特性是异构，所以它们不仅比非透明函数对象更简洁，而且具有真正的功能优势。例如，以下代码使用透明运算符函数对象multiplies<>\{\}，并使用1.1，一个double，作为起始值，而vector包含整数。accumulateData()将结果计算为double，结果将是6.6。
 
 \begin{cpp}
 vector<int> values { 1, 2, 3 };
 double result {accumulateData(cbegin(values), cend(values), 1.1, multiplies<>{})};
 \end{cpp}
 
-If this code uses a non-transparent operator functor, multiplies<int>\{\}, then accumulateData() calculates the result as an integer, and result will be 6. When you compile this code, the compiler will give you warnings about possible loss of data.
+如果这段代码使用非透明运算符函数对象multiplies<int>\{\}，那么accumulateData()将结果计算为整数，结果将是6。当编译这段代码时，编译器会给出有关可能数据丢失的警告。
 
 \begin{cpp}
 vector<int> values { 1, 2, 3 };
@@ -105,15 +105,15 @@ double result {
     accumulateData(cbegin(values), cend(values), 1.1, multiplies<int>{}) };
 \end{cpp}
 
-Finally, using transparent operators instead of the non-transparent ones can improve performance, as shown with an example in the next section.
+最后，使用透明运算符可以提高性能，如下一节中的示例所示。
 
 \begin{myNotic}{NOTE}
-It’s recommended to always use the transparent operator functors.
+建议使用透明操作符。
 \end{myNotic}
 
-\mySamllsection{Comparison Function Objects}
+\mySamllsection{比较函数对象}
 
-In addition to the arithmetic function object classes, all standard comparison operations are also available as functors: equal\_to, not\_equal\_to, less, greater, less\_equal, and greater\_equal. You’ve already seen less in Chapter 18, “Standard Library Containers,” as the default comparator for elements in the priority\_queue, the ordered associative containers, and the flat associative container adapters. Now you can learn how to change that criterion. Here’s an example of a priority\_queue using the default comparator, std::less:
+除了算术函数对象类，所有标准的比较操作也作为函数对象提供：equal\_to、not\_equal\_to、less、greater、less\_equal和greater\_equal。已经在第18章中看到less作为优先队列、有序关联容器和扁平关联容器适配器的默认比较器。现在可以了解如何改变这个比较器。以下是一个使用默认比较器std::less的优先队列的例子：
 
 \begin{cpp}
 priority_queue<int> myQueue;
@@ -127,31 +127,31 @@ while (!myQueue.empty()) {
 }
 \end{cpp}
 
-Here is the output from the program:
+程序的输出如下所示：
 
 \begin{shell}
 4 3 2 1
 \end{shell}
 
-As you can see, the elements of the queue are removed in descending order, according to the less comparator. You can change the comparator to greater by specifying it as the comparator template type argument. The priority\_queue template definition looks like this:
+队列中的元素按照less比较器以降序移除。可以通过指定比较器模板类型参数来改变比较器，以升序排列元素。优先队列模板定义如下：
 
 \begin{cpp}
 template <typename T, typename Container = vector<T>, typename Compare = less<T>>;
 \end{cpp}
 
-Unfortunately, the Compare type parameter is last, which means that to specify it, you must also specify the container type. If you want to use a priority\_queue that sorts the elements in ascending order using greater, then you need to change the definition of the priority\_queue in the previous example to the following:
+不幸的是，Compare类型参数是最后一个，所以要指定它，还需要指定容器类型。如果想使用一个按升序排序元素的优先队列，那么需要将优先队列的定义更改为以下形式：
 
 \begin{cpp}
 priority_queue<int, vector<int>, greater<>> myQueue;
 \end{cpp}
 
-The output now is as follows:
+输出现在为：
 
 \begin{shell}
 1 2 3 4
 \end{shell}
 
-Note that myQueue is defined with a transparent operator, greater<>. In fact, it’s recommended to always use a transparent operator for Standard Library containers that accept a comparator type. Using a transparent comparator can be more performant compared to using a non-transparent operator. For example, if a set<string> uses a non-transparent comparator (which is the default), performing a query for a key given as a string literal causes an unwanted copy to be created, because a string instance has to be constructed from the string literal:
+注意，myQueue定义了一个透明运算符greater<>。实际上，对于接受比较器类型的标准库容器，推荐使用透明运算符。与非透明操作符相比，使用透明操作符可以提高性能。例如，如果一个set<string>使用非透明操作符（这是默认的），那么对一个字符串字面量给出的键进行查询会有不必要的复制，因为必须使用字符串字面量，构造一个string实例：
 
 \begin{cpp}
 set<string> mySet;
@@ -159,7 +159,7 @@ auto i1 { mySet.find("Key") }; // string constructed, allocates memory!
 //auto i2 { mySet.find("Key"sv) }; // Compilation error!
 \end{cpp}
 
-When using a transparent comparator, this copying is avoided. This is called heterogeneous lookups. Here’s an example:
+使用透明操作符时，可以避免这种复制，这称为异构查找。以下是异构查找的示例：
 
 \begin{cpp}
 set<string, less<>> mySet;
@@ -167,9 +167,9 @@ auto i1 { mySet.find("Key") }; // No string constructed, no memory allocated.
 auto i2 { mySet.find("Key"sv) }; // No string constructed, no memory allocated.
 \end{cpp}
 
-Similarly, C++23 adds support for heterogeneous erasure and extraction using erase() and extract().
+C++ 23为异构删除和提取添加了支持，使用erase()和extract()。
 
-Unordered associative containers, such as unordered\_map and unordered\_set, also support transparent operators. Using a transparent operator with unordered associative containers is a bit more involved compared to using them for ordered associative containers. Basically, a custom hash functor needs to be implemented, containing an is\_transparent type alias defined as void:
+无序关联容器，如unordered\_map和unordered\_set，也支持透明操作符。与有序关联容器相比，使用透明操作符与无序关联容器稍微复杂一些。基本上，需要实现一个自定义的哈希函数对象，其中包含一个定义为void的is\_transparent类型别名：
 
 \begin{cpp}
 class Hasher
@@ -180,7 +180,7 @@ class Hasher
 };
 \end{cpp}
 
-When using this custom hasher, you also need to specify the transparent equal\_to<> functor as the type for the key equality template type parameter. Here is an example:
+使用这个自定义的哈希函数对象时，还需要指定透明equal\_to<>函数对象作为键等价性模板类型参数的类型。以下是一个示例：
 
 \begin{cpp}
 unordered_set<string, Hasher, equal_to<>> mySet;
@@ -188,11 +188,11 @@ auto i1 { mySet.find("Key") }; // No string constructed, no memory allocated.
 auto i2 { mySet.find("Key"sv) }; // No string constructed, no memory allocated.
 \end{cpp}
 
-\mySamllsection{Logical Function Objects}
+\mySamllsection{逻辑函数对象}
 
-For the three logical operations, operator!, \&\&, and ||, C++ provides the following function object classes: logical\_not, logical\_and, and logical\_or. These logical operations deal only with the values true and false. Bitwise function objects are covered in the next section.
+对于三个逻辑运算符!、\&\&和||，C++提供了以下函数对象类：logical\_not、logical\_and和logical\_or。这些逻辑运算只处理真假值，位运算函数对象将在下一节介绍。
 
-Logical functors can, for example, be used to implement an allTrue() function that checks whether all the Boolean flags in a container are true:
+逻辑函数对象可以用于实现一个allTrue()函数，该函数检查容器中所有布尔标志是否为真：
 
 \begin{cpp}
 bool allTrue(const vector<bool>& flags)
@@ -201,7 +201,7 @@ bool allTrue(const vector<bool>& flags)
 }
 \end{cpp}
 
-Similarly, the logical\_or functor can be used to implement an anyTrue() function that returns true if there is at least one Boolean flag in a container true:
+类似地，logical\_or函数对象可以用于实现一个anyTrue()函数，该函数如果容器中至少有一个布尔标志为真，则返回真：
 
 \begin{cpp}
 bool anyTrue(const vector<bool>& flags)
@@ -211,22 +211,22 @@ bool anyTrue(const vector<bool>& flags)
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-The allTrue() and anyTrue() functions are just given as examples. In fact, the Standard Library provides the std::all\_of() and any\_of() algorithms (see Chapter 20) that perform the same operations but that have the benefit of short-circuiting (see Chapter 1), so they are more performant.
+allTrue()和anyTrue()函数只是作为示例给出的。实际上，标准库提供了std::all\_of()和any\_of()算法（见第20章），其执行相同的操作，但具有短路（见第1章）特性，因此性能更好。
 \end{myNotic}
 
-\mySamllsection{Bitwise Function Objects}
+\mySamllsection{位运算函数对象}
 
-C++ has function objects bit\_and, bit\_or, bit\_xor, and bit\_not, corresponding to the bitwise operations operator\&, |, \^{}, and ~. These bitwise functors can, for example, be used together with the transform() algorithm (discussed in Chapter 20) to perform bitwise operations on all elements in a container.
+C++有bit\_and、bit\_or、bit\_xor和bit\_not函数对象，对应于位运算符\&、|、\^{}和~。这些位运算函数对象可以与第20章介绍的transform()算法一起使用，对容器中的所有元素执行位运算。
 
-\mySamllsection{Adapter Function Objects}
+\mySamllsection{适配器函数对象}
 
-When you try to use the basic function objects provided by the standard, it often feels as if you’re trying to put a square peg into a round hole. If you want to use one of the standard function objects, but the signature doesn’t quite match your requirements, then you can use adapter function objects to attempt to rectify the signature mismatch. They allow you to adapt function objects, function pointers, basically any callable. The adapters provide a modicum of support for functional composition, that is, to combine functions together to create the exact behavior you need.
+当尝试使用标准库提供的基本函数对象时，经常会感觉像是在尝试将方钉放入圆孔中。如果想要使用标准函数对象，但其签名与需求不完全匹配，则可以使用适配器函数对象来尝试解决签名不匹配的问题。它们允许适配函数对象、函数指针，基本上是任何可调用对象。适配器提供了一些对功能组合的支持，即组合函数以创建所需要的行为。
 
-\mySamllsection{Binders}
+\mySamllsection{绑定器}
 
-Binders can be used to bind parameters of callables to certain values. A first binder is std::bind(), defined in <functional>, which allows you to bind parameters of a callable in a flexible way. You can bind parameters to fixed values, and you can even rearrange parameters in a different order.
+绑定器可以用来将可调用对象的参数，绑定到特定值。第一个绑定器是std::bind()，定义在<functional>中，允许以灵活的方式绑定可调用对象的参数。可以将参数绑定到固定值，甚至可以重新排列参数的顺序。
 
-It is best explained with an example. Suppose you have a function called func() accepting two arguments:
+最好通过示例来解释。假设有一个名为func()的函数，接受两个参数：
 
 \begin{cpp}
 void func(int num, string_view str)
@@ -235,7 +235,7 @@ void func(int num, string_view str)
 }
 \end{cpp}
 
-The following code demonstrates how you can use bind() to bind the second argument of func() to a fixed value, myString. The result is stored in f1(). The auto keyword is used because the return type of bind() is unspecified by the C++ standard and thus is implementation specific. Arguments that are not bound to specific values should be specified as \_1, \_2, \_3, and so on. These are defined in the std::placeholders namespace. In the definition of f1(), the \_1 specifies where the first argument to f1() needs to go when func() is called. The result: f1() can be called with just a single integer argument:
+以下代码展示了如何使用bind()将func()的第二个参数绑定到固定值myString，结果存储在f1()中。使用auto关键字是因为bind()的返回类型在C++标准中未指定，由实现指定。未绑定到特定值的参数应指定为\_1、\_2、\_3等，这些在std::placeholders命名空间中定义。在f1()的定义中，\_1指定了f1()调用func()时第一个参数的位置。结果：f1()可以只用一个整数参数调用：
 
 \begin{cpp}
 string myString { "abc" };
@@ -243,72 +243,72 @@ auto f1 { bind(func, placeholders::_1, myString) };
 f1(16);
 \end{cpp}
 
-Here is the output:
+输出如下：
 
 \begin{shell}
 func(16, abc)
 \end{shell}
 
-bind() can also be used to rearrange the arguments, as shown in the following code. The \_2 specifies where the second argument to f2() needs to go when func() is called. In other words, the f2() binding means that the first argument to f2() will become the second argument to func(), and the second argument to f2() will become the first argument to func():
+bind()也可以用来重新排列参数，如下面的代码所示。\_2指定了f2()调用func()时第二个参数的位置，f2()的绑定意味着f2()的第一个参数将成为func()的第二个参数，f2()的第二个参数将成为func()的第一个参数：
 
 \begin{cpp}
 auto f2 { bind(func, placeholders::_2, placeholders::_1) };
 f2("Test", 32);
 \end{cpp}
 
-The output is as follows:
+输出如下：
 
 \begin{shell}
 func(32, Test)
 \end{shell}
 
-As discussed in Chapter 18, <functional> defines the std::ref() and cref() helper function templates. These can be used to bind references-to-non-const and references-to-const, respectively. For example, suppose you have the following function:
+如第18章所述，<functional>定义了std::ref()和cref()辅助函数模板，这些可以用来绑定非常量引用和常量引用。例如，假设有以下函数：
 
 \begin{cpp}
 void increment(int& value) { ++value; }
 \end{cpp}
 
-If you call this function as follows, then the value of index becomes 1:
+如果这样调用这个函数，那么index的值将变为1：
 
 \begin{cpp}
 int index { 0 };
 increment(index);
 \end{cpp}
 
-If you use bind() to call it as follows, then the value of index is not incremented because a copy of index is made, and a reference to this copy is bound to the first parameter of the increment() function:
+如果使用bind()，那么index的值不会增加，因为会创建index的副本，并且对这一副本的引用会绑定到increment()函数的第一个参数上：
 
 \begin{cpp}
 auto incr { bind(increment, index) };
 incr();
 \end{cpp}
 
-Using std::ref() to pass a proper reference correctly increments index:
+使用std::ref()正确传递引用，可以正确的增加index：
 
 \begin{cpp}
 auto incr { bind(increment, ref(index)) };
 incr();
 \end{cpp}
 
-There is a small issue with binding parameters in combination with overloaded functions. Suppose you have the following two overloaded() functions. One accepts an integer, and the other accepts a floating-point number:
+绑定参数与重载函数结合使用时，存在一个小问题。假设有以下两个重载函数：
 
 \begin{cpp}
 void overloaded(int num) {}
 void overloaded(float f) {}
 \end{cpp}
 
-If you want to use bind() with these overloaded functions, you need to explicitly specify which of the two overloads you want to bind. The following will not compile:
+如果想使用bind()与这些重载函数结合使用，需要显式指定想要绑定的哪个重载函数。以下代码将无法编译：
 
 \begin{cpp}
 auto f3 { bind(overloaded, placeholders::_1) }; // ERROR
 \end{cpp}
 
-If you want to bind the parameters of the overloaded function accepting a floating-point argument, you need the following syntax:
+如果想绑定接受浮点数参数的重载函数，则需要以下语法：
 
 \begin{cpp}
 auto f4 { bind((void(*)(float))overloaded, placeholders::_1) }; // OK
 \end{cpp}
 
-Another example of bind() is to use findMatches() (defined earlier in this chapter) with a member function of a class as MatchHandler. For example, suppose you have the following Handler class:
+另一个使用 bind() 的例子是将 findMatches()（在本章前面定义）与类的成员函数一起作为 MatchHandler 使用。例如，有以下 Handler 类：
 
 \begin{cpp}
 class Handler
@@ -322,7 +322,7 @@ class Handler
 };
 \end{cpp}
 
-How to pass the handleMatch() member function as the last argument to findMatches()? The problem here is that a member function must always be called in the context of an object. Technically, every member function of a class has an implicit first parameter, containing a pointer to an object instance and accessible in the member function’s body with the name this. So, there is a signature mismatch, as our MatchHandler type accepts only three arguments: a size\_t and two ints. The solution is to bind this implicit first parameter as follows:
+如何将 handleMatch() 成员函数作为最后一个参数传递给 findMatches()？这里的问题是，成员函数必须始终在对象上下文中调用。从技术上讲，类的每个成员函数都有一个隐式的第一个参数，包含一个指向对象实例的指针，在成员函数体中可以通过名称 this 访问。因此，存在签名不匹配的问题，因为 MatchHandler 类型只接受三个参数：一个 size\_t 和两个 int。解决方案是将这个隐式的第一个参数绑定如下：
 
 \begin{cpp}
 Handler handler;
@@ -330,13 +330,13 @@ findMatches(values1, values2, intEqual, bind(&Handler::handleMatch, &handler,
             placeholders::_1, placeholders::_2, placeholders::_3));
 \end{cpp}
 
-You can also use bind() to bind parameters of standard function objects. For example, you can bind the second parameter of greater\_equal to always compare with a fixed value:
+还可以使用 bind() 来绑定标准函数对象的参数。例如，可以绑定 greater\_equal 的第二个参数，以便始终与固定值进行比较：
 
 \begin{cpp}
 auto greaterEqualTo100 { bind(greater_equal<>{}, placeholders::_1, 100) };;
 \end{cpp}
 
-The Standard Library provides two more binder function objects: std::bind\_front() and bind\_back(). The latter is introduced with C++23. They both wrap a callable f. When calling a bind\_front() wrapper, the first n number of arguments for f are bound to a given set of values. For bind\_back(), the last n number of arguments for f are bound. Here are two examples:
+标准库还提供了两个更多的绑定器函数对象：std::bind\_front() 和 bind\_back()。后者在 C++23 中引入,都包装了一个可调用的 f。当调用 bind\_front() 包装器时，f 的前 n 个参数绑定到一组给定的值。对于 bind\_back()，绑定f 的最后 n 个参数。这里有两个例子：
 
 \begin{cpp}
 auto f5 { bind_front(func, 42) };
@@ -346,7 +346,7 @@ auto f6 { bind_back(func, "Hello")};
 f6(42);
 \end{cpp}
 
-This generates the following output:
+将生成以下输出：
 
 \begin{shell}
 func(42, Hello)
@@ -354,27 +354,26 @@ func(42, Hello)
 \end{shell}
 
 \begin{myNotic}{NOTE}
-Before C++11 there was bind2nd() and bind1st(). Both are removed since the C++17 standard. Use lambda expressions, discussed later in this chapter, or bind(), bind\_front(), or bind\_back() instead.
+在 C++11 之前，有 bind2nd() 和 bind1st()。自从 C++17 标准以来，两者都已移除。请使用本章后面讨论的 Lambda 表达式，或者使用 bind()、bind\_front() 或 bind\_back() 代替删除的函数。
 \end{myNotic}
 
-\mySamllsection{Negator}
+\mySamllsection{否定器}
 
-not\_fn() is a negator, similar to a binder, but it complements the result of a callable. For example, if you want to use findMatches() to find pairs of non-equal values, you can apply the not\_fn() negator adapter to the result of intEqual() like this:
+not\_fn()是一个否定器，类似于一个绑定器，但它补充了可调用对象的返回结果。例如，使用findMatches()来查找非相等的值对，可以像这样将not\_fn()否定器适配器应用于intEqual()的结果：
 
 \begin{cpp}
 findMatches(values1, values2, not_fn(intEqual), printMatch);
 \end{cpp}
 
-The not\_fn() functor complements the result of every call to the callable it takes as a parameter.
-
+not\_fn()函数对象补充了作为参数，接收每个可调用对象的调用结果。
 
 \begin{myNotic}{NOTE}
-The std::not\_fn() adapter is available since C++17. Before C++17 you could use the std::not1() and not2() adapters. However, both not1() and not2() have been deprecated since C++17 and removed from C++20. As such, they are not further discussed, and you should avoid using them.
+std::not\_fn()适配器自C++17起可用。在C++17之前，可以使用std::not1()和not2()适配器。而自C++17起，not1()和not2()都被弃用，并在C++20中被移除。因此，不再进一步介绍它们，读者们也应该避免使用它们。
 \end{myNotic}
 
-\mySamllsection{Calling Member Functions}
+\mySamllsection{调用成员函数}
 
-You might want to pass a pointer to a class member function as the callback to an algorithm. For example, suppose you have the following algorithm that prints strings from a container that match a certain condition. The Matcher template type parameter is constrained with predicate<const string\&> to make sure the user supplies a callback that can be called with a string parameter and returns a Boolean.
+可能希望将类成员函数的指针，作为回调传递给算法。例如，有以下算法，该算法打印出符合特定条件的容器中的字符串。Matcher 模板类型参数受到 predicate<const string\&> 的约束，以确保用户提供的回调可以接受字符串参数并返回布尔值。
 
 \begin{cpp}
 template <predicate<const string&> Matcher>
@@ -386,25 +385,25 @@ void printMatchingStrings(const vector<string>& strings, Matcher matcher)
 }
 \end{cpp}
 
-You could use this algorithm to print all non-empty strings by using the empty() member function of string. However, if you just pass a pointer to string::empty() as the second argument to printMatchingStrings(), the algorithm has no way of knowing that it received a pointer to a member function instead of a normal function pointer or functor. The code to call a member function pointer is different from that of calling a normal function pointer, because the former must be called in the context of an object.
+可以使用这个算法来打印所有非空字符串，通过使用 string 的 empty() 成员函数。但是，如果只是将 string::empty() 的指针作为第二个参数传递给 printMatchingStrings()，算法无法知道接收的是成员函数指针，而非普通函数指针或函数对象。调用成员函数指针的代码与调用普通函数指针的代码不同，因为前者必须在对象上下文中调用。
 
-C++ provides a conversion function called mem\_fn() that you can call with a member function pointer before passing it to an algorithm. The following example demonstrates this and combines it with not\_fn() to invert the result of mem\_fn(). Note that you have to specify the member function pointer as \&string::empty. The \&string:: part is not optional.
+C++ 提供了一个名为 mem\_fn() 的转换函数，可以在将成员函数指针传递给算法之前调用它。以下示例演示了这一点，并将其与 not\_fn() 结合使用来反转 mem\_fn() 的结果。注意，必须将成员函数指针指定为 \&string::empty。\&string:: 部分是必填的。
 
 \begin{cpp}
 vector<string> values { "Hello", "", "", "World", "!" };
 printMatchingStrings(values, not_fn(mem_fn(&string::empty)));
 \end{cpp}
 
-The output is as follows:
+输出如下：
 
 \begin{shell}
 'Hello' 'World' '!'
 \end{shell}
 
-not\_fn(mem\_fn()) generates a function object that serves as the callback for printMatchingStrings(). Each time it is called, it calls the empty() member function on its argument and inverts the result.
+not\_fn(mem\_fn()) 生成一个函数对象，作为 printMatchingStrings() 的回调。每次调用时，都会在其参数上调用 empty() 成员函数，并反转结果。
 
 \begin{myNotic}{NOTE}
-mem\_fn() is not the most intuitive way to implement the desired behavior. I recommend using lambda expressions, discussed later in this chapter, to implement it in a more elegant and more readable way.
+mem\_fn() 不是实现所需行为的直观方式。我建议使用本章后面讨论的 Lambda 表达式，以更优雅、更易读的方式进行实现。
 \end{myNotic}
 
 

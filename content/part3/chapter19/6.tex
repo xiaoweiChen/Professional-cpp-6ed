@@ -1,5 +1,5 @@
 
-std::invoke(), defined in <functional>, can be used to call any callable with a set of arguments. The following example uses invoke() three times: once to invoke a normal function, once to invoke a lambda expression, and once to invoke a member function on a string instance:
+std::invoke()，定义在 <functional> 头文件中，可以用来调用可调用对象，并传递一系列参数。以下示例使用了 invoke() 三次：一次调用普通函数，一次调用 lambda 表达式，以及一次调用字符串实例上的成员函数：
 
 \begin{cpp}
 int main()
@@ -11,7 +11,7 @@ int main()
 }
 \end{cpp}
 
-The output of this code is as follows:
+这段代码的输出如下：
 
 \begin{shell}
 Hello invoke.
@@ -21,7 +21,7 @@ Hello invoke.
 
 \CXXTwentythreeLogo{-40}{-50}
 
-C++23 adds std::invoke\_r(), also defined in <functional>, allowing you to specify the return type. Here is an example:
+C++23 增加了 std::invoke\_r()，也定义在 <functional> 中，允许指定返回类型。以下是一个示例：
 
 \begin{cpp}
 int sum(int a, int b) { return a + b; }
@@ -34,7 +34,7 @@ int main()
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-By themselves, invoke() and invoke\_r() are not that useful because you might as well just call the function or the lambda expression directly. However, they can be very useful when writing generic templated code where you need to invoke some arbitrary callable.
+单独来看，invoke() 和 invoke\_r() 并不是那么有用，因为可以直接调用函数或 Lambda 表达式。但当编写泛型模板代码，需要调用一些可调用对象时，它们就非常有用了。
 \end{myNotic}
 
 

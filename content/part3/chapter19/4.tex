@@ -1,17 +1,17 @@
 
-The C++ Standard Library provides std::function and move\_only\_function. Both are polymorphic function wrappers, which are function objects capable of wrapping anything that is callable such as a function, a function object, or a lambda expression; the latter is discussed later in this chapter.
+C++标准库提供了std::function和move\_only\_function。两者都是多态函数包装器，是能够包装任何可调用对象（如函数、函数对象或Lambda表达式）的函数对象；后者将在本章后面讨论。
 
 \mySubsubsection{19.4.1.}{std::function}
 
-The std::function functor is defined in <functional>. An instance of std::function can be used as a function pointer, or as a parameter for a function to implement callbacks, and can be stored, copied, moved, and, of course, executed. The template parameters for the function template look a bit different than most template parameters. The syntax is as follows:
+std::function 定义在 <functional> 头文件中。std::function 的实例可以用作函数指针，或者用作实现回调的函数参数，并且可以存储、复制、移动，当然也可以执行。函数模板的模板参数与其他模板参数看起来有点不同。语法如下：
 
 \begin{cpp}
 std::function<R(ArgTypes...)>
 \end{cpp}
 
-R is the return type of the function, and ArgTypes is a comma-separated list of parameter types for the function.
+R 是函数的返回类型，ArgTypes 是函数参数类型的逗号分隔列表。
 
-The following example demonstrates how to use std::function to implement a function pointer. It creates a function pointer f1 to point to the function func(). Once f1 is defined, you can use it to call func():
+以下示例演示了如何使用 std::function 实现 函数指针，创建了一个名为 f1 的函数指针，指向 func() 函数。定义 f1 后，可以使用它来调用 func()：
 
 \begin{cpp}
 void func(int num, string_view str) { println("func({}, {})", num, str); }
@@ -23,25 +23,25 @@ int main()
 }
 \end{cpp}
 
-A function<R(ArgTypes...)> can store a function that has a parameter list exactly matching ArgTypes and a return type exactly of type R. It can also store any other function that has a parameter list allowing it to be called with a set of ArgTypes arguments and returning a type that can be converted to R. For example, the func() function in the previous example could accept its first parameter by const int\&, while nothing in main() needs to change:
+一个 function<R(ArgTypes...)> 可以存储一个参数列表与 ArgTypes 完全匹配且返回类型为 R 的函数。也可以存储任何其他具有参数列表的函数，该列表允许使用 ArgTypes 参数集调用，并返回可以转换为 R 类型的类型。例如，上一个示例中的 func() 函数可以接受其第一个参数为 const int\&，而 main() 中的代码不需要更改：
 
 \begin{cpp}
 void func(const int& num, string_view str) { println("func({}, {})", num, str); }
 \end{cpp}
 
-Thanks to class template argument deduction, you can simplify the creation of f1 as follows:
+通过类模板参数推导，可以简化 f1 的创建：
 
 \begin{cpp}
 function f1 { func };
 \end{cpp}
 
-Of course, in the preceding example, it is possible to just use the auto keyword, which removes the need to specify the type of f1. The following definition for f1 works the same and is much shorter, but the compiler-deduced type of f1 is a function pointer, that is, void (*f1)(int, string\_view) instead of an std::function:
+当然，在前面的示例中，可以使用 auto 关键字，这样可以省去指定 f1 类型的需要。以下 f1 的定义工作方式相同，并且更短，但编译器推导出的 f1 类型是函数指针，即 void (*f1)(int, string\_view)，而不是 std::function：
 
 \begin{cpp}
 auto f1 { func };
 \end{cpp}
 
-Because std::function types behave as function pointers, they can be passed to functions accepting callbacks. The original findMatches() implementation from earlier in this chapter defines two type aliases as function pointers. Those type aliases can be rewritten to use std::function, while everything else from that example remains the same:
+因为 std::function 类型表现为函数指针，所以可以将其传递给接受回调的函数。本章前面定义的原始 findMatches() 实现，定义了两个函数指针的类型别名。这些类型别名可以重写为使用 std::function，而示例中的其他内容保持不变：
 
 \begin{cpp}
 // A type alias for a function accepting two integer values,
@@ -54,17 +54,17 @@ using Matcher = function<bool(int, int)>;
 using MatchHandler = function<void(size_t, int, int)>;
 \end{cpp}
 
-Still, as mentioned earlier in this chapter, the recommended implementation for findMatches() uses a function template, instead of function pointers or std::function.
+尽管如此，正如本章前面提到的，推荐 findMatches() 实现使用的是函数模板，而不是函数指针或 std::function。
 
-So, with all these examples, it looks like std::function is not really that useful; however, std::function really shines when you need to store a callback as a data member of a class. That’s the topic of one of the exercises at the end of this chapter.
-
-\CXXTwentythreeLogo{-40}{-60}
+在这些示例中，std::function 并不是非常有用；但当需要将回调存储为类的数据成员时，std::function 真的非常有用。这是本章末尾的一个练习。
 
 \mySubsubsection{19.4.2.}{std::move\_only\_function}
 
-std::function requires that the callable stored in it is copyable. To alleviate this, C++23 introduces the move-only std::move\_only\_function wrapper, also defined in <functional>, that can be used to wrap a move-only callable. Additionally, the move\_only\_function functor allows you to explicitly mark its function call operator as const and/or noexcept. This is not possible with std::function, as its function call operator is always const.
+\CXXTwentythreeLogo{-40}{15}
 
-The following code snippet demonstrates move\_only\_function. Assume the BigData class stores a lot of data. The BigDataProcessor functor processes the data in an instance of BigData. To avoid copying, this functor stores a unique\_ptr to a BigData instance, which it gets through its constructor. The function call operator is marked as const for demonstration purposes and simply prints out some text. The main() function first creates a unique\_ptr of a BigData instance, creates a const processor, and finally calls the function call operator on processor. Using function instead of move\_only\_function in this example would not work because BigDataProcessor is a move-only type.
+std::function 要求存储在其中的可调用对象是可复制的。为了缓解这个问题，C++23 引入了std::move\_only\_function 包装器，也在 <functional> 中定义，可用于包装只移动的可调用对象。此外，move\_only\_function 函数对象允许显式地将其函数调用运算符标记为 const 和/或 noexcept。这在 std::function 中是不可能实现的，因为函数调用运算符总是 const。
+
+以下代码片段演示了 move\_only\_function。假设 BigData 类存储了大量数据，BigDataProcessor 函数对象处理 BigData 实例中的数据。为了避免复制，这个函数对象存储了一个 unique\_ptr 指向 BigData 实例，通过其构造函数获得。为了演示，函数调用的运算符标记为 const，并且简单地打印出一些文本。main() 函数首先创建一个 BigData 实例的 unique\_ptr，创建const processor，最后在 processor 上调用函数调用运算符。此示例中使用 function 的话是行不通的，因为 BigDataProcessor 是一个只移动类型。
 
 \begin{cpp}
 class BigData {};
