@@ -1,20 +1,19 @@
 
-Chapter 16 lists all available Standard Library algorithms, divided into different categories. Most of the algorithms are defined in <algorithm>, but a few are located in <numeric>. They are all in the std namespace.
+第 16 章列出了所有可用的标准库算法，并将其分为不同的类别。大多数算法定义在 <algorithm> 中，但有些位于 <numeric> 中，并且都在 std 命名空间中。
 
-The goal of this chapter is not to provide a reference-style overview of all available algorithms. Instead, I have picked a number of categories and provided examples for them. Once you know how to use these algorithms, you should have no problems with other algorithms. Consult a Standard Library Reference (see Appendix B) for a full reference of all the algorithms.
+本章的目标不是提供一个参考风格的概述，而是挑选了一些类别并提供示例。当知道如何使用这些算法，其他算法的使用方式也很相近。有关所有算法的完整参考，请查阅标准库手册（见附录 B）。
 
-\mySubsubsection{20.2.1.}{Non-modifying Sequence Algorithms}
+\mySubsubsection{20.2.1.}{非修改序列算法}
 
-Non-modifying sequence algorithms are algorithms that do not modify the sequence of elements they operate on. These include algorithms for searching elements in a range and for comparing two ranges to each other; they also include a number of counting algorithms.
+非修改序列算法是不修改操作元素序列的算法。这些包括在范围内搜索元素和比较两个范围的一系列算法，还包括一些计数算法。
 
+\mySamllsection{搜索算法}
 
-\mySamllsection{Search Algorithms}
+之前，已经看到了两个搜索算法示例：find() 和 find\_if()。标准库提供了基于 find() 算法的一些版本，可以工作在元素序列上。第 16 章的部分描述了可用的不同搜索算法，包括它们的复杂性。
 
-You’ve already seen examples of two search algorithms earlier in this chapter: find() and find\_if(). The Standard Library provides several other variations of the basic find() algorithm that work on sequences of elements. The section “Search Algorithms” in Chapter 16 describes the different search algorithms that are available, including their complexity.
+所有这些算法都使用 operator== 或 < 作为默认比较运算符，但也提供可以指定不同比较的重载版本。
 
-All the algorithms use operator== or < as the default comparison operator, but also provide overloaded versions that allow you to specify a different comparison callback.
-
-Here are examples of some of the search algorithms in action:
+以下是几种搜索算法示例：
 
 \begin{cpp}
 // The list of elements to be searched.
@@ -66,7 +65,7 @@ if (it != endIter) {
 }
 \end{cpp}
 
-Here is the output:
+输出为:
 
 \begin{shell}
 First element not < 8 is 9
@@ -77,24 +76,24 @@ Found two consecutive 8s
 \end{shell}
 
 \begin{myNotic}{NOTE}
-Remember that some of the containers have member functions equivalent to generic algorithms. If that’s the case, it’s recommended to use those member functions instead of the generic algorithms, because the member functions are more efficient. An example is the find() member function of std::set and std::map.
+请记住，一些容器具有与泛型算法等效的成员函数。如果是这种情况，因为成员函数更高效，建议使用那些成员函数，而不是泛型算法。一个例子是 std::set 和 std::map 的 find() 成员函数。
 \end{myNotic}
 
-\mySamllsection{Specialized Searchers}
+\mySamllsection{专用搜索器}
 
-An optional parameter to the search() algorithm allows you to specify which search algorithm to use. You have three options—default\_searcher, boyer\_moore\_searcher, or boyer\_moore\_horspool\_searcher—all defined in <functional>. The last two options implement the well-known Boyer-Moore and Boyer-Moore-Horspool search algorithms. These are more efficient than the default searcher and can be used to find a substring in a larger piece of text. The complexity of the BoyerMoore searchers is as follows (N is the size of the sequence to search in, the haystack, and M is the size of the pattern to find, the needle):
+search() 算法的可选参数允许指定要使用的搜索算法。有三个选项——default\_searcher、boyer\_moore\_searcher 或 boyer\_moore\_horspool\_searcher，这些都在 <functional> 中定义。后两个选项实现了著名的 Boyer-Moore 和 Boyer-Moore-Horspool 搜索算法，这些算法比默认搜索器更高效，可以用于在更大的文本中查找子字符串。BoyerMoore 搜索器的复杂性如下（N 是要搜索的序列的大小，即 haystack，M 是要查找的模式的大小，即 needle）：
 
 \begin{itemize}
 \item
-If the pattern is not found, the worst-case complexity is O(N+M).
+如果模式未找到，最坏情况下的时间复杂度为 O(N+M)。
 
 \item
-If the pattern is found, the worst-case complexity is O(N*M).
+如果找到模式，最坏情况下的复杂度是 O(N*M)。
 \end{itemize}
 
-These are the theoretical worst-case complexities. In practice, these specialized searchers are sublinear, better than O(N), which means they are much faster than the default one! They are sublinear because they are able to skip characters instead of looking at each single character in the haystack. They also have an interesting property that the longer the needle is, the faster they work, as they will be able to skip more characters in the haystack. The difference between the Boyer-Moore and the Boyer-MooreHorspool algorithm is that the latter has less constant overhead for its initialization and in each loop iteration of its algorithm; however, its worst-case complexity can be significantly higher than for the Boyer-Moore algorithm. So, which one to choose depends on your specific use case.
+这些都是理论上的最坏情况复杂度。实际上，这些专用搜索器是亚线性的，比 O(N) 更好，所以它们比默认搜索器快得多！它们能够跳过字符，而不是查看堆中的每个单个字符。它们还有一个有趣的特性，即模式越长，工作速度越快，因为能够在堆中跳过更多的字符。Boyer-Moore 和 Boyer-Moore-Horspool 算法之间的区别在于，后者在初始化和算法每次迭代中的常数开销更小；然而，最坏情况下的复杂度可能比 Boyer-Moore 算法高得多，而选择哪个取决于具体用例。
 
-Here is an example of using a Boyer-Moore searcher:
+以下是一个使用 Boyer-Moore 搜索器的示例：
 
 \begin{cpp}
 string text { "This is the haystack to search a needle in." };
@@ -108,29 +107,29 @@ if (result != cend(text)) {
 }
 \end{cpp}
 
-\mySamllsection{Comparison Algorithms}
+\mySamllsection{比较算法}
 
-You can compare entire ranges of elements in several different ways: equal(), mismatch(), lexicographical\_compare(), and lexicographical\_compare\_three\_way(). These algorithms have the advantage that you can compare sequences from different containers. For example, you can compare the contents of a vector with the contents of a list. In general, these algorithms work best with sequential containers. They work by comparing the values in corresponding positions of the two collections to each other. The following list describes how each algorithm works:
+可以以几种不同的方式比较整个元素范围：equal(), mismatch(), lexicographical\_compare(), 和 lexicographical\_compare\_three\_way(). 这些算法的一个优点，可以比较来自不同容器的序列。例如，可以比较 vector 和 list 的内容。一般来说，这些算法最适合与顺序容器一起工作，通过比较两个集合中对应位置的值来工作。以下列表描述了每个算法的工作方式：
 
 \begin{itemize}
 \item
-equal() returns true if all corresponding elements are equal. Originally, equal() accepted three iterators: begin and end iterators for the first range, and a begin iterator for the second range. This version required both ranges to have the same number of elements. Since C++14, there is an overload accepting four iterators: begin and end iterators for the first range, and begin and end iterators for the second range. This version can cope with ranges of different sizes. It’s recommended to always use the four-iterator version because it’s safer!
+equal() 如果所有对应的元素都相等，则返回 true。最初，equal() 接受三个迭代器：第一个范围的开头和结束迭代器，以及第二个范围的开头迭代器，这个版本要求两个范围具有相同数量的元素。从 C++14 开始，有一个接受四个迭代器的重载：第一个范围的开头和结束迭代器，以及第二个范围的开头和结束迭代器，这个版本可以处理不同大小的范围。因为更安全，更推荐使用四个迭代器的版本！
 
 \item
-mismatch() returns iterators, one iterator for each range, to indicate where in the range the corresponding elements mismatch. There are three-iterator and four-iterator versions available, just as with equal(). It’s again recommended to use the four-iterator version, because of safety!
+mismatch() 返回每个范围的迭代器，以指示范围中对应元素不匹配的位置。有三个迭代器和四个迭代器的版本可供选择，就像 equal() 一样。
 
 \item
-lexicographical\_compare() compares the elements that have the same position in both supplied ranges against each other (sequentially). It returns true if the first unequal element in the first range is less than its corresponding element in the second range, or if the first range has fewer elements than the second and all elements in the first range are equal to their corresponding initial subsequence in the second set. lexicographical\_compare() gets its name because it resembles the rules for comparing strings in dictionaries, but extends this set of rules to deal with objects of any type.
+lexicographical\_compare() 按顺序比较两个提供的范围内具有相同位置的元素（依次）。如果第一个范围中第一个不等的元素，小于第二个范围中对应的元素，或者第一个范围中的元素少于第二个范围，并且所有元素都与第二个范围中对应的初始子序列相等，则返回 true。lexicographical\_compare() 有这个命名的原因是，其类似于字典中比较字符串的规则，但将此规则扩展到处理的类型对象上。
 
 \item
-lexicographical\_compare\_three\_way() is similar to lexicographical\_compare() except that it performs a three-way comparison and returns a comparison category type (strong\_ordering, weak\_ordering, or partial\_ordering, discussed in Chapter 1, “A Crash Course in C++ and the Standard Library”) instead of a Boolean.
+lexicographical\_compare\_three\_way() 与 lexicographical\_compare() 类似，只是它执行三向比较，并返回比较类别类型（strong\_ordering, weak\_ordering, 或 partial\_ordering，在第 1 章中介绍过）而不是布尔值。
 \end{itemize}
 
 \begin{myNotic}{NOTE}
-If you want to compare all elements of two containers of the same type, you can just use operators such as operator== or operator< instead of one of these algorithms. The algorithms are useful for comparing subranges, C-style arrays, sequences of elements from different container types, and so on.
+如果想比较两个相同类型容器的所有元素，可以直接使用运算符operator== 或 operator< ，而不是这些算法。这些算法适用于比较子范围、C 风格数组、不同容器类型中的元素序列等。
 \end{myNotic}
 
-Here are some examples of these algorithms in action:
+以下是这些算法的一些示例：
 
 \begin{cpp}
 vector<int> myVector;
@@ -166,7 +165,7 @@ cbegin(myList), cend(myList))) {
 }
 \end{cpp}
 
-Here is a sample run of the program:
+运行结果为:
 
 \begin{shell}
 Populate the vector:
@@ -185,7 +184,7 @@ The following initial elements are the same in the vector and the list:
 The vector is lexicographically first.
 \end{shell}
 
-Additionally, the following comparison algorithms work on a single range: all\_of(), any\_of(), and none\_of(). Here are some examples:
+此外，以下比较算法适用于单个范围:all\_of()、any\_of()和none\_of():
 
 \begin{cpp}
 // all_of()
@@ -213,7 +212,7 @@ if (none_of(cbegin(vec4), cend(vec4), [](int i){ return i == 1; })) {
 }
 \end{cpp}
 
-The output is as follows:
+输出为:
 
 \begin{shell}
 All elements are == 1
@@ -221,9 +220,9 @@ At least one element == 1
 All elements are != 1
 \end{shell}
 
-\mySamllsection{Counting Algorithms}
+\mySamllsection{计数算法}
 
-The non-modifying counting algorithms are count() and count\_if(). The following example uses the count\_if() algorithm to count the number of elements in a vector that satisfy a certain condition. The condition is given in the form of a lambda expression, which captures the value variable from its enclosing scope by value:
+非修改计数算法包括 count() 和 count\_if()。以下示例使用 count\_if() 算法来计算一个vector中满足特定条件的元素的个数。条件以 Lambda 表达式的形式给出，通过值捕获了外层作用域中的 value 变量：
 
 \begin{cpp}
 vector values { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -233,13 +232,13 @@ auto tally { count_if(cbegin(values), cend(values),
 println("Found {} values > {}.", tally, value);
 \end{cpp}
 
-The output is as follows:
+输出为：
 
 \begin{shell}
 Found 6 values > 3
 \end{shell}
 
-The example can be extended to demonstrate capturing variables by reference. The following lambda expression counts the number of times it is called by incrementing a variable in the enclosing scope that is captured by reference:
+示例可以扩展以演示通过引用捕获变量。以下 Lambda 表达式通过引用捕获外层作用域中的一个变量，并计算其调用的次数：
 
 \begin{cpp}
 vector values { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -251,34 +250,34 @@ println("The lambda expression was called {} times.", callCounter);
 println("Found {} values > {}.", tally, value);
 \end{cpp}
 
-The output is as follows:
+输出为:
 
 \begin{shell}
 The lambda expression was called 9 times.
 Found 6 values > 3
 \end{shell}
 
-\mySubsubsection{20.2.2.}{Modifying Sequence Algorithms}
+\mySubsubsection{20.2.2.}{修改序列算法}
 
-The Standard Library provides a variety of modifying sequence algorithms that perform tasks such as copying elements from one range to another, removing elements, or reversing the order of elements in a range.
+标准库提供了一系列修改序列算法，执行任务将元素从一个范围复制到另一个范围、删除元素或反转一个范围内元素的顺序。
 
-Some modifying algorithms use the concept of a source and a destination range. The elements are read from the source range and modified in the destination range. An example of such an algorithm is copy().
+一些修改算法使用源范围和目标范围的概念，元素从源范围读取并在目标范围内修改。例如，copy() 就是这样的一个算法。
 
-Other algorithms perform their work in-place; that is, they require only one range, for example the generate() algorithm.
+其他算法在其工作位置上进行修改，它们只需要一个范围，例如 generate() 算法。
 
 \begin{myWarning}{WARNING}
-The modifying algorithms cannot insert elements into a destination. They can only overwrite/modify whatever elements are in the destination already. Chapter 17 describes how iterator adapters can be used to really insert elements into a destination.
+修改算法不能在目标中插入元素。只能覆盖/修改目标中已有的元素。第 17 章描述了如何使用迭代器适配器，在目标中插入元素。
 \end{myWarning}
 
 \begin{myNotic}{NOTE}
-Ranges from maps and multimaps cannot be used as destinations of modifying algorithms. These algorithms overwrite entire elements, which in a map consist of key/value pairs. However, maps and multimaps mark the key as const, so it cannot be assigned to. The same holds for set and multiset. Your alternative is to use an insert iterator, described in Chapter 17.
+不能使用map和multimap的范围作为修改算法的目标。这些算法会覆盖整个元素，而在map中，这包括键/值对。然而，map和multimap将键标记为 const，因此它不能进行赋值。同样适用于set和multiset。替代方案是使用在第 17 章中描述的插入迭代器。
 \end{myNotic}
 
-The section “Modifying Sequence Algorithms” in Chapter 16 lists all available modifying algorithms with a description of each one. This section provides code examples for a selection of those algorithms. If you understand how to use the algorithms explained in this section, you should not have any problems using the other algorithms for which no examples are given.
+第 16 章中列出了所有可用的修改算法，并对每个算法进行了描述，本节为这些算法中的一个选择提供了代码示例。如果理解了这个部分中解释的算法，其他算法应该也能轻松使用。
 
 \mySamllsection{generate}
 
-The generate() algorithm requires a common range and replaces the values in that range with the values returned from the function callback given as third argument. The following example uses the generate() algorithm together with a lambda expression to put the numbers 2, 4, 8, 16, and so on, in a vector:
+generate() 算法需要一个共同的范围，并替换该范围内返回的值，这些值是从作为第三个参数给出的函数回调中得到。以下示例使用 generate() 算法与 Lambda 表达式一起，将数字 2, 4, 8, 16等，放入一个vector中：
 
 \begin{cpp}
 vector<int> values(10); // Create a vector of 10 elements.
@@ -287,7 +286,7 @@ generate(begin(values), end(values), [&value]{ value *= 2; return value; });
 println("{:n}", values);
 \end{cpp}
 
-The output is as follows:
+输出为:
 
 \begin{shell}
 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024
@@ -295,7 +294,7 @@ The output is as follows:
 
 \mySamllsection{transform}
 
-There are multiple overloads of the transform() algorithm. One overload applies a callback to each element in a range and expects the callback to generate a new element, which it stores in the specified destination range. The source and destination ranges can be the same if you want transform() to work in-place. The parameters are a begin and end iterator of the source sequence, a begin iterator of the destination sequence, and the callback. For example, the following code snippet adds 100 to each element in a vector. The populateContainer() function is the same as defined earlier in this chapter.
+transform() 算法有多个重载，其中一个重载对范围内的每个元素应用回调，并期望回调生成一个新元素，将其存储在指定的目标范围内。源范围和目标范围可以相同，如果希望 transform() 在原地工作。参数是源序列的开头和结束迭代器、目标序列的开头迭代器。例如，以下代码段将vector中的每个元素增加 100：
 
 \begin{cpp}
 vector<int> myVector;
@@ -306,7 +305,7 @@ transform(begin(myVector), end(myVector), begin(myVector),
 println("The vector contains: {:n}", myVector);
 \end{cpp}
 
-A possible output is as follows:
+可能的输出为：
 
 \begin{shell}
 Enter a number (0 to stop): 1
@@ -316,7 +315,7 @@ The vector contains: 1, 11
 The vector contains: 101, 111
 \end{shell}
 
-Another overload of transform() calls a binary function on pairs of elements from two ranges. It requires a begin and end iterator of the first range, a begin iterator of the second range, and a begin iterator of the destination range. The following example creates two vectors and uses transform() to calculate the sum of pairs of elements and to store the result back in the first vector:
+transform() 的另一个重载对两个范围内的元素对调用二元函数，需要第一个范围的开头和结束迭代器、第二个范围的开头迭代器，以及目标范围的开头迭代器。以下示例创建两个vector，并使用 transform() 来计算元素对的和，并将结果存储回第一个vector：
 
 \begin{cpp}
 vector<int> vec1, vec2;
@@ -336,7 +335,7 @@ println("Vector1: {:n}", vec1);
 println("Vector2: {:n}", vec2);
 \end{cpp}
 
-The output could look like this:
+输出可能如下所示：
 
 \begin{shell}
 Vector1:
@@ -355,14 +354,14 @@ Vector2: 11, 22, 33
 \end{shell}
 
 \begin{myNotic}{NOTE}
-transform() and the other modifying algorithms often return an iterator referring to the past-the-end value of the destination range. The examples in this book usually ignore that return value.
+transform() 和其他修改算法通常返回一个指向目标范围末尾值的迭代器。本书中的示例通常忽略这个返回值。
 \end{myNotic}
 
 \mySamllsection{copy}
 
-The copy() algorithm allows you to copy elements from one range to another, starting with the first element and proceeding to the last element in the range. The source and destination ranges must be different, but, with restrictions, they can overlap. The restrictions are as follows: for copy(b,e,d), overlapping is fine if d is before b; however, if d is within [b,e), then the behavior is undefined. As with all modifying algorithms, copy() cannot insert elements into the destination. It just overwrites whatever elements are there already. Chapter 17 describes how to use iterator adapters to insert elements into a container or stream with copy().
+copy() 算法允许从一个范围复制元素到另一个范围，从范围中的第一个元素开始，一直复制到最后一个元素。源范围和目标范围必须不同，但在某些限制下，可以重叠。这些限制如下：对于 copy(b,e,d)，如果 d 在 b 之前，重叠是可以的；但如果 d 在 [b,e) 范围内，那么行为将不确定。与所有修改算法一样，copy() 不能在目标中插入元素，只能覆盖已存在的元素。第 17 章描述了如何使用迭代器适配器在 copy() 中，向容器或流中插入元素。
 
-Here is a simple example of copy() that uses the resize() member function on a vector to ensure that there is enough space in the destination container. It copies all elements from vec1 to vec2.
+以下是一个简单的 copy() 示例，使用 vector 的 resize() 成员函数确保目标容器有足够的空间，从 vec1 复制所有元素到 vec2。
 
 \begin{cpp}
 vector<int> vec1, vec2;
@@ -372,13 +371,13 @@ copy(cbegin(vec1), cend(vec1), begin(vec2));
 println("{:n}", vec2);
 \end{cpp}
 
-There is also a copy\_backward() algorithm, which copies the elements from the source backward to the destination. In other words, it starts with the last element of the source, puts it in the last position in the destination range, and then moves backward after each copy. Also for copy\_backward(), the source and destination ranges must be different, but, with restrictions, they can again overlap. The restrictions this time are as follows: for copy\_backward(b,e,d), overlapping is fine if d is after e, however, if d is within (b,e], then the behavior is undefined. The preceding example can be modified to use copy\_backward() instead of copy(), as follows. Note that you need to specify end(vec2) as the third argument instead of begin(vec2). The output is the same as the version using copy().
+还有一个 copy\_backward() 算法，将元素从源向后复制到目标。换句话说，从源范围的最后一个元素开始，将其放入目标范围的最后位置，然后每次复制后向后移动。对于 copy\_backward()，源范围和目标范围也必须不同，但它们可以重叠，条件与 copy() 相同。前面的示例可以修改为使用 copy\_backward()，而不是 copy()。注意，需要将 end(vec2) 作为第三个参数，而不是 begin(vec2)。输出与 copy() 相同。
 
 \begin{cpp}
 copy_backward(cbegin(vec1), cend(vec1), end(vec2));
 \end{cpp}
 
-copy\_if() works by having an input range specified by two iterators, an output destination specified by one iterator, and a predicate (for example, a function or lambda expression). The algorithm copies all elements that satisfy the given predicate to the destination. Remember, copy does not create or extend containers; it merely replaces existing elements, so the destination should be big enough to hold all elements to be copied. Of course, after copying the elements, it might be desirable to remove the space “beyond” where the last element was copied to. To facilitate this, copy\_if() returns an iterator to the one-past-the-last-copied element in the destination range. This can be used to determine how many elements should be removed from the destination container. The following example demonstrates this by copying only the even numbers to vec2:
+copy\_if() 通过输入范围由两个迭代器指定，输出目标由一个迭代器指定，以及一个谓词（例如，一个函数或 Lambda 表达式）来工作，该算法将满足给定谓词的所有元素复制到目标中。记住，copy() 不创建或扩展容器；只是替换现有的元素，所以目标应该足够大以容纳所有要复制的元素。当然，在复制元素之后，可能希望从目标容器中移除“超出”最后复制元素位置的空间。为了实现这一点，copy\_if() 返回一个指向目标范围中最后一个复制元素之后的迭代器。这可以用来确定从目标容器中应该移除多少元素，以下示例通过复制 vec1 中的偶数到 vec2 来展示这一点：
 
 \begin{cpp}
 vector<int> vec1, vec2;
@@ -390,7 +389,7 @@ vec2.erase(endIterator, end(vec2));
 println("{:n}", vec2);
 \end{cpp}
 
-copy\_n() copies n elements from the source to the destination. The first parameter of copy\_n() is the start iterator. The second parameter is an integer specifying the number of elements to copy, and the third parameter is the destination iterator. The copy\_n() algorithm does not perform any bounds checking, so you must make sure that the start iterator, incremented by the number of elements to copy, does not exceed the end() of the source collection or your program will have undefined behavior. Here is an example:
+copy\_n() 复制源中的 n 个元素到目标，copy\_n() 的第一个参数是开始迭代器。第二个参数是一个整数，指定要复制的元素数量，第三个参数是目标迭代器。copy\_n() 算法不执行边界检查，所以必须确保开始迭代器，加上要复制的元素数量，不超过源集合的 end()，否则程序将具有未定义的行为。以下是一个示例：
 
 \begin{cpp}
 vector<int> vec1, vec2;
@@ -406,7 +405,7 @@ println("{:n}", vec2);
 
 \mySamllsection{move}
 
-There are two move-related algorithms: move() and move\_backward(). They both use move semantics, discussed in Chapter 9. You have to provide a move assignment operator in your element classes if you want to use these algorithms on containers with elements of your own types, as demonstrated in the following example. The main() function creates a vector with three MyClass objects and then moves those elements from vecSrc to vecDst. Note that the code includes two different uses of move(). The move() function accepting a single argument converts an lvalue into an rvalue and is defined in <utility>, while move() accepting three arguments is the Standard Library move() algorithm to move elements between containers. Consult Chapter 9 for details on implementing move assignment operators and the use of the single parameter version of std::move().
+有两个与移动相关的算法：move() 和 move\_backward()，都使用移动语义，这在第 9 章中有详细讨介绍。如果想使用这些算法在具有自定义类型的容器上，元素的类型必须提供移动赋值运算符，如以下示例所示。main() 函数创建一个包含三个 MyClass 对象的vector，然后将这些元素从 vecSrc 移动到 vecDst。注意，代码包括了 move() 的两种不同用法。接受单个参数的 move() 函数将左值转换为右值，定义在 <utility> 中；而接受三个参数的 move() 是标准库的 move() 算法，用于在容器之间移动元素。关于实现移动赋值运算符和单参数版本 std::move() 的使用详情，请参阅第 9 章。
 
 \begin{cpp}
 class MyClass
@@ -440,7 +439,7 @@ int main()
 }
 \end{cpp}
 
-The output is as follows:
+输出为：
 
 \begin{shell}
 Move operator= (m_str=a)
@@ -450,16 +449,16 @@ a b c
 \end{shell}
 
 \begin{myNotic}{NOTE}
-Chapter 9 explains that source objects in a move operation are left in some valid but otherwise indeterminate state. For the previous example, this means you should not use the elements from vecSrc anymore after the move operation, unless you bring them back to a determinate state, for example by calling a member function on them without any preconditions, such as setString().
+第 9 章中，移动操作中的源对象处于一种有效，但不确定的状态。对于前面的示例，在移动操作之后，不应该再使用 vecSrc 中的元素，除非将其恢复到一种确定的状态，例如通过调用它们的一个成员函数，而不需要前提条件，例如 setString()。
 \end{myNotic}
 
-move\_backward() uses the same move mechanism as move(), but it moves the elements starting from the last to the first element. For both move() and move\_backward(), the source and destination ranges are allowed to overlap with the same restrictions as for copy() and copy\_backward().
+move\_backward() 与 move() 有相同的移动机制，但会从最后一个元素开始向前移动。对于 move() 和 move\_backward()，源范围和目标范围可以重叠，但受与 copy() 和 copy\_backward() 相同的限制。
 
 \mySamllsection{replace}
 
-The replace() and replace\_if() algorithms replace elements in a range matching a value or predicate, respectively, with a new value. Take replace\_if() as an example. Its first and second parameters specify the range of elements to process. The third parameter is a callback that returns true or false. If it returns true, the value in the container is replaced with the value given for the fourth parameter; if it returns false, it leaves the original value.
+replace() 和 replace\_if() 算法分别替换匹配一个值或谓词的范围内的元素。以 replace\_if() 为例，前两个参数指定了要处理的元素范围。第三个参数是一个回调，返回 true 或 false。如果返回 true，容器中的值将用第四个参数中给出的新值替换；如果返回 false，则保留原始值。
 
-For example, you might want to replace all odd values in a container with the value zero:
+例如，可能想要从一个容器中替换所有奇数值为零：
 
 \begin{cpp}
 vector<int> values;
@@ -468,13 +467,13 @@ replace_if(begin(values), end(values), [](int i){ return i % 2 != 0; }, 0);
 println("{:n}", values);
 \end{cpp}
 
-There are also variants of replace() and replace\_if() called replace\_copy() and replace\_copy\_if() that copy the results to a different destination range. They are similar to copy(), in that the destination range must already be large enough to hold the copied elements.
+replace() 和 replace\_if() 也有称为 replace\_copy() 和 replace\_copy\_if() ，它们将结果复制到不同的目标范围。与 copy() 类似，目标范围必须足够大，以容纳复制的元素。
 
 \mySamllsection{erase}
 
-As introduced in Chapter 18, std::erase() and std::erase\_if() support almost all Standard Library containers. Officially, these operations are called uniform container erasure. The erase() function deletes all elements matching a given value from a container, while erase\_if() deletes all elements matching a given predicate. These algorithms require a reference to a container, instead of a common range, and are the preferred way to erase elements from containers.
+如第 18 章介绍的，std::erase() 和 std::erase\_if() 支持几乎所有的标准库容器，这些操作称为统一容器删除操作。erase() 函数从容器中删除与给定值匹配的所有元素，而 erase\_if() 删除与给定谓词匹配的所有元素。这些算法需要一个容器的引用，而不是一个公共范围，并且是删除容器中元素的首选方法。
 
-For example, the following code snippet removes all empty strings from a vector of strings and uses erase\_if() to do all the work:
+例如，以下代码片段从一个字符串vector中删除所有空字符串，并使用 erase\_if() 完成所有工作：
 
 \begin{cpp}
 vector<string> values {"", "one", "", "two", "three", "four"};
@@ -483,7 +482,7 @@ erase_if(values, [](const string& str){ return str.empty(); });
 println("{:n}", values);
 \end{cpp}
 
-The output is as follows:
+输出为：
 
 \begin{shell}
 "", "one", "", "two", "three", "four"
@@ -491,12 +490,12 @@ The output is as follows:
 \end{shell}
 
 \begin{myNotic}{NOTE}
-std::erase() does not work with ordered and unordered associative containers, because these containers have a member function called erase(key), which is much more performant and should be used instead. On the other hand, the erase\_if() function works with all containers.
+std::erase() 不适用于有序和无序关联容器，这些容器有一个名为 erase(key) 的成员函数，性能更好，应该优先使用。另一方面，erase\_if() 函数与所有容器都兼容。
 \end{myNotic}
 
 \mySamllsection{remove}
 
-The erase() and erase\_if() algorithms discussed in the previous section have been available since C++20. Still, let’s look at your options before C++20, as you will encounter them in legacy code. A first solution that you might think of is to check the documentation to see whether your container has an erase() member function and then iterate over all the elements and call erase() for each element that matches the condition. The vector is an example of a container that has such an erase() member function. However, if applied to the vector container, this solution is extremely inefficient as it will cause a lot of memory operations to keep the vector contiguous in memory, resulting in a quadratic complexity. This solution is also error-prone, because you need to be careful that you keep your iterators valid after a call to erase(). For example, here is a function that removes empty strings from a vector of strings without using algorithms. Note how iter is carefully manipulated inside the for loop.
+在前一节中讨论的 erase() 和 erase\_if() 算法自 C++20 以来一直可用。然而，来看看 C++20 之前的方式，因为会在遗留代码中遇到。可能首先想到的解决方案是查看文档，看看容器是否有一个 erase() 成员函数，然后遍历所有元素并调用 erase() 对每个匹配条件的元素。vector就是一个具有此类 erase() 成员函数的容器的例子。然而，如果应用于vector容器，这个解决方案效率极低，因为它会需要大量的内存操作，来保持vector在内存中的连续性，从而导致复杂度上升为二次方。这个解决方案也容易出错，需要小心，在调用 erase() 后需要确保迭代器的有效性。例如，这是一个不使用算法的函数，从字符串向量中删除所有空字符串。注意，在for 循环内部如何操作迭代器 iter。
 
 \begin{cpp}
 void removeEmptyStringsWithoutAlgorithms(vector<string>& strings)
@@ -512,12 +511,12 @@ void removeEmptyStringsWithoutAlgorithms(vector<string>& strings)
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Quadratic complexity means that the running time is a function of the square of the input size, $O(n^2)$.
+二次复杂度意味着运行时间是输入大小的平方，$O(n^2)$。
 \end{myNotic}
 
-This solution is inefficient and not recommended. A much better solution for this problem is the remove-erase-idiom, which runs in linear time and is explained next.
+这个解决方案效率低下，不推荐使用。对于这个问题，一个更好的解决方案是使用 remove-erase 模式，其运行时间为线性，接下来将解释。
 
-The remove algorithms have access only to the iterator abstraction, not to the container. Thus, they cannot really remove elements from the underlying container. Instead, the algorithms work by replacing the elements that match a given value or predicate with the next element that does not match the given value or predicate. It does so using move assignments. The result is that all elements to be kept are moved toward the beginning of the range. The range becomes partitioned into two sets: the elements to be kept and the elements to be erased. An iterator is returned that points to the first element of the range of elements to be erased. Take care not to use any of the elements in that range, as they might have been moved. The only thing you must do with the returned iterator is to actually erase these elements from the container. So you first use the remove() or remove\_if() algorithm, and then you must call erase() on the container to erase all the elements from the returned iterator up to the end of the range. This process is called the remove-erase-idiom. Here is an implementation of a removeEmptyStrings() function using this idiom:
+remove 算法只能访问迭代器抽象，而不能访问容器，实际上无法从底层容器中删除元素。相反，算法通过使用移动赋值来替换匹配给定值或谓词的元素。这样做是通过移动赋值来完成的。结果是所有要保留的元素都移动到范围的前部。范围划分为两组：要保留的元素和要删除的元素。返回一个迭代器，指向要删除的元素的范围内的第一个元素。不要使用该范围内的元素，因为它们可能已经移动，必须做的唯一事情是实际从容器中删除这些元素。所以首先使用 remove() 或 remove\_if() 算法，然后必须对容器调用 erase() 来删除从返回的迭代器到范围末尾的所有元素，这个过程称为 remove-erase 模式。以下是使用这种模式的 removeEmptyStrings() 函数的实现：
 
 \begin{cpp}
 void removeEmptyStrings(vector<string>& strings)
@@ -530,32 +529,32 @@ void removeEmptyStrings(vector<string>& strings)
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-When using the remove-erase-idiom, make sure not to forget the second argument to erase()! If you forget this second argument, erase() will erase only a single element from the container, that is, the element referred to by the iterator passed as the first argument.
+使用 remove-erase 模式时，不要忘记 erase() 的第二个参数！如果忘记了这个第二个参数，erase() 只会从容器中删除一个元素，即作为第一个参数传递的迭代器所指向的元素。
 \end{myWarning}
 
-The remove\_copy() and remove\_copy\_if() variations of remove() and remove\_if() do not change the source range. Instead, they copy all kept elements to a different destination range. They are similar to copy(), in that the destination range must already be large enough to hold the new elements.
+remove\_copy() 和 remove\_copy\_if() 是 remove() 和 remove\_if() 一样，不会改变源范围。相反，它们将所有保留的元素复制到不同的目标范围。与 copy() 类似，目标范围必须足够大，以容纳新元素。
 
 \begin{myNotic}{NOTE}
-The remove() family of functions are stable; i.e., they maintain the order of elements remaining in the container even while moving the retained elements toward the beginning.
+remove() 函数族是稳定的。即使在移动保留元素到范围的前部时，也会保持容器中剩余元素的顺序。
 \end{myNotic}
 
 \begin{myNotic}{NOTE}
-It’s recommended to use the std::erase\_if() and std::erase() algorithms (or the erase(key) member function for associative containers) over the remove-erase-idiom, and definitely over handwritten loops.
+建议使用 std::erase\_if()、std::erase() 算法（或关联容器的 erase(key) 成员函数），而不是使用 remove-erase 模式，当然也不推荐使用循环。
 \end{myNotic}
 
 \mySamllsection{unique}
 
-The unique() algorithm is a special case of remove() that removes all duplicate contiguous elements. The list container provides its own unique() member function that implements the same semantics. You should generally use unique() on sorted sequences, but nothing prevents you from running it on unsorted sequences.
+unique() 算法是 remove() 算法的一个特殊情况，删除所有连续的重复元素。列表容器提供自己的 unique() 成员函数，实现相同的语义。通常，应该在对排序序列上使用 unique()，但也可以对对未排序序列使用。
 
-unique() works in a similar way as remove(): it moves all elements to be kept to the front of the range and returns an iterator that points to the first element of the range of elements to be erased. As with the remove-erase-idiom, calling unique() must be followed by a call to erase().
+unique() 的工作方式与 remove() 类似：将要保留的元素移动到范围的前部，并返回一个迭代器，该迭代器指向要删除元素范围内的第一个元素。与 remove-erase习惯一样，调用 unique() 必须紧跟一个 erase()。
 
-The basic form of unique() runs in place, but there is also a variant of the algorithm called unique\_ copy() that copies its results to a new destination range.
+unique() 的基本形式就地运行，但也有一个算法的称为 unique\_copy()，将结果复制到新的目标范围。
 
-Chapter 18 shows an example of the list::unique() algorithm in the section “list Example: Determining Enrollment,” so an example of the general form is omitted here.
+第 18 章在部分展示了 list::unique() 算法的一个示例，因此这里省略了通用形式的示例。
 
 \mySamllsection{shuffle}
 
-shuffle() rearranges the elements of a range in a random order with a linear complexity. It’s useful for implementing tasks like shuffling a deck of cards. shuffle() requires a start and end iterator for the range that you want to shuffle and a uniform random number generator object that specifies how random numbers should be generated. Here is an example (details on how to use random number generation engines and how to “seed” them are explained in Chapter 23, “Random Number Facilities”):
+shuffle() 以线性复杂度重新排列范围中元素的无序顺序，适用于实现像洗牌一副扑克牌这样的任务。shuffle() 需要一个开始和结束迭代器来指定要混洗的范围，以及一个指定如何生成随机数的统一随机数生成器对象。以下是示例（关于如何使用随机数生成引擎，以及如何“设置种子”的细节在第 23 章中介绍）：
 
 \begin{cpp}
 vector values { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -567,7 +566,7 @@ for (int i { 0 }; i < 6; ++i) {
 }
 \end{cpp}
 
-Here is some possible output:
+这里是一些可能的输出：
 
 \begin{shell}
 8, 6, 7, 5, 4, 1, 2, 9, 3
@@ -581,23 +580,23 @@ Here is some possible output:
 
 \mySamllsection{sample}
 
-The sample() algorithm returns a selection of n randomly chosen elements from a given source range and stores them in a destination range. It requires five parameters:
+sample() 算法从一个给定的源范围中返回 n 个随机选择的元素，并将它们存储在目标范围内，需要五个参数：
 
 \begin{itemize}
 \item
-A begin and end iterator of the range to sample
+采样范围的开始和结束迭代器
 
 \item
-A begin iterator of the destination range where to store the randomly selected elements
+存储随机选择的元素的目标范围的开始迭代器
 
 \item
-The number of elements to select
+元素数量
 
 \item
-A random number generation engine
+随机数生成引擎
 \end{itemize}
 
-Here is an example (details on how to use random number generation engines and how to “seed” them are explained in Chapter 23):
+以下是示例：
 
 \begin{cpp}
 vector values { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -614,7 +613,7 @@ for (int i { 0 }; i < 6; ++i) {
 }
 \end{cpp}
 
-Here is some possible output:
+这里是一些可能的输出：
 
 \begin{shell}
 1, 4, 7, 8, 9
@@ -627,11 +626,11 @@ Here is some possible output:
 
 \mySamllsection{reverse}
 
-The reverse() algorithm reverses the order of the elements in a range. The first element in the range is swapped with the last, the second with the second-to-last, and so on.
+reverse() 算法反转范围内元素的顺序。范围内的第一个元素与最后一个元素交换，第二个元素与倒数第二个元素交换，依此类推。
 
-The basic form of reverse() runs in place and requires two arguments: a start and end iterator for the range. There is also a variant of the algorithm called reverse\_copy() that copies its results to a new destination range and requires three arguments: a start and end iterator for the source range, and a start iterator for the destination range. The destination range must already be large enough to hold the new elements.
+reverse() 的基本形式就地运行，需要两个参数：一个开始迭代器和结束迭代器。还有一个算法变体称为 reverse\_copy()，将结果复制到新的目标范围，需要三个参数：源范围的开始和结束迭代器，以及目标范围的开头迭代器。目标范围必须足够大以容纳新元素。
 
-Here is an example using reverse():
+以下是一个使用 reverse() 的示例：
 
 \begin{cpp}
 vector<int> values;
@@ -640,9 +639,9 @@ reverse(begin(values), end(values));
 println("{:n}", values);
 \end{cpp}
 
-\mySamllsection{Shifting Elements}
+\mySamllsection{移动元素}
 
-The shift\_left() and shift\_right() algorithms shift elements in a given range by moving them to their new position. shift\_left() returns an iterator to the end of the new range, while shift\_right() returns an iterator to the beginning of the new range. After calling either algorithm, you must use the returned iterator in a call to erase() to delete elements that fell off either end of the range. Here is an example:
+shift\_left() 和 shift\_right() 算法在给定范围内移动元素到它们的新位置。shift\_left() 返回一个指向新范围末尾的迭代器，而 shift\_right() 返回一个指向新范围开头的迭代器。调用任一算法之后，必须使用返回的迭代器在调用 erase() 中删除从范围两端的元素。以下是一个示例：
 
 \begin{cpp}
 vector values { 11, 22, 33, 44, 55 };
@@ -661,7 +660,7 @@ values.erase(begin(values), newBegin);
 println("{:n}", values);
 \end{cpp}
 
-The output is as follows:
+输出如下：
 
 \begin{shell}
 11, 22, 33, 44, 55
@@ -669,13 +668,13 @@ The output is as follows:
 33
 \end{shell}
 
-\mySubsubsection{20.2.3.}{Operational Algorithms}
+\mySubsubsection{20.2.3.}{操作算法}
 
-There are only two algorithms in this category: for\_each() and for\_each\_n(). They execute a callback on each element of a range, for\_each(), or on the first n elements of a range, for\_each\_n(). The callback can modify elements in the range if the given iterator type is non-const. The algorithms are mentioned here so you know they exist; however, it’s often easier and more readable to use a simple range-based for loop instead.
+这个类别中只有两个算法：for\_each() 和 for\_each\_n()。它们在范围内对每个元素执行一个回调，for\_each() 或者在范围内对前 n 个元素执行一个回调，for\_each\_n()。如果给定的迭代器类型是非常量，回调可以修改范围内的元素。虽然在这里提到这些算法，但通常使用简单的基于范围的 for 循环更容易且更易读。
 
 \mySamllsection{for\_each}
 
-The following is an example using a generic lambda expression, printing the elements from a map:
+以下是一个使用通用 Lambda 表达式的示例，打印一个map中的元素：
 
 \begin{cpp}
 map<int, int> myMap { { 4, 40 }, { 5, 50 }, { 6, 60 } };
@@ -683,7 +682,7 @@ for_each(cbegin(myMap), cend(myMap), [](const auto& p)
     { println("{} -> {}", p.first, p.second); });
 \end{cpp}
 
-The type of p is const pair<int, int>\&. The output is as follows:
+p 的类型是 const pair<int, int>\&。输出如下：
 
 \begin{shell}
 4 -> 40
@@ -691,7 +690,7 @@ The type of p is const pair<int, int>\&. The output is as follows:
 6 -> 60
 \end{shell}
 
-The following example shows how to use the for\_each() algorithm and a lambda expression to calculate the sum and the product of a range of elements at the same time. The lambda expression explicitly captures only those variables it needs. It captures them by reference; otherwise, changes made to sum and product in the lambda expression would not be visible outside the lambda.
+以下示例展示了如何使用 for\_each() 算法和 Lambda 表达式同时计算范围元素的和与积。Lambda 表达式显式捕获它需要的变量，通过引用捕获这些变量；否则，在 Lambda 表达式中修改 sum 和 product，并且在 Lambda 外部可见。
 
 \begin{cpp}
 vector<int> myVector;
@@ -708,7 +707,7 @@ println("The sum is {}", sum);
 println("The product is {}", product);
 \end{cpp}
 
-This example can also be written with a functor in which you accumulate information that you can retrieve after for\_each() has finished processing all the elements. For example, you can calculate both the sum and product of the elements in one pass by writing a functor SumAndProduct that tracks both at the same time:
+这个例子也可以写成一个函数对象，在其中累积信息，然后在 for\_each() 完成处理所有元素后检索信息。例如，可以通过一个同时跟踪两者（sum 和 product）的 SumAndProduct 函数对象，在一次遍历中计算元素的 sum 和 product：
 
 \begin{cpp}
 class SumAndProduct
@@ -736,15 +735,15 @@ int main()
 }
 \end{cpp}
 
-You might be tempted to ignore the return value of for\_each() yet still try to read information from calculator after the algorithm is finished. However, that doesn’t work because for\_each() copies the functor, and at the end, this copy is returned from the call. You must capture the return value to ensure correct behavior.
+可能想忽略 for\_each() 的返回值，但仍尝试在算法完成后从 calculator 中读取信息。但这样做是行不通的，for\_each() 复制了函数对象，并在调用结束时返回这个副本，必须捕获返回值以确保正确的行为。
 
-Another option is to pass calculator by reference using std::ref(), see earlier in this chapter:
+另一种方法是通过引用传递 calculator 使用 std::ref()，如本章前面所示：
 
 \begin{cpp}
 for_each(cbegin(myVector), cend(myVector), ref(calculator));
 \end{cpp}
 
-A final point about for\_each() (that also applies to for\_each\_n() discussed in the next section) is that the callback is allowed to have a reference-to-non-const as parameter and modify it. That has the effect of changing values in the actual range. Here is an example:
+关于 for\_each()（也适用于下一节中讨论的 for\_each\_n()）的最后一个要点，回调允许有非常量引用作为参数并修改它。这导致在实际范围内改变值，以下是修改范围内每个元素的一个示例：
 
 \begin{cpp}
 vector values { 11, 22, 33, 44 };
@@ -755,7 +754,7 @@ println("{:n}", values);
 
 \mySamllsection{for\_each\_n}
 
-The for\_each\_n() algorithm requires a begin iterator of the range, the number of elements to iterate over, n, and a callback. It returns an iterator equal to begin + n. As usual, it does not perform any bounds checking. Here is an example that only iterates over the first two elements of a map:
+for\_each\_n() 算法需要一个范围的开始迭代器，要迭代的元素数量 n，以及一个回调。返回一个 begin + n 的迭代器。并且，不执行边界检查。以下是一个只遍历映射中前两个元素的示例：
 
 \begin{cpp}
 map<int, int> myMap { { 4, 40 }, { 5, 50 }, { 6, 60 } };
@@ -763,9 +762,9 @@ for_each_n(cbegin(myMap), 2, [](const auto& p)
     { println("{} -> {}", p.first, p.second); });
 \end{cpp}
 
-\mySubsubsection{20.2.4.}{Partition Algorithms}
+\mySubsubsection{20.2.4.}{分区算法}
 
-partition\_copy() copies elements from a source to two different destinations. The destination for each element is selected based on the result of a predicate, either true or false. The value returned by partition\_copy() is a pair of iterators: iterators referring to one-past-the-last-copied element in the first and second destination range. These returned iterators can be used in combination with erase() to remove excess elements from the two destination ranges, just as in the earlier copy\_if() example. The following code snippet asks the user to enter a number of integers, which are then partitioned into two destination vectors: one for the even numbers and one for the odd numbers:
+partition\_copy() 从源复制元素到两个不同的目标，每个元素的复制目的地是根据谓词结果选择的，即 true 或 false。partition\_copy() 返回值是一个迭代器对的引用：指向第一个和第二个目标范围中最后一个复制的元素的迭代器。这些返回的迭代器可以与 erase() 一起使用，从两个目标范围中删除多余的元素，就像之前的 copy\_if() 示例一样。以下代码片段要求用户输入一系列整数，然后将它们分区到两个目标vector中：一个存储偶数，另一个存储奇数：
 
 \begin{cpp}
 vector<int> values, vecOdd, vecEven;
@@ -784,7 +783,7 @@ println("Even numbers: {:n}", vecEven);
 println("Odd numbers: {:n}", vecOdd);
 \end{cpp}
 
-The output can be as follows:
+输出可能如下所示：
 
 \begin{shell}
 Enter a number (0 to stop): 11
@@ -796,7 +795,7 @@ Even numbers: 22, 44
 Odd numbers: 11, 33
 \end{shell}
 
-The partition() algorithm sorts a sequence such that all elements for which a predicate returns true are before all elements for which it returns false, without preserving the original order of the elements within each partition. The following example demonstrates how to partition a vector into all even numbers followed by all odd numbers:
+partition() 算法对一个序列进行排序，使得所有使谓词返回 true 的元素都排在所有返回 false 的元素之前，而不保留每个分区内元素的原始顺序。以下示例，演示了如何将一个vector分区为所有偶数后跟所有奇数：
 
 \begin{cpp}
 vector<int> values;
@@ -805,7 +804,7 @@ partition(begin(values), end(values), [](int i){ return i % 2 == 0; });
 println("Partitioned result: {:n}", values);
 \end{cpp}
 
-The output can be as follows:
+输出可能如下所示：
 
 \begin{shell}
 Enter a number (0 to stop): 55
@@ -817,17 +816,17 @@ Enter a number (0 to stop): 0
 Partitioned result: 22, 44, 33, 55, 11
 \end{shell}
 
-A few more partition algorithms are available as well. See Chapter 16 for a list.
+还有一些其他分区算法可供使用。请参阅第 16 章以获取列表。
 
-\mySubsubsection{20.2.5.}{Sorting Algorithms}
+\mySubsubsection{20.2.5.}{排序算法}
 
-The Standard Library provides several variations of sorting algorithms. A sorting algorithm reorders the contents of a container such that an ordering is maintained between sequential elements of the collection. Thus, it applies only to sequential collections. Sorting is not relevant for ordered associative containers because they already maintain elements in a sorted order. Sorting is not relevant for the unordered associative containers either, because they have no concept of ordering. Some containers, such as list and forward\_list, provide their own sorting member functions, because these member functions can be implemented more efficiently than a generic sorting mechanism. Consequently, the generic sorting algorithms are most useful for vectors, deques, arrays, and C-style arrays.
+标准库提供了几种排序算法。排序算法重新排列容器的内容，以维护集合中连续元素之间的顺序，所以只适用于顺序集合。排序对有序关联容器不适用，它们已经保持元素以排序顺序排列。排序对无序关联容器也不适用，它们没有排序的概念。一些容器，如list和forward\_list，提供自己的排序成员函数，这些成员函数可以比通用的排序机制更有效地实现，所以通用的排序算法对于vector、deque、array和 C 风格数组更有用。
 
-The sort() algorithm sorts a range of elements in O(N log N) time in general. Following the application of sort() to a range, the elements in the range are in nondecreasing order (lowest to highest), according to operator<. If you don’t like that order, you can specify a different comparator, such as greater.
+sort() 算法通常以 O(N log N) 的时间复杂度对一个范围内的元素进行排序。在应用 sort() 到一个范围之后，范围内的元素按非递减顺序（从最低到最高）排列，根据 operator<。如果不喜欢这个顺序，可以指定一个不同的比较器，例如 greater。
 
-A variant of sort(), called stable\_sort(), maintains the relative order of equal elements in a range, but it is less efficient than sort().
+sort() 的一个版本，称为 stable\_sort()，在范围内保持相等元素的相对顺序，但它不如 sort() 高效。
 
-Here is an example of sort() using a transparent greater<> comparator:
+以下是一个使用透明 greater<> 比较器的 sort() 示例：
 
 \begin{cpp}
 vector<int> values;
@@ -835,11 +834,11 @@ populateContainer(values);
 sort(begin(values), end(values), greater<>{});
 \end{cpp}
 
-There is also is\_sorted(), returning true if a given range is sorted, and is\_sorted\_until(), returning an iterator such that everything before this iterator is sorted.
+还有一个 is\_sorted() 函数，如果给定的范围是排序的，则返回 true；还有一个 is\_sorted\_until() 函数，返回一个迭代器，该迭代器之前的内容是排序的。
 
-nth\_element() is a powerful selection algorithm. Given a range of elements and an iterator to the $n^{th}$ element in that range, the algorithm rearranges the elements in the range such that the element in the position pointed to by $n^{th}$ is the element that would be in that position if the whole range were sorted. Additionally, it rearranges all elements such that all elements preceding the nth element are less than the new $n^{th}$ element, and the ones following it are greater than the new nth element. The interesting thing about this algorithm is that it does all this in linear time, O(n). Instead of using nth\_element(), you could also just sort the whole range and then retrieve the data you are interested in, but that would result in a complexity that is linear logarithmic, O(n log n).
+nth\_element() 是一个强大的选择算法。给定一个范围内的元素和一个指向该范围内第 n 个元素的迭代器，该算法重新排列范围内的元素，指向第 n 个位置的元素。如果整个范围已排序，迭代器将指向那个位置的元素。此外，它重新排列所有元素，使得第 n 个元素之前的所有元素都小于新的第 n 个元素，而之后的元素都大于新的第 n 个元素。这个算法有趣的地方在于，它可以在线性时间内完成所有这些操作，即 O(n)。与其使用 nth\_element()，也可以直接对整个范围进行排序，然后获取感兴趣的数据，但这会导致复杂度为线性对数，即 O(n log n)。
 
-All this sounds complicated, so let’s see this algorithm in action. A first example is to find the third largest element in a given range. It assumes the user enters at least three values.
+来看看这个算法是如何工作，一个示例是找到给定范围内的第三个最大元素。假设用户输入至少三个值。
 
 \begin{cpp}
 vector<int> values;
@@ -849,7 +848,7 @@ nth_element(begin(values), begin(values) + 2, end(values), greater<>{});
 println("3rd largest value: {}", values[2]);
 \end{cpp}
 
-Another example is to get the five largest elements from a range in sorted order. It assumes the user enters at least five values.
+另一个示例是从一个范围内获取五个最大的元素，并以排序顺序，假设用户输入至少五个值。
 
 \begin{cpp}
 vector<int> values;
@@ -862,11 +861,11 @@ sort(begin(values), begin(values) + 5);
 for_each_n(begin(values), 5, [](const auto& element) { print("{} ", element); });
 \end{cpp}
 
-\mySubsubsection{20.2.6.}{Binary Search Algorithms}
+\mySubsubsection{20.2.6.}{二分查找算法}
 
-There are several search algorithms that work only on sequences that are sorted or that are at least partitioned on the element that is searched for. These algorithms are binary\_search(), lower\_bound(), upper\_bound(), and equal\_range(). Note that the associative containers, such as map and set, have equivalent member functions that you should use instead. See Chapter 18 for an example on how to use these member functions on such containers.
+有几种搜索算法只能用于排序的序列，或者至少对要搜索的元素进行了分区。这些算法包括 binary\_search()、lower\_bound()、upper\_bound() 和 equal\_range()。注意，关联容器（如 map 和 set）具有等效的成员函数，应该使用这些成员函数。关于如何在这些容器上使用这些成员函数的示例，请参阅第 18 章。
 
-The lower\_bound() algorithm finds the first element in a sorted range not less than (greater or equal to) a given value. It is often used to find at which position in a sorted vector a new value should be inserted so that the vector remains sorted. Here is an example:
+lower\_bound() 算法在排序范围内找到第一个大于或等于给定值的元素，通常用于在排序vector中找到新值应该插入的位置，以保持vector的顺序。以下是一个示例：
 
 \begin{cpp}
 vector<int> values;
@@ -887,7 +886,7 @@ while (true) {
 }
 \end{cpp}
 
-The binary\_search() algorithm finds a matching element in logarithmic time instead of linear time. It requires a start and end iterator specifying the range to search in, a value to search, and optionally a comparator callback. It returns true if the value is found in the specified range, false otherwise. Binary search requires the range to be sorted and works by first comparing the middle element of the range. Depending on whether that middle element is greater than or less than the value to search, it continues by comparing the middle element of the left or right half of the range, respectively. This continues until the element is found. Basically, on each iteration, the range is halved, hence the logarithmic complexity. The following example demonstrates this algorithm:
+binary\_search() 算法在对数时间内，而不是线性时间内找到匹配的元素。需要指定要搜索的范围的开头和结束迭代器、要搜索的值，以及可选的比较器回调。如果在指定的范围内找到值，则返回 true，否则返回 false。二分搜索要求范围已排序，并通过比较范围的中间元素来工作。根据中间元素是否大于或小于要搜索的值，会继续比较左半部分或右半部分范围的中间元素，依此类推。这样持续进行，直到找到元素。基本上，每次迭代都将范围减半，因此具有对数复杂度。以下示例演示了这个算法：
 
 \begin{cpp}
 vector<int> values;
@@ -909,21 +908,21 @@ while (true) {
 }
 \end{cpp}
 
-\mySubsubsection{20.2.7.}{Set Algorithms}
+\mySubsubsection{20.2.7.}{set算法}
 
-The set algorithms work on any sorted range. The includes() algorithm implements standard subset determination, checking whether all the elements of one sorted range are included in another sorted range, in any order.
+set算法适用于任何排序的范围。includes() 算法实现了标准的子集确定，检查一个排序的范围，是否完全包含在另一个排序的范围中。
 
-The set\_union(), set\_intersection(), set\_difference(), and set\_symmetric\_difference() algorithms implement the standard semantics of those operations. In set theory, the result of a union is all the elements in either set. The result of an intersection is all the elements that are in both sets. The result of a difference is all the elements in the first set but not the second. The result of a symmetric difference is the “exclusive or” of sets: all the elements in one, but not both, sets.
+set\_union()、set\_intersection()、set\_difference() 和 set\_symmetric\_difference() 算法实现了这些操作的标准语义。在set中，并集的结果是两个set中所有的元素，交集的结果是两个set中都有的元素，差集的结果是第一个set中有但第二个set中没有的所有元素。对称差集的结果是set的“异或”：在一个set中，但不在另一个set中的所有元素。
 
 \begin{myWarning}{WARNING}
-Make sure that your result range is large enough to hold the result of the operations. For set\_union() and set\_symmetric\_difference(), the result is at most the sum of the sizes of the two input ranges. For set\_intersection(), the result is at most the size of the smallest input range, and for set\_difference() it’s at most the size of the first range.
+确保结果范围足够大，以容纳操作的结果。对于 set\_union() 和 set\_symmetric\_difference()，结果最多是两个输入范围大小的和。对于 set\_intersection()，结果最多是输入范围中最小的大小，对于 set\_difference() 是最大是第一个范围的大小。
 \end{myWarning}
 
 \begin{myWarning}{WARNING}
-You can’t use common ranges from associative containers, including sets, to store the results because they don’t allow changes to their keys.
+不能使用关联容器（包括set）的常见范围来存储结果，它们不允许更改键。
 \end{myWarning}
 
-Let’s look at these set algorithms in action. First, a constrained DumpRange() function template is defined to write elements of a given range to the standard output stream; it is implemented as follows. ranges::subrange() converts a common range, given as a pair of iterators, to a range, which can then be passed to println().
+来看看这些set算法是如何工作。首先，定义了一个受约束的 DumpRange() 函数模板，用于将给定范围的内容写入标准输出流；实现如下所示。ranges::subrange() 将由迭代器给出的常见范围转换为范围，然后可以传递给 println()。
 
 \begin{cpp}
 template <forward_iterator Iterator>
@@ -933,7 +932,7 @@ void DumpRange(string_view message, Iterator begin, Iterator end)
 }
 \end{cpp}
 
-With this helper function defined, here are examples on using the set algorithms:
+有了这个辅助函数定义后，这里是一些使用集合算法的示例：
 
 \begin{cpp}
 vector<int> vec1, vec2, result;
@@ -974,7 +973,7 @@ cbegin(vec2), cend(vec2), begin(result));
 DumpRange("The symmetric difference is: ", begin(result), newEnd);
 \end{cpp}
 
-Here is a sample run of the program:
+这是程序运行的一个示例结果：
 
 \begin{shell}
 Enter elements for set 1:
@@ -996,29 +995,29 @@ The difference between set 1 and set 2 is: 5, 6, 7
 The symmetric difference is: 5, 6, 7, 9, 10
 \end{shell}
 
-The merge() algorithm allows you to merge two sorted ranges together, while maintaining the sorted order. The result is a sorted range containing all the elements of both source ranges. It works in linear time. The following parameters are required:
+merge() 算法允许合并两个已排序的范围，同时保持排序顺序。结果是一个包含两个源范围所有元素的排序范围，它以线性时间工作。以下是必需参数：
 
 \begin{itemize}
 \item
-Start and end iterator of the first source range
+第一个源范围的开始和结束迭代器
 
 \item
-Start and end iterator of the second source range
+第二个源范围的开始和结束迭代器
 
 \item
-Start iterator of the destination range
+目的范围的开始迭代器
 
 \item
-Optionally, a comparator callback
+可选，比较器的回调
 \end{itemize}
 
-Without merge(), you could still achieve the same effect by concatenating the two ranges and applying sort() to the result, but that would be less efficient, O(N log N) instead of the linear complexity of merge().
+如果没有 merge()，仍然可以通过将两个范围连接起来，并使用 sort() 来实现相同的效果，但这比 merge()的效率低，时间复杂度为O(N log N)。
 
 \begin{myWarning}{WARNING}
-Always ensure that you supply a big enough destination range to store the result of the merge!
+确保提供足够大的目的范围来存储 merge() 的结果！
 \end{myWarning}
 
-The following example demonstrates merge():
+以下示例演示了如何使用 merge()：
 
 \begin{cpp}
 vector<int> vectorOne, vectorTwo, vectorMerged;
@@ -1041,13 +1040,13 @@ merge(cbegin(vectorOne), cend(vectorOne),
 println("Merged vector: {:n}", vectorMerged);
 \end{cpp}
 
-\mySubsubsection{20.2.8.}{Minimum/Maximum Algorithms}
+\mySubsubsection{20.2.8.}{最小/最大算法}
 
-The min() and max() algorithms compare two or more elements of any type using operator< or a user-supplied binary predicate, returning a reference-to-const to the smallest or largest element, respectively. The minmax() algorithm returns a pair containing the minimum and maximum of two or more elements. These algorithms do not work with common ranges or ranges.
+min() 和 max() 算法比较两个或多个类型的元素，使用 operator< 或用户提供的二元谓词，分别返回最小或最大元素的有常引用的引用。minmax() 算法返回一个包含两个或多个元素最小值和最大值的元组。这些算法不适用于常见范围。
 
-The min\_element() and max\_element() algorithms work with common ranges and return an iterator to the smallest or largest element in a range, respectively. The minmax\_element() algorithm also works with a common range and returns a pair containing iterators to the smallest and largest element in a range.
+min\_element() 和 max\_element() 算法适用于常见范围，并分别返回范围内最小或最大元素的迭代器。minmax\_element() 算法也适用于常见范围，并返回一个包含范围内最小和最大元素迭代器的元组。
 
-The following program gives some examples:
+以下程序提供了一些示例：
 
 \begin{cpp}
 int x { 4 }, y { 5 };
@@ -1074,7 +1073,7 @@ auto [min2, max2] { minmax_element(cbegin(values), cend(values)) };
 println("minmax_element() result: <{},{}>", *min2, *max2);
 \end{cpp}
 
-Here is the program output:
+程序输出如下：
 
 \begin{shell}
 x is 4 and y is 5
@@ -1088,19 +1087,19 @@ minmax_element() result: <11,33>
 \end{shell}
 
 \begin{myNotic}{NOTE}
-Sometimes you might encounter non-standard macros to find the minimum and maximum. For example, the GNU C Library (glibc) has macros MIN() and MAX(), while the Windows.h header file defines min() and max() macros. Because these are macros, they have the potential to evaluate one of their arguments twice, whereas std::min() and std::max() evaluate each argument exactly once. Make sure you always use the C++ versions, std::min() and std::max().
+有时，可能会遇到用于查找最小值和最大值的非标准宏。例如，GNU C 库（glibc）有宏 MIN() 和 MAX()，而 Windows.h 头文件定义了 min() 和 max() 宏。由于这些是宏，它们有可能计算其参数之一两次，而 std::min() 和 std::max() 则精确地计算每个参数一次。确保始终使用 C++ 版本，即 std::min() 和 std::max()。
 
-Even worse, such min() and max() macros might interfere with using std::min() and std::max(). In that case, there are three workarounds:
+更糟糕的是，这样的 min() 和 max() 宏可能会与使用 std::min() 和 std::max() 发生冲突。这种情况下，有三种解决方案：
 
 \begin{itemize}
 \item
-Use \#undef min and \#undef max after having included the problematic header, e.g., Windows.h.
+在包含有问题的头文件（例如 Windows.h）之后，使用 \#undef min 和 \#undef max。
 
 \item
-Add a \#define NOMINMAX before you include Windows.h.
+包含 Windows.h 之前，添加 \#define NOMINMAX。
 
 \item
-Use an extra set of parentheses for std::min() and std::max(), as follows:
+为 std::min() 和 std::max() 使用括号，如下所示：
 
 \begin{cpp}
 auto maxValue { (std::max)(1, 2) };
@@ -1108,7 +1107,7 @@ auto maxValue { (std::max)(1, 2) };
 \end{itemize}
 \end{myNotic}
 
-std::clamp() is a little helper function, defined in <algorithm>, that you can use to make sure that a value (v) is between a given minimum (lo) and maximum (hi). It returns a reference to lo if v < lo, returns a reference to hi if v > hi, and otherwise returns a reference to v. Here is an example:
+std::clamp() 是一个辅助函数，定义在 <algorithm> 中，可以使用它来确保一个值（v）在给定的最小值（lo）和最大值（hi）之间。如果 v < lo，则返回 lo 的引用；如果 v > hi，返回 hi 的引用；否则，返回 v 的引用。以下是一个示例：
 
 \begin{cpp}
 println("{}", clamp(-3, 1, 10));
@@ -1116,7 +1115,7 @@ println("{}", clamp(3, 1, 10));
 println("{}", clamp(22, 1, 10));
 \end{cpp}
 
-The output is as follows:
+输出为:
 
 \begin{shell}
 1
@@ -1126,69 +1125,70 @@ The output is as follows:
 
 \mySubsubsection{20.2.9.}{Parallel Algorithms}
 
-C++ supports executing more than 60 Standard Library iterator-based algorithms in parallel to improve their performance. Examples include std::for\_each(), all\_of(), copy(), count\_if(), find(), replace(), search(), sort(), transform(), and many more.
+C++ 支持并行执行超过 60 个标准库迭代器基础算法，以提高它们的性能。这些包括 std::for\_each()、all\_of()、copy()、count\_if()、find()、replace()、search()、sort()、transform() 等。
 
-Algorithms that support parallel execution have an optional execution policy as their first parameter. The execution policy allows you to specify whether an algorithm is allowed to be vectorized and/or executed in parallel. When a compiler vectorizes code, it replaces several CPU instructions with a single vector CPU instruction. A vector instruction performs some operation on multiple pieces of data with a single hardware instruction. These are also known as single instruction multiple data (SIMD) instructions. There are four standard execution policy types, and corresponding global instances of those types, all defined in <execution> in the std::execution namespace:
+支持并行执行的算法有一个可选的执行策略，作为它们的第一个参数。执行策略允许指定算法是否允许被向量化并/或并行执行。当编译器向量化代码时，用一个向量 CPU 指令替换几个 CPU 指令。向量指令对多个数据片段执行某些操作，只需一条硬件指令，这些也被称为单指令多数据（SIMD）指令。有四种标准的执行策略类型，以及这些类型的相应全局实例，都在 <execution> 中定义在 std::execution 命名空间中：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{EXECUTION POLICY TYPE} &
-\textbf{GLOBAL INSTANCE} &
-\textbf{DESCRIPTION} \\ \hline
+\textbf{执行策略类型} &
+\textbf{全局实例} &
+\textbf{描述} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 sequenced\_policy &
 seq &
-\begin{tabular}[c]{@{}l@{}}The algorithm is not allowed to\\ parallelize or vectorize its execution.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}算法不允许并行化或向量化其执行。\end{tabular} \\ \hline
 parallel\_policy &
 par &
-\begin{tabular}[c]{@{}l@{}}The algorithm is allowed to parallelize\\ but not vectorize its execution.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}算法允许并行化但不允许向量化其执行。
+\end{tabular} \\ \hline
 parallel\_unsequenced\_policy &
 par\_unseq &
-\begin{tabular}[c]{@{}l@{}}The algorithm is allowed to parallelize\\ and vectorize its execution. It’s also\\ allowed to migrate its execution\\ across threads.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}算法允许并行化和向量化其执行，也允许\\在多个线程之间迁移执行。
+\end{tabular} \\ \hline
 unsequenced\_policy &
 unseq &
-\begin{tabular}[c]{@{}l@{}}The algorithm is allowed to vectorize\\ but not parallelize its execution.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}算法允许向量化，但不允许并行化其执行。
+\end{tabular} \\ \hline
 \end{longtable}
 
-A Standard Library implementation is free to add additional execution policies.
+标准库实现可以添加执行策略。
 
-Let’s look at how you can specify an execution policy for an algorithm. Here is an example of sorting the contents of a vector using a parallel policy:
+来看看如何为算法指定一个执行策略。以下是使用并行策略对vector内容进行排序的示例：
 
 \begin{cpp}
 sort(execution::par, begin(values), end(values));
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-Callbacks passed to parallel algorithms are not allowed to throw any uncaught exceptions. Doing so will trigger a call to std::terminate() which terminates the application.
+传递给并行算法的回调，不允许抛出未捕获的异常。这样做将触发将调用 std::terminate()，从而终止运行中的应用程序。
 \end{myWarning}
 
-For algorithms executing with parallel\_unsequenced\_policy or unsequenced\_policy, function calls to callbacks are allowed to get interleaved; that is, they are unsequenced. This helps the compiler to vectorize the code. However, this also means there are a lot of restrictions on what a function callback can do. For example, it cannot allocate/deallocate memory, acquire mutexes, use non-lock-free std::atomics (see Chapter 27, “Multithreaded Programming with C++”), and more. For the other standard policies, the function calls are sequenced, but in an indeterminate sequence. Such policies do not impose restrictions on what the function callbacks can do.
+对于使用 parallel\_unsequenced\_policy 或 unsequenced\_policy 执行的算法，允许回调函数交错执行，也就是无序执行。这有助于编译器向量化代码。然而，这也意味着对回调函数可以做什么有大量的限制。例如，不能分配/释放内存，不能获取互斥锁，不能使用非锁定的 std::atomic（请参见第 27 章）等。对于其他标准策略，函数调用是有序的，但顺序不确定。这样的策略不会对回调函数可以做什么施加限制。
 
-Parallel algorithms do not take any measures to prevent data races and deadlocks, so it is your responsibility to avoid them when executing an algorithm in parallel. Data race and deadlock prevention are discussed in detail in Chapter 27 in the context of multithreaded programming.
+并行算法不防止数据竞争和死锁，因此当以并行方式执行算法时，防止数据竞争和死锁是开发者的责任。数据竞争和死锁的预防在第 27 章中详细介绍，背景是多线程编程。
 
-Parallel overloads of algorithms are not constexpr, even if the non-parallel overloads are.
-
-The return type of some of the parallel overloads of algorithms can be slightly different compared to the non-parallel overloads. For example, the non-parallel overload of for\_each() returns the supplied callback, while the parallel overload does not return anything. Consult your favorite Standard Library Reference for a complete overview of all algorithms, including their parameter and return types, for both the parallel and non-parallel overloads.
+并行版本的算法的返回类型与非并行版本可能略有不同。例如，非并行版本的 for\_each() 返回提供的回调，而并行版本则不返回任何内容。请查阅标准库手册，以获取所有算法的完整概述，包括参数和返回类型，以及并行和非并行版本。
 
 \begin{myNotic}{NOTE}
-When working with large datasets or when you have to perform a large amount of work on each individual element in a dataset, use the parallel overloads of algorithms to increase performance.
+当处理大型数据集或必须对数据集中的每个单独元素执行大量工作时，使用并行版本的算法可提高性能。
 \end{myNotic}
 
-Keep in mind, though, that using a parallel overload of an algorithm does not guarantee that its execution will be faster compared to a non-parallel overload. For example, when processing a small number of elements, a parallel overload might actually be slower due to the overhead that parallelization brings with it. Another example is when your container does not support random access iterators. To decide whether to use a parallel or a sequential overload for a specific use case, you must profile both and pick the most performant one. Chapter 29, “Writing Efficient C++,” discusses profiling.
+请记住，使用算法的并行版本并不保证其执行速度会比非并行版本快。例如，当处理少量元素时，并行版本可能实际上会更慢，因为并行化带来了开销。另一个例子是当你的容器不支持随机访问迭代器时。要决定是否为特定用例使用并行或顺序版本，必须对两者进行基准测试，并选择性能最佳的版本。第 29 章介绍了基准测试。
 
-\mySubsubsection{20.2.10.}{Numerical Processing Algorithms}
+\mySubsubsection{20.2.10.}{数值处理算法}
 
-You’ve already seen an example of one numerical processing algorithm: accumulate(). The following sections give examples of some more numerical algorithms.
+已了解了一个数值处理算法的示例：accumulate()。接下来的部分将提供一些更多数值算法的示例。
 
 \mySamllsection{iota}
 
-The iota() algorithm, defined in <numeric>, generates a sequence of values in a specified range starting with a specified value and applying operator++ to generate each successive value. The following example shows how to use this algorithm on a vector of integers, but it works on any element type that implements operator++:
+iota() 算法，定义在 <numeric> 中，生成一个指定范围内的值序列，从指定的值开始，并应用 operator++ 来生成每个后续的值。以下示例展示了如何使用此算法对整数vector进行操作，适用于实现 operator++ 的元素类型：
 
 \begin{cpp}
 vector<int> values(10);
@@ -1196,21 +1196,21 @@ iota(begin(values), end(values), 5);
 println("{:n}", values);
 \end{cpp}
 
-The output is as follows:
+输出如下所示：
 
 \begin{shell}
 5, 6, 7, 8, 9, 10, 11, 12, 13, 14
 \end{shell}
 
-\mySamllsection{Reduce Algorithms}
+\mySamllsection{Reduce 算法}
 
-The Standard Library has four reduce algorithms: accumulate(), reduce(), inner\_product(), and transform\_reduce(), all defined in <numeric>. The accumulate() algorithm is discussed earlier in this chapter. All reduce algorithms repeatedly apply an operator to combine two elements of a given range or two given ranges, until only one value remains. These are also called accumulate, aggregate, compress, inject, or fold algorithms.
+标准库有四个 reduce 算法：accumulate(), reduce(), inner\_product()和 transform\_reduce(), 都定义在 <numeric> 中。accumulate() 算法在本章前面已经讨论过了。所有的 reduce 算法都反复应用一个运算符来组合给定范围内的两个元素或两个给定的范围，直到只剩下一个值。这些也称为累积、聚合、压缩、注入或折叠算法。
 
 \mySamllsection{reduce}
 
-std::accumulate() is one of the few algorithms that does not support parallel execution. Instead, you need to use std::reduce() to calculate a generalized sum with the option to execute it in parallel.
+std::accumulate() 是少数几个不支持并行执行的算法之一。相反，需要使用 std::reduce() 来计算一个广义的和，并可以选择以并行方式执行。
 
-For example, the following code calculates the same sum twice, once with accumulate() and once with reduce(). The latter runs a parallel and vectorized version and thus can be much faster on big input ranges. They both require a begin and end iterator of the range, and an initial value, 0 in this example.
+例如，以下代码两次计算相同的和，一次使用 accumulate()，一次使用 reduce()。后者运行一个并行和向量化的版本，因此在大输入范围内可以快得多。它们都需要一个范围的开头和结束迭代器，以及一个初始值，例如 0。
 
 \begin{cpp}
 vector values { 1, 3, 6, 4, 6, 9 };
@@ -1218,15 +1218,15 @@ int result1 { accumulate(cbegin(values), cend(values), 0) };
 int result2 { reduce(execution::par_unseq, cbegin(values), cend(values), 0) };
 \end{cpp}
 
-In general, both accumulate() and reduce() calculate the following sum for a range of elements [$x_0$, $x_{n}$), with a given initial value Init, and a given binary operator Ѳ:
+一般来说，accumulate() 和 reduce() 都计算以下和，对于范围 [$x_0$, $x_{n}$)，给定的初始值 Init，和给定的二元运算符 Ѳ：
 
 Init Ѳ $x_0$ Ѳ $x_1$ Ѳ . . . Ѳ $x_{n−1}$
 
-By default, the binary operator for accumulate() is operator+, and for reduce() it is std::plus.
+默认情况下，accumulate() 的二元运算符是 operator+，而 reduce() 的二元运算符是 std::plus。
 
 \mySamllsection{inner\_product}
 
-inner\_product() calculates the inner product of two sequences. For example, the inner product in the following example is calculated as (1*9)+(2*8)+(3*7)+(4*6), which is 70:
+inner\_product() 计算两个序列的内积。例如，以下示例的内积计算为 (1*9)+(2*8)+(3*7)+(4*6)，结果是 70：
 
 \begin{cpp}
 vector v1 { 1, 2, 3, 4 };
@@ -1234,33 +1234,33 @@ vector v2 { 9, 8, 7, 6 };
 println("{}", inner_product(cbegin(v1), cend(v1), cbegin(v2), 0));
 \end{cpp}
 
-inner\_product() can accept two additional parameters, which are the two binary operators used in the calculation, by default operator+ and operator*.
+inner\_product() 可以接受两个参数，这两个参数是计算中使用的两个二元运算符，默认分别是 operator+ 和 operator*。
 
-inner\_product() is another algorithm that does not support parallel execution. If parallel execution is required, use transform\_reduce(), discussed next.
+inner\_product() 是另一个不支持并行执行的算法。如果需要并行执行，请使用 transform\_reduce()，将在下一节介绍。
 
 \mySamllsection{transform\_reduce}
 
-transform\_reduce() supports parallel execution and can be executed on a single range of elements or on two ranges. In its first version, it calculates the following sum for a range of elements [$x_0$, $x_n$), with a given initial value Init, a given unary function f, and a given binary operator Ѳ, std::plus by default:
+transform\_reduce() 支持并行执行，可以对单个范围或两个范围进行执行。在其第一个版本中，它计算给定范围 [$x_0$, $x_n$)，给定的初始值 Init，给定的单函数 f，以及给定的二元运算符 Ѳ（默认是 std::plus）的以下和：
 
 Init Ѳ $f(x_0)$ Ѳ $f(x_1)$ Ѳ . . . Ѳ $f(x_{n−1})$
 
-When executing on two ranges, it behaves the same as inner\_product(), except by default it uses the binary operators std::plus and std::multiplies, respectively, instead of operator+ and operator*.
+当对两个范围执行时，与 inner\_product() 行为相同，只是默认使用 std::plus 和 std::multiplies 代替 operator+ 和 operator*。
 
-\mySamllsection{Scan Algorithms}
+\mySamllsection{扫描算法}
 
-Scan algorithms are also called prefix sum, cumulative sum, or partial sum algorithms. The result of such an algorithm applied to a range is another range containing sums of the elements of the source range.
+扫描算法也称为前缀和、累积和或部分和算法。应用于一个范围的此类算法的结果是另一个范围，其中包含源范围元素的和。
 
-There are five scan algorithms: exclusive\_scan(), inclusive\_scan()/partial\_sum(), transform\_exclusive\_scan(), and transform\_inclusive\_scan(), all defined in <numeric>.
+有五个扫描算法：exclusive\_scan(), inclusive\_scan()/partial\_sum(), transform\_exclusive\_scan(), 和 transform\_inclusive\_scan(), 都定义在 <numeric> 中。
 
-The following table shows which sums [$y_0$, $y_n$) are calculated by exclusive\_scan() and by inclusive\_scan()/partial\_sum() for a range of elements [$x_0$, $x_n$), with a given initial value Init (0 for partial\_sum()), and a given binary operator Ѳ:
+以下表格显示了 exclusive\_scan() 和 inclusive\_scan()/partial\_sum() 对于一个范围 [$x_0$, $x_n$) 的元素，使用给定的初始值 Init（对于 partial\_sum() 为 0），以及给定的二元运算符 Ѳ，计算哪些和 [$y_0$, $y_n$)：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{EXCLUSIVE\_SCAN()} &
-\textbf{INCLUSIVE\_SCAN()/PARTIAL\_SUM()} \\ \hline
+\textbf{exclusive\_scan()} &
+\textbf{inclusive\_scan()/partial\_sum()} \\ \hline
 \endfirsthead
 %
 \endhead
@@ -1269,26 +1269,27 @@ The following table shows which sums [$y_0$, $y_n$) are calculated by exclusive\
 \begin{tabular}[c]{@{}l@{}}$y_0$ = Init Ѳ $x_0$\\ $y_1$ = Init Ѳ $x_0$ Ѳ $x_1$\\ . . .\\ $y_{n-1}$ = Init Ѳ $x_0$ Ѳ $x_1$ Ѳ . . . Ѳ $x_{n-1}$\end{tabular} \\ \hline
 \end{longtable}
 
-transform\_exclusive\_scan() and transform\_inclusive\_scan() both first apply a unary function to the elements before calculating the generalized sum, similar to how transform\_reduce() applies a unary function to the elements before reducing.
+transform\_exclusive\_scan() 和 transform\_inclusive\_scan() 都首先应用一个单函数到元素上，然后再计算广义的和，这与 transform\_reduce() 在减少元素之前应用单函数的方式类似。
 
-Note that these scan algorithms, except partial\_sum(), can accept an optional execution policy to parallelize their execution. The order of evaluation is non-deterministic, while it is guaranteed left to right for partial\_sum() and accumulate(). That’s also the reason why partial\_sum() and accumulate() cannot be parallelized.
+注意，这些扫描算法（除了 partial\_sum()）可以接受一个可选的执行策略来并行化它们的执行。计算的顺序不确定，而对于 partial\_sum() 和 accumulate()，计算的顺序是从左到右。这也是为什么 partial\_sum() 和 accumulate() 不能并行化的原因。
 
-\mySubsubsection{20.2.11.}{Constrained Algorithms}
+\mySubsubsection{20.2.11.}{约束算法}
 
-Most of the algorithms have constrained variants in the std::ranges namespace. Consult your favorite Standard Library reference to find out exactly which constrained algorithms are available.
-These algorithms are also defined in <algorithm> and <numeric>, but unlike the equivalent unconstrained algorithms in the std namespace, the constrained variants use concepts (see Chapter 12) to constrain their template type parameters. This means you get better error messages from your compiler if you pass invalid arguments. For example, the sort() algorithm requires random-access iterators. Passing a pair of std::list iterators as arguments to std::sort() can result in a bunch of cryptic errors from your compiler. With the constrained ranges::sort() algorithm, the compiler tells you that the passed iterators are not random access.
+大多数算法在 std::ranges 命名空间中都有约束版本。查阅标准手册，以了解可用的确切约束算法。
 
-Another benefit of these constrained algorithms is that they work on a sequence of elements given as either a begin and end iterator pair, or as a range. Additionally, they can support projections. Ranges and projections are discussed in Chapter 17.
+这些算法也在 <algorithm> 和 <numeric> 中定义，但与 std 命名空间中相应的无约束算法不同，约束变体使用概念（请参阅第 12 章）来约束模板类型参数。如果传递无效的参数，编译器会提供更好的错误消息。例如，sort() 算法需要随机访问迭代器。将一对 std::list 迭代器作为参数传递给 std::sort()，可能导致你的编译器抛出一大堆难以理解的错误。使用约束的 ranges::sort() 算法，编译器会抱怨，传递的迭代器不能随机访问。
+
+这些约束算法的另一个好处是，可以处理作为一对开始和结束迭代器或范围给出的序列的元素。此外，它们支持投影。范围和投影在第 17 章中讨论。
 
 \begin{myNotic}{NOTE}
-Constrained algorithms do not support parallel execution yet, so they do not accept a parallel execution policy as an argument.
+约束算法目前还不支持并行执行，因此接受并行执行策略作为参数。
 \end{myNotic}
 
-Let’s look at a few of these constrained algorithms in action.
+让我们看看这些约束算法的一些示例。
 
-\mySamllsection{Constrained find}
+\mySamllsection{约束版find}
 
-As with all constrained algorithms, the std::ranges::find() constrained algorithm can be called with a pair of iterators or with a range as argument. Calling it with an iterator pair works the same way as the unconstrained std::find():
+与所有约束算法一样，std::ranges::find() 约束算法可以用迭代器对或范围作为参数调用。使用迭代器对调用它与无约束 std::find() 的方式相同：
 
 \begin{cpp}
 vector values {1, 2, 3};
@@ -1296,15 +1297,15 @@ auto result { ranges::find(cbegin(values), cend(values), 2) };
 if (result != cend(values)) { println("{}", *result); }
 \end{cpp}
 
-However, if you want to apply an algorithm on all elements of a container, as is often the case, it’s rather tedious to always have to specify a begin/end iterator pair to define your sequence. With ranges support, you can just specify a range with a single argument. The previous call to find() can be written more readable and less error prone as follows:
+然而，如果想对容器中的所有元素应用一个算法，通常情况下，必须指定一个开始/结束迭代器对来定义序列，这相当繁琐。有了范围支持，只需指定一个范围作为单个参数，前面的 find() 可以写得更简单：
 
 \begin{cpp}
 auto result { ranges::find(values, 2) };
 \end{cpp}
 
-\mySamllsection{Constrained generate}
+\mySamllsection{约束版 generate}
 
-Here is another example, this time using the constrained std::ranges::generate() algorithm. The code first creates a lambda expression that simply returns a next number. Then it creates a vector of 10 integers and uses the generate() algorithm together with the nextNumber lambda expression to fill the vector with increasing integers. The contents of the vector are printed to the console, followed by four more invocations of the nextNumber lambda expression.
+这里是一个使用约束版 std::ranges::generate() 算法的示例。代码首先创建了一个简单的 Lambda 表达式，只是返回下一个数字。然后，创建了一个包含 10 个整数的vector，并使用 generate() 算法与 nextNumber Lambda 表达式一起填充vector，以包含递增的整数。vector的内容打印到控制台，接着是对 nextNumber Lambda 表达式的四次货更多的调用。
 
 \begin{cpp}
 auto nextNumber { [counter = 0] () mutable { return ++counter; } };
@@ -1315,29 +1316,29 @@ print("Four more next numbers: ");
 for (unsigned i { 0 }; i < 4; ++i) { print("{}, ", nextNumber()); }
 \end{cpp}
 
-The output is as follows:
+输出为：
 
 \begin{shell}
 Vector contains 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 Four more next numbers: 1, 2, 3, 4,
 \end{shell}
 
-As the output demonstrates, generate() makes a copy of the lambda expression. This can be avoided using std::ref(), as explained earlier in this chapter, to pass a reference to the lambda expression instead of making a copy:
+如输出所示，generate() 复制了 Lambda 表达式。为了避免这种情况，可以使用 std::ref()，如本章前面所解释的，以传递 Lambda 表达式的引用：
 
 \begin{cpp}
 ranges::generate(values, ref(nextNumber));
 \end{cpp}
 
-The output now is:
+输出现在为：
 
 \begin{shell}
 Vector contains 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 Four more next numbers: 11, 12, 13, 14,
 \end{shell}
 
-\mySamllsection{Constrained for\_each}
+\mySamllsection{约束版 for\_each}
 
-The following example demonstrates using the std::ranges::for\_each() algorithm on a filtered view created with std::ranges::views::filter (defined in <ranges>). Only the even values from the vector are kept in the view. This filtered view is subsequently passed to for\_each(), which multiplies the values by 10. Outputting the contents of the vector confirms that only the even values in the vector have been multiplied.
+以下示例展示了如何使用 std::ranges::for\_each() 算法对一个使用 std::ranges::views::filter（定义在 <ranges> 中）创建的过滤视图进行操作。只保留vector中的偶数值在视图中，这个过滤视图随后会传递给 for\_each()，将值乘以 10。输出vector的内容，确认了vector中只有偶数值乘以了 10。
 
 \begin{cpp}
 vector values { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
@@ -1347,7 +1348,7 @@ ranges::for_each(values | views::filter([](int value) { return value % 2 == 0; }
 println("After: {:n}", values);
 \end{cpp}
 
-The output is as follows:
+输出如下所示：
 
 \begin{shell}
 Before: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
@@ -1356,11 +1357,11 @@ After: 1, 20, 3, 40, 5, 60, 7, 80, 9, 100
 
 \CXXTwentythreeLogo{-40}{-50}
 
-\mySamllsection{Constrained-Only Algorithms}
+\mySamllsection{仅约束算法}
 
-C++23 introduces new algorithms that are available only as constrained algorithms. They are all defined in the std::ranges namespace. These include the non-modifying sequence algorithms contains(), contains\_subrange(), starts\_with(), ends\_with(), find\_last(), find\_last\_if(), and find\_last\_if\_not(), and the fold algorithms fold\_left(), fold\_left\_first(), fold\_right(), fold\_right\_last(), fold\_left\_with\_iter(), and fold\_left\_first\_with\_iter().
+C++23 引入了新的算法，这些算法仅作为约束算法可用。它们都在 std::ranges 命名空间中定义。这些包括非修改序列算法 contains(), contains\_subrange(), starts\_with(), ends\_with(), find\_last(), find\_last\_if(), 和 find\_last\_if\_not(), 以及折叠算法 fold\_left(), fold\_left\_first(), fold\_right(), fold\_right\_last(), fold\_left\_with\_iter()和 fold\_left\_first\_with\_iter()。
 
-Here is an example of some of the non-modifying sequence algorithms:
+以下是某些非修改序列算法的示例：
 
 \begin{cpp}
 vector values { 11, 22, 33, 44, 55 };
@@ -1370,7 +1371,7 @@ println("{} contains {} = {}", values, v, ranges::contains_subrange(values, v));
 println("{} starts with {} = {}", values, v, ranges::starts_with(values, v));
 \end{cpp}
 
-This produces the following output:
+会产生以下输出：
 
 \begin{shell}
 [11, 22, 33, 44, 55] contains 33 = true
@@ -1378,7 +1379,7 @@ This produces the following output:
 [11, 22, 33, 44, 55] starts with [11, 22] = true
 \end{shell}
 
-The following is an example of two of the folding algorithms. fold\_left() and fold\_right() accept an initial value as one of their arguments, while fold\_left\_first() uses the first element in a given range as the starting value, and fold\_right\_last() uses the last element in a given range as the starting value. The example demonstrates the difference between a left and a right fold. The fold\_left\_first() and fold\_right\_last() algorithms return an optional, so value\_or() is used to handle an empty result.
+以下是一个折叠算法的示例。fold\_left() 和 fold\_right() 接受一个初始值作为它们的参数之一，而 fold\_left\_first() 使用给定范围中的第一个元素作为起始值，fold\_right\_last() 使用给定范围中的最后一个元素作为起始值。这个示例展示了左折叠和右折叠之间的区别，fold\_left\_first() 和 fold\_right\_last() 算法返回一个可选值，因此使用 value\_or() 来处理空结果。
 
 \begin{cpp}
 vector values { 500.0, 10.0, 2.0 };
@@ -1388,16 +1389,16 @@ println("foldedLeft = {}", foldedLeft.value_or(0.0));
 println("foldedRight = {}", foldedRight.value_or(0.0));
 \end{cpp}
 
-The output is:
+输出为：
 
 \begin{shell}
 foldedLeft = 25
 foldedRight = 100
 \end{shell}
 
-The left fold operation calculates ((500.0 / 10.0) / 2.0), while the right fold operation calculates (500.0 / (10.0 / 2.0)).
+左折叠操作计算 ((500.0 / 10.0) / 2.0)，而右折叠操作计算 (500.0 / (10.0 / 2.0))。
 
-See your favorite Standard Library reference for more details on all these constrained algorithms.
+请参阅标准库手册，以获取这些约束算法的详细信息。
 
 
 
