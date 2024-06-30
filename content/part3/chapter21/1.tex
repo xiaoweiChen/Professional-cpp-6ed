@@ -112,32 +112,25 @@ Besides string literals, character literals can also have a prefix to turn them 
 
 In addition to the std::string class, there is also support for wstring, u8string, u16string, and u32string. They are defined as follows:
 
-\begin{itemize}
-\item
 \begin{cpp}
 using string = basic_string<char>;
 \end{cpp}
 
-\item
 \begin{cpp}
 using wstring = basic_string<wchar_t>;
 \end{cpp}
 
-\item
 \begin{cpp}
 using u8string = basic_string<char8_t>;
 \end{cpp}
 
-\item
 \begin{cpp}
 using u16string = basic_string<char16_t>;
 \end{cpp}
 
-\item
 \begin{cpp}
 using u32string = basic_string<char32_t>;
 \end{cpp}
-\end{itemize}
 
 Similarly, the Standard Library provides std::string\_view, wstring\_view, u8string\_view, u16string\_view, and u32string\_view, all based on basic\_string\_view.
 
@@ -363,7 +356,7 @@ Note that the innermost template type determines the character type to use. The 
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{FACET} & \textbf{DESCRIPTION}                             \\ \hline
+\textbf{类型} & \textbf{描述}                             \\ \hline
 \endfirsthead
 %
 \endhead
@@ -403,8 +396,8 @@ The C++ standard provides the codecvt class template to help with converting bet
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{CLASS} &
-\textbf{DESCRIPTION} \\ \hline
+\textbf{类型} &
+\textbf{描述} \\ \hline
 \endfirsthead
 %
 \endhead
