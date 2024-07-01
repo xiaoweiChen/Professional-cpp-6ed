@@ -1,58 +1,65 @@
 
-A clock is a class consisting of a time\_point and a duration. The time\_point type is discussed in detail in the next section, but those details are not required to understand how clocks work. However, time\_points themselves depend on clocks, so it’s important to know the details of clocks first.
+时钟是一个由time\_point和时间段组成的类。下一节将详细讨论time\_point类型，但是要理解时钟的工作原理并不需要这些细节，time\_point本身依赖于时钟，所以先来了解一下时钟。
 
-The standard defines several clocks, which are described in the following table. The epoch of a clock is the time at which the clock starts counting.
+该标准定义了几种时钟，如下表所示。时钟的历元是时钟开始计数的时间。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{CLOCK} &
-\textbf{DESCRIPTION} &
-\textbf{EPOCH} \\ \hline
+\textbf{时钟} &
+\textbf{描述} &
+\textbf{历元} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 system\_clock &
-\begin{tabular}[c]{@{}l@{}}Represents the UTC wall clock time\\ from the system-wide real-time clock.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}表示来自系统范围的实时时钟，\\UTC壁挂时钟时间。
+\end{tabular} &
 1970-01-01 00:00:00 \\ \hline
 steady\_clock &
-\begin{tabular}[c]{@{}l@{}}Guarantees its time\_point never\\ decreases, which is not guaranteed for\\ system\_clock because the system\\ clock can be adjusted at any time.\\ In fact, this clock is not required to\\ be related to wall clock time; e.g., it\\ could be the time since the start of the\\ operating system.\end{tabular} &
-Unspecified \\ \hline
+\begin{tabular}[c]{@{}l@{}}确保其time\_point永远不会减\\少，因为系统时钟可以随时调\\整，所以system\_clock不保证。\\实际上，该时钟不要求与壁挂\\时钟时间相关；例如，可以\\是自操作系统启动以来的时间。
+\end{tabular} &
+未指定 \\ \hline
 high\_resolution\_clock &
-\begin{tabular}[c]{@{}l@{}}Has the shortest possible tick period.\\ Depending on your compiler, it is\\ possible for this clock to be a synonym\\ for steady\_clock or system\_clock.\end{tabular} &
-Unspecified \\ \hline
+\begin{tabular}[c]{@{}l@{}}具有最短的可能的刻度周期。\\根据编译器，这个时钟可能是\\steady\_clock或system\_clock\\的同义词。\end{tabular} &
+未指定 \\ \hline
 utc\_clock &
-\begin{tabular}[c]{@{}l@{}}Represents the Coordinated Universal\\ Time (UTC) wall clock time.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}表示协调世界时（UTC）的壁\\挂时钟时间。
+\end{tabular} &
 1970-01-01 00:00:00 \\ \hline
 tai\_clock &
-\begin{tabular}[c]{@{}l@{}}Represents International Atomic Time\\ (TAI), using a weighted average of\\ several atomic clocks.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}代表国际原子时（TAI），使用\\多个原子钟的加权平均值。
+\end{tabular} &
 1958-01-01 00:00:00 \\ \hline
 gps\_clock &
-\begin{tabular}[c]{@{}l@{}}Represents Global Position System\\ (GPS) time, i.e., the time maintained by\\ the atomic clocks of GPS satellites.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}代表全球定位系统（GPS）时\\间，即由GPS卫星的原子钟\\维护的时间。
+\end{tabular} &
 1980-01-06 00:00:00 \\ \hline
 file\_clock &
-\begin{tabular}[c]{@{}l@{}}Represents file time. It’s an alias for\\ std::filesystem::file\_time\_type.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Unspecified, but\\ typically 1970-01-01\\ on Unix, and 1601-01-\\ 01 on Windows.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}代表文件时间，是\\std::filesystem::file\_time\_type\\的别名。
+\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}未指定，\\Unix通常是1970-01-01，\\Windows中是1601-01-01。
+\end{tabular} \\ \hline
 \end{longtable}
 
-The utc\_clock is the only clock that tracks leap seconds, which are seconds that are occasionally added to or subtracted from UTC time to correct for any mismatch between UTC time and true solar time. The other clocks don’t track leap seconds, while for file\_clock it’s unspecified.
+utc\_clock是唯一一个跟踪闰秒的时钟，闰秒是在 UTC 时间与真太阳时间之间不匹配时偶尔添加到或从 UTC 时间中减去的秒。其他时钟不跟踪闰秒，而file\_clock对此没有指定。
 
 \begin{myNotic}{NOTE}
-The use of the high\_resolution\_clock is discouraged because its implementation is not consistent between different compilers. For some compilers, it might be an alias for steady\_clock, while for others it might be an alias for system\_clock. Hence, for some compilers, the high\_resolution\_clock can go backwards, and for others it doesn’t.
+不建议使用high\_resolution\_clock，它的实现在不同编译器之间不一致。对于某些编译器，它可能是 steady\_clock 的别名，而对于其他编译器，可能是 system\_clock 的别名。因此，对于某些编译器，high\_resolution\_clock可能会倒退，而对于其他编译器则不会。
 
-Instead, it’s recommended to use system\_clock to work with wall clock time and steady\_clock to measure durations.
+建议使用 system\_clock 来处理挂壁时钟时间，并使用 steady\_clock 来测量时间段。
 \end{myNotic}
 
-Every clock has a static now() member function to get the current time as a time\_point, and an is\_steady() member function returning true if the clock is steady, i.e., never goes backwards, false otherwise.
+每个时钟都有一个静态的 now() 成员函数，用来获取当前时间作为时间点，以及一个 is\_steady() 成员函数，如果时钟是稳定的（即永远不会倒退），则返回 true，否则返回 false。
 
-The system\_clock also defines two static helper member functions for converting time\_points to and from the time\_t C-style time representation. The first one is called to\_time\_t(), and it converts a given time\_point to a time\_t; the second one, from\_time\_t(), performs the opposite conversion. The time\_t type is defined in <ctime>.
+system\_clock 还定义了两个静态帮助成员函数，用于将时间点转换为和从 time\_t C 风格时间表示转换。第一个称为 to\_time\_t()，它将给定的时间点转换为 time\_t；第二个，from\_time\_t()，执行相反的转换。time\_t 类型在 <ctime> 中定义。
 
-\mySubsubsection{22.3.1.}{Printing Current Time}
+\mySubsubsection{22.3.1.}{打印当前时间}
 
-The following example demonstrates how to get the current UTC time and print it to the console in a human-readable format:
+以下示例演示了如何获取当前的 UTC 时间,并以人类可读的格式打印到控制台：
 
 \begin{cpp}
 // Set the global locale to the user's local (see Chapter 21).
@@ -62,16 +69,18 @@ println("UTC: {:L}", system_clock::now());
 println("UTC: {:L%c}", system_clock::now());
 \end{cpp}
 
-This code snippet first sets the global locale to the user’s locale; see Chapter 21, “String Localization and Regular Expressions.” This makes sure everything is printed according to the user’s preferences. The println() statements use the L format specifier to format the date and time according to the configured global locale. The effect of the \%c format specifier is also demonstrated. There are many more format specifiers supported. Consult a Standard Library reference to learn more about them. Here is sample output from the previous code snippet:
+这个代码片段首先将全局区域设置为用户区域(参见第 21 章)，这确保了所有内容都按照用户的偏好进行打印。println() 语句使用 L 格式说明符根据配置的全局区域设置格式化日期和时间。\%c 格式说明符的效果也得到了展示。支持更多的格式说明符。有关更多信息，请参阅标准库手册。以下是前面代码段的输出：
 
 \begin{shell}
 UTC: 2023-07-19 11:38:44,5521944
 UTC: 2023-07-19 11:38:44
 \end{shell}
 
-\mySubsubsection{22.3.2.}{Execution Timing}
+\mySubsubsection{22.3.2.}{进行计时}
 
 To time how long it takes for a piece of code to execute, you want to use a clock that is guaranteed not to go backwards. Hence, you should use a steady\_clock. The following code snippet gives an example. The actual type of the variables start and end is steady\_clock::time\_point, and the actual type of diff is a duration.
+
+要计时代码执行所需的时间，应该使用一个保证不会倒退的时钟。因此，应该使用 steady\_clock。以下代码段中，start 和 end 变量的实际类型是 steady\_clock::time\_point，而 diff 的实际类型是时间段。
 
 \begin{cpp}
 // Get the start time.
@@ -94,7 +103,7 @@ println("Total: {}", duration_cast<milliseconds>(diff));
 println("{} per iteration", duration<double, nano> { diff / numberOfIterations });
 \end{cpp}
 
-Here is the output running on my test system:
+这是在我测试系统上运行的输出：
 
 \begin{shell}
 d = 5393526.082683575
@@ -103,7 +112,7 @@ Total: 78ms
 7ns per iteration
 \end{shell}
 
-The loop in this example is performing some arithmetic operations with sqrt(), abs(), sin(), and cos() to make sure the loop doesn’t end too fast. If you get really small values for the difference in milliseconds on your system, those values will not be accurate, and you should increase the number of iterations of the loop to make it last longer. Small timings will not be accurate because while timers often have a resolution in milliseconds, on most operating systems, this timer is updated infrequently, for example, every 10 ms or 15 ms. This induces a phenomenon called gating error, where any event that occurs in less than one timer tick appears to take place in zero units of time, and any event between one and two timer ticks appears to take place in one timer unit. For example, on a system with a 15 ms timer update, a loop that takes 44 ms will appear to take only 30 ms. When using such timers to time computations, it is important to make sure that the entire computation takes place across a fairly large number of basic timer tick units so that these errors are minimized.
+这个例子中的循环执行了一些算术运算，包括 sqrt()、abs()、sin() 和 cos()，以确保循环不会结束得太快。如果在系统上得到的差异毫秒值非常小，这些值将不准确，应该增加循环迭代的次数，使其持续更长时间。小的时间值将不准确，因为尽管计时器通常具有毫秒级的分辨率，但在大多数操作系统上，这个计时器更新不频繁，例如，每 10 毫秒或 15 毫秒。这会导致一种称为“门控误差”的现象，其中任何小于一个计时器节拍的事件就似乎花费了零个时间单位，而发生在两个计时器节拍之间的事件似乎花费了一个计时器单位。例如，在一个具有 15 毫秒计时器更新的系统上，一个需要 44 毫秒的循环将只显示为 30 毫秒。当使用此类计时器计时计算时，重要的是要确保整个计算跨越相当多的基本计时器节拍单位，以便误差最小化。
 
 
 

@@ -1,8 +1,9 @@
-A point in time is represented by the time\_point class and stored as a duration relative to an epoch, representing the beginning of time. A time\_point is always associated with a certain clock, and the epoch is the origin of this associated clock. For example, the epoch for the classic Unix/Linux time is January 1, 1970, and durations are measured in seconds. The epoch for Windows is January 1, 1601, and durations are measured in 100-nanosecond units. Other operating systems have different epoch dates and duration units.
 
-The time\_point class has a function called time\_since\_epoch(), which returns a duration representing the time between the epoch of the associated clock and the stored point in time.
+时间点由 time\_point 类表示，并作为与某个时钟相关的持续时间的起点存储。时间点总是与某个时钟的纪元相关联，这个纪元表示这个时钟的起点。例如，Unix/Linux 时间点的纪元是 1970 年 1 月 1 日，持续时间以秒为单位。Windows 时间点的纪元是 1601 年 1 月 1 日，持续时间以 100 纳秒为单位。其他操作系统有不同的纪元日期和持续时间单位。
 
-Arithmetic operations of time\_points and durations that make sense are supported. The following table lists those operations. tp is a time\_point, and d is a duration:
+time\_point 类有一个名为 time\_since\_epoch() 的函数返回一个时间段，表示存储的时间点与关联时钟的纪元之间的时间差。
+
+time\_point 类支持一些有意义的算术运算。以下表格列出了这些运算：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -18,36 +19,36 @@ d + tp = tp & tp – tp = d \\ \hline
 tp += d     & tp -= d     \\ \hline
 \end{longtable}
 
-An example of an operation that is not supported is tp+tp.
+不支持的运算示例是 tp+tp。
 
-Comparison operators == and <=> to compare two time points are supported. Two static member functions are provided: min() and max() returning the smallest and largest possible point in time, respectively.
+time\_point 类支持比较运算符 == 和 <=>，用于比较两个时间点。有两个静态成员函数 min() 和 max()，分别返回可能的最小和最大时间点。
 
-The time\_point class has three constructors:
+time\_point 类有三个构造函数：
 
 \begin{itemize}
 \item
-time\_point(): Constructs a time\_point initialized with duration::zero(). The resulting time\_point represents the epoch of the associated clock.
+time\_point(): 使用duration::zero()构造一个初始化的时间点，得到的time\_point代表关联时钟的纪元。
 
 \item
-time\_point(const duration\& d): Constructs a time\_point initialized with the given duration. The resulting time\_point represents epoch + d.
+time\_point(const duration\& d): 使用给定的持续时间d构造一个初始化的time\_point。得到的time\_point代表epoch + d。
 
 \item
-template<class Duration2> time\_point(const time\_point<clock, Duration2>\& t): Constructs a time\_point initialized with t.time\_since\_epoch().
+template<class Duration2> time\_point(const time\_point<clock, Duration2>\& t): 使用t.time\_since\_epoch()构造一个初始化的time\_point。
 \end{itemize}
 
-Each time\_point is associated with a clock. To create a time\_point, you specify the clock as the template parameter:
+每个time\_point都与一个时钟相关联。要创建一个time\_point，需要将时钟指定为模板参数：
 
 \begin{cpp}
 time_point<steady_clock> tp1;
 \end{cpp}
 
-Each clock also knows its time\_point type, so you can also write it as follows:
+每个时钟也知道其time\_point类型，可以按以下方式使用：
 
 \begin{cpp}
 steady_clock::time_point tp1;
 \end{cpp}
 
-The following code snippet demonstrates some operations with time\_points:
+下代码段演示了使用time\_point的一些操作：
 
 \begin{cpp}
 // Create a time_point representing the epoch of the associated steady clock.
@@ -61,13 +62,13 @@ duration<double> d2 { d1 };
 println("{}", d2);
 \end{cpp}
 
-The output is as follows:
+输出如下：
 
 \begin{shell}
 600s
 \end{shell}
 
-Converting time\_points can be done implicitly or explicitly, similar to duration conversions. Here is an example of an implicit conversion. The output is 42000ms:
+time\_points的转换可以隐式或显式地进行，类似于时间段的转换。以下是一个隐式转换的例子，输出是42000ms：
 
 \begin{cpp}
 time_point<steady_clock, seconds> tpSeconds { 42s };
@@ -76,7 +77,7 @@ time_point<steady_clock, milliseconds> tpMilliseconds { tpSeconds };
 println("{}", tpMilliseconds.time_since_epoch());
 \end{cpp}
 
-If the implicit conversion can result in a loss of data, then you need an explicit conversion using time\_point\_cast(), similar to using duration\_cast() for explicit duration casts as discussed earlier in this chapter. The following example outputs 42000ms, even though you start from 42,424ms:
+如果隐式转换可能导致数据丢失，那么需要使用time\_point\_cast()进行显式转换，类似于本章前面讨论的duration\_cast()用于显式时间段转换。以下示例即使从42,424ms开始，输出的也是42000ms：
 
 \begin{cpp}
 time_point<steady_clock, milliseconds> tpMilliseconds { 42'424ms };
@@ -90,4 +91,4 @@ milliseconds ms { tpSeconds.time_since_epoch() };
 println("{}", ms);
 \end{cpp}
 
-The library supports floor(), ceil(), and round() operations for time\_points that behave just as they behave with numerical data.
+库支持floor()、ceil()和round()操作，这些操作对time\_point的行为和对数字数据的行为一样。

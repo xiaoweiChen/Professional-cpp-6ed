@@ -2,10 +2,10 @@
 
 \begin{itemize}
 \item
-Exercise 21-1: Use an appropriate facet to figure out the decimal separator for formatting numbers according to the user’s environment. Consult a Standard Library reference to learn about the exact member functions of your chosen facet.
+\textbf{练习 21-1}: 使用一个合适的特性来确定，用于格式化数字的十进制分隔符，以符合用户环境。查阅标准库手册，以了解所选特性的确切成员函数。
 
 \item
-Exercise 21-2: Write an application that asks the user to enter a phone number as formatted in the United States. Here’s an example: 202-555-0108. Use a regular expression to validate the format of the phone number, that is, three digits, followed by a dash, three more digits, another dash, and a final four digits. If it’s a valid phone number, print out the three parts on separate lines. For example, for the earlier phone number, the result must be as follows:
+\textbf{练习 21-2}: 编写一个应用程序，要求用户输入格式化的美国电话号码。例如：202-555-0108。使用正则表达式来验证电话号码的格式，即三个数字，后跟一个破折号，再跟三个数字，再后跟一个破折号，最后是四个数字。如果是有效的电话号码，将三个部分分别打印在单独的行上。例如，对于上述电话号码，结果必须如下所示：
 
 \begin{shell}
 202
@@ -14,14 +14,14 @@ Exercise 21-2: Write an application that asks the user to enter a phone number a
 \end{shell}
 
 \item
-Exercise 21-3: Write an application that asks the user for a piece of source code that can span multiple lines and that can contain // style comments. To signal the end of the input, use a sentinel character, for example @. You can use std::getline() with '@' as delimiter to read in multiple lines of text from the standard input console. Finally, use a regular expression to remove comments from all lines of the code snippet. Make sure your code properly works on a snippet such as the following:
+\textbf{练习 21-3}: 编写一个应用程序，要求用户输入一段可能跨越多行的源代码，并可能包含 // 风格的注释。为了指示输入的结束，使用一个哨兵字符，例如 @。可以使用 std::getline() 并以 '@' 作为分隔符，从标准输入控制台读取多行文本。最后，使用正则表达式将代码段的所有注释移除。确保代码正确地工作：
 
 \begin{cpp}
 string str; // A comment // Some more comments.
 str = "Hello"; // Hello.
 \end{cpp}
 
-The result for this input must be as follows:
+对于这个输入，结果必须如下所示：
 
 \begin{shell}
 string str;
@@ -29,5 +29,5 @@ str = "Hello";
 \end{shell}
 
 \item
-Exercise 21-4: The section “Lookahead” earlier in this chapter mentioned a password-validation regular expression. Write a program to test this regular expression. Ask the user to enter a password and validate it. Once you’ve verified that the regular expression works, add one more validation rule to it: a password must also consist of at least two digits.
+\textbf{练习 21-4}: 本章前面“前瞻”部分提到了一个密码验证的正则表达式。编写一个程序来测试这个正则表达式，要求用户输入一个密码并验证它。当完成前面的验证后，再添加一个验证规则：密码必须至少包含两个数字。
 \end{itemize}

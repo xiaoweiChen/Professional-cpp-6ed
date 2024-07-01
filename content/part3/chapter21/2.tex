@@ -1,136 +1,136 @@
 
-Regular expressions, defined in <regex>, are a powerful string-related feature of the Standard Library. They support a special mini-language for string processing and might seem complicated at first, but once you get to know them, they make working with strings easier. Regular expressions can be used for several string operations:
+正则表达式，定义在 <regex> 中，是标准库中与字符串相关的强大特性。支持一种特殊的迷你语言进行字符串处理，一开始可能会显得复杂，但当熟悉了它们，就能让字符串处理变得更加简单。正则表达式可以用于以下字符串操作：
 
 \begin{itemize}
 \item
-Validation: Check if an input string is well formed. For example, is the input string a wellformed phone number?
+验证：检查输入字符串是否格式正确。例如，输入的字符串是否是一个有效的电话号码？
 
 \item
-Decision: Check what kind of string an input represents. For example, is the input string the name of a JPEG or a PNG file?
+决策：检查输入代表哪种类型的字符串。例如，输入的字符串是否是一个 JPEG 或 PNG 文件的名字？
 
 \item
-Parsing: Extract information from an input string. For example, extract the year, month, and day from a date.
+解析：从输入字符串中提取信息。例如，从一个日期中提取年、月、日。
 
 \item
-Transformation: Search substrings and replace them with a new formatted substring. For example, search all occurrences of “C++23” and replace them with “C++”.
+转换：搜索子字符串并将其替换为新格式化的子字符串。例如，搜索所有出现的“C++23”并将其替换为“C++”。
 
 \item
-Iteration: Search all occurrences of a substring. For example, extract all phone numbers from an input string.
+迭代：搜索给定序列 [first, last) 中的所有子字符串出现。例如，从一个输入字符串中提取所有电话号码。
 
 \item
-Tokenization: Split a string into substrings based on a set of delimiters. For example, split a string on whitespace, commas, periods, and so on, to extract the individual words.
+标记化：根据一组分隔符将字符串分割成子字符串。例如，在空格、逗号、点等分隔符处分割字符串，以提取单个单词。
 \end{itemize}
 
-Of course, you could write your own code to perform any of these operations on strings, but I recommend using the regular expressions functionality, because writing correct and safe code to process strings is tricky.
+当然，可以编写自己的代码来执行这些字符串操作中的任何一个，但我建议使用正则表达式功能，因为编写正确且安全的字符串处理代码很棘手。
 
-Before going into more detail on regular expressions, there is some important terminology you need to know. The following terms are used throughout the discussion:
+详细介绍正则表达式之前，需要了解一些重要的术语。以下术语在整个讨论中都会使用：
 
 \begin{itemize}
 \item
-Pattern: The actual regular expression is a pattern represented by a string.
+模式：实际的正则表达式是一个由字符串表示的模式。
 
 \item
-Match: Determines whether there is a match between a given regular expression and all of the characters in a given sequence [first, last).
+匹配：确定给定的正则表达式是否与给定序列 [first, last) 中的所有字符匹配。
 
 \item
-Search: Determines whether there is some substring within a given sequence [first, last) that matches a given regular expression.
+搜索：确定给定序列 [first, last) 中的某个子序列是否与给定的正则表达式匹配。
 
 \item
-Replace: Identifies substrings in a given sequence and replaces them with a corresponding new substring computed from another pattern, called a substitution pattern.
+替换：识别给定序列中的子序列并将其替换为从另一个模式（称为替换模式）计算出的相应的子序列。
 \end{itemize}
 
-There are several different grammars for regular expressions. C++ includes support for the following grammars:
+正则表达式有几种不同的语法。C++ 支持以下语法：
 
 \begin{itemize}
 \item
-ECMAScript: The grammar based on the ECMAScript standard. ECMAScript is a scripting language standardized by ECMA-262. The core of JavaScript, ActionScript, Jscript, and so on, all use the ECMAScript language standard.
+ECMAScript: 基于 ECMAScript 标准的语法。ECMAScript 是一种由 ECMA-262 标准化的脚本语言。JavaScript 的核心、ActionScript、Jscript 等都使用 ECMAScript 语言标准。
 
 \item
-basic: The basic POSIX grammar.
+basic: 基本的 POSIX 语法。
 
 \item
-extended: The extended POSIX grammar.
+extended: 扩展的 POSIX 语法。
 
 \item
-awk: The grammar used by the POSIX awk utility.
+awk: POSIX awk 实用程序使用的语法。
 
 \item
-grep: The grammar used by the POSIX grep utility.
+grep: POSIX grep 实用程序使用的语法。
 
 \item
-egrep: The grammar used by the POSIX grep utility with the -E parameter.
+egrep: POSIX grep 实用程序使用的语法，带有参数 -E 。
 \end{itemize}
 
-If you already know any of these regular expression grammars, you can use it straightaway in C++ by instructing the regular expression library to use that specific syntax (syntax\_option\_type). The default grammar in C++ is ECMAScript, whose syntax is explained in detail in the following section. It is also the most powerful grammar. Explaining the other regular expression grammars falls outside the scope of this book.
+如果已经了解这些正则表达式语法中的任何一种，可以直接在 C++ 中使用它，通过指示正则表达式库使用特定的语法（syntax\_option\_type）。C++ 的默认语法是 ECMAScript，其语法将在下一节详细解释，也是最强大的语法。解释其他正则表达式语法，超出了本书的范围。
 
 \begin{myNotic}{NOTE}
-If this is the first time you’re hearing about regular expressions, just use the default ECMAScript syntax.
+如果是第一次听说正则表达式，请直接使用默认的 ECMAScript 语法。
 \end{myNotic}
 
-\mySubsubsection{21.2.1.}{ECMAScript Syntax}
+\mySubsubsection{21.2.1.}{ECMAScript 语法}
 
-A regular expression pattern is a sequence of characters representing what you want to match. Any character in the regular expression matches itself except, for the following special characters:
+正则表达式模式是一系列字符，代表想要匹配的内容。正则表达式中的任何字符都会匹配其本身，除非是以下特殊字符：
 
 \begin{shell}
 ^ $ \ . * + ? ( ) [ ] { } |
 \end{shell}
 
-These special characters are explained throughout the following discussion. If you need to match one of these special characters, you need to escape it using the \verb|\| character, as in this example:
+这些特殊字符将在以下讨论中解释。如果需要匹配这些特殊字符中的任何一个，需要使用反斜杠 \verb|\| 进行转义，例如：
 
 \begin{shell}
 \[ or \. or \* or \\
 \end{shell}
 
-\mySamllsection{Anchor}
+\mySamllsection{锚点}
 
-The special characters \^{} and \$ are called anchors. The \^{} character matches the position immediately following a line termination character, and \$ matches the position of a line termination character. By default, \^{} and \$ also match the beginning and ending of a string, respectively, but this behavior can be disabled.
+特殊字符 \^{} 和 \$ 称为锚点。\^{} 字符匹配换行符后立即出现的字符位置，而 \$ 匹配换行符的位置。默认情况下，\^{} 和 \$ 分别匹配字符串的开始和结束位置，但这种行为可以禁用。
 
-For example, \^{}test\$ matches only the string test, and not strings that contain test somewhere in the line, such as 1test, test2, test abc, and so on.
+例如，\^{}test\$ 只匹配字符串 test，而不是包含 test 的任何字符串，如 1test, test2, test abc 等。
 
-\mySamllsection{Wildcard}
+\mySamllsection{通配符}
 
-The wildcard character . can be used to match any single character except a newline character. For example, the regular expression a.c will match abc, and a5c, but will not match ab5c, ac, and so on.
+通配符 . 可以用来匹配除换行符外的任何单个字符。例如，正则表达式 a.c 将匹配 abc 和 a5c，但不匹配 ab5c、ac 等。
 
-\mySamllsection{Alternation}
+\mySamllsection{交替}
 
-The | character can be used to specify the “or” relationship. For example, a|b matches a or b.
+| 字符可以用来指定“或”关系。例如，a|b 匹配 a 或 b。
 
-\mySamllsection{Grouping}
+\mySamllsection{分组}
 
-Parentheses, (), are used to mark subexpressions, also called capture groups. Capture groups can be used for several purposes:
-
-\begin{itemize}
-\item
-Capture groups can be used to identify individual subsequences of the original string; each marked subexpression (capture group) is returned in the result. For example, the regular expression (.)(ab|cd)(.) has three marked subexpressions. Performing a search operation with this regular expression on 1cd4 results in a match with four entries. The first entry is the entire match, 1cd4, followed by three entries for the three marked subexpressions. These three entries are 1, cd, and 4.
-
-\item
-Capture groups can be used during matching for a purpose called back references (explained later).
-
-\item
-Capture groups can be used to identify components during replace operations (explained later).
-\end{itemize}
-
-\mySamllsection{Quantifier}
-
-Parts of a regular expression can be repeated by using one of four quantifiers:
+括号 () 用于标记子表达式，也称为捕获组。捕获组可以用于多种目的：
 
 \begin{itemize}
 \item
-* matches the preceding part zero or more times. For example, a*b matches b, ab, aab, aaaab, and so on.
+捕获组可以用来识别原始字符串的个别子序列；每个标记的子表达式（捕获组）都会在结果中返回。例如，正则表达式 (.)(ab|cd)(.) 有三个标记的子表达式。对这个正则表达式在 1cd4 上执行搜索操作，会得到一个匹配结果，包含四个条目。第一个条目是整个匹配，1cd4，后面跟着三个条目，对应于三个标记的子表达式。这三个条目是 1、cd 和 4。
 
 \item
-+ matches the preceding part one or more times. For example, a+b matches ab, aab, aaaab, and so on, but not b.
+捕获组可以在匹配过程中用于称为回引用（稍后解释）的目的。
 
 \item
-? matches the preceding part zero or one time. For example, a?b matches b and ab, but nothing else.
-
-\item
-\{...\} represents a bounded quantifier. b\{n\} matches b repeated exactly n times; b\{n,\} matches b repeated n times or more; and b\{n,m\} matches b repeated between n and m times inclusive. For example, b\{3,4\} matches bbb and bbbb but not b, bb, bbbbb, and so on.
+捕获组可以在替换操作中用来识别组件（稍后解释）。
 \end{itemize}
 
-These quantifiers are called greedy because they find the longest match while still matching the remainder of the regular expression. To make them non-greedy, a ? can be added behind the quantifier, as in *?, +?, ??, and \{...\}?. A non-greedy quantifier repeats its pattern as few times as possible while still matching the remainder of the regular expression.
+\mySamllsection{量化器}
 
-For example, the following table shows the difference between a greedy and a non-greedy regular expression, and the resulting submatches when running them on the input sequence aaabbb:
+正则表达式的一部分可以使用四个量化器之一进行重复：
+
+\begin{itemize}
+\item
+* 匹配前面的部分零次或多次。例如，a*b 匹配 b、ab、aab、aaaaab 等。
+
+\item
++ 匹配前面的部分一次或多次。例如，a+b 匹配 ab、aab、aaaaab 等，但不匹配 b。
+
+\item
+? 匹配前面的部分零次或一次。例如，a?b 匹配 b 和 ab，但不匹配其他任何字符。
+
+\item
+\{...\} 表示有界量化器。b\{n\} 匹配 b 重复 n 次；b\{n,\} 匹配 b 重复 n 次或更多；而 b\{n,m\} 匹配 b 重复 n 到 m 次（包括 n 和 m）。例如，b\{3,4\} 匹配 bbb 和 bbbb，但不匹配 b、bb、bbbbb 等。
+\end{itemize}
+
+这些量化器称为贪婪量化器，因为它们在匹配正则表达式的其余部分的情况下，会找到最长的匹配。要使它们非贪婪，可以在量化器后面添加一个 ?，例如 *?、+?、?? 和 \{...\}?。非贪婪量化器会尽可能少的重复，同时仍然匹配正则表达式的其余部分。
+
+例如，下面的表格展示了在输入序列 aaabbb 上运行贪婪和非贪婪正则表达式的区别，以及运行它们时的子匹配结果：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -142,49 +142,50 @@ For example, the following table shows the difference between a greedy and a non
 %
 \endhead
 %
-Greedy: (a+)(ab)*(b+)       & "aaa" "" "bbb"      \\ \hline
-Non-greedy: (a+?)(ab)*(b+)  & "aa" "ab" "bb"      \\ \hline
+贪婪: (a+)(ab)*(b+)       & "aaa" "" "bbb"      \\ \hline
+非贪婪: (a+?)(ab)*(b+)  & "aa" "ab" "bb"      \\ \hline
 \end{longtable}
 
-\mySamllsection{Precedence}
+\mySamllsection{优先级}
 
-Just as with mathematical formulas, it’s important to know the precedence of regular expression elements. Precedence is as follows:
-
-\begin{itemize}
-\item
-Elements like b are the basic building blocks of a regular expression.
-
-\item
-Quantifiers like +, *, ?, and \{...\} bind tightly to the element on the left; for example, b+.
-
-\item
-Concatenation like ab+c binds after quantifiers.
-
-\item
-Alternation like | binds last.
-\end{itemize}
-
-For example, the regular expression ab+c|d matches abc, abbc, abbbc, and so on, and also d. Parentheses can be used to change these precedence rules. For example, ab+(c|d) matches abc, abbc, abbbc, . . ., abd, abbd, abbbd, and so on. However, by using parentheses, you also mark it as a subexpression or capture group. It is possible to change the precedence rules without creating new capture groups by using (?:. . .). For example, ab+(?:c|d) matches the same as the earlier ab+(c|d) but does not create an additional capture group.
-
-\mySamllsection{Character Set Matches}
-
-Instead of writing (a|b|c|. . .|z), which is clumsy and introduces a capture group, a special syntax for specifying sets of characters or ranges of characters is available. In addition, a “not” form of the match is also available. A character set is specified between square brackets and allows you to write [$c_1$ $c_2$. . .$c_n$], which matches any of the characters $c_1$, $c_2$ , . . ., or $c_n$. For example, [abc] matches any character a, b, or c. If the first character is \^{}, it means “any but”:
+就像数学公式一样，了解正则表达式元素的优先级也很重要。优先级如下：
 
 \begin{itemize}
 \item
-ab[cde] matches abc, abd, and abe.
+基本构建块，像 b 这样的元素是正则表达式。
 
 \item
-ab[\^{}cde] matches abf, abp, and so on, but not abc, abd, and abe.
+量化器，如 +、*、? 和 \{...\} 紧密地绑定到左侧的元素上；例如，b+。
+
+\item
+连接，如 ab+c 在量化器之后绑定。
+
+\item
+交替，如 | 最后绑定。
 \end{itemize}
 
-If you need to match the \^{}, [, or ] characters themselves, you need to escape them; for example, [ \verb|\|[ \verb|\|\^{}\verb|\|]] matches the characters [, \^{}, or ].
+例如，正则表达式 ab+c|d 匹配 abc、abbc、abbbc 等，以及 d。括号可以用来改变这些优先级规则。例如，ab+(c|d) 匹配 abc、abbc、abbbc 等，以及 abd、abbd、abbbd 等。然而，通过使用括号，也会将其标记为子表达式或捕获组。使用 (?:...) 可以改变优先级规则，而不创建新的捕获组。例如，ab+(?:c|d) 与之前的 ab+(c|d) 匹配相同，但没有创建捕获组。
 
-If you want to specify all letters, you could use a character set like [abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ]; however, this is clumsy, and doing this several times is awkward, especially if you make a typo and omit one of the letters accidentally. There are two solutions to this.
+\mySamllsection{字符集匹配}
 
-One solution is to use the range specification in square brackets; this allows you to write [a-zA-Z], which recognizes all the letters in the range a to z and A to Z. If you need to match a hyphen, you need to escape it; for example, [a-zA-Z\verb|\|-]+ matches any word including a hyphenated word.
+为了避免编写 (a|b|c|...|z) 这种笨拙且引入捕获组的表达式，可以使用特殊的语法来指定字符集或字符范围。此外，还提供了一种“非”形式的匹配。字符集在方括号之间指定，允许你写 [$c_1$ $c_2$ ... $c_n$]，匹配任何 $c_1$、$c_2$、... 或 $c_n$。例如，[abc] 匹配任何字符 a、b 或 c。如果第一个字符是 \^{}，则表示“除了”：
 
-Another solution is to use one of the character classes. These are used to denote specific types of characters and are represented as [:name:]. Which character classes are available depends on the locale, but the names listed in the following table are always recognized. The exact meaning of these character classes is also dependent on the locale. This table assumes the standard C locale:
+\begin{itemize}
+\item
+ab[cde] 匹配 abc、abd 和 abe。
+
+\item
+ab[\^{}cde] 匹配 abf、abp 等，但不匹配 abc、abd 和 abe。
+\end{itemize}
+
+如果需要匹配 \^{}、[ 或 ] 字符本身，需要转义；例如，[ \verb|\|[ \verb|\|\^{}\verb|\|]] 匹配字符 [、\^{} 或 ]。
+
+如果想匹配所有字母，可以使用一个字符集，如 [abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ]。但这很笨拙，如果多次这样做，特别是遗漏了一个字母，会显得很别扭。解决这个问题有两个方法。
+
+一种方法是在方括号中使用范围指定；可以这样写 [a-zA-Z]，识别范围 a 到 z 和 A 到 Z 中的所有字母。如果需要匹配连字符，需要转义它；例如，[a-zA-Z\verb|\|-]+ 匹配包括连字符在内的任何单词。
+
+另一种方法是使用字符类。这些用于表示特定类型的字符，并以 [:name:] 形式表示。可用的字符类取决于区域设置，但以下表中的名称总是被识别。这些字符类的确切含义也取决于区域设置(假设为标准 C 区域)：
+
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -198,40 +199,40 @@ Another solution is to use one of the character classes. These are used to denot
 \endhead
 %
 digit &
-Digits, which are 0, 1, 2, 3, 4, 5, 6, 7, 8, 9. \\ \hline
+数字，即0、1、2、3、4、5、6、7、8、9。 \\ \hline
 d &
-Same as digit. \\ \hline
+和digit一样。 \\ \hline
 xdigit &
-\begin{tabular}[c]{@{}l@{}}Digits (digit) and the following letters used in hexadecimal numbers:\\ a, b, c, d, e, f, A, B, C, D, E, F.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}数字(digit)和十六进制数字中使用的以下字母:a、b、c、d、\\e、f、a、b、c、d、e、f。\end{tabular} \\ \hline
 alpha &
-\begin{tabular}[c]{@{}l@{}}Alphabetic characters. For the C locale, these are all lowercase and\\ uppercase letters.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}字母字符。对于C语言环境，这些都是小写字母和大写字母。\end{tabular} \\ \hline
 alnum &
-A combination of the alpha class and the digit class. \\ \hline
+alpha类和数字类的组合。 \\ \hline
 w &
 Same as alnum. \\ \hline
 lower &
-Lowercase letters, if applicable to the locale. \\ \hline
+小写字母，如果适用于语言环境。 \\ \hline
 upper &
-Uppercase letters, if applicable to the locale. \\ \hline
+大写字母，如果适用于语言环境。 \\ \hline
 blank &
-\begin{tabular}[c]{@{}l@{}}Blank characters, which are whitespace characters used to separate\\ words within a line of text. For the C locale, these are space\\ and \textbackslash{}t (tab).\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}空白字符，用于分隔文本行中的单词的空白字符。对于C语\\言环境，是空格和\textbackslash{}t (tab)。\end{tabular} \\ \hline
 space &
-\begin{tabular}[c]{@{}l@{}}Whitespace characters. For the C locale, these are space, \textbackslash{}t, \textbackslash{}n, \textbackslash{}r,\\ \textbackslash{}v, and \textbackslash{}f.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}空白字符。对于C语言环境，它们是空格、\textbackslash{} t、\textbackslash{} n、\textbackslash{} r、\textbackslash{} v\\和\textbackslash{} f。\end{tabular} \\ \hline
 s &
 Same as space. \\ \hline
 print &
-\begin{tabular}[c]{@{}l@{}}Printable characters. These occupy a printing position—for example,\\ on a display—and are the opposite of control characters (cntrl).\\ Examples are lowercase letters, uppercase letters, digits, punctuation\\ characters, and space characters.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}可打印字符，占据打印位置(例如，在显示器上)，与控制字\\符(control)相反。例如小写字母、大写字母、数字、标点符号和空格字符。\end{tabular} \\ \hline
 cntrl &
-\begin{tabular}[c]{@{}l@{}}Control characters. These are the opposite of printable characters\\ (print), and don’t occupy a printing position, for example, on a\\ display. Some examples for the C locale are \textbackslash{}f, \textbackslash{}n, and \textbackslash{}r.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}控制字符，与可打印字符(print)相反，不占打印位置，例如：\\在显示器上。C语言环境的示例是\textbackslash{}f、\textbackslash{}n和\textbackslash{}r。\end{tabular} \\ \hline
 graph &
-\begin{tabular}[c]{@{}l@{}}Characters with a graphical representation. These are all characters\\ that are printable (print), except the space character ' '.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}具有图形表示的字符，这些都是可打印(打印)的字符，除了\\空格字符' '。\end{tabular} \\ \hline
 punct &
-\begin{tabular}[c]{@{}l@{}}Punctuation characters. For the C locale, these are all graphical\\ characters (graph) that are not alphanumeric (alnum). Some examples\\ are !, \#, @, \}, and so on.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}常用的标点符号。对于C语言环境，这些都是图形字符(graph)，\\而不是字母数字(alnum)。例如!、\#、@、\}等。\end{tabular} \\ \hline
 \end{longtable}
 
-Character classes are used within character sets; for example, [[:alpha:]]* in English means the same as [a-zA-Z]*.
+字符类用于字符集中；例如，在英语中 [[:alpha:]]* 与 [a-zA-Z]* 表示相同的意思。
 
-Because certain character classes are so common, e.g., digits, there are shorthand patterns for them. For example, [:digit:] and [:d:] have the same meaning as [0-9]. Some classes have an even shorter pattern using the escape notation. For example, \verb|\|d means [:digit:]. Therefore, to recognize a sequence of one or more numbers, you can write any of the following patterns:
+因为某些字符类非常常见，例如数字，所以有精简模式。例如，[:digit:] 和 [:d:] 与 [0-9] 表示相同的意思。有些类甚至使用转义符号有更短的表示。例如，\verb|\|d 表示 [:digit:]。因此，为了识别一个或多个数字的序列，可以写成以下任何模式：
 
 \begin{itemize}
 \item
@@ -247,7 +248,7 @@ Because certain character classes are so common, e.g., digits, there are shortha
 \verb|\|d+
 \end{itemize}
 
-The following table lists the available escape notations for character classes:
+以下表格列出了可用于字符类的转义符号：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -267,141 +268,141 @@ The following table lists the available escape notations for character classes:
 \textbackslash{}W        & {[}\textasciicircum{}\_{[}:w:{]}{]} \\ \hline
 \end{longtable}
 
-Here are some examples:
+这里有些例子:
 
 \begin{itemize}
 \item
-Test[5-8] matches Test5, Test6, Test7, and Test8.
+Test[5-8]匹配 Test5、Test6、Test7 和 Test8。
 
 \item
-{}[[:lower:]] matches a, b, and so on, but not A, B, and so on.
+{}[[:lower:]] 匹配小写字母 a、b 等，但不匹配大写字母 A、B 等。
 
 \item
-{}[\^{}[:lower:]] matches any character except lowercase letters like a, b, and so on.
+{}[\^{}[:lower:]] 匹配任何不是小写字母 a、b 等的字符。
 
 \item
-{}[[:lower:]5-7] matches any lowercase letter like a, b, and so on, and the numbers 5, 6, and 7.
+{}[[:lower:]5-7] 匹配任何小写字母 a、b 等，以及数字 5、6 和 7。
 \end{itemize}
 
-\mySamllsection{Word Boundary}
+\mySamllsection{词界}
 
-A word boundary can mean the following:
+词界可以表示为：
 
 \begin{itemize}
 \item
-The first character of a word, which is one of the word characters, while the preceding character is not a word character. A word character is a letter, digit, or an underscore. For the standard C locale, this is equal to [A-Za-z0-9\_].
+单词的第一个字符，这是单词字符之一，而前一个字符不是单词字符。单词字符是字母、数字或下划线。对于标准 C 区域设置，这等于 [A-Za-z0-9\_]。
 
 \item
-The end of a word, which is a non-word character, while the preceding character is a word character.
+单词的末尾，这是一个非单词字符，而前一个字符是单词字符。
 
 \item
-The beginning of the source string if the first character of the source string is one of the word characters. Matching the beginning of the source string is enabled by default, but you can disable it with regex\_constants::match\_not\_bow, where bow stands for beginning-of-word.
+源字符串的开始，如果源字符串的第一个字符是单词字符。默认情况下，匹配源字符串的开始是启用的，但可以通过使用 regex\_constants::match\_not\_bow 禁用，其中 bow 表示单词的开始。
 
 \item
-The end of the source string if the last character of the source string is one of the word characters. Matching the end of the source string is enabled by default, but you can disable it with regex\_constants::match\_not\_eow, where eow stands for end-of-word.
+源字符串的末尾，如果源字符串的最后一个字符是单词字符。默认情况下，匹配源字符串的末尾是启用的，但可以通过使用 regex\_constants::match\_not\_eow 禁用，其中 eow 表示单词的结束。
 \end{itemize}
 
-You can use \b to match a word boundary, and you can use  \verb|\|B to match anything except a word boundary.
+可以使用 \b 来匹配单词边界，并且可以使用 \verb|\|B 来匹配任何不是单词边界的内容。
 
-\mySamllsection{Back Reference}
+\mySamllsection{回引用}
 
-A back reference allows you to reference a captured group inside the regular expression itself: \verb|\|n refers to the n-th captured group, with n > 0. For example, the regular expression (\verb|\|d+)-.*-\verb|\|1 matches a string that has the following format:
+回引用允许在正则表达式本身内部引用捕获组：\verb|\|n 指的是第 n 个捕获组，其中 n > 0。例如，正则表达式 (\verb|\|d+)-.*-\verb|\|1 匹配具有以下格式的字符串：
 
 \begin{itemize}
 \item
-One or more digits captured in a capture group (\verb|\|d+)
+一个或多个数字的捕获组 (\verb|\|d+)
 
 \item
-Followed by a dash -
+后跟一个破折号 -
 
 \item
-Followed by zero or more characters .*
+后跟零个或多个字符 .*
 
 \item
-Followed by another dash -
+后跟另一个破折号 -
 
 \item
-Followed by the same digits captured by the first capture group \verb|\|1
+后跟第一个捕获组中捕获的相同数字 \verb|\|1
 \end{itemize}
 
-This regular expression matches 123-abc-123, 1234-a-1234, and so on, but does not match 123-abc-1234, 123-abc-321, and so on.
+这个正则表达式匹配 123-abc-123、1234-a-1234 等，但不匹配 123-abc-1234、123-abc-321 等。
 
-\mySamllsection{Lookahead}
+\mySamllsection{前瞻}
 
-Regular expressions support positive lookahead (which uses ?=pattern) and negative lookahead (which uses ?!pattern). The characters following the lookahead must match (positive) or not match (negative) the lookahead pattern, but those characters are not yet consumed.
+正则表达式支持正前瞻（使用 ?=pattern）和负前瞻（使用 ?!pattern）。前瞻字符必须匹配（正前瞻）或不匹配（负前瞻）前瞻模式，但这些字符尚未消耗。
 
-For example, the pattern a(?!b) contains a negative lookahead to match a letter a not followed by a b. The pattern a(?=b) contains a positive lookahead to match a letter a followed by a b, but b is not consumed so it does not become part of the match.
+例如，模式 a(?!b) 包含一个负前瞻，用于匹配不跟随 b 的字母 a。模式 a(?=b) 包含一个正前瞻，用于匹配后面跟着 b 的字母 a，但 b 未被消耗，因此不会成为匹配的一部分。
 
-The following is a more realistic example. The regular expression matches an input sequence that consists of at least one lowercase letter, at least one uppercase letter, at least one punctuation character, and is at least eight characters long. Such a regular expression can, for example, be used to enforce that passwords satisfy certain criteria.
+以下是一个更实际的例子。这个正则表达式匹配至少包含一个小写字母、一个或多个大写字母、一个或多个标点字符，并且至少为八个字符长的输入序列。这样的正则表达式可以用于强制密码满足某些标准。
 
 \begin{cpp}
 (?=.*[[:lower:]])(?=.*[[:upper:]])(?=.*[[:punct:]]).{8,}
 \end{cpp}
 
-In one of the exercises at the end of this chapter, you’ll experiment with this password-validation regular expression.
+本章末尾的练习中，可以实验这个验证密码的正则表达式。
 
-\mySamllsection{Regular Expressions and Raw String Literals}
+\mySamllsection{正则表达式和原始字符串字面量}
 
-As seen in the preceding sections, regular expressions often use special characters that must be escaped in normal C++ string literals. For example, if you write \verb|\|d in a regular expression, it matches any digit. However, because \ is a special character in C++, you need to escape it in a regular expression string literal as \\d; otherwise, your C++ compiler tries to interpret the \verb|\|d. It gets more complicated if you want a regular expression to match a single backslash character, \verb|\|. Because \verb|\| is a special character in the regular expression syntax itself, you need to escape it as \verb|\|\verb|\|. The \verb|\| character is also a special character in C++ string literals, so you need to escape it, resulting in \verb|\|\verb|\|\verb|\|\verb|\|.
+如前所述，正则表达式经常使用特殊字符，这些特殊字符必须在常规 C++ 字符串字面量中进行转义。例如，在正则表达式中写 \verb|\|d，它会匹配数字。但在 C++ 中 \ 是一个特殊字符，需要在正则表达式字符串字面量中转义它为 \\d；否则，C++ 编译器会尝试解释 \verb|\|d。如果想要一个正则表达式匹配单个反斜杠字符，\verb|\|，因为 \verb|\| 本身就是正则表达式语法中的特殊字符，需要转义它为 \verb|\|\verb|\|。\verb|\| 字符在 C++ 字符串字面量中也是一个特殊字符，所以需要转义，结果为 \verb|\|\verb|\|\verb|\|\verb|\|。
 
-You can use raw string literals to make complicated regular expressions easier to read in C++ source code. (Raw string literals are discussed in Chapter 2.) For example, take the following regular expression:
+可以使用原始字符串字面量，使复杂的正则表达式在 C++ 源代码中更容易阅读。（原始字符串字面量在第2章中介绍过）例如，看看以下正则表达式：
 
 \begin{cpp}
 "( |\\n|\\r|\\\\)"
 \end{cpp}
 
-This regular expression matches spaces, newlines, carriage returns, and backslashes. It requires a lot of escape characters. Using raw string literals, this can be replaced with the following more readable regular expression:
+这个正则表达式匹配空格、换行符、回车符和反斜杠，需要大量的转义字符。使用原始字符串字面量，这可以替换为更可读的正则表达式：
 
 \begin{cpp}
 R"(( |\n|\r|\\))"
 \end{cpp}
 
-The raw string literal starts with R"( and ends with )". Everything in between is the regular expression. Of course, you still need a double backslash at the end because the backslash needs to be escaped in the regular expression itself.
+原始字符串字面量以 R"(" 开头，并以 ")" 结束。之间的所有内容都是正则表达式。当然，仍然需要在结尾处添加一个双反斜杠，因为反斜杠需要在正则表达式中转义。
 
-\mySamllsection{Common Regular Expressions}
+\mySamllsection{常见的正则表达式}
 
-Writing correct regular expressions is not always trivial. For common patterns such as validating passwords, phone numbers, Social Security numbers, IP addresses, email addresses, credit card numbers, dates, and so on, you don’t have to. When you use your favorite Internet search engine and search for regular expressions online, you’ll find several websites with collections of predefined patterns, such as regexr.com, regex101.com, regextester.com, and many more. Quite a few of these sites allow you to test patterns online, so you can easily verify whether they are correct before using them in your code.
+编写正确的正则表达式并不是那么简单，对于像验证密码、电话号码、社会安全号码、IP 地址、电子邮件地址、信用卡号码、日期等常见模式。当互联网搜索引擎并在线搜索正则表达式时，会发现一些网站上有预定义的模式集合，例如 regexr.com、regex101.com、regextester.com 等。其中很多网站允许你在网上测试模式，所以可以验证表达式是否正确，然后再将它们用在自己的代码中。
 
-This concludes a brief description of the ECMAScript grammar. The following sections explain how to actually use regular expressions in C++ code.
+这就是 ECMAScript 语法的简要描述。接下来的部分将解释，如何在 C++ 代码中使用正则表达式。
 
-\mySubsubsection{21.2.2.}{The regex Library}
+\mySubsubsection{21.2.2.}{正则表达式库}
 
-Everything for the regular expression library is defined in <regex> and in the std namespace. The basic template types defined by the regular expression library are:
-
-\begin{itemize}
-\item
-basic\_regex: An object representing a specific regular expression.
-
-\item
-match\_results: A substring that matched a regular expression, including all the captured groups. It is a collection of sub\_matches.
-
-\item
-sub\_match: An object containing a pair of iterators into the input sequence. These iterators represent a matched capture group. The pair is an iterator pointing to the first character of a matched capture group and an iterator pointing to one-past-the-last character of the matched capture group. It has an str() member function that returns the matched capture group as a string.
-\end{itemize}
-
-The library provides three key algorithms: regex\_match(), regex\_search(), and regex\_replace(). All of these algorithms have different overloads that allow you to specify the source string as a string, a C-style string, or as a begin/end iterator pair. The iterators can be any of the following:
+正则表达式库中的一切都在 <regex> 和 std 命名空间中定义。正则表达式库定义的基本模板类型包括：
 
 \begin{itemize}
 \item
-const char* or const wchar\_t*
+basic\_regex: 代表特定正则表达式的对象。
 
 \item
-string::const\_iterator or wstring::const\_iterator
+match\_results: 匹配正则表达式的子字符串，包括所有捕获组，是一个子匹配的集合。
+
+\item
+sub\_match: 包含输入序列中的迭代器对的对象，这些迭代器表示一个匹配的捕获组。对是表示匹配捕获组第一个字符的迭代器和对后一个字符的迭代器，有一个 str() 成员函数，该函数返回匹配的捕获组作为一个字符串。
 \end{itemize}
 
-In fact, any iterator that behaves as a bidirectional iterator can be used. See Chapters 17, “Understanding Iterators and the Ranges Library,” for details on iterators.
-
-The library also defines the following two regular expression iterators, which play an important role in finding all occurrences of a pattern in a source string:
+该库提供了三个关键算法：regex\_match(), regex\_search(), 和 regex\_replace()。这些算法都有不同的重载，允许指定源字符串为字符串、C 风格字符串，或者作为开始/结束迭代器对。迭代器可以是以下一种：
 
 \begin{itemize}
 \item
-regex\_iterator: Iterates over all the occurrences of a pattern in a source string.
+const char* 或 const wchar\_t*
 
 \item
-regex\_token\_iterator: Iterates over all the capture groups of all occurrences of a pattern in a source string.
+string::const\_iterator 或 wstring::const\_iterator
 \end{itemize}
 
-To make the library easier to use, the standard defines a number of type aliases for the preceding templates:
+实际上，双向迭代器的行为都可以使用。有关迭代器的详细信息，请参阅第 17 章。
+
+该库还定义了以下两种正则表达式迭代器，在源字符串中查找模式的所有出现中起着重要作用：
+
+\begin{itemize}
+\item
+regex\_iterator: 在源字符串中，遍历所有模式。
+
+\item
+regex\_token\_iterator: 在源字符串中，遍历所有模式的捕获组。
+\end{itemize}
+
+为了使库更易于使用，标准定义了上述模板的一些类型别名：
 
 \begin{cpp}
 using regex = basic_regex<char>;
@@ -428,40 +429,39 @@ using sregex_token_iterator = regex_token_iterator<string::const_iterator>;
 using wsregex_token_iterator = regex_token_iterator<wstring::const_iterator>;
 \end{cpp}
 
-The following sections explain the regex\_match(), regex\_search(), and regex\_replace() algorithms, and the regex\_iterator and regex\_token\_iterator classes.
+接下来的将介绍regex\_match(), regex\_search(), 和 regex\_replace() 算法，以及 regex\_iterator 和 regex\_token\_iterator 类。
 
 \mySubsubsection{21.2.3.}{regex\_match()}
 
-The regex\_match() algorithm can be used to compare a given source string with a regular expression pattern. It returns true if the pattern matches the entire source string, and false otherwise.
+regex\_match() 算法可以用于比较给定的源字符串与正则表达式模式。如果模式匹配整个源字符串，它返回 true，否则返回 false。
 
-There are seven overloads of the regex\_match() algorithm accepting different kinds of arguments.
-They all have the following form:
+regex\_match() 算法有七个重载，接受不同类型的参数。它们具有以下形式：
 
 \begin{cpp}
 template<...>
 bool regex_match(InputSequence[, MatchResults], RegEx[, Flags]);
 \end{cpp}
 
-The InputSequence can be represented as follows:
+InputSequence 可以表示为：
 
 \begin{itemize}
 \item
-A start and end iterator into a source string
+源字符串中的开始和结束迭代器
 
 \item
-An std::string
+std::string
 
 \item
-A C-style string
+C 风格字符串
 \end{itemize}
 
-The optional MatchResults parameter is a reference to a match\_results and receives the match. If regex\_match() returns false, you are only allowed to call match\_results::empty() or match\_results::size(); anything else is undefined. If regex\_match() returns true, a match is found, and you can inspect the match\_results object for what exactly got matched. This is explained with examples in the following subsections.
+可选的 MatchResults 参数是一个对 match\_results 的引用，用于接收匹配结果。如果 regex\_match() 返回 false，只能调用 match\_results::empty() 或 match\_results::size();其他操作都未定义。如果 regex\_match() 返回 true，表示找到了匹配，可以检查 match\_results 对象以查看具体匹配了什么。这在以下子节中会通过示例进行解释。
 
-The RegEx parameter is the regular expression that needs to be matched. The optional Flags parameter specifies options for the matching algorithm. In most cases, you can keep the default. For more details, consult a Standard Library Reference.
+RegEx 参数是需要匹配的正则表达式，可选的 Flags 参数指定匹配算法的选项。大多数情况下，可以保留默认值。更多细节，请参阅标准库手册。
 
-\mySamllsection{regex\_match() Examples}
+\mySamllsection{regex\_match() 示例}
 
-The following program asks the user to enter a date in the format year/month/day, where year is four digits, month is a number between 1 and 12, and day is a number between 1 and 31. A regular expression together with the regex\_match() algorithm is used to validate the user input. The details of the regular expression are explained after the code.
+以下程序要求用户以年份/月份/日期的格式输入日期，其中年份是四位数字，月份是 1 到 12 之间的数字，日期是 1 到 31 之间的数字。使用正则表达式和 regex\_match() 算法来验证用户输入。正则表达式的详细内容，将在代码之后介绍。
 
 \begin{cpp}
 regex r { "\\d{4}/(?:0?[1-9]|1[0-2])/(?:0?[1-9]|[1-2][0-9]|3[0-1])" };
@@ -475,45 +475,45 @@ while (true) {
 }
 \end{cpp}
 
-The first line creates the regular expression. The expression consists of three parts separated by a forward slash (/) character: one part for year, one for month, and one for day. The following list explains these parts:
+第一行创建了正则表达式。表达式由三个部分组成，由斜杠 (/) 字符分隔：一个部分用于年份，一个用于月份，一个用于日期。以下列表解释了这些部分：
 
 \begin{itemize}
 \item
-\verb|\|d{4}: Matches any combination of four digits; for example, 1234, 2024, and so on.
+\verb|\|d{4}: 匹配任何四位数字的组合；例如，1234、2024 等。
 
 \item
-(?:0?[1-9]|1[0-2]): This subpart of the regular expression is wrapped inside parentheses to make sure the precedence is correct. We don’t need a capture group, so (?:. . .) is used. The inner expression consists of an alternation of two parts separated by the | character.
+(?:0?[1-9]|1[0-2]): 这个正则表达式的一部分用括号包围，以确保优先级正确。不需要捕获组，所以使用 (?:...) 形式。内部表达式包含两个部分的交替，由 | 字符分隔。
 \begin{itemize}
 \item
-0?[1-9]: Matches any number from 1 to 9 with an optional 0 in front of it. For example, it matches 1, 2, 9, 03, 04, and so on. It does not match 0, 10, 11, and so on.
+0?[1-9]: 匹配任何从 1 到 9 的数字，前面有一个可选的 0。例如，匹配 1、2、9、03、04 等，但不匹配 0、10、11 等。
 
 \item
-1[0-2]: Matches 10, 11, or 12, and nothing else.
+1[0-2]: 匹配 10、11 或 12，没有其他匹配。
 
 \item
-(?:0?[1-9]|[1-2][0-9]|3[0-1]): This subpart is also wrapped inside a non-capture group and consists of an alternation of three parts.
+(?:0?[1-9]|[1-2][0-9]|3[0-1]): 这个子部分也被一个非捕获组包围，并包含三个部分的交替。
 \begin{itemize}
 \item
-0?[1-9]: Again matches any number from 1 to 9 with an optional 0 in front of it.
+0?[1-9]: 再次匹配任何从 1 到 9 的数字，前面有一个可选的 0。
 
 \item
-{}[1-2][0-9]: Matches any number between 10 and 29 inclusive and nothing else.
+{}[1-2][0-9]: 匹配 10 到 29 之间的任何数字，包括边界，没有其他匹配。
 
 \item
-3[0-1]: Matches 30 or 31 and nothing else
+3[0-1]: 匹配 30 或 31，没有其他匹配。
 \end{itemize}
 
 \end{itemize}
 
 \end{itemize}
 
-The example then enters an infinite loop to ask the user to enter a date. Each date entered is given to the regex\_match() algorithm. When regex\_match() returns true, the user has entered a date that matches the date regular expression pattern.
+示例进入一个无限循环，要求用户输入日期。每次输入的日期都会传递给 regex\_match() 算法。当 regex\_match() 返回 true 时，用户输入的日期与日期正则表达式模式匹配。
 
-This example can be extended by asking the regex\_match() algorithm to return captured subexpressions in a results object. You first have to understand what a capture group does. By specifying a match\_results object like smatch in a call to regex\_match(), the elements of the match\_results object are filled in when the regular expression matches the input string. To be able to extract these substrings, you must create capture groups using parentheses.
+这个例子可以通过 regex\_match() 算法，对返回捕获的表达式在结果对象进行扩展。首先，需要理解捕获组的作用。通过在 regex\_match() 调用中指定 match\_results 对象，例如 smatch，当正则表达式匹配输入字符串时，将填充match\_results 对象的元素。为了能够提取这些子字符串，必须使用括号创建捕获组。
 
-The first element, [0], in a match\_results object contains the string that matched the entire pattern. When using regex\_match() and a match is found, this is the entire source sequence. When using regex\_search(), discussed in the next section, this can be a substring in the source sequence that matches the regular expression. Element [1] is the substring matched by the first capture group, [2] by the second capture group, and so on. To get a string representation of the ith capture group from a match\_results object m, you can use m[i] as in the following code, or m[i].str().
+match\_results 对象中的第一个元素 [0] 包含匹配整个模式的字符串。当使用 regex\_match() 且找到匹配时，这是整个源序列。当使用下一节中讨论的 regex\_search() 时，这可能是源序列中匹配正则表达式的子字符串。元素 [1] 是第一个捕获组匹配的子字符串，[2] 是第二个捕获组匹配的子字符串，依此类推。要从 match\_results 对象 m 中获取第 i 个捕获组的字符串表示，可以使用 m[i]或者 m[i].str()。
 
-The following code extracts the year, month, and day digits into three separate integer variables. The regular expression in the revised example has a few small changes. The first part matching the year is wrapped in a capture group, while the month and day parts are now also capture groups instead of non-capture groups. The call to regex\_match() includes a smatch parameter, which receives the matched capture groups. Here is the adapted example:
+以下代码将年份、月份和日期的数字提取到三个独立的整数变量中。修订后的正则表达式做了一些小的更改，一个捕获组包围了匹配年份的第一部分，而月份和日期的部分现在也是捕获组。regex\_match() 有一个 smatch 参数，用于接收匹配的捕获组。这里是修改后的示例：
 
 \begin{cpp}
 regex r { "(\\d{4})/(0?[1-9]|1[0-2])/(0?[1-9]|[1-2][0-9]|3[0-1])" };
@@ -533,23 +533,23 @@ while (true) {
 }
 \end{cpp}
 
-In this example, there are four elements in the smatch results objects:
+这个例子中，smatch 结果对象有四个元素：
 
 \begin{itemize}
 \item
-[0]: The string matching the full regular expression, which in this example is the full date
+[0]: 匹配整个正则表达式的字符串，在这个例子中是完整的日期。
 
 \item
-[1]: The year
+[1]: 年份
 
 \item
-[2]: The month
+[2]: 月份
 
 \item
-[3]: The day
+[3]: 日期
 \end{itemize}
 
-When you execute this example, you can get the following output:
+当执行这个例子时，可以得到以下输出：
 
 \begin{shell}
 Enter a date (year/month/day) (q=quit): 2024/12/01
@@ -559,7 +559,7 @@ Enter a date (year/month/day) (q=quit): 24/12/01
 \end{shell}
 
 \begin{myNotic}{NOTE}
-These date-matching examples check only if the date consists of a year (four digits), a month (1–12), and a day (1–31). They do not perform any validation for the number of days in a month, leap years, and so on. If you need that, you have to write code to validate the year, month, and day values that are extracted by regex\_match(). If you implement such validation, then the regular expression could be simplified to just match 4 digits for the year, 1 or 2 digits for the month, and 1 or 2 digits for the day.
+这些日期匹配示例仅检查日期是否包含四位数字的年份、1-12之间的月份和1-31之间的日期。不执行月份天数、闰年等验证。如果需要这些验证，必须编写代码来验证由 regex\_match() 提取的年份、月份和日期的值。如果实现了这样的验证，那么正则表达式可以简化为只匹配年份的 4 位数字、月份的 1 或 2 位数字和日期的 1 或 2 位数字。
 
 \begin{cpp}
 regex r { "(\\d{4})/(\\d{1,2})/(\\d{1,2})" };
@@ -568,24 +568,24 @@ regex r { "(\\d{4})/(\\d{1,2})/(\\d{1,2})" };
 
 \mySubsubsection{21.2.4.}{regex\_search()}
 
-The regex\_match() algorithm discussed in the previous section returns true if the entire source string matches the regular expression and false otherwise. If you want to search for a matching substring, you need to use regex\_search(). There are seven overloads of regex\_search(), and they all have the following form:
+上一节中讨论的 regex\_match() 算法返回 true，如果整个源字符串与正则表达式匹配，否则返回 false。如果想在源字符串中搜索匹配的子字符串，需要使用 regex\_search()。regex\_search() 有七个重载，它们都具有以下形式：
 
 \begin{cpp}
 template<...>
 bool regex_search(InputSequence[, MatchResults], RegEx[, Flags]);
 \end{cpp}
 
-All overloads return true when a match is found somewhere in the input sequence and false otherwise. The parameters are similar to the parameters for regex\_match().
+所有重载在输入序列中找到匹配时返回 true，否则返回 false。参数与 regex\_match() 的参数相似。
 
-Two overloads of regex\_search() accept a begin and end iterator as the input sequence that you want to process. You might be tempted to use this version of regex\_search() in a loop to find all occurrences of a pattern in a source string by manipulating these begin and end iterators for each regex\_search() call. Never do this! It can cause problems when your regular expression uses anchors (\^{} or \$), word boundaries, and so on. It can also cause an infinite loop due to empty matches. Use a regex\_iterator or regex\_token\_iterator as explained later in this chapter to extract all occurrences of a pattern from a source string.
+regex\_search() 的两个重载接受一个开始和结束迭代器作为要处理的输入序列，可能会想使用这个版本的 regex\_search() 在循环中查找源字符串中模式的所有出现，通过为每个 regex\_search() 调用操纵这些开始和结束迭代器。但请永远不要这样做！如果正则表达式使用锚点（\^{} 或 \$）、词界等，这样做可能会出现问题，可能由于空匹配导致无限循环。本章后面，我们将介绍如何使用 regex\_iterator 或 regex\_token\_iterator 从源字符串中提取出现的所有模式。
 
 \begin{myWarning}{WARNING}
-Never use regex\_search() in a loop to find all occurrences of a pattern in a source string. Instead, use a regex\_iterator or regex\_token\_iterator.
+永远不要在循环中使用 regex\_search() 来查找源字符串中所有出现的模式。相反，应该使用 regex\_iterator 或 regex\_token\_iterator。
 \end{myWarning}
 
-\mySamllsection{regex\_search() Examples}
+\mySamllsection{regex\_search() 示例}
 
-The regex\_search() algorithm can be used to extract a matching substring from an input sequence. For example, the following program extracts code comments from a string. The regular expression searches for a substring that starts with // followed by optional whitespace, \verb|\|s*, followed by one or more characters captured in a capture group, (.+). This capture group captures only the comment substring. The smatch object m receives the search results. If successful, m[1] contains the comment that was found. You can check the m[1].first and m[1].second iterators to see where exactly the comment was found in the source string.
+regex\_search() 算法可以用于从输入序列中提取匹配的子字符串。例如，以下程序从字符串中提取代码注释。正则表达式搜索以 // 开头的子字符串，后面跟着可选的空格，然后是一个或多个字符的捕获组 (.+)。这个捕获组只捕获注释子字符串。smatch 对象 m 接收搜索结果。如果成功，m[1] 包含找到的注释。可以检查 m[1].first 和 m[1].second 迭代器，来查看注释在源字符串中的确切位置。
 
 \begin{cpp}
 regex r { "//\\s*(.+)$" };
@@ -602,7 +602,7 @@ while (true) {
 }
 \end{cpp}
 
-The output of this program can look as follows:
+程序的输出可能如下所示：
 
 \begin{shell}
 Enter a string with optional code comments (q=quit):
@@ -616,17 +616,17 @@ Enter a string with optional code comments (q=quit):
   No comment found!
 \end{shell}
 
-The match\_results object also has a prefix() and suffix() member function, which return the string preceding or following the match, respectively.
+match\_results 对象还具有 prefix() 和 suffix() 成员函数，分别返回匹配前的字符串和匹配后的字符串。
 
 \mySubsubsection{21.2.5.}{regex\_iterator}
 
-As explained in the previous section, you should never use regex\_search() in a loop to extract all occurrences of a pattern from a source sequence. Instead, you should use a regex\_iterator or regex\_token\_iterator. They work similarly to iterators for Standard Library containers.
+如上一节所述，永远不应该在循环中使用 regex\_search()。相反，应该使用 regex\_iterator 或 regex\_token\_iterator，它们的工作方式类似于标准库容器中的迭代器。
 
-\mySamllsection{regex\_iterator Examples}
+\mySamllsection{regex\_iterator 示例}
 
-The following example asks the user to enter a source string, extracts every word from the string, and prints all words between quotes. The regular expression in this case is [\verb|\|w]+, which searches for one or more word-letters. This example uses std::string as a source, so it uses sregex\_iterator for the iterators. A standard iterator loop is used, but in this case, the end iterator is done slightly differently from the end iterators of Standard Library containers. Normally, you specify an end iterator for a particular container, but for regex\_iterator, there is only one “end” iterator. You get this end iterator by default constructing a regex\_iterator.
+以下示例要求用户输入源字符串，从字符串中提取每个单词，并打印出所有带引号的单词。这个例子中的正则表达式是 [\verb|\|w]+，搜索一个或多个单词字母。这个例子使用 std::string 作为源，使用 sregex\_iterator 作为迭代器。这里使用了标准迭代器循环，但结束迭代器的处理方式与标准库容器中的结束迭代器略有不同。通常，会为特定的容器指定一个结束迭代器，但对于 regex\_iterator，只有一个“结束”迭代器，可以通过默认构造一个 regex\_iterator 来获得这个结束迭代器。
 
-The for loop creates a start iterator called iter, which accepts a begin and end iterator into the source string and a regular expression. The loop body is called for every match found, which is every word in this example. The sregex\_iterator iterates over all the matches. By dereferencing a sregex\_iterator, you get a smatch object. Accessing the first element of this smatch object, [0], gives you the matched substring:
+for 循环创建了一个名为 iter 的开始迭代器，接受源字符串的 begin 和 end 迭代器以及一个正则表达式。循环体对于找到的每个匹配项（在这个例子中是每个单词）都调用。sregex\_iterator 遍历所有匹配项，通过解引用 sregex\_iterator，可以得到一个 smatch 对象。通过访问这个 smatch 对象的第一个元素 [0]，可以得到匹配的子字符串：
 
 \begin{cpp}
 regex reg { "[\\w]+" };
@@ -643,7 +643,7 @@ while (true) {
 }
 \end{cpp}
 
-The output of this program can look as follows:
+程序的输出可能为如下所示：
 
 \begin{shell}
 Enter a string to split (q=quit): This, is a test.
@@ -653,9 +653,9 @@ Enter a string to split (q=quit): This, is a test.
 "test"
 \end{shell}
 
-As this example demonstrates, even simple regular expressions can perform some powerful string operations!
+正如这个例子，即使是简单的正则表达式，也能执行一些强大的字符串操作！
 
-Note that both regex\_iterator, and regex\_token\_iterator discussed in the next section, internally store a pointer to the given regular expression. Hence, they both explicitly delete any constructors accepting rvalue reference regular expressions to prevent you from constructing them with temporary regex objects. For example, the following does not compile:
+注意，regex\_iterator 和下一节中讨论的 regex\_token\_iterator 都内部存储了给定正则表达式的指针，所以都明确地删除了接受右值引用正则表达式的构造函数，以避免使用临时正则表达式对象进行构造。例如，以下代码不会编译：
 
 \begin{cpp}
 for (sregex_iterator iter { cbegin(str), cend(str), regex { "[\\w]+" } };
@@ -664,9 +664,9 @@ for (sregex_iterator iter { cbegin(str), cend(str), regex { "[\\w]+" } };
 
 \mySubsubsection{21.2.6.}{regex\_token\_iterator}
 
-The previous section describes regex\_iterator, which iterates through every match. On each iteration, you get a match\_results object, which you can use to extract subexpressions for a match that are captured by capture groups.
+上一节描述了 regex\_iterator，遍历每个匹配项。在每次迭代中，都会得到一个 match\_results 对象，可以使用它来提取匹配项中的子表达式，这些子表达式是由捕获组捕获的。
 
-A regex\_token\_iterator can be used to automatically iterate over all or selected capture groups across all matches. There are four constructors with the following format:
+regex\_token\_iterator 可以用来自动遍历所有或选择的捕获组。这里有四个构造函数，具有以下格式：
 
 \begin{cpp}
 regex_token_iterator(BidirectionalIterator a,
@@ -676,27 +676,27 @@ regex_token_iterator(BidirectionalIterator a,
                      [, Flags]]);
 \end{cpp}
 
-All of them require a begin and end iterator as input sequence, and a regular expression. The optional SubMatches parameter is used to specify which capture groups should be iterated over. SubMatches can be specified in four ways:
+它们都需要一个输入序列的开始和结束迭代器，以及一个正则表达式。可选的 SubMatches 参数用于指定应该遍历的捕获组。SubMatches 可以用以下四种方式指定：
 
 \begin{itemize}
 \item
-As a single integer representing the index of the capture group that you want to iterate over
+作为一个整数，表示想要遍历捕获组的索引
 
 \item
-As a vector with integers representing the indices of the capture groups that you want to iterate over
+作为一个包含整数的vector，表示想要遍历捕获组的索引
 
 \item
-As an initializer\_list with capture group indices
+作为一个initializer\_list，包含捕获组索引
 
 \item
-As a C-style array with capture group indices
+作为一个 C 风格数组，包含捕获组索引
 \end{itemize}
 
-When you omit SubMatches or when you specify a 0 for SubMatches, you get an iterator that iterates over all capture groups with index 0, which are the substrings matching the full regular expression. The optional Flags parameter specifies options for the matching algorithm. In most cases, you can keep the default. Consult a Standard Library Reference for more details.
+当省略 SubMatches 或当 SubMatches 指定为 0 时，会得到一个迭代器，可遍历所有捕获组索引为 0 的捕获组，即匹配整个正则表达式的子字符串。可选的 Flags 参数指定匹配算法的选项。大多数情况下，可以保留默认值。更多信息，请参阅标准库手册。
 
-\mySubsubsection{21.2.7.}{regex\_token\_iterator Examples}
+\mySubsubsection{21.2.7.}{regex\_token\_iterator 示例}
 
-gex\_token\_iterator Examples The earlier regex\_iterator example can be rewritten using a regex\_token\_iterator as follows. Instead of using (*iter)[0].str() in the loop body, you simply use iter->str() because a token iterator with 0 (= default) submatch index automatically iterates over all capture groups with index 0. The output of this code is the same as the output generated by the earlier regex\_iterator example.
+之前 regex\_iterator 示例可以使用 regex\_token\_iterator 重写。在循环体中，不再需要使用 (*iter)[0].str()，只需使用 iter->str()，因为 token 迭代器默认（索引为 0）自动遍历所有捕获组索引为 0 的捕获组。这段代码的输出与之前 regex\_iterator 示例生成相同的输出。
 
 \begin{cpp}
 regex reg { "[\\w]+" };
@@ -713,7 +713,7 @@ while (true) {
 }
 \end{cpp}
 
-The following example asks the user to enter a date and then uses a regex\_token\_iterator to iterate over the second and third capture groups (month and day), which are specified as a vector of integers. The regular expression used for dates is explained earlier in this chapter. The only difference is that \^{} and \$ anchors are added since we want to match the entire source sequence. Earlier, that was not necessary, because regex\_match() automatically matches the entire input string.
+以下示例要求用户输入一个日期，然后使用 regex\_token\_iterator 遍历第二个和第三个捕获组（月份和日期），这些捕获组通过一个整数vector指定。用于日期的正则表达式在本章前面已经解释过。唯一的区别是添加了 \^{} 和 \$ 锚点，因为想要匹配整个源序列。因为 regex\_match() 会自动匹配整个输入字符串，所以之前，这并不是必要的。
 
 \begin{cpp}
 regex reg { "^(\\d{4})/(0?[1-9]|1[0-2])/(0?[1-9]|[1-2][0-9]|3[0-1])$" };
@@ -731,7 +731,7 @@ while (true) {
 }
 \end{cpp}
 
-This code prints only the month and day of valid dates. Output generated by this example can look like this:
+这段代码只打印有效日期的月份和日期，示例生成的输出可能如下所示：
 
 \begin{shell}
 Enter a date (year/month/day) (q=quit): 2024/1/13
@@ -743,7 +743,7 @@ Enter a date (year/month/day) (q=quit): 2024/12/5
 "5"
 \end{shell}
 
-The regex\_token\_iterator can also be used to perform a field splitting or tokenization. It is a much safer and more flexible alternative compared to using the old, and not further discussed, strtok() function from C. Tokenization is enabled in the regex\_token\_iterator constructor by specifying -1 as the capture group index to iterate over. In tokenization mode, the iterator iterates over all substrings of the input sequence that do not match the regular expression. The following code demonstrates this by tokenizing a string on the delimiters , and ; with zero or more whitespace characters before or after a delimiter. The code demonstrates the tokenization in two ways: first by iterating over the tokens directly and then by creating a new vector containing all the tokens followed by printing the contents of the vector:
+regex\_token\_iterator 也可以用于执行字段拆分或标记化。与使用 C 语言中旧的、不再进一步讨论的 strtok() 函数相比，它是一个更安全、更灵活的替代方案。在 regex\_token\_iterator 构造函数中通过指定 -1 作为要迭代的捕获组索引来启用标记化。标记化模式下，迭代器遍历输入序列中所有不匹配正则表达式的子字符串。以下代码通过在逗号和分号，以及其前后零个或多个空白字符上对字符串进行标记化进行展示。该代码以两种方式演示了标记化：首先直接迭代标记，然后通过创建包含所有标记的新vector，并打印vector的内容：
 
 \begin{cpp}
 regex reg { R"(\s*[,;]\s*)" };
@@ -769,20 +769,20 @@ while (true) {
 }
 \end{cpp}
 
-The regular expression in this example is specified as a raw string literal and searches for patterns that match the following:
+这个例子中的正则表达式是用原始字符串字面量指定的，搜索匹配以下模式：
 
 \begin{itemize}
 \item
-Zero or more whitespace characters
+零个或多个空格字符
 
 \item
-Followed by a , or ; character
+后面跟着一个 , 或 ; 字符
 
 \item
-Followed by zero or more whitespace characters
+后面跟着零个或多个空格字符
 \end{itemize}
 
-The output can be as follows:
+输出可能如下所示：
 
 \begin{shell}
 Enter a string to split on ',' and ';' (q=quit): This is, a; test string.
@@ -790,11 +790,11 @@ Enter a string to split on ',' and ';' (q=quit): This is, a; test string.
 "This is", "a", "test string."
 \end{shell}
 
-As you can see from this output, the string is split on , and ;. All whitespace characters around the , and ; are removed because the tokenization iterator iterates over all substrings that do not match the regular expression and because the regular expression matches , and ; with whitespace around them.
+正如你从输出中看到的，字符串被拆分在 , 和 ; 之间。移除了 , 和 ; 周围的空格字符，因为标记化迭代器遍历所有不匹配正则表达式的子字符串，并且因为正则表达式匹配周围带有空格的 , 和 ;。
 
 \mySubsubsection{21.2.8.}{regex\_replace()}
 
-The regex\_replace() algorithm requires a regular expression and a formatting string that is used to replace matching substrings. This formatting string can reference parts of the matched substrings by using the escape sequences in the following table.
+regex\_replace() 算法需要一个正则表达式和一个格式化字符串，用于替换匹配的子字符串。这个格式化字符串，可以通过使用下表中的转义序列，来引用匹配子字符串的部分。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -808,27 +808,28 @@ The regex\_replace() algorithm requires a regular expression and a formatting st
 \endhead
 %
 \$n &
-\begin{tabular}[c]{@{}l@{}}The string matching the$ n^{th}$ capture group; for example, \$1 for the first\\ capture group, \$2 for the second, and so on. n must be greater than 0.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}匹配第 n 个捕获组的字符串；例如，\$1 用于第一个捕获组，\$2 用于第二个，\\依此类推。n 必须大于 0。
+\end{tabular} \\ \hline
 \$\& &
-The string matching the entire regular expression. \\ \hline
+匹配整个正则表达式的字符串。 \\ \hline
 \$` &
-\begin{tabular}[c]{@{}l@{}}The part of the input sequence that appears to the left of the substring\\ matching the regular expression.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}正则表达式匹配的子字符串出现在输入序列的左侧的部分。\end{tabular} \\ \hline
 \$´ &
-\begin{tabular}[c]{@{}l@{}}The part of the input sequence that appears to the right of the substring\\ matching the regular expression.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}匹配正则表达式的子字符串出现在输入序列的右侧的部分。\end{tabular} \\ \hline
 \$\$ &
-A single dollar sign. \\ \hline
+一个美元符号。 \\ \hline
 \end{longtable}
 
-There are six overloads of regex\_replace(). The difference between them is in the type of parameters. Four of them have the following format:
+regex\_replace()有六个重载，区别在于参数类型。其中四个重载具有以下格式：
 
 \begin{cpp}
 template<...>
 string regex_replace(InputSequence, RegEx, FormatString[, Flags]);
 \end{cpp}
 
-These four overloads return the resulting string after performing the replacement. Both the InputSequence and the FormatString can be an std::string or a C-style string. The RegEx parameter is the regular expression that needs to be matched. The optional Flags parameter specifies options for the replace algorithm.
+这四个重载在执行替换后返回结果字符串，InputSequence 和 FormatString 可以是 std::string 或 C 风格字符串，RegEx 参数是需要匹配的正则表达式，可选的 Flags 参数指定替换算法的选项。
 
-Two overloads of regex\_replace() have the following format:
+regex\_replace() 的两个重载：
 
 \begin{cpp}
 OutputIterator regex_replace(OutputIterator,
@@ -837,23 +838,23 @@ OutputIterator regex_replace(OutputIterator,
                              RegEx, FormatString[, Flags]);
 \end{cpp}
 
-These two overloads write the resulting string to the given output iterator and return this output iterator. The input sequence is given as a begin and end iterator. The other parameters are identical to the other four overloads of regex\_replace().
+这两个重载将结果字符串写入给定的输出迭代器，并返回这个输出迭代器，输入序列由一个开始和结束迭代器给出。其他参数与 regex\_replace() 的其他四个重载相同。
 
-\mySamllsection{regex\_replace() Examples}
+\mySamllsection{regex\_replace() 示例}
 
-As a first example, take the following HTML source string:
+作为第一个示例，看看以下的 HTML 源字符串：
 
 \begin{shell}
 <body><h1>Header</h1><p>Some text</p></body>
 \end{shell}
 
-and the following regular expression:
+以及下面的正则表达式：
 
 \begin{cpp}
 <h1>(.*)</h1><p>(.*)</p>
 \end{cpp}
 
-The following table shows the different escape sequences and what they will be replaced with:
+下表显示了不同的转义序列，及其将替换的内容：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -872,7 +873,7 @@ The following table shows the different escape sequences and what they will be r
 \$´                      & \textless{}/body\textgreater{} \\ \hline
 \end{longtable}
 
-The following code demonstrates the use of regex\_replace():
+下面的代码演示了 regex\_replace() 的使用：
 
 \begin{cpp}
 const string str { "<body><h1>Header</h1><p>Some text</p></body>" };
@@ -885,14 +886,14 @@ println("Original string: '{}'", str);
 println("New string : '{}'", result);
 \end{cpp}
 
-The output of this program is as follows:
+这个程序的输出如下所示：
 
 \begin{shell}
 Original string: '<body><h1>Header</h1><p>Some text</p></body>'
 New string     : '<body>H1=Header and P=Some text</body>'
 \end{shell}
 
-The regex\_replace() algorithm accepts a number of flags to change its behavior. The most important flags are given in the following table:
+regex\_replace() 算法接受一些标志来改变其行为。最重要的标志如下表所示：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -905,27 +906,30 @@ The regex\_replace() algorithm accepts a number of flags to change its behavior.
 \endhead
 %
 format\_default &
-\begin{tabular}[c]{@{}l@{}}The default is to replace all occurrences of the pattern and to also copy\\ everything to the output that does not match the pattern.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}默认情况下，regex\_replace() 会替换模式匹配的所有地方，并且也会\\将不匹配模式的全部内容复制到输出中。
+\end{tabular} \\ \hline
 format\_no\_copy &
-\begin{tabular}[c]{@{}l@{}}Replaces all occurrences of the pattern but does not copy anything to\\ the output that does not match the pattern.\end{tabular} \\ \hline
-format\_first\_only & Replaces only the first occurrence of the pattern. \\ \hline
+\begin{tabular}[c]{@{}l@{}}替换模式匹配的所有地方，但不将不匹配模式的内容复制到输出中。
+\end{tabular} \\ \hline
+format\_first\_only & 只替换模式的第一处。
+ \\ \hline
 \end{longtable}
 
-The call to regex\_replace() in the previous code snippet can be modified to use the format\_no\_copy flag:
+之前的代码段中，regex\_replace() 可以修改为使用 format\_no\_copy 标志：
 
 \begin{cpp}
 string result { regex_replace(str, r, replacement,
     regex_constants::format_no_copy) };
 \end{cpp}
 
-The output now is as follows:
+现在输出如下：
 
 \begin{shell}
 Original string: '<body><h1>Header</h1><p>Some text</p></body>'
 New string     : 'H1=Header and P=Some text
 \end{shell}
 
-Another example using regex\_replace() is to replace each word boundary in a string with a newline character so that the output contains only one word per line. The following code snippet demonstrates this without using any loops to process a given input string. The code first creates a regular expression that matches individual words. When a match is found with regex\_replace(), it is substituted with \$1\verb|\|n where \$1 is replaced with the matched word. Note also the use of the format\_no\_copy flag to prevent copying whitespace and other non-word characters from the source string to the output.
+另一个使用 regex\_replace() 的示例是将字符串中的每个词界替换为新行字符，以便输出包含每行一个单词。以下代码段演示了这一点，不使用循环来处理给定的输入字符串。代码首先创建一个匹配单个单词的正则表达式。当 regex\_replace() 找到匹配时，用 \$1\verb|\|n 替换，其中 \$1 替换为匹配的单词。注意，这里还使用了 format\_no\_copy 标志，以避免将源字符串中的空白和非单词字符复制到输出中。
 
 \begin{cpp}
 regex reg { "([\\w]+)" };
@@ -940,7 +944,7 @@ while (true) {
 }
 \end{cpp}
 
-The output of this program can be as follows:
+这个程序可能的输出，如下所示：
 
 \begin{shell}
 Enter a string to split over multiple lines (q=quit): This is a test.

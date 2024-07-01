@@ -1,27 +1,25 @@
 \noindent
-\textbf{WHAT’S IN THIS CHAPTER?}
+\textbf{内筒概要}
 
 \begin{itemize}
 \item
-The concepts of random number engines and engine adapters
+随机数引擎和引擎适配器的概念
 
 \item
-How to generate random numbers
+如何生成随机数
 
 \item
-How to change the distribution of random numbers
+如何改变随机数的分布
 \end{itemize}
 
-\noindent
-\textbf{WILEY.COM DOWNLOADS FOR THIS CHAPTER}
+本章的所有代码示例都可以在\url{https://github.com/Professional-CPP/edition-6}获得。
 
-Please note that all the code examples for this chapter are available as part of this chapter’s code download on the book’s website at \url{www.wiley.com/go/proc++6e} on the Download Code tab.
+本章讨论了如何在 C++ 中生成随机数，软件中生成良好的随机数是一个复杂的话题。本章没有讨论生成实际随机数所涉及的复杂数学公式，但确实解释了如何使用标准库提供的功能来生成随机数。
 
-This chapter discusses how to generate random numbers in C++. Generating good random numbers in software is a complex topic. This chapter does not discuss the complex mathematical formulas involved in generating the actual random numbers; however, it does explain how to generate random numbers using the functionality provided by the Standard Library.
+C++ 的随机数生成库可以通过不同的算法和分布生成随机数，该库由 <random> 定义在 std 命名空间中。它有三个主要组件：引擎、引擎适配器，以及分布。随机数引擎负责生成实际的随机数，并存储用于生成后续随机数的内部状态。分布决定了生成的随机数的范围，以及在该范围内数学分布的方式。随机数引擎适配器会修改与它关联的随机数引擎的结果。
 
-The C++ random number generation library can generate random numbers by using different algorithms and distributions. The library is defined by <random> in the std namespace. It has three big components: engines, engine adapters, and distributions. A random number engine is responsible for generating the actual random numbers and storing the state for generating subsequent random numbers. The distribution determines the range of the generated random numbers and how they are mathematically distributed within that range. A random number engine adapter modifies the results of a random number engine you associate it with.
+深入探讨C++ 随机数生成库之前，先简要解释一下旧式的 C 风格随机数生成机制，及其存在的问题。
 
-Before delving into this C++ random number generation library, the old C-style mechanism of generating random numbers and its problems are briefly explained.
 
 
 

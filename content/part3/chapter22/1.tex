@@ -1,17 +1,17 @@
-The Ratio library allows you to exactly represent any finite rational number that you can use at compile time. Everything is defined in <ratio> and is in the std namespace. The numerator and denominator of a rational number are represented as compile-time constants of type std::intmax\_t, which is a signed integer type with the maximum width supported by a compiler. Because of the compiletime nature of these rational numbers, using them might look a bit different than what you are used to. You cannot define a ratio object the same way as you define normal objects, and you cannot call member functions on it. Instead, ratio is a class template, and a specific instantiation of the ratio class template represents one specific rational number. To name such specific instantiations, you can use type aliases. For example, the following defines a compile-time rational number representing the fraction 1/60:
+Ratio 库允在编译时可以精确表示任何有限的有理数，其内容都在 <ratio> 中定义，位于 std 命名空间中。有理数的分子和分母以 std::intmax\_t 类型的编译时常量表示，这是一种由编译器支持的带有最大宽度的有符号整数类型。由于这些有理数是编译时的，使用时看起来与习惯的方式不同。不能像定义普通对象那样定义一个有理数对象，也不能调用其成员函数。相反，有理数是一个类模板，ratio 类模板的具体实例化代表一个特定的有理数。为了命名这样的特定实例化，可以使用类型别名。例如，以下定义了一个编译时有理数，表示分数 1/60：
 
 \begin{cpp}
 using r1 = ratio<1, 60>;
 \end{cpp}
 
-The numerator (num) and denominator (den) of the r1 rational number are compile-time constants and can be accessed as follows:
+r1 有理数的分子（num）和分母（den）是编译时常量，可以按以下方式访问：
 
 \begin{cpp}
 intmax_t num { r1::num };
 intmax_t den { r1::den };
 \end{cpp}
 
-Remember that a ratio represents a compile-time rational number, which means that the numerator and denominator need to be known at compile time. The following generates a compilation error:
+记住，有理数代表一个编译时有理数，多以分子和分母需要在编译时已知。以下代码会有编译错误：
 
 \begin{cpp}
 intmax_t n { 1 }; // Numerator
@@ -19,7 +19,7 @@ intmax_t d { 60 }; // Denominator
 using r1 = ratio<n, d>; // Error
 \end{cpp}
 
-Making n and d constants works fine:
+将 n 和 d 定义为常量就可以正常工作：
 
 \begin{cpp}
 const intmax_t n { 1 }; // Numerator
@@ -27,7 +27,7 @@ const intmax_t d { 60 }; // Denominator
 using r1 = ratio<n, d>; // Ok
 \end{cpp}
 
-Rational numbers are always normalized. For a rational number ratio<n, d>, the greatest common divisor, gcd, is calculated, and the numerator, num, and denominator, den, are then defined as follows:
+有理数总是规范化。对于一个有理数 ratio<n, d>，计算最大公约数 gcd，然后定义分子 num 和分母 den 如下：
 
 \begin{cpp}
 num = sign(n)*sign(d)*abs(n)/gcd
@@ -37,9 +37,9 @@ num = sign(n)*sign(d)*abs(n)/gcd
 den = abs(d)/gcd
 \end{cpp}
 
-The library supports adding, subtracting, multiplying, and dividing rational numbers. However, you cannot use the standard arithmetic operators because all these operations are again not happening on objects but on types, i.e., instantiations of the ratio class template, at compile time. Instead, you need to use specific arithmetic ratio class templates. The following arithmetic class templates are available: ratio\_add, ratio\_subtract, ratio\_multiply, and ratio\_divide, which perform addition, subtraction, multiplication, and division, respectively. These templates calculate the result as a new ratio type. This type can be accessed with the embedded type alias called type. For example, the following code first defines two ratios, one representing 1/60 and the other representing 1/30.
+库支持添加、减、乘和除有理数，但不能使用标准的算术运算符，所有这些操作都是在编译时进行。相反，需要使用特定的算术有理数类模板，有以下算术类模板可用：ratio\_add、ratio\_subtract、ratio\_multiply 和 ratio\_divide，分别执行加法、减法、乘法和除法。这些模板计算结果作为新的有理数类型，这个类型可以通过称为 type 的嵌入类型别名访问。例如，以下代码首先定义了两个有理数，一个表示 1/60，另一个表示 1/30。
 
-The ratio\_add template adds those two rational numbers together to produce the result rational number, which, after normalization, is 1/20:
+ratio\_add 模板将这两个有理数相加，以产生结果有理数，该结果在规范化后为 1/20：
 
 \begin{cpp}
 using r1 = ratio<1, 60>;
@@ -47,7 +47,7 @@ using r2 = ratio<1, 30>;
 using result = ratio_add<r1, r2>::type;
 \end{cpp}
 
-The standard also defines a number of ratio comparison class templates: ratio\_equal, ratio\_not\_equal, ratio\_less, ratio\_less\_equal, ratio\_greater, and ratio\_greater\_equal. Just like the arithmetic ratio class templates, the ratio comparison class templates are all evaluated at compile time, again not on objects but on ratio types. These comparison templates define a new type that is an std::bool\_constant, representing the result. bool\_constant is an std::integral\_constant, a struct template that stores a type and a compile-time constant value. For example, integral\_constant<int, 15> stores an integer with value 15. bool\_constant is an integral\_constant with type bool. For instance, bool\_constant<true> is integral\_constant<bool, true>, which stores a Boolean with value true. The result of the ratio comparison templates is either bool\_constant<true> or bool\_constant<false>. The value associated with a bool\_constant or an integral\_constant can be accessed using the value data member. The following example demonstrates the use of ratio\_less:
+标准还定义了一系列有理数比较类模板：ratio\_equal、ratio\_not\_equal、ratio\_less、ratio\_less\_equal、ratio\_greater 和 ratio\_greater\_equal。与算术有理数类模板一样，比较有理数类模板也在编译时计算。这些比较模板定义了一个新的类型——std::bool\_constant，表示结果。bool\_constant 是一个 struct 模板，用于存储类型和编译时常量值。例如，integral\_constant<int, 15> 存储值为 15 的整数。bool\_constant 是一个 bool 类型的 integral\_constant。例如，bool\_constant<true> 是 integral\_constant<bool, true>，存储值为 true 的布尔值。比较模板的结果是 bool\_constant<true> 或 bool\_constant<false>。与 bool\_constant 或 integral\_constant 关联的值可以使用 value 数据成员访问。以下示例演示了如何使用 ratio\_less：
 
 \begin{cpp}
 using r1 = ratio<1, 60>;
@@ -56,7 +56,7 @@ using res = ratio_less<r2, r1>;
 println("{}", res::value); // false
 \end{cpp}
 
-The following code snippet combines everything just covered. Because ratios are not objects but types, you cannot do something like println("\{\}", r1); you need to get the numerator and denominator and print them separately.
+这段代码片段结合了前面讨论的所有内容。由于ratio不是对象，而是类型，不能println("\{\}", r1); 直接打印ratio，需要分别获取分子和分母，并单独打印它们。
 
 \begin{cpp}
 // Define a compile-time rational number.
@@ -78,7 +78,7 @@ using res = ratio_less<r2, r1>;
 println("4) r2 < r1: {}", res::value);
 \end{cpp}
 
-The output is as follows:
+输出为：
 
 \begin{shell}
 1) r1 = 1/60
@@ -87,7 +87,7 @@ The output is as follows:
 4) r2 < r1: false
 \end{shell}
 
-The library provides a number of SI (Système International) type aliases for your convenience. They are as follows:
+库提供了一系列 SI (Système International) 类型别名，以便于使用：
 
 \begin{cpp}
 using yocto = ratio<1, 1'000'000'000'000'000'000'000'000>; // *
@@ -112,7 +112,7 @@ using zetta = ratio<1'000'000'000'000'000'000'000, 1>; // *
 using yotta = ratio<1'000'000'000'000'000'000'000'000, 1>; // *
 \end{cpp}
 
-The SI units with an asterisk at the end are defined only if your compiler can represent the constant numerator and denominator values for those type aliases as an intmax\_t. An example of how to use these predefined SI units is given during the discussion of durations in the next section.
+带有星号结尾的 SI 单位只有在编译器能够表示那些类型，别名的常数分子和分母值作为 intmax\_t 时才可定义。下一节讨论时间段时，将给出使用这些预定义 SI 单位的示例。
 
 
 

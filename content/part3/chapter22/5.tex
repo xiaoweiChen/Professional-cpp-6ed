@@ -1,56 +1,56 @@
 
-The Standard Library supports working with calendar dates. At this moment, only the Gregorian calendar is supported, but if need be, you can always implement your own calendars that can interoperate with the rest of the <chrono> functionality, such as Coptic and Julian calendars.
+标准库支持使用日历日期。目前，只支持公历（格里高利历），但如果有需要，可以实现<chrono>的其余功能（如科普特历和儒略历），并操作自己的日历。
 
-The Standard Library provides quite a few classes and functions to work with dates (and time zones discussed in a later section). This text discusses the most important classes and functions. Consult a Standard Library reference (see Appendix B, “Annotated Bibliography”) to get a complete overview of everything that’s available.
+标准库提供了相当多的类和函数来处理日期（和时区，稍后讨论）。本文讨论了最重要的类和函数。查阅标准库手册（见附录B）以获得完整内容。
 
-\mySubsubsection{22.5.1.}{Creating Dates}
+\mySubsubsection{22.5.1.}{创建日期}
 
-The following calendrical classes are available to create dates, all defined in std::chrono:
+以下日历类可用于创建日期，都在std::chrono中定义：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{CLASS} &
-\textbf{DESCRIPTION} \\ \hline
+\textbf{类型} &
+\textbf{描述} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 year &
-\begin{tabular}[c]{@{}l@{}}Represents a year in the range {[}-32767, 32767{]}. A year has a\\ member function called is\_leap() returning true if a given year\\ is a leap year, false otherwise. min() and max() static member\\ functions return the minimum and maximum year, respectively.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}表示在范围 {[}-32767, 32767{]} 内的年份。年份有一个名为 is\_leap() \\的成员函数，如果给定年份是闰年，则返回 true，否则返回 false。\\min() 和 max() 静态成员函数分别返回最小和最大年份。\end{tabular} \\ \hline
 month &
-\begin{tabular}[c]{@{}l@{}}Represents a month in the range {[}1, 12{]}. Additionally, there are\\ 12 named constants provided for the 12 months, for example:\\ std::chrono::January.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}表示在范围 {[}1, 12{]} 内的月份。此外，还为12个月提供了12个命\\名常量，例如：std::chrono::January。\end{tabular} \\ \hline
 day &
-Represents a day in the range {[}1, 31{]}. \\ \hline
+表示在范围 {[}1, 31{]} 内的一天。 \\ \hline
 weekday &
-\begin{tabular}[c]{@{}l@{}}Represents a day of the week in the range {[}0, 6{]}, where 0 means\\ Sunday. Additionally, there are seven named constants provided\\ for the seven weekdays, for example: std::chrono::Sunday.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}表示在范围 {[}0, 6{]} 内的一周中的某一天，其中 0 表示星期日。此外，\\还为七个工作日提供了七个命名常量，例如：std::chrono::Sunday。\end{tabular} \\ \hline
 weekday\_indexed &
-\begin{tabular}[c]{@{}l@{}}Represents the first, second, third, fourth, or fifth weekday of a\\ month. Can easily be constructed from a weekday, for example:\\ Monday{[}2{]} is the second Monday of a month.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}表示一个月的第一、第二、第三、第四或第五个工作日。可以很容\\易地从工作日构造，例如：Monday{[}2{]} 是一个月的第二个星期一。 \end{tabular} \\ \hline
 weekday\_last &
-Represents the last weekday of some month. \\ \hline
+表示某个月最后一个工作日。 \\ \hline
 month\_day &
-Represents a specific month and day. \\ \hline
+表示一个特定的月份和日期。 \\ \hline
 month\_day\_last &
-Represents the last day of a specific month. \\ \hline
+表示一个特定月份的最后一天。 \\ \hline
 month\_weekday &
-Represents the $n^{th}$ weekday of a specific month. \\ \hline
+表示一个特定月份的第 $n^{th}$ 个工作日。 \\ \hline
 month\_weekday\_last &
-Represents the last weekday of a specific month. \\ \hline
+表示一个特定月份的最后一个工作日。 \\ \hline
 year\_month &
-Represents a specific year and month. \\ \hline
+表示一个特定的年份和月份。 \\ \hline
 year\_month\_day &
-Represents a specific year, month, and day. \\ \hline
+表示一个特定的年份、月份和日期。 \\ \hline
 year\_month\_day\_last &
-Represents the last day of a specific year and month. \\ \hline
+表示一个特定年份和月份的最后一天。 \\ \hline
 year\_month\_weekday &
-Represents the $n^{th}$ weekday of a specific year and month. \\ \hline
+表示一个特定年份和月份的第 $n^{th}$ 个工作日。 \\ \hline
 year\_month\_weekday\_last &
-Represents the last weekday of a specific year and month. \\ \hline
+表示一个特定年份和月份的最后一个工作日。 \\ \hline
 \end{longtable}
 
-All of these classes have a member function called ok() that returns true if the given object is in a valid range, false otherwise. Two additional standard literals are provided in std::literals::chrono\_literals: y to create years, and d to create days. Complete dates can be constructed using operator/ to specify year, month, and day, in three orders: Y/M/D, M/D/Y, D/M/Y. Here are some examples to create dates:
+所有这些类都有一个名为 ok() 的成员函数，如果给定对象在有效范围内，则返回 true，否则返回 false。在 std::literals::chrono\_literals 中提供了两个额外的标准字面量：y 用于创建年份，d 用于创建日期。可以使用 operator/ 按三种顺序（Y/M/D、M/D/Y、D/M/Y）指定年、月、日来构造完整的日期。以下是一些创建日期的示例：
 
 \begin{cpp}
 year y1 { 2020 };
@@ -86,102 +86,102 @@ auto lastDayOfJune2020 { 2020y / lastDayOfAJune };
 auto lastMondayOfJune2020 { 2020y / June / Monday[last] };
 \end{cpp}
 
-sys\_time is a type alias for a time\_point of a system\_clock with a certain duration. It’s defined as follows:
+sys\_time 是一个类型别名，用于表示具有特定持续时间的 system\_clock 的 time\_point，定义为：
 
 \begin{cpp}
 template <typename Duration>
 using sys_time = std::chrono::time_point<std::chrono::system_clock, Duration>;
 \end{cpp}
 
-Based on the sys\_time type alias, two additional type aliases are defined to represent a sys\_time with a precision of seconds, and one with a precision of days:
+基于 sys\_time 类型别名，定义了另外两个类型别名，分别表示具有秒精度的 sys\_time 和具有天精度的 sys\_time：
 
 \begin{cpp}
 using sys_seconds = sys_time<std::chrono::seconds>;
 using sys_days = sys_time<std::chrono::days>;
 \end{cpp}
 
-sys\_days, for example, represents the number of days since the system\_clock epoch, and hence, it’s a serial-based type; that is, it just contains a single number (days since epoch). On the other hand, year\_month\_day, for example, is a field-based type, it stores a year, a month, and a day in separate fields. When doing a lot of arithmetic with dates, a serial-based type will be more performant than a field-based type.
+例如，sys\_days 表示自 system\_clock 纪元以来的天数，因此它是一个基于序列的类型，只包含一个数字（自纪元以来的天数）。另一方面，year\_month\_day，例如，是一个基于字段的类型，在单独的字段中存储年、月和日。当对日期进行大量算术运算时，基于序列的类型将比基于字段的类型性能更好。
 
-Similar type aliases exist to work with local time: local\_time, local\_seconds, and local\_days. These are demonstrated in a later section on time zones.
+类似的类型别名也存在，用于处理本地时间：local\_time、local\_seconds 和 local\_days，这些将在后面关于时区的部分进行演示。
 
-You can create a sys\_days representing today as follows. floor() is used to truncate a time\_point to a precision of days:
+可以使用以下方式创建一个表示今天的 sys\_days。floor() 用于将 time\_point 截断为天的精度：
 
 \begin{cpp}
 auto today { floor<days>(system_clock::now()) };
 \end{cpp}
 
-sys\_days can be used to convert a year\_month\_day to a time\_point, for example:
+sys\_days 可以用于将 year\_month\_day 转换为 time\_point，例如：
 
 \begin{cpp}
 system_clock::time_point t1 { sys_days { 2020y / June / 22d } };
 \end{cpp}
 
-The opposite conversion, converting a time\_point to a year\_month\_day, can be done with a year\_month\_day constructor. The following code snippet gives two examples:
+相反的转换，将 time\_point 转换为 year\_month\_day，可以使用 year\_month\_day 构造函数来完成。以下代码片段给出了两个示例：
 
 \begin{cpp}
 year_month_day yearmonthday { floor<days>(t1) };
 year_month_day today2 { floor<days>(system_clock::now()) };
 \end{cpp}
 
-A complete date including a time can be build up as well. Here’s an example:
+也可以构建包括时间的完整日期。这里有一个例子：
 
 \begin{cpp}
 // Full date with time: 2020-06-22 09:35:10 UTC.
 auto t2 { sys_days { 2020y / June / 22d } + 9h + 35min + 10s };
 \end{cpp}
 
-\mySubsubsection{22.5.2.}{Printing Dates}
+\mySubsubsection{22.5.2.}{打印日期}
 
-Dates can be written to streams using the familiar insertion operator:
+日期可以使用熟悉的运算符写入流：
 
 \begin{cpp}
 cout << yearmonthday << endl;
 \end{cpp}
 
-Printing and formatting dates are also supported. The L format specifier formats the output according to the current global locale.
+也支持打印和格式化日期，L 格式指定符根据当前全局区域设置格式化输出。
 
 \begin{cpp}
 println("{:L}", yearmonthday);
 \end{cpp}
 
-Keep in mind that the output might sometimes be unexpected. For example, lastMondayOfJune2020 is defined earlier as follows:
+记住，输出有时可能出人意料。例如，lastMondayOfJune2020 之前定义为：
 
 \begin{cpp}
 // Create a year_month_weekday_last for the last Monday of June 2020.
 auto lastMondayOfJune2020 { 2020y / June / Monday[last] };
 \end{cpp}
 
-When you print this, the output is “2020/Jun/Mon[last]”:
+当打印时，输出是 “2020/Jun/Mon[last]”：
 
 \begin{cpp}
 println("{:L}", lastMondayOfJune2020); // 2020/Jun/Mon[last]
 \end{cpp}
 
-If you want to output the exact date, “2020-06-29,” then you need to convert the year\_month\_weekday\_last to a year\_month\_day and then output the result:
+如果想输出确切的日期，“2020-06-29”，需要将 year\_month\_weekday\_last 转换为 year\_month\_day，然后输出结果：
 
 \begin{cpp}
 year_month_day lastMondayOfJune2020YMD { sys_days { lastMondayOfJune2020 } };
 println("{:L}", lastMondayOfJune2020YMD); // 2020-06-29
 \end{cpp}
 
-If a date is invalid, printing will insert an error. For example, the string “is not a valid date” is appended to an invalid year\_month\_day.
+如果日期无效，打印将插入错误。例如，对于无效的 year\_month\_day，将附加字符串 “is not a valid date”。
 
-Using the L format specifier, names of days and months are correctly localized according to the current global locale. For example, the following code snippet first sets the global locale to Dutch, nl-NL, and then uses the L format specifier to print Monday in Dutch. The \%A format specifier causes the full name to be printed instead of the abbreviated name. Consult your favorite Standard Library reference for a full list of all supported date format specifiers.
+使用 L 格式指定符，根据当前全局区域设置，正确地本地化星期和月份的名称。例如，以下代码片段首先将全局区域设置为荷兰语，nl-NL，然后使用 L 格式指定符以荷兰语打印星期一。\%A 格式指定符导致打印全名而不是缩写名。查阅标准库手册，以获取支持的所有日期格式指定符的完整列表。
 
 \begin{cpp}
 locale::global(locale { "nl-NL" });
 println("Monday in Dutch is {:L%A}", Monday);
 \end{cpp}
 
-The output is:
+输出为:
 
 \begin{shell}
 Monday in Dutch is maandag
 \end{shell}
 
-\mySubsubsection{22.5.3.}{Arithmetic with Dates}
+\mySubsubsection{22.5.3.}{日期的算术运算}
 
-You can perform arithmetic with dates. Here’s an example:
+可以对日期进行算术运算。这里有一个例子：
 
 \begin{cpp}
 // Full date with time: 2020-06-22 09:35:10 UTC.
@@ -190,7 +190,7 @@ auto t3 { t2 + days { 5 } }; // Add 5 days to t2.
 auto t4 { t3 + years { 1 } }; // Add 1 year to t3.
 \end{cpp}
 
-Be careful, though, as the result might not always be as expected. For example:
+要小心，因为结果可能并不总是如预期的那样。例如:
 
 \begin{cpp}
 auto t5 { sys_days { 2020y / June / 22d } + 9h + 35min + 10s };
@@ -199,16 +199,16 @@ println("t5 = {:L}", t5);
 println("t6 = {:L}", t6);
 \end{cpp}
 
-The result is as follows:
+结果如下:
 
 \begin{shell}
 t5 = 2020-06-22 09:35:10
 t6 = 2021-06-22 15:24:22
 \end{shell}
 
-In looking at the results, you can see that the year is updated, but you can also see that the time has changed. The issue here is that we are working with a serial type: sys\_days is a time\_point, which is a serial type. Adding 1 year to such a serial type does not add 86,400 * 365 = 31,536,000 seconds. Instead, the standard mandates that adding 1 year must add 1 average year to keep leap years into account, and hence, it must add 86,400 * ((365 * 400) + 97) / 400 = 31,556,952 seconds.
+当您查看结果时，可以看到年份更新了，但时间也发生了变化。这是因为正在使用一个序列类型：sys\_days 是一个 time\_point，它是一个序列类型。向这样的序列类型添加 1 年并不会添加 86,400 * 365 = 31,536,000 秒。标准规定，添加 1 年必须添加 1 个平均年，以考虑闰年，因此必须添加 86,400 * ((365 * 400) + 97) / 400 = 31,556,952 秒。
 
-If you need to add exactly 1 year, then it’s best to use a field-based type instead, for example:
+如果需要精确地添加 1 年，最好使用一个基于字段的类型，例如：
 
 \begin{cpp}
 // Split t5 into days and remaining seconds.
@@ -223,7 +223,7 @@ auto t7 { sys_days { t7_ymd } + t5_seconds };
 println("t7 = {:L}", t7);
 \end{cpp}
 
-This results in:
+结果为：
 
 \begin{shell}
 t7 = 2021-06-22 09:35:10

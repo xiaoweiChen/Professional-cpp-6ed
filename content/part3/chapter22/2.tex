@@ -1,68 +1,71 @@
 
-A duration is an interval between two points in time. It is represented by the duration class template, which stores a number of ticks and a tick period. The tick period is the time in seconds between two ticks and is represented as a compile-time ratio constant, which means it could be a fraction of a second. Ratios are discussed in the previous section. The duration template accepts two template type parameters and is defined as follows:
+时间段是两个时间点之间的间隔，由 duration 类模板表示，该模板存储了时间戳的数量和时间戳周期。时间戳周期是两个时间戳之间的时间，以秒为单位，并且作为编译时的有理数常量表示，所以可以是秒的分数(上一节中进行了讨论)。duration 模板接受两个模板类型参数，定义如下：
 
 \begin{cpp}
 template <class Rep, class Period = ratio<1>> class duration {...}
 \end{cpp}
 
-The first template parameter, Rep, is the type of variable storing the number of ticks and should be an arithmetic type, for example long, double, and so on. The second template parameter, Period, is the rational constant representing the period of a tick. If you don’t specify the tick period, the default value ratio<1> is used, which represents a tick period of one second.
+第一个模板参数Rep，是存储时间戳数量的变量的类型，应该是一个算术类型，例如 long、double 等。第二个模板参数Period，是有理常数，代表时间戳的周期。如果没有指定时间戳周期，将使用默认值 ratio<1> ，这表示时间周期为一秒钟。
 
-Three constructors are provided: the default constructor; one that accepts a single value, the number of ticks; and one that accepts another duration. The latter constructor can be used to convert from one duration to another duration, for example, from minutes to seconds. An example is given later in this section.
+提供了三个构造函数：默认构造函数；一个接受单个值的构造函数，该值是时间戳的数量；以及一个接受另一个时间段的构造函数。后一个构造函数可以用来将一个时间段转换为另一个时间段，例如：将分钟转换为秒。本节稍后将给出一个示例。
 
-Durations support arithmetic operations such as +, -, *, /, \%, ++, -{}-, +=, -=, *=, /=, and \%=, and they support the comparison operators == and <=>. The class also contains the member functions shown in the following table:
+时间段支持算术运算，如 +、-、*、/、\%、++、--、+=、-=、*=、/= 和 \%=，并且支持比较运算符 == 和 <=>。该类还包含以下表中的成员函数：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{MEMBER FUNCTION} & \textbf{DESCRIPTION}                                         \\ \hline
+\textbf{成员函数} & \textbf{描述}                                         \\ \hline
 \endfirsthead
 %
 \endhead
 %
 Rep count() const &
-\begin{tabular}[c]{@{}l@{}}Returns the duration value as the number of ticks. The return\\ type is the type specified as the first template type parameter for\\ the duration template.\end{tabular} \\ \hline
-static duration zero()   & Returns a duration with a duration value equivalent to zero. \\ \hline
+\begin{tabular}[c]{@{}l@{}}返回时间段值作为刻度的数量。返回类型是作为时间段模板的第一个模板\\类型参数指定的类型。
+\end{tabular} \\ \hline
+static duration zero()   & 返回一个值为零的时间段。
+ \\ \hline
 \begin{tabular}[c]{@{}l@{}}static duration min()\\ static duration max()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Returns a duration with the minimum/maximum possible\\ duration value representable by the type specified as the first\\ template type parameter for the duration template.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}返回一个时间段，其值为由时间段模板的第一个模板类型参数指定类型的\\最小/最大值。
+\end{tabular} \\ \hline
 \end{longtable}
 
-The library supports floor(), ceil(), round(), and abs() operations on durations that behave just as they behave with numerical data.
+库支持对时间段进行 floor()、ceil()、round() 和 abs() 操作，这些操作的行为与数字数据相同。
 
-Let’s now see how durations can be defined. A duration where each tick is one second can be defined as follows:
+现在，来看看如何定义时间段。一个时间戳周期为一秒钟的时间段，定义如下：
 
 \begin{cpp}
 duration<long> d1;
 \end{cpp}
 
-Because ratio<1> is the default tick period, this is the same as writing:
+因为 ratio<1> 是默认的时间戳周期，这等同于：
 
 \begin{cpp}
 duration<long, ratio<1>> d1;
 \end{cpp}
 
-The next statement defines a duration in minutes (tick period = 60 seconds):
+下一个语句定义了一个以分钟为单位（时间周期 = 60 秒）的时间段：
 
 \begin{cpp}
 duration<long, ratio<60>> d2;
 \end{cpp}
 
-Here is a duration where each tick period is a sixtieth of a second:
+下面是一个时间戳周期为每秒六十分之一的时间段：
 
 \begin{cpp}
 duration<double, ratio<1, 60>> d3;
 \end{cpp}
 
-As you saw earlier in this chapter, <ratio> defines a number of SI rational constants. These predefined constants come in handy for defining tick periods. For example, the next statement defines a duration where each tick period is one millisecond:
+<ratio> 定义了一系列 SI 有理常数，这些预定义的常数在定义时间戳周期时非常有用。例如，下一个语句定义了一个时间戳周期为每毫秒的时间段：
 
 \begin{cpp}
 duration<long long, milli> d4;
 \end{cpp}
 
-\mySubsubsection{22.2.1.}{Examples and Converting Durations}
+\mySubsubsection{22.2.1.}{转换时间段和一些示例}
 
-Let’s see durations in action. The following example demonstrates several aspects of durations. It shows you how to define them, how to perform arithmetic operations on them, how to print them to the screen, and how to convert one duration to another duration with a different tick period:
+让我们看看时间段是如何工作的。以下示例演示了时间段的几种方式，展示了如何定义它们，如何对它们执行算术运算，如何将它们打印到屏幕上，以及如何将一个具有不同时间周期的时间段转换为另一个时间段：
 
 \begin{cpp}
 // Specify a duration where each tick is 60 seconds.
@@ -106,7 +109,7 @@ println("{} = {}", d7, d8);
 println("{} seconds = {} minutes", d7.count(), d8.count());
 \end{cpp}
 
-The output is as follows:
+输出为:
 
 \begin{shell}
 123min (123)
@@ -118,51 +121,51 @@ d3 > d4
 \end{shell}
 
 \begin{myNotic}{NOTE}
-The second line in the output represents the largest possible duration with type double. The exact value might be different depending on your compiler.
+输出中的第二行代表了使用 double 类型的最大可能时间段，具体值可能因编译器而异。
 \end{myNotic}
 
-Pay special attention to the following two lines of code:
+请特别注意以下两行代码：
 
 \begin{cpp}
 duration<double, ratio<60>> d5 { d3 + d4 };
 duration<long, ratio<1>> d6 { d3 + d4 };
 \end{cpp}
 
-They both calculate d3+d4, with d3 given in minutes and d4 in seconds, but the first statement stores it as a floating-point value representing minutes, while the second statement stores the result as an integral value representing seconds. Conversion from minutes to seconds, or vice versa, happens automatically.
+都计算了 d3 + d4，其中 d3 以分钟为单位，d4 以秒为单位，但第一句将结果存储为表示分钟的浮点值，而第二句将结果存储为表示秒的整数值。从分钟到秒，或反之，转换会自动发生。
 
-The following two lines from the example demonstrate how to explicitly convert between different units of time:
+以下两行代码示例展示了，如何显式地在不同时间单位之间进行转换：
 
 \begin{cpp}
 duration<long> d7 { 30 }; // seconds
 duration<double, ratio<60>> d8 { d7 }; // minutes
 \end{cpp}
 
-The first statement defines a duration representing 30 seconds. The second statement converts these 30 seconds into minutes, resulting in 0.5 minutes. Converting in this direction can result in a nonintegral value and thus requires you to use a duration represented by a floating-point type; otherwise, you will get some cryptic compilation errors. The following statements, for example, do not compile because d8 is using long instead of a floating-point type:
+第一句定义了一个表示 30 秒的时间段。第二句将这些 30 秒转换为分钟，结果为 0.5 分钟。这种转换可能会导致非整数值，因此需要使用浮点类型的时间段；否则，将得到一些神秘的编译错误。例如，以下代码不会编译，因为 d8 使用 long 而不是浮点类型：
 
 \begin{cpp}
 duration<long> d7 { 30 }; // seconds
 duration<long, ratio<60>> d8 { d7 }; // minutes // Error!
 \end{cpp}
 
-You can, however, force this conversion by using duration\_cast():
+然而，可以使用 duration\_cast() 强制进行这种转换：
 
 \begin{cpp}
 duration<long> d7 { 30 }; // seconds
 auto d8 { duration_cast<duration<long, ratio<60>>>(d7) }; // minutes
 \end{cpp}
 
-In this case, d8 will be 0 minutes, because integer division is used to convert 30 seconds to minutes.
+这种情况下，d8 将是 0 分钟，因为使用了整数除法将 30 秒转换为分钟。
 
-Converting in the other direction does not require floating-point types if the source is an integral type, because the result is always an integral value if you started with an integral value. For example, the following statements convert ten minutes into seconds, both represented by the integral type long:
+如果源是整数类型，则不需要浮点类型即可进行反向转换，因为如果从整数开始，结果总是整数。例如，以下语句将十分钟转换为秒，两者都使用整数类型 long 表示：
 
 \begin{cpp}
 duration<long, ratio<60>> d9 { 10 }; // minutes
 duration<long> d10 { d9 }; // seconds
 \end{cpp}
 
-\mySubsubsection{22.2.2.}{Predefined Durations}
+\mySubsubsection{22.2.2.}{预定义时间段}
 
-The library provides the following standard duration types in the std::chrono namespace:
+库在 std::chrono 命名空间中提供了以下标准时间段类型：
 
 \begin{cpp}
 using nanoseconds = duration<X 64 bits, nano>;
@@ -178,49 +181,49 @@ using years = duration<X 17 bits,
 using months = duration<X 20 bits, ratio_divide<years::period, ratio<12>>>;
 \end{cpp}
 
-The exact type of X depends on your compiler, but the C++ standard requires it to be a signed integer type of at least the specified size. The preceding type aliases make use of the predefined SI ratio type aliases that are described earlier in this chapter. With these predefined types, instead of writing this:
+X 的确切类型取决于编译器，但 C++ 标准要求至少为指定大小的有符号整数类型。前面的类型别名，使用了在本章早些时候描述的预定义 SI 有理数类型别名。有了这些预定义的类型，就可以这样：
 
 \begin{cpp}
 duration<long, ratio<60>> d9 { 10 }; // minutes
 \end{cpp}
 
-you can simply write this:
+而不是：
 
 \begin{cpp}
 minutes d9 { 10 }; // minutes
 \end{cpp}
 
-The following code is another example of how to use these predefined durations. The code first defines a variable t, which is the result of 1 hour + 23 minutes + 45 seconds. The auto keyword is used to let the compiler automatically figure out the exact type of t. The second statement uses the constructor of the predefined seconds duration to convert the value of t to seconds and writes the result to the console:
+以下代码是另一个如何使用这些预定义时间段的示例。代码首先定义了一个变量 t，是 1 小时 + 23 分钟 + 45 秒，使用 auto 关键字让编译器自动确定 t 的确切类型。第二句使用预定义的 seconds 时间段构造函数将 t 的值转换为秒，并将其写入控制台：
 
 \begin{cpp}
 auto t { hours { 1 } + minutes { 23 } + seconds { 45 } };
 println("{}", seconds { t });
 \end{cpp}
 
-Because the standard requires that the predefined durations use integer types, there can be compilation errors if a conversion could end up with a non-integral value. While integer division normally truncates, in the case of durations, which are implemented with ratio types, the compiler declares any computation that could result in a non-zero remainder as a compile-time error. For example, the following code does not compile because converting 90 seconds to minutes results in 1.5 minutes:
+由于标准要求预定义的时间段使用整数类型，如果转换可能导致非整数值，则可能会出现编译错误。尽管整数除法通常截断，但对于使用比率类型的时间段实现，编译器将可能将非零余数的计算声明为编译时错误。例如，以下代码不会编译，将 90 秒转换为分钟会得到 1.5 分钟：
 
 \begin{cpp}
 seconds s { 90 };
 minutes m { s };
 \end{cpp}
 
-However, the following code does not compile either, even though 60 seconds is exactly 1 minute. It is flagged as a compile-time error because converting from seconds to minutes could result in nonintegral values:
+然而，以下代码也不会编译，尽管 60 秒正好等于 1 分钟。其标记为编译时错误，因为从秒转换为分钟可能会导致非整数值：
 
 \begin{cpp}
 seconds s { 60 };
 minutes m { s };
 \end{cpp}
 
-Converting in the other direction works perfectly fine because the minutes duration uses an integral type, and converting it to seconds always results in an integral value:
+反向转换则完全没问题，因为分钟时间段使用整数类型，并且将其转换为秒总是得到整数值：
 
 \begin{cpp}
 minutes m { 2 };
 seconds s { m };
 \end{cpp}
 
-\mySubsubsection{22.2.3.}{Standard Literals}
+\mySubsubsection{22.2.3.}{标准字面量}
 
-You can use the standard literals h, min, s, ms, us, and ns for creating durations. Technically, these are defined in the std::literals::chrono\_literals namespace, but just as for the standard string literals discussed in Chapter 2, “Working with Strings and String Views,” the chrono\_literals namespace is an inline namespace. So, you can make the chrono literals available with any of the following using directives:
+可以使用标准字面量 h、min、s、ms、us 和 ns 来创建时间段。这些定义在 std::literals::chrono\_literals 命名空间中，但就像在第 2 章中讨论的标准字符串字面量一样，chrono\_literals 命名空间是一个内联命名空间。因此，可以通过以下 using 指令使 chrono 字面量可用：
 
 \begin{cpp}
 using namespace std;
@@ -229,7 +232,7 @@ using namespace std::chrono_literals;
 using namespace std::literals::chrono_literals;
 \end{cpp}
 
-Additionally, the literals are also made available in the std::chrono namespace. Here is an example:
+此外，这些字面量也以 std::chrono 命名空间的形式提供。以下是一个示例：
 
 \begin{cpp}
 using namespace std::chrono;
@@ -239,4 +242,4 @@ auto myDuration { 42min }; // 42 minutes
 
 \mySubsubsection{22.2.4.}{hh\_mm\_ss}
 
-The chrono library provides the hh\_mm\_ss class template, which accepts a Duration and splits the given duration into hours, minutes, seconds, and subseconds. It has getters hours(), minutes(), seconds(), and subseconds() to retrieve the data, always returning non-negative values. The is\_negative() member function returns true if the duration is a negative duration, false otherwise. You’ll use the hh\_mm\_ss class template in one of the exercises at the end of this chapter.
+chrono 库提供了 hh\_mm\_ss 类模板，该模板接受一个时间段，并将给定的时间段分割为小时、分钟、秒和亚秒。它有 getter 方法 hours()、minutes()、seconds() 和 subseconds() 来检索数据，返回非负值。如果时间段是负的，is\_negative() 成员函数则返回 true，否则返回 false。在本章末尾的一个练习中会使用到 hh\_mm\_ss 类模板。
