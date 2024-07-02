@@ -1,11 +1,11 @@
-As mentioned earlier, it is not recommended to specify your own parameters for pseudorandom number engines and engine adapters, but instead to use one of the standard ones. The C++ Standard Library defines the following predefined generators, all in <random>. They all have complicated template arguments, but it is not necessary to understand those arguments to be able to use them.
+如前所述，不建议为伪随机数引擎和引擎适配器指定参数，而应该使用标准给定的。C++标准库定义了以下预定义生成器，都在<random>中。都有复杂的模板参数，但使用时并不需要理解这些参数。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{PREDEFINED GENERATOR} & \textbf{CLASS TEMPLATE}       \\ \hline
+\textbf{预定义生成器} & \textbf{类模板}       \\ \hline
 \endfirsthead
 %
 \endhead
@@ -22,9 +22,9 @@ knuth\_b                      & shuffle\_order\_engine        \\ \hline
 default\_random\_engine       & Implementation-defined        \\ \hline
 \end{longtable}
 
-The default\_random\_engine is compiler dependent.
+default\_random\_engine取决于编译器。
 
-The following section gives an example of how to use these predefined engines.
+下一节将给出如何使用这些预定义引擎的一个示例。
 
 
 

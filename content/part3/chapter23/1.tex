@@ -1,17 +1,17 @@
-Before C++11, you could generate random numbers using the C-style srand() and rand() functions. The srand() function had to be called once in your application and was used to initialize the random number generator, also called seeding. Usually, the current system time would be used as a seed.
+在C++11之前，可以使用C风格的srand()和rand()函数生成随机数。srand()函数需要在应用程序中调用一次，用于初始化随机数生成器，这个过程也称为设置种子。通常，当前系统时间会作为种子。
 
 \begin{myWarning}{WARNING}
-You need to make sure that you use a good-quality seed for your software-based random number generator. If you initialize the random number generator with the same seed every time, you will create the same sequence of random numbers every time. This is why the seed is usually the current system time.
+需要确保为基于软件的随机数生成器使用高质量的种子。如果每次都使用相同的种子初始化随机数生成器，将创建相同的随机数序列。这就是为什么种子通常是当前系统时间的原因。
 \end{myWarning}
 
-Once the generator is initialized, random numbers could be generated with rand(). The following example shows how to use srand() and rand(). The time() function, defined in <ctime>, returns the system time, usually encoded as the number of seconds since the system’s epoch. The epoch represents the beginning of time.
+生成器初始化后，就可以使用rand()生成随机数。以下示例展示了如何使用srand()和rand()。time()函数，定义在<ctime>中，返回系统时间，通常编码为自系统纪元以来的秒数，纪元代表时间的开始。
 
 \begin{cpp}
 srand(static_cast<unsigned int>(time(nullptr)));
 println("{}", rand());
 \end{cpp}
 
-A random number within a certain range could be generated with the following function:
+可以使用以下函数生成一定范围内的随机数：
 
 \begin{cpp}
 int getRandom(int min, int max)
@@ -20,15 +20,15 @@ int getRandom(int min, int max)
 }
 \end{cpp}
 
-The old C-style rand() function generates random numbers in the range 0 to RAND\_MAX, which is defined by the standard to be at least 32,767. You cannot generate random numbers larger than RAND\_MAX. On some systems, for example GCC, RAND\_MAX is 2,147,483,647, which equals the maximum value of a signed integer. To prevent arithmetic overflow on such systems, the formula in getRandom() uses unsigned long calculations, due to the use of 1UL instead of just 1.
+旧的C风格rand()函数生成0到RAND\_MAX范围内的随机数，标准定义为至少为32,767。不能生成大于RAND\_MAX的随机数。某些系统上，例如GCC，RAND\_MAX是2,147,483,647，等于有符号整数的最大值。为了防止这样的系统上的算术溢出，getRandom()中的公式使用了无符号长整型(UL)计算。
 
-Additionally, the low-order bits of rand() are often not very random, which means that using the previous getRandom() function to generate a random number in a small range, such as 1 to 6, will not result in good randomness.
+此外，rand()的低阶位通常不是很随机，所以使用先前的getRandom()函数在较小的范围内生成随机数，例如1到6，将无法提供好的随机性。
 
 \begin{myNotic}{NOTE}
-Software-based random number generators can never generate truly random numbers. They are therefore called pseudorandom number generators (PRNGs) because they rely on mathematical formulas to give the impression of randomness.
+基于软件的随机数生成器永远不能生成真正的随机数，所以称为伪随机数生成器（PRNG），因为它们依赖于数学公式，从而给人一种随机性的感觉。
 \end{myNotic}
 
-Besides generating bad-quality random numbers, the old srand() and rand() functions don’t offer much in terms of flexibility either. You cannot, for example, change the distribution of the generated random numbers. In conclusion, it’s highly recommended to stop using srand() and rand() and start using the classes from <random> explained in the upcoming sections.
+除了生成低质量的随机数之外，旧的srand()和rand()函数在灵活性方面也没有提供太多。例如，不能更改生成的随机数的分布。总之，强烈建议停止使用srand()和rand()，并开始使用<random>中的类。
 
 
 
