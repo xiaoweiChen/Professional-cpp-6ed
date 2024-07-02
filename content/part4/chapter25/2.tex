@@ -134,11 +134,11 @@ Certain C++ Standard Library containers might possibly use a graph in their impl
 
 Before starting with writing any code, let’s first take a look at what kind of data structure a directed graph is and how to represent its data in memory. Figure 25.1 shows a visual representation of a directed graph example. Basically, a directed graph consists of a set of nodes, also called vertices, which are connected by edges. Additionally, every edge has a direction, indicated by the arrows, which is why it’s called a directed graph.
 
-\myGraphic{0.7}{content/part4/chapter25/images/1.png}{FIGURE 25.1}
+\myGraphic{0.4}{content/part4/chapter25/images/1.png}{图 25.1}
 
 There are multiple ways to store such a data structure in memory, such as edge lists, adjacency matrices, and adjacency lists. This implementation uses adjacency lists. Nodes are stored in a vector with each node having an adjacency list listing its neighboring nodes. Let’s look at an example. Suppose you have the directed graph from Figure 25.2. Representing this graph with adjacency lists results in the following data structure:
 
-\myGraphic{0.7}{content/part4/chapter25/images/2.png}{FIGURE 25.2}
+\myGraphic{0.25}{content/part4/chapter25/images/2.png}{图 25.2}
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}

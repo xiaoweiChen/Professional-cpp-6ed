@@ -1,28 +1,25 @@
 \noindent
-\textbf{WHAT’S IN THIS CHAPTER?}
+\textbf{内筒概要}
 
 \begin{itemize}
 \item
-What vocabulary types are
+词汇类型是什么?
 
 \item
-How to use the variant and any data types
+如何使用变量和any数据类型
 
 \item
-What tuples are and how to use them
+什么是tuple，以及如何使用
 
 \item
-How to use monadic operations with optional
+如何使用一元操作与optional
 
 \item
-How to represent a value or an error using expected
+如何表示一个值或错误使用expected
 \end{itemize}
 
-\noindent
-\textbf{WILEY.COM DOWNLOADS FOR THIS CHAPTER}
+本章的所有代码示例都可以在\url{https://github.com/Professional-CPP/edition-6}获得。
 
-Please note that all the code examples for this chapter are available as part of this chapter’s code download on the book’s website at \url{www.wiley.com/go/proc++6e} on the Download Code tab.
+词汇类型是可能经常使用的类型，就像整数类型如int和double一样。它们经常用来构建更复杂的类型，使用词汇类型可以使代码更安全、更高效，并且更容易编写、阅读和维护。本书中早些时候讨论的词汇类型示例包括vector、optional、string、unique\_ptr、shared\_ptr等。
 
-Vocabulary types are types that you are likely to use all the time, just as much as primitive types such as int and double. They are often used to build more complex types. Using vocabulary types makes your code safer, more efficient, and easier to write, read, and maintain. Examples of vocabulary types discussed earlier in this book are vector, optional, string, unique\_ptr, shared\_ptr, and so on.
-
-This chapter starts the discussion with two additional vocabulary types: variant and any. It then continues with a more in-depth discussion of tuples, a generalization of pairs, and their operations. Next is monadic operation support for optionals, which makes chaining operations on optionals so much easier. This is because you won’t have to verify whether an optional is empty before applying a next operation on it. The chapter finishes with a discussion of expected, which is a data type capable of storing either a value of an expected type or an error value. The type used to represent the error can be different than the type of the value.
+本章从两个词汇类型开始讨论：variant和any。然后，继续更深入地讨论了tuple(这是对pair的一种扩展)，以及操作。接下来是支持可选项的一元运算，这使得在可选项上串联操作变得更加容易，无需在应用下一个操作之前验证可选项是否为空。本章以讨论expected结束，这是一种能够存储预期类型值或错误值的数据类型，用于表示错误的类型，可以与值的类型不同。

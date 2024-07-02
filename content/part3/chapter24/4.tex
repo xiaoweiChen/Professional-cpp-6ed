@@ -1,22 +1,22 @@
 
-\CXXTwentythreeLogo{-40}{5}
+\CXXTwentythreeLogo{-40}{15}
 
-Chapter 1 introduces the basics of std::optional. C++23 adds three new member functions to optional, collectively called monadic operations. These allow you to chain operations on an optional without having to check whether the optional has a value before applying each operation.
+第1章介绍了 std::optional 的基础知识。C++23 为 optional 添加了三个新的成员函数，统称为 一元(monadic)操作。这些操作允许在不检查 optional 是否有值的情况下，对 optional 进行链式操作。
 
-The following monadic operations are available:
+以下可用的一元操作：
 
 \begin{itemize}
 \item
-transform(F): Returns an optional containing the result of invoking F with the value of *this as argument if *this has a value; otherwise, returns an empty optional
+transform(F): 如果 *this 有值，则返回一个包含调用 F 并传递 *this 的值作为参数的结果的 optional；否则，返回一个空的 optional
 
 \item
-and\_then(F): Returns the result (which must be an optional) of invoking F with the value of *this as argument if *this has a value; otherwise, returns an empty optional
+and\_then(F): 如果 *this 有值，则返回调用 F 并传递 *this 的值作为参数的结果（结果必须是 optional）；否则，返回一个空的 optional
 
 \item
-or\_else(F): Returns *this if *this has a value; otherwise, returns the result (which must be an optional) of invoking F
+or\_else(F): 如果 *this 有值，则返回 *this；否则，返回调用 F 的结果（结果必须是 optional）
 \end{itemize}
 
-Let’s look at an example. The following function parses a given string for an integer and returns the result as an optional. If the string cannot be parsed as an integer, an empty optional is returned.
+来看一个例子。以下函数解析给定的字符串以获取一个整数，并返回结果作为 optional。如果字符串不能被解析为整数，则返回一个空的 optional。
 
 \begin{cpp}
 optional<int> Parse(const string& str)
@@ -26,7 +26,7 @@ optional<int> Parse(const string& str)
 }
 \end{cpp}
 
-The following loop repeatedly asks the user to give some input. Parse() is called to parse the user’s input. If the input is successfully parsed as an integer, the integer is doubled with and\_then() and converted back to a string with transform(). If the input cannot be parsed, or\_else() is used to return the string “No Integer.” Thanks to monadic operations, there is no need to check whether the optionals returned from Parse() and and\_then() contain a value before applying the next operation on them. The error handling is taken care of for you. The different operations can simply be chained together.
+以下循环反复要求用户输入一些内容。Parse() 调用以解析用户的输入，如果输入可以成功解析为整数，则使用 and\_then() 将整数加倍，并使用 transform() 将整数转换回字符串。如果输入无法解析，则使用 or\_else() 返回字符串“No Integer”。由于 一元 操作，无需在应用 Parse() 和 and\_then() 返回的 optional 的下一个操作之前检查它们是否包含值，错误处理已经处理过了。不同的操作可以简单地串联在一起。
 
 \begin{cpp}
 while (true) {
@@ -42,7 +42,7 @@ while (true) {
 }
 \end{cpp}
 
-Here is some sample output:
+输出为：
 
 \begin{shell}
 Enter an integer (q to stop): 21
@@ -51,9 +51,9 @@ Enter an integer (q to stop): Test
     > Result: No Integer
 \end{shell}
 
-\CXXTwentythreeLogo{-40}{-20}
-
 \begin{myNotic}{NOTE}
-Starting with C++23, optional is a constexpr class (see Chapter 9) and so can be used at compile time.
+从 C++23 开始，optional 是一个 constexpr 类（请参阅第9章），可以在编译时使用。
 \end{myNotic}
+
+\CXXTwentythreeLogo{-40}{25}
 

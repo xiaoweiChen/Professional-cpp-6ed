@@ -1,5 +1,5 @@
 
-The std::pair class, defined in <utility> and introduced in Chapter 1, can store exactly two values, each with a specific type. The type of each value must be known at compile time. Here is a short reminder:
+std::pair 类定义在 <utility> 头文件中，并在第 1 章中引入，可以存储两个值，每个值都有特定的类型。每个值的类型必须在编译时已知:
 
 \begin{cpp}
 pair<int, string> p1 { 16, "Hello World" };
@@ -8,51 +8,51 @@ println("p1 = ({}, {})", p1.first, p1.second);
 println("p2 = ({}, {})", p2.first, p2.second);
 \end{cpp}
 
-The output is as follows:
+输出如下所示:
 
 \begin{shell}
 p1 = (16, Hello World)
 p2 = (true, 0.123)
 \end{shell}
 
-Starting with C++23, std::format() and the print() functions have full support for pairs. For example, the two println() statements in the previous code snippet can be written as follows:
+从 C++23 开始，std::format() 和打印函数完全支持 std::pair。例如，前面代码片段中的两个 println() 语句可以写成以下形式：
 
 \begin{cpp}
 println("p1 = {}", p1);
 println("p2 = {}", p2);
 \end{cpp}
 
-The output is as follows, with strings surrounded by double quotes:
+输出如下，双引号包围字符串：
 
 \begin{shell}
 p1 = (16, "Hello World")
 p2 = (true, 0.123)
 \end{shell}
 
-An std::tuple, defined in <tuple>, is a generalization of a pair. It allows you to store any number of values, each with its own specific type. Just like a pair, a tuple has a fixed size and fixed value types, which are determined at compile time.
+std::tuple，定义在 <tuple> 头文件中，是对 std::pair 的扩展。允许存储任意数量的值，每个值都有其自己的特定类型。就像 std::pair 一样，std::tuple 有固定的大小和固定的值类型，在编译时确定。
 
-A tuple can be created with a tuple constructor, specifying both the template types and the actual values. For example, the following code creates a tuple where the first element is an integer, the second element is a string, and the last element is a Boolean:
+可以使用 tuple 构造函数创建一个 tuple，指定模板类型和实际值。例如，下面的代码创建了一个 tuple，其中第一个元素是整数，第二个元素是字符串，最后一个元素是布尔值：
 
 \begin{cpp}
 using MyTuple = tuple<int, string, bool>;
 MyTuple t1 { 16, "Test", true };
 \end{cpp}
 
-Just as for pair, starting with C++23, std::format() and the print() functions fully support tuples:
+就像使用 std::pair 一样，从 C++23 开始，std::format() 和打印函数完全支持 std::tuple：
 
 \begin{cpp}
 println("t1 = {}", t1);
 // Outputs: t1 = (16, "Test", true)
 \end{cpp}
 
-std::get<i>() is used to get the ith element from a tuple, where i is a zero-based index; that is, <0> is the first element of the tuple, <1> is the second element of the tuple, and so on. The value returned has the correct type for that index in the tuple:
+std::get<i>() 用于从 tuple 中获取第 i 个元素，其中 i 是一个零基索引；也就是说，<0> 是 tuple 的第一个元素，<1> 是 tuple 的第二个元素，依此类推。返回的值具有 tuple 中该索引的正确类型：
 
 \begin{cpp}
 println("t1 = ({}, {}, {})", get<0>(t1), get<1>(t1), get<2>(t1));
 // Outputs: t1 = (16, Test, true)
 \end{cpp}
 
-You can check that get<i>() returns the correct type by using typeid(), from <typeinfo>. The output of the following code confirms that the value returned by get<1>(t1) is indeed an std::string (as mentioned before, the exact string returned by typeid().name() is compiler dependent):
+可以通过使用 typeid()，从 <typeinfo>，来检查 get<i>() 返回的正确类型。以下代码确认了 get<1>(t1) 返回的值确实是一个 std::string（正如之前所述，typeid().name() 返回的确切字符串取决于编译器）：
 
 \begin{cpp}
 println("Type of get<1>(t1) = {}", typeid(get<1>(t1)).name());
@@ -60,7 +60,7 @@ println("Type of get<1>(t1) = {}", typeid(get<1>(t1)).name());
 // struct std::char_traits<char>,class std::allocator<char> >
 \end{cpp}
 
-You can use the std::tuple\_element class template to get the type of an element based on the element’s index at compile time. tuple\_element requires you to specify the type of the tuple (MyTuple in this case) and not an actual tuple instance like t1. Here is an example:
+可以使用 std::tuple\_element 类模板在编译时根据元素的索引，获取元素的类型。tuple\_element 需要指定 tuple 的类型（这个例子中是 MyTuple），而不是实际的 tuple 实例，如 t1。以下是一个例子：
 
 \begin{cpp}
 println("Type of element with index 2 = {}",
@@ -68,36 +68,36 @@ println("Type of element with index 2 = {}",
 // Outputs: Type of element with index 2 = bool
 \end{cpp}
 
-You can also retrieve an element from a tuple based on its type with std::get<T>(), where T is the type of the element you want to retrieve instead of the index. The compiler generates an error if the tuple has several elements with the requested type. For example, you can retrieve the string element from t1 as follows:
+可以根据元素的类型从 tuple 中检索元素，使用 std::get<T>()，其中 T 是要检索的元素的类型，而不是索引。如果 tuple 有多个具有请求类型的元素，编译器将生成一个错误。例如，可以像以下这样从 t1 中检索字符串元素：
 
 \begin{cpp}
 println("String = {}", get<string>(t1));
 // Outputs: String = Test
 \end{cpp}
 
-Iterating over the values of a tuple is unfortunately not straightforward. You cannot write a simple loop and call something like get<i>(mytuple) because the value of i must be known at compile time. A possible solution is to use template metaprogramming, which is discussed in detail in Chapter 26, “Advanced Templates,” together with an example on how to print tuple values.
+不幸的是，遍历 tuple 的值并不是那么直接。不能编写一个简单的循环，并调用类似 get<i>(mytuple) 的东西，因为 i 的值必须在编译时已知。一个可能的解决方案是使用模板元编程，这在第 26 章中有详细介绍，其中还包括一个如何打印 tuple 值的示例。
 
-The size of a tuple can be queried with the std::tuple\_size class template. As with tuple\_ element, tuple\_size requires you to specify the type of the tuple, not an actual tuple:
+tuple 的大小可以通过 std::tuple\_size 类模板查询。与 tuple\_element 一样，tuple\_size 需要指定 tuple 的类型：
 
 \begin{cpp}
 println("Tuple Size = {}", tuple_size<MyTuple>::value);
 // Outputs: Tuple Size = 3
 \end{cpp}
 
-If you don’t know a tuple’s exact type, you can always use decltype() to query for its type as follows:
+如果不知道 tuple 的确切类型，可以使用 decltype() 来查询类型：
 
 \begin{cpp}
 println("Tuple Size = {}", tuple_size<decltype(t1)>::value);
 // Outputs: Tuple Size = 3
 \end{cpp}
 
-With class template argument deduction (CTAD) you can omit the template type parameters when constructing a tuple and let the compiler deduce them automatically based on the types of the arguments passed to the constructor. For example, the following defines the same t1 tuple consisting of an integer, a string, and a Boolean. Note that you now have to specify "Test"s using the s string literal to make sure it’s an std::string:
+使用类模板参数推断（CTAD），当构造一个 tuple 时，可以省略模板类型参数，让编译器自动根据传递给构造函数的参数类型推断它们。例如，下面的代码定义了与 t1 相同的 tuple，包含一个整数、一个字符串和一个布尔值。请注意，现在必须使用 s 字符串字面量来指定 "Test"，以确保它是一个 std::string：
 
 \begin{cpp}
 tuple t1 { 16, "Test"s, true };
 \end{cpp}
 
-With CTAD, you do not explicitly specify the types stored in a tuple and so you cannot use \& to specify references. If you want to use CTAD to generate a tuple containing a reference-to-non-const or a reference-to-const, then you need to use ref() or cref(), respectively, both defined in <functional>. These create instances of reference\_wrapper<T> or reference\_wrapper<const T>. For example, the following statements result in a tuple of type tuple<int, double\&, const double\&, string\&>:
+使用 CTAD时，不需要显式指定存储在 tuple 中的类型，因此不能使用 \& 来指定引用。如果想要使用 CTAD 来生成一个包含非常量引用或常量引用的 tuple，那么需要使用 <functional> 中定义的 ref() 或 cref()，这些函数会创建 reference\_wrapper<T> 或 reference\_wrapper<const T> 的实例。例如，以下语句会创建一个类型为 tuple<int, double\&, const double\&, string\&> 的 tuple：
 
 \begin{cpp}
 double d { 3.14 };
@@ -105,7 +105,7 @@ string str1 { "Test" };
 tuple t2 { 16, ref(d), cref(d), ref(str1) };
 \end{cpp}
 
-To test the double reference stored in t2, the following code first writes the value of the double variable to the console. The call to get<1>(t2) returns a reference to d because ref(d) is used for the second (index 1) tuple element. The second statement changes the value of the variable referenced, and the last statement shows that the value of d is indeed changed through the reference stored in the tuple. Note that the third line fails to compile because cref(d) is used for the third tuple element; that is, it is a reference-to-const to d:
+为了测试存储在 t2 中的双精度浮点数引用，以下代码首先将双精度浮点数变量的值写入控制台。对 get<1>(t2) 的调用返回对 d 的引用，因为 ref(d) 用于第二个（索引 1）的 tuple 元素。第二个语句改变了引用的变量的值，而最后一个语句显示，通过 tuple 中存储的引用确实改变了 d 的值。注意，第三个语句因为使用了 cref(d) 作为第三个 tuple 元素而无法编译；所以，是对 d 的常量引用：
 
 \begin{cpp}
 println("d = {}", d);
@@ -116,19 +116,19 @@ println("d = {}", d);
 // d = 6.28
 \end{cpp}
 
-Without class template argument deduction, you can use the std::make\_tuple() function template to create a tuple. Since it is a function template, it supports function template argument deduction and hence also allows you to create a tuple by only specifying the actual values. The types are deduced automatically at compile time. Here’s an example:
+如果没有类模板参数推断，可以使用 std::make\_tuple() 函数模板来创建一个 tuple。由于它是一个函数模板，支持函数模板参数推断，因此也允许通过指定实际值来创建一个 tuple。类型在编译时自动推断。这是一个例子：
 
 \begin{cpp}
 auto t2 { make_tuple(16, ref(d), cref(d), ref(str1)) };
 \end{cpp}
 
-\mySubsubsection{24.3.1.}{Decompose Tuples}
+\mySubsubsection{24.3.1.}{分解Tuple}
 
-There are two ways in which you can decompose a tuple into its individual elements: structured bindings and std::tie().
+可以通过两种方式将tuple分解为其单独的元素：结构化绑定和 std::tie()。
 
-\mySamllsection{Structured Bindings}
+\mySamllsection{结构化绑定}
 
-Structured bindings, available since C++17, make it easy to decompose a tuple into separate variables. For example, the following code defines a tuple consisting of an integer, a string, and a Boolean value, and then uses a structured binding to decompose it into three distinct variables:
+自从C++17以来，结构化绑定使分解元组到单独变量变得容易。例如，以下代码定义了一个由整数、字符串和布尔值组成的tuple，然后使用结构化绑定将其分解为三个不同的变量：
 
 \begin{cpp}
 tuple t1 { 16, "Test"s, true };
@@ -136,7 +136,7 @@ auto [i, str, b] { t1 };
 println("Decomposed: i = {}, str = \"{}\", b = {}", i, str, b);
 \end{cpp}
 
-You can also decompose a tuple into references, allowing you to modify the contents of the tuple through those references. Here’s an example:
+还可以将tuple分解为引用，通过这些引用修改元组的内容。这里是一个例子：
 
 \begin{cpp}
 auto& [i2, str2, b2] { t1 };
@@ -145,11 +145,11 @@ str2 = "Hello World";
 b2 = !b2;
 \end{cpp}
 
-With structured bindings, you cannot ignore specific elements while decomposing a tuple. If your tuple has three elements, then your structured binding needs three variables.
+使用结构化绑定时，不能在分解元组时忽略特定的元素。如果元组有三个元素，则结构化绑定时也需要三个变量。
 
 \mySamllsection{tie}
 
-If you want to decompose a tuple without structured bindings, you can use the std::tie() utility function, which generates a tuple of references. The following example first creates a tuple consisting of an integer, a string, and a Boolean value. It then creates three variables—an integer, a string, and a Boolean—and writes the values of those variables to the console. The tie(i, str, b) call creates a tuple containing a reference to i, a reference to str, and a reference to b. The assignment operator is used to assign tuple t1 to the result of tie(). Because the result of tie() is a tuple of references, the assignment actually changes the values in the three separate variables, as is shown by the output of the values after the assignment:
+如果想在没有结构化绑定的情况下分解元组，可以使用 std::tie() 辅助函数，它生成一个引用的tuple。以下示例首先创建了一个由整数、字符串和布尔值组成的元组。然后它创建了三个变量——一个整数、一个字符串和一个布尔值——并将这些变量的值写入控制台。tie(i, str, b) 调用创建了一个包含对 i、对 str 和对 b 的引用的tuple。赋值运算符用于将元组 t1 分配给 tie() 的结果。因为 tie() 的结果是一个引用的元组，所以赋值实际上改变了三个单独变量中的值，如下面的输出所显示：
 
 \begin{cpp}
 tuple t1 { 16, "Test"s, true };
@@ -161,22 +161,22 @@ tie(i, str, b) = t1;
 println("After: i = {}, str = \"{}\", b = {}", i, str, b);
 \end{cpp}
 
-The result is as follows:
+结果为:
 
 \begin{shell}
 Before: i = 0, str = "", b = false
 After: i = 16, str = "Test", b = true
 \end{shell}
 
-With tie() you can ignore certain elements that you do not want to be decomposed. Instead of a variable name for the decomposed element, you use the special std::ignore value. For example, the string element of the t1 tuple can be ignored by replacing the tie() statement from the previous example with the following:
+使用 tie() 时，可以忽略您不想分解的某些元素。对于要分解的元素，使用特殊的 std::ignore 值即可。例如，可以通过将上一个示例中的 tie() 语句替换为以下内容，来忽略 t1 中的字符串元素：
 
 \begin{cpp}
 tie(i, ignore, b) = t1;
 \end{cpp}
 
-\mySubsubsection{24.3.2.}{Concatenation}
+\mySubsubsection{24.3.2.}{连接}
 
-You can use std::tuple\_cat() to concatenate two tuples into one. In the following example, the type of t3 is tuple<int, string, bool, double, string>:
+可以使用 std::tuple\_cat() 将两个元组连接成一个。在以下示例中，t3 的类型是 tuple<int, string, bool, double, string>：
 
 \begin{cpp}
 tuple t1 { 16, "Test"s, true };
@@ -185,15 +185,15 @@ auto t3 { tuple_cat(t1, t2) };
 println("t3 = {}", t3);
 \end{cpp}
 
-The output is as follows:
+输出为:
 
 \begin{shell}
 t3 = (16, "Test", true, 3.14, "string 2")
 \end{shell}
 
-\mySubsubsection{24.3.3.}{Comparisons}
+\mySubsubsection{24.3.3.}{比较}
 
-Tuples support all comparison operators. For the comparison operators to work, the element types stored in the tuple should support them as well. Here is an example:
+tuple支持所有比较运算符。为了使比较运算符工作，tuple中存储的元素类型也应支持比较运算符。以下是示例：
 
 \begin{cpp}
 tuple t1 { 123, "def"s };
@@ -202,13 +202,13 @@ if (t1 < t2) { println("t1 < t2"); }
 else { println("t1 >= t2"); }
 \end{cpp}
 
-The output is as follows:
+输出为:
 
 \begin{shell}
 t1 >= t2
 \end{shell}
 
-Tuple comparisons can be used to easily implement lexicographical comparison operators for custom types that have several data members. For example, suppose you have the following class with three data members:
+tuple比较可以用来轻松实现自定义类型的字典顺序比较运算符，这些自定义类型具有多个数据成员。例如，有如下类及其三个数据成员：
 
 \begin{cpp}
 class Foo
@@ -223,13 +223,13 @@ class Foo
 };
 \end{cpp}
 
-Correctly implementing a full set of comparison operators that compare all data members of Foo is trivial by explicitly defaulting operator<=> as follows:
+正确实现一个完整的比较运算符集合，以便比较 Foo 的所有数据成员，可以通过显式默认 operator<=> 来实现：
 
 \begin{cpp}
 auto operator<=>(const Foo& rhs) const = default;
 \end{cpp}
 
-This automatically compares all data members. However, if the semantics of a class are such that a comparison between two instances should take only a subset of the data members into account, then correctly implementing a full set of comparison operators for such a class is not trivial! But, with std::tie() and the three-way comparison operator (operator<=>), it does become easy, a simple one-liner. The following is an implementation of operator<=> for Foo comparing only the m\_int and m\_str data members and ignoring m\_bool:
+这会自动比较所有数据成员，但如果类的语义是这样的，即两个实例之间的比较应该只考虑数据成员的一个子集，那么正确实现这样一个类的完整的比较运算符集合就很困难了！但有了 std::tie() 和三向比较运算符（operator<=>），这就会变得很容易，只需要一行代码。以下是 Foo 类中仅比较 m\_int 和 m\_str 数据成员，并忽略 m\_bool 的 operator<=> 实现：
 
 \begin{cpp}
 auto operator<=>(const Foo& rhs) const
@@ -238,7 +238,7 @@ auto operator<=>(const Foo& rhs) const
 }
 \end{cpp}
 
-Here is an example of its use:
+以下是使用示例：
 
 \begin{cpp}
 Foo f1 { 42, "Hello", false };
@@ -249,7 +249,7 @@ println("{}", (f2 > f1)); // Outputs true
 
 \mySubsubsection{24.3.4.}{make\_from\_tuple}
 
-std::make\_from\_tuple<T>() constructs an object of a given type T, passing the elements of a given tuple as arguments to the constructor of T. For example, suppose you have the following class:
+std::make\_from\_tuple<T>() 构造一个给定类型 T 的对象，并将给定tuple中的元素作为 T 构造函数的参数传递。例如，有如下类：
 
 \begin{cpp}
 class Foo
@@ -262,20 +262,20 @@ class Foo
 };
 \end{cpp}
 
-You can use make\_from\_tuple() as follows:
+可以使用 make\_from\_tuple()：
 
 \begin{cpp}
 tuple myTuple { "Hello world.", 42 };
 auto foo { make_from_tuple<Foo>(myTuple) };
 \end{cpp}
 
-Technically, the argument to make\_from\_tuple() does not have to be a tuple, but it has to be something that supports std::get<>() and tuple\_size. Both std::array and pair satisfy these requirements as well.
+传递给 make\_from\_tuple() 的参数不一定是tuple，但必须支持 std::get<>() 和 tuple\_size，std::array 和 pair 也满足这些要求。
 
-This function is not that practical for everyday use, but it comes in handy when writing generic code using templates and template metaprogramming.
+这个函数在日常使用中并不实用，但在编写使用模板和模板元编程的代码时会派上用场。
 
 \mySubsubsection{24.3.5.}{apply}
 
-std::apply() calls a given callable, passing the elements of a given tuple as arguments. Here is an example:
+std::apply() 调用一个给定的可调用对象，并将给定tuple中的元素作为参数传递。以下是示例：
 
 \begin{cpp}
 int add(int a, int b) { return a + b; }
@@ -283,7 +283,7 @@ int add(int a, int b) { return a + b; }
 println("{}", apply(add, tuple { 39, 3 }));
 \end{cpp}
 
-As with make\_from\_tuple(), this function is also more useful when writing generic code using templates and template metaprogramming than for everyday use.
+与 make\_from\_tuple() 一样，这个函数在编写使用模板和模板元编程的通用代码时，会更有用。
 
 
 

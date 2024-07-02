@@ -1,10 +1,10 @@
-std::variant, defined in <variant>, can hold a single value of one of a given set of types. When you define a variant, you must specify the types it can potentially contain. For example, the following code defines a variant that can contain an integer, a string, or a floating-point value, but only one at a time:
+std::variant定义在 <variant> 头文件中，可以存储一组给定类型中的一种值。当定义一个 variant 时，必须指定它可能包含的类型。例如，下面的代码定义了一个 variant，可以包含整数、字符串或浮点值，但一次只能存储一个：
 
 \begin{cpp}
 variant<int, string, float> v;
 \end{cpp}
 
-The template type arguments for a variant must be unique; for example, variant<int,int> is invalid. A default-constructed variant contains a default-constructed value of its first type, int in the case of the variant v. If you want to be able to default construct a variant, you must make sure that the first type of the variant is default constructible. For example, the following does not compile because Foo is not default constructible:
+variant 的模板类型参数必须是唯一的；例如，variant<int,int> 是无效的。一个默认构造的 variant 包含其第一个类型（这个例子中是 int）的默认构造值。如果想能够默认构造一个 variant，必须确保 variant 的第一个类型是可以默认构造的。例如，下面的代码因为 Foo 不是默认构造的，所以无法编译：
 
 \begin{cpp}
 class Foo { public: Foo() = delete; Foo(int) {} };
@@ -13,13 +13,13 @@ class Bar { public: Bar() = delete; Bar(int) {} };
 variant<Foo, Bar> v;
 \end{cpp}
 
-In fact, neither Foo nor Bar is default constructible. If you still want to be able to default construct such a variant, then you can use std::monostate, a well-behaved empty alternative, as the first type of the variant:
+实际上，Foo 和 Bar 都不是默认构造的。如果仍然希望能够默认构造这样的 variant，那么可以将 std::monostate(一个行为良好的空值替代品)，作为 variant 的第一个类型：
 
 \begin{cpp}
 variant<monostate, Foo, Bar> v;
 \end{cpp}
 
-You can use the assignment operator to store something in a variant:
+可以使用赋值运算符将值存储在 variant 中：
 
 \begin{cpp}
 variant<int, string, float> v;
@@ -28,23 +28,23 @@ v = 12.5f;
 v = "An std::string"s;
 \end{cpp}
 
-A variant can contain only one value at any given time. So, with these three assignment statements, first the integer 12 is stored in the variant, then the variant is modified to contain a single floatingpoint value, and lastly, the variant is modified again to contain a single string value.
+variant 在任何给定时间只能包含一个值。所以，通过这三个赋值语句，首先将整数 12 存储在 variant 中，然后 variant 修改为一个浮点值，最后 variant 再次被修改为包含一个字符串值。
 
-You can use the index() member function to get the zero-based index of the value’s type that is currently stored in the variant, and you can use the std::holds\_alternative() function template to figure out whether a variant currently contains a value of a certain type:
+可以使用 index() 成员函数来获取，当前存储在 variant 中的值的零基索引，可以使用 std::holds\_alternative() 函数模板，来确定 variant 是否当前包含特定类型的值：
 
 \begin{cpp}
 println("Type index: {}", v.index());
 println("Contains an int: {}", holds_alternative<int>(v));
 \end{cpp}
 
-The output is as follows:
+输出为：
 
 \begin{shell}
 Type index: 1
 Contains an int: false
 \end{shell}
 
-Use std::get<index>() or get<T>() to retrieve the value from a variant, where index is the zerobased index of the type you want to retrieve, and T is the type you want to retrieve. These functions throw a bad\_variant\_access exception if you are using the index of a type, or a type, that does not match the current value in the variant:
+使用 std::get<index>() 或 get<T>() 从 variant 中检索值，其中 index 是想要检索的类型的零基索引，T 是想要检索的类型。如果使用类型索引或类型，函数将抛出一个 bad\_variant\_access 异常：
 
 \begin{cpp}
 println("{}", get<string>(v));
@@ -55,14 +55,14 @@ try {
 }
 \end{cpp}
 
-This is the output:
+输出为：
 
 \begin{shell}
 An std::string
 Exception: bad variant access
 \end{shell}
 
-To avoid exceptions, use the std::get\_if<index>() or get\_if<T>() helper function. These functions accept a pointer to a variant and return a pointer to the requested value, or nullptr on error:
+为了避免异常，可以使用 std::get\_if<index>() 或 get\_if<T>() 辅助函数。这些函数接受一个指向 variant 的指针，并返回一个指向请求值的指针，或者在错误时返回 nullptr：
 
 \begin{cpp}
 string* theString { get_if<string>(&v) };
@@ -71,26 +71,26 @@ println("Retrieved string: {}", (theString ? *theString : "n/a"));
 println("Retrieved int: {}", (theInt ? to_string(*theInt) : "n/a"));
 \end{cpp}
 
-Here is the output:
+输出为：
 
 \begin{shell}
 Retrieved string: An std::string
 Retrieved int: n/a
 \end{shell}
 
-An std::visit() helper function is available that you can use to apply the visitor pattern to a variant. A visitor has to be a callable, e.g., a function, a lambda expression, or a function object, that can accept any type that may be stored in the variant. A first example just uses a generic lambda, which can accept any type, as the callable passed as the first argument to visit():
+std::visit() 是一个辅助函数，可以使用它在variant上使用用访问者模式 。访问者必须是一个可调用的对象，例如一个函数、一个 Lambda 表达式或一个函数对象，它可以接受 variant 中可能存储的类型。一个简单的例子只是使用一个通用的 Lambda 作为第一个参数传递给 visit() 的可调用的对象：
 
 \begin{cpp}
 visit([](auto&& value) { println("Value = {}", value); }, v);
 \end{cpp}
 
-The output is as follows:
+输出为:
 
 \begin{shell}
 Value = An std::string
 \end{shell}
 
-If you want to handle each type stored in the variant in a different way, then you can write your own visitor class. Suppose you have the following visitor class that defines a number of overloaded function call operators, one for each possible type in the variant. This implementation marks all its function call operators as static (possible since C++23), as they don’t require access to any non-static member functions or data members of MyVisitor.
+如果想以不同的方式处理 variant 中存储的每个类型，可以编写自己的访问者类。假设有以下访问者类，定义了多个重载的函数调用运算符，一个用于 variant 中可能存储的每个可能类型。这个实现将所有它的函数调用运算符标记为静态的（自 C++23 开始），因为不需要访问非静态成员函数或数据成员：
 
 \begin{cpp}
 class MyVisitor
@@ -102,27 +102,25 @@ class MyVisitor
 };
 \end{cpp}
 
-You can use this with std::visit() as follows:
+可以这样使用 std::visit()：
 
 \begin{cpp}
 visit(MyVisitor{}, v);
 \end{cpp}
 
-The result is that the appropriate overloaded function call operator is called based on the current value stored in the variant. The output for this example is as follows:
+结果是根据 variant 中当前存储的值，调用适当的函数调用运算符。这个例子中的输出如下所示：
 
 \begin{shell}
 string: An std::string
 \end{shell}
 
-A variant cannot store an array, and as with optional introduced in Chapter 1, “A Crash Course in C++ and the Standard Library,” it cannot store references. You can store either pointers or instances of reference\_wrapper<T> or reference\_wrapper<const T> (see Chapter 18, “Standard Library Containers”).
-
-\CXXTwentythreeLogo{-40}{-50}
+variant 不能存储数组，并且与第 1 章中介绍的 optional 一样，也不能存储引用。可以存储指针或 reference\_wrapper<T> 或 reference\_wrapper<const T> 的实例（请参阅第 18 章）。
 
 \begin{myNotic}{NOTE}
-Starting with C++23, variant is a constexpr class, so it can be used at compile time. See Chapter 9, “Mastering Classes and Objects,” for more on constexpr classes.
+C++23 开始，variant 是一个 constexpr 类，因此可以在编译时使用。有关 constexpr 类的更多信息，参见第 9 章。
 \end{myNotic}
 
-
+\CXXTwentythreeLogo{-40}{35}
 
 
 

@@ -1,20 +1,20 @@
-By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+通过解决下面的练习，可以练习本章讨论的内容。所有练习的解决方案都可以在本书的网站\url{www.wiley.com/go/proc++6e}下载到源码。然而，若在练习中卡住了，在从网站上寻找解决方案之前，可以考虑先重读本章的部分内容，试着自己找到答案。
 
 \begin{itemize}
 \item
-Exercise 24-1: Chapter 14, “Handling Errors,” explains error handling in C++ and explains that there are basically two major options: either you work with error codes or you work with exceptions. I recommend using exceptions for error handling, but for this exercise, you’ll use error codes. Write a simple Error class that just stores a single message, has a constructor to set the message, and has a getter to retrieve the message. Next, write a getData() function with a single Boolean parameter called fail. If fail is false, the function returns a vector of some data; otherwise, it returns an instance of Error. You are not allowed to use reference-to-non-const output parameters. Try to come up with a solution that doesn’t use the C++23 std::expected class template yet. Test your implementation in your main() function.
+\textbf{练习24-1}：第14章解释了C++中的错误处理，并解释说基本上有两种主要选项：要么使用错误代码，要么使用异常。我推荐使用异常进行错误处理，但在这个练习中，将使用错误代码。编写一个简单的Error类，只存储单个消息，有一个构造函数来设置消息，并且有一个getter来检索消息。接下来，编写一个名为getData()的函数，有一个名为fail的布尔参数。如果fail为false，函数返回一个包含一些数据的向量；否则，返回Error的一个实例。不允许使用引用-非常量输出参数，尝试想出一个解决方案，并且不使用C++23的std::expected类模板。在main()函数中测试实现。
 
 \item
-Exercise 24-2: Modify your solution to Exercise 24-1 to use the C++23 std::expected class template and discover how it makes the solution much easier to read and understand.
+\textbf{练习24-2}：修改练习24-1中的解决方案，使用C++23的std::expected类模板，并了解它如何使解决方案更容易阅读和理解。
 
 \item
-Exercise 24-3: Most command-line applications accept command-line parameters. In most, if not all, of the sample code in this book the main function is simply main(). However, main() can also accept parameters: main(int argc, char** argv) where argc is the number of command-line parameters, and argv is an array of strings, one string for each parameter. Assume for this exercise that a command-line parameter is of the form name=value. Write a function that can parse a single parameter and that returns a pair containing the name of the parameter and a variant containing the value as a Boolean if the value can be parsed as a Boolean (true or false), an integer if the value can be parsed as an integer, or a string otherwise. To split the name=value string, you can use a regular expression (see Chapter 21, “String Localization and Regular Expressions”). To parse integers, you can use one of the functions explained in Chapter 2, “Working with Strings and String Views.” In your main() function, loop over all command-line parameters, parse them, and output the parsed results to the standard output using holds\_alternative().
+\textbf{练习24-3}：大多数命令行应用程序接受命令行参数。本书中的大多数，main函数仅仅是main()。然而，main()也可以接受参数：main(int argc, char** argv)，其中argc是命令行参数的数量，argv是一个字符串数组，每个参数一个字符串。假设在这个练习中，命令行参数的格式是name=value。编写一个函数，可以解析单个参数，并返回一个包含参数名称和包含值作为布尔值的变体（如果值可以解析为布尔值（true或false）、整数如果值可以解析为整数，否则为字符串）的pair。为了分割name=value字符串，可以使用正则表达式（见第21章）。要解析整数，可以使用第2章中介绍的函数。在main()函数中，遍历所有命令行参数，解析它们，并使用holds\_alternative()将解析结果输出到标准输出。
 
 \item
-Exercise 24-4: Modify your solution to Exercise 24-3. Instead of using holds\_alternative(), use a visitor to output the parsed results to the standard output.
+\textbf{练习24-4}：修改练习24-3中的解决方案。不是使用holds\_alternative()，使用访问者将解析结果输出到标准输出。
 
 \item
-Exercise 24-5: Modify your solution to Exercise 24-4 to use tuples instead of pairs.
+\textbf{练习24-5}：修改练习24-4中的解决方案，使用tuple完成。
 \end{itemize}
 
 

@@ -1,25 +1,24 @@
-\CXXTwentythreeLogo{-40}{5}
+\CXXTwentythreeLogo{-40}{15}
 
-As Chapter 14, “Handling Errors,” explains, a function in C++ can return only a single type. If a function can fail, it should inform the caller about the failure. In the past, you had a couple of options to do so. You could throw an exception with details of the error. Or you could try to come up with a special value of the return type to signal an error.
-For example, if a function returns a pointer, the function could return nullptr in case of an error.
+第14章中解释了，C++中的一个函数只能返回一个类型，如果函数可能会失败，应该通知调用者关于失败的信息。过去，有几个选择来做到这一点，可以抛出一个带有错误详细信息的异常，或者可以尝试提出一个特殊的返回类型值来表示错误。
 
-If a function returns only positive integers for its normal operation, you could return negative values to signal different errors, and so on. But coming up with such a special value is not always possible. If the return type of a function is int and the valid range of returned values is the entire range of integers, then you don’t have any integers left to use as special error values. In such cases, you could use the std::optional vocabulary type. It’s a type that can either contain a value of a certain type or be empty. A function could then return an empty optional to signal an error.
+例如，一个函数返回一个指针，该函数可以在发生错误时返回nullptr。如果一个函数只为其正常操作返回正整数，可以使用负值来表示不同的错误等。但提出这样一个特殊值并不总是可行。如果一个函数的返回类型是int，有效的返回值范围是整数的整个范围，那么就没有剩余的整数可以用作特殊错误值了。这种情况下，可以使用std::optional类型，这是一个可以包含某种类型的值或为空的类型。函数可以返回一个空的optional来表示错误。
 
-That’s all fine, but when a caller of the function receives an empty optional, it has no way of knowing what exactly went wrong; i.e., the function cannot return the real reason of the error. These problems are solved with std::expected, defined in <expected>, and introduced with C++23. It’s a class template accepting two template type parameters:
+这都是好的，但是当函数的调用者收到一个空的optional时，它无法知道到底出了什么问题；即，函数不能返回错误的真正原因。这些问题可以通过std::expected得到了解决，它在<introduced>中定义，并随着C++23引入，是一个接受两个模板类型参数的类模板：
 
 \begin{itemize}
 \item
-T: The type of the expected value
+T: 期望值的类型
 
 \item
-E: The type of an error value, also known as an unexpected value
+E: 错误值的类型，也称为意外值
 \end{itemize}
 
-An expected is never empty; it always contains either a value of type T or a value of type E. That’s the biggest difference compared to optional, which can be empty, leaving you with no clue as to why it’s empty. Thus, a function returning an expected should either return a value of the expected type or return a value of the error type to signal the exact reason of the failure. The error type can be whatever you want. It can be a simple integer or a complex class. Often, it’s best to encode errors in a class capable of representing as many details about an error as possible, for example, the filename, line number, and column number where parsing of some data file failed.
+expected永远不会为空，总是包含类型T的值或类型E的值。这是与optional最大的不同，它可以为空，让使用者不知道为什么它为空。因此，返回expected的函数应该返回期望类型的值，或者返回错误类型的值来表示失败的准确原因。错误类型可以是想要的任何类型，可以是简单的整数或复杂的类。通常，最好将错误编码放在能够表示尽可能多错误信息的类中，例如：解析某些数据文件失败的文件名、行号和列号。
 
-An instance of expected<T,E> can be created implicitly from a value of type T, just as an optional<T>. To create an instance of expected<T,E> containing a value of the error type E, you must use std::unexpected<E>. A default constructed expected<T,E> contains a default constructed value of the expected type, T. This is different compared to optional. A default constructed optional is empty! In other words, a default constructed expected represents success, while a default constructed optional represents an error.
+expected<T,E>的一个实例可以从类型T的值隐式创建，就像optional<T>一样。要创建一个包含错误类型E值的expected<T,E>实例，必须使用std::unexpected<E>，默认构造的expected<T,E>包含默认构造的期望类型T的值。这与optional不同，默认构造的optional是空的！换句话说，默认构造的expected表示成功，而默认构造的optional表示错误。
 
-Let’s look at an example. The following is a function receiving a string and trying to parse the string as an integer. The stoi() function throws invalid\_argument if the string doesn’t represent an integer and throws out\_of\_range if the parsed integer is larger than what can be represented as an int. Suppose you don’t want parseInteger() to throw such exceptions but instead return an expected. The function catches the two exceptions and transforms them to a string, the error type of the returned expected.
+来看一个例子。下面是一个接收字符串，并尝试将字符串解析为整数的函数。stoi()函数在字符串不能表示整数时抛出invalid\_argument，解析的整数大于可以表示为int的范围时抛出out\_of\_range。假设不希望parseInteger()抛出这样的异常，而是返回一个expected。函数捕获这两个异常，并将它们转换为字符串，这是返回expected的错误类型。
 
 \begin{cpp}
 expected<int, string> parseInteger(const string& str)
@@ -30,26 +29,26 @@ expected<int, string> parseInteger(const string& str)
 }
 \end{cpp}
 
-expected has the following member functions. All of them, except error(), are analogous to the similarly named member functions for optional.
+expected具有以下成员函数。除了error()之外，都与optional的类似命名的成员函数相似。
 
 \begin{itemize}
 \item
-has\_value() and operator bool: Returns true if the expected has a value of type T, false otherwise.
+has\_value() 和 operator bool: 如果expected有类型T的值，则返回true，否则返回false。
 
 \item
-value(): Returns the value of type T. Throws std::bad\_expected\_access if called on an expected containing a value of type E.
+value(): 返回类型T的值。如果在包含类型E值的expected上调用，则抛出std::bad\_expected\_access。
 
 \item
-operator* and ->: Accesses the value of type T. The behavior is undefined if the expected doesn’t contain a value of type T.
+operator* 和 ->: 访问类型T的值。如果expected不包含类型T的值，则行为未定义。
 
 \item
-error(): Returns the error of type E. The behavior is undefined if the expected doesn’t contain a value of type E.
+error(): 返回类型E的错误。如果expected不包含类型E的值，则行为未定义。
 
 \item
-value\_or(): Returns the value of type T, or another given value if the expected doesn’t contain such a value.
+value\_or(): 返回类型T的值，或者如果expected不包含这样的值，则返回另一个给定的值。
 \end{itemize}
 
-The following example demonstrates most of these member functions:
+下面的例子展示了这些成员函数的大多数：
 
 \begin{cpp}
 auto result1 { parseInteger("123456789") };
@@ -65,7 +64,7 @@ auto result3 { parseInteger("abc") };
 if (!result3) { println("result3 contains an error: {}", result3.error()); }
 \end{cpp}
 
-Here is the output:
+输出如下:
 
 \begin{shell}
 result1 = 123456789
@@ -75,47 +74,48 @@ result2 contains an error: stoi argument out of range
 result3 contains an error: invalid stoi argument
 \end{shell}
 
-Additionally, expected supports monadic operations: and\_then(), transform(), or\_else(), and transform\_error(). The first three are analogous to the monadic operations supported by optional.
+除此之外，expected还支持一些函数式编程中的操作，比如and\_then()、transform()、or\_else()和transform\_error()。前三个操作与optional支持的类似。
 
 \begin{itemize}
 \item
-transform(F): Returns an expected containing the result of invoking F with the expected value as argument if *this has an expected value; otherwise, just returns the expected as is
+transform(F): 如果*this包含期望值，则返回调用F的结果，并将期望值作为参数；否则，直接返回原expected对象。
 
 \item
-and\_then(F): Returns the result (which must be an expected) of invoking F with the expected value as argument if *this has an expected value; otherwise, just returns the expected as is
+and\_then(F): 如果*this包含期望值，则返回调用F的结果（结果必须是一个expected），并将期望值作为参数；否则，直接返回原expected对象。
 
 \item
-or\_else(F): Returns *this if *this has an expected value; otherwise, returns the result (which must be an expected) of invoking F with the unexpected value as argument
+or\_else(F): 如果*this包含期望值，则返回*this；否则，返回调用F的结果（结果必须是一个expected），并将错误值作为参数。
 
 \item
-transform\_error(F): Returns *this if *this has an expected value; otherwise, returns an expected containing the unexpected value transformed by invoking F with the unexpected value as argument
+transform\_error(F): 如果*this包含期望值，则返回*this；否则，返回一个包含转换后的错误值的expected对象，转换是通过调用F并将错误值作为参数完成。
 \end{itemize}
 
-Here is an example of using and\_then() on an expected. Just as for monadic operations on optionals, there is no need to explicitly check whether the result of calling parseInteger() contains an expected value before applying the operation. The error handling is taken care of for you.
+下面是使用and\_then()的一个例子。就像在optional上使用一元操作一样，在调用parseInteger()之前，不需要显式检查结果是否包含期望值。错误处理会自动完成。
 
 \begin{cpp}
 auto transformedResult { parseInteger("123456789")
     .and_then([](int value) -> expected<int, string> { return value * 2; }) };
 \end{cpp}
 
-The error type of expected can be any type you want. Returning multiple error types is also possible by using the variant vocabulary type discussed earlier in this chapter. For example, instead of returning a simple string, the parseInteger() function can return two different error types for the two error cases. The following version returns errors of two custom types OutOfRange and InvalidArgument:
+expected的错误类型可以是任何类型，使用本章前面讨论的variant类型，也可以返回多种错误类型。 例如，parseInteger()函数可以针对两种错误情况返回两种不同的错误类型。以下函数返回两种自定义类型OutOfRange和InvalidArgument的错误：
+
 
 \begin{cpp}
 expected<int, variant<OutOfRange, InvalidArgument>>
     parseInteger(const string& str) { ... }
 \end{cpp}
 
-To conclude, it’s clear that optional and expected are somewhat related. Use the following rule to decide which one to use in certain use cases.
+总之，optional和expected是有些相关的。特定情况下，请根据以下规则决定使用哪一个：
 
 \begin{myNotic}{NOTE}
-Use expected when an error is unexpected, in which case the expected should represent the exact reason for the error, so the caller can handle the error appropriately.
+当错误是未预期的时候，使用expected。此时expected应该准确表示错误的原因，以便调用者可以适当地处理错误。
 
-Use optional if it’s acceptable that there is no value and without requiring any reason for a missing value. For example, use for functions accepting optional input parameters or return types of functions for which it is not unexpected that there is no value, such as find-related functions.
+如果可以接受没有值，并且不需要为缺失的值提供原因，则使用optional。例如，对于接受可选输入参数的函数或返回类型为可能没有值的函数（如查找相关函数）。
 \end{myNotic}
 
-\mySubsubsection{24.5.1.}{Exceptions, Error Return Codes, and expected}
+\mySubsubsection{24.5.1.}{异常、错误返回码和expected}
 
-There are three major options to handle errors in a function. The function can throw an exception, discussed in detail in Chapter 14; return an error code; or return an expected. They all have their own merits. The following table, based on the official proposal paper for std::expected, P0323R12, summarizes them:
+处理函数中的错误有三种主要方式。函数可以抛出异常，这在第14章中详细讨论过；可以返回错误码；或者返回expected。下表根据std::expected的官方提案P0323R12总结了它们的特点：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -123,24 +123,24 @@ There are three major options to handle errors in a function. The function can t
 \begin{longtable}{|l|l|l|l|}
 \hline
 &
-\textbf{EXCEPTION} &
-\textbf{ERROR RETURN CODE} &
-\textbf{EXPECTED} \\ \hline
+\textbf{异常} &
+\textbf{错误返回码} &
+\textbf{expected} \\ \hline
 \endfirsthead
 %
 \endhead
 %
-\textbf{VISIBILITY} &
-\begin{tabular}[c]{@{}l@{}}Not visible, unless\\ you read the function\\ documentation or\\ analyze the code.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Immediately visible\\ from the function\\ prototype. But\\ easy to ignore the\\ return value.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Immediately visible\\ from the function\\ prototype. Cannot\\ be ignored as it\\ contains the result of\\ the function.\end{tabular} \\ \hline
-\textbf{DETAILS} &
-\begin{tabular}[c]{@{}l@{}}Contains as many\\ details about the error\\ as possible.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Often just a\\ simple integer.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Contains as many\\ details about the error\\ as possible.\end{tabular} \\ \hline
-\textbf{CODE NOISE} &
-\begin{tabular}[c]{@{}l@{}}Allows for writing clean\\ code with separate\\ error handling.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Error handling is\\ intertwined with the\\ normal flow, making\\ code harder to read\\ and maintain.\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Allows for clean\\ code. Thanks to\\ monadic operations,\\ error handling is\\ not intertwined with\\ normal flow.\end{tabular} \\ \hline
+\textbf{可见性} &
+\begin{tabular}[c]{@{}l@{}}除非阅读函数文档或\\分析代码，否则不可\\见。\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}从函数原型中立即\\可见。但容易忽略\\返回值。\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}从函数原型中立即可见。\\不能被忽略，因为它包\\含函数的结果。\end{tabular} \\ \hline
+\textbf{详情} &
+\begin{tabular}[c]{@{}l@{}}包含尽可能多的错误\\详情。\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}通常只是一个简单\\的整数。\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}包含尽可能多的错误详\\情。\end{tabular} \\ \hline
+\textbf{代码噪音} &
+\begin{tabular}[c]{@{}l@{}}允许编写干净的代码\\，并将错误处理分开。\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}错误处理与正常流\\程交织，使代码更\\难读和维护。\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}允许编写干净的代码。\\由于有一元操作，错\\误处理不会与正常流\\程交织。\end{tabular} \\ \hline
 \end{longtable}
 

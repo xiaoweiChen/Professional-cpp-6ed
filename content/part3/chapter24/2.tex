@@ -1,4 +1,4 @@
-std::any, defined in <any>, is a class that can contain a single value of any type. You can create an instance with an any constructor or with the std::make\_any() helper function. Once it is constructed, you can ask an any instance whether it contains a value and what the type of the contained value is. To get access to the contained value, you need to use any\_cast(), which throws an exception of type bad\_any\_cast in the case of failure. Here is an example:
+在 <any> 中定义的 std::any 是一个可以包含任意类型单一值的类,可以使用 any 构造函数或 std::make\_any() 辅助函数创建实例。构造完毕，就可以询问 any 实例是否包含值，以及包含值的类型是什么。要访问包含的值需要使用 any\_cast()，如果失败，会抛出 bad\_any\_cast 类型的异常。以下是一个示例：
 
 \begin{cpp}
 any empty;
@@ -21,7 +21,7 @@ try {
 }
 \end{cpp}
 
-The output is as follows. Note that the wrapped type of aString is compiler dependent.
+输出如下。注意，aString 的包装类型取决于编译器。
 
 \begin{shell}
 empty.has_value = false
@@ -35,14 +35,14 @@ traits<char>,class std::allocator<char>>
 Exception: Bad any_cast
 \end{shell}
 
-You can assign a new value to an any instance and even assign a new value of a different type:
+可以为 any 实例分配一个新值，甚至可以分配不同类型的新值：
 
 \begin{cpp}
 any something { 3 }; // Now it contains an integer.
 something = "An std::string"s; // Now the same instance contains a string.
 \end{cpp}
 
-Instances of any can be stored in Standard Library containers. This allows you to have heterogeneous data in a single container. The only downside is that you have to perform explicit any\_casts to retrieve specific values, as the following example demonstrates:
+any 的实例可以存储在标准库容器中，这允许您在单个容器中拥有异构数据。唯一的缺点是必须执行显式的 any\_cast 来检索特定值，如下例所示：
 
 \begin{cpp}
 vector<any> v;
@@ -52,7 +52,7 @@ v.push_back("An std::string"s);
 println("{}", any_cast<string>(v[1]));
 \end{cpp}
 
-As with optional and variant, you cannot store references in an any instance. You can again store either pointers or instances of reference\_wrapper<T> or reference\_wrapper<const T>.
+与 optional 和 variant 一样，不能在 any 实例中存储引用。可以再次存储指针，以及 reference\_wrapper<T> 或 reference\_wrapper<const T> 的实例。
 
 
 
