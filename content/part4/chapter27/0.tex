@@ -1,51 +1,49 @@
 \noindent
-\textbf{WHAT’S IN THIS CHAPTER?}
+\textbf{内筒概要}
 
 \begin{itemize}
 \item
-What multithreaded programming is
+什么是多线程编程
 
 \item
-How to launch multiple threads
+如何启动多个线程
 
 \item
-How to (sort of) cancel threads
+如何取消线程
 
 \item
-How to retrieve results from threads
+如何从线程检索结果
 
 \item
-What deadlocks and race conditions are, and how to use mutual exclusion to prevent them
+什么是死锁和条件竞争，以及如何使用互斥量来避免
 
 \item
-How to use atomic types and atomic operations
+如何使用原子类型和原子操作
 
 \item
-What condition variables are
+什么是条件变量
 
 \item
-How to use semaphores, latches, and barriers
+如何使用信号量、锁存器和屏障
 
 \item
-How to use futures and promises for inter-thread communication
+如何在线程间通信中使用future和promise
 
 \item
-What thread pools are
+什么是线程池
 
 \item
-What resumable functions, or coroutines, are
+什么是可恢复的函数或协程
 \end{itemize}
 
-\noindent
-\textbf{WILEY.COM DOWNLOADS FOR THIS CHAPTER}
+本章的所有代码示例都可以在\url{https://github.com/Professional-CPP/edition-6}获得。
 
-Please note that all the code examples for this chapter are available as part of this chapter’s code download on the book’s website at \url{www.wiley.com/go/proc++6e} on the Download Code tab.
+多线程编程对于具有多个处理器单元的计算机系统非常重要。它允许编写一个程序，以便并行使用所有这些处理器单元。系统拥有多个处理器单元有多种方式，系统有多个独立的中央处理单元（CPU）的处理器芯片，或系统有一个内部包含多个独立CPU的单一处理器芯片，这些CPU也称为内核。这些类型的处理器称为多核处理器(系统也可以同时拥有这两种类型的组合)，具有多个处理器单元的系统已经存在很长时间了；然而，在消费者系统中使用得并不多。今天，所有CPU供应商都在销售多核处理器，这些处理器广泛应用于从服务器到消费者计算机，再到智能手机的各个方面。由于多核处理器的普及，了解如何编写多线程应用程序变得非常重要。专业C++开发者需要知道如何编写正确的多线程代码，以便充分利用所有可用的处理器单元。
 
-Multithreaded programming is important on computer systems with multiple processor units. It allows you to write a program to use all those processor units in parallel. There are multiple ways for a system to have multiple processor units. The system can have multiple discrete processor chips, each one an independent central processing unit (CPU). Or, the system can have a single discrete processor chip that internally consists of multiple independent CPUs, also called cores. These kinds of processors are called multicore processors. A system can also have a combination of both. Systems with multiple processor units have existed for a long time; however, they were rarely used in consumer systems. Today, all CPU vendors are selling multicore processors, which are being used in everything from servers to consumer computers to smartphones. Because of this proliferation of multicore processors, it is important to know how to write multithreaded applications. A professional C++ programmer needs to know how to write correct multithreaded code to take full advantage of all the available processor units. Writing multithreaded applications used to rely on platform- and operating system–specific APIs. This made it difficult to write platform-independent multithreaded code. C++11 addressed this problem by including a standard threading library.
+多线程编程是一个复杂的话题。本章介绍了使用标准线程库进行多线程编程，但由于篇幅限制，无法涵盖所有细节。有关多线程程序开发的完整书籍已经出版。如果对细节感兴趣，请参阅附录B中的多线程部分。
 
-Multithreaded programming is a complicated subject. This chapter introduces multithreaded programming using the standard threading library, but it cannot go into all of the details due to space constraints. Entire books have been written about developing multithreaded programs. If you are interested in more details, consult one of the references in the multithreading section of Appendix B, “Annotated Bibliography.”
+还有一些第三方C++库试图使多线程编程更加平台独立，例如pthreads和boost::thread库。然而，由于这些库不属于C++标准，因此不在本书中讨论。
 
-There are also third-party C++ libraries that try to make multithreaded programming more platform independent, such as pthreads and the boost::thread library. However, because these libraries are not part of the C++ standard, they are not discussed in this book.
 
 
 

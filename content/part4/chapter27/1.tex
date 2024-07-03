@@ -22,9 +22,9 @@ However, the current C++ standard targets only CPUs and not GPUs. This might cha
 
 There are two reasons to start writing multithreaded code. First, if you have a computational problem and you manage to separate it into small pieces that can be run in parallel independently from each other, you can expect a huge performance boost when running it on multiple processor units. Second, you can modularize computations along orthogonal axes. For example, you can do long computations in a worker thread instead of blocking the UI thread, so the user interface remains responsive while a long computation occurs in the background.
 
-Figure 27.1 shows a situation that is perfectly suited for running in parallel. An example could be the processing of pixels of an image by an algorithm that does not require information about neighboring pixels. The algorithm could split the image into four parts. On a single-core processor, each part would be processed sequentially; on a dual-core processor, two parts would be processed in parallel; and on a quad-core processor, four parts would be processed in parallel, resulting in an almost linear scaling of the performance with the number of cores.
+图 27.1 shows a situation that is perfectly suited for running in parallel. An example could be the processing of pixels of an image by an algorithm that does not require information about neighboring pixels. The algorithm could split the image into four parts. On a single-core processor, each part would be processed sequentially; on a dual-core processor, two parts would be processed in parallel; and on a quad-core processor, four parts would be processed in parallel, resulting in an almost linear scaling of the performance with the number of cores.
 
-\myGraphic{0.7}{content/part4/chapter27/images/1.png}{FIGURE 27.1}
+\myGraphic{0.9}{content/part4/chapter27/images/1.png}{图 27.1}
 
 Of course, it’s not always possible to split the problem into parts that can be executed independently of each other in parallel. However, it can often be made parallel, at least partially, resulting in a performance increase. A difficult part of multithreaded programming is making your algorithm parallel, which is highly dependent on the type of the algorithm. Other difficulties are race conditions, deadlocks, tearing, and false sharing. These are discussed in the following sections. Options for making code thread-safe include:
 
@@ -156,9 +156,9 @@ Thread 1: Acquire B (waits/blocks, because B is held by thread 2)
 Thread 2: Acquire A (waits/blocks, because A is held by thread 1)
 \end{itemize}
 
-Both threads are now waiting indefinitely in a deadlock situation. Figure 27.2 shows a graphical representation of the deadlock. Thread 1 has acquired permission for resource A and is waiting to acquire permission for resource B. Thread 2 has acquired permission for resource B and is waiting to acquire permission for resource A. In this graphical representation, you see a cycle that depicts the deadlock. Both threads will wait indefinitely.
+Both threads are now waiting indefinitely in a deadlock situation. 图 27.2 shows a graphical representation of the deadlock. Thread 1 has acquired permission for resource A and is waiting to acquire permission for resource B. Thread 2 has acquired permission for resource B and is waiting to acquire permission for resource A. In this graphical representation, you see a cycle that depicts the deadlock. Both threads will wait indefinitely.
 
-\myGraphic{0.7}{content/part4/chapter27/images/2.png}{FIGURE 27.2}
+\myGraphic{0.5}{content/part4/chapter27/images/2.png}{图 27.2}
 
 It’s best to always acquire permissions in the same order to avoid these kinds of deadlocks. You could also include mechanisms in your program to break these deadlocks. One possible solution is to try for a certain time to acquire permission for a resource. If the permission cannot be obtained within a certain time interval, the thread can stop waiting and possibly release other permissions it is currently holding. The thread can then sleep for a little bit and try again later to acquire all the resources it needs. This mechanism gives other threads the opportunity to acquire necessary permissions and continue their execution. Whether this mechanism works or not depends heavily on your specific deadlock case.
 
@@ -166,9 +166,9 @@ The previous paragraph describes workarounds to avoid deadlocks. These exact wor
 
 \mySubsubsection{27.1.4.}{False Sharing}
 
-Most caches work with cache lines. For modern CPUs, cache lines are usually 64 bytes. If something needs to be written to a cache line, the entire line needs to be locked. This can bring a serious performance penalty for multithreaded code if your data structure is not properly designed. For example, if two threads are using two different pieces of data, but that data shares a cache line, then when one thread writes something, the other thread is blocked because the entire cache line is locked. Figure 27.3 graphically shows the situation where two threads clearly write to two different blocks of memory while sharing a cache line.
+Most caches work with cache lines. For modern CPUs, cache lines are usually 64 bytes. If something needs to be written to a cache line, the entire line needs to be locked. This can bring a serious performance penalty for multithreaded code if your data structure is not properly designed. For example, if two threads are using two different pieces of data, but that data shares a cache line, then when one thread writes something, the other thread is blocked because the entire cache line is locked. 图 27.3 graphically shows the situation where two threads clearly write to two different blocks of memory while sharing a cache line.
 
-\myGraphic{0.7}{content/part4/chapter27/images/3.png}{FIGURE 27.3}
+\myGraphic{0.5}{content/part4/chapter27/images/3.png}{图 27.3}
 
 You can optimize your data structures by using explicit memory alignments to make sure data that is worked on by multiple threads does not share any cache lines. To do this in a portable manner, a constant called hardware\_destructive\_interference\_size, defined in <new>, can be used, which returns you the minimum recommended offset between two concurrently accessed objects to avoid cache line sharing. You can use that value in combination with the alignas keyword to properly align your data.
 

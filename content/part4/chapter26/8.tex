@@ -2,24 +2,24 @@
 
 \begin{itemize}
 \item
-Exercise 26-1: In Exercise 12-2, you wrote a full specialization of a KeyValuePair class template for const char* keys and values. Replace that full specialization with a partial specialization where the values are of type const char* but the keys can be of any type.
+\textbf{练习 26-1}: 在 练习 12-2 中，为 KeyValuePair 类模板写了一个全特化，用于处理 const char* 类型的键和值。用一个偏特化替换这个全特化，其中值类型为 const char*，但键可以是任何类型。
 
 \item
-Exercise 26-2: Calculate the nth number in the Fibonacci series at compile time using template recursion. The Fibonacci series starts with 0 and 1, and any subsequent value is the sum of the two previous values, so: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, and so on.
+\textbf{练习 26-2}: 使用模板递归来在编译时计算斐波那契数列的第 n 个数字。斐波那契数列以 0 和 1 开始，后续的值都是前两个值的和，所以数列为：0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89 等。
 
-Can you also provide a variable template to make your recursive Fibonacci template easier to use?
-
-\item
-Exercise 26-3: Take your solution for Exercise 26-2 and modify it so that the calculation still happens at compile time, but without the use of any template or function recursion.
+能提供一个变量模板，使递归斐波那契模板更容易使用吗？
 
 \item
-Exercise 26-4: Write a variadic function template called push\_back\_values() accepting a reference to a vector and a variable number of values. The function should use a fold expression to push all the values into the given vector. Then, write an insert\_values() function template doing the same thing but in terms of vector::insert(initializer\_list<value\_type>). What’s the difference with the push\_back\_values() implementation?
+\textbf{练习 26-3}: 基于 练习 26-2 中的解决方案，并修改它，使其在编译时计算仍然发生，但不使用模板或函数递归。
 
 \item
-Exercise 26-5: Write a multiply() non-abbreviated function template accepting two template type parameters T1 and T2. Use a type trait to verify that both types are arithmetic. If they are, perform the multiplication and return the result. If they are not, throw an exception containing the names of both types.
+\textbf{练习 26-4}: 编写一个变长函数模板 push\_back\_values()，它接受一个vector的引用和一个可变数量的值。该函数应使用折叠表达式将所有值推入给定的vector。然后，编写一个 insert\_values() 函数模板，完成相同的事情，但使用 vector::insert(initializer\_list<value\_type>)。这与 push\_back\_values() 的实现有什么区别？
 
 \item
-Exercise 26-6: Advanced. Transform your solution for Exercise 26-5 to use an abbreviated function template.
+\textbf{练习 26-5}: 编写一个名为 multiply() 的非缩写函数模板，接受两个模板类型参数 T1 和 T2。使用类型特性来验证这两个类型是否为算术类型。如果是，执行乘法并返回结果；如果不是，抛出一个包含两个类型名称的异常。
+
+\item
+\textbf{练习 26-6}: (进阶) 基于 练习 26-5 中的解决方案转换为使用简化的函数模板。
 \end{itemize}
 
 

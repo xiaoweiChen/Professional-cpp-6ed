@@ -1,9 +1,9 @@
 
-Templates in C++ provide capabilities that go far beyond the simple class and function templates you have seen so far in this chapter and Chapter 12. One of these capabilities is template recursion. Template recursion is similar to function recursion, in which a function is defined in terms of calling itself with a slightly easier version of the problem. This section first provides a motivation for template recursion and then shows how to implement it.
+模板在C++中提供了超出简单类和函数模板的能力，其中之一就是模板递归。模板递归与函数递归类似，函数递归中，通过调用自身来解决一个稍微简单版本的问题来进行的。本节首先提供了模板递归的动机，然后展示了如何实现。
 
-\mySubsubsection{26.4.1.}{An N-Dimensional Grid: First Attempt}
+\mySubsubsection{26.4.1.}{N维网格：第一次尝试}
 
-Up to now, the Grid class template supports only two dimensions, which limits its usefulness. What if you want to write a 3-D tic-tac-toe game or write a math program with four-dimensional matrices? You could, of course, write a templated or non-templated class for each of those dimensions. However, that would repeat a lot of code. Another approach would be to write only a single-dimensional grid. Then, you could create a Grid of any dimension by instantiating the Grid with another Grid as its element type. This Grid element type could itself be instantiated with a Grid as its element type, and so on. Here is the implementation of a OneDGrid class template. It’s simply a one-dimensional version of the Grid class template from earlier examples, with the addition of a resize() member function, and the substitution of operator[] for at(). Just as with Standard Library containers such as vector, the operator[] implementation does not perform any bounds checking. For this example, m\_elements stores instances of T instead of instances of std::optional<T>.
+到目前为止，Grid类模板只支持二维，这限制了它的实用性。如果想编写一个3D井字游戏，或者编写一个具有四维矩阵的数学程序呢？当然可以为每个维度编写一个模板化或非模板化的类，那将重复很多代码。另一种方法只编写一个一维网格，可以通过用另一个Grid作为其元素类型来实例化Grid，来创建任意维度的Grid。这个Grid元素类型本身可以实例化为以其自身为元素类型的Grid，依此类推。以下是OneDGrid类模板的实现，只是前面示例中Grid类模板的一维版本，增加了resize()成员函数，并用operator[]替换了at()。就像标准库容器vector一样，operator[]实现不执行边界检查。对于此示例，m\_elements存储T的实例，而不是std::optional<T>的实例。
 
 \begin{cpp}
 export template <typename T>
@@ -24,7 +24,7 @@ class OneDGrid final
 };
 \end{cpp}
 
-With this implementation of OneDGrid, you can create multidimensional grids like this:
+有了这个OneDGrid实现，就可以创建多维网格了：
 
 \begin{cpp}
 OneDGrid<int> singleDGrid;
@@ -35,17 +35,17 @@ twoDGrid[3][3] = 5;
 threeDGrid[3][3][3] = 5;
 \end{cpp}
 
-This code works fine, but the declarations are messy. As the next section explains, we can do better.
+这段代码可以正常工作，但是声明很混乱。
 
-\mySubsubsection{26.4.2.}{A Real N-Dimensional Grid}
+\mySubsubsection{26.4.2.}{真正的N维网格}
 
-You can use template recursion to write a “real” N-dimensional grid because dimensionality of grids is essentially recursive. You can see that in this declaration:
+可以使用模板递归来编写一个“真正的”N维网格，因为网格的维数本质上递归。可以在以下声明中看到：
 
 \begin{cpp}
 OneDGrid<OneDGrid<OneDGrid<int>>> threeDGrid;
 \end{cpp}
 
-You can think of each nested OneDGrid as a recursive step, with the OneDGrid of int as the base case. In other words, a three-dimensional grid is a single-dimensional grid of single-dimensional grids of single-dimensional grids of ints. Instead of requiring the user to do this recursion, you can write a class template that does it for you. You can then create N-dimensional grids like this:
+可以将每个嵌套的OneDGrid视为一个递归步骤，以OneDGrid<int>为基本情况。换句话说，一个三维网格是一个由，单维网格组成的单维网格的单维网格的int。可以让类模板为完成这个递归，可以像这样创建N维网格：
 
 \begin{cpp}
 NDGrid<int, 1> singleDGrid;
@@ -53,13 +53,13 @@ NDGrid<int, 2> twoDGrid;
 NDGrid<int, 3> threeDGrid;
 \end{cpp}
 
-The NDGrid class template takes a type for its element and an integer specifying its “dimensionality.” The key insight here is that the element type of the NDGrid is not the element type specified in the template parameter list, but is in fact another NDGrid of dimensionality one less than the current one. In other words, a three-dimensional grid is a vector of two-dimensional grids; the two-dimensional grids are each vectors of one-dimensional grids.
+NDGrid类模板接受一个元素类型和一个指定其“维数”的整数。关键在于，NDGrid的元素类型不是模板参数列表中指定的元素类型，而实际上是一个维数比当前维数少一的NDGrid。换句话说，一个三维网格是一个二维网格的vector；每个二维网格是单维网格的vector。
 
-With recursion, you need a base case. You can write a partial specialization of NDGrid for dimensionality of 1, in which the element type is not another NDGrid, but is in fact the element type specified by the template parameter.
+有了递归，就可以为维数为1的NDGrid编写一个偏特化，其中元素类型不是另一个NDGrid，而是实际上模板参数中指定的元素类型。
 
-The following shows the NDGrid class template definition and implementation, with highlights showing where it differs from the OneDGrid shown in the previous section. The m\_elements data member is now a vector of NDGrid<T, N-1>; this is the recursive step. Also, operator[] returns a reference to the element type, which is again NDGrid<T, N-1>, not T.
+下面显示了NDGrid类模板的定义和实现，与上一节中的OneDGrid不同。m\_elements数据成员现在是NDGrid<T, N-1>的vector；这就开始递归了。此外，operator[]返回对元素类型的引用，该元素类型是NDGrid<T, N-1>，而不是T。
 
-The trickiest aspect of the implementation, other than the template recursion itself, is appropriately sizing each dimension of the grid. This implementation creates the N-dimensional grid with every dimension of equal size. It’s significantly more difficult to specify a separate size for each dimension. A user should have the ability to create a grid with a specified size, such as 20 or 50. Thus, the constructor takes an integer size parameter. The resize() member function is modified to resize m\_elements and to initialize each element with NDGrid<T, N-1> \{ newSize \}, which recursively resizes all dimensions of the grid to the new size.
+除了模板递归本身之外，实现中最棘手的部分是适当地设置网格的每个维度的大小。这个实现在创建N维网格时，使每个维度的大小都相等。指定每个维度的单独大小很困难，用户应该能够创建具有指定大小（如20或50）的网格。因此，构造函数接受一个整数大小参数。resize()成员函数被修改为调整m\_elements的大小，并使用NDGrid<T, N-1> \{ newSize \}初始化每个元素，这会递归地将网格的所有维度调整为新的大小。
 
 \begin{cpp}
 export template <typename T, std::size_t N>
@@ -85,7 +85,7 @@ class NDGrid final
 };
 \end{cpp}
 
-The template definition for the base case is a partial specialization for dimension 1. The following shows the definition and implementation. You must rewrite a lot of the code because a specialization never inherits any code from the primary template. Highlights show the differences from the nonspecialized NDGrid.
+模板递归是对维度为1的模板进行偏特化，下面展示了定义和实现。由于特化从不从主模板继承代码，因此必须重写大量的代码。
 
 \begin{cpp}
 export template <typename T>
@@ -106,9 +106,9 @@ class NDGrid<T, 1> final
 };
 \end{cpp}
 
-Here the recursion ends: the element type is T, not another template instantiation.
+这里，递归结束：元素类型是T，而不是另一个模板实例化。
 
-Now, you can write code like this:
+现在，可以编写如下代码：
 
 \begin{cpp}
 NDGrid<int, 3> my3DGrid { 4 };
@@ -117,7 +117,7 @@ my3DGrid[1][1][1] = 5;
 println("{}", my3DGrid[2][1][2]);
 \end{cpp}
 
-To avoid the code duplication between the primary template and the specialization, you could pull the duplicate code out into a base class and then derive both the primary template and the specialization from that base class; but in this small example, the overhead added by that technique would outweigh the savings.
+为了避免主模板和特化之间的代码重复，可以将重复的代码提取到一个基类中，然后从该基类派生主模板和特化；但在这个小型示例中，增加的开销将超过节省的代码。
 
 
 

@@ -1,4 +1,4 @@
-The C++ standard does not permit partial template specialization of function templates. Instead, you can overload the function template with another function template. As an example, let’s look again at the Find() algorithm from Chapter 12. It consists of a generic Find() function template and a nontemplate overload for const char*s. Here is a reminder:
+C++ 标准不允许对函数模板进行偏特化，但可以用另一个函数模板重载函数模板。例如，第12章中的 Find() 算法，是由一个通用的 Find() 函数模板和一个用于 const char* 的非模板重载组成：
 
 \begin{cpp}
 template <typename T>
@@ -23,7 +23,7 @@ optional<size_t> Find(const char* value, const char** arr, size_t size)
 }
 \end{cpp}
 
-Suppose that you want to customize Find() so that it dereferences pointers to use operator== directly on the objects pointed to. The correct way to implement this behavior is to overload the Find() function template with another, more specialized, function template:
+假设想自定义 Find()，使其直接对指向的对象使用 operator== 进行比较。实现这种行为的正确方式是，用另一个更特化的函数模板重载 Find() 函数模板：
 
 \begin{cpp}
 template <typename T>
@@ -39,10 +39,10 @@ optional<size_t> Find(T* value, T* const* arr, size_t size)
 \end{cpp}
 
 \begin{myNotic}{NOTE}
- Between all overloads, the compiler always chooses the “most specific” one to call. If a non-template overload is just as specific as a function template instantiation, then the compiler prefers the non-template overload.
+所有重载中，编译器总是选择“最具体”的一个来调用。如果非模板重载与函数模板实例化一样具体，那么编译器倾向于使用非模板重载的版本。
 \end{myNotic}
 
-The following code calls Find() several times. The comments say which overload of Find() is called.
+以下代码多次调用 Find()，注释指出调用的是哪个 Find()。
 
 \begin{cpp}
 optional<size_t> res;
