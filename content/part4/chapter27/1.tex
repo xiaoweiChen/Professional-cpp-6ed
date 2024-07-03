@@ -1,66 +1,66 @@
 
 
-There are three major styles of executing multiple tasks:
+有三种主要执行多个任务的方式：
 
 \begin{itemize}
 \item
-Sequential execution: Each task is executed one after the other.
+顺序执行：每个任务依次执行。
 
 \item
-Concurrent execution: Multiple tasks can be executing seemingly at the same time, but this can be because the operating system is giving a task a tiny amount of time, known as a time slice, to do some work, then giving another task a time slice to do its work, and so on. This task switching keeps ongoing until tasks are finished.
+并发执行：多个任务看似同时执行，但实际上是因为操作系统为每个任务分配了时间片来执行工作，然后给另一个任务分配时间片执行，如此循环直到所有任务完成。这种任务切换持续进行，直到任务完成。
 
 \item
-Parallel execution: Multiple tasks are truly executing at the same time for example, on multiple processor units.
+并行执行：多个任务真正同时执行，例如在多个处理器单元上。
 \end{itemize}
 
-Multithreaded programming allows you to execute multiple tasks concurrently (perhaps even in parallel). As a result, you can take advantage of the multiple processor units inside virtually all systems today. Two decades ago, the processor market was racing for the highest frequency, which is perfect for single-threaded applications. Around 2005, this race stopped due to a combination of power and heat management problems. Since then, the processor market is racing toward the most cores on a single processor chip. Quad- and octa-core processors are common, but processors with up to 128 and more cores are available.
+多线程编程允许你并发执行多个任务（可能甚至是并行执行），可以利用当今几乎所有系统中的多个处理器单元。二十年前，处理器市场在追求最高频率，这对于单线程应用程序来说是完美的。大约在2005年，这场竞赛停止了，原因是一系列电源和热量管理问题。从那时起，处理器市场开始向单个处理器芯片上最多的内核发展。四核和八核处理器很常见，也有高达128核甚至更多核的处理器。
 
-Similarly, if you look at the processors on graphics cards, called graphical processing units (GPUs), you’ll see that they are massively parallel processors. Today, high-end graphics cards have more than 16,000 cores, a number that keeps increasing rapidly! These graphics cards are used not only for gaming, but also to perform computationally intensive tasks, such as artificial intelligence, machine learning, image and video manipulation, protein folding (useful for discovering new drugs), processing signals as part of the Search for Extraterrestrial Intelligence (SETI) project, and so on.
+同样，如果了解图形卡上的处理器，也就是图形处理单元（GPU），会发现它们是大规模并行处理器。今天，高端图形卡有超过16,000个核心，这个数字正在迅速增长！这些图形卡不仅用于游戏，还用于执行计算密集型任务，如人工智能、机器学习、图像和视频处理、蛋白质折叠（有助于发现新药物）、作为搜寻地外智能（SETI）项目的一部分处理信号等。
 
-C++98/03 did not have support for multithreaded programming, and you had to resort to third-party libraries or to the multithreading APIs of your target operating system. Since C++11 introduced a standard multithreading library, it became easier to write cross-platform multithreaded applications.
-However, the current C++ standard targets only CPUs and not GPUs. This might change in the future.
+C++98/03没有支持多线程编程，必须求助于第三方库或目标操作系统的多线程API。自从C++11引入了标准多线程库后，编写跨平台多线程应用程序变得更加容易。然而，当前的C++标准只针对CPU，而不是GPU，这在未来可能会发生变化。
 
-There are two reasons to start writing multithreaded code. First, if you have a computational problem and you manage to separate it into small pieces that can be run in parallel independently from each other, you can expect a huge performance boost when running it on multiple processor units. Second, you can modularize computations along orthogonal axes. For example, you can do long computations in a worker thread instead of blocking the UI thread, so the user interface remains responsive while a long computation occurs in the background.
+开始编写多线程代码有两个原因。首先，有一个计算问题，并且能够将其分割成可以独立并行运行的小块，当在多个处理器单元上运行时，可以期望获得巨大的性能提升。其次，可以沿着正交轴对计算进行模块化。例如，可以在一个工作线程中执行长时间计算，而不是阻塞UI线程，这样在后台进行长时间计算时，用户界面仍可保持响应。
 
-图 27.1 shows a situation that is perfectly suited for running in parallel. An example could be the processing of pixels of an image by an algorithm that does not require information about neighboring pixels. The algorithm could split the image into four parts. On a single-core processor, each part would be processed sequentially; on a dual-core processor, two parts would be processed in parallel; and on a quad-core processor, four parts would be processed in parallel, resulting in an almost linear scaling of the performance with the number of cores.
+图 27.1 展示了一个非常适合并行运行的情况，通过一个不需要了解相邻像素信息的算法来处理图像的像素。该算法可以将图像分割成四个部分。在单核处理器上，每个部分将按顺序处理；在双核处理器上，两个部分将并行处理；在四核处理器上，四个部分将并行处理，从而使得性能几乎与核心数成线性增长。
 
 \myGraphic{0.9}{content/part4/chapter27/images/1.png}{图 27.1}
 
-Of course, it’s not always possible to split the problem into parts that can be executed independently of each other in parallel. However, it can often be made parallel, at least partially, resulting in a performance increase. A difficult part of multithreaded programming is making your algorithm parallel, which is highly dependent on the type of the algorithm. Other difficulties are race conditions, deadlocks, tearing, and false sharing. These are discussed in the following sections. Options for making code thread-safe include:
+当然，并不总是可能将问题分割成可以独立并行执行的部分，但通常可以部分地并行化，从而提高性能。多线程编程的一个困难部分是使算法并行化，这高度依赖于算法的类型。其他困难包括竞争条件、死锁、撕裂和伪共享。这些将在接下来的章节中讨论。代码线程安全的选项包括：
 
 \begin{itemize}
 \item
-Immutable data: Constant data is inherently safe to be accessed by multiple threads.
+不可变的数据：常量数据本质上可以由多个线程安全访问。
 
 \item
-Atomic operations: These are low-level types that automatically provide thread-safe operations.
+原子操作：自动提供线程安全操作的低层类型。
 
 \item
-Mutual exclusion and other synchronization mechanisms: These are used to coordinate access to shared data from multiple threads.
+互斥和其他同步机制：这些用于协调多个线程对共享数据的访问。
 
 \item
-Thread-local storage: Variables that are marked as thread\_local are local to a thread; other threads don’t have access to them (at least not by default), so they are generally thread-safe.
+线程局部存储：标记为 thread\_local 的变量是线程局部变量；其他线程没有访问它们的权限（至少默认情况下没有），因此线程安全。
 \end{itemize}
 
-All these topics are touched upon in this chapter.
+本章将涉及这些内容。
 
 \begin{myNotic}{NOTE}
-To prevent multithreading problems, try to design your programs so that multiple threads need not read and write to shared memory. Or, use a synchronization mechanism (as described in the section “Mutual Exclusion”) or atomic operations (as described in the section “Atomic Operations Library”).
+为了避免多线程问题，需要设计程序，使多个线程不需要读写共享内存。或者，使用同步机制（“互斥”）或原子操作（“原子操作库”）。
 \end{myNotic}
 
-\mySubsubsection{27.1.1.}{Race Conditions}
+\mySubsubsection{27.1.1.}{竞争条件}
 
-Race conditions can occur when multiple threads want to access any kind of shared resources. Race conditions in the context of memory shared by multiple threads are called data races. A data race can occur when multiple threads access the same variable, and at least one of those threads writes to it.
-For example, suppose you have a shared variable and one thread increments this value while another thread decrements it. Incrementing and decrementing the value means that the current value needs to be retrieved from memory, incremented or decremented, and stored back in memory. Most processors have INC and DEC instructions to do these operations. On modern x86 processors, these instructions are not atomic, meaning that other instructions can be executed in the middle of the operation, which might cause the code to retrieve a wrong value.
+当多个线程想要访问任何类型的共享资源时，可能会发生竞争条件。多个线程共享内存的竞争条件称为数据竞争。当多个线程访问同一个变量，并且至少有一个线程对其进行写操作时，可能会发生数据竞争。
 
-The following table shows the result when the increment is finished before the decrement starts and assumes that the initial value is 1:
+例如，有一个共享变量，一个线程在另一个线程对其进行递减操作的同时对其进行递增操作。递增和递减值意味着当前值需要从内存中检索，然后递增或递减，并存储回内存。大多数处理器都有 INC 和 DEC 指令来执行这些操作。在现代 x86 处理器上，这些指令不是原子性的，所以其他指令可以在操作中间执行，这可能导致代码检索错误的值。
+
+下面的表格显示了当递增操作完成在递减操作开始之前，并且假设初始值为 1 时的结果：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{THREAD 1 (INCREMENT)} & \textbf{THREAD 2 (DECREMENT)} \\ \hline
+\textbf{线程 1 (增加)} & \textbf{线程 2 (减少)} \\ \hline
 \endfirsthead
 %
 \endhead
@@ -73,14 +73,14 @@ store value (value = 2)       &                               \\ \hline
 & store value (value = 1)       \\ \hline
 \end{longtable}
 
-The final value stored in memory is 1. When the decrement thread is finished before the increment thread starts, the final value is also 1, as shown in the following table:
+内存中存储的最终值是 1。当递减线程在递增线程开始之前完成时，最终值也是 1，如下表所示：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{THREAD 1 (INCREMENT)} & \textbf{THREAD 2 (DECREMENT)} \\ \hline
+\textbf{线程 1 (增加)} & \textbf{线程 2 (减少)} \\ \hline
 \endfirsthead
 %
 \endhead
@@ -93,14 +93,14 @@ increment value (value = 1)   &                               \\ \hline
 store value (value = 1)       &                               \\ \hline
 \end{longtable}
 
-However, when the instructions are interleaved, the result is different, as shown in the following table:
+然而，当指令交错执行时，结果会有所不同，如下表所示：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{THREAD 1 (INCREMENT)} & \textbf{THREAD 2 (DECREMENT)} \\ \hline
+\textbf{线程 1 (增加)} & \textbf{线程 2 (减少)} \\ \hline
 \endfirsthead
 %
 \endhead
@@ -113,25 +113,25 @@ store value (value = 2)       &                               \\ \hline
 & store value (value = 0)       \\ \hline
 \end{longtable}
 
-The final result in this case is 0. In other words, the effect of the increment operation is lost. This is a data race.
+这种情况下，最终结果是 0。换句话说，递增操作的效果丢失了。这就是数据竞争。
 
-\mySubsubsection{27.1.2.}{Tearing}
+\mySubsubsection{27.1.2.}{撕裂}
 
-Tearing is a specific case or consequence of a data race. There are two kinds of tearing: torn read and torn write. If a thread has written part of your data to memory, while another part hasn’t been written yet, any other thread reading that data at that exact moment sees inconsistent data: a torn read. If two threads are writing to the data at the same time, one thread might have written part of the data, while another thread might have written another part of the data. The final result will be inconsistent: a torn write.
+撕裂是数据竞争的一种特定情况或后果。撕裂有两种类型：撕裂读和撕裂写。如果一个线程将数据的一部分写入内存，而另一部分尚未写入，那么在那一刻读取该数据的任何其他线程都会看到不一致的数据：一个撕裂读。如果两个线程同时写入数据，一个线程可能已经写入了数据的一部分，而另一个线程可能已经写入了数据的其他部分。最终结果将是不一致的：一个撕裂写。
 
-\mySubsubsection{27.1.3.}{Deadlocks}
+\mySubsubsection{27.1.3.}{死锁}
 
-If you opt to solve a race condition by using a synchronization mechanism, such as mutual exclusion, you might run into another common problem with multithreaded programming: deadlocks. Two threads are deadlocked if they are both waiting for the other thread to do something. This can be extended to more than two threads. For example, if two threads want to acquire access to a shared resource, they need to ask for permission to access this resource. If one of the threads currently holds the permission to access the resource, but is blocked indefinitely for some other reason, then the other thread will block indefinitely as well when trying to acquire permission for the same resource.
+如果选择通过使用同步机制（如互斥）来解决竞争条件，可能会遇到多线程编程的另一个常见问题：死锁。两个线程如果在等待对方执行某些操作，则会进入死锁状态。这可以扩展到超过两个线程。例如，两个线程都想获取访问共享资源的权限，需要请求访问该资源的权限。如果其中一个线程当前持有访问该资源的权限，但由于其他原因而永久阻塞，那么另一个线程在尝试获取同一资源的权限时，也会永久阻塞。
 
-One mechanism to acquire permission for a shared resource is called a mutual exclusion object, or mutex for short, discussed in detail later in this chapter. For example, suppose you have two threads and two resources protected with two mutexes, A and B. Both threads acquire permission for both resources, but they acquire the permission in different order. The following table shows this situation in pseudo-code:
+获取共享资源权限的一种机制称为互斥对象，或简称为 mutex，在本章稍后详细讨论。例如，有两个线程和两个资源，每个资源都由一个 mutex 保护，分别是 A 和 B。两个线程都获取了两个资源的权限，但获取权限的顺序不同。以下表格展示了这种情况的伪代码：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{THREAD 1} &
-\textbf{THREAD 2} \\ \hline
+\textbf{线程 1} &
+\textbf{线程 2} \\ \hline
 \endfirsthead
 %
 \endhead
@@ -140,37 +140,37 @@ One mechanism to acquire permission for a shared resource is called a mutual exc
 \begin{tabular}[c]{@{}l@{}}Acquire B\\ Acquire A\\ // . . . compute\\ Release A\\ Release B\end{tabular} \\ \hline
 \end{longtable}
 
-Now, imagine that the code in the two threads is executed in the following order:
+现在，想象一下这两个线程的代码以以下顺序执行：
 
 \begin{itemize}
 \item
-Thread 1: Acquire A (succeeds)
+线程 1：获取 A（成功）
 
 \item
-Thread 2: Acquire B (succeeds)
+线程 2：获取 B（成功）
 
 \item
-Thread 1: Acquire B (waits/blocks, because B is held by thread 2)
+线程 1：获取 B（等待/阻塞，因为线程 2 持有 B）
 
 \item
-Thread 2: Acquire A (waits/blocks, because A is held by thread 1)
+线程 2：获取 A（等待/阻塞，因为线程 1 持有 A）
 \end{itemize}
 
-Both threads are now waiting indefinitely in a deadlock situation. 图 27.2 shows a graphical representation of the deadlock. Thread 1 has acquired permission for resource A and is waiting to acquire permission for resource B. Thread 2 has acquired permission for resource B and is waiting to acquire permission for resource A. In this graphical representation, you see a cycle that depicts the deadlock. Both threads will wait indefinitely.
+两个线程现在都在死锁中永久等待，图 27.2 展示了死锁的图形表示。线程 1 已经获取了资源 A 的权限，并等待获取资源 B 的权限。线程 2 已经获取了资源 B 的权限，并等待获取资源 A 的权限。这个图形表示中，会看到一个循环，描绘了死锁。两个线程都将进入永久等待。
 
 \myGraphic{0.5}{content/part4/chapter27/images/2.png}{图 27.2}
 
-It’s best to always acquire permissions in the same order to avoid these kinds of deadlocks. You could also include mechanisms in your program to break these deadlocks. One possible solution is to try for a certain time to acquire permission for a resource. If the permission cannot be obtained within a certain time interval, the thread can stop waiting and possibly release other permissions it is currently holding. The thread can then sleep for a little bit and try again later to acquire all the resources it needs. This mechanism gives other threads the opportunity to acquire necessary permissions and continue their execution. Whether this mechanism works or not depends heavily on your specific deadlock case.
+最好总是以相同的顺序获取，以避免这种死锁。还可以在程序中包含某些机制，来打破死锁。一种可能的解决方案是在一定时间内尝试获取资源的权限，如果在指定时间间隔内无法获取权限，线程可以停止等待，并可能释放它目前持有的其他权限。线程可以稍后尝试再次获取它需要的所有资源。这个机制给了其他线程获取必要权限，并继续执行的机会。这个机制是否有效取决于死锁的具体情况。
 
-The previous paragraph describes workarounds to avoid deadlocks. These exact workarounds are implemented in the Standard Library by std::lock(), described later in the section “Mutual Exclusion.” This function obtains permission for several resources with one call, without the risk of deadlocks. You should use std::lock() instead of reinventing the same workarounds. However, it’s even better not to get into such a situation in the first place by avoiding having to take multiple locks at once. Ideally, try to avoid patterns that require locking at all.
+上一段描述了避免死锁的解决方案，这些解决方案已在标准库中通过 std::lock() 实现，该函数在本章稍后的“互斥”部分详细讨论。这个函数一次调用获取多个资源的权限，而不存在死锁的风险。应该使用 std::lock() ，而不是重新实现同样的解决方案。然而，最好从一开始就避免进入这样的情况，通过避免一次性获取多个锁。理想情况下，尝试避免使用锁。
 
-\mySubsubsection{27.1.4.}{False Sharing}
+\mySubsubsection{27.1.4.}{伪共享}
 
-Most caches work with cache lines. For modern CPUs, cache lines are usually 64 bytes. If something needs to be written to a cache line, the entire line needs to be locked. This can bring a serious performance penalty for multithreaded code if your data structure is not properly designed. For example, if two threads are using two different pieces of data, but that data shares a cache line, then when one thread writes something, the other thread is blocked because the entire cache line is locked. 图 27.3 graphically shows the situation where two threads clearly write to two different blocks of memory while sharing a cache line.
+大多数缓存器都采用缓存行工作。对于现代 CPU，缓存行通常是 64 字节。如果需要写入一个缓存行，整个缓存行都需要被锁定。如果数据结构设计不当，这可能会对多线程代码造成严重的性能惩罚。例如，两个线程使用两个不同的数据块，但这些数据块共享一个缓存行，那么当一个线程写入某些内容时，会阻塞另一个线程，因为整个缓存行都锁定了。图 27.3 图形化地展示了两个线程在共享一个缓存行的情况下，很明显地写入两个不同的内存块。
 
 \myGraphic{0.5}{content/part4/chapter27/images/3.png}{图 27.3}
 
-You can optimize your data structures by using explicit memory alignments to make sure data that is worked on by multiple threads does not share any cache lines. To do this in a portable manner, a constant called hardware\_destructive\_interference\_size, defined in <new>, can be used, which returns you the minimum recommended offset between two concurrently accessed objects to avoid cache line sharing. You can use that value in combination with the alignas keyword to properly align your data.
+可以通过使用显式内存对齐来优化数据结构，确保多个线程工作的数据不共享缓存行。为了以可移植的方式做到这一点，可以使用一个名为 hardware\_destructive\_interference\_size 的常量，该常量在 <new> 中定义，返回两个同时访问的对象之间的最小推荐偏移量，以避免缓存行共享。可以将这个值与 alignas 关键字结合使用，以正确对齐数据。
 
 
 
