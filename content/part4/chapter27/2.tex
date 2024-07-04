@@ -1,11 +1,11 @@
 
-The C++ threading library, defined in <thread>, makes it easy to launch new threads. You can specify what needs to be executed in the new thread in several ways. You can let the new thread execute a global function, the operator() of a function object, a lambda expression, or even a member function of an instance of some class. The following sections give small examples of all these techniques.
+C++线程库定义在<thread>中，启动新线程现在是件很简单的事情了。可以通过多种方式指定新线程中需要执行的内容，可以让新线程执行一个全局函数、函数对象的operator()、一个Lambda表达式，甚至是某个类实例的成员函数。以下各节给出一些简单的示例。
 
-\mySubsubsection{27.2.1.}{Thread with Function Pointer}
+\mySubsubsection{27.2.1.}{使用函数指针的线程}
 
-Functions such as CreateThread(), \_beginthread(), and so on, on Windows, and pthread\_create() with the pthreads library, require that the thread function has only one parameter. On the other hand, a function that you want to use with the standard C++ std::thread class can have as many parameters as you want.
+Windows上的CreateThread()、\_beginthread()等函数，以及pthreads库中的pthread\_create()，都要求线程函数只有一个参数，而标准std::thread使用的函数可以有任意数量的参数。
 
-Suppose you have a counter() function accepting two integers: the first representing an ID and the second representing the number of iterations that the function should loop. The body of the function is a single loop that loops the given number of iterations. On each iteration, a message is printed to standard output.
+假设有一个counter()函数，接受两个整数：第一个代表ID，第二个代表函数应循环的迭代次数。函数体是一个循环，循环给定的迭代次数。每次迭代中，向标准输出打印一条消息。
 
 \begin{cpp}
 void counter(int id, int numIterations)
@@ -16,18 +16,17 @@ void counter(int id, int numIterations)
 }
 \end{cpp}
 
-You can launch multiple threads executing this function using std::thread. You can create a thread t1, executing counter() with arguments 1 and 6 as follows:
+可以使用std::thread启动多个执行此函数的线程。可以创建一个线程t1，执行带有参数1和6的counter()：
 
 \begin{cpp}
 thread t1 { counter, 1, 6 };
 \end{cpp}
 
-The constructor of the thread class is a variadic template, which means that it accepts any number of arguments. Variadic templates are discussed in detail in Chapter 26, “Advanced Templates.” The first argument is a callable object (such as a function pointer—in this example, a pointer to the function counter()) to execute in the new thread. Any subsequent arguments are passed to this callable when execution of the thread starts.
+线程类的构造函数是一个可变参数模板，接受任意数量的参数。第一个参数是要在新线程中执行的可调用对象（例如:函数指针——这个例子中，是指向函数counter()的指针），后续参数在启动线程执行时，传递给这些参数给可调用对象。
 
-A thread object is said to be joinable if it represents or represented an active thread in the system.
-Even when the thread has finished executing, a thread object remains in the joinable state. A defaultconstructed thread object is unjoinable. Before a joinable thread object is destroyed, you need to make sure to call either join() or detach() on it. A call to join() is a blocking call: it waits until the thread has finished its work. A call to detach() detaches a thread object from its underlying OS thread, in which case the OS thread keeps running independently. Both member functions cause the thread to become unjoinable. If a thread object that is still joinable is destroyed, the destructor calls std::terminate(), which abruptly terminates all threads and the application itself. The reason for this behavior is that destroying a thread without joining it is almost certainly a bug, and terminating the program is the best available way for the library to indicate the problem.
+如果一个线程对象表示或曾表示系统中的一个活动线程，则称该线程对象可汇入。即使线程已经执行完毕，线程对象仍保持可汇入状态。默认构造的线程对象不可汇入。可汇入的线程对象销毁之前，需要使用join()或detach()。join()为阻塞调用：等待线程完成其工作。对detach()的调用将线程对象与其底层的OS线程分离，使OS线程独立运行。这两个成员函数都会导致线程变为不可汇入。如果一个仍然可汇入的线程对象销毁，析构函数会调用std::terminate()，这将终止所有线程和应用程序本身。这种行为的原因是，销毁一个没有汇入的线程几乎肯定是一个错误，终止程序是库指示问题的最佳方式。
 
-The following code launches two threads executing the counter() function. After launching the threads, join() is called on both threads.
+以下代码启动两个线程执行counter()函数。启动线程后，对两个线程调用join()。
 
 \begin{cpp}
 thread t1 { counter, 1, 6 };
@@ -36,7 +35,7 @@ t1.join();
 t2.join();
 \end{cpp}
 
-A possible output of this example looks as follows:
+此例的可能输出如下所示：
 
 \begin{shell}
 Counter 2 has value 0
@@ -51,29 +50,29 @@ Counter 2 has value 2
 Counter 2 has value 3
 \end{shell}
 
-The output on your system will be different, and it will most likely be different every time you run it. This is because two threads are executing the counter() function at the same time, so the output depends on the number of processing cores in your machine and on the thread scheduling of the operating system.
+系统上的输出将不同，并且每次运行时都可能不同。这是因为两个线程同时执行counter()函数，所以输出取决于机器的处理器数量和操作系统的线程调度。
 
-Calling print() or println() from different threads is thread-safe and doesn’t cause any data races. However, if you change the single println() statement in counter() to the following:
+不同线程中使用print()或println()是线程安全的，不会导致数据竞争。但如果将counter()中的单个println()语句更改为以下内容：
 
 \begin{cpp}
 print("Counter {} has value {}", id, i);
 println("");
 \end{cpp}
 
-Or:
+或:
 
 \begin{cpp}
 cout << format("Counter {} has value {}", id, i) << endl;
 \end{cpp}
 
-Or:
+或:
 
 \begin{cpp}
 cout << format("Counter {} has value {}", id, i);
 cout << endl;
 \end{cpp}
 
-Then, even though there are still no data races, output from different threads can be interleaved! This means that the output can be mixed together as follows:
+那么，即使仍然没有数据竞争，不同线程的输出可能会交错！所以输出可能会混合在一起，如下所示：
 
 \begin{shell}
 Counter 1 has value 0Counter 2 has value 0
@@ -83,15 +82,15 @@ Counter 2 has value 2Counter 1 has value 1
 ...
 \end{shell}
 
-This can be fixed using synchronization mechanisms, which are discussed later in this chapter.
+这可以使用本章后面讨论的同步机制来修复。
 
 \begin{myNotic}{NOTE}
-Thread function arguments are always copied into some internal storage for the thread. Use std::ref() or std::cref() from <functional> to pass them by reference.
+线程函数参数总会复制到线程的某个内部存储中，使用<functional>中的std::ref()或std::cref()可按引用传递。
 \end{myNotic}
 
-\mySubsubsection{27.2.2.}{Thread with Function Object}
+\mySubsubsection{27.2.2.}{使用函数对象的线程}
 
-Instead of using function pointers, you can also use a function object to execute in a thread. With the function pointer technique of the previous section, the only way to pass information to the thread is by passing arguments to the function. With function objects, you can add data members to your function object class, which you can initialize and use however you want. The following example first defines a class called Counter, which has two data members: an ID and the number of iterations for the loop. Both variables are initialized with the constructor. To make the Counter class a function object, you need to implement operator(), as discussed in Chapter 19, “Function Pointers, Function Objects, and Lambda Expressions.” The implementation of operator() is the same as the counter() function from the previous section. Here is the code:
+除了使用函数指针，还可以使用函数对象在线程中执行。前一节的函数指针中，将信息传递给线程的唯一方式是通过函数传递参数。使用函数对象，可以为的函数对象类添加数据成员，可以初始化并按想要的方式使用。以下示例首先定义了一个名为Counter的类，有两个数据成员：一个ID和循环的迭代次数。两个变量都通过构造函数初始化。为了使Counter类成为一个函数对象，需要实现operator()。operator()的实现与前一节中的counter()函数相同。以下是实现代码：
 
 \begin{cpp}
 class Counter
@@ -112,7 +111,7 @@ class Counter
 };
 \end{cpp}
 
-Two techniques for initializing threads with a function object are demonstrated in the following code snippet. The first technique uses the uniform initialization syntax. You create an instance of Counter with its constructor arguments and give it to the thread constructor between curly braces. The second technique defines a named instance of Counter and gives this named instance to the constructor of the thread class.
+以下代码片段演示了使用函数对象初始化线程的两种技术。第一种技术使用统一初始化语法，使用其构造函数参数创建Counter的实例，并将其放在大括号之间传递给线程构造函数。第二种技术定义了Counter的命名实例，并将这个命名实例传递给线程类的构造函数。
 
 \begin{cpp}
 // Using uniform initialization syntax.
@@ -128,19 +127,19 @@ t2.join();
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Function objects are always copied into some internal storage for the thread. If you want to execute operator() on a specific instance of your function object instead of on a copy, you should use one of the std::ref() or std::cref() helper functions from <functional> to pass your instance by reference, for example:
+函数对象总会复制到线程的某个内部存储中。如果想对特定实例的operator()上执行，而不是在副本上执行，应该使用<functional>中的std::ref()或std::cref()按引用传递实例，例如：
 
 \begin{cpp}
 Counter c { 2, 12 };
 thread t2 { ref(c) };
 \end{cpp}
 
-However, since t2 now has a reference to c, it will be a data race (and thus undefined behavior) to read or write the contents of c from the main thread before t2 has finished and been joined.
+然而，由于t2现在有对c的引用，如果在t2完成并加入之前从主线程读取或写入c的内容，将会导致数据竞争（从而产生未定义行为）。
 \end{myNotic}
 
-\mySubsubsection{27.2.3.}{Thread with Lambda}
+\mySubsubsection{27.2.3.}{使用Lambda的线程}
 
-Lambda expressions fit nicely with the standard C++ threading library. Here is an example that launches a thread to execute a given lambda expression:
+Lambda表达式与标准C++线程库非常契合。以下示例启动一个线程来执行给定的Lambda表达式：
 
 \begin{cpp}
 int id { 1 };
@@ -153,9 +152,9 @@ thread t1 { [id, numIterations] {
 t1.join();
 \end{cpp}
 
-\mySubsubsection{27.2.4.}{Thread with Member Function Pointer}
+\mySubsubsection{27.2.4.}{使用成员函数指针的线程}
 
-You can specify a member function of a class to be executed in a thread. The following example defines a basic Request class with a process() member function. The main() function creates an instance of the Request class and launches a new thread, which executes the process() member function of the Request instance req.
+可以指定一个类的成员函数在线程中执行。以下示例定义了一个带有process()成员函数的基本Request类，main()函数创建Request类的一个实例，并启动一个新线程，该线程执行Request实例req的process()成员函数。
 
 \begin{cpp}
 class Request
@@ -175,18 +174,18 @@ int main()
 }
 \end{cpp}
 
-With this technique, you are executing a member function on a specific object in a separate thread. If other threads are accessing the same object, you need to make sure this happens in a thread-safe way to avoid data races. Mutual exclusion, discussed later in this chapter, can be used as a synchronization mechanism to make it thread-safe.
+使用这种技术，可在一个单独的线程中对特定对象执行成员函数。如果其他线程正在访问同一个对象，需要确保以线程安全的方式发生，以避免数据竞争。可以使用同步机制，使应用线程安全，这会在后续内容中介绍。
 
-\mySubsubsection{27.2.5.}{Thread-Local Storage}
+\mySubsubsection{27.2.5.}{线程局部存储}
 
-The C++ standard supports thread-local storage. With a keyword called thread\_local, you can mark any variable as thread-local, which means that each thread will have its own unique copy of the variable, and it will last for the entire duration of the thread. For each thread, the variable is initialized exactly once. For example, the following code defines two global variables, k and n. Every thread shares one—and only one—copy of k, while each thread has its own unique copy of n.
+C++标准支持线程局部存储。使用一个名为thread\_local的关键字，可以标记变量为线程局部，这样每个线程将有自己的唯一副本。对于每个线程，变量初始化一次。例如，以下代码定义了两个全局变量，k和n。每个线程共享k的一个副本，而每个线程都有自己的n的唯一副本。
 
 \begin{cpp}
 int k;
 thread_local int n;
 \end{cpp}
 
-The following code snippet verifies this. threadFunction() prints the current values for k and n, and then increments them both. The main() function launches a first thread, waits for it to finish, and then launches a second thread.
+以下代码片段验证了这一点。threadFunction()打印当前k和n的值，然后递增它们。main()函数启动一个第一个线程，等待它完成，然后启动第二个线程。
 
 \begin{cpp}
 void threadFunction(int id)
@@ -203,14 +202,14 @@ int main()
 }
 \end{cpp}
 
-From the following output, it’s clear that there is only a single instance of k shared across all threads, while each thread has its own copy of n.
+从以下输出中，很明显k只有一个实例在所有线程之间共享，而每个线程都有自己的n。
 
 \begin{shell}
 Thread 1: k=0, n=0
 Thread 2: k=1, n=0
 \end{shell}
 
-The previous paragraphs show how thread\_local works for global variables. It also works for static data members of classes and static local variables of functions. Inside a function, and only inside a function, declaring a variable as thread\_local implies static, but it’s recommended to be explicit about this. Here are some examples:
+前面的段落展示了thread\_local如何用于全局变量，也适用于类的静态数据成员和函数的静态局部变量。函数内部，并且仅在函数内部，将变量声明为thread\_local意味着静态，需要明确这一点。这里有一些例子：
 
 \begin{cpp}
 static thread_local int x1; // OK, internal linkage (See Chapter 11)
@@ -229,37 +228,37 @@ void f()
 }
 \end{cpp}
 
-\mySubsubsection{27.2.6.}{Canceling Threads}
+\mySubsubsection{27.2.6.}{取消线程}
 
-The C++ standard does not include any mechanism for canceling a running thread from another thread. One (partial) solution is to use the jthread class, discussed in the next section. If that’s not an option, then the best way to achieve this is to provide some communication mechanism that the two threads agree upon. The simplest mechanism is to have a shared variable, which the target thread checks periodically to determine if it should terminate. Other threads can set this shared variable to indirectly instruct the thread to shut down. You have to be careful here, because this shared variable is being accessed by multiple threads, of which at least one is writing to the shared variable. To make this thread safe, it’s recommended to use atomic variables or condition variables, both discussed later in this chapter.
+C++标准不包括从另一个线程取消运行线程的机制，一个（部分）解决方案是使用下一节讨论的jthread类。如果这不是一个选项，那么实现这一点的最佳方法就是提供一个线程之间约定的通信机制。最简单的机制是拥有一个共享变量，目标线程定期检查以确定是否应该终止。其他线程可以设置这个共享变量以间接指示线程关闭，这里需要谨慎，因为多个线程正在访问这个共享变量，至少有一个线程正在写入共享变量。为了保证线程安全，建议使用原子变量或条件变量，这两者都在本章后面讨论。
 
-\mySubsubsection{27.2.7.}{Automatically Joining Threads}
+\mySubsubsection{27.2.7.}{自动汇入线程}
 
-As discussed earlier, if a thread instance is destroyed that is still joinable, the C++ runtime calls std::terminate() to terminate the application. <thread> also defines std::jthread, which is virtually identical to thread, except:
-
-\begin{itemize}
-\item
-It automatically joins in its destructor.
-
-\item
- It supports cooperative cancellation.
-\end{itemize}
-
-\mySamllsection{Cooperative Cancellation}
-
-The cancellation support of jthread is called cooperative cancellation because a thread that supports cancellation needs to periodically check if it needs to cancel itself. Before an example can be given, two important classes need to be introduced, both defined in <stop\_token>:
+如前所述，如果一个可连接的线程实例销毁，C++运行时会调用std::terminate()来终止应用程序。<thread>还定义了std::jthread，与thread几乎完全相同，除了：
 
 \begin{itemize}
 \item
-std::stop\_token: Supports actively checking for a cancellation request. A cancellable thread needs to periodically call stop\_requested() on a stop\_token to find out if it needs to stop its work. A stop\_token can be used with a condition\_variable\_any so a thread can wake up when it needs to stop.
+析构函数中自动汇入。
 
 \item
-std::stop\_source: Used to request a thread to cancel its execution. This is done by calling the request\_stop() member function on a stop\_source. If a stop\_source is used to request a cancellation, that stop request is visible to all associated stop\_sources and stop\_tokens. The stop\_requested() member function can be used to check whether a stop has already been requested.
+支持协作取消。
 \end{itemize}
 
-If you have a jthread instance, you can get access to its stop\_token and stop\_source by using the get\_stop\_token() and get\_stop\_source() member functions. Additionally, the callable passed to a constructor of jthread can have a stop\_token as its first parameter.
+\mySamllsection{协作取消}
 
-Let’s look at an example. The following code defines a threadFunction() callable that accepts a stop\_token as its first parameter. Because this is cooperative cancellation, the body of this thread function uses that stop\_token to check whether it needs to cancel itself. This code uses std::this\_thread::sleep\_for() to introduce a small delay in each loop. The argument to sleep\_for() is an std::chrono::duration; see Chapter 22, “Date and Time Utilities.”
+jthread的取消支持称为协作取消，因为支持取消的线程需要定期检查是否需要取消自身。给出示例之前，需要介绍两个在<stop\_token>中定义的重要类
+
+\begin{itemize}
+\item
+std::stop\_token: 支持主动检查取消请求。一个可取消的线程需要定期在一个stop\_token上调用stop\_requested()来找出它是否需要停止工作。stop\_token可以与condition\_variable\_any一起使用，这样线程可以在需要停止时唤醒。
+
+\item
+std::stop\_source: 用于请求线程取消其执行。通过在stop\_source上调用request\_stop()成员函数来完成的。如果stop\_source用于请求取消，则该取消请求对所有关联的stop\_source和stop\_token可见。可以使用stop\_requested()成员函数来检查，是否已经请求了停止。
+\end{itemize}
+
+如果有一个jthread实例，可以通过使用get\_stop\_token()和get\_stop\_source()成员函数来访问其stop\_token和stop\_source。此外，传递给jthread构造函数的可调用对象可以将其第一个参数作为stop\_token。
+
+来看一个示例。以下代码定义了一个threadFunction()可调用对象，接受一个stop\_token作为其第一个参数。因为协作取消，所以这个线程函数的主体使用这个stop\_token来检查否需要取消自身。这段代码使用std::this\_thread::sleep\_for()在每个循环中引入一个小延迟，sleep\_for()的参数是一个std::chrono::duration。
 
 \begin{cpp}
 void threadFunction(stop_token token, int id)
@@ -272,7 +271,7 @@ void threadFunction(stop_token token, int id)
 }
 \end{cpp}
 
-The following main() function creates two jthread instances to execute threadFunction(), sleeps for two seconds, writes a message that it’s ending, and asks both threads to stop:
+以下main()函数创建两个jthread实例来执行threadFunction()，休眠两秒钟，写入一个消息表示结束，并请求两个线程停止：
 
 \begin{cpp}
 int main()
@@ -288,7 +287,7 @@ int main()
 }
 \end{cpp}
 
-The following is a possible output of this program:
+此程序的可能输出，如下所示：
 
 \begin{shell}
 Thread 2 doing some work.
@@ -304,11 +303,11 @@ Stop requested for thread 2.
 Stop requested for thread 1.
 \end{shell}
 
-The destructor of jthread automatically requests its thread to stop executing before joining it, so the previous main() function can be simplified slightly by omitting the two calls to request\_stop().
+jthread的析构函数会自动请求其线程停止执行，然后汇入，所以前面的main()函数可以通过省略两个request\_stop()调用进行简化。
 
-\mySubsubsection{27.2.8.}{Retrieving Results from Threads}
+\mySubsubsection{27.2.8.}{从线程中获取结果}
 
-As you saw in the previous examples, launching a new thread is pretty easy. However, in most cases you are probably interested in results produced by the thread. For example, if your thread performs some mathematical calculations, you really would like to get the results out of the thread once the thread is finished. One way is to pass a pointer or reference to a result variable to the thread in which the thread stores the results. Another technique is to store the results inside class data members of a function object, which you can retrieve later once the thread has finished executing. This works only if you use std::ref() to pass your function object by reference to the jthread constructor. Here is an example:
+启动新线程相当简单，但我们可能对线程产生的结果感兴趣。例如，线程执行一些数学计算，很希望线程完成时获取结果。一种方法是将结果变量的指针或引用传递给线程，线程在其中存储结果。另一种技术是将结果存储在函数对象类的类数据成员中，可以在线程执行完成后稍后获取。使用std::ref()，将函数对象按引用传递给jthread构造函数时才有效。以下是示例：
 
 \begin{cpp}
 class Calculator
@@ -332,25 +331,25 @@ int main()
 }
 \end{cpp}
 
-This correctly outputs:
+正确地输出为：
 
 \begin{shell}
 21*2 = 42
 \end{shell}
 
-If you don’t use ref() and initialize job as follows, then the output will be 21*2 = 0:
+如果不使用ref()，并且像以下这样初始化job，那么输出将是21*2 = 0：
 
 \begin{cpp}
 jthread job { calculator };
 \end{cpp}
 
-However, there is another easier mechanism to obtain a result from threads: futures. Futures also make it easier to handle errors that occur inside your threads. They are discussed later in this chapter.
+还有一个更简单的机制可以从线程中获取结果：future。future也使处理线程内的错误变得更加容易，将在本章后面介绍。
 
-\mySubsubsection{27.2.9.}{Copying and Rethrowing Exceptions}
+\mySubsubsection{27.2.9.}{复制和重抛异常}
 
-The whole exception mechanism in C++ works perfectly fine, as long as it stays within one single thread. Every thread can throw its own exceptions, but they need to be caught within their own thread. If a thread throws an exception and it is not caught inside the thread, the C++ runtime calls std::terminate(), which terminates the whole application. Exceptions thrown in one thread cannot be caught in another thread. This introduces quite a few problems when you would like to use exception handling in combination with multithreaded programming.
+在C++中，整个异常机制在单一线程中运行得相当好。每个线程都可以抛出自己的异常，但需要在各自的线程中进行捕获。如果一个线程抛出一个异常，且该异常在原线程中没有捕获，C++运行时将调用std::terminate()，这将终止整个应用程序。一个线程抛出的异常不能在另一个线程捕获。这在结合异常处理和多线程编程时，引入了许多问题。
 
-Without the standard threading library, it’s difficult if not impossible to gracefully handle exceptions across threads. The standard threading library solves this issue with the following exception-related functions. These functions work not only with std::exceptions, but also with other kinds of exceptions, ints, strings, custom exceptions, and so on:
+如果没有标准线程库，跨线程优雅地处理异常是相当困难的(可能的话)。标准线程库通过以下与异常相关的函数解决了这个问题。这些函数不仅适用于std::exception，还适用于其他类型的异常、整数、字符串、自定义异常等：
 
 \begin{itemize}
 \item
@@ -358,21 +357,21 @@ Without the standard threading library, it’s difficult if not impossible to gr
 exception_ptr current_exception() noexcept;
 \end{cpp}
 
-Intended to be called from inside a catch block. Returns an exception\_ptr object that refers to the exception currently being handled, or a copy of the currently handled exception. A null exception\_ptr object is returned if no exception is being handled. This referenced exception object is reference counted, similar to std::shared\_ptr, and remains valid for as long as there is an object of type exception\_ptr that is referencing it.
+旨在在catch块中调用。返回一个指向当前正在处理的异常的exception\_ptr对象，或者是对当前正在处理的异常的复制。如果没有异常正在处理，则返回一个空的exception\_ptr对象。这个引用的异常对象是引用计数的，类似于std::shared\_ptr，只要有一个对象类型为exception\_ptr的引用，就能保持有效。
 
 \item
 \begin{cpp}
 [[noreturn]] void rethrow_exception(exception_ptr p);
 \end{cpp}
 
-Rethrows the exception referenced by the exception\_ptr parameter (which must not be null). Rethrowing the referenced exception does not have to be done in the same thread that generated the referenced exception in the first place, which makes this feature perfectly suited for handling exceptions across different threads. The [[noreturn]] attribute makes it clear that this function never returns normally.
+重新抛出由exception\_ptr参数引用的异常（该参数不能为null）。重新抛出引用异常不必在生成引用异常的原始线程中进行，这使得这种特性非常适合跨不同线程处理异常。由于[[noreturn]]属性，该函数永远不会以正常方式返回。
 
 \item
 \begin{cpp}
 template<class E> exception_ptr make_exception_ptr(E e) noexcept;
 \end{cpp}
 
-Creates an exception\_ptr object that refers to a copy of the given exception object. This is basically a shorthand notation for the following code:
+创建指向给定异常对象复制的exception\_ptr对象，这是以下代码的简写：
 
 \begin{cpp}
 try { throw e; }
@@ -380,7 +379,7 @@ catch(...) { return current_exception(); }
 \end{cpp}
 \end{itemize}
 
-Let’s see how handling exceptions across different threads can be implemented using these functions. The following code defines a function that does some work and throws an exception. This function will ultimately be running in a separate thread.
+来看看如何使用这些函数跨不同线程处理异常。以下代码定义了一个函数，该函数执行一些工作并抛出一个异常。这个函数最终将在独立线程中运行。
 
 \begin{cpp}
 void doSomeWork()
@@ -391,7 +390,7 @@ void doSomeWork()
 }
 \end{cpp}
 
-The following threadFunc() function wraps the call to the preceding function in a try/catch block, catching all exceptions that doSomeWork() might throw. A single argument is supplied to threadFunc(), which is of type exception\_ptr\&. Once an exception is caught, the function current\_exception() is used to get a reference to the exception being handled, which is then assigned to the exception\_ptr parameter. After that, the thread exits normally.
+以下threadFunc()函数将调用前面的函数包裹在一个try/catch块中，捕获doSomeWork()抛出的所有异常。向threadFunc()函数提供单一的参数，该参数的类型是exception\_ptr\&。一旦捕获到异常，使用current\_exception()函数获取正在处理的异常的引用，然后将其赋值给exception\_ptr参数。之后，线程正常退出。
 
 \begin{cpp}
 void threadFunc(exception_ptr& err)
@@ -405,7 +404,7 @@ void threadFunc(exception_ptr& err)
 }
 \end{cpp}
 
-The following doWorkInThread() function is called from within the main thread. Its responsibility is to create a new thread and start executing threadFunc() in it. A reference to an object of type exception\_ptr is given as an argument to threadFunc(). Once the thread is created, the doWorkInThread() function waits for the thread to finish by using the join() member function, after which the error object is examined. Because exception\_ptr is of type NullablePointer, you can easily check it using an if statement. If it’s a non-null value, the exception is rethrown in the current thread, which is the main thread in this example. Because you are rethrowing the exception in the main thread, the exception has been transferred from one thread to another thread.
+以下doWorkInThread()函数在主线程内部调用，用来创建一个新线程并开始在其中执行threadFunc()，向threadFunc()提供一个exception\_ptr类型的对象引用作为参数。当线程已创建，doWorkInThread()函数可通过使用join()成员函数等待线程完成，之后检查错误对象。由于exception\_ptr是NullablePointer类型，就可以轻松地使用if语句来检查。如果是非null值，异常将在当前线程中重新抛出，在这个例子中是主线程。因为在主线程中重新抛出异常，所以异常已经从一个线程转移到另一个线程。
 
 \begin{cpp}
 void doWorkInThread()
@@ -425,7 +424,7 @@ void doWorkInThread()
 }
 \end{cpp}
 
-The main() function is pretty straightforward. It calls doWorkInThread() and wraps the call in a try/catch block to catch exceptions thrown by the thread spawned by doWorkInThread().
+main()函数相当简单。调用doWorkInThread()，并将调用包裹在一个try/catch块中，以捕获由doWorkInThread()创建的线程抛出的异常。
 
 \begin{cpp}
 int main()
@@ -438,7 +437,7 @@ int main()
 }
 \end{cpp}
 
-The output is as follows:
+输出为：
 
 \begin{shell}
 0
@@ -452,7 +451,7 @@ Main thread received exception, rethrowing it...
 Main function caught: 'Exception from thread'
 \end{shell}
 
-To keep the examples in this chapter compact and to the point, their main() functions usually use join(), either explicitly or implicitly with jthread, to block the main thread and to wait until threads have finished. Of course, in real-world applications you do not want to block your main thread. For example, in a GUI application, blocking your main thread means that the UI becomes unresponsive. In that case, you can use a messaging paradigm to communicate between threads. For example, the earlier threadFunc() function could send a message to the UI thread with as argument a copy of the result of current\_exception().
+这里main()函数使用join()，无论是显式还是隐式地与jthread一起使用，以阻塞主线程并等待线程完成。在实际应用中，可能不想阻塞主线程。例如，在GUI应用程序中，阻塞主线程意味着UI变得无响应。这种情况下，可以使用消息传递范式在线程之间进行通信。例如，之前的threadFunc()函数可以向UI线程发送一个消息，current\_exception()结果的副本可作为参数。
 
 
 

@@ -1,30 +1,30 @@
 
-If you are writing multithreaded applications, you have to be sensitive to the sequencing of operations. If your threads read and write shared data, this can be a problem. There are many ways to avoid this problem, such as never actually sharing data between threads. However, if you can’t avoid sharing data, you must provide for synchronization so that only one thread at a time can change the data.
+如果正在编写多线程应用程序，必须对操作的顺序敏感。如果线程读取和写入共享数据，这可能会成为一个问题。避免这个问题的方法有很多，例如:永远不要实际在多个线程之间共享数据。如果无法避免共享数据，就必须提供同步，以便每次只有一个线程可以更改数据。
 
-Scalars such as Booleans and integers can often be synchronized properly with atomic operations, as described earlier; however, when your data is more complex and you need to use that data from multiple threads, you can provide explicit synchronization.
+像布尔和整数这样的标量，通常可以通过原子操作正确地进行同步，如前面所述；但当数据更复杂，并且需要从多个线程使用该数据时，需要显式的提供同步。
 
-The Standard Library has support for mutual exclusion in the form of mutex and lock classes. These can be used to implement synchronization between threads and are discussed in the following sections.
+标准库在互斥锁和锁类中提供了对互斥的支持。这些可以用于实现线程之间的同步，并在以下各节中进行讨论。
 
-\mySubsubsection{27.4.1.}{Mutex Classes}
+\mySubsubsection{27.4.1.}{互斥锁类}
 
-Mutex stands for mutual exclusion. The basic mechanism of using a mutex is as follows:
+互斥锁代表互斥访问，基本机制为：
 
 \begin{itemize}
 \item
-A thread that wants to access (read or write) memory shared with other threads tries to lock the mutex object. If another thread is currently holding this lock, the new thread that wants to gain access blocks until the lock is released or until a timeout interval expires.
+一个线程尝试锁定一个与另一个线程共享的内存，以便读取或写入。如果另一个线程当前持有这个锁，那么新的线程将阻塞，直到锁释放或超时。
 
 \item
-Once the thread has obtained the lock, it is free to use the shared memory. Of course, this assumes that all threads that want to use the shared data participate in the mutexlocking scheme.
+当线程获得了锁，就可以自由地使用共享内存。当然，这假设所有使用共享数据的线程都参与到互斥机制中。
 
 \item
-After the thread is finished reading/writing to the shared memory, it releases its lock to give some other thread an opportunity to obtain a lock on the mutex. If two or more threads are waiting on the lock, there are no guarantees as to which thread will be granted the lock and thus allowed to proceed.
+线程完成对共享内存的读取/写入后，会释放锁，以便其他线程有机会获得互斥锁。如果有两个或更多的线程正在等待锁，不保证哪个线程将先获得锁。
 \end{itemize}
 
-The C++ Standard Library provides non-timed and timed mutex classes, both in a recursive and non-recursive flavor. Before we discuss all these options, let’s first have a look at a concept called a spinlock.
+C++标准库提供了非定时和定时互斥锁类，以及递归和非递归版本。讨论所有这些之前，先来看一下自旋锁。
 
-\mySamllsection{Spinlock}
+\mySamllsection{自旋锁}
 
-A spinlock is a synchronization mechanism where a thread uses a busy loop (spinning) to try to acquire a lock, performs its work, and releases the lock. While spinning, the thread remains active but is not doing any useful work. A mutex, on the other hand, might block the thread if the lock cannot be acquired immediately. Blocking a thread is an expensive operation that is avoided with a spinlock. Spinlocks can be useful in situations where you know the lock is going to be held for only a short time. Spinlocks can be implemented entirely in your own code. As the following code snippet demonstrates, a spinlock can be implemented using a single atomic type: atomic\_flag. The spinlock-related code is highlighted.
+自旋锁是一种同步机制，其中线程使用忙循环（自旋）来尝试获取锁，执行其工作，然后释放锁。自旋过程中，线程保持活跃但不做任何工作。另一方面，如果互斥锁无法立即获取，互斥锁可能会阻塞线程。阻塞线程是一个昂贵的操作，自旋锁避免了这种操作。自旋锁在知道锁将只持有很短时间的情况下可能很有用。自旋锁完全可以自己实现，如以下代码片段所示，自旋锁可以使用单个原子类型：atomic\_flag。
 
 \begin{cpp}
 static constexpr unsigned NumberOfThreads { 50 };
@@ -53,143 +53,142 @@ int main()
 }
 \end{cpp}
 
-In this code, each thread tries to acquire a lock by repeatedly calling test\_and\_set() on an atomic\_flag until it succeeds. This is the busy loop.
+这个代码中，每个线程通过重复调用test\_and\_set()在一个atomic\_flag上，直到成功获取锁，这就是忙循环。
 
 \begin{myWarning}{WARNING}
-As spinlocks use a busy waiting loop, they should be an option only when you know for sure that threads will lock the spinlock only for brief moments of time.
+由于自旋锁使用忙等待循环，应该只在确定线程只会短暂地锁定自旋锁时才作为候选。
 \end{myWarning}
 
-Let’s now look at which mutex classes the Standard Library provides.
+现在来看看标准库提供了哪些互斥锁类。
 
-\mySamllsection{Non-timed Mutex Classes}
+\mySamllsection{非定时互斥锁类}
 
-The Standard Library has three non-timed mutex classes: std::mutex, recursive\_mutex, and shared\_mutex. The first two classes are defined in <mutex>, and the last one in <shared\_mutex>. Each mutex supports the following member functions:
+标准库有三个非定时互斥锁类：std::mutex、recursive\_mutex和shared\_mutex。前两个类在<mutex>中定义，最后一个在<shared\_mutex>中定义。每个互斥锁都支持以下成员函数：
 
 \begin{itemize}
 \item
-lock(): The calling thread tries to obtain the lock and blocks until the lock has been acquired. It blocks indefinitely. If there is a desire to limit the amount of time the thread blocks, you should use a timed mutex, discussed in the next section.
+lock(): 调用线程尝试获取锁，并在锁被获取之前一直阻塞，会无限期地阻塞。如果希望限制线程阻塞的时间，应该使用定时互斥锁，这将在下一节讨论。
 
 \item
-try\_lock(): The calling thread tries to obtain the lock. If the lock is currently held by another thread, the call returns immediately. If the lock has been obtained, try\_lock() returns true; otherwise, it returns false.
+try\_lock(): 调用线程尝试获取锁。如果锁当前由另一个线程持有，调用立即返回。如果已获取锁，try\_lock()返回true；否则，返回false。
 
 \item
-unlock(): The calling thread releases the lock it currently holds, making it available for another thread.
+unlock(): 调用线程释放当前持有的锁，使其对另一个线程可用。
 \end{itemize}
 
-std::mutex is a standard mutual exclusion class with exclusive ownership semantics. There can be only one thread owning the mutex. If another thread wants to obtain ownership of this mutex, it either blocks when using lock() or fails when using try\_lock(). A thread already having ownership of a mutex is not allowed to call lock() or try\_lock() again on that mutex. This might lead to a deadlock!
+std::mutex是一个具有独占所有权的标准互斥锁类。只能有一个线程拥有这个互斥锁。如果另一个线程想要获取这个互斥锁的所有权，要么在使用lock()时阻塞，要么在使用try\_lock()时失败。已经拥有互斥锁的线程，不允许再次对该互斥锁调用lock()或try\_lock()；否则，会导致死锁！
 
-std::recursive\_mutex behaves almost identically to mutex, except that a thread already having ownership of a recursive mutex is allowed to call lock() or try\_lock() again on the same recursive mutex. The calling thread should call the unlock() member function as many times as it obtained a lock on the recursive mutex.
+std::recursive\_mutex的行为几乎与mutex相同，只是已经拥有recursive\_mutex所有权的线程允许再次对同一个recursive\_mutex调用lock()或try\_lock()。调用线程应该调用unlock()成员函数，其次数与获取recursive\_mutex锁的次数相同。
 
-The shared\_mutex class supports the concept of shared lock ownership, also known as readerswriter lock. A thread can get either exclusive ownership or shared ownership of the lock. Exclusive ownership, also known as a write lock, can be acquired only when there are no other threads having exclusive or shared ownership. Shared ownership, also known as a read lock, can be acquired if there is no other thread having exclusive ownership, even if other threads have already acquired their own shared ownership. The shared\_mutex class supports lock(), try\_lock(), and unlock(). These member functions acquire and release exclusive locks. Additionally, they have the following shared ownership-related member functions: lock\_shared(), try\_lock\_shared(), and unlock\_shared(). These work similarly to the other set of member functions but try to acquire or release shared ownership.
+shared\_mutex类支持共享锁所有权的概念，也称为读写锁。线程可以获取锁的独占所有权或共享所有权。独占所有权，也称为写锁，只能在没有其他线程具有独占或共享所有权时获取。共享所有权，也称为读锁，可以在没有其他线程具有独占所有权时获取，即使其他线程已经获取了自己的共享所有权。shared\_mutex类支持lock()、try\_lock()和unlock()，这些成员函数获取和释放独占锁。此外，它们还有以下与共享所有权相关的成员函数：lock\_shared()、try\_lock\_shared()和unlock\_shared()。这些函数的工作方式与前面的函数类似，但尝试获取或释放共享所有权。
 
-A thread already having a lock on a shared\_mutex is not allowed to try to acquire a second lock on that mutex. This might lead to a deadlock!
+已经对shared\_mutex拥有锁的线程，不允许再次尝试获取该互斥锁的第二个锁。这可能导致死锁！
 
-Before examples on how to use these mutex classes can be given, a couple of other topics need to be discussed first. Hence, examples are discussed in the section “Examples Using Mutexes” later in this chapter.
+讨论如何使用这些互斥锁类的示例之前，还有一些其他主题需要首先讨论。示例将在本章后面的“使用互斥锁的示例”部分介绍。
 
 \begin{myWarning}{WARNING}
-Do not manually call the previously discussed lock and unlock member functions on any of the mutex classes discussed in this section and the next one. Mutex locks are resources, and, like all resources, they should almost exclusively be acquired using the Resource Acquisition Is Initialization (RAII) paradigm; see Chapter 32, “Incorporating Design Techniques and Frameworks.” The C++ Standard Library provides a number of RAII lock classes, which are discussed in the “Locks” section later in this chapter. Using them is critical to avoid deadlocks. They automatically unlock a mutex when a lock object goes out of scope, so you don’t need to remember to manually call unlock() at the right time.
+不要手动调用互斥锁类的lock和unlock成员函数。互斥锁是一种资源，就像所有资源一样，它们应该使用 Resource Acquisition Is Initialization (RAII) 范式。C++标准库提供了一系列RAII锁类，将在本章后面的“锁”部分介绍，这对于避免死锁至关重要。它们会在锁对象超出作用域时自动解锁互斥锁，因此无需在正确的时间手动调用unlock()。
 \end{myWarning}
 
-\mySamllsection{Timed Mutex Classes}
+\mySamllsection{定时互斥锁类}
 
-When calling lock() on any of the previously discussed mutex classes, the call blocks until the lock can be obtained. On the other hand, calling try\_lock() on those mutex classes tries to acquire a lock but returns immediately if not successful. There are also timed mutex classes that can try to obtain a lock but give up after a certain amount of time.
+调用互斥锁类的lock()时会阻塞，直到锁可以获取。另一方面，调用那些互斥锁类的try\_lock()尝试获取锁，但如果不成功，则立即返回。还有定时互斥锁类，可以在一定时间内尝试获取锁，但在时间耗尽后放弃。
 
-The Standard Library provides three timed mutex classes: std::timed\_mutex, recursive\_timed\_mutex, and shared\_timed\_mutex. The first two classes are defined in <mutex>, and the last one in <shared\_mutex>. They all support the lock(), try\_lock(), and unlock() member functions; and shared\_timed\_mutex also supports lock\_shared(), try\_lock\_shared(), and unlock\_shared(). All these behave the same as described in the previous section. Additionally, they support the following member functions:
+标准库提供了三个定时互斥锁类：std::timed\_mutex、recursive\_timed\_mutex和shared\_timed\_mutex。前两个类在<mutex>中定义，最后一个在<shared\_mutex>中定义。它们都支持lock()、try\_lock()和unlock()成员函数；shared\_timed\_mutex还支持lock\_shared()、try\_lock\_shared()和unlock\_shared()，行为与前一节中描述的相同。此外，它们还支持以下成员函数：
 
 \begin{itemize}
 \item
-try\_lock\_for(rel\_time): The calling thread tries to obtain the lock for a certain relative time. If the lock could not be obtained after the given timeout, the call fails and returns false. If the lock could be obtained within the timeout, the call succeeds and returns true. The timeout is specified as an std::chrono::duration; see Chapter 22.
+try\_lock\_for(rel\_time): 调用线程尝试在一定相对时间内获取锁。如果在给定的超时时间内无法获取锁，调用失败并返回false。如果在超时时间内可以获取锁，调用成功并返回true。超时时间是一个std::chrono::duration。
 
 \item
-try\_lock\_until(abs\_time): The calling thread tries to obtain the lock until the system time equals or exceeds the specified absolute time. If the lock could be obtained before this time, the call returns true. If the system time passes the given absolute time, the function stops trying to obtain the lock and returns false. The absolute time is specified as an std::chrono::time\_point; see Chapter 22.
+try\_lock\_until(abs\_time): 调用线程尝试在系统时间等于或超过指定绝对时间之前获取锁。如果在给定的绝对时间之前可以获取锁，调用返回true。如果系统时间超过给定的绝对时间，函数停止尝试获取锁并返回false。绝对时间为std::chrono::time\_point。
 \end{itemize}
 
-A shared\_timed\_mutex also supports try\_lock\_shared\_for() and try\_lock\_shared\_until().
+shared\_timed\_mutex还支持try\_lock\_shared\_for()和try\_lock\_shared\_until()。
 
-A thread already having ownership of a timed\_mutex or a shared\_timed\_mutex is not allowed to acquire the lock a second time on that mutex. This might lead to a deadlock!
+已经拥有定时互斥锁或共享定时互斥锁所有权的线程，不允许再次在同一互斥锁上获取锁。
 
-A recursive\_timed\_mutex allows a thread to acquire a lock multiple times, just as with recursive\_mutex.
+recursive\_timed\_mutex允许线程多次获取锁，就像recursive\_mutex一样。
 
-\mySubsubsection{27.4.2.}{Locks}
+\mySubsubsection{27.4.2.}{锁}
 
-A lock class is an RAII class that makes it easier to correctly obtain and release a lock on a mutex; the destructor of the lock class automatically releases the associated mutex. The C++ standard defines four types of locks: std::lock\_guard, unique\_lock, shared\_lock, and scoped\_lock.
+锁类是一种RAII类，使正确获取和释放互斥锁变得更加容易；锁类的析构函数会自动释放关联的互斥锁。C++标准定义了四种锁：std::lock\_guard、unique\_lock、shared\_lock和scoped\_lock。
 
 \mySamllsection{lock\_guard}
 
-lock\_guard, defined in <mutex>, is a simple lock with two constructors:
+lock\_guard，定义在<mutex>中，是一个简单的锁，具有两个构造函数：
 
 \begin{cpp}
 explicit lock_guard(mutex_type& m);
 \end{cpp}
 
-Constructor accepting a reference to a mutex. Tries to obtain a lock on the mutex and blocks until the lock is obtained.
+接受一个互斥锁类型的引用作为参数的构造函数。尝试获取互斥锁上的锁，并阻塞，直到获取锁。
 
 \begin{cpp}
 lock_guard(mutex_type& m, adopt_lock_t);
 \end{cpp}
 
-Constructor accepting a reference to a mutex and a second argument equal to std::adopt\_lock, which is a global constant of the tag type std::adopt\_lock\_t, which is provided by the Standard Library for exactly this purpose. The lock assumes that the calling thread has already called lock() on the referenced mutex. The lock\_guard “adopts” the mutex and automatically releases the mutex when the lock\_guard is destroyed.
-
+接受一个互斥锁类型的引用和一个第二个参数，该参数等于std::adopt\_lock。这是std::adopt\_lock\_t类型的全局常量，由标准库提供，专门用于此目的。锁假定调用线程已经对引用的互斥锁调用了lock()。lock\_guard“收纳”互斥锁，并在lock\_guard销毁时自动释放互斥锁。
 
 \mySamllsection{unique\_lock}
 
-std::unique\_lock, defined in <mutex>, is a more sophisticated lock that allows you to defer lock acquisition until later in the execution, long after the declaration. You can use the owns\_lock() member function or the unique\_lock’s bool conversion operator to see if the lock has been acquired. An example of using this conversion operator is given later in this chapter in the section “Using Timed Locks.” unique\_lock has several constructors:
+std::unique\_lock，定义在<mutex>中，是一个更复杂的锁，允许推迟获取锁，直到执行的后期，即声明之后很长时间。可以使用owns\_lock()成员函数或unique\_lock的布尔转换运算符来查看锁是否已经获取。本书后面章节中会演示使用此转换运算符的一个示例，unique\_lock有多个构造函数：
 
 \begin{cpp}
 explicit unique_lock(mutex_type& m);
 \end{cpp}
 
-Accepts a reference to a mutex. Tries to obtain a lock on the mutex and blocks until the lock is obtained.
+接受一个互斥锁类型的引用作为参数。尝试获取互斥锁上的锁，并阻塞，直到获取锁。
 
 \begin{cpp}
 unique_lock(mutex_type& m, defer_lock_t) noexcept;
 \end{cpp}
 
-Accepts a reference to a mutex and an instance of std::defer\_lock\_t, for example std::defer\_lock. The unique\_lock stores the reference to the mutex, but does not immediately try to obtain a lock. A lock can be obtained later.
+接受一个互斥锁类型的引用和一个std::defer\_lock\_t的实例，例如std::defer\_lock。unique\_lock存储互斥锁的引用，但不会立即尝试获取锁，可以在稍后获取锁。
 
 \begin{cpp}
 unique_lock(mutex_type& m, try_to_lock_t);
 \end{cpp}
 
-Accepts a reference to a mutex and an instance of std::try\_to\_lock\_t, for example std::try\_to\_lock. The lock tries to obtain a lock to the referenced mutex, but if it fails, it does not block, in which case, a lock can be obtained later.
+接受一个互斥锁类型的引用和一个std::try\_to\_lock\_t的实例，例如std::try\_to\_lock。尝试获取引用互斥锁上的锁，但如果失败，不会阻塞。这种情况下，可以在稍后获取锁。
 
 \begin{cpp}
 unique_lock(mutex_type& m, adopt_lock_t);
 \end{cpp}
 
-Accepts a reference to a mutex and an instance of std::adopt\_lock\_t, for example std::adopt\_lock. The lock assumes that the calling thread has already called lock() on the referenced mutex. The lock “adopts” the mutex and automatically releases the mutex when the lock is destroyed.
+接受一个互斥锁类型的引用和一个std::adopt\_lock\_t的实例，例如std::adopt\_lock。假定调用线程已经对引用的互斥锁调用了lock()。unique\_lock“收纳”互斥锁，并在unique\_lock销毁时自动释放互斥锁。
 
 \begin{cpp}
 unique_lock(mutex_type& m, const chrono::time_point<Clock, Duration>& abs_time);
 \end{cpp}
 
-Accepts a reference to a mutex and an absolute time. Tries to obtain a lock until the system time passes the given absolute time.
+接受一个互斥锁类型的引用和一个绝对时间。尝试获取锁，直到系统时间超过给定的时间。
 
 \begin{cpp}
 unique_lock(mutex_type& m, const chrono::duration<Rep, Period>& rel_time);
 \end{cpp}
 
-Accepts a reference to a mutex and a relative time. Tries to get a lock on the mutex with the given relative timeout.
+接受一个互斥锁类型的引用和一个相对时间，尝试在给定的相对超时时间内获取锁。
 
-The unique\_lock class also has the member functions lock(), try\_lock(), try\_lock\_for(), try\_lock\_until(), and unlock(), which behave as explained in the section “Timed Mutex Classes,” earlier in this chapter.
+unique\_lock类还具有lock()、try\_lock()、try\_lock\_for()、try\_lock\_until()和unlock()等成员函数，其行为如本章前面“定时互斥锁类”部分所述。
 
 \mySamllsection{shared\_lock}
 
-The shared\_lock class, defined in <shared\_mutex>, has the same type of constructors and the same member functions as unique\_lock. The difference is that shared\_lock calls the shared ownership-related member functions on the underlying shared mutex. Thus, the member functions of shared\_lock are called lock(), try\_lock(), and so on, but on the underlying shared mutex they call lock\_shared(), try\_lock\_shared(), and so on. This is done to give shared\_lock the same interface as unique\_lock, so it can be used as a drop-in replacement for unique\_lock, but acquires a shared lock instead of an exclusive lock.
+std::shared\_lock类，定义在<shared\_mutex>中，具有与unique\_lock相同的构造函数和成员函数。区别在于shared\_lock调用在底层共享互斥锁上的共享所有权相关成员函数。shared\_lock的成员函数是lock()、try\_lock()等，但在底层共享互斥锁上，会调用lock\_shared()、try\_lock\_shared()等。这样做是为了使shared\_lock具有与unique\_lock相同的接口，可以作为unique\_lock的替换使用，但获取的是共享锁，而不是独占锁。
 
-\mySamllsection{Acquiring Multiple Locks at Once}
+\mySamllsection{同时获取多个锁}
 
-C++ has two generic lock functions that you can use to obtain locks on multiple mutex objects at once without the risk of creating deadlocks. Both functions are defined in the std namespace, and both are variadic function templates, as discussed in Chapter 26.
+C++有两个通用的锁函数，可以同时获取多个互斥锁对象，而不会产生死锁的风险。这两个函数都定义在std命名空间中，并且都是变参函数模板，如第26章所讨论。
 
-The first function, lock(), locks all the given mutex objects in an unspecified order without the risk of deadlocks. If one of the mutex lock calls throws an exception, unlock() is called on all locks that have already been obtained. Its prototype is as follows:
+第一个函数lock()在未指定的顺序中锁定所有给定的互斥锁对象，而不会产生死锁。如果其中一个互斥锁调用抛出异常，则对所有已经获取的锁调用unlock()。其原型如下所示：
 
 \begin{cpp}
 template <class L1, class L2, class... Ln> void lock(L1&, L2&, Ln&...);
 \end{cpp}
 
-try\_lock() has a similar prototype, but it tries to obtain a lock on all the given mutex objects by calling try\_lock() on each of them in sequence. It returns -1 if all calls to try\_lock() succeed. If any try\_lock() fails, unlock() is called on all locks that have already been obtained, and the return value is the zero-based index of the mutex argument on which try\_lock() failed.
+try\_lock()具有类似的原型，通过按顺序对每个给定的互斥锁调用try\_lock()来尝试获取所有给定互斥锁上的锁。如果所有对try\_lock()的调用都成功，返回-1。如果try\_lock()失败，则对所有已经获取的锁调用unlock()，返回值是对try\_lock()失败的互斥锁参数的零基索引。
 
-The following example demonstrates how to use the generic lock() function. The process() function first creates two locks, one for each mutex, and gives an instance of std::defer\_lock\_t as a second argument to tell unique\_lock not to acquire the lock during construction. The call to std::lock() then acquires both locks without the risk of deadlocks.
+以下示例演示了如何使用通用lock()函数。process()函数首先为每个互斥锁创建两个锁，并将std::defer\_lock\_t的实例作为第二个参数传递给unique\_lock，以指示在构造期间不要获取锁，再调用std::lock()无死锁风险地获取两个锁。
 
 \begin{cpp}
 mutex mut1;
@@ -206,7 +205,7 @@ void process()
 
 \mySamllsection{scoped\_lock}
 
-std::scoped\_lock, defined in <mutex>, is similar to lock\_guard, except that it accepts a variable number of mutexes. This greatly simplifies acquiring multiple locks. For instance, the example with the process() function from the previous section can be written using a scoped\_lock as follows:
+std::scoped\_lock，定义在<mutex>中，类似于lock\_guard，但接受可变数量的互斥锁，这极大地简化了获取多个锁的过程。例如，前面章节中的process()函数示例可以使用scoped\_lock重写：
 
 \begin{cpp}
 mutex m1;
@@ -220,10 +219,10 @@ void process()
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-scoped\_lock simplifies acquiring multiple locks, because you don’t need to worry about acquiring them in the right order.
+scoped\_lock简化了获取多个锁的过程，不需要担心以正确的顺序获取它们。
 \end{myNotic}
 
-scoped\_lock is a variadic class template capable of locking an arbitrary number of mutexes. Suppose that you have an std::array with mutexes and a need to acquire a lock on all those mutexes at once. To make this easy, you can write a helper variadic function template in combination with using std::index\_sequence and make\_index\_sequence, both of which are introduced in Chapter 26. Here’s an example:
+scoped\_lock是一个变参类模板，能够锁定任意数量的互斥锁。假设有一个包含互斥锁的std::array，并且需要一次性获取所有这些互斥锁的锁。为了使这个过程变得简单，可以写一个辅助的变参函数模板，结合使用std::index\_sequence和make\_index\_sequence。这里是示例：
 
 \begin{cpp}
 // Helper function to create the actual scoped_lock instance.
@@ -249,11 +248,11 @@ int main()
 
 \mySubsubsection{27.4.3.}{std::call\_once}
 
-You can use std::call\_once() in combination with std::once\_flag to make sure a certain function or member function is called exactly one time, no matter how many threads try to call call\_once() with the same once\_flag. Only one call\_once() invocation actually calls the given function. If the given function does not throw any exceptions, then this invocation is called the effective call\_once() invocation. If the given function does throw an exception, the exception is propagated back to the caller, and another caller is selected to execute the function. The effective invocation on a specific once\_flag instance finishes before all other call\_once() invocations on the same once\_flag. Other threads calling call\_once() on the same once\_flag block until the effective call is finished. 图 27.4 illustrates this with three threads. Thread 1 performs the effective call\_once() invocation, thread 2 blocks until the effective invocation is finished, and thread 3 doesn’t block because the effective invocation from thread 1 has already finished.
+可以使用std::call\_once()与std::once\_flag结合，确保某个函数或成员函数仅调用一次，无论多少线程尝试使用相同的once\_flag调用call\_once()。实际上只有一次call\_once()会调用给定的函数。如果给定的函数没有抛出异常，那么这次调用就是有效的call\_once()调用。如果给定的函数抛出异常，异常会传播回调用者，然后选择另一个调用者来执行函数。特定once\_flag实例的有效调用，在所有其他同一once\_flag上的call\_once()调用完成之前完成。其他尝试对同一once\_flag调用call\_once()的线程会阻塞，直到有效调用完成。图27.4说明了这一点，涉及三个线程。线程1执行有效的call\_once()调用，因为线程1的已有已经完成调用，线程2阻塞直到调用完成，而线程3不会阻塞。
 
 \myGraphic{0.9}{content/part4/chapter27/images/4.png}{图 27.4}
 
-The following example demonstrates the use of call\_once(). The example launches three threads running processingFunction() that use some shared resources. These shared resources are initialized by calling initializeSharedResources() once. To accomplish this, each thread calls call\_once() with a global once\_flag. The result is that only one thread effectively executes initializeSharedResources(), and exactly one time. While this call\_once() call is in progress, other threads block until initializeSharedResources() returns.
+以下示例演示了call\_once()的使用。示例启动三个线程，运行processingFunction()，并使用一些共享资源。这些共享资源通过调用initializeSharedResources()一次进行初始化。为了实现这一点，每个线程都使用一个全局once\_flag调用call\_once()。结果是只有一个线程实际执行initializeSharedResources()，且只执行一次。当这个call\_once()调用正在进行时，其他线程会阻塞，直到initializeSharedResources()完成。
 
 \begin{cpp}
 once_flag g_onceFlag;
@@ -282,7 +281,7 @@ int main()
 }
 \end{cpp}
 
-The output of this code is as follows:
+此代码的输出为：
 
 \begin{shell}
 Shared resources initialized.
@@ -291,29 +290,29 @@ Processing
 Processing
 \end{shell}
 
-Of course, in this example, you could call initializeSharedResources() once in the beginning of the main() function before the threads are launched; however, that wouldn’t demonstrate the use of call\_once().
+这个例子中，可以在启动线程之前在main()函数的开始处调用一次initializeSharedResources()；然而，那样就不会对call\_once()进行使用了。
 
-\mySubsubsection{27.4.4.}{Examples Using Mutexes}
+\mySubsubsection{27.4.4.}{使用互斥锁的示例}
 
-The following sections give a couple of examples on how to use mutexes to synchronize multiple threads.
+接下来的几节将给出几个示例，说明如何使用互斥锁来同步多个线程。
 
-\mySamllsection{Thread-Safe Writing to Streams}
+\mySamllsection{线程安全的写入流}
 
-Earlier in this chapter, in the “Threads” section, there is an example with a class called Counter. That example mentions that C++ streams, such as cout, are data-race-free by default, but that the output from multiple threads can be interleaved. Here are two solutions to solve this interleaving issue:
+在本章“线程”部分，有一个名为Counter的类示例。该示例提到C++流，如cout，默认情况下是线程安全的，但来自多个线程的输出可能会交错。这里有两种解决方案来解决这个问题：
 
 \begin{itemize}
 \item
-Use a synchronized stream.
+使用同步流。
 
 \item
-Use a mutex to make sure that only one thread at a time is reading/writing to the stream object.
+使用互斥锁确保一次只有一个线程读写流对象。
 \end{itemize}
 
-\mySamllsection{Synchronized Streams}
+\mySamllsection{同步流}
 
-<syncstream> defines std::basic\_osyncstream with predefined type aliases osyncstream and wosyncstream for char and wchar\_t streams, respectively. The O in these class names stands for output. These classes guarantee that all output done through them will appear in the final output stream the moment the synchronized stream is destroyed. It guarantees that the output cannot be interleaved by other output from other threads, as long as those threads are also using their own osyncstream objects. As far as thread-safety is concerned, the relationship between osyncstream and ostream is exactly analogous to the relationship between atomic\_ref<int> and int.
+<syncstream>定义了std::basic\_osyncstream，它为char和wchar\_t流提供了预定义的类型别名osyncstream和wosyncstream，这些类名中的o代表输出。这些类保证通过它们进行的所有输出在同步流销毁的那一刻，出现在最终输出流中。保证输出不会因其他线程的输出交错，只要那些线程也使用自己的osyncstream对象。就线程安全而言，osyncstream与ostream之间的关系，与atomic\_ref<int>与int之间的关系完全相同。
 
-The function call operator of the earlier Counter class can be implemented as follows using an osyncstream to prevent interleaved output:
+先前Counter类的函数调用运算符可以按照以下方式实现，使用osyncstream来防止输出交错：
 
 \begin{cpp}
 class Counter
@@ -338,9 +337,9 @@ class Counter
 };
 \end{cpp}
 
-\mySamllsection{Using Mutexes}
+\mySamllsection{使用互斥锁}
 
-If you cannot use a synchronized stream, you can use a mutex as demonstrated in the following code snippet to synchronize all accesses to cout in the Counter class. For this, a static mutex data member is added. It should be static, because all instances of the class should use the same mutex instance. lock\_guard is used to obtain a lock on the mutex before writing to cout.
+如果不能使用同步流，可以按照以下代码片段使用互斥锁来同步Counter类中对cout的所有访问，需要添加了一个静态的互斥锁数据成员。它应该是静态的，因为类的所有实例都应该使用相同的互斥锁实例。向cout写入之前，使用lock\_guard获取互斥锁的锁。
 
 \begin{cpp}
 class Counter
@@ -363,17 +362,17 @@ class Counter
 };
 \end{cpp}
 
-This code creates a lock\_guard instance on each iteration of the for loop. It is recommended to limit the time a lock is held as much as possible; otherwise, you are blocking other threads for too long.
+这段代码在for循环的每次迭代中创建一个lock\_guard实例。建议尽可能限制持有锁的时间；否则，会阻塞其他线程太长时间。
 
-For example, if the lock\_guard instance was created once right before the for loop, then you would basically lose all multithreading in this code because one thread would hold a lock for the entire duration of its for loop, and all other threads would wait for this lock to be released.
+例如，如果lock\_guard实例在for循环开始前一次性创建，基本上会失去这个代码的多线程效果，因为一个线程会持有锁直到for循环结束，而所有其他线程都会等待这个锁释放。
 
 \begin{myNotic}{NOTE}
-Try to hold locks as short as possible. This means you should avoid using slow operations while holding a lock, such as printing messages to the console, reading data from files, accessing databases, performing long calculations, doing explicit sleeps, and so on.
+尽量减少持有锁的时间，应该避免在持有锁时执行缓慢的操作，例如打印消息到控制台、从文件中读取数据、访问数据库、进行长时间计算、执行显式休眠等。
 \end{myNotic}
 
-\mySamllsection{Using Timed Mutexes}
+\mySamllsection{使用定时互斥锁}
 
-The following example demonstrates how to use a timed mutex. It is the same Counter class as before, but this time it uses a timed\_mutex in combination with a unique\_lock. A relative time of 200 milliseconds is given to the unique\_lock constructor, causing it to try to obtain a lock for 200 milliseconds. If the lock cannot be obtained within this timeout interval, the constructor returns. Afterward, you can check whether the lock has been acquired. You can do this with an if statement on the lock variable, because unique\_lock defines a bool conversion operator. The timeout is specified using the chrono library, discussed in Chapter 22.
+以下示例演示了如何使用定时互斥锁。这是之前相同的Counter类，但这次它使用定时互斥锁与unique\_lock的组合。unique\_lock构造函数给出了200毫秒的相对时间，导致在200毫秒内尝试获取锁。如果在超时区间内无法获取锁，构造函数将返回。之后，可以检查锁是否已获取。可以使用if语句在锁变量上进行此操作，因为unique\_lock定义了一个bool转换运算符。
 
 \begin{cpp}
 class Counter
@@ -401,19 +400,19 @@ class Counter
 \end{cpp}
 
 
-\mySamllsection{Double-Checked Locking}
+\mySamllsection{双重检查锁定}
 
-The double-checked locking pattern is actually an anti-pattern, which you should avoid! It is shown here because you might come across it in existing code bases. The idea of the double-checked locking pattern is to try to avoid the use of mutexes. It’s a half-baked attempt at trying to write more efficient code than using a mutex. It can really go wrong when you try to make it faster than demonstrated in the upcoming example, for instance, by using relaxed atomics (not further discussed), using a regular bool instead of an atomic<bool>, and so on. The pattern becomes sensitive to data races, and it is hard to get right. The irony is that using call\_once() will usually be faster, and using a magic static (if applicable) will be even faster.
+双重检查锁定模式实际上是一个反模式，一定要避免使用！这里展示了这个模式，因为可能在现有的代码库中遇到它。双重检查锁定模式是尝试避免使用互斥锁。这是一种半生不熟的尝试，试图编写比使用互斥锁更高效的代码。当试图使它比即将展示的示例更快时（例如，使用松散的原子类型（不进一步讨论）、使用普通的布尔类型而不是atomic<bool>类型等），它可能会出错。这种模式容易受到数据竞争的影响，而且很难正确实现。讽刺的是，通常使用call\_once()会更快，使用魔法静态（如果适用）会更快。
 
 \begin{myNotic}{NOTE}
-Function-local static variables are called magic statics or thread-safe statics. C++ guarantees that such local static variables are initialized in a threadsafe fashion, so you don’t need any manual thread synchronization. An example of using a magic static is given in Chapter 33, “Applying Design Patterns,” with the discussion of the singleton pattern.
+函数局部静态变量称为魔法静态或线程安全的静态。C++保证这些局部静态变量以线程安全的方式初始化，因此不需要任何手动线程同步。有关使用魔法静态的示例，请参见第33章。
 \end{myNotic}
 
 \begin{myWarning}{WARNING}
-Avoid the double-checked locking pattern! Instead, use other mechanisms such as simple locks, atomic variables, call\_once(), magic statics, and so on.
+避免使用双重检查锁定模式！使用其他机制，如简单锁、原子变量、call\_once()、魔法静态等。
 \end{myWarning}
 
-Double-checked locking could, for example, be used to make sure that resources are initialized exactly once. The following example shows how you can implement this. It is called the doublechecked locking pattern because it is checking the value of the g\_initialized variable twice, once before acquiring the lock and once right after acquiring the lock. The first g\_initialized check is used to prevent acquiring a lock when it is not needed. The second check is required to make sure that no other thread performed the initialization between the first g\_initialized check and acquiring the lock.
+双重检查锁定可以用于确保资源只被初始化一次。以下示例展示了如何实现这一点，称为双重检查锁定模式，因为它两次检查g\_initialized变量的值，一次是在获取锁之前，一次是在获取锁之后。第一次g\_initialized检查用于防止在不需要时获取锁，第二次检查是为了确保在第一次g\_initialized检查和获取锁之间没有其他线程执行初始化。
 
 \begin{cpp}
 void initializeSharedResources()
@@ -446,7 +445,7 @@ int main()
 }
 \end{cpp}
 
-The output clearly shows that only one thread initializes the shared resources:
+输出清楚地显示只有其中一个线程初始化了共享资源：
 
 \begin{shell}
 Shared resources initialized.
@@ -455,7 +454,7 @@ Shared resources initialized.
 
 
 \begin{myNotic}{NOTE}
-For this example, it’s recommended to use call\_once() as demonstrated earlier in this chapter, instead of double-checked locking!
+对于这个示例，建议使用call\_once()，而非双重检查锁定！
 \end{myNotic}
 
 

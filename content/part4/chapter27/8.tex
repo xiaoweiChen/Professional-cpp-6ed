@@ -1,31 +1,31 @@
-Semaphores are lightweight synchronization primitives that can be used as building blocks for other synchronization mechanisms such as mutexes, latches, and barriers. Basically, a semaphore consists of a counter representing a number of slots. The counter is initialized in the constructor. If you acquire a slot, the counter is decremented, while releasing a slot increments the counter. There are two semaphore classes defined in <semaphore>: std::counting\_semaphore and binary\_semaphore.
+信号量是轻量级的同步原语，可以作为其他同步机制（如互斥锁、锁存器和栅栏）的构建块。基本上，信号量由一个表示槽位的计数器组成。计数器在构造函数中初始化。如果获取一个槽位，计数器将递减，而释放一个槽位则递增计数器。<semaphore>中定义了两个信号量类：std::counting\_semaphore和binary\_semaphore。
 
-The former models a non-negative resource count. The latter has only one slot; hence, the slot is either free or not free, perfectly suitable as building block for a mutex. Both provide the following member functions:
+前者模拟一个非负的资源计数，后者只有一个槽位；因此，槽位要么是空闲的，要么不是，非常适合作为互斥锁的构建块。两者都提供以下成员函数：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{MEMBER FUNCTION} &
-\textbf{DESCRIPTION} \\ \hline
+\textbf{成员函数} &
+\textbf{描述} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 acquire() &
-\begin{tabular}[c]{@{}l@{}}Decrements the counter. When the counter is zero, blocks until it\\ is able to decrement the counter, and then does so.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}递减计数器。计数器为零时阻塞，直到能够递减计数器，然后执行递减操作。\end{tabular} \\ \hline
 try\_acquire() &
-\begin{tabular}[c]{@{}l@{}}Tries to decrement the counter but does not block if the counter is\\ already zero. Returns true if the counter could be decremented,\\ false otherwise.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}尝试递减计数器，但当计数器已经是零时，不会阻塞。如果计数器可以递减，\\则返回true；否则返回false。\end{tabular} \\ \hline
 try\_acquire\_for() &
-Same as try\_acquire() but tries for a given duration. \\ \hline
+与try\_acquire()相同，但尝试会间隔一定的时间。\\ \hline
 try\_acquire\_until() &
-\begin{tabular}[c]{@{}l@{}}Same as try\_acquire() but tries until the system time reaches a\\ given time.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}与try\_acquire()相同，但尝试直到系统时间达到给定的时间。\end{tabular} \\ \hline
 release() &
-\begin{tabular}[c]{@{}l@{}}Increments the counter by a given number and unblocks threads\\ that are blocking in their acquire() call.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}通过给定的数量递增计数器，并释放在acquire()调用中阻塞的线程。\end{tabular} \\ \hline
 \end{longtable}
 
-A counting semaphore allows you to control exactly how many threads you want to allow to run concurrently. For example, the following code snippet allows a maximum of four threads to run in parallel. From the output, you clearly see that only four threads manage to acquire the semaphore concurrently.
+计数信号量允许精确控制同时运行的线程数。例如，以下代码片段允许最多四个线程以并行方式运行。从输出中，可以清楚地看到，只有四个线程能够同时获取信号量。
 
 \begin{cpp}
 counting_semaphore semaphore { 4 };
@@ -41,4 +41,4 @@ for (int i { 0 }; i < 10; ++i) {
 }
 \end{cpp}
 
-Another use case for semaphores is to implement a notification mechanism for threads, instead of condition variables. For example, you could initialize the counter of a semaphore to 0 in its constructor. Any thread that calls acquire() will block until some other thread calls release() on the semaphore.
+信号量的另一个用途是实现线程的通知机制，而不是条件变量。例如，可以在信号量的构造函数中将计数器初始化为0。调用acquire()的线程都将阻塞，直到其他线程在信号量上调用release()。

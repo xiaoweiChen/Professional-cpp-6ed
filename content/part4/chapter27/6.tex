@@ -1,8 +1,8 @@
-A latch is a single-use thread coordination point. A number of threads block at a latch point. Once a given number of threads reach the latch point, all threads are unblocked and allowed to continue execution. Basically, it’s a counter that’s counting down as each thread arrives at the latch point. Once the counter hits zero, the latch remains “open” indefinitely, all blocking threads are unblocked, and any threads subsequently arriving at the latch point are immediately allowed to continue.
+锁存器是一种单次使用的线程协调点，多个线程在锁存器点处阻塞。达到预定的线程数到达锁存器点，所有线程都会释放并允许继续执行。基本上，它是一个计数器，随着每个线程到达锁存器点而递减。当计数器达到零，锁存器将保持“开放”，所有阻塞的线程将释放，并且随后到达锁存器点的线程都可以立即继续。
 
-A latch is implemented by std::latch, defined in <latch>. The constructor accepts the required number of threads that need to reach the latch point. A thread arriving at the latch point can call arrive\_and\_wait(), which decrements the latch counter and blocks until the latch is signaled. Threads can also block on a latch point without decrementing the counter by calling wait(). The try\_wait() member function can be used to check if the counter has reached zero. Finally, if needed, the counter can also be decremented without blocking by calling count\_down().
+锁存器由std::latch实现，定义在<latch>中。构造函数接受需要到达锁存器点的线程数。到达锁存器点的线程可以调用arrive\_and\_wait()，这将递减锁存器计数器并阻塞，直到锁存器获得释放信号。线程也可以通过调用wait()在锁存器点处阻塞，而不递减计数器。try\_wait()成员函数可以用来检查计数器是否达到零。如果需要，可以通过调用count\_down()在不阻塞的情况下递减计数器。
 
-A first example demonstrates a use case for a latch point where data is processed in parallel. The following code snippet launches a number of worker threads, each doing some of the work. Once a worker thread is finished with its work, it calls count\_down() on the latch to signal that its work is done. The main thread calls wait() on the latch to wait until the latch counter reaches zero, signaling that all worker threads have finished.
+第一个示例演示了锁存器点的一个使用场景，其中数据以并行方式处理。以下代码片段启动了一定数量的工人线程，每个线程都执行一些工作。当工人线程完成其工作，会调用count\_down()在锁存器上，以信号化其工作已完成。主线程调用wait()在锁存器上等待，直到锁存器计数器达到零，信号表示所有工人线程都已完成自己的任务。
 
 \begin{cpp}
 // Launch a number of threads to do some work.
@@ -24,7 +24,7 @@ latch.wait();
 println("\nAll worker threads are finished.");
 \end{cpp}
 
-A second example demonstrates another use case for a latch point in which some data needs to be loaded into memory (I/O bound) that is subsequently processed in parallel in multiple threads. Suppose further that the threads need to perform some CPU-bound initialization when starting up and before they can start processing data. By launching the threads first and letting them do their CPUbound initialization, and loading the data (I/O bound) in parallel, performance is increased. The code initializes a latch object with counter 1 and launches 10 threads that all do some initialization and then block on the latch until the latch counter reaches zero. After starting the 10 threads, the code loads some data, for example from disk, that is, an I/O-bound step. Once all data has been loaded, the latch counter is decremented to 0 which unblocks all 10 waiting threads.
+第二个示例演示了另一个锁存器点的使用场景，其中一些数据需要加载到内存中（I/O绑定），随后在多个线程中以并行方式处理。进一步，线程在启动时需要执行一些CPU绑定的初始化，并且在开始处理数据之前才能开始。通过首先启动线程并执行CPU绑定的初始化，并行加载数据（I/O绑定），从而提高性能。代码初始化了一个计数为1的锁存器对象，并启动了10个线程，它们都执行一些初始化，然后阻塞在锁存器上，直到锁存器计数器达到零。启动10个线程后，代码加载了一些数据(从磁盘)，这是一个I/O绑定的步骤。当所有数据都已加载，锁存器计数器回递减到0，就回释放所有(10个)等待的线程。
 
 \begin{cpp}
 latch startLatch { 1 };

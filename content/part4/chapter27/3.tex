@@ -1,5 +1,5 @@
 
-Atomic types allow atomic access, which means that concurrent reading and writing without additional synchronization is allowed. Without atomic operations, incrementing a variable is not threadsafe because the compiler first loads the value from memory into a register, increments it, and then stores the result back in memory. Another thread might touch the same memory during this increment operation, which is a data race. For example, the following code is not thread-safe and contains a data race. This type of data race is discussed in the beginning of this chapter.
+原子类型允许原子访问，可以并发地读写，而不需要额外的同步。如果没有原子操作，增加一个变量会破坏线程安全性。编译器首先从内存加载值到寄存器，然后增加它，最后将结果存储回内存。另一个线程可能在增加操作期间访问相同的内存，这会导致数据竞争。例如，以下代码不是线程安全的，并且包含数据竞争。
 
 \begin{cpp}
 int counter { 0 }; // Global variable
@@ -7,7 +7,7 @@ int counter { 0 }; // Global variable
 ++counter; // Executed in multiple threads
 \end{cpp}
 
-You can use the std::atomic class template, defined in <atomic>, to make this thread-safe without explicitly using any synchronization mechanism. Here is the same code using an atomic integer:
+可以使用定义在<atomic>中的std::atomic类模板，以不显式使用同步机制的方式来使这段代码线程安全。这里是使用的代码与原子整数相同：
 
 \begin{cpp}
 atomic<int> counter { 0 } ; // Global variable
@@ -15,14 +15,14 @@ atomic<int> counter { 0 } ; // Global variable
 ++counter; // Executed in multiple threads
 \end{cpp}
 
-<atomic> also defines named integral atomic types for all primitive types. The following table lists just a few:
+<atomic>还定义了所有原始类型命名的整数原子类型。以下表格列出了其中的一部分：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{NAMED ATOMIC TYPE} & \textbf{EQUIVALENT STD::ATOMIC TYPE}              \\ \hline
+\textbf{命名的原子类型} & \textbf{等效的std::atomic类型}              \\ \hline
 \endfirsthead
 %
 \endhead
@@ -40,9 +40,9 @@ atomic\_wchar\_t           & atomic\textless{}wchar\_t\textgreater{}           \
 atomic\_flag               & (none)                                            \\ \hline
 \end{longtable}
 
-You can use atomic types without explicitly using any synchronization mechanism. However, underneath, operations on atomics of a certain type might use a synchronization mechanism such as a mutex. This might happen, for example, when the hardware you are targeting lacks the necessary instructions to perform an operation atomically. You can use the is\_lock\_free() member function on an atomic type to query whether it supports lock-free operations, that is, whether all of its operations run without any explicit synchronization mechanism underneath. There is also a static constant called atomic<T>::is\_always\_lock\_free, which is true if the atomic<T> is always lock free, and false otherwise.
+可以使用原子类型，而不显式使用任何同步机制。在底层，对特定类型的原子操作可能使用同步机制，例如互斥锁。当针对的硬件缺乏执行操作的原子指令，可以使用原子类型的is\_lock\_free()成员函数来查询它是否支持无锁操作，即所有操作是否在没有显式同步机制的底层运行。还有一个静态常量称为atomic<T>::is\_always\_lock\_free，如果atomic<T>总是无锁的，则为true，否则为false。
 
-The std::atomic class template can be used with all kinds of types, not only integral types. For example, you can create an atomic<double>, or an atomic<MyType>, but only if MyType is trivially copyable. Depending on the size of the specified type, underneath these might require explicit synchronization mechanisms. In the following example, both Foo and Bar are trivially copyable, that is, std::is\_trivially\_copyable\_v is true for both. However, due to the size of Foo, atomic<Foo> is not lock-free, while atomic<Bar> is.
+std::atomic类模板可以与所有类型的数据一起使用，不仅限于整数类型。例如，可以创建一个atomic<double>，或者一个atomic<MyType>，但只有当MyType是简单的复制类型时才可行。根据指定类型的尺寸，这些操作在底层可能需要显式的同步机制。在下面的例子中，Foo和Bar都是简单的复制类型，即std::is\_trivially\_copyable\_v对于两者都为true。然而，由于Foo的大小，atomic<Foo>不是无锁的，而atomic<Bar>是有锁。
 
 \begin{cpp}
 struct Foo { int m_array[123]; };
@@ -58,25 +58,25 @@ int main()
 }
 \end{cpp}
 
-When accessing a piece of data from multiple threads, atomics also solve issues with memory ordering, compiler optimizations, and so on. Basically, it’s virtually never safe to read and write to the same piece of data from multiple threads without using atomics or explicit synchronization mechanisms!
+当从多个线程访问数据时，原子类型还能解决与内存序、编译器优化等方面的问题。基本上，如果没有使用原子类型或显式同步机制，不可能安全地从多个线程读写同一块数据！
 
 \begin{myNotic}{NOTE}
-Memory ordering is the order in which memory is accessed. In the absence of any atomics and other synchronization mechanisms, compilers and hardware are allowed to reorder memory accesses as long as this does not affect the outcome. This is known as the as-if rule, but can cause problems in multithreaded environments.
+内存序是指访问内存的顺序。在没有原子类型和其他同步机制的情况下，编译器和硬件允许对内存访问重新排序，只要这不会影响结果。这称为as-if规则，但在多线程环境中可能会导致问题。
 \end{myNotic}
 
-atomic\_flag is an atomic Boolean, always lock-free, guaranteed by the C++ standard. It differs from atomic<bool> in that it does not provide an assignment operator; instead, it provides named member functions clear(), test(), and test\_and\_set(). An example of using atomic\_flag is given in the mutual exclusion section for the implementation of a spinlock later in this chapter.
+atomic\_flag是一个原子布尔类型，总是无锁的，这是C++标准保证的。与atomic<bool>的区别在于，不提供赋值运算符，而提供了一些成员函数，如clear()、test()和test\_and\_set()。使用atomic\_flag的示例将在本章后面的互斥部分中给出，用于实现一个自旋锁。
 
 \mySubsubsection{27.3.1.}{Atomic Operations}
 
-The C++ standard defines a number of special operations on atomic<T>. This section describes a few of those operations. For a full list, consult a Standard Library Reference (see Appendix B).
+C++标准定义了一系列对atomic<T>的特殊操作，本节描述了其中的一些操作。要查看完整的列表，请参考标准库参考（见附录B）。
 
-Our first example of an atomic operation is the following:
+我们的第一个原子操作示例是：
 
 \begin{cpp}
 bool atomic<T>::compare_exchange_strong(T& expected, T desired);
 \end{cpp}
 
-The logic implemented atomically by this operation is as follows, in pseudo-code:
+这个操作原子地执行的逻辑如下，以伪代码表示：
 
 \begin{cpp}
 if (*this == expected) {
@@ -88,7 +88,7 @@ if (*this == expected) {
 }
 \end{cpp}
 
-Although this logic might seem fairly strange on first sight, this operation is a key building block for doing any complicated operation on atomics. Here is an example that atomically multiplies an atomic<int> with a given number:
+虽然这个逻辑在初次看到时可能相当奇怪，但这个操作是进行原子操作的关键构建块。下面是一个原子地乘以给定数字atomic<int>的示例：
 
 \begin{cpp}
 void atomicallyMultiply(atomic<int>& a, int n)
@@ -109,7 +109,7 @@ int main()
 }
 \end{cpp}
 
-A second example is atomic<T>::fetch\_add(). It fetches the current value of the atomic type, adds the given increment to the atomic value, and returns the original non-incremented value. Here is an example:
+第二个例子是atomic<T>::fetch\_add()。获取原子类型的当前值，将给定的增量加到原子值上，并返回原始的非增加值。下面是一个示例：
 
 \begin{cpp}
 atomic<int> value { 10 };
@@ -119,7 +119,7 @@ println("Fetched = {}", fetched);
 println("Value = {}", value.load());
 \end{cpp}
 
-If no other threads are touching the contents of the fetched and value variables, the output is as follows:
+如果没有其他线程正在访问fetched和value变量的内容，输出如下：
 
 \begin{shell}
 Value = 10
@@ -127,40 +127,40 @@ Fetched = 10
 Value = 14
 \end{shell}
 
-Atomic integral types support the following atomic operations: fetch\_add(), fetch\_sub(), fetch\_and(), fetch\_or(), fetch\_xor(), ++, -{}-, +=, -=, \&=, \^{}=, and |=. Atomic pointer types support fetch\_add(), fetch\_sub(), ++, --, +=, and -=. Atomic floating-point types support fetch\_add() and fetch\_sub().
+原子整数类型支持以下原子操作： fetch\_add(), fetch\_sub(), fetch\_and(), fetch\_or(), fetch\_xor(), ++, -{}-, +=, -=, \&=, \^{}= 和 |=。 原子指针类型支持fetch\_add(), fetch\_sub(), ++, --, +=, and -=。 原子浮点数类型支持fetch\_add() and fetch\_sub()。
 
-Most of the atomic operations can accept an extra parameter specifying the memory ordering that you would like. Here is an example:
+大多数原子操作可以接受一个参数，用于指定内存序。例如：
 
 \begin{cpp}
 T atomic<T>::fetch_add(T value, memory_order = memory_order_seq_cst);
 \end{cpp}
 
-You can change the default memory\_order. The C++ standard provides memory\_order\_relaxed, memory\_order\_consume, memory\_order\_acquire, memory\_order\_release, memory\_order\_acq\_rel, and memory\_order\_seq\_cst, all of which are defined in the std namespace. However, you will rarely want to use them instead of the default, unless you’re an expert in this domain. While another memory order may perform better than the default according to some metrics, if you use them in a slightly incorrect way, you will again introduce data races or other difficult-to-debug threadingrelated problems. If you do want to know more about memory orderings, consult one of the multithreading references in Appendix B.
+可以更改默认的memory\_order。C++标准提供了memory\_order\_relaxed、memory\_order\_consume、memory\_order\_acquire、memory\_order\_release、memory\_order\_acq\_rel和memory\_order\_seq\_cst，这些都在std命名空间中定义。然而，除非是这个领域的专家，否则很少会想使用非默认值。尽管根据某些指标，另一个内存序可能比默认值表现得更好，但如果以不正确的方式使用，仍然会引入数据竞争或其他难以调试的问题。如果确实想了解更多关于内存序的信息，请参阅附录B中的多线程参考资料。
 
-\mySubsubsection{27.3.2.}{Atomic Smart Pointers}
+\mySubsubsection{27.3.2.}{智能原子指针}
 
-atomic<std::shared\_ptr<T>> is supported. The control block of a shared\_ptr, which stores the reference count, among other things, has always been thread-safe, which guarantees that the pointedto object is deleted exactly once. However, anything else from a shared\_ptr is not thread-safe. Using the same shared\_ptr instance concurrently from multiple threads causes data races if non-const member functions are called on that shared\_ptr instance, such as calling reset(), assignment, swap(), and so on. On the other hand, when using the same atomic<shared\_ptr<T>{}> instance from multiple threads, even calling non-const shared\_ptr member functions is thread-safe. Note that calling non-const member functions on the object pointed to by the shared\_ptr is still not threadsafe and requires manual synchronization.
+支持atomic<std::shared\_ptr<T>{}>。共享指针的控制块，用于存储引用计数等，是线程安全的，这保证了指向的对象删除的次数恰好是一次。然而，共享指针的其他内容不都是线程安全的。如果从多个线程同时使用同一个共享指针实例，就会在调用非常量成员函数时发生数据竞争，比如:调用reset()、assign()、swap()等。另一方面，当从多个线程使用同一个atomic<shared\_ptr<T>{}>实例时，即使是调用非常量共享指针成员函数也是线程安全的。需要注意的是，调用共享指针所指向对象的成员函数仍然不是线程安全的，并且需要手动同步。
 
-\mySubsubsection{27.3.3.}{Atomic References}
+\mySubsubsection{27.3.3.}{原子引用}
 
-std::atomic\_ref is basically the same as std::atomic, even with the same interface, but it works with references, while atomic always makes a copy of the value it is provided with. An atomic\_ref instance itself should have a shorter lifetime than the object it references. An atomic\_ref is copyable, and you can create as many atomic\_ref instances as you want referring to the same object. Loads and stores done through instances of atomic\_ref will be atomic and do not race with each other. Loads and stores done concurrently without going through atomic\_ref can still race with those atomic accesses. The atomic\_ref<T> class template can be used with any trivially copyable type T, just as std::atomic can. Additionally, the Standard Library provides the following:
+std::atomic\_ref基本上与std::atomic相同，甚至具有相同的接口，但它与引用一起工作，而atomic总是提供一个提供的值的副本。atomic\_ref实例本身的生命周期应该比它引用的对象短。atomic\_ref是可复制的，可以创建尽可能多的atomic\_ref实例，指向同一个对象。通过atomic\_ref实例进行的加载和存储都是原子性的，并且不会相互竞争。而没有通过atomic\_ref实例进行的并发加载和存储仍然可能会与这些原子访问竞争。atomic\_ref<T>类模板可以与简单的复制类型T一起使用，就像std::atomic一样。此外，标准库还提供了以下内容：
 
 \begin{itemize}
 \item
-Partial specializations for pointer types, supporting fetch\_add() and fetch\_sub()
+针对指针类型的偏特化，支持fetch\_add()和fetch\_sub()
 
 \item
-Full specializations for integral types, supporting fetch\_add(), fetch\_sub(), fetch\_and(), fetch\_or(), and fetch\_xor()
+针对整数类型的全特化，支持fetch\_add()、fetch\_sub()、fetch\_and()、fetch\_or()和fetch\_xor()
 
 \item
-Full specializations for floating-point types, supporting fetch\_add() and fetch\_sub()
+针对浮点数类型的全特化，支持fetch\_add()和fetch\_sub()
 \end{itemize}
 
-The following section gives an example of how to use an atomic\_ref.
+以下部分给出了如何使用atomic\_ref的一个示例。
 
-\mySubsubsection{27.3.4.}{Using Atomic Types}
+\mySubsubsection{27.3.4.}{使用原子类型}
 
-This section explains in more detail why you should use atomic types. Suppose you have the following function called increment() that increments an integer reference parameter in a loop.
+本节更详细地解释了为什么使用原子类型。假设有一个名为increment()的函数，在循环中递增一个整数引用参数。
 
 \begin{cpp}
 void increment(int& counter)
@@ -172,7 +172,7 @@ void increment(int& counter)
 }
 \end{cpp}
 
-Now, you would like to run several threads in parallel, all executing this increment() function on a shared counter variable. By implementing this naively without atomic types or without any kind of thread synchronization, you introduce data races. The following code launches 10 increment() threads, after which it waits for all threads to finish by calling join() on each thread, and then prints the result:
+现在，希望并行运行多个线程，每个线程都执行这个increment()函数，共享一个计数器变量。如果不使用原子类型或不使用线程同步，将会引入数据竞争。以下代码启动了10个increment()线程，然后通过调用每个线程的join()等待所有线程完成，并打印结果：
 
 \begin{cpp}
 int main()
@@ -187,7 +187,7 @@ int main()
 }
 \end{cpp}
 
-Because increment() increments its counter parameter 100 times, and 10 threads are launched, each of which executes increment() on the same shared counter, you might expect the final result to be 1,000. If you execute this program several times, you might get the following output but with different values:
+由于increment()将计数器参数递增100次，并且启动了10个线程，每个线程都执行increment()函数来共享同一个计数器，可能期望最终结果是1,000。如果多次执行这个程序，可能会得到以下输出，但值会有所不同：
 
 \begin{shell}
 Result = 982
@@ -195,7 +195,7 @@ Result = 977
 Result = 984
 \end{shell}
 
-This code is clearly showing a data race: counter is written concurrently from multiple threads without any synchronization. In this example, you can use an atomic type to fix the code. The following code highlights the required changes:
+这段代码展示了数据竞争：多个线程并发地写入计数器，没有同步。这个例子中，可以使用原子类型来修复代码：
 
 \begin{cpp}
 void increment(atomic<int>& counter)
@@ -218,7 +218,7 @@ int main()
 }
 \end{cpp}
 
-The only modification is changing the type of the shared counter to std::atomic<int> instead of int. When you run this modified version, you always get 1,000 as the result:
+唯一的修改是将共享计数器的类型从int更改为std::atomic<int>。当运行这个修改版本时，结果总会是1,000：
 
 \begin{shell}
 Result = 1000
@@ -226,9 +226,9 @@ Result = 1000
 Result = 1000
 \end{shell}
 
-Without explicitly adding any synchronization mechanism to the code, it is now thread safe and data race free because the ++counter operation on an atomic type loads, increments, and stores the value in one atomic transaction, which cannot be interrupted.
+没有显式添加任何同步机制的情况下，现在代码是线程安全的，没有数据竞争，因为原子类型上的++counter操作是一个原子操作，加载、递增和存储值，这无法中断。
 
-With atomic\_ref, you can solve the data race as follows:
+使用atomic\_ref，可以如下解决数据竞争：
 
 \begin{cpp}
 void increment(int& counter)
@@ -252,7 +252,7 @@ int main()
 }
 \end{cpp}
 
-However, there is a new problem with both of these modified implementations: a performance problem. You should try to minimize the amount of synchronization, either atomic or explicit synchronization, because it lowers performance. For this simple example, the best and recommended solution is to let increment() calculate its result in a local variable and only after the loop add it to the counter reference. Even then, it is still required to use an atomic or atomic\_ref type, because you are still writing to counter from multiple threads.
+然而，这两种修改后的实现都引入了一个新的问题：性能问题。应尽量减少同步量，无论是原子同步还是显式同步，因为这会降低性能。对于这个简单的例子，最佳和推荐的方法是让increment()在局部变量中计算其结果，并在循环结束后才将其添加到计数器引用中。即使这样，因为从多个线程写入计数器，仍然需要使用原子或atomic\_ref类型。
 
 \begin{cpp}
 void increment(atomic<int>& counter)
@@ -266,27 +266,27 @@ void increment(atomic<int>& counter)
 }
 \end{cpp}
 
-\mySubsubsection{27.3.5.}{Waiting on Atomic Variables}
+\mySubsubsection{27.3.5.}{等待原子变量}
 
-The following wait-related member functions are available for std::atomic and atomic\_ref to efficiently wait until an atomic variable is modified:
+对于std::atomic和atomic\_ref，以下是与等待相关的成员函数可用，以高效地等待修改原子变量：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{MEMBER FUNCTION} & \textbf{DESCRIPTION}                                   \\ \hline
+\textbf{成员函数} & \textbf{描述}                                   \\ \hline
 \endfirsthead
 %
 \endhead
 %
 wait(oldValue) &
-\begin{tabular}[c]{@{}l@{}}Blocks the thread until another thread calls notify\_one() or notify\_\\ all(), and the value of the atomic variable has changed, that is, is not\\ equal to oldValue anymore. If the current value is already unequal to\\ oldValue, then the function doesn’t block at all.\end{tabular} \\ \hline
-notify\_one()            & Wakes up one thread that is blocking on a wait() call. \\ \hline
-notify\_all()            & Wakes up all threads blocking on a wait() call.        \\ \hline
+\begin{tabular}[c]{@{}l@{}}阻塞线程，直到另一个线程调用notify\_one()或notify\_all()，且原子变量的值已\\更改，即不再等于oldValue。如果当前值已经不等于oldValue，则该函数根本不\\会阻塞。\end{tabular} \\ \hline
+notify\_one()            & 唤醒因调用wait()而阻塞的一个线程。 \\ \hline
+notify\_all()            & 唤醒因调用wait()而阻塞的所有线程。        \\ \hline
 \end{longtable}
 
-Here is an example:
+以下是示例
 
 \begin{cpp}
 atomic<int> value { 0 };
@@ -304,7 +304,7 @@ value = 1;
 value.notify_all();
 \end{cpp}
 
-The output is as follows:
+输出如下：
 
 \begin{shell}
 Thread starts waiting.
