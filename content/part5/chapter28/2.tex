@@ -1,106 +1,106 @@
 
-Complexity in software isn’t new. The need for a formalized process was recognized decades ago. Several approaches to modeling the software life cycle have attempted to bring some order to the chaos of software development by defining the software process in terms of steps from the initial idea to the final product. These models, refined over the years, guide much of software development today.
+几十年前，我们就已经认识到软件的复杂性，其需要一种正式化的过程。通过定义从最初的想法到最终产品的软件过程的步骤，几种试图通过建模软件生命周期，来为软件开发带来一些秩序的方法已经尝试过。这些模型经过多年的完善，至今仍指导着软件开发的大部分工作。
 
-\mySubsubsection{28.2.1.}{The Waterfall Model}
+\mySubsubsection{28.2.1.}{瀑布模型}
 
-A classic life cycle model for software is the waterfall model. This model is based on the idea that software can be built almost like following a recipe. There is a set of steps that, if followed correctly, will yield a mighty fine chocolate cake — or program, as the case may be. Each stage must be completed before the next stage can begin, as shown in Figure 28.1. You can compare this process to a waterfall, as you can only go downward to the next phase.
+经典的生命周期模型是瀑布模型。这个模型基于软件可以像遵循食谱一样构建的想法。有一系列步骤，会产生一个美味的巧克力蛋糕——或者程序，视情况而定。每个阶段必须在下一个阶段开始之前完成，如图28.1所示。可以将这个过程比作瀑布，因为只能向下进入下一个阶段。
 
-\myGraphic{0.3}{content/part5/chapter28/images/1.png}{图 28.1}
+\myGraphic{0.2}{content/part5/chapter28/images/1.png}{图 28.1}
 
-The process starts with formal planning, which includes gathering an exhaustive list of requirements. This list defines feature completeness for the product. The more specific the requirements are, the more likely it is that the project will succeed. Next, the software is designed and fully specified. The design step, like the requirements step, needs to be as specific as possible to maximize the chance of success. All design decisions are made at this time, often including pseudo-code and the definition of specific subsystems that will need to be written. Subsystem owners work out how their code will interact, and the team agrees on the specifics of the architecture. Implementation of the design occurs next. Because the design has been fully specified, the code needs to adhere closely to the design or else the pieces won’t fit together. The final four stages are reserved for unit testing, subsystem testing, integration testing, and evaluation.
+该过程从正式规划开始，包括收集详尽的需求列表。这个列表定义了产品的功能完整性。需求越具体，项目成功的可能性就越大。接下来，设计和规划软件。设计步骤，就像需求步骤一样，需要尽可能具体，以最大化成功的可能性。所有的设计决策都在这个时候做出，通常包括伪代码，对需要编写的具体子系统的定义。子系统所有者确定他们的代码将如何交互，团队就架构的细节达成一致，设计实施是下一个阶段。因为设计已经完全规划好了，所以代码需要严格遵循设计，否则零件将无法组装在一起。最后的四个阶段用于单元测试、子系统测试、集成测试和评估。
 
-The main problem with the waterfall model is that, in practice, it is nearly impossible to complete one stage without at least exploring the next stage. A design cannot be set in stone without writing at least some code. Furthermore, if testing reveals bugs, you’ll have to go “back up” the waterfall and do some more coding whether your model formally accounted for that or not.
+瀑布模型的主要问题是，几乎不可能完成一个阶段，而不至少探索下一个阶段。设计不能在编写代码之前就固定下来。此外，如果测试发现错误，无论模型是否考虑到这一点，都将不得不“回到”瀑布的上游，并做一些更多的编码。
 
-Various incarnations have refined the process in different ways. For example, some plans include a “feasibility” step where experiments are performed before formal requirements are even gathered.
+各种变体以不同的方式改进了这一过程。例如，一些计划包括一个“可行性”步骤，在这个步骤中，在正式收集需求之前就进行实验。
 
-\mySamllsection{Benefits of the Waterfall Model}
+\mySamllsection{瀑布模型的好处}
 
-The value of the waterfall model lies in its simplicity. You, or your manager, may have followed this approach in past projects without formalizing it or recognizing it by name. The underlying assumption behind the waterfall model is that as long as each step is accomplished as completely and accurately as possible, subsequent steps will go smoothly. As long as all of the requirements are carefully specified in the first step, and all the design decisions and problems are hashed out in the second step, implementation in the third step should be a simple matter of translating the designs into code.
+瀑布模型的价值在于简单。你或你的经理可能在过去的项目中遵循了这种方法，而没有正式化它或以这个名字认识它。瀑布模型背后的基本假设是，只要每个步骤尽可能完全和准确地完成，后续步骤就会顺利进行。只要所有需求在第一步中仔细规定，并且在第二步中解决了所有设计和问题，第三步的实施就应该是一个简单地将设计转换为代码的问题。
 
-The simplicity of the waterfall model makes project plans based on this system organized and easy to manage. Every project is started the same way: by exhaustively listing all the features that are necessary. For example, managers using this approach can require that by the end of the design phase, all engineers in charge of a subsystem must submit their design as a formal design document or a functional subsystem specification. The benefit for the manager is that by having engineers specify requirements and designs up front, risks are (in theory) minimized.
+瀑布模型的简单性，使得基于此系统的项目计划组织有序且易于管理。每个项目都是以相同的方式开始的：详尽地列出所有必要的功能。例如，使用这种方法的经理可以要求，在设计阶段结束时，负责一个子系统的所有工程师必须提交他们的设计，作为正式的设计文档或功能子系统规范。从经理的角度来看，通过让工程师在开始时规定需求和设计，理论上可以最小化风险。
 
-From the engineer’s point of view, the waterfall model forces resolution of major issues up front. All engineers will need to understand their project and design their subsystem before writing a significant amount of code. Ideally, this means that code can be written once instead of being hacked together or rewritten when the pieces don’t fit.
+从工程师的角度来看，瀑布模型使他们在开始编写大量代码之前解决了主要问题。所有工程师都需要了解他们的项目，并设计他们的子系统。理想情况下，代码可以一次性编写，而不是拼凑或重新编写(当部件不匹配时)。
 
-For small projects with very specific requirements, the waterfall model can work quite well. Particularly for consulting arrangements, it has the advantage of specifying clearly defined metrics for success at the start of the project. Formalizing requirements helps the consultant to produce exactly what the client wants and forces the client to be specific about the goals for the project.
+对于非常具体要求的小项目，瀑布模型非常有效。特别是在咨询安排中，它有一个优势，即在项目开始时明确规定成功的标准。正式化需求有助于顾问为客户生产他们想要的东西，并使客户明确项目的目标。
 
-\mySamllsection{Drawbacks of the Waterfall Model}
+\mySamllsection{瀑布模型的缺点}
 
-In many organizations, and almost all modern software engineering texts, the waterfall model has fallen out of favor. Critics disparage its fundamental premise that software development tasks happen in discrete, linear steps. The waterfall model generally does not allow backward movement. Unfortunately, in many projects today, new requirements are introduced throughout the development of the product. Often, a potential customer will request a feature that is necessary for the sale, or a competitor’s product will have a new feature that requires parity.
+在许多组织中，几乎所有现代软件工程文本中，瀑布模型已经不再受欢迎。批评者指责其基本前提，即软件开发任务以离散的线性步骤发生,瀑布模型通常不允许向后移动。不幸的是，在许多当今的项目中，在整个产品开发过程中都会引入新需求。通常，客户会要求一个对销售必要的新功能，或者竞争对手的产品会有一个新功能，要求产品具有同样的特性。
 
 \begin{myNotic}{NOTE}
-The up-front specification of all requirements makes the waterfall model unusable for many organizations because it is not dynamic enough.
+许多组织中，瀑布模型由于不够动态，因此无法提前指定所有需求。
 \end{myNotic}
 
-Another drawback is that in an effort to minimize risk by making decisions as formally and early as possible, the waterfall model may actually be hiding risk. For example, a major design issue might be undiscovered, glossed over, forgotten, or purposely avoided during the design phase. When integration testing finally reveals the mismatch, the team has to go “back up” the waterfall to fix the issues.
+另一个缺点是，瀑布模型为了尽可能正式和尽早地做出决策来最小化风险，实际上可能隐藏了风险。例如，主要的设计问题可能在设计阶段未发现、忽略、遗忘或故意回避。当集成测试最终揭示不匹配时，团队必须“回到”瀑布的上游来修复问题。
 
-A mistake anywhere in the waterfall process will likely lead to delays at the end of the process. Early detection is difficult and occurs rarely.
+瀑布过程中的错误都可能导致流程结束时的延迟，而早期检测又很困难。
 
-If you do use the waterfall model, it is often necessary to make it more flexible by taking cues from other approaches.
+如果需要使用瀑布模型，需要通过从其他方法中获取线索来使其更加灵活。
 
-\mySubsubsection{28.2.2.}{Sashimi Model}
+\mySubsubsection{28.2.2.}{三文鱼模型}
 
-A number of refinements to the waterfall model have been formalized. One such refinement is called the sashimi model. The main advancement that the sashimi model brought was the concept of overlap between stages. The name, sashimi model, comes from a Japanese fish dish, called sashimi, in which different pieces of fish are overlapping each other. While the model still stresses a rigorous process of planning, designing, coding, and testing, successive stages can partially overlap. Figure 28.2 shows an example of the sashimi model, illustrating the overlapping of stages. Overlap permits activities in two phases to occur simultaneously. This recognizes the fact that one stage can often not be finished completely without at least partially looking at the next stage.
+对瀑布模型进行了一些正式的改进。其中之一称为三文鱼模型。三文鱼模型带来的主要改进是阶段之间重叠的概念。这个名字来源于日本的一种鱼片寿司，其中不同片状的鱼重叠在一起。尽管模型仍然强调规划、设计、编码和测试的严格过程，但后续阶段可以部分重叠。图28.2展示了一个三文鱼模型的示例，说明了阶段的重叠。重叠允许两个阶段的活动同时发生。这里，开发者们认识到一个阶段往往无法完全完成，至少需要了解下一个阶段。
 
 \myGraphic{0.9}{content/part5/chapter28/images/2.png}{图 28.2}
 
-\mySubsubsection{28.2.3.}{Spiral-like Models}
+\mySubsubsection{28.2.3.}{螺旋形模型}
 
-The spiral model was proposed by Barry W. Boehm in 1986 as a risk-driven software development process. Several derivatives have been formulated, which are called spiral-like models. The model discussed in this section is part of a family of techniques known as iterative processes. The fundamental idea is that it’s okay if something goes wrong because you’ll fix it in the next iteration. Figure 28.3 shows a single spin through this spiral-like model.
+螺旋模型是由Barry W. Boehm在1986年提出的，作为一种以风险驱动的软件开发过程。已经制定了一些变体，称为螺旋形模型。本节讨论的模型是迭代过程家族中的一种技术。基本思想是如果过程出现问题，将在下一次迭代中修复它。图28.3显示了这个螺旋形模型的单次旋转。
 
-The phases of this model are similar to the steps of the waterfall model. The discovery phase involves discovering requirements, determining objectives, determining alternatives (design alternatives, reuse, buying third-party libraries, and so on), and determining any constraints. During the evaluation phase, implementation alternatives are evaluated, risks are analyzed, and prototype options are considered. In a spiral-like model, particular attention is paid to evaluating and resolving risks in the evaluation phase. The tasks deemed riskiest are the ones that are implemented in the current cycle of the spiral. The tasks in the development phase are determined by the risks identified in the evaluation phase. For example, if evaluation reveals a risky algorithm that may be impossible to implement, the main task for development in the current cycle will be modeling, building, and testing that algorithm. The fourth phase is reserved for analysis and planning. Based on the results of the current cycle, a plan for the subsequent cycle is formed.
+这个模型的阶段与瀑布模型的步骤相似。发现阶段涉及发现需求、确定目标、确定替代方案（设计替代方案、重用、购买第三方库等）和确定约束。评估阶段，评估实现替代方案，分析风险，考虑原型选项。在螺旋形模型中，特别注意在评估阶段评估和解决风险。其中，风险最大的任务是，当前螺旋周期的实现任务，开发阶段中的任务由评估阶段中确定的风险决定。例如，评估揭示了一个可能无法实现的危险算法，当前循环的主要开发任务将是建模、构建和测试算法，第四个阶段用于分析和规划。根据当前周期的结果，形成后续周期的计划。
 
 \myGraphic{0.7}{content/part5/chapter28/images/3.png}{图 28.3}
 
-Figure 28.4 shows an example of three cycles through the spiral in the development of an operating system. The first cycle yields a plan containing the major requirements for the product. The second cycle results in a prototype showing the user experience. The third cycle builds a component that is determined to be a high risk.
+图28.4展示了操作系统开发过程中通过螺旋的三个周期的例子。第一个周期产生了一个包含产品主要需求计划的方案，第二个周期产生了一个展示用户体验的原型，第三个周期建立了一个确定为高风险的组件。
 
 \myGraphic{0.8}{content/part5/chapter28/images/4.png}{图 28.4}
 
-\mySamllsection{Benefits of a Spiral-like Model}
+\mySamllsection{螺旋模型的好处}
 
-A spiral-like model can be viewed as the application of an iterative approach to the best that the waterfall model has to offer. Figure 28.5 shows a spiral-like model as a waterfall process that has been modified to allow iteration. Hidden risks and a linear development path, the main drawbacks of the waterfall model, are resolved through iterative cycles.
+螺旋模型可以视为将迭代方法，应用于瀑布模型最佳特性的应用。图28.5显示了经过修改以允许迭代的螺旋模型，保留了瀑布模型的线性流程。瀑布模型的主要缺点——隐藏的风险和线性开发路径——通过迭代周期得到了解决。
 
 \myGraphic{1.0}{content/part5/chapter28/images/5.png}{图 28.5}
 
-Performing the riskiest tasks first is another benefit. By bringing risk to the forefront and acknowledging that new conditions can arise at any time, a spiral-like model avoids the hidden time bombs that can occur with the waterfall model. When unexpected problems arise, they can be dealt with by using the same four-stage approach that works for the rest of the process.
+首先执行风险最大的任务是一个好处。通过将风险放在首位，并认识到新条件可能随时出现，螺旋模型避免了瀑布模型中可能出现的时间炸弹。当意外出现时，可以使用处理其他过程相同四个阶段的方法来应对。
 
-This iterative approach also allows to incorporate feedback from testers. For example, an early version of the product can be released for internal or even external evaluation. Testers could, for instance, say that a certain feature is missing or that an existing feature is not working as expected. A spiral-like model has a built-in mechanism to react to such input.
+这种迭代方法还允许集成测试人员的反馈。例如，产品的一个早期版本可以发布供内部或甚至外部评估。测试人员可能会认为某个功能缺失或现有功能的工作方式与预期不符，螺旋模型有一个内置的机制来应对这样的输入。
 
-Finally, by repeatedly analyzing after each cycle and building new designs, the practical difficulties with the design-then-implement approach are virtually eliminated. With each cycle, there is more knowledge of the system that can influence the design.
+最后，通过在每个周期后反复分析并构建新的设计，设计-然后-实施的方法消除实际困难。每次循环都会影响设计。
 
-\mySamllsection{Drawbacks of a Spiral-like Model}
+\mySamllsection{螺旋模型的缺点}
 
-The main drawback of a spiral-like model is that it can be difficult to scope each iteration small enough to gain real benefit. In a worst-case scenario, a spiral-like model can degenerate into a waterfall model because the iterations are too long. Unfortunately, a spiral-like model only models the software life cycle; it cannot prescribe a specific way to break down a project into single-cycle iterations because that division varies from project to project.
+螺旋模型的主要缺点是，很难将每个迭代分解得足够小以获得真正的利益。最糟糕的情况下，螺旋模型可能会退化为瀑布模型(因为迭代太长)。不幸的是，螺旋模型只描述了软件生命周期；不能规定将项目分解为单周期迭代的具体方式，因为这种划分因项目而异。
 
-Other possible drawbacks are the overhead of repeating all four phases for each cycle and the difficulty of coordinating cycles. Logistically, it may be difficult to assemble all the group members for design discussions at the right time. If different teams are working on different parts of the product simultaneously, they are probably operating in parallel cycles, which can get out of sync. For example, during the development of an operating system, the user interface group could be ready to start the discovery phase of the Window Manager cycle, but the core OS group could still be in the development phase of the memory subsystem.
+其他可能的缺点是，每个周期的重复四个阶段的开销，以及协调周期的困难。从逻辑上讲，可能很难在合适的时间，聚集所有团队成员进行设计讨论。如果不同团队同时工作在产品的不同部分，他们可能同时在进行并行周期，这可能会失去同步。例如，在操作系统的开发过程中，用户界面团队可能已经准备好开始“窗口管理器”周期的发现阶段，但核心OS团队可能仍在内存子系统的开发阶段。
 
-Yet another problem is overall time planning for the project. If you continuously keep repeating the four phases, how do you break the cycle to stop the project? Often it will be up to management to decide on an endpoint condition and provide justification for it.
+项目整体时间规划的另一个问题是，如何打破循环来停止项目。如果不断地重复四个阶段，要怎么结束项目？通常，这需要管理层决定一个终止条件，并提供相应的理由。
 
-\mySubsubsection{28.2.4.}{Agile}
+\mySubsubsection{28.2.4.}{敏捷}
 
-To address the shortcomings of the waterfall model, the agile model was introduced in 2001 in the form of an Agile Manifesto.
+为了解决瀑布模型的缺点，2001年提出了敏捷模型，并以敏捷宣言的形式发布。
 
-\begin{myTip}{MANIFESTO FOR AGILE SOFTWARE DEVELOPMENT}
-The entire manifesto, taken from \url{http://agilemanifesto.org}, is as follows:
+\begin{myTip}{敏捷软件开发宣言}
+整个宣言，来自\url{http://agilemanifesto.org}，如下所示：
 
-We are uncovering better ways of developing software by doing it and helping others do it. Through this work we have come to value:
+我们正在通过实践和帮助他人实践来揭示开发软件的更好方法。通过这项工作，我们认识到：
 
 \begin{itemize}
 \item
-Individuals and interactions over processes and tools
+个体和交互胜过过程和工具
 
 \item
-Working software over comprehensive documentation
+可工作的软件胜过详尽的文档
 
 \item
-Customer collaboration over contract negotiation
+客户合作胜过合同谈判
 
 \item
-Responding to change over following a plan
+响应变化胜过遵循计划
 \end{itemize}
 
-That is, while there is value in the items on the right, we value the items on the left more.
+也就是说，虽然右边的项目有价值，但我们更看重左边。
 \end{myTip}
 
-As can be understood from this manifesto, the term agile is only a high-level description. Basically, it tells you to make the process flexible so that customers’ changes can easily be incorporated into the project during development. Scrum is one of the most frequently used agile software development methodologies and is discussed in the next section.
+从宣言中可以看出，\textbf{敏捷}一词只是一个高层次的描述。基本上，它要说明的是，让过程灵活，以便在开发过程中轻松地整合客户的变更。Scrum是最常用的敏捷软件开发方法，将在下一节中讨论。
 
 

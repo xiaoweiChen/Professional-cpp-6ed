@@ -1,73 +1,73 @@
-Managing all source code is important for any company, big or small, even for one-person projects. In a company, for example, it would be impractical to store all the source code on the machines of individual developers without it being managed by any version control software. This would result in a maintenance nightmare because not everyone would always have the latest code. Instead, all source code must be managed by version control software. There are three kinds of such software solutions:
+管理所有源代码对于任何公司，无论大小，甚至是单人项目，都是非常重要的。例如，在一个公司里，如果没有何版本控制软件来管理所有源代码文件及其历史，将其存储在每位开发人员的机器上是不切实际的。这会导致维护噩梦，因为不是每个人都会总是拥有最新的代码，所以所有源代码必须由版本控制软件管理。这类软件解决方案主要有三种：
 
 \begin{itemize}
 \item
-Local: These solutions store all source code files and their history locally on your machine and are not really suitable for use in a team. These are solutions from the ’70s and ’80s and shouldn’t be used anymore. They are not discussed further.
+本地：这些解决方案将所有源代码文件及其历史保存在您的机器上，并不适合团队合作使用。这些解决方案来自20世纪70年代和80年代，现在已经不再使用。这里不再进一步讨论。
 
 \item
-Client/server: These solutions are split into a client component and a server component. For a personal developer, the client and server components can run on the same machine, but the separation makes it easy to move the server component to a dedicated physical server machine if the need arises.
+客户端/服务器：这些解决方案分为客户端组件和服务器组件。对于个人开发者来说，客户端和服务器组件可以运行在同一台机器上，但这种分离使得当需要时，可以将服务器组件移动到专门的物理服务器上。
 
 \item
-Distributed: These solutions go one step further than the client/server model. There is no central place where everything is stored. Every developer has a copy of all the files, including all the history. A peer-to-peer approach is used instead of a client/server approach. Code is synchronized between peers by exchanging patches.
+分布式：这些解决方案比客户端/服务器模型更进一步。没有所有东西都存储的中心位置。每个开发者都拥有所有文件的副本，包括所有历史记录。使用的是点对点的做法，而不是客户端/服务器做法。代码通过交换补丁在节点之间同步。
 \end{itemize}
 
-The client/server solution consists of two parts. The first part is the server software, which is software running on the central server and which is responsible for keeping track of all source code files and their history. The second part is the client software. This client software is installed on every developer’s machine and is responsible for communicating with the server software to get the latest version of a source file, get a previous version of a source file, commit local changes back to the server, roll back changes to a previous version, and so on.
+客户端/服务器解决方案由两部分组成。第一部分是服务器软件，这是运行在中央服务器上的软件，负责跟踪所有源代码文件及其历史。第二部分是客户端软件，这个客户端软件安装在每位开发者的机器上，负责与服务器软件通信，以获取源文件的最新版本，获取源文件的以前版本，将本地更改提交回服务器，回滚到以前版本等。
 
-A distributed solution doesn’t use a central server. The client software uses peer-to-peer protocols to synchronize with other peers by exchanging patches. Common operations such as committing changes, rolling back changes, and so on, are fast because no network access to a central server is involved. The disadvantage is that it requires more space on the client machine because it needs to store all the files, including the entire history.
+分布式解决方案不使用中央服务器。客户端软件使用点对点协议与其他对等点交换补丁以同步。常见的操作，如提交更改、回滚更改等都很快，因为没有涉及到访问中央服务器的网络。缺点是需要更多的客户端机器空间，因为需要存储所有文件，包括整个历史。
 
-Most version control systems have a special terminology, but unfortunately, not all systems use the same terms. The following list explains a number of terms that are commonly used:
+大多数版本控制系统都有特殊的术语，但并不是所有系统都使用相同的术语。以下列表解释了一些常用的术语：
 
 \begin{itemize}
 \item
-Branch: The source code can be branched, which means that multiple versions can be developed side by side. For example, one branch can be created for every released version. On those branches, bug fixes can be implemented for those released versions, while new features are added to the main branch (often known as the “trunk”). Bug fixes created for released versions can also be merged back to the main branch.
+分支（Branch）：源代码可以进行分支，可以并行开发多个版本。例如，可以为每个已发布的版本创建一个分支。在这些分支上，可以实现这些已发布版本的bug修复，而新功能则添加到主分支（通常称为“trunk”）。为已发布版本创建的bug修复也可以合并回主分支。
 
 \item
-Check out: This is the action of creating a local copy on the developer’s machine, coming either from a central server or from peers.
+签出（Check out）：这是在开发者的机器上创建一个本地副本的动作，这个副本可以来自中心服务器或来自其他同行。
 
 \item
-Check in, commit, merge, or push: A developer makes changes to the local copy of the source code. When everything works correctly on the local machine, the developer can check in/commit/merge/push those local changes back to the central server.
+签入、提交、合并或推送（Check in, commit, merge 或 push）：开发者对源代码的本地副本进行更改。当一切在本地机器上正常工作时，开发者可以将这些本地更改签入/提交/合并/推送回中心服务器。
 
 \item
-Conflict and resolve: When multiple developers make overlapping changes to the same source file, a conflict might occur when committing that source file. The version control software often tries to automatically resolve these conflicts. If that is not possible, the client software asks the user to resolve any conflicts manually.
+冲突和解决（Conflict 和 resolve）：当多个开发者对同一源文件进行重叠更改时，提交该源文件时可能会发生冲突。版本控制软件通常会尝试自动解决这些冲突。如果无法自动解决，客户端软件会要求用户手动解决冲突。
 
 \item
-Label or tag: A human-readable label or tag can be attached to all files or to a specific commit at any given time. This makes it easy to jump back to the version of the source code at that time.
+标签或标记（Label 或 tag）：可以在任何时候为所有文件或特定提交附加一个可读的标签或标记，可以轻松跳回到源代码的特定版本。
 
 \item
-Repository: The collection of all files managed by the version control software, including their history. This also includes metadata about each commit, including when it was committed, by whom, and perhaps even a commit message explaining why.
+仓库（Repository）：版本控制软件管理的所有文件的集合，包括变更历史。这还包括关于每个提交的元数据，包括提交的时间、由谁提交，甚至是解释为什么提交的提交消息。
 
 \item
-Revision or version: A revision, or version, is a snapshot of the contents of a file at a specific point in time. Versions represent specific points that the code can be reverted to or compared against.
+修订或版本（Revision 或 version）：修订或版本是在特定时间点文件内容的快照，版本代表代码可以回退到或与之比较的特定点。
 
 \item
-Update or sync: Updating or synchronizing means that the local copy on the developer’s machine is synchronized with a version on the central server or with peers. Note that this requires merging that upstream code into the developer’s local copy (with all their local changes), which may result in a conflict that needs to be resolved.
+更新或同步（Update 或 sync）：更新或同步意味着开发者的机器上的本地副本与中心服务器或同行版本同步。注意，这需要将上游代码合并到开发者的本地副本（包括他们所有的本地更改），这可能会产生需要解决的冲突。
 
 \item
-Working copy: The working copy is the local copy on the individual developer’s machine.
+工作副本（Working copy）：这是开发者的机器上的本地副本。
 \end{itemize}
 
-Several version control software solutions are available. Some of them are free, and some are commercial. The following table lists a few available solutions:
+有几种版本控制软件解决方案可供选择。其中一些是免费的，一些是商业的。以下表格列出了一些可用的：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{}   & \textbf{FREE/OPEN-SOURCE} & \textbf{COMMERCIAL}              \\ \hline
+\textbf{}   & \textbf{免费/开源} & \textbf{商业}              \\ \hline
 \endfirsthead
 %
 \endhead
 %
-Local Only  & SCCS, RCS                 & PVCS                             \\ \hline
-Client/Server & CVS, Subversion & \begin{tabular}[c]{@{}l@{}}IBM Rational ClearCase, Azure DevOps\\ Server, Perforce\end{tabular} \\ \hline
-Distributed & Git, Mercurial, Bazaar    & TeamWare, BitKeeper, Plastic SCM \\ \hline
+仅本地  & SCCS, RCS                 & PVCS                             \\ \hline
+客户端/服务器 & CVS, Subversion & \begin{tabular}[c]{@{}l@{}}IBM Rational ClearCase, Azure DevOps Server, Perforce\end{tabular} \\ \hline
+分布式 & Git, Mercurial, Bazaar    & TeamWare, BitKeeper, Plastic SCM \\ \hline
 \end{longtable}
 
 \begin{myNotic}{NOTE}
-The preceding list is definitely not an exhaustive one. It’s just a small selection to give you an idea of what’s available.
+上述列表绝不是详尽的，只是提供一些可用的软件概览。
 \end{myNotic}
 
-This book does not recommend particular software solutions. Most software companies these days have a version control system already in place, which every developer needs to adopt. If this is not the case, the company should definitely invest some time into researching the available solutions and pick one that suits them. The bottom line is that it will be a maintenance nightmare without any version control system in place. Even for your personal projects, I recommend you investigate the available solutions. If you find one that you like, it will make your life easier. It will automatically keep track of different versions and a history of your changes. This makes it easy for you to roll back to an older version if a change didn’t work out the way it was supposed to.
+本书不推荐特定的软件解决方案。大多数软件公司现在已经建立了版本控制系统，每个开发者都需要采用。如果还没有这样的系统，公司应该投入时间研究可用的解决方案，并选择一个适合的系统。没有版本控制系统，维护将是一场噩梦。即使对于个人项目，我也建议调查可用的解决方案。如果找到一个喜欢的，它会自动跟踪不同版本和更改历史，这样如果做的更改没有按预期工作，可以轻松地回退到旧版本。
 
 
 
