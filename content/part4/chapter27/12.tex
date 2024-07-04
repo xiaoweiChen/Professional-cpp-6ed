@@ -1,44 +1,44 @@
-A coroutine is a function that can be suspended in the middle of its execution and resumed at a later point in time. Any function with one of the following keywords in its body is a coroutine:
+协程是一种可以在执行过程中暂停，并在稍后时间点恢复执行的函数。函数体内包含以下关键字的函数都是协程：
 
 \begin{itemize}
 \item
-co\_await: Suspends the execution of a coroutine while waiting for a computation to finish. Execution is resumed when the computation is finished.
+co\_await: 等待计算完成时暂停协程的执行。当计算完成时，执行恢复。
 
 \item
-co\_return: Returns from a coroutine (just return is not allowed in a coroutine). The coroutine cannot be resumed after this.
+co\_return: 从协程返回（协程中不允许使用普通的return）。执行co\_return后的协程不能再次恢复执行。
 
 \item
-co\_yield: Returns a value from a coroutine back to the caller and suspends the coroutine. Subsequently calling the coroutine again will continue its execution at the point where it was suspended.
+co\_yield: 从协程返回一个值给调用者，并暂停协程。随后再次调用协程，将会在暂停的地方继续执行。
 \end{itemize}
 
-In general, there are two types of coroutines: stackful and stackless. A stackful coroutine can be suspended from anywhere deep inside a nested call. On the other hand, a stackless coroutine can only be suspended from the top stack frame. When a stackless coroutine is suspended, only the variables and temporaries with automatic storage duration in the body of the function are saved; the call stack is not saved. Hence, memory usage for stackless coroutines is minimal, allowing for millions or even billions of coroutines to be running concurrently. C++ only supports the stackless variant.
+协程有两种类型：有栈和无栈。有栈协程可以从嵌套调用的任何深处暂停。另一方面，无栈协程只能从函数体的最顶层栈帧暂停。当无栈协程被暂停时，只有函数体内的自动存储持续期的变量和临时变量会保存；调用栈不会保存。因此，无栈协程的内存使用非常小，可以同时运行数百万甚至数十亿个协程，C++只支持无栈协程。
 
-To be fair, coroutines don’t necessarily have anything to do with multithreading; instead, they just provide a way for a function to be suspended and resumed at a later time. Of course, if needed, coroutines can be used in a multithreaded environment just as well.
+公平地说，协程并不一定与多线程有直接关系，只是提供了一种函数可以在稍后时间点暂停和恢复执行的方式。如果需要，协程也可以在多线程环境中使用。
 
-Coroutines can be used to implement asynchronous operations using a synchronous programming style. Use cases include the following:
+协程可以用同步编程风格实现异步操作。使用场景包括：
 
 \begin{itemize}
 \item
-Generators
+生成器
 
 \item
-Asynchronous I/O
+异步I/O
 
 \item
-Lazy computations
+延迟计算
 
 \item
-Event-driven applications
+事件驱动应用程序
 
 \item
-State machines
+状态机
 \end{itemize}
 
 \CXXTwentythreeLogo{-40}{-50}
 
-Unfortunately, while all the low-level language building blocks are available to write your own coroutines, there’s not much in terms of high-level coroutine facilities. The C++23 Standard Library introduces one standardized high-level coroutine facility, the generator std::generator. A generator provides a mechanism to have a single thread switch back and forth between generating results and handling those results, without involving multiple threads.
+不幸的是，尽管所有的底层语言构建块都可用以编写自己的协程，但在高级协程设施方面却没有什么内容。C++23标准库引入了一个标准的高级协程设施，即生成器std::generator。生成器提供了一种机制，使得一个线程可以在生成结果和处理这些结果之间切换，而不涉及多个线程。
 
-The following code demonstrates the use of the std::generator class template, defined in <generator>:
+以下代码演示了<generator>中定义的std::generator类模板的使用：
 
 \begin{cpp}
 generator<int> getSequenceGenerator(int startValue, int numberOfValues)
@@ -63,20 +63,20 @@ int main()
 }
 \end{cpp}
 
-When you run the application, you’ll get the following output:
+当运行应用程序时，会得到以下输出：
 
 \begin{shell}
 16:35:42: 10 (Press enter for next value)
 \end{shell}
 
-Pressing Enter adds another line:
+按下回车键添加另一行：
 
 \begin{shell}
 16:35:42: 10 (Press enter for next value)
 16:36:03: 11 (Press enter for next value)
 \end{shell}
 
-Pressing Enter again adds yet another line:
+再次按下回车键添加另一行：
 
 \begin{shell}
 16:35:42: 10 (Press enter for next value)
@@ -84,9 +84,9 @@ Pressing Enter again adds yet another line:
 16:36:21: 12 (Press enter for next value)
 \end{shell}
 
-Every time after hitting Enter, a new value is requested from the generator. This causes the coroutine to resume, which executes the next iteration of the for loop in getSequenceGenerator() printing the local time, and returning the next value. Returning a value is done with co\_yield, which returns the value and then suspends the coroutine. The value itself is printed in the main() function, followed by the question to press Enter for the next value. The output clearly shows that the coroutine is suspended and resumed multiple times.
+每次按下回车键后，都会从生成器请求一个新值。这导致协程恢复执行，执行getSequenceGenerator()中的for循环的下一轮，打印本地时间，并返回下一个值。使用co\_yield返回值，这会返回值并随后暂停协程。值本身在main()函数中打印，后面跟着按回车键以获取下一个值的提示，输出清楚地显示协程的多次暂停和恢复。
 
-Unfortunately, that’s pretty much all there is to say about coroutines in the scope of this book. Writing coroutines yourself, such as std::generator, is complicated and way too advanced to discuss in this book. I recommend using existing coroutines, written by experts. If you need other coroutine facilities besides the generator provided by the Standard Library, there are third-party libraries available, such as \href{https://github.com/lewissbaker/cppcoro}{cppcoro1} and \href{https://github.com/David-Haim/concurrencpp}{concurrencpp}, that provide a collection of high-level coroutines. The goal of this section was to introduce the idea so that you know it exists. Maybe a future C++ standard will introduce more high-level standardized coroutine facilities.
+不幸的是，这本书的范围内关于协程的介绍就到此为止了。编写自己的协程，如std::generator非常复杂，超出了本书的讨论范围。我建议使用专家编写的现有协程。如果需要标准库提供的生成器之外的其他协程设施，有许多第三方库可用，如\href{https://github.com/lewissbaker/cppcoro}{cppcoro1}和\href{https://github.com/David-Haim/concurrencpp}{concurrencpp}，它们提供了一系列高级协程。本节的目标是介绍这个概念，让你知道它存在，也许未来的C++标准会引入更多高级标准化的协程设施。
 
 
 

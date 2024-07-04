@@ -1,10 +1,10 @@
-Instead of creating and deleting threads dynamically throughout your program’s lifetime, you can create a pool of threads that can be used as needed. This technique is often used in programs that want to handle some kind of event in a thread. In most environments, the ideal number of threads is equal to the number of processing cores. If there are more threads than cores, threads will have to be suspended to allow other threads to run, and this will ultimately add overhead. Note that while the ideal number of threads is equal to the number of cores, this applies only in the case where the threads are compute bound and cannot block for any other reason, including I/O. When threads can block, it is often appropriate to run more threads than there are cores. Determining the optimal number of threads in such cases is hard and may involve throughput measurements.
+动态地创建和删除线程，可以创建一个线程池，需要线程时使用。这种技术通常用于处理某种事件的程序，理想的线程数等于处理核心数。如果线程数多于核心数，线程将挂起，以允许其他线程运行，这最终会增加开销。注意，虽然理想的线程数等于核心数，但这仅适用于线程是计算密集型，且不能因为其他原因（包括I/O）而阻塞的情况。当线程可以阻塞时，通常可以运行比核心数更多的线程。这种情况下确定最佳线程数是困难的，可能需要测量吞吐量。
 
-Because not all processing is identical, it is not uncommon to have threads from a thread pool receive, as part of their input, a callable that represents the computation to be done.
+由于处理并不完全相同，线程池中的线程通常会接收一个可调用对象作为其输入的一部分，该可调用对象代表要执行的计算。
 
-Because threads from a thread pool are pre-existing, it is much more efficient for the operating system to schedule a thread from the pool to run than it is to create one in response to an input. Furthermore, the use of a thread pool allows you to manage the number of threads that are created, so, depending on the platform, you may have just one thread or thousands of threads.
+由于线程池中的线程预先存在，因此操作系统调度线程池中的线程运行，比响应输入创建线程要高效得多。使用线程池可以管理创建的线程数量，可以根据平台创建一个或成千上万的线程。
 
-Several libraries are available that implement thread pools, including Intel Threading Building Blocks (TBB), Microsoft Parallel Patterns Library (PPL), and so on. It’s recommended to use such a library for your thread pools instead of writing your own implementation. If you do want to implement a thread pool yourself, it can be done in a similar way as an object pool. Chapter 29, “Writing Efficient C++,” gives an example implementation of an object pool.
+有几个库可以实现线程池，包括Intel Threading Building Blocks (TBB)和Microsoft Parallel Patterns Library (PPL)等。建议使用这样的库来管理线程池，而不是自己编写实现。如果确实想自己实现线程池，可以以类似对象池的方式实现。第29章给出了一个对象池的示例实现。
 
 
 

@@ -1,20 +1,20 @@
 
-As discussed earlier in this chapter, using std::thread to launch a thread that calculates a single result does not make it easy to get the computed result back once the thread has finished executing. Another problem with std::thread is in how it handles errors like exceptions. If a thread throws an exception and this exception is not caught by the thread itself, the C++ runtime calls std::terminate(), which usually terminates the entire application.
+使用std::thread启动一个线程来计算单个结果，从线程中获取计算结果并不容易。另一个std::thread的问题是如何处理错误，例如异常。如果一个线程抛出一个异常，而这个异常没有捕获，C++运行时会调用std::terminate()，这通常会终止整个应用程序。
 
-A future can be used to more easily get the result out of a thread and to transport exceptions from one thread to another thread, which can then handle the exception however it wants.
+future可以用来更容易地从线程中获取结果，并将异常从一个线程传输到另一个线程，然后线程可以处理异常。
 
-A promise is something in which a thread stores its result. A future is used to get access to the result stored in a promise. That is, a promise is the input side for a result, a future is the output side. Once a function, running in the same thread or in another thread, has calculated the value that it wants to return, it puts this value in a promise. This value can then be retrieved through a future. A promise/ future pair is an inter-thread one-shot communication channel for a result.
+promise是线程存储其结果的地方，future用于获取存储在promise中的结果。也就是说，promise是结果的输入端，future是结果的输出端。当函数（在同一线程或另一个线程中）计算出它想要返回的值，就会将这个值放入一个promise中。然后，这个值可以通过future检索，promise/future对是用于结果的线程间一次性通信通道。
 
-C++ provides a standard future, called std::future. You can retrieve the result from an std::future as follows. T is the type of the calculated result.
+C++提供了一个标准future，称为std::future。可以像以下方式从std::future中检索结果，T是计算结果的类型。
 
 \begin{cpp}
 future<T> myFuture { ... }; // Is discussed later.
 T result { myFuture.get() };
 \end{cpp}
 
-The call to get() retrieves the result and stores it in the variable result. If calculating the result is not finished yet, the call to get() blocks until the value becomes available. You can call get() only once on a future. The behavior of calling it a second time is undefined by the standard.
+调用get()检索结果，并将其存储在变量result中。如果计算结果还没有完成，调用get()会阻塞，直到值可用。只能在一个future上调用get()一次，标准中未定义再次调用get()的行为。
 
-If you want to avoid blocking, you can first ask the future if there is a result available:
+如果想避免阻塞，可以首先查询future是否有可用的结果：
 
 \begin{cpp}
 if (myFuture.wait_for(0)) { // Value is available.
@@ -24,13 +24,13 @@ if (myFuture.wait_for(0)) { // Value is available.
 }
 \end{cpp}
 
-\mySubsubsection{27.9.1.}{std::promise and std::future}
+\mySubsubsection{27.9.1.}{std::promise 和 std::future}
 
-C++ provides the std::promise class as one way to implement the concept of a promise. You can call set\_value() on a promise to store a result, or you can call set\_exception() on it to store an exception in the promise. You can call set\_value() or set\_exception() only once on a specific promise. If you call it multiple times, an std::future\_error exception will be thrown.
+C++提供了std::promise类作为实现承诺概念的一种方式，可以调用set\_value()在promise中存储一个结果，或者调用set\_exception()在promise中存储一个异常。只能在特定的promise上调用set\_value()或set\_exception()一次。如果多次调用，会抛出一个std::future\_error异常。
 
-Alternatively, you can use set\_value\_at\_thread\_exit() or set\_exception\_at\_thread\_exit() to set a value or an exception in a promise. Using these, the value or the exception is stored in the promise at the time the thread exits and after all thread-local storage variables have been destroyed.
+另外，可以使用set\_value\_at\_thread\_exit()或set\_exception\_at\_thread\_exit()在promise中设置一个值或一个异常。使用这些方法，值或异常在线程退出和所有线程局部存储变量销毁之后，存储在promise中。
 
-A thread A that launches another thread B to calculate something can create a promise and pass it to the launched thread. A promise cannot be copied, but it can be moved into a thread! Thread B uses that promise to store the result. Before moving the promise into thread B, thread A calls get\_future() on the created promise to be able to get access to the result once B has finished. Here is a simple example:
+一个线程A启动另一个线程B来计算某些内容时，可以创建一个promise并将其传递给启动的线程。不能复制promise，但可以移动到线程中！线程B使用该promise来存储结果。将promise移动到线程B之前，线程A调用get\_future()在创建的promise上，当B完成就可以访问结果。这是一个简单的示例：
 
 \begin{cpp}
 void doWork(promise<int> thePromise)
@@ -58,14 +58,14 @@ int main()
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-This code is just for demonstration purposes. It starts the calculation in a new thread and then calls get() on the future, which blocks until the result is calculated. This sounds like an expensive function call. In real-world applications, you can use futures by periodically checking if there is a result available or not (using wait\_for() as discussed earlier) or by using a synchronization mechanism such as a condition variable. When the result is not yet available, you can do something else in the meantime, instead of blocking.
+这段代码只是为了演示目的。在新的线程中启动计算，然后阻塞调用future的get()，直到结果计算出来。这听起来像是一个昂贵的函数调用。实际应用中，可以定期检查是否有可用结果（使用前面讨论的wait\_for()），或者使用同步机制，如条件变量。当结果尚未可用时，可以在等待的同时做其他事情，而不是阻塞。
 \end{myNotic}
 
 \mySubsubsection{27.9.2.}{std::packaged\_task}
 
-A std::packaged\_task makes it easier to work with promises than explicitly using std::promise, as in the previous section. The following code demonstrates this. It creates a packaged\_task to execute calculateSum(). The future is retrieved from the packaged\_task by calling get\_future(). A thread is launched, and the packaged\_task is moved into it. A packaged\_task, like a std::promise, is move-only. After the thread is launched, get() is called on the retrieved future to get the result. This blocks until the result is available.
+std::packaged\_task比显式使用std::promise（如前一节所示）更容易与承诺一起工作。以下代码展示了这一点。它创建了一个packaged\_task来执行calculateSum()，通过调用get\_future()从packaged\_task中获取future。创建了一个线程，并将packaged\_task移动到线程中。packaged\_task，就像std::promise一样，是可移动的。线程启动后，从检索到的future上阻塞调用get()以获取结果，直到结果可用。
 
-calculateSum() does not store anything explicitly in any kind of promise. A packaged\_task automatically creates a promise, and automatically stores the result of the callable—calculateSum() in this case—in the promise, no matter whether that result is a value or a thrown exception.
+calculateSum()没有显式地将内容存储在promise中。packaged\_task会自动创建一个promise，并自动将可调用对象的返回结果——calculateSum()的结果——存储在promise中，无论该结果是一个值，还是一个抛出的异常。
 
 \begin{cpp}
 int calculateSum(int a, int b) { return a + b; }
@@ -90,30 +90,30 @@ int main()
 
 \mySubsubsection{27.9.3.}{std::async}
 
-If you want to give the C++ runtime more control over whether or not a thread is created to calculate something, you can use std::async(). It accepts a callable to be executed and returns a future that you can use to retrieve the result. There are two ways in which async() can run a callable:
+如果想给C++运行时更多控制权，以决定是否创建一个线程来计算某事，可以使用std::async()。它接受一个可调用的对象来执行，并返回一个future，可以使用它来获取结果。async()可以通过两种方式执行一个可调用对象：
 
 \begin{itemize}
 \item
-By running it on a separate thread asynchronously
+在不同的线程上异步运行
 
 \item
-By running it on the calling thread synchronously at the time you call get() on the returned future
+调用线程上同步运行，当在返回的future上调用get()时
 \end{itemize}
 
-If you call async() without additional arguments, the runtime automatically chooses one of the two mechanisms depending on factors such as the number of CPU cores in your system and the amount of concurrency already taking place. You can influence the runtime’s behavior by specifying a policy argument:
+如果在没有参数的情况下调用async()，运行时会根据系统中的CPU核心数量和已经发生的并发量等因素自动选择两种机制之一。可以通过指定一个策略参数，来影响运行时的行为：
 
 \begin{itemize}
 \item
-launch::async: Forces the runtime to execute the callable asynchronously on a different thread.
+launch::async: 强制运行时在不同的线程上异步执行可调用对象。
 
 \item
-launch::deferred: Forces the runtime to execute the callable synchronously on the calling thread when get() is called.
+launch::deferred: 当调用get()时，强制运行时在调用线程上同步执行可调用对象。
 
 \item
-launch::async | launch::deferred: Lets the runtime choose (= default behavior).
+launch::async | launch::deferred: 让运行时自行选择（=默认行为）。
 \end{itemize}
 
-The following example demonstrates the use of async():
+以下示例演示了async()的用法：
 
 \begin{cpp}
 int calculateSum(int a, int b) { return a + b; }
@@ -132,21 +132,21 @@ int main()
 }
 \end{cpp}
 
-As you can see from this code snippet, std::async() is one of the easiest techniques to perform some calculations either asynchronously (on a different thread) or synchronously (on the same thread) and retrieve the result afterward.
+从这个代码段中可以看到，std::async()是最简单的方法，可以执行一些计算，无论是异步的（在不同的线程上）还是同步的（在同一个线程上），然后获取结果。
 
 \begin{myWarning}{WARNING}
-A future returned by a call to async() blocks in its destructor until the result is available. (This is not true of ordinary futures; only the kind returned from async().) This means that if you call async() without capturing the returned future, the async() call effectively becomes a blocking call! For example, the following line synchronously calls calculateSum():
+由async()调用返回的future在其析构函数中阻塞，直到结果可用。（这对于普通future不适用；只适用于从async()返回的那种。）如果调用async()而不捕获返回的future，async()调用实际上变成了一个阻塞调用！例如，以下行同步调用calculateSum()：
 
 \begin{cpp}
 async(calculateSum, 39, 3);
 \end{cpp}
 
-What happens with this statement is that async() creates and returns a future. This future is not captured, so it is a temporary. Because it is a temporary future, its destructor is called at the end of this statement, and this destructor blocks until the result is available.
+这条语句发生的情况是，async()创建并返回一个future。这个future没有捕获，所以是一个临时对象。因为这是一个临时future，所以在语句结束时调用其析构函数，并且这个析构函数会阻塞到结果可用。
 \end{myWarning}
 
-\mySubsubsection{27.9.4.}{Exception Handling}
+\mySubsubsection{27.9.4.}{异常处理}
 
-A big advantage of using futures is that they can transport exceptions between threads. Calling get() on a future either returns the calculated result or rethrows any exception that has been stored in the promise linked to the future. When you use packaged\_task or async(), any exception thrown from the launched callable is automatically stored in the promise. If you use std::promise directly as your promise, you can call set\_exception() to store an exception in it. Here is an example using async():
+使用future的一个优点是，可以在线程之间传输异常。在future上调用get()，要么返回计算的结果，要么重新抛出存储在与之关联的promise中的异常。当使用packaged\_task或async()时，从启动的可调用对象中抛出的异常都会自动存储在promise中。如果直接使用std::promise，可以调用set\_exception()来存储一个异常。以下是使用async()的一个示例：
 
 \begin{cpp}
 int calculate()
@@ -173,11 +173,11 @@ int main()
 
 \mySubsubsection{27.9.5.}{std::shared\_future}
 
-std::future<T> only requires T to be move-constructible. When you call get() on a future<T>, the result is moved out of the future and returned to you. This means you can call get() only once on a future<T>.
+std::future<T>只需要T能够进行移动构造。当在future<T>上调用get()时，结果会从future中移动出来并返回，所以只能在一个future<T>上调用get()一次。
 
-If you want to be able to call get() multiple times, even from multiple threads, then you need to use an std::shared\_future<T>. A shared\_future can be created by using std::future::share() or by passing a future to the shared\_future constructor. A future is not copyable, so you have to move it into the shared\_future constructor.
+如果想在多次调用get()时，甚至在多个线程中，那么需要使用std::shared\_future<T>。可以通过调用std::future::share()或通过将future传递给shared\_future构造函数来创建shared\_future。future是不可复制的，所以必须将其移动到shared\_future构造函数中。
 
-shared\_future can be used to wake up multiple threads at once. For example, the following piece of code defines two lambda expressions to be executed asynchronously on different threads. The first thing each lambda expression does is set a value to their respective promise to signal that they have started. Then they both call get() on signalFuture, which blocks until a parameter is made available through the future, after which they continue their execution. Each lambda expression captures their respective promise by reference and captures signalFuture by value, so both lambda expressions have a copy of signalFuture. The main thread uses async() to execute both lambda expressions asynchronously on different threads, waits until both threads have started, and then sets the parameter in the signalPromise, which wakes up both threads.
+shared\_future可以用来同时唤醒多个线程。例如，以下代码定义了两个Lambda表达式，分别以不同的线程异步执行。每个Lambda表达式所做的第一件事就是将值设置为其各自的promise，以表明线程启动。然后阻塞调用get()在signalFuture上，直到通过future提供参数，之后它们继续执行。每个Lambda表达式都通过引用捕获了它们各自的promise，并通过值捕获了signalFuture，所以两个Lambda表达式都拥有signalFuture的副本。主线程使用async()以不同的线程异步执行这两个Lambda表达式，等待两个线程都开始，然后将参数设置在signalPromise中，这会唤醒两个线程。
 
 \begin{cpp}
 promise<void> thread1Started, thread2Started;

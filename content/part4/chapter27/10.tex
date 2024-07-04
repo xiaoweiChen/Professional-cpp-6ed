@@ -1,9 +1,9 @@
-This section demonstrates how to use threads, mutexes, locks, and condition variables to write a multithreaded Logger class. The class allows log messages to be added to a queue from different threads. The Logger class itself processes this queue in a background thread that serially writes the log messages to a file. The class is designed in two iterations to show you some examples of problems you will encounter when writing multithreaded code.
+这个部分展示了如何使用线程、互斥锁、锁和条件变量来编写一个多线程的Logger类，这个类允许从不同的线程向队列中添加日志消息。Logger类本身在一个后台线程中处理这个队列，并依次将日志消息写入文件。这个类在两个迭代中设计，以展示编写多线程代码时会遇到的一些问题。
 
-The C++ standard does not have a thread-safe queue, so it is obvious that you must protect access to the queue with some synchronization mechanism to prevent multiple threads from reading/writing to the queue at the same time. This example uses a mutex and a condition variable to provide the synchronization. Based on that, you might define the Logger class as follows:
+C++标准没有线程安全的队列，所以必须使用某种同步机制来保护对队列的访问，以避免多个线程同时读写队列。这个示例使用互斥锁和条件变量来提供同步，Logger类的定义如下：
 
 \begin{myWarning}{WARNING}
-This Logger class uses std::thread instead of jthread to demonstrate 1) the catastrophic results when using thread improperly and 2) how easy it is to use thread wrongly.
+这个Logger类使用std::thread，而非jthread来演示，1)不当使用线程时的灾难性结果，2)使用线程很容易出错。
 \end{myWarning}
 
 \begin{cpp}
@@ -32,7 +32,7 @@ export class Logger
 };
 \end{cpp}
 
-The implementation is as follows. This initial design has a couple of problems. When you try to run it, it might behave incorrect and crash. This is discussed and solved in the next design iteration of the Logger class. The while loop in the processEntries() member function is worth looking at. It processes all messages currently in the queue. While having a lock, it swaps the contents of the current queue of entries with an empty local queue on the stack. After this, it releases the lock so other threads are not blocked anymore to add new entries to the now empty current queue. Once the lock is released, all entries in the local queue are processed. This does not require the lock anymore as other threads will not touch this local queue.
+实现如下。这个初始设计存在几个问题。当运行它时，可能行为不正确并崩溃。这将在Logger类的下一个设计迭代中讨论和解决。processEntries()成员函数中的while循环值得注意，它处理队列中当前的所有消息。在持有锁的情况下，将当前条目队列的内容与栈上的空本地队列进行交换。之后，释放锁，以便其他线程不再阻塞，以添加新的条目到现在的空队列中。释放锁后，将处理本地队列中的所有条目。这时不再需要锁，因为其他线程不会触及这个本地队列。
 
 \begin{cpp}
 Logger::Logger()
@@ -93,12 +93,12 @@ void Logger::processEntriesHelper(queue<string>& queue, ofstream& ofs) const
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-As you can already see from this rather simple task, writing correct multithreaded code is hard! Unfortunately, at this moment, the C++ Standard Library does not provide any concurrent data structures, at least not yet.
+从这个相当简单的任务中看到，编写正确的多线程代码是困难的！不幸的是，C++标准库还没有提供并发数据结构，至少现在还没有。
 
-The Logger class is just an example to show these basic building blocks. For production-quality code, I recommend using an appropriate third-party concurrent data structure, instead of writing your own. For example, the open-source boost C++ libraries (boost.org) have an implementation of a queue that is lock-free and allows concurrent use without the need for any explicit synchronization.
+Logger类只是一个示例，展示了这些基本构建块。对于生产质量的代码，我建议使用合适的第三方并发数据结构，而不是自己编写。例如，开源的boost C++库（boost.org）有一个无锁队列的实现，允许并发使用而不需要显式同步。
 \end{myWarning}
 
-The Logger class can be tested with the following test code. It launches a number of threads, all logging a few messages to the same Logger instance.
+Logger类可以通过以下测试代码进行测试。它启动了一定数量的线程，所有线程都向同一个Logger实例添加了一些日志消息。
 
 \begin{cpp}
 void logSomeMessages(int id, Logger& logger)
@@ -120,7 +120,7 @@ int main()
 }
 \end{cpp}
 
-If you build and run this naive initial version, you will notice that the application is terminated abruptly. That is because the application never calls join() or detach() on the Logger background thread. Remember from earlier in this chapter that the destructor of a joinable thread object, that is, neither join() nor detach() has been called yet, calls std::terminate() to terminate all running threads and the application itself. This means that messages still in the queue are not written to the file on disk. Some runtime libraries even issue an error or generate a crash dump when the application is terminated like this. You need to add a mechanism to gracefully shut down the background thread and wait until the background thread is completely shut down before terminating the application. You can do this by adding a destructor and a Boolean data member to the class. The new definition of the class is as follows:
+如果构建并运行这个简单的初始版本，会注意到应用程序突然终止。这是因为应用程序从未调用join()或detach()在Logger后台线程上。一个可汇入的线程对象的析构函数，即尚未调用join()或detach()，会调用std::terminate()来终止所有运行的线程和应用程序本身。所以队列中仍然存在的消息没有写入磁盘上的文件，一些运行时库甚至在这种应用程序终止时，会发出错误或生成崩溃转储文件。需要添加一种机制，以优雅地关闭后台线程，并在后台线程完全关闭后才终止应用程序。可以通过向类中添加析构函数和布尔数据成员来实现，新定义如下所示：
 
 \begin{cpp}
 export class Logger
@@ -136,7 +136,7 @@ export class Logger
 };
 \end{cpp}
 
-The destructor sets m\_exit to true, wakes up the background thread, and then waits until the thread is shut down. The destructor acquires a lock on m\_mutex before setting m\_exit to true. This is to prevent a race condition and deadlock with processEntries(), which could be at the beginning of its while loop right after having checked m\_exit and right before the call to wait(). If the main thread calls the Logger destructor at that very moment (assuming the destructor hadn’t been written to acquire a lock on m\_mutex), then the destructor sets m\_exit to true and calls notify\_all() after processEntries() has checked m\_exit and before processEntries() is waiting on the condition variable; thus, processEntries() will not see the new value of m\_exit, and it will miss the notification. In that case, the application is deadlocked, because the destructor is waiting on the join() call and the background thread is waiting on the condition variable. The destructor can call notify\_all() while still holding the lock or after having released it, but the lock must certainly be released before calling join(), which explains the extra code block using curly brackets.
+析构函数将m\_exit设置为true，唤醒后台线程，然后等待线程关闭。析构函数在设置m\_exit为true之前获取m\_mutex上的锁，这是为了避免与processEntries()的竞争条件和死锁，processEntries()可能在其while循环的起点检查m\_exit，然后等待通知。如果主线程在那个时调用Logger的析构函数（假设析构函数尚未编写以获取m\_mutex上的锁），那么析构函数将m\_exit设置为true，并在processEntries()检查m\_exit之后、在processEntries()等待条件变量之前调用notify\_all()。因此，processEntries()将不会看到m\_exit的新值，并且会错过通知。这时，应用程序死锁，因为析构函数正在等待join()调用，而后台线程正在等待条件变量。析构函数可以在持有锁的情况下调用notify\_all()，或者在释放锁后调用，但是锁必须在调用join()之前释放，这就解释了为什么使用花括号。
 
 \begin{cpp}
 Logger::~Logger()
@@ -154,7 +154,7 @@ Logger::~Logger()
 }
 \end{cpp}
 
-The processEntries() member function needs to check this Boolean variable and terminate the processing loop when it’s true. It should also call wait() only when the queue is empty.
+processEntries()成员函数需要检查这个布尔变量，并在其为true时终止处理循环。还应该只在队列为空时调用wait()。
 
 \begin{cpp}
 void Logger::processEntries()
@@ -186,9 +186,9 @@ void Logger::processEntries()
 }
 \end{cpp}
 
-You cannot just check for m\_exit in the condition for the outer while loop because even when m\_exit is true, there might still be log entries in the queue that need to be written to the log file.
+不能仅在while循环的外部条件中检查m\_exit，因为即使m\_exit为true，队列中可能仍然有需要写入日志文件的日志条目。
 
-You can add artificial delays in specific places in your multithreaded code to trigger certain behavior. Such delays should only be added for testing and must be removed from your final code! For example, to test that the race condition with the destructor is solved, you can remove any calls to log() from the main program, causing it to almost immediately call the destructor of the Logger class, and add the following delay:
+可以在多线程代码的特定位置添加人工延迟，以触发某些行为。这样的延迟只应该添加到测试中，必须从最终代码中删除！例如，为了测试与析构函数的条件竞争需要解决，可以从主程序中删除对log()的调用，使其可调用Logger类的析构函数，并添加以下延迟：
 
 \begin{cpp}
 void Logger::processEntries()
@@ -205,7 +205,7 @@ void Logger::processEntries()
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-I recommend using jthread over thread, as it automatically joins in its destructor. With jthread, the explicit call to join() in the destructor of Logger is not necessary.
+我建议使用jthread，而不使用thread，因为它在其析构函数中会自动加入。使用jthread，没必要在Logger析构函数中的显式调用join()。
 \end{myNotic}
 
 

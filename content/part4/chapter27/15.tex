@@ -2,22 +2,22 @@
 
 \begin{itemize}
 \item
-Exercise 27-1: Write an application that beeps every three seconds indefinitely. The threesecond delay must be passed as an argument to your thread function. Tip: You can make your computer beep by printing \a to the standard output.
+\textbf{练习 27-1}: 编写一个应用程序，该程序无限期地每隔三秒钟哔哔声。三秒的延迟必须作为参数传递给你的线程函数。提示：可以通过向标准输出打印\verb|\|a来使计算机发出哔哔声。
 
 \item
-Exercise 27-2: Modify your solution to Exercise 27-1 so that the application can be stopped when the user presses the enter key.
+\textbf{练习 27-2}: 修改解决方案以使应用程序在用户按下回车键时停止。
 
 \item
-Exercise 27-3: Modify your solution to Exercise 27-1 so that the beeping continues until the user presses the Enter key. Once the Enter key is pressed, beeping should be paused, until the user presses the Enter key again. The user can pause and resume the beeping as many times as she wants.
+\textbf{练习 27-3}: 修改解决方案以使哔哔声在用户按下回车键后继续，直到用户再次按下回车键。当用户按下回车键，哔哔声应该暂停，直到用户再次按下回车键。用户可以暂停和恢复哔哔声，次数不限。
 
 \item
-Exercise 27-4: Write an application that can calculate a number of Fibonacci numbers concurrently. For example, your code should be able to calculate the $4^{th}$, $9^{th}$, $14^{th}$, and $17^{th}$ number in the Fibonacci series in parallel. The Fibonacci series starts with 0 and 1, and any subsequent value is the sum of the two previous values, so: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, and so on. Once all results are available, output them to the standard output. Finally, calculate their sum using a constrained Standard Library algorithm.
+\textbf{练习 27-4}: 编写一个应用程序，它可以并发计算多个斐波那契数。例如，代码应该能够并行计算斐波那契数列中的第4、9、14和17个数字。斐波那契数列从0和1开始，任何后续值都是前两个值的和，所以：0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89等。当所有结果都可用，将它们输出到标准输出。最后，使用受限的标准库算法计算它们的和。
 
 \item
-Exercise 27-5: Improve the robot example from earlier in this chapter. You can find that code in the downloadable source code archive in Ch27\verb|\|05\_barrier\verb|\|barrier.cpp. Improve it so that the main thread starts all the robot threads, waits for all the robots to have started, prepares the first iteration, and then instructs all waiting robots to start working.
+\textbf{练习 27-5}: 改进本章前面部分的机器人示例。可以在源代码库中找到该代码，文件名为Ch27\verb|\|05\_barrier\verb|\|barrier.cpp。改进它，使主线程启动所有机器人线程，等待所有机器人启动，准备第一次迭代，然后指示所有等待的机器人开始工作。
 
 \item
-Exercise 27-6: Use compare\_exchange\_strong() to implement a function atomicMin(a, b) that sets a to min(a, b) atomically, and where a is an atomic<int> and b an int.
+\textbf{练习 27-6}: 使用compare\_exchange\_strong()实现一个函数atomicMin(a, b)，以原子方式将a设置为min(a, b)，其中a是一个原子<int>，b是一个int。
 \end{itemize}
 
 
