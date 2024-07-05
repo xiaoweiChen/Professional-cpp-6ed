@@ -1,31 +1,31 @@
 
-Many books, articles, and programmers spend a lot of time trying to convince you to apply languagelevel optimizations to your code. These tips and tricks are important and can speed up your programs in some cases. However, they are far less important than the overall design and algorithm choices in your program. You can pass-by-reference all you want, but it won’t make your program fast if you perform twice as many disk writes as you need to. It’s easy to get bogged down in references and pointers and forget about the big picture.
+许多书籍、文章和开发者花费大量时间试图说服读者，对代码应用语言级别的优化。这些技巧和诀窍很重要，并且在某些情况下可以加速程序。然而，这些远没有程序的整体设计和算法选择重要。可以随心所欲地使用引用传递，但如果磁盘写入次数其中有一半是不必要的，那么程序也不会变快。人们很容易在引用和指针的泥潭中挣扎，而忘记了大局。
 
-Furthermore, some of these language-level tricks can be performed automatically by good optimizing compilers. A rule of thumb is that you should never spend time optimizing a particular area, unless a profiler, discussed later in this chapter, tells you that that particular area is a bottleneck.
+此外，一些语言级别的技巧可以通过优秀的优化编译器自动执行。一个经验法则是，除非本章后面讨论的性能分析器报告某个特定区域是瓶颈，否则不应该花时间优化该区域。
 
-That being said, using certain language-level optimizations, such as pass-by-reference, is just considered good coding style.
+也就是说，使用某些语言级别的优化，如引用传递，只是好的“编码风格”。
 
-In this book, I’ve tried to present a balance of strategies. So, I’ve included here what I feel are the most useful language-level optimizations. This list is not comprehensive but is a good start to write optimized code. However, make sure to read, and practice, the design-level efficiency advice that I offer later in this chapter as well.
-
-\begin{myWarning}{WARNING}
-Apply language-level optimizations thoughtfully. I recommend making a clean, well-structured design and implementation first. Then use a profiler, and only invest time optimizing those parts that are flagged by a profiler as being a performance bottleneck.
-\end{myWarning}
-
-\mySubsubsection{29.2.1.}{Handle Objects Efficiently}
-
-C++ does a lot of work for you behind the scenes, particularly with regard to objects. You should always be aware of the performance impact of the code you write. If you follow a few simple guidelines, your code will become more efficient. Note that these guidelines are only relevant for objects, and not for primitive types such as bool, int, float, and so on.
-
-\mySamllsection{Pass-by-Value or Pass-by-Reference}
-
-Chapters 1, “A Crash Course in C++ and the Standard Library,” and 9, “Mastering Classes and Objects,” present a rule to decide between pass-by-value and pass-by-reference. The rule is worth repeating here.
+本书中，我试图呈现平衡的策略。因此，这里包括了我觉得最有用的语言级别优化。这个列表并不全面，但是一个编写优化代码的良好开始，但请阅读并实践我在本章后面提供的设计级效率建议。
 
 \begin{myWarning}{WARNING}
-Prefer pass-by-value parameters for parameters that a function inherently would copy, but only if the parameter is of a type that supports move semantics. Otherwise, use reference-to-const parameters.
+谨慎应用语言级别的优化。我建议首先制作一个清晰、结构良好的设计和实现。然后使用分析器，只投资时间优化那些被分析器标记为性能瓶颈的部分。
 \end{myWarning}
 
-With pass-by-value parameters, you have to keep a few things in mind. When you pass an object of a derived class by value as an argument for a function parameter that has one of the base classes as its type, then the derived object is “sliced” to fit into the base class type. This causes information to be lost; see Chapter 10 for details. Pass-by-value could also incur copying costs that are avoided with pass-by-reference.
+\mySubsubsection{29.2.1.}{高效的处理对象}
 
-However, in certain cases, pass-by-value is actually the optimal way to pass an argument to a function. Consider a class to represent a person that looks as follows:
+C++在幕后做了很多工作，特别是与对象有关的工作。应该始终注意代码对性能的影响。如果遵循一些简单的指导原则，代码将变得更加高效。注意，这些指导原则只适用于对象，不适用于bool、int、float等原始类型。
+
+\mySamllsection{按值传递还是按引用传递}
+
+第1章和第9章提供了一个规则，来决定是按值传递还是按引用传递。这个规则值得在这里回顾一下。
+
+\begin{myWarning}{WARNING}
+对于函数本质上会复制的参数，请优先使用按值传递参数，但只有当参数是支持移动语义的类型时才这样做。否则，请使用常量引用参数。
+\end{myWarning}
+
+使用按值传递参数时，需要记住几件事。将派生类的对象按值作为具有基类类型之一的函数参数的实参传递时，派生对象会“切片”以适应基类类型。这会导致信息丢失；详见第10章。按值传递还可能通过按引用传递，可以避免复制的成本。
+
+但在某些情况下，按值传递实际上是向函数传递参数的最佳方式。考虑一个Person类，如下所示：
 
 \begin{cpp}
 class Person
@@ -46,56 +46,56 @@ class Person
 };
 \end{cpp}
 
-As the rule recommends, the Person constructor accepts firstName and lastName by value and then moves them to m\_firstName and m\_lastName, respectively, because it would make a copy of those anyway. See Chapter 9 for an explanation of this idiom.
+按照规则建议，Person构造函数通过值接受firstName和lastName，然后将它们分别移动到m\_firstName和m\_lastName，因为无论如何都会复制那些值。第9章有关此惯用语的解释。
 
-Now, take a look at the following function accepting a Person object by value:
+现在，来看看以下按值接受Person对象的函数：
 
 \begin{cpp}
 void processPerson(Person p) { /* Process the person. */ }
 \end{cpp}
 
-You can call this function like this:
+可以这样调用这个函数：
 
 \begin{cpp}
 Person me { "Marc", "Gregoire", 42 };
 processPerson(me);
 \end{cpp}
 
-This doesn’t look like there’s more code than if you write the function like this instead:
+这看起来并不比这样写函数的代码好：
 
 \begin{cpp}
 void processPerson(const Person& p) { /* Process the person. */ }
 \end{cpp}
 
-The call to the function remains the same. However, consider what happens when you pass-by-value in the first version of the function. To initialize the p parameter of processPerson(), me must be copied with a call to its copy constructor. Even though you didn’t write a copy constructor for the Person class, the compiler generates one that copies each of the data members. That still doesn’t look so bad: there are only three data members. However, two of them are strings, which are themselves objects with copy constructors. So, each of their copy constructors will be called as well. The version of processPerson() that takes p by reference incurs no such copying costs. Thus, pass-by-reference in this example avoids a lot of overhead when the code enters the function.
+函数的调用保持不变，但考虑一下在第一个版本的函数中按值传递时会发生什么。为了初始化processPerson()的p参数，必须使用调用其复制构造函数的方式复制me。尽管没有为Person类编写复制构造函数，编译器生成一个复制每个数据成员的复制构造函数。这看起来仍然不错：只有三个数据成员。但其中两个是字符串，其本身具有复制构造函数的对象，复制构造函数也将调用。采用引用传递的processPerson()版本不会产生此类复制成本。此示例中，按引用传递避免了代码进入函数时的大量开销。
 
-And you’re still not done. Remember that p in the first version of processPerson() is a local variable to the processPerson() function, and so must be destroyed when the function exits. This destruction requires a call to the Person destructor, which will call the destructor of all the data members. strings have destructors, so exiting this function (if you passed by value) incurs calls to three destructors. None of those calls are needed if the Person object is passed by reference.
+这还没有结束。记住，第一个版本的processPerson()中的p是processPerson()函数的局部变量，因此在函数退出时必须销毁。这种销毁需要调用Person析构函数，该函数将调用所有数据成员的析构函数。字符串具有析构函数，因此（如果按值传递）退出此函数需要调用三个析构函数。如果按引用传递Person对象，则不需要这些调用。
 
 \begin{myNotic}{NOTE}
-If a function must modify an object, pass the object by reference-tonon-const. If the function should not modify the object, pass it by value or by reference-to-const, as in the preceding example.
+如果一个函数必须修改一个对象，请按引用到非常量传递对象。如果函数不应该修改对象，请按值或按引用到常量传递，如前面的示例所示。
 \end{myNotic}
 
 \begin{myWarning}{WARNING}
-Avoid using pass-by-pointer, which is a relatively obsolete technique for pass-by-reference. It is a throwback to the C language and thus rarely suitable in C++ (unless passing nullptr has meaning in your design).
+避免使用按指针传递，这是一种相对过时的按引用传递技术。它是C语言的遗留问题，因此在C++中很少使用（除非在你的设计中传递nullptr具有意义）。
 \end{myWarning}
 
-\mySamllsection{Return-by-Value or Return-by-Reference}
+\mySamllsection{按值返回还是按引用返回}
 
-You could return objects by reference from functions to avoid copying the objects unnecessarily. Unfortunately, it is sometimes impossible to return objects by reference, such as when you write overloaded operator+ and other similar operators. And, you should never return a reference or a pointer to a local object that will be destroyed when the function exits!
+可以通过函数返回对象的引用来避免不必要地复制对象。不幸的是，有时无法通过引用返回对象，例如：在编写重载的operator+和其他类似运算符时。而且，永远不应该返回一个将在函数退出时，销毁的局部对象的引用或指针！
 
-However, returning objects by value from functions is usually fine. This is due to mandatory and nonmandatory elision of copy/move operations and move semantics, both of which optimize returning objects by value, and both are discussed Chapter 9.
+然而，从函数按值返回对象通常可行。由于编译器对复制/移动操作的强制和非强制省略，以及移动语义的优化，这些都在第9章中讨论过。
 
-\mySamllsection{Catch Exceptions by Reference}
+\mySamllsection{按引用捕获异常}
 
-As noted in Chapter 14, “Handling Errors,” you should catch exceptions by reference to avoid slicing and unnecessary copying. Throwing exceptions is heavy in terms of performance, so any little thing you can do to improve their efficiency will help.
+如第14章所示，应该通过引用捕获异常，以避免切片和不必要的复制。抛出异常在性能上是有负担的，所以能够提高效率的小事情都会有帮助。
 
-\mySamllsection{Use Move Semantics}
+\mySamllsection{使用移动语义}
 
-You should make sure your classes support move semantics (see Chapter 9), either through the compiler-generated move constructor and move assignment operator or by implementing them yourself. According to the rule of zero (see Chapter 9), you should try to design your classes such that the compiler-generated copy and move constructors and copy and move assignment operators are sufficient. If the compiler cannot implicitly define these for a class, try to explicitly default them if that works for your class. If that is also not an option, you should implement them yourself. With move semantics for your objects, lots of operations will be more efficient, especially in combination with Standard Library containers and algorithms.
+应该确保类支持移动语义（参见第9章），这可以通过编译器生成的移动构造函数和移动赋值运算符，或者自己来实现。根据第9章中的“零规则”，应该尝试设计类，使得编译器生成的复制和移动构造函数，以及复制和移动赋值运算符足够使用。如果编译器无法为一个类隐式定义这些，请尝试在适用的情况下显式地将它们默认化。如果这也不是一个选项，那么应该自己实现它们。有了对象的移动语义，许多操作将更加高效，尤其是在与标准库容器和算法结合使用时。
 
-\mySamllsection{Avoid Creating Temporary Objects}
+\mySamllsection{避免创建临时对象}
 
-The compiler creates temporary, unnamed objects in several circumstances. Chapter 9 explains that after writing a global operator+ for a class, you can add objects of that class to other types, as long as those types can be converted to objects of that class. For example, the SpreadsheetCell class definition from Chapter 9, which includes support for the arithmetic operators, looks in part like this:
+编译器在几种情况下会创建临时、未命名的对象。第9章解释了在为一个类编写全局的operator+之后，只要其他类型的值可以转换为该类的对象，就可以将该类的对象与其他类型的值相加。例如，第9章中的SpreadsheetCell类定义，包括对算术运算符的支持：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -110,7 +110,7 @@ export SpreadsheetCell operator+(const SpreadsheetCell& lhs,
     const SpreadsheetCell& rhs);
 \end{cpp}
 
-The non-explicit constructor that takes a double allows you to write code like this:
+接受双精度浮点数作为参数的非显式构造函数，可以这样使用：
 
 \begin{cpp}
 SpreadsheetCell myCell { 4 }, aThirdCell;
@@ -118,43 +118,43 @@ aThirdCell = myCell + 5.6;
 aThirdCell = myCell + 4;
 \end{cpp}
 
-The second statement constructs a temporary SpreadsheetCell object from the 5.6 argument; it then calls the operator+ with myCell and this temporary object as arguments. The result is stored in aThirdCell. The third statement does the same thing, except that 4 must be coerced to a double to call the double constructor of the SpreadsheetCell.
+第二行代码从5.6参数构造一个临时的SpreadsheetCell对象；然后调用operator+，以myCell和这个临时对象作为参数。结果存储在aThirdCell中。第三行代码做同样的事情，只不过4必须强制转换为双精度浮点数，以调用SpreadsheetCell的双精度浮点数构造函数。
 
-The important point in this example is that the compiler generates code to create an extra, unnamed SpreadsheetCell object for both addition operations in this example. That object must be constructed and destructed with calls to its constructor and destructor. If you’re still skeptical, try inserting print() statements in your constructor and destructor, and watch the printout.
+这个例子的重要一点是，编译器为这两个加法操作生成了创建一个未命名的SpreadsheetCell对象，这个对象必须通过调用其构造函数和析构函数来构造和析构。如果仍然怀疑，请尝试在构造函数和析构函数中插入print()语句，并观察输出。
 
-In general, the compiler constructs a temporary object whenever your code converts a variable of one type to another type for use in a larger expression. This rule applies mostly to function calls. For example, suppose that you write a function with the following prototype:
+通常情况下，代码将一个类型的变量转换为另一个类型，以在更大的表达式中使用时，编译器会构造一个临时对象。这条规则主要适用于函数调用，假设编写了一个具有以下原型的函数：
 
 \begin{cpp}
 void doSomething(const SpreadsheetCell& s);
 \end{cpp}
 
-You can call this function like this:
+可以这样调用这个函数：
 
 \begin{cpp}
 doSomething(5.56);
 \end{cpp}
 
-The compiler constructs a temporary SpreadsheetCell object from 5.56 using the double constructor. This temporary object is then passed to doSomething(). Note that if you remove the const from the s parameter, you can no longer call doSomething() with a constant; you must pass an lvalue.
+编译器使用双精度浮点数构造函数从5.56构造一个临时的SpreadsheetCell对象。这个临时对象，然后传递给doSomething()。注意，如果从s参数中删除const，将不能再使用常量调用doSomething()；，因为必须传递一个左值。
 
-You should generally attempt to avoid cases in which the compiler is forced to construct temporary objects. Although it is impossible to avoid in some situations, you should at least be aware of the existence of this “feature” so you aren’t surprised by performance and profiling results.
+通常应该尽量避免编译器构造临时对象。尽管在某些情况下无法避免，但至少应该意识到这种“特性”的存在，这样就不会对分析性能的结果感到意外。
 
-Move semantics is used by the compiler to make working with temporary objects more efficient. That’s another reason to make sure your classes support move semantics. See Chapter 9 for details.
+编译器用会移动语义更加高效来使处理临时对象，这可确保类支持移动语义的另一个原因。详情请参见第9章。
 
-\mySubsubsection{29.2.2.}{Pre-allocate Memory}
+\mySubsubsection{29.2.2.}{预分配内存}
 
-One of the main advantages of using containers such as those from the C++ Standard Library discussed in Chapter 18, “Standard Library Containers,” is that they handle all memory management for you. The containers grow automatically when you add more elements to them. However, sometimes this causes a performance penalty. For example, an std::vector container stores its elements contiguously in memory. If it needs to grow in size, it needs to allocate a new block of memory and then move (or copy) all elements to this new memory. This has serious performance implications, for example, if you use push\_back() in a loop to add millions of elements to a vector.
+使用第18章中讨论的C++标准库中的容器的主要优点是，处理所有内存管理。向容器中添加更多元素时，容器会自动增长，有时这会导致性能损失。例如，std::vector容器在内存中连续存储其元素。如果需要增大大小，需要分配一个新的内存块，然后将所有元素移动（或复制）到这个新内存中。这有严重的性能影响，例如：在循环中使用push\_back()向vector中添加数百万个元素。
 
-If you know in advance how many elements you are going to add to a vector or if you have a rough estimate, you should pre-allocate enough memory before starting to add your elements. A vector has a capacity, that is, the number of elements that can be added without reallocation, and a size, that is, the actual number of elements in the container. You can pre-allocate memory by changing the capacity using the reserve() member function or by resizing the vector using resize(). See Chapter 18 for details.
+如果事先知道要向vector中添加多少元素，或者如果有一个粗略的估计，那么在开始添加元素之前，应该预先分配足够的内存。vector有一个容量，即在不重新分配的情况下可以添加的元素数量和一个大小，即容器中的实际元素数量。可以使用reserve()成员函数改变容量来预分配内存，或者使用resize()调整vector的大小。
 
-\mySubsubsection{29.2.3.}{Use Inline Functions}
+\mySubsubsection{29.2.3.}{使用内联函数}
 
-Some compilers use the inline keyword as a hint to the optimizer to more aggressively optimize a marked function (especially at low optimization levels). If you notice that a particular small function is a performance bottleneck, try marking it inline. Do not overuse this feature, because it throws away a fundamental design principle stating that the interface and the implementation should be separated such that the implementation can evolve without changes to the interface.
+一些编译器使用inline关键字作为提示，让优化器更积极地优化标记的函数（尤其是在低优化级别）。如果注意到某个特定的小函数是性能瓶颈，请尝试将其标记为内联。不要过度使用此功能，它放弃了一个基本设计原则，即接口和实现应该分离，以便实现可以在不更改接口的情况下发展。
 
-\CXXTwentythreeLogo{-40}{-50}
+\mySubsubsection{29.2.4.}{标记不可达的代码}
 
-\mySubsubsection{29.2.4.}{Mark Unreachable Code}
+\CXXTwentythreeLogo{-40}{15}
 
-The C++ Standard Library includes std::unreachable, defined in <utility>, to mark source code locations as being unreachable. Doing so helps the compiler to better optimize the final executable code. For example[This example comes from the official proposal paper of std::unreachable(), P0627R6.], the following function accepts an integer parameter, and the programmer of this function knows for a fact that this parameter can only ever have the values 0, 1, 2, or 3, nothing else.
+C++标准库包括std::unreachable，定义在<utility>中，用于将源代码位置标记为不可达。这样做可以帮助编译器更好地优化最终的可执行代码。例如，[此示例来自std::unreachable()的官方提案文件P0627R6]以下函数接受一个整数参数，此函数的开发者知道这个参数只能有0、1、2或3这四个值，不会有其他值。
 
 \begin{cpp}
 void doSomething(int number_that_is_only_0_1_2_or_3)
@@ -171,9 +171,9 @@ void doSomething(int number_that_is_only_0_1_2_or_3)
 }
 \end{cpp}
 
-However, all the compiler sees is an int parameter, so it doesn’t know that the value can be only 0, 1, 2, or 3. The switch statement in the function handles all possible values of the parameter. However, the compiler does not know this and thus must generate executable code to check that the value is 0, 1, 2, or 3, before it executes the jump to the correct case block; for any other value, it has to jump to the first statement after the switch statement.
+然而，编译器所看到的是一个int参数，因此它不知道该值只能是0、1、2或3。函数中的switch语句处理参数的所有可能值。编译器不知道这一点，因此必须在执行到正确case块的跳转之前，生成可执行代码来检查值是否为0、1、2或3，对于其他值，必须跳转到switch语句后的第一条语句。
 
-By adding a default case to the switch statement and specifying to the compiler that this default case will never be reached, the compiler can omit the executable code to check that the parameter value is 0, 1, 2, or 3, and just immediately jump to the correct case block. In certain cases, for example in tight loops, this can improve the performance of the final executable code.
+通过向switch语句添加一个default案例，并指定这个default案例将永远不会执行，编译器可以省略检查参数值为0、1、2或3的可执行代码，直接跳转到正确的case块。在某些情况下，例如在紧密的循环中，这可以提高最终可执行代码的性能。
 
 \begin{cpp}
 void doSomething(int number_that_is_only_0_1_2_or_3)
@@ -186,7 +186,7 @@ void doSomething(int number_that_is_only_0_1_2_or_3)
 }
 \end{cpp}
 
-If a call to unreachable() is ever reached at run time, the result is undefined behavior. For example, calling doSomething() with argument 8 triggers undefined behavior, and a compiler is free to choose what to do in such a case.
+如果在运行时达到了对unreachable()的调用，结果将是未定义行为。例如，使用参数8调用doSomething()会触发未定义行为，编译器在这种情况下可以自由选择要做什么。
 
 
 

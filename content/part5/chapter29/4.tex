@@ -1,19 +1,19 @@
 
-It is good to think about efficiency as you design and code. There is no point in writing obviously inefficient programs if this can be avoided with some common sense or experience-based intuition. However, I urge you not to get too obsessed with performance during the design and coding phases. It’s best to first make a clean, well-structured design and implementation, then use a profiler, and only optimize parts that are flagged by the profiler as being performance bottlenecks. Remember the “90/10” rule, introduced in Chapter 4, which states that 90 percent of the running time of most programs is spent in only 10 percent of the code (Hennessy and Patterson, Computer Architecture, A Quantitative Approach, Fourth Edition, [Morgan Kaufmann, 2006]). This means you could optimize 90 percent of your code, but still only improve the running time of the program by 10 percent. Obviously, you want to optimize the parts of the code that are exercised the most for the specific workload that you expect the program to run.
+设计编码时考虑效率是好的。如果可以通过一些常识或基于经验的直觉来避免编写明显低效的程序，那么就没有必要编写这些程序了。然而，我敦促在设计和编码阶段不要过于沉迷于性能。最好是首先制作一个清晰、结构良好的设计和实现，然后使用分析器，只优化分析器标记为性能瓶颈的部分。请记住在第4章中介绍的“90/10”规则，它指出大多数程序的运行时间中有90\%是在程序的10\%的代码中花费的（Hennessy和Patterson的《计算机体系结构：定量方法》第四版[摩根·考夫曼出版社，2006年]）。所以可以优化90\%的代码，但仍然只能将程序的运行时间提高10\%。显然，想要优化的是在特定工作负载下程序运行时，最频繁执行的部分。
 
-Consequently, it is often helpful to profile your program to determine which parts of the code require optimization. There are many profiling tools available that analyze programs as they run to generate data about their performance. Most profiling tools provide analysis at the function level by specifying the amount of time (or percent of total execution time) spent in each function in the program. After running a profiler on your program, you can usually tell immediately which parts of the program need optimization. Profiling before and after optimizing is essential to prove that your optimizations had an effect.
+因此，通常很有帮助的是分析程序，以确定哪些代码部分需要优化。有许多分析工具可供选择，它们在程序运行时分析程序，以生成有关其性能的数据。大多数分析工具都提供按函数级别的分析，通过指定程序中每个函数花费的时间（或总执行时间的百分比）。在程序上运行分析器后，通常可以立即知道程序的哪些部分需要优化。在优化前后进行分析，是证明优化有效性的关键。
 
-If you are using Microsoft Visual C++, you already have a great built-in profiler, which is discussed later in this chapter. If you are not yet using Visual C++, Microsoft has a community edition available (\url{visualstudio.microsoft.com}) that is free of charge for students, open-source developers, and individual developers to create both free and paid applications. It’s also free of charge for up to five users in small organizations. Another great profiling tool is Rational PurifyPlus from IBM (\url{www.almtoolbox.com/purify.php}). There are also a number of smaller free profiling tools available: Very Sleepy (\url{www.codersnotes.com/sleepy}) and Luke Stackwalker (lukestackwalker .sourceforge.net) are popular profilers for Windows, Valgrind (valgrind.org) and gprof (GNU profiler, \url{sourceware.org/binutils/docs/gprof}) are well-known profilers for Unix/Linux systems, and there are plenty of other choices. This section demonstrates two profilers: gprof for Linux, and the profiler that comes with Visual C++ 2022.
+如果使用的是Microsoft Visual C++，已经有了一个很好的内置分析器，这将在本章的后面讨论。如果还没有使用Visual C++，Microsoft提供了一个社区版，它是免费的，适用于学生、开源开发者和个人开发者，用于创建免费和付费应用程序。对于小型组织，最多可免费使用五个用户。另一个非常好的分析工具是IBM的Rational PurifyPlus（\url{www.almtoolbox.com/purify.php}）。还有许多小型免费分析工具可供选择：Very Sleepy（\url{www.codersnotes.com/sleepy}）和Luke Stackwalker（\url{lukestackwalker.sourceforge.net}）是Windows上流行的分析器，Valgrind（valgrind.org）和gprof（GNU分析器，\url{sourceware.org/binutils/docs/gprof}）是Unix/Linux系统上广为人知的分析器，还有许多其他选择。本节将演示两个分析器：Linux上的gprof和Visual C++ 2022自带的分析器。
 
-\mySubsubsection{29.4.1.}{Profiling Example with gprof}
+\mySubsubsection{29.4.1.}{使用gprof分析的示例}
 
-The power of profiling can best be seen with a real coding example. As a disclaimer, the performance bugs in the first implementation shown are not subtle! Real efficiency issues would probably be more complex, but a program long enough to demonstrate them would be too lengthy for this book.
+分析的力量最好通过一个真实的编码示例来展示。作为免责声明，第一个实现的性能缺陷并不微妙！真正的效率问题可能更复杂，但一个足够长的程序来展示会太长，不适合这本书。
 
-Suppose that you work for the US Social Security Administration. Every year the administration puts up a website that allows users to look up the popularity of new baby names from the previous year. Your job is to write the backend program that looks up names for users. Your input is a file containing the name of every new baby. This file will obviously contain duplicate names. For example, in the file for boys for 2003, the name Jacob was the most popular, showing up 29,195 times. Your program must read the file to construct an in-memory database. A user may then request the absolute number of babies with a given name or the rank of that name among all the babies.
+假设为美国社会保障管理局工作。每年，管理局都会在其网站上发布一个允许用户查找前一年最受欢迎的新婴儿名字的网站。我们的任务是编写一个后端程序，用于为用户查找名字，输入是一个包含每个新婴儿名字的文件。显然，这个文件会包含重复的名字。例如，在2003年男孩的文件中，名字Jacob是最受欢迎的，出现了29,195次。程序必须读取该文件以构建内存中的数据库，用户可以请求特定名字的婴儿数量或该名字在所有婴儿中的排名。
 
-\mySamllsection{First Design Attempt}
+\mySamllsection{第一次尝试设计}
 
-A logical design for this program consists of a NameDB class with the following public member functions:
+对于这个程序，合理的逻辑设计是包含以下公共成员函数的NameDB类：
 
 \begin{cpp}
 export class NameDB
@@ -35,7 +35,7 @@ export class NameDB
 };
 \end{cpp}
 
-The hard part is choosing a good data structure for the in-memory database. A first attempt is a vector of name/count pairs. Remember, pair is a utility class that combines two values of possibly different types. Each entry in the vector stores one of the names, along with a count of the number of times that name shows up in the raw data file. Here is the complete class definition with this design:
+困难的部分是为内存数据库选择一个好的数据结构，第一次尝试是一个名称/计数对的vector。记住，pair是一个工具类，组合了两个可能不同类型的值。vector中的每个条目存储一个名称，以及该名称在原始数据文件中出现的次数计数。下面是这个设计的完整类定义:
 
 \begin{cpp}
 export class NameDB
@@ -54,7 +54,7 @@ export class NameDB
 };
 \end{cpp}
 
-Here are the implementations of the constructor and the helper member functions nameExists(), incrementNameCount(), and addNewName(). The loops in nameExists() and incrementNameCount() iterate over all the elements of the vector.
+以下是构造函数，以及辅助成员函数nameExists()、incrementNameCount()和addNewName()的实现。nameExists()和incrementNameCount()中的循环遍历vector的所有元素。
 
 \begin{cpp}
 // Reads the names from the file and populates the database.
@@ -112,11 +112,11 @@ void NameDB::addNewName(const string& name)
 }
 \end{cpp}
 
-Note that you could use an algorithm like std::find\_if(), discussed in Chapter 20, “Mastering Standard Library Algorithms,” to accomplish the same thing as the loops in nameExists() and incrementNameCount(). The loops are shown explicitly to emphasize the performance problems.
+注意，可以使用类似std::find\_if()的算法，如在第20章中讨论的那样，来完成与nameExists()和incrementNameCount()中的循环相同的工作。这里明确显示了循环，以强调性能问题。
 
-You might have noticed some performance problems already. What if there are hundreds of thousands of names? The many linear searches involved in populating the database will become slow.
+眼尖的读者可能已经注意到了一些性能问题。如果名字有成千上万怎么办？在填充数据库时，涉及的许多线性搜索将变得缓慢。
 
-To complete the example, here are the implementations of the two public member functions:
+为了完成这个示例，以下是两个公共成员函数的实现：
 
 \begin{cpp}
 // Returns the rank of the name.
@@ -157,9 +157,9 @@ int NameDB::getAbsoluteNumber(const string& name) const
 }
 \end{cpp}
 
-\mySamllsection{Profiling the First Design Attempt}
+\mySamllsection{对第一次设计尝试进行性能分析}
 
-To test the program, you need a main() function:
+为了测试程序，需要一个main()函数：
 
 \begin{cpp}
 import name_db;
@@ -175,36 +175,36 @@ int main()
 }
 \end{cpp}
 
-This main() function creates one NameDB database called boys, telling it to populate itself with the file boys\_long.txt, which contains 500,500 names.
+这个main()函数创建了一个名为boys的NameDB数据库，告诉它用包含500,500个名字的文件boys\_long.txt填充自己。
 
-There are three steps to using gprof:
+使用gprof有三个步骤：
 
 \begin{enumerate}
 \item
-After having compiled the name\_db module, you should compile the main program with a special flag that causes it to log raw execution information when it is run. When using GCC as your compiler, the flag is -pg, as in this example:
+编译name\_db模块后，您应该使用一个特殊标志来编译main程序，该标志会在运行时导致它记录原始执行信息。当使用GCC作为编译器时，标志是-pg，如下例所示：
 
 \begin{shell}
 > gcc -lstdc++ -std=c++2b -pg -fmodules-ts -o namedb NameDB.cpp NameDBTest.cpp
 \end{shell}
 
 \begin{myNotic}{NOTE}
-At the time of this writing, GCC does not yet have full support for C++ modules. Once GCC fully supports modules, check its documentation to learn how to compile and work with modules.
+撰写本文时，GCC尚不支持完整的C++模块。当GCC完全支持模块，请查看其文档以了解如何编译和使用模块。
 
-Additionally, at this moment, you have to specify -std=c++2b to enable C++23 features. This will change in the future to -std=c++23. Check the documentation.
+此外，目前必须指定-std=c++2b以启用C++23特性。在未来，这将变为-std=c++23，详情请查看编译器的文档。
 \end{myNotic}
 
 \item
-Run your program. This should generate a file called gmon.out in the working directory. Be patient when you run the program because this first version is slow.
+运行程序。这将在工作目录中生成一个名为gmon.out的文件。运行程序时请耐心等待，因为第一个版本很慢。
 
 \item
-Run the gprof command. This final step enables you to analyze the gmon.out profiling information and produce a (somewhat) readable report. gprof outputs to standard out, so you should redirect the output to a file:
+运行gprof命令。这一最后步骤能够分析gmon.out的性能分析信息，并生成一个（某种程度上）可读的报告。gprof输出到标准输出，应该将输出重定向到一个文件中：
 
 \begin{shell}
 > gprof namedb gmon.out > gprof_analysis.out
 \end{shell}
 \end{enumerate}
 
-Now you can analyze the data. Unfortunately, the output file is somewhat cryptic and intimidating, so it takes a little while to learn how to interpret it. gprof provides two separate sets of information. The first set summarizes the amount of time spent executing each function in the program. The second and more useful set summarizes the amount of time spent executing each function and its descendants; this set is also called a call graph. Here is some of the output from the gprof\_analysis.out file, edited to make it more readable. Note that the numbers will be different on your machine.
+现在可以分析数据了。但输出文件的内容很难理解，所以需要一段时间来学习如何解释它。gprof提供了两组信息，第一组总结了程序中每个函数执行所花费的时间。第二组更有用，总结了执行每个函数及其子函数所花费的时间，这组信息也称为调用图。这里是一些来自gprof\_analysis.out文件的输出，经过编辑使其更具可读性。
 
 \begin{shell}
 index   %time   self    children    called    name
@@ -214,29 +214,29 @@ index   %time   self    children    called    name
                 0.00      0.01       1/1          NameDB::~NameDB [28]
 \end{shell}
 
-The following list explains the different columns:
+以下列表解释了不同列的含义：
 
 \begin{itemize}
 \item
-index: An index to be able to refer to this entry in the call graph.
+index: 索引，用于引用调用图中此条目的位置。
 
 \item
-\%time: The percentage of the total execution time of the program required by this function and its descendants.
+\%time: 此函数及其子函数所需的程序总执行时间的百分比。
 
 \item
-self: How many seconds the function itself was executing.
+self: 函数本身执行了多少秒。
 
 \item
-children: How many seconds the descendants of this function were executing.
+children: 此函数的子函数执行了多少秒。
 
 \item
-called: How often this function was called.
+called: 该函数调用的次数。
 
 \item
-name: The name of the function. If the name of the function is followed by a number between square brackets, that number refers to another index in the call graph.
+name: 函数的名称。如果函数名称后面跟着方括号中的数字，则该数字指的是调用图中的另一个索引。
 \end{itemize}
 
-The preceding extract tells you that main() and its descendants took 100 percent of the total execution time of the program, for a total of 14.06 seconds. The second line shows that the NameDB constructor took 14.00 seconds of the total 14.06 seconds. So, it’s immediately clear where the performance issue is situated. To track down which part of the constructor is taking that long, you need to jump to the call graph entry with index 2, because that’s the index in square brackets behind the name in the last column. The call graph entry with index 2 is as follows on my test system:
+上述摘录告诉您，main()及其子函数占据了程序总执行时间的100\%，总共14.06秒。第二行显示NameDB构造函数占据了总共14.06秒中的14.00秒，立即可以看出性能问题所在。要追踪哪个部分构造函数耗时较长，需要跳转到调用图中索引为2的条目，因为这是在最后一列名称后面的方括号中的索引。在我的测试系统中，索引为2的调用图条目如下所示：
 
 \begin{shell}
 [2] 99.6   0.00   14.00         1            NameDB::NameDB [2]
@@ -246,25 +246,25 @@ The preceding extract tells you that main() and its descendants took 100 percent
            0.00    0.00         1/1              vector::vector [69]
 \end{shell}
 
-The nested entries below NameDB::NameDB show which of its descendants took the most time. Here you can see that nameExists() took 6.14 seconds, and incrementNameCount()took 5.24 seconds. These times are the sums of all the calls to the functions. The fourth column in those lines shows the number of calls to the function (500,500 to nameExists() and 499,500 to incrementNameCount()). No other function took a significant amount of time.
+NameDB::NameDB的嵌套条目显示了哪些函数的后代花费了最多的时间，可以看到nameExists()花费了6.14秒，而incrementNameCount()花费了5.24秒，这些时间是调用函数的总和。那些行中的第4列显示了调用函数的次数（500,500次调用nameExists()和499,500次调用incrementNameCount()），其他函数没有花费显著的时间。
 
-Without going any further in this analysis, two things should jump out at you:
+进一步分析之前，有两件事情应该显而易见：
 
 \begin{itemize}
 \item
-Taking 14 seconds to populate the database of approximately 500,000 names is slow. Perhaps you need a better data structure.
+花费大约14秒来填充大约500,000个名字的数据库很慢，也许需要一个更好的数据结构。
 
 \item
-nameExists() and incrementNameCount() take an almost identical amount of time and are called almost the same number of times. If you think about the application domain, that makes sense: most names in the input text file are duplicates, so the vast majority of the calls to nameExists() are followed by a call to incrementNameCount(). If you look back at the code, you can see that these functions are almost identical; they could probably be combined. In addition, most of what they are doing is searching the vector. It would probably be better to use a sorted data structure to reduce the searching time.
+nameExists()和incrementNameCount()花费几乎相同的时间，并且调用次数几乎相同。如果考虑到应用程序领域，这是有道理的：输入文本文件中的大多数名字都是重复的，所以大多数调用nameExists()后都会调用incrementNameCount()。如果回头看一下代码，可以看到这两个函数几乎相同，也许可以合并。此外，它们所做的绝大部分是搜索vector，使用排序数据结构可能会减少搜索时间。
 \end{itemize}
 
-\mySamllsection{Second Design Attempt}
+\mySamllsection{第二次设计尝试}
 
-With these two observations from the gprof output, it’s time to redesign the program. The new design uses a map instead of a vector. Chapter 18 explains that the Standard Library map keeps the entries sorted and provides O(log n) lookup instead of the O(n) searches in a vector. A good exercise for you to try would be to use an std::unordered\_map, which has an expected O(1) for lookups, and to use a profiler to see if that is faster than std::map for this application.
+根据gprof输出的这两点观察，是时候重新设计程序了。新的设计使用了一个map而不是一个vector。标准库map会保持条目排序并提供O(log n)的查找，而不是vector中的O(n)搜索。一个很好的练习是尝试使用std::unordered\_map，具有预期的O(1)查找，并使用分析器查看对于这个应用程序来说，确定是否比std::map更快。
 
-The new version of the program also combines nameExists() and incrementNameCount() into one incrementIfExists().
+程序的新版本还将nameExists()和incrementNameCount()合并为一个incrementIfExists()。
 
-Here is the new class definition:
+以下是类的新定义：
 
 \begin{cpp}
 export class NameDB
@@ -280,7 +280,7 @@ export class NameDB
 };
 \end{cpp}
 
-Here are the new member function implementations:
+以下是新成员函数实现:
 
 \begin{cpp}
 // Reads the names from the file and populates the database.
@@ -339,9 +339,9 @@ int NameDB::getAbsoluteNumber(const string& name) const
 }
 \end{cpp}
 
-\mySamllsection{Profiling the Second Design Attempt}
+\mySamllsection{分析第二次设计尝试}
 
-By following the same steps shown earlier, you can obtain the gprof performance data on the new version of the program. The data is quite encouraging:
+按照之前展示的相同步骤，可以获取新版本程序的gprof性能数据。这些数据相当鼓舞人心：
 
 
 \begin{shell}
@@ -356,17 +356,17 @@ index   %time   self   children    called     name
                 0.00     0.00      1/1        map::map [87]
 \end{shell}
 
-If you run this on your machine, the output will be different. It’s even possible that you will not see any data for NameDB member functions in your output. Because of the efficiency of this second attempt, the timings are getting so small that you might see more map member functions in the output than NameDB member functions.
+如果在您的机器上运行此命令，输出将会不同。甚至可能在输出中看不到任何NameDB成员函数的数据。由于第二次尝试的高效性，时间变得非常短，因此可能会在输出中看到更多的map成员函数，而不是NameDB成员函数。
 
-On my test system, main() now takes only 0.21 seconds—a 67-fold improvement! There are certainly further improvements that you could make to this program. For example, the current constructor performs a lookup to see if the name is already in the map, and if not, adds it to the map. You could combine these two operations simply with the following single line:
+在我的测试系统中，main()现在只花费了0.21秒——提高了67倍！当然，还可以对这个程序进行进一步的改进。例如，当前的构造函数执行了一次查找，以查看名称是否已在map中。如果没有，则将其添加到映射中。可以将这两个操作简单地合并为：
 
 \begin{cpp}
 m_names[name] += 1;
 \end{cpp}
 
-If the name is already in the map, this statement just increments its counter. If the name is not yet in the map, this statement first adds an entry to the map with the given name as key and a zero-initialized value, and then increments the value, resulting in a counter of 1.
+如果名称已在map中，这条语句只是增加了它的计数器。如果名称尚未在map中，这条语句首先在map中添加一个条目，将给定的名称作为键，初始值为零，然后增加值，结果是一个计数器为1。
 
-With this improvement, you can remove the incrementIfExists() and addNewName() member functions and change the constructor as follows:
+通过这个改进，可以删除incrementIfExists()和addNewName()成员函数，并将构造函数更改为：
 
 \begin{cpp}
 NameDB::NameDB(const string& nameFile)
@@ -385,37 +385,39 @@ NameDB::NameDB(const string& nameFile)
 }
 \end{cpp}
 
-getNameRank() still uses a loop that iterates over all elements in the map. A good exercise for you to try is to come up with another data structure so that the linear iteration in getNameRank() can be avoided.
+getNameRank()仍然使用一个循环，该循环遍历映射中的所有元素。一个练习是尝试找到另一种数据结构，以便避免getNameRank()中的线性迭代。
 
-\mySubsubsection{29.4.2.}{Profiling Example with Visual C++ 2022}
+\mySubsubsection{29.4.2.}{使用Visual C++ 2022进行性能分析示例}
 
-Most editions of Microsoft Visual C++ 2022 come with a great built-in profiler, which is briefly discussed in this section. The VC++ profiler has a complete graphical user interface. This book does not recommend one profiler over another, but it is always good to have an idea of what a command line– based profiler like gprof can provide in comparison with a GUI-based profiler like the one included with VC++.
+大多数版本的Microsoft Visual C++ 2022都附带了一个内置的强大的分析器，这个分析器在本节中简要讨论。VC++分析器具有完整的图形用户界面。
 
-To start profiling an application in Visual C++ 2022, you first need to open the project in Visual Studio. This example uses the same NameDB code as in the first inefficient design attempt from the previous sections. That code is not repeated here. Once your project is opened in Visual Studio, make sure the configuration is set to Release instead of Debug, then click the Debug menu, and choose Performance Profiler. A new window appears, similar to the one shown in Fig
+要在Visual C++ 2022中开始分析应用程序，首先需要在Visual Studio中打开项目。本例使用与前几个部分中第一个低效设计尝试相同的NameDB代码。这段代码在这里不再重复。项目在Visual Studio中打开，请确保配置设置为Release，而不是Debug，然后点击调试菜单，选择性能分析器。一个新的窗口出现，如图 29.1所示。
 
-\myGraphic{0.7}{content/part5/chapter29/images/1.png}{FIGURE 29.1}
+\myGraphic{0.4}{content/part5/chapter29/images/1.png}{图 29.1}
 
-Depending on your version of VC++, there will be a number of different analysis tools available from this window. The following non-exhaustive list explains two of them:
+根据你的VC++版本，这个窗口将提供多个不同的分析工具。以下是非详尽的列表，这里解释了其中的两个：
 
 \begin{itemize}
 \item
-CPU Usage: Used to monitor applications with low overhead. This means that the act of profiling the application will not have a big performance impact on the target application.
+CPU使用情况：用于监控具有低开销的应用程序，分析应用程序的行为不会对目标应用程序产生很大的性能影响。
 
 \item
-Instrumentation: Adds extra code to the application to be able to accurately count the number of function calls and to time individual function calls. However, this tool has a much bigger performance impact on the application. It is recommended to use the CPU Usage tool first to get an idea about the bottlenecks in your application. If that tool does not give you enough information, you can try the Instrumentation tool.
+Instrumentation：向应用程序添加代码，以便准确计数函数调用次数和计时单个函数调用，这个工具对应用程序的性能影响更大。建议首先使用CPU使用工具来了解应用程序中的瓶颈。如果这个工具没有提供足够的信息，可以尝试Instrumentation工具。
 \end{itemize}
 
-For this profiling example, enable only the CPU Usage tool and click the Start button. This executes your program and analyzes its CPU usage. When the program execution is finished, Visual Studio automatically opens the profiling report. Figure 29.2 shows how this report might look like when profiling the first attempt of the NameDB application.
+对于这个分析示例，只需启用CPU使用工具，然后点击开始按钮。这将执行你的程序并分析其CPU使用情况。当程序执行完成时，Visual Studio会自动打开分析报告。图 29.2显示了当分析NameDB应用程序的第一次尝试时的性能报告。
 
-From this report, you can immediately see the hot path. Just like with gprof, it shows that the NameDB constructor takes up most of the running time of the program. The Visual Studio profiling report is interactive. For example, you can drill down the NameDB::NameDB constructor by clicking on it in the hot path tree in Figure 29.2. This results in a drill-down report for that function, as show in Figure 29.3.
+\myGraphic{0.6}{content/part5/chapter29/images/2.png}{图 29.2}
 
-\myGraphic{0.7}{content/part5/chapter29/images/2.png}{FIGURE 29.2}
+从这个报告中，可以立即看到热点路径。就像gprof一样，显示NameDB构造函数占据了程序运行的大部分时间。Visual Studio的分析报告是交互式的。例如，可以通过点击图 29.2中的热点路径树中的NameDB::NameDB构造函数，来深入挖掘该函数。这将对该函数进行深入分析，如图 29.3所示。
 
-This drill-down view shows the hot path at the top and the actual code of the member function at the bottom. The code view shows the percentage of the running time that a line of code needed. The lines using up most of the time are shown in shades of red. This view instantly makes it clear that incrementNameCount() and nameExists() both roughly take the same time.
+\myGraphic{0.7}{content/part5/chapter29/images/3.png}{图 29.3}
 
-At the top of this report, there is a drop-down called Current View, which you can use to get different views of the profiling data.
+这个深入视图在顶部显示热点路径，在底部显示实际成员函数的代码。代码视图显示了代码行所需要的时间百分比，占用大部分时间的行以红色显示。这个视图立即清楚地显示了，incrementNameCount()和nameExists()花费的时间基本相同。
 
-\myGraphic{0.7}{content/part5/chapter29/images/3.png}{FIGURE 29.3}
+这个报告的顶部，有一个下拉列表叫做“当前视图”，可以使用它来查看性能分析数据的不同视图。
+
+
 
 
 

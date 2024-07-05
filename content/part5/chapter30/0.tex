@@ -1,32 +1,29 @@
 \noindent
-\textbf{WHAT’S IN THIS CHAPTER?}
+\textbf{内筒概要}
 
 \begin{itemize}
 \item
-What software quality control is and how to track bugs
+什么是软件质量控制，如何跟踪bug
 
 \item
-What unit testing means
+单元测试是什么?
 
 \item
-Unit testing in practice using the Visual C++ Testing Framework
+使用Visual c++测试框架进行单元测试
 
 \item
-What fuzz testing or fuzzing means
+模糊测试，以及模糊是什么意思
 
 \item
-What integration, system, and regression testing means
+集成、系统和回归测试是什么
 \end{itemize}
 
-\noindent
-\textbf{WILEY.COM DOWNLOADS FOR THIS CHAPTER}
+本章的所有代码示例都可以在\url{https://github.com/Professional-CPP/edition-6}获得。
 
-Please note that all the code examples for this chapter are available as part of this chapter’s code download on the book’s website at \url{www.wiley.com/go/proc++6e} on the Download Code tab.
+一个开发者在她的职业生涯中克服了一个重大障碍，她意识到测试是软件开发过程的一部分。错误不是偶尔发生的，它们存在于每一个相当规模的项目中。一个优秀的质量保证（QA）团队是无价的，但是测试的整个负担不能仅仅放在QA身上。作为程序员的责任是编写能够工作的代码，并编写测试来证明其正确性。
 
-A programmer has overcome a major hurdle in her career when she realizes that testing is part of the software development process. Bugs are not an occasional occurrence. They are found in every project of significant size. A good quality assurance (QA) team is invaluable, but the full burden of testing cannot be placed on QA alone. Your responsibility as a programmer is to write code that works and to write tests to prove its correctness.
+通常在白盒测试和黑盒测试之间做出区分，白盒测试中测试者了解程序的内部工作，而黑盒测试则在不了解程序实现的情况下，测试程序的功能。两种形式的测试对于专业质量的项目都是重要的。黑盒测试是最基本的方法，因为它通常模拟用户的行为。例如，一个黑盒测试可以检查接口组件，比如按钮。如果测试者点击按钮，而没有发生任何事情，那么程序中显然有一个错误。
 
-A distinction is often made between white-box testing, in which the tester is aware of the inner workings of the program, and black-box testing, which tests the program’s functionality without any knowledge of its implementation. Both forms of testing are important to professionalquality projects. Black-box testing is the most fundamental approach because it typically models the behavior of a user. For example, a black-box test can examine interface components such as buttons. If the tester clicks the button and nothing happens, there is obviously a bug in the program.
+黑盒测试无法覆盖一切。现代程序过于庞大，无法通过模拟点击每个按钮、提供每种类型的输入，以及执行所有命令组合来进行测试。因此需要白盒测试，因为当了解代码——当测试是为了练习特定的对象或子系统而编写时——就更容易确保所有代码路径都被测试所覆盖，这有助于确保测试覆盖率。白盒测试通常比黑盒测试更容易编写和自动化。本章主要关注通常被认为是白盒测试技术的主题，因为开发者可以在开发过程中使用这些技术。
 
-Black-box testing cannot cover everything. Modern programs are too large to employ a simulation of clicking every button, providing every kind of input, and performing all combinations of commands. White-box testing is necessary, because when you know the code—when tests are written to exercise a specific object or subsystem—then it is easier to make sure all code paths in the code are exercised by tests. This helps to ensure test coverage. White-box tests are often easier to write and automate than black-box tests. This chapter focuses on topics that would generally be considered white-box testing techniques because the programmer can use these techniques during the development.
-
-This chapter begins with a high-level discussion of quality control, including some approaches to viewing and tracking bugs. A section on unit testing, one of the simplest and most useful types of testing, follows this introduction. You then read about the theory and practice of unit testing, as well as several examples of unit tests in action, and what fuzz testing is. Next, higher-level tests are covered, including integration tests, system tests, and regression tests. Finally, this chapter ends with a list of tips for successful testing.
+本章从质量控制的高层讨论开始，包括一些查看和跟踪错误的方法。接着介绍了单元测试，这是最简单最有用的测试类型之一。然后将读到单元测试的理论和实践，以及几个单元测试的实际示例，以及什么是模糊测试。接下来，介绍了更高级的测试，包括集成测试、系统测试和回归测试。最后，本章以成功测试的一些建议清单作为结束。

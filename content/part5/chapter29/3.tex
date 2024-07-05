@@ -1,54 +1,54 @@
 
-The design choices in your program affect its performance far more than do language details such as pass-by-reference. For example, if you choose an algorithm for a fundamental task in your application that runs in O(n2) time instead of a simpler one that runs in O(n) time, you could potentially perform the square of the number of operations that you really need. To put numbers on that, a task that uses an O(n2) algorithm and performs 1 million operations would perform only 1,000 with an O(n) algorithm. Even if that operation is optimized beyond recognition at the language level, the simple fact that you perform 1 million operations when a better algorithm would use only 1,000 will make your program very inefficient. Always choose your algorithms carefully. Refer to Part II, specifically Chapter 4, “Designing Professional C++ Programs,” of this book for a detailed discussion of algorithm design choices and big-O notation.
+程序的设计选择对其性能的影响远大于语言细节，如按引用传递。例如，为应用程序中的基本任务选择了一个运行时间为O($n^2$)的算法，而不是一个运行时间为O(n)的更简单的算法，可能会执行实际所需操作的平方。具体来说，使用O($n^2$)算法的任务，如果执行了100万次操作，那么使用O(n)算法的任务只需执行1000次。即使这个操作在语言层面上优化到极致，但因为执行了100万次操作，性能也不会比只需执行1000次的算法更好，从而会使程序非常低效。总是仔细选择算法，有关算法设计选择和大O表示法的详细讨论，请参阅本书第二部分，特别是第4章。
 
-In addition to your choice of algorithms, design-level efficiency includes specific tips and tricks. Instead of writing your own data structures and algorithms, you should use existing ones, such as those from the C++ Standard Library, the Boost libraries (boost.org), or other libraries, as much as possible because they are written by experts. These libraries have been, and are being, used a lot, so you can expect most bugs to have been discovered and fixed. You should also think about incorporating multithreading in your design to take full advantage of all the processing power available on a machine. See Chapter 27, “Multithreaded Programming with C++,” for more details. The remainder of this section presents two more design techniques for optimizing your program: caching and using object pools.
+除了您的算法选择之外，设计级别的效率还包括特定的技巧和窍门。尽量使用现有的数据结构和算法，如C++标准库、Boost库（boost.org）或其他库，而不是自己编写，因为它们由专家编写。这些库已经广泛使用，并且仍在使用中，因此可以期望大多数错误已经发现并修复。还应该考虑在设计中整合多线程，以充分利用机器上的所有处理能力。有关多线程编程的更多详细信息，请参阅第27章。本节余下部分将介绍两种更多用于优化程序的设计技术：缓存和使用对象池。
 
-\mySubsubsection{29.3.1.}{Cache Where Necessary}
+\mySubsubsection{29.3.1.}{必要时使用缓存}
 
-Caching means storing items for future use to avoid retrieving or recalculating them. You might be familiar with the principle from its use in computer hardware. Modern computer processors are built with memory caches that store recently and frequently accessed memory values in a location that is quicker to access than main memory. Most memory locations that are accessed at all are accessed more than once in a short time period, so caching at the hardware level can significantly speed up computations.
+缓存意味着将项目存储以备将来使用，以避免检索或重新计算。可能熟悉这个原则，因为它在计算机硬件中广泛使用。现代计算机处理器内置了内存缓存，存储最近和频繁访问的内存值，这些值比主内存更容易访问。大多数访问过的内存位置在短时间内会访问多次，因此在硬件层面上缓存可以显著加快计算速度。
 
-Caching in software follows the same approach. If a task or computation is particularly slow, you should make sure that you are not performing it more than necessary. Store the results in memory the first time you perform the task so that they are available for future needs. Here is a list of tasks that are usually slow:
+软件中的缓存遵循相同的原理。如果一个任务或计算特别慢，应该没有执行超过必要的次数。第一次执行任务时，将其结果存储在内存中，以便于未来使用。以下是通常较慢的任务列表：
 
 \begin{itemize}
 \item
-Disk access: You should avoid opening and reading the same file more than once in your program. If memory is available, save the file contents in RAM if you need to access it frequently.
+磁盘访问：应该避免在程序中多次打开和读取相同的文件。如果内存可用，且需要频繁访问，请将文件内容保存在RAM中。
 
 \item
-Network communication: Whenever you need to communicate over a network, your program is subject to the vagaries of the network. Treat network accesses like file accesses, and cache as much static information as possible.
+网络通信：无论何时需要通过网络进行通信，程序都可能受到网络的不确定性影响。将网络访问视为文件访问，尽可能缓存尽可能多的静态信息。
 
 \item
-Mathematical computations: If you need the result of a complex computation in more than one place, perform the calculation once and share the result. However, if it’s not very complex, then it’s probably faster to just calculate it instead of retrieving it from a cache. Use a profiler to be sure.
+数学计算：如果在多个地方需要一个复杂计算的结果，只需执行一次计算并共享结果。但是，如果不太复杂，可直接计算它比从缓存中检索更快。可以使用分析器来确定。
 
 \item
-Object allocation: If you need to create and use a large number of short-lived objects in your program, consider using an object pool, described later in this chapter.
+对象分配：如果需要在程序中创建和使用大量短期对象，考虑使用本章后面将介绍的对象池。
 
 \item
-Thread creation: Creating threads is slow. You can “cache” threads in a thread pool, similar to caching objects in an object pool.
+线程创建：创建线程很慢。可以“缓存”线程在线程池中，类似于在对象池中缓存对象。
 \end{itemize}
 
-One common problem with caching is that the data you store often comprises only copies of the underlying information. The original data might change during the lifetime of the cache. For example, you might want to cache the values in a configuration file so that you don’t need to read it repeatedly. However, the user might be allowed to change the configuration file while your program is running, which would make your cached version of the information obsolete. In cases like this, you need a mechanism for cache invalidation: when the underlying data changes, you must either stop using your cached information or repopulate your cache.
+缓存的一个常见问题是，存储的数据通常只包含底层信息的副本。原始数据可能在缓存的生命周期内发生变化。例如，可能想要缓存配置文件中的值，这样就不需要重复读取它。但用户需要在程序运行时更改配置文件，这将使缓存信息过时。这种情况下，需要一个缓存失效机制：当底层数据发生变化时，必须停止使用缓存信息或重新填充。
 
-One technique for cache invalidation is to request that the entity managing the underlying data notifies your program of every change. It could do this through a callback that your program registers with the manager. Alternatively, your program could poll for certain events that would trigger it to repopulate the cache automatically. Regardless of your specific cache invalidation technique, make sure that you think about these issues before relying on a cache in your program.
+缓存失效的一种技术是，请求管理底层数据的实体在每次更改时通知程序，这可以通过程序注册的回调来实现。或者，程序可以进行轮询，这些事件会触发自动重新填充缓存。无论采用哪种特定的缓存失效技术，在依赖程序中的缓存之前，请确保已经考虑过这些问题。
 
-When adding caching to a data structure, make sure your design hides any details of this caching from the public interface. Client code should not be aware that the underlying implementation uses any kind of caching. This also allows you to change the caching mechanism without affecting the public interface.
+在数据结构中添加缓存时，请确保设计将缓存的细节隐藏在公共接口之外。客户端代码不应该知道底层实现使用了类型的缓存。这也允许在不影响公共接口的情况下，更改缓存机制。
 
 \begin{myNotic}{NOTE}
-Always keep in mind that maintaining caches takes code, memory, and processing time. On top of that, caches can be a source of subtle bugs. You should only add caching to a particular area when a profiler clearly shows that that area is a performance bottleneck. First write clean and correct code, then profile it, and only then optimize parts of it.
+始终记住，维护缓存需要代码、内存和处理时间。更重要的是，缓存可能是微妙的错误来源。应该只在没有性能瓶颈的情况下，在特定区域添加缓存。首先编写清晰正确的代码，然后对其进行性能分析，然后才优化其中的一部分。
 \end{myNotic}
 
-\mySubsubsection{29.3.2.}{Use Object Pools}
+\mySubsubsection{29.3.2.}{使用对象池}
 
-There are different kinds of object pools. This section discusses one kind of object pool where it allocates a large chunk of memory at once, in which the pool creates smaller objects in-place. These objects can be handed out to clients and reused when clients are done with them, without incurring any additional calls to the memory manager to allocate or deallocate memory for individual objects.
+存在不同类型的对象池。本节讨论一种对象池，一次性分配一大块内存，在这个内存中，池创建更小的对象。这些对象可以分发给客户端，并在客户端使用完毕后重新使用，而无需对内存管理器进行调用，以分配或释放单个对象的内存。
 
-Where the following object pool implementation shines, as will be demonstrated with benchmarks, is for objects with big data members. Whether or not an object pool is the right solution for a specific use case can only be decided by profiling your code.
+以下对象池实现的优势将在基准测试中展示，特别是对于具有大数据成员的对象。是否为特定用例使用对象池，只能通过分析代码来决定。
 
-\mySamllsection{An Object Pool Implementation}
+\mySamllsection{对象池的实现}
 
-This section provides an implementation of an object pool class template that you can use in your programs. The implementation keeps a vector of chunks of objects of type T. Additionally, it also keeps track of free objects in a vector that contains pointers to all free objects. The pool hands out objects via the acquireObject() member function. If acquireObject() is called but there are no free objects anymore, then the pool allocates another chunk of objects. acquireObject() returns a shared\_ptr.
+本节提供了一个对象池类模板的实现，可以在程序中使用。该实现维护了一个包含T类型对象块的vector。此外，它还跟踪自由对象，这些自由对象存储在一个包含所有自由对象指针的vector中。对象池通过acquireObject()成员函数分配对象。如果调用acquireObject()，自由对象将不复存在，对象池将分配另一个对象块。acquireObject()会返回一个shared\_ptr。
 
-This implementation is using the vector Standard Library container without any synchronization. As such, this version is not thread-safe. See Chapter 27 for a discussion on how you can make the implementation thread-safe.
+此实现使用了不带任何同步的vector标准库容器，但这个版本不是线程安全的。有关如何使实现线程安全的讨论，请参阅第27章。
 
-Here is the class definition with comments explaining the details. The class template is parameterized on the type that is to be stored in the pool and on the type of allocator to use for allocating and deallocating chunks of memory.
+以下是带有注释解释细节的类定义。该类模板参数化在要存储在池中的类型，以及用于分配和释放内存块的分配器类型。
 
 \begin{cpp}
 // Provides an object pool that can be used with any class.
@@ -102,9 +102,9 @@ class ObjectPool final
 };
 \end{cpp}
 
-When using this object pool, you have to make sure that the object pool itself outlives all the objects handed out by the pool.
+使用此对象池时，必须确保对象池本身的生命周期超过由池生成的所有对象。
 
-The constructor is trivial and just stores the given allocator in a data member:
+构造函数很简单，只是将给定的分配器存储在数据成员中：
 
 \begin{cpp}
 template <typename T, typename Allocator>
@@ -113,7 +113,7 @@ ObjectPool<T, Allocator>::ObjectPool(const Allocator& allocator)
 {}
 \end{cpp}
 
-The addChunk() member function to allocate a new chunk is implemented as follows. The first part of addChunk() does the actual allocation of a new chunk. A “chunk” is just a block of uninitialized memory, allocated using an allocator and big enough to hold m\_newChunkSize instances of T. By adding a chunk of objects, no objects are actually constructed yet; i.e., no object constructors are called. That is done later in acquireObject() when instances are handed out. The second part of addChunk() creates pointers to the new instances of T. It uses the iota() algorithm, defined in <numeric>. To refresh your memory, iota() fills a range given by its first two arguments with values. The values start with the value of the third argument and are incremented by one for each subsequent value. Since we are working with T* pointers, incrementing a T* pointer by one jumps ahead to the next T in the memory block. Finally, the m\_newChunkSize value is doubled so that the next block that will be added is double the size of the currently added block. This is done for performance reasons and follows the principle of std::vector. Here is the implementation:
+分配新块的addChunk()成员函数实现如下。addChunk()的第一部分实际分配了一个新块，一个“块”只是一个使用分配器分配的未初始化内存块，足够容纳m\_newChunkSize个T实例。通过添加对象块，实际上还没有构造对象，还没有调用对象构造函数。这是在acquireObject()中分创建实例时完成的，addChunk()的第二部分创建指向T新实例的指针，使用在<numeric>中定义的iota()算法，iota()用值填充由其前两个参数给出的范围。这些值从第三个参数的值开始，并依次为每个后续值递增。因为正在处理T*指针，所以将T*指针递增一个会将指针跳转到内存块中的下一个T。最后，m\_newChunkSize的值加倍，因此下一次添加的块将是当前添加块的 double 大小。这样做是为了性能考虑，遵循了std::vector的原则。以下是实现：
 
 \begin{cpp}
 template <typename T, typename Allocator>
@@ -142,11 +142,11 @@ void ObjectPool<T, Allocator>::addChunk()
 }
 \end{cpp}
 
-acquireObject(), a variadic member function template, returns a free object from the pool, allocating a new chunk if there are no more free objects available. As explained earlier, adding a new chunk just allocates a block of uninitialized memory. It is the responsibility of acquireObject() to properly construct a new instance of T at the right place in memory. This is done using a placement new operator. Any arguments passed to acquireObject() are perfectly forwarded to a constructor of type T.
+acquireObject()，一个可变参数的成员函数模板，从池中返回一个空闲对象，如果没有更多的空闲对象可用，则分配一个新块。如前所述，添加新块只是分配一个未初始化的内存块。acquireObject()负责在正确的内存位置正确构造T的新实例，使用new操作符完成。传递给acquireObject()的参数，都会完美转发给类型T的构造函数。
 
-acquireObject() uses a placement new operator to construct a new instance of an object of type T at an explicitly specified memory location. If type T contains any const or reference members, accessing the newly constructed object through the original pointer triggers undefined behavior. To turn this into defined behavior, you need to launder the memory using std::launder(), defined in <new>.[C++23 introduces a slightly related function called std::start\_lifetime\_as(). The difference with launder() is that launder() doesn’t create a new object, it just launders a pointer to an already constructed object. On the other hand, start\_lifetime\_as() actually creates a new object but without running any constructor code. This can be useful if you have a block of memory that you know represents an object, maybe received over the network, and that you want to turn into an object, e.g., start\_lifetime\_as<MyObjectType>(networkBuffer).]
+acquireObject()使用放置new操作符，在显式指定的内存位置构造类型T的新实例。如果类型T包含任何const或引用成员，通过原始指针访问新构造的对象将触发未定义行为。为了将此转换为定义良好的行为，需要使用<std::launder()>来清洗内存。[C++23引入了一个与之稍有关联的函数<std::start\_lifetime\_as()>。与launder()的区别在于，launder()不会创建新对象，只是清洗已经构造的对象的指针。另一方面，start\_lifetime\_as()实际上会创建一个新对象，但不会运行构造函数代码。如果有一个内存块，也知道它代表一个对象，或许是通过网络接收的，并且想将其转换为一个对象，这个函数就很有用了，例如：start\_lifetime\_as<MyObjectType>(networkBuffer)。]
 
-Finally, the laundered T* pointer is wrapped in a shared\_ptr with a custom deleter. This deleter does not deallocate any memory; instead, it manually calls the destructor by using std::destroy\_at() and then puts the pointer back on the list of available objects.
+最后，清洗过的T*指针包装在一个带有自定义删除器的shared\_ptr中。这个删除器不会释放内存，它使用std::destroy\_at()手动调用析构函数，然后将指针放回可用对象列表中。
 
 \begin{cpp}
 template <typename T, typename Allocator>
@@ -180,7 +180,7 @@ std::shared_ptr<T> ObjectPool<T, Allocator>::acquireObject(Args&&... args)
 }
 \end{cpp}
 
-Finally, the destructor of the pool must deallocate any allocated memory using the given allocator:
+最后，对象池的析构函数必须使用给定的分配器释放已分配的内存：
 
 \begin{cpp}
 template <typename T, typename Allocator>
@@ -202,11 +202,11 @@ ObjectPool<T, Allocator>::~ObjectPool()
 }
 \end{cpp}
 
-assert() is a macro defined in <cassert>. It takes a Boolean expression and, if the expression evaluates to false, prints an error message and terminates the program. Chapter 31, “Conquering Debugging,” gives more details. The formula used in the assert() statement is based on the fact that each allocated chunk is double in size compared to the previous chunk.
+assert()是一个在<cassert>中定义的宏，接受一个布尔表达式，如果表达式的值为假，则打印错误消息并终止程序。有关详细信息，请参阅第31章。assert()语句中使用的公式基于每个已分配的块大小，是前一个块的两倍。
 
-\mySamllsection{Using the Object Pool}
+\mySamllsection{使用对象池}
 
-Consider an application that uses a lot of short-lived objects with big data members and hence are expensive to allocate. Let’s assume we have an ExpensiveObject class definition that looks as follows:
+假设一个应用程序，使用大量具有大数据成员的短期对象，因此分配这些对象代价高昂。假设有一个ExpensiveObject类的定义，如下所示：
 
 \begin{cpp}
 class ExpensiveObject
@@ -224,7 +224,7 @@ class ExpensiveObject
 };
 \end{cpp}
 
-Instead of allocating and deallocating large numbers of such objects throughout the lifetime of your program, you can use the object pool developed in the previous section. We can benchmark the pool using the chrono library (see Chapter 22, “Date and Time Utilities”) as follows:
+而不是在整个程序的生命周期中分配和释放大量这样的对象，可以使用前面章节中开发的对象池。我们可以使用chrono库（参见第22章）对池进行基准测试，如下所示：
 
 \begin{cpp}
 using MyPool = ObjectPool<ExpensiveObject>;
@@ -266,7 +266,7 @@ int main()
 }
 \end{cpp}
 
-The main() function contains a small benchmark of the pool’s performance. It asks for 500,000 objects in a loop and times how long it takes. The loop is done twice, once using our pool and once using the standard new/delete operators. The results on a test machine with a release build of the code are as follows:
+main()函数包含了对对象池性能的小型基准测试，在一个循环中创建500,000个对象，并计算完成所需的时间。循环进行了两次，一次使用我们的对象池，一次使用标准new/delete运算符。在测试机器上，代码的发布(Release)构建结果如下：
 
 \begin{shell}
 Starting loop using pool...
@@ -276,4 +276,5 @@ Starting loop using new/delete...
 9463.2393ms
 \end{shell}
 
-In this example, using the object pool is around 170 times faster. Keep in mind, though, that this object pool is tailored to work with objects with big data members. This is the case for the ExpensiveObject class used in the example, which contains a 32MB array as one of its data members.
+这个例子中，使用对象池大约快了170倍。需要注意的是，这个对象池是为与具有大数据成员的对象一起工作而定制的。这个例子中使用的ExpensiveObject类就是这样，它有一个32MB的数组作为其数据成员。
+

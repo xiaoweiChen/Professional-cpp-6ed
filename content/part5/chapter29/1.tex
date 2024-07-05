@@ -1,33 +1,33 @@
 
-Before delving further into the details, it’s helpful to define the terms performance and efficiency, as used in this book. The performance of a program can refer to several areas, such as speed, memory usage, disk access, and network use. This chapter focuses on speed performance. The term efficiency, when applied to programs, means running without wasted effort. An efficient program completes its tasks as quickly as possible within the given circumstances. A program can be efficient without being fast, if the application domain is inherently prohibitive to quick execution.
+深入了解细节之前，定义一下本书中使用的性能和效率这两个术语。程序的性能可能涉及几个方面，比如速度、内存使用、磁盘访问和网络使用。本章专注于速度性能，一个高效的程序在给定条件下尽可能快地完成任务。如果一个应用程序禁止快速执行，那么程序可以有效率，而不是快速。
 
 \begin{myNotic}{NOTE}
-An efficient, or high-performance, program runs as fast as possible for its particular task.
+一个高效或高性能的程序会尽可能快地完成特定的任务。
 \end{myNotic}
 
-Note that the title of this chapter, “Writing Efficient C++,” means writing programs that run efficiently, not efficiently writing programs. That is, the time you learn to save by reading this chapter will be your users’, not your own!
+注意，本章的标题“编写高效的C++”，意味着编写运行效率高的程序，而不是高效地编写程序。也就是说，通过阅读本章节省的时间将属于用户，而不是开发者自己！
 
-\mySubsubsection{29.1.1.}{Two Approaches to Efficiency}
+\mySubsubsection{29.1.1.}{两种高效的方法}
 
-Language-level efficiency involves using the language as efficiently as possible; for example, passing objects by reference instead of by value. However, this will only get you so far. Much more important is design-level efficiency, which includes choosing efficient algorithms, avoiding unnecessary steps and computations, and selecting appropriate design optimizations. More often than not, optimizing existing code involves replacing a bad algorithm or data structure with a better, more efficient one.
+语言级别的效率涉及尽可能高效地使用语言；例如，通过引用而不是通过值传递对象，但这只能让您走得更远。更重要的是设计级别的效率，这包括选择高效的算法、避免不必要的步骤和计算，以及选择适当的设计优化。优化现有代码涉及用更好、更高效的一个替换不好的算法或数据结构。
 
-\mySubsubsection{29.1.2.}{Two Kinds of Programs}
+\mySubsubsection{29.1.2.}{两种类型的程序}
 
-As I’ve noted, efficiency is important for all application domains. Additionally, there is a small subset of programs, such as system-level software, embedded systems, intensive computational applications, and real-time games, that require extremely high levels of efficiency. Most programs don’t. Unless you write those types of high-performance applications, you probably don’t need to worry about squeezing every ounce of speed out of your C++ code. Think of it as the difference between building normal family cars and building race cars. Every car must be reasonably efficient, but sports cars require extremely high performance. You wouldn’t want to waste your time optimizing family cars for speed when they’ll never go faster than 70 miles per hour.
+效率对所有应用程序领域都很重要。还有一小部分程序，如系统级软件、嵌入式系统、密集计算应用程序和实时游戏，需要极高的效率。可以将其视为建造普通家用汽车和赛车。每辆汽车都必须有合理的效率，但运动汽车需要极高的性能。运动汽车肯定会超过70英里每小时运行，但家用汽车的速度没必要浪费时间去进行优化。
 
-\mySubsubsection{29.1.3.}{Is C++ an Inefficient Language?}
+\mySubsubsection{29.1.3.}{C++是一种低效的语言吗？}
 
-C programmers often resist using C++ for high-performance applications. They claim that the language is inherently less efficient than C or a similar procedural language because C++ includes highlevel concepts, such as exceptions and virtual member functions. However, there are problems with this argument.
+C程序员经常抵制使用C++进行高性能应用程序开发。他们认为，由于C++包含了高级概念，如异常和虚成员函数，因此该语言本质上是比C或类似的过程式语言效率低。然而，这种论点存在问题。
 
-When discussing the efficiency of a language, you cannot ignore the effect of compilers. Recall that the C or C++ code you write is not the code that the computer executes. A compiler first translates that code into machine language, applying optimizations in the process. This means that you can’t simply run benchmarks of C and C++ programs and compare the results. You’re really comparing the compiler optimizations of the languages, not the languages themselves. C++ compilers can optimize away many of the high-level constructs in the language to generate machine code similar to, or even better than, the machine code generated from a comparable C program. These days, much more research and development is poured into C++ compilers than into C compilers, so C++ code might actually get better optimized and might run faster than C code.
+讨论语言的效率时，不能忽略编译器的影响。回想一下，编写的C或C++代码并不是计算机执行的代码。编译器首先将代码转换为机器语言，这个过程中应用优化。所以不能简单地对C和C++程序运行基准测试并比较结果，这实际上是在比较语言的编译器优化，而不是语言本身。C++编译器可以优化掉语言中的许多高级构造，以生成与类似C程序生成的机器代码相似或甚至更好的机器代码。如今，投入到C++编译器的研究和开发远远超过了投入到C编译器的，C++代码可能会得到更好的优化，并且可能会比C代码运行得更快。
 
-Critics, however, still maintain that some features of C++ cannot be optimized away. For example, as Chapter 10, “Discovering Inheritance Techniques,” explains, virtual member functions require the existence of a vtable, also known as virtual table, and an additional level of indirection at run time, possibly making them slower than regular nonvirtual function calls. However, when you really think about it, this argument is unconvincing. Virtual member function calls provide more than just a function call: they also give you a run-time choice of which function to call. A comparable non-virtual function call would need a conditional statement to decide which function to call. If you don’t need those extra semantics, you can use a non-virtual function. A general design rule in the C++ language is that “if you don’t use a feature, you don’t need to pay for it.” If you don’t use virtual member functions, you pay no performance penalty for the fact that you could use them. Thus, non-virtual function calls in C++ are identical to function calls in C in terms of performance.
+然而，批评者仍然坚持认为C++的一些特性无法被优化掉。例如，正如第10章所解释的，虚成员函数需要存在一个vtable，也称为虚表，以及在运行时会增加，这可能会使它们比常规的非虚函数调用慢。但当认真思考这个问题时，这个论点并不可信。虚成员函数调用提供的不仅仅是函数调用：还会在运行时选择调用哪个函数，非虚函数将需要一个条件语句来决定调用哪个函数。如果不需要其他语义，可以使用非虚函数。C++语言的一个通用设计规则是：“如果不使用一个特性，就不需要为它付费。”如果不使用虚成员函数，就不需要为可以使用而付出性能代价。因此，C++中的非虚函数在性能方面，与C中的函数相同。
 
-Far more important, the high-level constructs of C++ enable you to write cleaner programs that are more efficient at the design level, are more readable, are more easily maintained, and avoid accumulating unnecessary and dead code.
+更重要的是，C++的高级构造使能够编写更清晰的程序，这些程序在设计级别上更高效、更易读、更容易维护，并且避免了积累不必要的和无效的代码。
 
-I believe that you will be better served in your development, performance, and code maintenance by choosing C++ instead of a procedural language such as C.
+我相信，选择C++而不是C这样的过程式语言，将在开发、性能和代码维护方面得到更好的体验。
 
-There are also other higher-level object-oriented languages such as C\# and Java, both of which run on top of a virtual machine. C++ code is executed directly by a CPU; there is no such thing as a virtual machine to run your code. C++ is closer to the hardware, which means that in most cases it runs faster than languages such as C\# and Java.
+还有其他更高级的面向对象语言，如C\#和Java，它们都运行在虚拟机上。C++代码直接由CPU执行；没有所谓的虚拟机来运行代码。C++更接近硬件，在大多数情况下，它比C\#和Java这样的语言运行得更快。
 
 
 
