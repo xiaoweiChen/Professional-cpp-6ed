@@ -1,82 +1,82 @@
 
-Your programs should contain functionality that enables easier debugging when the inevitable bugs arise. This section describes some examples of such functionality and presents sample implementations, where appropriate, that you can incorporate into your own programs.
+程序应该包含一些功能，以便在不可避免的错误出现时更容易进行调试。本节描述了一些此类功能的示例，并在适当的情况下提供可以并入程序的示例实现。
 
-\mySubsubsection{31.4.1.}{Error Logging}
+\mySubsubsection{31.4.1.}{错误日志}
 
-Imagine this scenario: You have just released a new version of your flagship product, and one of the first users reports that the program “stopped working.” You attempt to pry more information from the user and eventually discover that the program died in the middle of an operation. The user can’t quite remember what he was doing or if there were any error messages. How will you debug this problem?
+设想以下场景：刚刚发布了旗舰产品的新版本，第一个用户报告说程序“停止工作”。我们试图从用户那里获取更多信息，最终发现程序在操作过程中死亡。用户记不清他在做什么或是否有错误消息。这时应该如何调试这个问题？
 
-Now imagine the same scenario, but in addition to the limited information from the user, you are also able to examine the error log on the user’s computer. In the log you see a message from your program that says, “Error: unable to open config.xml file.” Looking at the code near the spot where that error message was generated, you find a line in which you read from the file without checking whether the file was opened successfully. You’ve found the root cause of your bug!
+同样的场景，除了从用户那里获取有限的信息外，还能够检查用户计算机上的错误日志。日志中，看到程序的这样一条消息：“错误：无法打开config.xml文件。”查看生成该错误消息的位置附近的代码，发现没有检查文件是否成功打开的情况下，就从文件中进行了读取。现在，已经找到了错误的原因！
 
-Error logging is the process of writing error messages to persistent storage so that they will be available following an application, or even machine, crash. Despite the example scenario, you might still have doubts about this strategy. Won’t it be obvious by your program’s behavior if it encounters errors? Won’t the user notice if something goes wrong? As the preceding example shows, user reports are not always accurate or complete. In addition, many programs, such as the operating system kernel and long-running daemons like inetd (internet service daemon) or syslogd on Unix, are not interactive and run unattended on a machine. The only way these programs can communicate with users is through error logging. In many cases, a program might also want to automatically recover from certain errors and hide those errors from the user. Still, having logs of those errors available can be invaluable to improve the overall stability of the program.
+错误日志是将错误消息写入持久存储的过程，以便在应用程序或甚至机器崩溃后能够访问。尽管有上述示例场景，可能仍对此策略持怀疑态度。如果程序遇到错误，其行为难道不会很明显吗？如果出了问题，用户不会注意到吗？正如前面的例子所示，用户的报告并不总是准确或完整的。许多程序，如操作系统内核和Unix上的长时间运行的守护进程（如inetd（互联网服务守护进程）或syslogd），都不是交互式的，在机器上无人值守运行，这些程序与用户沟通的唯一方式就是通过错误日志。许多情况下，程序可能还希望从某些错误中自动恢复，并隐藏这些错误。尽管如此，拥有这些错误的日志对于提高程序的整体稳定性非常有价值。
 
-Thus, your program should log errors as it encounters them. That way, if a user reports a bug, you will be able to examine the log files on the machine to see if your program reported any errors prior to encountering the bug. Unfortunately, error logging is platform-dependent: C++ does not contain a standard logging mechanism. Examples of platform-specific logging mechanisms include the syslog facility in Unix and the event reporting API in Windows. You should consult the documentation for your development platform. There are also some open-source implementations of cross-platform logging frameworks. Here are two examples:
-
-\begin{itemize}
-\item
-log4cpp at \url{log4cpp.sourceforge.net}
-
-\item
-Boost.Log at \url{boost.org}
-\end{itemize}
-
-Now that you’re convinced that logging is a great feature to add to your programs, you might be tempted to log messages every few lines in your code so that, in the event of any bug, you’ll be able to trace the code path that was executing. These types of log messages are appropriately called traces.
-
-However, you should not write these traces to log files for two reasons. First, writing to persistent storage is slow. Even on systems that write the logs asynchronously, logging that much information will slow down your program. Second, and most important, most of the information that you would put in your traces is not appropriate for the end user to see. It will just confuse the user, leading to unwarranted service calls. That said, tracing is an important debugging technique under the correct circumstances, as described in the next section.
-
-Here are some specific guidelines for the types of errors you should log:
+程序应该在遇到错误时记录错误，如果用户报告了一个错误，将能够检查机器上的日志文件，以查看程序在遇到错误之前是否报告了错误。不幸的是，错误日志是与平台相关的：C++不包含标准的日志机制。平台特定日志机制示例包括Unix中的syslog设施和Windows中的事件报告API，应该查阅开发平台的文档。还有一些开源的跨平台日志框架实现，这里有两个例子：
 
 \begin{itemize}
 \item
-Unrecoverable errors, such as a system call failing unexpectedly.
+log4cpp ：\url{log4cpp.sourceforge.net}
 
 \item
-Errors for which an administrator can take action, such as low memory, an incorrectly formatted data file, an inability to write to disk, or a network connection being down.
-
-\item
-Unexpected errors such as a code path that you never expected to take or variables with unexpected values. On the other hand, your code should “expect” users to enter invalid data and should handle it appropriately. An unexpected error represents a bug in your program.
-
-\item
-Potential security breaches, such as a network connection attempted from an unauthorized address, or too many network connections attempted (denial of service).
+Boost.Log ：\url{boost.org}
 \end{itemize}
 
-A natural question you might be asking yourself is: What should be included in a logged error? At the very least, each logged error should contain the date and time the error occurred and the error message itself. In multithreaded applications, it’s useful to log the ID of the thread that caused the error as well. Starting with C++23, the Standard Library includes std::stacktrace, discussed in Chapter 14, which allows you to get a stack trace at any moment during the execution of your program. You could include such a stack trace, or at least part of it, with each logged error.
+现在已经确信日志是程序中的一个很好的功能，能很想在代码的每几行中记录消息，以便在错误发生时，能够追踪执行的代码路径。这类日志消息称为跟踪日志。
 
-It is also useful to log warnings, or recoverable errors, giving you the option to investigate if they can possibly be avoided.
+然而，由于两个原因，不应该将这些跟踪写入日志文件。首先，写入持久存储很慢。即使在异步写入日志的系统上，记录这么多信息也会减慢程序执行的速度。其次，也是最重要的，想在跟踪中放入的大部分信息不适合最终用户看到。这只会混淆用户，导致不必要的开销。在正确的情境下，跟踪日志是一种重要的调试技术，如下节所述。
 
-Most logging APIs allow you to specify a log level or error level, typically at least “error,” “warning,” or “info”. You can log non-error conditions under a log level that is less severe than “error.” For example, you might want to log significant state changes in your application, or startup and shutdown of the program. You also might consider giving your users a way to adjust the log level of your program at run time so that they can customize the amount of logging that occurs.
-
-\mySubsubsection{31.4.2.}{Debug Traces}
-
-When debugging complicated problems, public error messages generally do not contain enough information. You often need a complete trace of the code path taken, or values of variables before the bug showed up. In addition to basic messages, it’s sometimes helpful to include the following information in debug traces:
+以下是一些应该记录的错误类型的具体指南：
 
 \begin{itemize}
 \item
-The thread ID, if it’s a multithreaded program
+不可恢复的错误，如系统调用意外失败。
 
 \item
-The name of the function that generates the trace
+管理员可以采取措施的错误，如内存不足、数据文件格式错误、无法写入磁盘或网络连接中断。
 
 \item
-The name of the source file in which that function lives
+意外的错误，如未预料到的代码路径或变量值意外。另一方面，代码应该“预期”用户输入无效数据，并适当处理。意外的错误表示程序中存在错误。
+
+\item
+潜在的安全漏洞，如未经授权的地址尝试网络连接，或尝试过多的网络连接（拒绝服务）。
 \end{itemize}
 
-You can add this tracing to your program through a special debug mode, or via a ring buffer. Both of these techniques are explained in detail in the following sections. Note that in multithreaded programs you have to make your trace logging thread-safe. See Chapter 27, “Multithreaded Programming with C++,” for details on multithreaded programming.
+日志错误中应该包含什么？至少，每个日志错误应包含错误发生的时间和日期，以及错误消息本身。在多线程应用程序中，记录导致错误的线程ID也很有用。从C++23开始，标准库包括std::stacktrace(第14章中讨论过)，允许在程序的执行过程中时刻获取堆栈跟踪，可以将这样的堆栈跟踪或至少部分跟踪与放在每个日志错误中。
+
+记录警告或可恢复的错误也很有用，给读者一个调查，确定是否有可以避免记录它们的选项。
+
+大多数日志API允许指定一个日志级别或错误级别，通常至少有“错误”、“警告”或“信息”。可以在比“错误”更严重的日志级别下，记录非错误条件。例如，可能想要记录应用程序中的重大状态变化，或程序的启动和关闭。还可以考虑在运行时给用户提供一种调整程序日志级别的方法，以便可以自定义生成的日志量。
+
+\mySubsubsection{31.4.2.}{调试跟踪}
+
+调试复杂问题时，公共错误信息通常不包含足够的信息。经常需要完整的代码路径跟踪，或者在错误出现之前的变量值。除了基本消息之外，有时在调试跟踪中包含以下信息也很有帮助：
+
+\begin{itemize}
+\item
+如果是多线程程序，则线程ID
+
+\item
+生成跟踪的函数名称
+
+\item
+该函数所在的源文件名称
+\end{itemize}
+
+可以通过特殊的调试模式或在环形缓冲区中，向程序添加这种跟踪。这两种技术都在以下各节中详细解释。注意，多线程程序中，必须确保你的跟踪日志线程安全。有关多线程编程的详细信息，请参见第27章。
 
 \begin{myWarning}{WARNING}
-Trace files can be written in text format, but if you do, be careful with logging too much detail. You don’t want to leak intellectual property through your log files! Logging too much implementation details can also be dangerous if hackers can get a hold of the trace output!
+跟踪文件可以写成文本格式，如果这样做，不要记录过多的细节。不想通过日志文件泄露知识产权！如果黑客能够获取跟踪输出，记录过多的实现细节也可能很危险！
 \end{myWarning}
 
-\mySamllsection{Debug Mode}
+\mySamllsection{调试模式}
 
-A first technique to add debug traces is to provide a debug mode for your program. In debug mode, the program writes trace output to standard error or to a file, and perhaps does extra checking during execution. There are several ways to add a debug mode to your program. All following examples are writing traces in text format.
+添加调试跟踪的第一种技术是，为程序提供一个调试模式。调试模式下，程序将跟踪输出写入标准错误或文件，并在执行过程中可能进行检查。有几种方法可以将调试模式添加到程序中，以下所有示例都是以文本格式编写的跟踪。
 
-\mySamllsection{Start-Time Debug Mode}
+\mySamllsection{启动时调试模式}
 
-Start-time debug mode allows your application to run with or without debug mode depending on a command-line argument. This strategy includes the debug code in the “release” binary and allows debug mode to be enabled at a customer site. However, it does require users to restart the program to run it in debug mode, which may prevent you from obtaining useful information about certain bugs.
+启动时调试模式允许应用程序根据命令行参数选择，是否以调试模式运行。这种策略包括在“发布”二进制文件中的调试代码，并允许在客户现场启用调试模式。这确实要求用户重新启动程序以在调试模式下运行，这可能会阻止开发者获取有关某些错误的信息。
 
-The following example is a simple program implementing a start-time debug mode. This program doesn’t do anything useful; it is only for demonstrating the technique.
+以下示例是一个实现启动时调试模式的简单程序，这个程序并没有做什么有用的事情；只是为了演示这个技术。
 
-All logging functionality is wrapped in a Logger class. This class has two static data members: the name of the log file and a Boolean saying whether logging is enabled or disabled. The class has a public static log() member function template. Variadic templates like this one are discussed in Chapter 26, “Advanced Templates.” The log file is opened, flushed, and closed on each call to log(). This might lower performance a bit; however, it does guarantee correct logging, which is more important.
+所有的日志功能都封装在一个Logger类中。这个类有两个静态数据成员：日志文件的名称和一个表示日志启用或禁用的布尔值。这个类有一个公共的静态成员函数模板log()，像这样的可变参数模板在第26章中讨论过。每次调用log()时，日志文件都会打开、刷新和关闭。这可能会稍微降低性能，但确实保证了正确的日志记录，这更为重要。
 
 \begin{cpp}
 class Logger
@@ -104,25 +104,25 @@ class Logger
 };
 \end{cpp}
 
-The following helper macro is defined to make it easy to log something. It’s a macro accepting a variable number of arguments. You get access to those arguments using \_\_VA\_ARGS\_\_. The macro uses \_\_func\_\_, a predefined variable defined by the C++ standard that contains the name of the current function.
+以下是一个辅助宏，用于简化记录某些内容。这是一个接受可变数量参数的宏。可以使用\_\_VA\_ARGS\_\_来访问这些参数，这个宏使用了\_\_func\_\_，这是C++标准定义的一个预定义变量，包含当前函数的名称。
 
 \begin{cpp}
 #define LOG(...) Logger::log(__func__, "(): ", __VA_ARGS__)
 \end{cpp}
 
-This macro replaces every call to LOG() in your code with a call to Logger::log(). The macro automatically includes the function name as first argument to Logger::log(). For example, suppose you call the macro as follows:
+这个宏将代码中每个对LOG()的调用替换为对Logger::log()的调用。宏自动将函数名作为第一个参数包含到Logger::log()中。例如，这样调用宏：
 
 \begin{cpp}
 LOG("The value is: ", value);
 \end{cpp}
 
-The LOG() macro replaces this with the following:
+LOG()宏将这个调用替换为以下内容：
 
 \begin{cpp}
 Logger::log(__func__, "(): ", "The value is: ", value);
 \end{cpp}
 
-Start-time debug mode needs to parse the command-line arguments to find out whether it should enable debug mode. Unfortunately, there is no standard functionality in C++ for parsing command-line arguments. This program uses a simple isDebugSet() function to check for the debug flag among all the command-line arguments, but a function to parse all command-line arguments would need to be more sophisticated.
+启动时调试模式需要解析命令行参数，以确定是否应该启用调试模式。遗憾的是，C++中没有用于解析命令行参数的标准功能。这个程序使用一个简单的isDebugSet()函数，来检查所有命令行参数中是否有调试标志，但是一个解析所有命令行参数的函数更复杂。
 
 \begin{cpp}
 bool isDebugSet(int argc, char** argv)
@@ -132,7 +132,7 @@ bool isDebugSet(int argc, char** argv)
 }
 \end{cpp}
 
-Some arbitrary test code is used to exercise the debug mode in this example. Two classes are defined, ComplicatedClass and UserCommand. Both classes define an operator<{}< to write instances of them to a stream. The Logger class uses this operator to dump objects to the log file.
+这个示例中，使用了一些测试代码来练习调试模式。定义了两个类，ComplicatedClass和UserCommand。这两个类都定义了一个operator<{}<，将它们的实例写入流。Logger类使用这个运算符将对象转储到日志文件中。
 
 \begin{cpp}
 class ComplicatedClass { /* ... */ };
@@ -150,7 +150,7 @@ ostream& operator<<(ostream& outStream, const UserCommand& src)
 }
 \end{cpp}
 
-Here is some test code with a number of log calls:
+这里有一些带有多个日志调用的测试代码：
 
 \begin{cpp}
 UserCommand getNextCommand(ComplicatedClass* obj)
@@ -193,26 +193,26 @@ int main(int argc, char** argv)
 }
 \end{cpp}
 
-There are two ways to run this application:
+运行此应用程序有两种方式：
 
 \begin{shell}
 > STDebug
 > STDebug -d
 \end{shell}
 
-Debug mode is activated only when the -d argument is specified on the command line.
+在命令行中指定了 -d 参数时，才会激活调试模式。
 
 \begin{myWarning}{WARNING}
-Macros in C++ should be avoided as much as possible because they can be hard to debug. However, for logging purposes, using a simple macro can be acceptable, and it makes using the logging code much easier. Even so, with std::source\_location, discussed in Chapter 14, the example can be modified to avoid the use of a macro. This is the topic of one of the exercises at the end of this chapter.
+C++中的宏应该尽可能避免使用，因为它们可能很难调试。出于日志记录的目的，使用一个简单的宏是可以接受的，它使得使用日志代码变得更加容易。即便如此，使用第14章讨论的std::source\_location，可以修改示例以避免使用宏。这是本章末尾一个练习。
 \end{myWarning}
 
-\mySamllsection{Compile-Time Debug Mode}
+\mySamllsection{编译时调试模式}
 
-Instead of enabling or disabling debug mode through a command-line argument, you could also use a preprocessor symbol such as DEBUG\_MODE and \#ifdefs to selectively compile the debug code into your program. To generate a debug version of this program, you would have to compile it with the symbol DEBUG\_MODE defined. Your compiler allows you to define symbols during compilation; consult your compiler’s documentation for details. For example, GCC allows you to specify –Dsymbol through the command line. Microsoft Visual C++ allows you to specify the symbols through the Visual Studio IDE or by specifying /D symbol if you use the Visual C++ command-line tools. Instead of using a custom DEBUG\_MODE symbol, you could also use the NDEBUG symbol, which is defined by a compiler for release builds and not for debug builds.
+除了通过命令行参数启用或禁用调试模式之外，还可以使用如DEBUG\_MODE这样的预处理器符号以及\#ifdefs来选择性地将调试代码编译到程序中。要生成此程序的调试版本，需要定义符号DEBUG\_MODE进行编译。编译器允许在编译过程中定义符号；详情请参阅编译器的文档。例如，GCC允许通过命令行指定 –Dsymbol。Microsoft Visual C++通过Visual Studio IDE或在使用Visual C++命令行工具时指定 /D symbol。除了使用自定义的DEBUG\_MODE符号之外，还可以使用NDEBUG符号，该符号由编译器为发行版定义，而不为调试版定义。
 
-The advantage of this technique is that your debug code is not compiled into the “release” binary and so does not increase its size. The disadvantage is that there is no way to enable debugging at a customer site for testing or following the discovery of a bug.
+这种技术的优点是调试代码不会编译到“发行”二进制中，因此不会增加其大小。缺点是在客户现场进行测试或在发现错误后无法进行调试。
 
-An example implementation is given in CTDebug.cpp in the downloadable source code archive. One important remark on this implementation is that it contains the following definition for the LOG() macro:
+下载源码库中的CTDebug.cpp，里面提供了一个示例实现。关于这个实现的一个重要说明是，包含了对LOG()宏的定义：
 
 \begin{cpp}
 #ifdef DEBUG_MODE
@@ -222,19 +222,19 @@ An example implementation is given in CTDebug.cpp in the downloadable source cod
 #endif
 \end{cpp}
 
-That is, if DEBUG\_MODE is not defined, then all calls to LOG() are replaced with nothing, called no-ops.
+也就是说，如果未定义DEBUG\_MODE，则所有对LOG()的调用都将替换为无操作，即所谓的no-ops。
 
 \begin{myWarning}{WARNING}
-Be careful not to put any code that must be executed for correct program functioning inside your LOG() calls. For example, the following line of code could be asking for trouble:
+请注意，不要将必须执行以确保程序正常运行的代码放在LOG()调用中。例如，以下代码行可能会引起麻烦：
 
 \begin{cpp}
 LOG("Result: ", calculateResult());
 \end{cpp}
 
-If DEBUG\_MODE is not defined, the preprocessor replaces all LOG() calls with noops, which means that the call to calculateResult() is removed as well!
+如果未定义DEBUG\_MODE，预处理器将所有LOG()调用替换为no-ops，所以calculateResult()的调用也将移除！
 \end{myWarning}
 
-As logging code is removed if DEBUG\_MODE is not defined, it could mean that certain variables might be unused, which can trigger compiler warnings. Using the [[maybe\_unused]] attribute (see Chapter 1, “A Crash Course in C++ and the Standard Library”) avoids such warnings. For example:
+由于如果未定义DEBUG\_MODE，则会移除日志代码，这可能导致某些变量未使用，从而触发编译器警告。使用[[maybe\_unused]]属性（参见第1章）可以避免此类警告。例如：
 
 \begin{cpp}
 int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv)
@@ -249,21 +249,21 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv)
 }
 \end{cpp}
 
-\mySamllsection{Run-Time Debug Mode}
+\mySamllsection{运行时调试模式}
 
-The most flexible way to provide a debug mode is to allow it to be enabled or disabled at run time. One way to provide this feature is to supply an asynchronous interface that controls debug mode on the fly. This interface could be an asynchronous command that makes an interprocess call into the application (for example, using sockets, signals, or remote procedure calls). This interface could also take the form of a menu command in the user interface. C++ provides no standard way to perform interprocess communication or to implement user interfaces, so an example of this technique is not shown.
+提供调试模式的最灵活方式是，在运行时启用或禁用。提供此功能的一种方式是提供一个控制调试模式的异步接口，这个接口可以是一个异步命令，对应用程序进行进程间调用（例如，使用套接字、信号或远程过程调用）。这个接口也可以是用户界面中的一个菜单命令。C++没有提供执行进程间通信或实现用户界面的标准方式，因此不展示这种技术的示例。
 
-\mySamllsection{Ring Buffers}
+\mySamllsection{环形缓冲区}
 
-Debug mode is useful for debugging reproducible problems and for running tests. However, bugs often appear when the program is running in non-debug mode, and by the time you or the customer enables debug mode, it is too late to gain any information about the bug. One solution to this problem is to enable tracing in your program at all times. You usually need only the most recent traces to debug a program, so you should store only the most recent traces at any point in a program’s execution. One way to provide for this is through careful use of log file rotations.
+调试模式对于调试可复现的问题和运行测试非常有用，但错误经常在程序以非调试模式运行时出现，等到客户启用调试模式时，已经来不及获取有关错误的信息。解决这个问题的一个办法是在程序中始终启用跟踪，通常只需要最近的跟踪来调试程序，所以应该只存储程序执行过程中最近时刻的跟踪，实现的一种方式是通过日志文件的轮换。
 
-However, for performance reasons, it’s better that you don’t log these traces continuously to disk. Instead, store them in memory and provide a mechanism to dump all the trace messages to standard error or to a log file if the need arises.
+但出于性能考虑，最好不要将这些跟踪持续记录到磁盘上，而应该将它们存储在内存中，并提供一种机制，以便在需要时，将所有跟踪消息转储到标准错误或日志文件中。
 
-A common technique is to use a ring buffer, or circular buffer, to store a fixed number of messages, or messages in a fixed amount of memory. When the buffer fills up, it starts writing messages at the beginning of the buffer again, overwriting the older messages. This cycle can repeat indefinitely. The following sections provide an implementation of a ring buffer and show you how you can use it in your programs.
+一种常见的技术是使用环形缓冲区（或循环缓冲区）来存储固定数量的消息，或固定内存量中的消息。当缓冲区填满时，从缓冲区的开始处再次写入消息，覆盖旧消息。这个循环可以无限次重复。以下部分提供了环形缓冲区的实现，并展示如何在程序中使用。
 
-\mySamllsection{Ring Buffer Interface}
+\mySamllsection{环形缓冲区的接口}
 
-The following RingBuffer class provides a simple ring buffer storing messages. The client specifies the number of entries in the constructor and adds messages with the addEntry() member function. Once the number of entries exceeds the number allowed, new entries overwrite the oldest entries in the buffer. The buffer also provides the option to output entries to a stream as they are added to the buffer. The client can specify an output stream in the constructor and can reset it with the setOutput() member function. Finally, the operator<{}< streams the entire buffer to an output stream. This implementation uses a variadic template member function, discussed in Chapter 26.
+以下RingBuffer类提供了一个简单的环形缓冲区来存储消息。客户端在构造函数中指定条目数，并使用addEntry()成员函数添加消息。当条目数超过允许的数量，新的条目就会覆盖缓冲区中最旧的条目。缓冲区还提供了在消息添加到缓冲区时将条目输出到流的选项。客户端可以在构造函数中指定一个输出流，并使用setOutput()成员函数重置它。最后，operator<{}<将整个缓冲区输出到一个输出流，这个实现使用了第26章的可变参数模板成员函数。
 
 \begin{cpp}
 export class RingBuffer final
@@ -306,13 +306,13 @@ export class RingBuffer final
 };
 \end{cpp}
 
-\mySamllsection{Ring Buffer Implementation}
+\mySamllsection{环形缓冲区的实现}
 
-This implementation of the ring buffer stores a fixed number of string objects. This approach certainly is not the most efficient solution. Other possibilities would be to provide a fixed number of bytes of memory for the buffer. However, this implementation should be sufficient unless you’re writing a high-performance application.
+这个环形缓冲区的实现存储了一个固定数量的字符串对象。这种方法当然不是最有效的解决方案，其他的可能性是为缓冲区提供固定数量的字节数。然而，除非正在编写一个高性能应用程序，否则这个实现应该够用了。
 
-For multithreaded programs, it’s useful to add the ID of the thread to each trace entry. Of course, the ring buffer has to be made thread-safe before using it in a multithreaded application. See Chapter 27 for multithreaded programming.
+对于多线程程序，将线程ID添加到每个跟踪条目中是非常有用的。当然，在使用多线程应用程序之前，必须使环形缓冲区线程安全。有关多线程编程，请参见第27章。
 
-Here are the implementations:
+下面是这些实现的代码：
 
 \begin{cpp}
 // Initialize the vector to hold exactly numEntries. The vector size
@@ -378,9 +378,9 @@ ostream& operator<<(ostream& outStream, RingBuffer& rb)
 }
 \end{cpp}
 
-\mySamllsection{Using the Ring Buffer}
+\mySamllsection{使用环形缓冲区}
 
-To use the ring buffer, you can create an instance of it and start adding messages to it. When you want to print the buffer, just use operator<{}< to print it to the appropriate ostream. Here is the earlier start-time debug mode program modified to use a ring buffer instead. Changes are highlighted. The definitions of the ComplicatedClass and UserCommand classes, and the functions getNextCommand(), processUserCommand(), and trickyFunction() are not shown. They are the same as before.
+要使用环形缓冲区，可以创建一个实例，并开始向其中添加消息。当想打印缓冲区时，只需使用operator<{}<将缓冲区打印到适当的ostream。以下是之前启动时调试模式程序的修改版本，改为使用环形缓冲区。更改已突出显示。ComplicatedClass和UserCommand类的定义，以及getNextCommand()、processUserCommand()和trickyFunction()函数未显示。
 
 \begin{cpp}
 RingBuffer debugBuffer;
@@ -402,37 +402,37 @@ int main(int argc, char** argv)
 }
 \end{cpp}
 
-\mySamllsection{Displaying the Ring Buffer Contents}
+\mySamllsection{显示环形缓冲区内容}
 
-Storing trace debug messages in memory is a great start, but for them to be useful, you need a way to access these traces for debugging.
+将跟踪调试消息存储在内存中是一个很好的开始，但要使其有用，需要一种方法来访问这些跟踪以进行调试。
 
-Your program should provide a “hook” to tell it to export the messages. This hook could be similar to the interface you would use to enable debugging at run time. Additionally, if your program encounters a fatal error that causes it to exit, it could export the ring buffer automatically to a log file before exiting.
+程序应该提供一个“钩子”来告诉它导出消息，这个钩子可以与运行时启用调试时使用的接口类似。此外，如果程序遇到致命错误导致其退出，可以在退出前自动将环形缓冲区导出到日志文件。
 
-Another way to retrieve these messages is to obtain a memory dump of the program. Each platform handles memory dumps differently, so you should consult a reference or expert for your platform.
+另一种获取这些消息的方法是获取程序的内存转储。每个平台处理内存转储的方式不同，因此应该查阅您的平台的参考资料或专家意见。
 
-\mySubsubsection{31.4.3.}{Assertions}
+\mySubsubsection{31.4.3.}{断言}
 
-<cassert> defines an assert() macro. It takes a Boolean expression and, if the expression evaluates to false, prints an error message and terminates the program. If the expression evaluates to true, it does nothing.
+<cassert>定义了一个assert()宏，接受一个布尔表达式，如果表达式计算为false，会打印一个错误消息并终止程序。如果表达式评估为true，则什么也不做。
 
 \begin{myWarning}{WARNING}
-Normally, you should avoid any library functions or macros that can terminate your program. The assert() macro is an exception. If an assertion triggers, it means that some assumption is wrong or that something is catastrophically, unrecoverably wrong, and the only sane thing to do is to terminate the application at that very moment, instead of continuing.
+通常，应该避免使用可能终止程序的库函数或宏，assert()宏是一个例外。如果触发一个断言，则某些假设是错误的，或者出现了灾难性的、不可恢复的错误，因此明智的做法是在那一刻终止应用程序，而不是继续运行。
 \end{myWarning}
 
-Assertions allow you to “force” your program to exhibit a bug at the exact point where that bug originates. If you didn’t assert at that point, your program might proceed with those incorrect values, and the bug might not show up until much later. Thus, assertions allow you to detect bugs earlier than you otherwise would.
+断言允许“强制”程序在错误的确切位置显示错误。如果不在那个点上断言，程序可能会继续使用那些不正确的值，并且错误可能直到很久以后才会出现，断言可以在正常情况下更早地检测到错误。
 
 \begin{myNotic}{NOTE}
-The behavior of the standard assert() macro depends on the NDEBUG preprocessor symbol: if the symbol is not defined, the assertion takes place; otherwise, it is ignored. Compilers often define this symbol when compiling “release” builds. If you want to leave assertions in release builds, you may have to change your compiler settings or write your own version of assert() that isn’t affected by the value of NDEBUG.
+标准assert()宏的行为取决于NDEBUG预处理器符号：如果该符号未定义，断言发生；否则，会忽略断言。编译器在编译“发布”构建时通常会定义这个符号。如果想在发布构建中保留断言，可能需要更改编译器设置，或编写自己的assert()，使其不受NDEBUG值的影响。
 \end{myNotic}
 
-assert() is a C-style macro whose implementation depends on whether client code defines the NDEBUG preprocessor symbol or not. That makes <cassert> an example of a non-modular, nonimportable header, as explained in Chapter 11, “Modules, Header Files, and Miscellaneous Topics.” Use \#include <cassert> instead of import <cassert> to get access to the assert() macro.
+assert()是一个C风格的宏，其实现取决于客户代码是否定义了NDEBUG预处理器符号。这使得<cassert>成为一个非模块化、不可导入的头文件的例子，正如在第11章中解释的那样。使用\#include <cassert>，而不是import <cassert>，来获取对assert()宏的访问。
 
-You could use assertions in your code whenever you are “assuming” something about the state of your variables. For example, if you call a library function that is supposed to return a pointer and claims never to return nullptr, throw in an assert() after the function call to make sure that the pointer isn’t nullptr.
+可以在代码中使用断言，只要“假设”变量状态即可。例如，调用一个声称永远不会返回nullptr的库函数，可以在函数调用后添加一个assert()来确保指针不是nullptr。
 
-However, you should assume as little as possible. For example, if you are writing a library function, don’t assert that the parameters are valid. Instead, check the parameters, and return an error code or throw an exception if they are invalid.
+然而，应该尽量少做假设。例如，编写一个库函数，不要假设参数有效。相反，检查参数，并在它们无效时返回一个错误代码或抛出一个异常。
 
-As a rule, assertions should be used only for cases that are truly problematic and should therefore never be ignored when they occur during development. If you hit an assertion during development, fix it, don’t just disable the assertion.
+通常，断言应仅用于真正有问题的案例，因此在开发过程中遇到断言时，应修复它，而不是简单地禁用断言。
 
-Let’s look at a couple of examples on how to use assert(). Here is a process() function that requires three elements in a vector passed to the function:
+让我们看看如何使用assert()的两个例子。这是一个process()函数，要求传递给函数的vector中包含三个元素：
 
 \begin{cpp}
 void process(const vector<int>& coordinate)
@@ -442,50 +442,50 @@ void process(const vector<int>& coordinate)
 }
 \end{cpp}
 
-If the process() function is called with a vector that has less or more elements than three, the assertion fails and generates a message similar to the following (the exact message depends on the compiler that is used):
+如果调用process()函数时向量包含少于或大于三个元素，断言将失败并生成类似于以下的消息（具体消息取决于使用的编译器）：
 
 \begin{shell}
 Assertion failed: coordinate.size() == 3, file D:\test\test.cpp, line 12
 \end{shell}
 
-If you want a custom error message, you can use the following trick using the comma operator and a set of extra parentheses:
+如果想要一个自定义的错误消息，可以使用以下技巧，使用逗号运算符和括号：
 
 \begin{cpp}
 assert(("A custom message...", coordinate.size() == 3));
 \end{cpp}
 
-The output then will be something as follows:
+输出将如下所示：
 
 \begin{shell}
 Assertion failed: ("A custom message...", coordinate.size() == 3), file D:\test\
 test.cpp, line 106
 \end{shell}
 
-If at some point in your code you want that an assert always fails with a certain error message, you can use the following trick:
+如果在代码中某个地方，希望assert总是以特定的错误消息失败，可以使用以下技巧：
 
 \begin{cpp}
 assert(!"This should never happen.");
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-Be careful not to put any code that must be executed for correct program functioning inside assertions. For example, the following line of code could be asking for trouble:
+请小心！不要将必须正确执行程序的代码放在断言中。例如，以下行代码可能会带来麻烦：
 
 \begin{cpp}
 assert(calculateResult() != 0);
 \end{cpp}
 
-If a release build of your code strips assertions, then the call to calculateResult() is stripped as well!
+如果代码的发布构建去除了断言，那么调用calculateResult()的代码也会被去除！
 \end{myWarning}
 
-\mySubsubsection{31.4.4.}{Crash Dumps}
+\mySubsubsection{31.4.4.}{崩溃转储}
 
-Make sure your programs create crash dumps, also called memory dumps or core dumps. A crash dump is a dump file that is created when your application crashes. It contains information about which threads were running at the time of the crash, a call stack of all the threads, and so on. How you create such dumps is platform dependent, so you should consult the documentation of your platform or use a third-party library that takes care of it for you. Breakpad (github.com/google/ breakpad/) is an example of such an open-source cross-platform library that can write and process crash dumps.
+确保你的程序能够创建崩溃转储，也称为内存转储或核心转储。崩溃转储是一个在应用程序崩溃时创建的转储文件。包含了崩溃时运行线程的信息、所有线程的调用栈等信息。如何创建这样的转储文件取决于平台，因此应该查阅平台的文档，或者使用一个第三方库来为你处理这个问题。Breakpad（\url{github.com/google/breakpad/}）就是一个这样的开源跨平台库的例子，可以编写和处理崩溃转储。
 
-Also make sure you set up a symbol server and a version control server. The symbol server is used to store debugging symbols of released binaries of your software. These symbols are used later to interpret crash dumps received from customers. The version control server, discussed in Chapter 28, “Maximizing Software Engineering Methods,” stores all revisions of your source code. When debugging crash dumps, this version control server is used to download the correct source code for the revision of your software that created the crash dump.
+还要确保设置了一个符号服务器和一个版本控制服务器。符号服务器用于存储发布软件的二进制文件的调试符号。这些符号后来用于解释从客户那里收到的崩溃转储。第28章中讨论的版本控制服务器，会存储源代码的所有修订版本。在调试崩溃转储时，这个版本控制服务器用于下载创建崩溃转储软件修订版的正确源码。
 
-The exact procedure of analyzing crash dumps depends on your platform and compiler, so consult their documentation.
+分析崩溃转储的确切程序取决于平台和编译器，请查阅它们的文档。
 
-From my personal experience, I have found that a crash dump is often worth more than a thousand bug reports.
+根据我的个人经验，一个崩溃转储往往比一千份错误报告更有价值。
 
 
 

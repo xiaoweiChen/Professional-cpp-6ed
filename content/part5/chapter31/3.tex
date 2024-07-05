@@ -1,33 +1,33 @@
-It’s impossible to write completely bug-free code, so debugging skills are important. However, a few tips can help you to minimize the number of bugs:
+编写完全没有错误的代码是不可能的，因此调试技能非常重要。然而，以下几点提示可以尽量减少错误的数量：
 
 \begin{itemize}
 \item
-Read this book from cover to cover: Learn the C++ language intimately, especially pointers and memory management. Then, recommend this book to your friends and co-workers so they avoid bugs too.
+阅读本书：深入掌握C++语言，特别是指针和内存管理，将这本书推荐给你的朋友和同事，让他们也避免错误。
 
 \item
-Design before you code: Starting to write code for a feature without thinking about the design at all tends to lead to convoluted designs that are harder to understand and are more error prone. It also makes you more likely to omit possible edge cases and error conditions. Thus, before you start writing code, think about the design. And, once you start the implementation, don’t be afraid to change the design if you come across an issue that you didn’t think of before. There is nothing wrong with making changes to the design once you start the implementation.
+先设计再编码：在完全没有考虑设计的情况下就开始编写一个功能的代码，往往会导致难以理解且容易出错的复杂设计，这也使更有可能忽略可能的边界情况和错误条件。因此，在开始编写代码之前，要考虑设计。开始实现时，如果遇到之前没有考虑过的问题，不要害怕改变设计，后期对设计进行更改也完全可以。
 
 \item
-Do code reviews: In a professional environment, every single line of code should be peer reviewed. Sometimes it takes a fresh perspective to notice problems.
+进行代码审查：专业环境中，每一行代码都应经过同行审查。有时候需要一个新的视角来发现问题。
 
 \item
-Test, test, and test again: Thoroughly test your code, and have others test your code! They are more likely to find problems you haven’t thought of.
+多次测试：彻底测试代码，并让其他人测试你的代码！他们更有可能发现你未曾想到的问题。
 
 \item
-Write automated unit tests: Unit tests are designed to test isolated functionality. You should write unit tests for all implemented features. Run these unit tests automatically as part of your continuous integration setup, or automatically after each local compilation. Chapter 30, “Becoming Adept at Testing,” discusses unit testing in detail.
+编写自动化单元测试：单元测试旨在测试独立的功能。应该为所有实现的功能编写单元测试，将这些单元测试作为持续集成设置的一部分自动运行，或者在每次本地编译后自动运行。
 
 \item
-Expect error conditions, and handle them appropriately: In particular, plan for and handle errors when working with files and network connections. They will occur. See chapters 13, “Demystifying C++ I/O,” and 14, “Handling Errors.”
+预期错误条件，并适当处理：特别是，在处理文件和网络连接时，要计划如何处理错误。
 
 \item
-Use smart pointers to avoid resource leaks: Smart pointers automatically free resources when they are not needed anymore.
+使用智能指针避免资源泄漏：智能指针在不再需要时自动释放资源。
 
 \item
-Don’t ignore compiler warnings: Configure your compiler to compile with a high warning level. Do not blindly ignore warnings. Ideally, you should enable an option in your compiler to treat warnings as errors. This forces you to address each warning immediately. With GCC or Clang you can pass -Werror to the compiler to treat all warnings as errors. In Visual C++, open the properties of your project, go to Configuration Properties -> C/C++ ➪ General, and enable the option Treat Warnings As Errors.
+不要忽略编译器警告：配置编译器以高警告级别编译。不要盲目忽略警告。理想情况下，应在编译器中启用一个选项，将警告视为错误。使用GCC或Clang时，你可以传递-Werror给编译器，将所有警告视为错误。在Visual C++中，打开项目属性，转到配置属性-> C/C++ -> 常规，并启用将警告视为错误选项。
 
 \item
-Use static code analysis: A static code analyzer helps to pinpoint problems in your code by analyzing your source code. Ideally, static code analysis is done in real time while typing code in your integrated development environment (IDE) to detect problems early. It can also be set up to run automatically by your build process. There are quite a few different analyzers available on the Internet, both free and commercial.
+使用静态代码分析：静态代码分析器通过分析源代码来定位代码中的问题。理想情况下，静态代码分析应在集成开发环境（IDE）中键入代码时实时进行，以便早期发现问题，也可以设置为由构建过程自动运行。互联网上有许多不同的分析器可供选择，既有免费的，也有商业收费的。
 
 \item
-Use good coding style: Strive for readability and clarity, use meaningful names, don’t use abbreviations, add code comments (not only interface comments), use the override and explicit keywords, and so on. This makes it easier for other people to understand your code.
+使用良好的编码风格：力求可读性和清晰性，使用有意义的名称，不要使用缩写，添加代码注释（不仅仅是接口注释），使用override和explicit关键字等。使其他人更容易理解你的代码。
 \end{itemize}

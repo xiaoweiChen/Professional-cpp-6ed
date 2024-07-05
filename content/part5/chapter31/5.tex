@@ -1,123 +1,123 @@
 
-Debugging a program can be incredibly frustrating. However, with a systematic approach it becomes significantly easier. Your first step in trying to debug a program should always be to reproduce the bug. Depending on whether you can reproduce the bug, your subsequent approach will differ. The next four sections explain how to reproduce bugs, how to debug reproducible bugs, how to debug nonreproducible bugs, and how to debug regressions. Additional sections explain details about debugging memory errors and debugging multithreaded programs. The final sections show a step-bystep debugging example.
+调试程序可能会让人非常沮丧，采取系统化的方法会使这个过程变得容易得多。尝试调试程序时，第一步总是应该是重现错误。根据是否能够重现错误，后续方法会有所不同。接下来的四个部分解释了如何重现错误，如何调试可重现的错误，如何调试不可重现的错误，以及如何调试回归错误。其他部分解释了关于调试内存错误和调试多线程程序的细节，最后展示了一个逐步调试的示例。
 
-\mySubsubsection{31.5.1.}{Reproducing Bugs}
+\mySubsubsection{31.5.1.}{重现错误}
 
-If you can reproduce a bug consistently, it will be much easier to determine the root cause. Sometimes a bug might be reproducible by Alice but not by Bob. That in itself can be a clue for Alice to find the root cause. Finding the root cause of bugs that are not reproducible is difficult, if not impossible.
+如果能够一致地重现错误，确定根本原因将变得更加容易。有时，错误可能由Alice重现，但Bob无法重现，这可能就是Alice找到根本原因的线索。如果错误无法重现，确定其根本原因可能非常困难，甚至是不可能的。
 
-As a first step to reproduce the bug, run the program on a similar environment (hardware, operating system, and so on) and with the same inputs as the run when the bug first appeared. Be sure to include all inputs, from the program’s startup to the time of the bug’s appearance. A common mistake is to attempt to reproduce the bug by performing only the triggering action. This technique may not reproduce the bug because the bug might be caused by an entire sequence of actions.
+为了重现错误，首先在类似的环境（硬件、操作系统等）上运行程序，并使用与错误首次出现时相同的输入。确保包括从程序启动到出现错误时的所有输入，一个常见的错误是试图通过仅执行触发操作来重现错误。这种技术可能无法重现错误，因为错误可能由一系列完整的操作引起。
 
-For example, if your web browser dies when you request a certain web page, it may be due to memory corruption triggered by that particular request’s network address. On the other hand, it may be because your program records all requests in a queue, with space for one million entries, and this entry was number 1,000,001. Starting the program over and sending one request certainly wouldn’t trigger the bug in that case.
+例如，网络浏览器在请求某个网页时崩溃，这可能是因为特定请求的网络地址触发了内存损坏。另一方面，可能是由于程序记录了所有请求，队列中有100万个条目空间，而这个条目是第1,000,001个。重新启动程序并发送一个请求在这种情况下肯定不会触发错误。
 
-Sometimes it is impossible to emulate the entire sequence of events that leads to the bug. Perhaps the bug was reported by someone who can’t remember everything that she did. Alternatively, maybe the program was running for too long to emulate every input. In that case, do your best to reproduce the bug. It takes some guesswork and can be time-consuming, but effort at this point will save time later in the debugging process. Here are some techniques you can try:
-
-\begin{itemize}
-\item
-Repeat the triggering action in the correct environment and with as many inputs as possible similar to the initial report.
-
-\item
-Do a quick review of the code related to the bug. More often than not, you’ll find a likely cause that will guide you in reproducing the problem.
-
-\item
-Run automated tests that exercise similar functionality. Reproducing bugs is one benefit of automated tests. If it takes 24 hours of testing before the bug shows up, it’s preferable to let those tests run on their own rather than spend 24 hours of your time trying to reproduce the bug.
-
-\item
-If you have the necessary hardware available, running slight variations of tests concurrently on different machines can sometimes save time.
-
-\item
-Run stress tests that exercise similar functionality. If your program is a web server that died on a particular request, try running as many browsers as possible simultaneously that make that request.
-\end{itemize}
-
-After you are able to reproduce the bug consistently, you should attempt to find the smallest sequence that triggers the bug. You can start with the minimum sequence, containing only the triggering action, and slowly expand the sequence to cover the entire sequence from startup until the bug is triggered. This will result in the simplest and most efficient test case to reproduce it, which makes it simpler to find the root cause of the problem and easier to verify the fix.
-
-\mySubsubsection{31.5.2.}{Debugging Reproducible Bugs}
-
-When you can reproduce a bug consistently and efficiently, it’s time to figure out the problem in the code that causes the bug. Your goal at this point is to find the exact lines of code that trigger the problem. You can use two different strategies:
+有时，可能无法模拟导致错误的整个事件序列。也许报告错误的人记不起她所做的所有事情。或者，程序运行了太长时间，无法模拟每一个输入。这时，尽力重现错误。这需要一些猜测，可能会花费时间，但在这个阶段的投入将在调试过程中节省时间。以下是一些可以尝试的技术：
 
 \begin{itemize}
 \item
-Use a debugger: Debuggers allow you to step through the execution of your program and to view the state of memory and the values of variables at various points. They are often indispensable tools for finding the root cause of bugs. When you have access to the source code, you should use a symbolic debugger: a debugger that utilizes the variable names, class names, and other symbols in your code. To use a symbolic debugger, you must instruct your compiler to generate debug symbols. Check the documentation of your compiler for details on how to enable symbol generation.
+在正确的环境中重复触发操作，并尽可能多地输入与最初报告相似的输入。
 
 \item
-Log debug messages: By adding enough debug messages to your program and watching its output when you reproduce the bug, you should be able to pinpoint the exact lines of code where the bug occurs. If you have a debugger at your disposal, adding debug messages is usually not recommended because it requires modifications to the program and can be timeconsuming. However, if you have already instrumented your program with debug messages as described earlier, you might be able to find the root cause of your bug by running your program in debug mode while reproducing the bug. Note that bugs sometimes disappear simply when you enable logging because the act of enabling logging can slightly change the timings of your application.
+快速审查与错误相关的代码。通常，会发现一个可能的原因，这有助于指导问题重现。
+
+\item
+运行自动化测试，以测试类似的功能。自动化测试的一个好处就是可以重现错误。如果需要24小时的测试才能出现错误，那么让这些测试自行运行，比花费24小时试图重现错误要好。
+
+\item
+如果有必要的硬件，可以同时在不同机器上运行轻微变化的测试，这有时可以节省不少时间。
+
+\item
+运行压力测试，以测试类似的功能。如果程序是一个在特定请求时崩溃的网络服务器，并尝试同时运行尽可能多的浏览器。
 \end{itemize}
 
-The debugging example at the end of this chapter demonstrates both these approaches.
+当能够一致地重现错误，应该尝试找到最小的触发方式。可以从包含仅触发操作的最小方式开始，然后逐渐扩展，覆盖从启动到触发错误的整个过程。这将产生最简单、最有效的重现，这使得找到问题的根本原因变得更加简单，也更容易验证和修复问题。
 
-\mySubsubsection{31.5.3.}{Debugging Nonreproducible Bugs}
+\mySubsubsection{31.5.2.}{调试可复现的错误}
 
-Fixing bugs that are not reproducible is significantly more difficult than fixing reproducible bugs. You often have little information and must employ a lot of guesswork. Nevertheless, a few strategies can aid you:
+当能够一致且高效地复现一个错误时，就该找出导致该错误的代码问题。此时目标是找到触发问题的确切代码行，可以使用两种不同的策略：
 
 \begin{itemize}
 \item
-Try to turn a nonreproducible bug into a reproducible bug. By using educated guesses, you can often determine approximately where the bug lies. It’s worthwhile to spend some time trying to reproduce the bug. Once you have a reproducible bug, you can figure out its root cause by using the techniques described earlier.
+使用调试器：调试器允许逐步执行程序，并查看在各个点上的内存状态和变量值。它们通常是找到错误根本原因的不可或缺的工具。当能够访问源代码时，应该使用符号调试器：一种利用代码中的变量名、类名和其他符号的调试器。要使用符号调试器，必须指示编译器生成调试符号。查阅编译器的文档，了解如何启用符号生成的详细信息。
 
 \item
-Analyze error logs. This is easy to do if you have instrumented your program with error log generation, as described earlier. You should sift through this information because any errors that were logged directly before the bug occurred are likely to have contributed to the bug itself. If you’re lucky (or if you coded your program well), your program will have logged the exact reason for the bug at hand.
-
-\item
-Obtain and analyze traces. Again, this is easy to do if you have instrumented your program with tracing output, for example, via a ring buffer as described earlier. At the time of the bug’s occurrence, you ideally obtained a copy of the traces. These traces should lead you right to the location of the bug in your code.
-
-\item
-Examine a crash/memory dump file, if it exists. Some platforms automatically generate memory dump files of applications that terminate abnormally. On Unix and Linux, these memory dumps are called core files. Each platform provides tools for analyzing these memory dumps. They can, for example, be used to view the stack trace of the application and the contents of its memory before the application died.
-
-\item
-Inspect the code. Unfortunately, this is often the only strategy to determine the cause of a nonreproducible bug. Surprisingly, it often works. When you examine code, even code that you wrote yourself, with the perspective of the bug that just occurred, you can often find mistakes that you overlooked previously. I don’t recommend spending hours staring at your code, but tracing through the code path manually can often lead you directly to the problem.
-
-\item
-Use a memory-watching tool, such as one of the tools described in the section “Debugging Memory Problems,” later in this chapter. Such tools often alert you to memory errors that don’t always cause your program to misbehave but could potentially be the cause of the bug in question.
-
-\item
-File or update a bug report. Even if you can’t find the root cause of the bug right away, the report will be a useful record of your attempts if the problem is encountered again.
-
-\item
-If you are unable to find the root cause of the bug, be sure to add extra logging or tracing so that you will have a better chance next time the bug occurs.
+记录调试消息：通过向程序中添加足够的调试消息，并在复现错误时观察其输出，应该能够精确定位错误发生的确切代码行。如果有调试器可用，通常不建议添加调试消息，因为这需要修改程序，可能会很耗时。如果已经像前面描述的那样用调试消息化了程序，可能会在复现错误时运行程序的调试模式来找到错误根本原因。注意，有时仅仅是在启用日志记录时错误就会消失，因为启用日志记录的行为可能会改变应用程序的时序。
 \end{itemize}
 
-Once you have found the root cause of a nonreproducible bug, you should create a reproducible test case and move it to the “reproducible bugs” category. It is important to be able to reproduce a bug before you actually fix it. Otherwise, how will you test the fix? A common mistake when debugging nonreproducible bugs is to fix the wrong problem in the code. Because you can’t reproduce the bug, you don’t know if you’ve really fixed it, so you shouldn’t be surprised when it shows up again a month later.
+本章末尾的调试示例演示了这两种方法。
 
-\mySubsubsection{31.5.4.}{Debugging Regressions}
+\mySubsubsection{31.5.3.}{调试不可重现的错误}
 
-If a feature contains a regression bug, it means that the feature used to work correctly, but at some point unexpectedly stopped working.
+修复不可重现的错误比修复可重现的错误要困难得多。通常没有多少信息，必须进行大量的猜测，但一些策略可供参考：
 
-A useful debugging technique for investigating regressions is to look at the change log of relevant files. If you know at what time the feature was still working, look at all the change logs since that time. You might notice something suspicious that could lead you to the root cause.
+\begin{itemize}
+\item
+尝试将不可重现的错误转换为可重现的错误。通过使用有根据的猜测，通常可以确定错误的大致位置，花些时间尝试重现错误是值得的。当有了可重现的错误，就可以使用之前描述的技术来找出其根本原因。
 
-Another approach that can save you a lot of time when debugging regressions is to use a binary search approach with older versions of the software (often called bisecting) to try to figure out when it started to go wrong. You can use binaries of older versions if you keep them, or you can revert the source code to an older revision. Once you know when it started to go wrong, inspect the change logs to see what changed at that time. This mechanism is possible only when you can reproduce the bug.
+\item
+分析错误日志。如果按照之前所述在程序中加入了错误日志生成，这样做就很容易。应该仔细检查这些信息，在错误发生之前直接记录的错误，都可能对错误本身有所贡献。如果运气好（或者编写的程序很好），程序会记录出当前错误的确切原因。
 
-\mySubsubsection{31.5.5.}{Debugging Memory Problems}
+\item
+获取并分析跟踪信息，如果程序中加入了跟踪输出(通过前面提到的环形缓冲区)，那么这样做也很容易。在错误发生时，最好能够获取到跟踪的副本。这些跟踪应该直接引导到代码中的错误位置。
 
-Most catastrophic bugs, such as application crashes, are caused by memory errors. Many noncatastrophic bugs are triggered by memory errors as well. Some memory bugs are obvious. For example, if your program attempts to dereference a null pointer, the default action is to terminate the program. However, nearly every platform enables you to respond to catastrophic errors and take remedial action. The amount of effort you devote to the response depends on the importance of this kind of recovery to your end users. For example, a text editor really needs to make a best attempt to save the modified buffers (possibly under a “recovered” name), while for other programs, users may find the default behavior acceptable, even if it is unpleasant.
+\item
+检查是否存在崩溃/内存转储文件，一些平台会自动生成应用程序异常终止时的内存转储文件。在Unix和Linux上，这些内存转储文件称为核心文件。每个平台都提供了用于分析这些内存转储的工具。例如，可以用来查看应用程序的堆栈跟踪，及其在应用程序崩溃前的内存内容。
 
-Some memory bugs are more insidious. If you write past the end of an array in C++, your program will probably not crash at that point. However, if that array was on the stack, you may have written into a different variable or array, changing values that won’t show up until later in the program. Alternatively, if the array was on the free store, you could cause memory corruption in the free store, which will cause errors later when you attempt to allocate or free more memory dynamically.
+\item
+检查代码。不幸的是，这往往是确定不可重现错误原因的唯一策略。令人惊讶的是，这通常有效。当检查代码时，即使是自己编写的代码，以刚刚发生的错误的角度去审视，通常也可以找到之前忽略的错误。我不建议花费数小时盯着代码看，但手动跟踪代码路径通常可以直接引导各位找到问题。
 
-Chapter 7, “Memory Management,” introduces some of the common memory errors from the perspective of what to avoid when you’re coding. This section discusses memory errors from the perspective of identifying problems in code that exhibits bugs. You should be familiar with the discussion in Chapter 7 before continuing with this section.
+\item
+使用内存监控工具，例如本章稍后部分“调试内存问题”中描述的工具。这类工具通常会提醒注意那些不一定导致程序行为异常，但可能是当前错误原因的内存错误。
+
+\item
+提交或更新一个错误报告。即使不能立即找到错误的根本原因，这个报告也将是记录您尝试过程的有用记录，如果问题再次出现，这将非常有用。
+
+\item
+如果无法找到错误的根本原因，请确保添加额外的日志或跟踪，以便下次错误发生时有机会找到原因。
+\end{itemize}
+
+当找到了不可重现错误的根本原因，应该创建一个可重现的测试用例，并将其归类到“可重现的错误”中。实际修复错误之前，能够重现错误非常重要。否则，将如何测试修复效果呢？调试不可重现的错误时，一个常见的错误是错误地修复了代码中的问题。由于无法重现错误，不知道是否真的修复了它。因此当一个月后它再次出现时，不应该为此感到惊讶。
+
+\mySubsubsection{31.5.4.}{调试回归错误}
+
+如果一个功能包含了一个回归错误，则该功能以前是正常工作的，但在某个时刻意外地停止了工作。
+
+调查回归错误的一种有用的调试技术是，查看相关文件的变化日志。如果知道功能最后一次正常工作的时间，查看从那时以来的所有变化日志。可能会注意到一些可疑的东西，这可能会有助于找到根本原因。
+
+调试回归错误时，使用二分法搜索旧版本的软件（通常称为二分查找）可以节省大量时间，以尝试找出它何时开始出错。如果保留了旧版本的二进制文件，可以使用它们，或者可以将源代码恢复到旧版本。当知道何时开始出错，检查那个时间点的变化日志看看有什么变化。这种方法只有在可以复现错误时才可能实现。
+
+\mySubsubsection{31.5.5.}{调试内存问题}
+
+大多数灾难性的错误，如应用程序崩溃，都是由内存错误引起的。许多非灾难性的错误也是由内存错误触发的。一些内存错误是显而易见的，例如：程序尝试取消引用空指针，默认行为是终止程序。然而，几乎每个平台都允许对灾难性错误做出响应，并采取补救措施。对响应付出的努力取决于，这种恢复对最终用户的重要性。例如，文本编辑器真的需要尽最大努力保存修改过的缓冲区（可能是在“已恢复”的名称下），而对于其他程序，用户可能会认为默认行为是可以接受的，即使它令人不快。
+
+一些内存错误更加隐蔽。如果在C++中写过一个数组的末尾，程序可能不会在那个时候崩溃。如果该数组位于栈上，可能会写入一个不同的变量或数组，改变直到程序稍后才会出现的值。或者，数组位于自由存储区，可能会引起自由存储区的内存损坏，这会在尝试动态分配或释放更多内存时导致错误。
+
+第7章从编码时应该避免什么的角度，介绍了常见的内存错误。本节从识别显示错误的代码中的问题的角度讨论内存错误。在继续本节之前，应该了解第7章的内容。
 
 \begin{myWarning}{WARNING}
-Most, if not all, of the following memory problems can be avoided by using smart pointers instead of raw pointers.
+使用智能指针，而不是原始指针，可以避免以下大多数（如果不是全部）内存问题。
 \end{myWarning}
 
-\mySamllsection{Categories of Memory Errors}
+\mySamllsection{内存错误类别}
 
-To debug memory problems, you should be familiar with the types of errors that can occur. This section describes the major categories of memory errors. Each category lists different types of memory errors, including a small code example demonstrating each error, and a list of possible symptoms that you might observe. Note that a symptom is not the same thing as a bug: a symptom is an observable behavior caused by a bug.
+要调试内存问题，应该熟悉可能发生的错误类型。本节描述了主要的内存错误类别。每个类别列出不同类型的内存错误，包括演示每个错误的简短代码示例，以及可能会观察到的可能症状列表。注意，症状并不等同于错误：症状是由错误引起的可观察行为。
 
-\mySamllsection{Memory-Freeing Errors}
+\mySamllsection{内存释放错误}
 
-The following table summarizes five major errors that involve freeing memory:
+以下表格总结了涉及内存释放的五种主要错误：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{ERROR TYPE} &
-\textbf{SYMPTOMS} &
-\textbf{EXAMPLE} \\ \hline
+\textbf{错误类型} &
+\textbf{症状} &
+\textbf{示例} \\ \hline
 \endfirsthead
 %
 \endhead
 %
-Memory leak &
-\begin{tabular}[c]{@{}l@{}}Process memory usage\\ grows over time. Process\\ runs more slowly over time.\\ Eventually, depending on the\\ OS, operations and system\\ calls fail because of lack\\ of memory.\end{tabular} &
+内存泄漏 &
+\begin{tabular}[c]{@{}l@{}}进程内存使用随时间增长。\\进程随时间运行得更慢。\\最终，操作系统中的操作\\和系统调用会因内存不足\\而失败。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}
 \\
 \begin{cpp}
@@ -129,8 +129,8 @@ void memoryLeak()
 \end{cpp}
 \end{tabular}
 \\ \hline
-\begin{tabular}[c]{@{}l@{}}Using\\ mismatched\\ allocation and\\ free operations\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Does not usually cause a\\ crash immediately. This\\ type of error can cause\\ memory corruption on some\\ platforms, which might show\\ up as a crash later in the\\ program. Certain mismatches\\ can also cause memory leaks.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}使用不匹配的\\分配和释放操\\作\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}通常不会立即导致崩溃。\\这种类型的错误可能在\\某些平台上导致内存损\\坏，也可能出现崩溃。\\某些不匹配也可能导致\\内存泄漏。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}
 \\
 \begin{cpp}
@@ -146,8 +146,8 @@ void mismatchedFree()
 \end{cpp}
 \end{tabular}
 \\ \hline
-\begin{tabular}[c]{@{}l@{}}Freeing\\ memory\\ more than\\ once\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Can cause a crash if the\\ memory at that location has\\ been handed out in another\\ allocation between the two\\ calls to delete.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}多次释放内存\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}如果在两次调用delete之间\\的某个时刻，该内存已经被\\另一个分配操作占用，可能\\会导致崩溃。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}
 \\
 \begin{cpp}
@@ -161,8 +161,8 @@ void doubleFree()
 \end{cpp}
 \end{tabular}
 \\ \hline
-\begin{tabular}[c]{@{}l@{}}Freeing\\ unallocated\\ memory\end{tabular} &
-Usually causes a crash. &
+\begin{tabular}[c]{@{}l@{}}释放未分配的\\内存\end{tabular} &
+通常会导致崩溃。 &
 \begin{tabular}[c]{@{}l@{}}
 \\
 \begin{cpp}
@@ -174,8 +174,8 @@ void freeUnallocated()
 \end{cpp}
 \end{tabular}
 \\ \hline
-\begin{tabular}[c]{@{}l@{}}Freeing\\ stack memory\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Technically a special case of\\ freeing unallocated memory.\\ This usually causes a crash.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}释放栈内存\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}从技术上讲，这是释放未分\\配内存的一种特殊情况。通\\常会导致崩溃。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}
 \\
 \begin{cpp}
@@ -190,28 +190,28 @@ void freeStack()
 \\ \hline
 \end{longtable}
 
-The crashes mentioned in this table can have different manifestations depending on your platform, such as segmentation faults, bus errors, access violations, and so on.
+本表中提到的崩溃在不同平台上可能有不同的表现形式，例如：段错误、总线错误、访问违规等。
 
-As you can see, some of the errors do not cause immediate program termination. These bugs are more subtle, leading to problems later in the program’s execution.
+一些错误不会立即导致程序终止。这些错误更微妙，导致程序在执行过程中出现其他问题。
 
-\mySamllsection{Memory-Access Errors}
+\mySamllsection{内存访问错误}
 
-Another category of memory errors involves the actual reading and writing of memory:
+内存错误的一个类别涉及实际读写内存：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|}
 \hline
-\textbf{ERROR TYPE} &
-\textbf{SYMPTOMS} &
-\textbf{EXAMPLE} \\ \hline
+\textbf{错误类型} &
+\textbf{症状} &
+\textbf{示例} \\ \hline
 \endfirsthead
 %
 \endhead
 %
-\begin{tabular}[c]{@{}l@{}}Accessing\\ invalid memory\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Almost always causes\\ the program to crash\\ immediately.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}访问无效内存\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}导致程序立即崩溃。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}
 \\
 \begin{cpp}
@@ -222,8 +222,8 @@ void accessInvalid()
 }
 \end{cpp}
 \end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}Accessing\\ freed memory\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Does not usually cause\\ a crash. If the memory\\ has been handed out in\\ another allocation, this\\ error type can cause\\ “strange” and potentially\\ dangerous values to appear\\ unexpectedly.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}访问已释放内\\存\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}通常不会导致崩溃。\\如果内存已分配给\\其他对象，此错误\\类型可能会导致\\“奇怪”且潜在危险\\的值出现。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}
 \\
 \begin{cpp}
@@ -236,8 +236,8 @@ void accessFreed()
 }
 \end{cpp}
 \end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}Accessing\\ memory in\\ a different\\ allocation\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Does not usually cause\\ a crash. This error type\\ can cause “strange” and\\ potentially dangerous\\ values to appear\\ unexpectedly in other\\ variables or temporary\\ objects, or even change the\\ control flow of the program.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}访问不同分配\\的内存\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}通常不会导致崩溃。\\此错误类型可能会\\导致其他变量或临\\时对象中意外出现\\“奇怪”且潜在危险\\的值，甚至改变程\\序的控制流。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}
 \\
 \begin{cpp}
@@ -253,8 +253,8 @@ void accessElsewhere()
 }
 \end{cpp}
 \end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}Reading\\ uninitialized\\ memory\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Does not cause a crash,\\ unless you use the\\ uninitialized value as a\\ pointer or array index and\\ dereference it (as in the\\ example). Even then, it will\\ not always cause a crash.\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}读取未初始化\\的内存\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}不会导致崩溃，除非\\将未初始化的值作为\\指针或数组索引并取\\消引用（如示例所示）\\。即使在这种情况下，\\也不一定会导致崩溃。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}
 \\
 \begin{cpp}
@@ -267,80 +267,80 @@ void readUninitialized()
 \end{tabular} \\ \hline
 \end{longtable}
 
-Memory-access errors don’t always cause a crash. They can instead lead to subtle errors, in which the program does not terminate but instead produces erroneous results. Erroneous results can lead to serious consequences, for example, when external devices—such as robotic arms, X-ray machines, radiation treatments, life support systems, and so on—are being controlled by the computer.
+内存访问错误并不总是导致崩溃，它们可能导致微妙的错误，程序不会终止，而是产生错误的输出。错误的输出可能导致严重后果，当外部设备（如机械臂、X射线机、放射治疗、生命支持系统等）由计算机控制时。
 
-Note that the symptoms discussed here for both memory-freeing and memory-access errors are the default symptoms for release builds of your program. Debug builds will most likely behave differently, and when you run the program inside a debugger, the debugger might break into the code when an error occurs.
+请注意，这里讨论的内存释放和内存访问错误的症状是程序的发布版本的症状。调试版本的行为可能会有所不同，当在调试器中运行程序时，调试器可能会在错误发生时中断代码的执行。
 
-\mySamllsection{Tips for Debugging Memory Errors}
+\mySamllsection{调试内存错误的小贴士}
 
-Memory-related bugs often show up in slightly different places in the code each time you run the program. This is usually the case with free store memory corruption. Free store memory corruption is like a time bomb, ready to explode at some attempt to allocate, free, or use memory on the free store. So, when you see a bug that is reproducible but that shows up in slightly different places, you should suspect memory corruption.
+与内存相关的错误通常每次运行程序时,都会在代码的不同位置出现。这通常与堆损坏有关。堆内存损坏就像一个定时炸弹，准备在尝试在堆上分配、释放或使用内存时爆炸。如果看到一个可重现但每次出现位置略有不同的错误，应该怀疑是内存损坏。
 
-If you suspect a memory bug, your best option is to use a memory-checking tool for C++. Debuggers often provide options to run the program while checking for memory errors. For example, if you run a debug build of your application in the Microsoft Visual C++ debugger, it will catch almost all types of errors discussed in the previous sections. Additionally, there are some excellent third-party tools such as Purify from Rational Software (now owned by IBM) and Valgrind for Linux (discussed in Chapter 7). Microsoft also provides a free download called Application Verifier (Part of the Windows SDK, \url{https://developer.microsoft.com/windows/downloads/windows-sdk}), which can be used with release builds of your applications in a Windows environment. It is a run-time verification tool to help you find subtle programming errors like the previously discussed memory errors. These debuggers and tools work by interposing their own memory-allocation and -freeing routines to check for any misuse of dynamic memory, such as freeing unallocated memory, dereferencing unallocated memory, or writing off the end of an array.
+如果怀疑有内存错误，最好的选择是使用C++的内存检查工具。调试器通常提供运行时检查内存错误的选项。例如，如果在Microsoft Visual C++调试器中运行应用程序的调试构建，将捕获前述各节中讨论的几乎所有类型的错误。此外，还有一些优秀的第三方工具，如Rational Software（现由IBM拥有）的Purify和Linux上的Valgrind（在第7章中讨论）。Microsoft还提供了一个名为Application Verifier的免费下载（Windows SDK的一部分，\url{https://developer.microsoft.com/windows/downloads/windows-sdk}），可以在Windows环境中与应用程序的发布构建一起使用，是一个运行时验证工具，可协助找到之前讨论的微妙的编程错误，如内存错误。这些调试器和工具通过插入自己的内存分配和释放例程来检查动态内存的误用，例如：释放未分配的内存、引用未分配的内存或写入数组的末尾。
 
-If you don’t have a memory-checking tool at your disposal and the normal strategies for debugging are not helping, you may need to resort to code inspection. First, narrow down the part of the code containing the bug. Then, as a general rule, look at all raw pointers. Provided that you work on moderate- to good-quality code, most pointers should already be wrapped in smart pointers. If you do encounter raw pointers, take a closer look at how they are used, because they might be the cause of the error. Here are some more items to look for in your code.
+如果没有内存检查工具可用，且常规调试策略不起作用，可能需要求助于代码审查。首先，缩小包含错误的代码部分。然后，查看所有原始指针。假设质量中等到良好的代码上工作，大多数指针都应该已经用智能指针封装。如果确实遇到了原始指针，请仔细查看它们的使用方式，因为它们可能是错误的原因。
 
-\mySamllsection{Object and Class-Related Errors}
+\mySamllsection{对象和类相关的错误}
 
 \begin{itemize}
 \item
-Verify that your classes with dynamically allocated memory have destructors that free exactly the memory that’s allocated in the object: no more, and no less.
+验证具有动态分配内存的类是否有析构函数，该析构函数恰好释放对象中分配的内存：不多也不少。
 
 \item
-Ensure that your classes handle copying and assignment correctly with copy constructors and assignment operators, as described in Chapter 9, “Mastering Classes and Objects.” Make sure move constructors and move assignment operators properly set pointers in the source object to nullptr so that their destructors don’t try to free that memory.
+确保类正确处理复制和赋值，使用复制构造函数和赋值运算符，如第9章中所述。确保移动构造函数和移动赋值运算符正确地将源对象中的指针设置为nullptr，以便其析构函数不尝试释放该内存。
 
 \item
-Check for suspicious casts. If you are casting a pointer to an object from one type to another, make sure that it’s valid. When possible, use dynamic\_casts.
+检查可疑的强制类型转换。如果将一个类型的指针转换为另一个类型的对象指针，请确保其有效性。如果可能，请使用dynamic\_cast。
 \end{itemize}
 
 \begin{myWarning}{WARNING}
-Whenever you see raw pointers being used to handle ownership of resources, I highly recommend you replace those raw pointers with smart pointers and try to refactor your classes to follow the rule of zero, as discussed in Chapter 9. This removes the types of errors explained in the first and second bullet points in the preceding list.
+无论何时看到原始指针用来处理资源的所有权，我都强烈建议用智能指针替换这些原始指针，并尝试重构类型，以遵循第9章中讨论的零规则。这消除了前面列表中第一和第二个项解释的错误原因。
 \end{myWarning}
 
-\mySamllsection{General Memory Errors}
+\mySamllsection{通用内存错误}
 
 \begin{itemize}
 \item
-Make sure that every call to new is matched with exactly one call to delete and every call to new[] is matched with one call to delete[]. Similarly, every call to malloc, alloc, or calloc should be matched with one call to free. To avoid freeing memory multiple times or using freed memory, it’s recommended to set your pointer to nullptr after freeing its memory. Of course, the best solution is to simply avoid using raw pointers to handle ownership of resources and instead use smart pointers.
+确保每个调用new都有一个delete与之匹配，每个调用new[]都有一个delete[]与之匹配。同样，每个调用malloc、alloc或calloc都应该有一个free与之匹配。为了避免多次释放内存或使用已释放的内存，建议在释放内存后将其指针设置为nullptr。当然，最好的解决方案是简单地避免使用原始指针来处理资源的所有权，而是使用智能指针。
 
 \item
-Check for buffer overruns. Whenever you iterate over an array or write into or read from a C-style string, verify that you are not accessing memory past the end of the array or string. These problems can often be avoided by using Standard Library containers and strings.
+检查缓冲区溢出。每当遍历数组或向C风格字符串写入或从中读取时，请验证是否未访问数组或字符串之外的内存。这些问题通常可以通过使用标准库容器和字符串来避免。
 
 \item
-Check for dereferencing of invalid pointers.
+检查对无效指针的解引用。
 
 \item
-When declaring a pointer (or really any scalar type) on the stack, make sure you always initialize it as part of its declaration. For example, use T* p\{nullptr\}; or T* p\{new T\}; but never T* p;. Better yet, use smart pointers!
+在栈上声明指针（或任何标量类型）时，请确保您在声明时始终对其进行初始化。例如，使用T* p\{nullptr\};或T* p\{new T\};，但绝不要使用T* p;。最好使用智能指针！
 
 \item
-Similarly, make sure your classes always initialize pointer data members with in-class initializers or in their constructors, by either allocating memory in the constructor or setting the pointers to nullptr. Also here, the best solution is to use smart pointers.
+类似地，确保类在类初始化器或构造函数中始终初始化指针数据成员，通过在构造函数中分配内存或设置指针为nullptr。这里，使用智能指针也是最佳解决方案。
 \end{itemize}
 
 
-\mySubsubsection{31.5.6.}{Debugging Multithreaded Programs}
+\mySubsubsection{31.5.6.}{调试多线程程序}
 
-C++ includes a threading support library that provides mechanisms for threading and synchronization between threads. This threading support library is discussed in Chapter 27. Multithreaded C++ programs are common, so it is important to think about the special issues involved in debugging a multithreaded program. Bugs in multithreaded programs are often caused by variations in timings in the operating system scheduling and can be difficult to reproduce. Thus, debugging multithreaded programs requires a special set of techniques:
+C++包括一个线程库，提供了线程和线程之间的同步机制。多线程的C++程序很常见，考虑调试多线程程序中涉及的特别问题很重要。多线程程序中的错误往往是由操作系统调度的时间变化引起的，并且难以复现，所以调试多线程程序需要一套特殊的技巧：
 
 \begin{itemize}
 \item
-Use a debugger: A debugger makes it relatively easy to diagnose certain multithreaded problems, for example, deadlocks. When a deadlock appears, break into the debugger and inspect the different threads. You will be able to see which threads are blocked and on which line in the code they are blocked. Combining this with trace logs that show you how you came into the deadlock situation should be enough to fix deadlocks.
+使用调试器：调试器使诊断某些多线程问题相对容易，例如：死锁。当出现死锁时，进入调试器并检查不同的线程。将能够看到哪些线程阻塞，以及在代码中的哪一行阻塞。结合显示可，以进入死锁情况的跟踪日志，应该足以修复死锁。
 
 \item
-Use log-based debugging: When debugging multithreaded programs, log-based debugging can sometimes be more effective than using a debugger to debug certain problems. You can add log statements to your program before and after critical sections, and before acquiring and after releasing locks. Log-based debugging is extremely useful in investigating race conditions. However, the act of adding log statements slightly changes run-time timings, which might hide the bug.
+使用基于日志的调试：在调试多线程程序时，基于日志的调试有时比使用调试器调试某些问题更有效。可以在关键部分前后向程序添加日志语句，以及在获取和释放锁之前。基于日志的调试在调查竞争条件时非常有用。但添加日志语句会稍微改变运行时的时序，这可能会隐藏错误。
 
 \item
-Insert forced sleeps and context switches: If you are having trouble consistently reproducing a problem or you have a hunch about the root cause but want to verify it, you can force certain thread-scheduling behavior by making your threads sleep for specific amounts of time. <thread> defines sleep\_until() and sleep\_for() in the std::this\_thread namespace, which you can use to sleep. The time to sleep is specified as an std::time\_point or an std::duration respectively, both part of the chrono library discussed in Chapter 22, “Date and Time Utilities.” Sleeping for several seconds right before releasing a lock, immediately before signaling a condition variable, or directly before accessing shared data can reveal race conditions that would otherwise go undetected. If this debugging technique reveals the root cause, it must be fixed so that it works correctly after removing these forced sleeps and context switches. Never leave these forced sleeps and context switches in your code! That would be the wrong “fix” for the problem.
+插入强制睡眠和上下文切换：如果难以一致地复现一个问题，或者对根本原因有怀疑，但想验证它，可以通过使线程在特定时间睡眠来强制某些线程调度行为。<thread>定义了std::this\_thread命名空间中的sleep\_until()和sleep\_for()，可以使用它们来进行休眠，休眠时间可指定为std::time\_point或std::duration。在释放锁、信号条件变量或直接访问共享数据之前，使线程睡眠几秒钟可以揭示其他情况下可能未检测到的竞争条件。如果这种调试技术揭示了根本原因，那么必须修复，以确保在删除这些强制睡眠和上下文切换后仍然可以正确工作。永远不要将这些强制睡眠和上下文切换留在代码中！那将是错误地“修复”问题。
 
 \item
-Perform code review: Reviewing your thread synchronization code often helps in finding and fixing race conditions. Try to prove over and over that what happened is not possible, until you see how it is. It doesn’t hurt to write down these “proofs” in code comments. Also, ask a co-worker to do pair debugging; she might see something you are overlooking.
+进行代码审查：审查线程同步代码通常有助于发现和修复竞争条件。尝试一遍又一遍地证明发生的事情是不可能的，直到看到它是如何发生的。代码注释中写下这些“证明”，不会有任何伤害。此外，要求同事进行结对调试；她可能会看到你忽视的东西。
 \end{itemize}
 
-\mySubsubsection{31.5.7.}{Debugging Example: Article Citations}
+\mySubsubsection{31.5.7.}{调试示例：文章引用}
 
-This section presents a buggy program and shows you the steps to take in order to debug it and fix the problem.
+本节展示了一个有错误的程序，并演示如何调试并修复问题。
 
-Suppose that you’re part of a team writing a web page that allows users to search for research articles that cite a particular paper. This type of service is useful for authors who are trying to find work similar to their own. Once they find one paper representing a related work, they can look for every paper that cites that one to find other related work.
+假设您是编写一个允许用户搜索引用特定论文的研究文章的网页团队的一员，这种服务对于试图找到与自己作品相似的作者非常有用。当他们找到一个代表相关工作的论文，就可以寻找引用该论文的所有论文，以找到其他相关作品。
 
-In this project, you are responsible for the code that reads the raw citation data from text files. For simplicity, assume that the citation information for each paper is found in its own file. Furthermore, assume that the first line of each file contains the author, title, and publication information for the paper; that the second line is always empty; and that all subsequent lines contain the citations from the article (one on each line). Here is an example file for one of the most important papers in computer science:
+这个项目中，您负责从文本文件中读取原始引用数据。为了简化，假设每个论文的引用信息都在自己的文件中。此外，假设每个文件的第一行包含论文的作者、标题和出版信息；第二行总是空的；所有后续行包含文章的引用（每行一个）。以下是计算机科学中最重要的一篇论文的示例文件：
 
 \begin{shell}
 Alan Turing, "On Computable Numbers, with an Application to the
@@ -356,22 +356,22 @@ Alonzo Church. "A note on the Entscheidungsproblem", J. of Symbolic Logic, 1
 E.W. Hobson, "Theory of functions of a real variable (2nd ed., 1921)", 87-88.
 \end{shell}
 
-\mySamllsection{Buggy Implementation of an ArticleCitations Class}
+\mySamllsection{ArticleCitations类的错误实现}
 
-You may decide to structure your program by writing an ArticleCitations class that reads the file and stores the information. This class stores the article information from the first line in one string, and the citations in a C-style array of strings.
+您可能决定通过编写一个ArticleCitations类来组织程序，该类从文件中读取信息并存储信息。这个类将第一行的文章信息存储在一个字符串中，并将引用存储在一个C风格的字符串数组中。
 
 \begin{myWarning}{WARNING}
-The design decision to use a C-style array is obviously a bad one! You should opt for one of the Standard Library containers to store the citations. This is just used here as a demonstration of memory problems. There are other obvious issues with this implementation, such as not using the copy-and-swap idiom (see Chapter 9) to implement the assignment operator. But, for the purpose of illustrating a buggy application, it’s perfect.
+使用C风格数组的决定显然是错误的！应该选择一个标准库容器来存储引用。这里仅用作内存问题的演示。这个实现的另一个明显问题是，没有使用复制和交换模式（参见第9章）来实现赋值运算符。但这里只是为了演示有错误的应用程序。
 \end{myWarning}
 
-The ArticleCitations class definition, defined in an article\_citations module, looks like this:
+ArticleCitations类的定义，在article\_citations模块中，如下所示：
 
 \begin{cpp}
 export class ArticleCitations
 {
     public:
         explicit ArticleCitations(const std::string& filename);
-        virtual ˜ArticleCitations();
+        virtual ~ArticleCitations();
         ArticleCitations(const ArticleCitations& src);
         ArticleCitations& operator=(const ArticleCitations& rhs);
 
@@ -388,7 +388,7 @@ export class ArticleCitations
 };
 \end{cpp}
 
-The implementation is as follows. Keep in mind that this program is buggy! Don’t use it verbatim or as a model.
+实现如下:(请记住，这个程序是有错误的！不要直接使用它或将其作为模型。)
 
 \begin{cpp}
 ArticleCitations::ArticleCitations(const string& filename)
@@ -487,9 +487,9 @@ int ArticleCitations::getNumCitations() const { return m_numCitations; }
 const string& ArticleCitations::getCitation(int i) const { return m_citations[i]; }
 \end{cpp}
 
-\mySamllsection{Testing the ArticleCitations Class}
+\mySamllsection{测试ArticleCitations类}
 
-The following program asks the user for a filename, constructs an ArticleCitations instance for that file, and passes this instance by value to the processCitations() function, which prints out all the information. Passing the instance by value to the function is done for this buggy example. In production code, you should pass by reference-to-const.
+以下程序要求用户输入一个文件名，为该文件构造一个ArticleCitations实例，并将这个实例值传递给processCitations()函数，该函数打印出所有信息。在这个有问题的示例中，通过值传递实例到函数是为了测试目的。
 
 \begin{cpp}
 void processCitations(ArticleCitations cit)
@@ -513,7 +513,7 @@ int main()
 }
 \end{cpp}
 
-You decide to test the program on the Alan Turing example (stored in a file called paper1.txt). Here is the output:
+决定在名为paper1.txt的文件上测试程序，该文件包含Alan Turing的示例。以下是输出结果：
 
 \begin{shell}
 Enter a file name ("STOP" to stop): paper1.txt
@@ -524,11 +524,11 @@ Vol.42 (1936-37), 230-265.
 Enter a file name ("STOP" to stop): STOP
 \end{shell}
 
-That doesn’t look right. There are supposed to be four citations printed instead of four blank lines.
+这看起来不太对。应该打印出四个引用而不是四个空行。
 
-\mySamllsection{Message-Based Debugging}
+\mySamllsection{基于消息的调试}
 
-For this bug, you decide to try log-based debugging, and because this is a console application, you decide to just print messages using println(). In this case, it makes sense to start by looking at the function that reads the citations from the file. If that doesn’t work right, then obviously the object won’t have the citations. You can modify readFile() as follows:
+对于这个错误，决定尝试基于日志的调试。因为这是一个控制台应用程序，决定使用println()打印消息。这时，从读取引用的文件函数开始有意义。如果这个函数没有正确工作，那么显然对象不会有引用。修改readFile()如下所示：
 
 \begin{cpp}
 void ArticleCitations::readFile(const string& filename)
@@ -570,7 +570,7 @@ void ArticleCitations::readFile(const string& filename)
 }
 \end{cpp}
 
-Running the same test with this program gives the following output:
+用这个程序运行相同的测试会得到以下输出:
 
 \begin{shell}
 Enter a file name ("STOP" to stop): paper1.txt
@@ -593,7 +593,7 @@ Vol.42 (1936-37), 230-265.
 Enter a file name ("STOP" to stop): STOP
 \end{shell}
 
-As you can see from the output, the first time the program reads the citations from the file, to count them, it reads them correctly. However, the second time, they are not read correctly; nothing is printed between “readFile(): reading citations” and “readFile(): finished” — why not? One way to delve deeper into this issue is to add some debugging code to check the state of the file stream after each attempt to read a citation:
+从输出中可以看到，程序第一次从文件中读取引用数时，正确地读取了它们。然而，第二次，读错了;在“readFile(): reading citation”和“readFile(): finished”之间没有打印任何内容——为什么呢?深入研究这个问题的一种方法是添加一些调试代码，来检查每次尝试读取引用后文件流的状态:
 
 \begin{cpp}
 void printStreamState(const istream& inputStream)
@@ -648,7 +648,7 @@ void ArticleCitations::readFile(const string& filename)
 }
 \end{cpp}
 
-When you run your program this time, you find some interesting information:
+当这次运行程序时，会发现一些有趣的信息:
 
 \begin{shell}
 Enter a file name ("STOP" to stop): paper1.txt
@@ -686,13 +686,13 @@ Vol.42 (1936-37), 230-265.
 Enter a file name ("STOP" to stop): STOP
 \end{shell}
 
-It looks like the stream state is good until after the final citation is read for the first time. Because the paper1.txt file contains an empty last line, the while loop is executed one more time after having read the last citation. In this last loop, inputFile >{}> ws reads the whitespace of the last line, which causes the stream state to become eof. Then, the code still tries to read a line using getline(), which causes the stream state to become fail and eof. That is expected. What is not expected is that the stream state remains fail after all attempts to read the citations a second time. That doesn’t appear to make sense at first: the code uses seekg() to seek back to the beginning of the citations before reading them a second time.
+看起来流的状态在第一次读取最后一个引用之后是良好的。因为paper1.txt文件包含一个空的最后一行，所以while循环在读取最后一个引用后还会执行一次。最后一次循环中，inputFile >{}> ws读取了最后一行中的空白字符，这导致流状态变为eof。然后，代码仍然尝试使用getline()读取一行，这导致流状态变为fail和eof，这是符合预期。但在第二次尝试读取引用时，流状态仍然保持为fail，这看起来不太合理：在第二次读取引用之前，代码使用seekg()将流定位回引用的开始。
 
-However, Chapter 13 explains that streams maintain their error states until you clear them explicitly; seekg() doesn’t clear the fail state automatically. When in an error state, streams fail to read data correctly, which explains why the stream state is also fail after trying to read the citations a second time.
+然而，流在明确清除它们之前会保持其错误状态；seekg()不会自动清除fail状态。当流处于错误状态时，无法正确读取数据，这解释了为什么在第二次尝试读取引用后流状态仍然为fail。
 
-A closer look at the code reveals that it fails to call clear() on the istream after reaching the end of the file. If you modify the code by adding a call to clear(), it will read the citations properly.
+仔细查看代码后发现，在到达文件末尾后，没有在istream上调用clear()。如果修改代码，并添加一个clear()调用，将能够正确读取引用。
 
-Here is the corrected readFile() implementation without the debugging print statements:
+以下是修改后的readFile()实现，不包括调试打印语句：
 
 \begin{cpp}
 void ArticleCitations::readFile(const string& filename)
@@ -721,17 +721,17 @@ void ArticleCitations::readFile(const string& filename)
 }
 \end{cpp}
 
-Running the same test again on paper1.txt now shows the correct four citations.
+再次运行相同的测试在paper1.txt文件上现在显示了正确的四个引用。
 
-\mySamllsection{Using the GDB Debugger on Linux}
+\mySamllsection{在Linux上使用GDB调试器}
 
-Now that your ArticleCitations class seems to work well on one citations file, you decide to blaze ahead and test some special cases, starting with a file with no citations. The file looks like this and is stored in a file named paper2.txt:
+现在ArticleCitations类在一份引文文件上似乎运行良好，决定勇往直前，开始测试一些特殊情况，从一份没有引用的文件开始。该文件如下所示，并存储在名为paper2.txt的文件中：
 
 \begin{shell}
 Author with no citations
 \end{shell}
 
-When you try to run your program on this file, depending on your version of Linux and your compiler, you might get a crash that looks something like the following:
+当尝试在这个文件上运行你的程序时，根据你的Linux版本和编译器，可能会遇到类似于以下信息的崩溃：
 
 \begin{shell}
 Enter a file name ("STOP" to stop): paper2.txt
@@ -740,7 +740,7 @@ terminate called after throwing an instance of 'std::bad_alloc'
 Aborted (core dumped)
 \end{shell}
 
-The message “core dumped” means that the program crashed. This time you decide to give the debugger a shot. The Gnu Debugger (GDB) is widely available on Unix and Linux platforms. First, you must compile your program with debugging information (-g with g++). Then you can launch the program under GDB. Here’s an example session using the debugger to find the root cause of this problem. This example assumes your compiled executable is called buggyprogram. Text that you have to type is shown in bold.
+“core dumped”意味着程序崩溃了，这次决定尝试调试器。GNU调试器（GDB）在Unix和Linux平台上广泛可用。首先，必须使用调试信息（-g与g++）编译程序，再使用GDB启动程序。以下是使用调试器找到此问题的根本原因的示例会话，这个例子假设编译的可执行文件称为buggyprogram。
 
 \begin{shell}
 > gdb buggyprogram
@@ -756,7 +756,7 @@ Program received signal SIGABRT, Aborted.
 (gdb)
 \end{shell}
 
-When the program crashes, the debugger breaks the execution and allows you to poke around in the state of the program at that time. The backtrace or bt command shows the current stack trace. The last operation is at the top, with frame number zero (\#0).
+当程序崩溃时，调试器会中断执行，并允许在那个时间点探索程序的状态。backtrace或bt命令显示当前的堆栈跟踪。最后操作位于顶部，帧编号为零（\#0）。
 
 \begin{shell}
 gdb) bt
@@ -778,7 +778,7 @@ ArticleCitations.cpp:39
 #10 0x0000000000401d0c in main () at ArticleCitationsTest.cpp:23
 \end{shell}
 
-When you get a stack trace like this, you should try to find the first stack frame from the top that is in your own code. In this example, this is stack frame \#8. From this frame, you can see that there seems to be a problem in the copy() member function of ArticleCitations. This member function is invoked because main() calls processCitations() and passes the argument by value, which triggers a call to the copy constructor, which calls copy(). Of course, in production code you should pass a reference-to-const, but pass-by-value is used in this example of a buggy program. You can tell the debugger to switch to stack frame \#8 with the frame command, which requires the index of the frame that you want to jump to:
+当你得到这样的堆栈跟踪时，应该尝试找到顶部第一个来自自己的代码的堆栈帧。这个例子中，这是堆栈帧\#8。从这帧中，可以看到似乎ArticleCitations类的copy()成员函数有问题。这个成员函数被调用是因为main()调用processCitations()，并将参数按值传递，这触发了复制构造函数的调用，从而调用了copy()。生产代码中，应该传递常量引用，但在这个有问题的程序示例中使用了按值传递。可以使用frame命令将调试器切换到堆栈帧\#8，这需要想要跳转到的帧的索引：
 
 \begin{cpp}
 (gdb) frame 8
@@ -787,13 +787,13 @@ ArticleCitations.cpp:39
 39   m_citations = new string[m_numCitations];
 \end{cpp}
 
-This output shows that the following line caused a problem:
+这表明以下行引起了问题：
 
 \begin{cpp}
 m_citations = new string[m_numCitations];
 \end{cpp}
 
-Now, you can use the list command to show the code in the current stack frame around the offending line:
+现在，可以使用list命令显示当前堆栈帧中与错误行附近的代码：
 
 \begin{shell}
 (gdb) list
@@ -809,7 +809,7 @@ Now, you can use the list command to show the code in the current stack frame ar
 43      }
 \end{shell}
 
-In GDB, you can print values available in the current scope with the print command. To find the root cause of the problem, you can try printing some of the variables. The error happens inside the copy() member function, so checking the value of the src parameter is a good start:
+在GDB中，可以使用print命令打印当前作用域中可用的值。为了找到问题的根本原因，可以尝试打印一些变量。错误发生在copy()成员函数内部，所以先来检查src参数的值：
 
 \begin{shell}
 (gdb) print src
@@ -819,7 +819,7 @@ $1 = (const ArticleCitations &) @0x7fffffffe060: {
     m_numCitations = -1}
 \end{shell}
 
-A-ha! Here’s the problem. This article isn’t supposed to have any citations. Why is m\_numCitations set to the strange value -1? Take another look at the code in readFile() for the case where there are no citations. In that case, it looks like m\_numCitations is erroneously set to -1. The fix is easy: you always need to initialize m\_numCitations to 0, instead of setting it to -1 when there are no citations. Another problem is that readFile() can be called multiple times on the same ArticleCitations object, so you also need to free a previously allocated m\_citations array. Here is the fixed code:
+啊哈！这就是问题所在。这篇文章不应该有任何引用。为什么m\_numCitations设置为奇怪的值-1？再看看readFile()代码中没有引用的情况。这时，m\_numCitations错误地设置为-1。修复方法很简单：需要将m\_numCitations初始化为0，而不是在没有引用时，将其设置为-1。另一个问题是readFile()可以多次调用同一个ArticleCitations对象，所以还需要释放之前分配的m\_citations数组。以下是修复后的代码：
 
 \begin{cpp}
 void ArticleCitations::readFile(const string& filename)
@@ -839,41 +839,41 @@ void ArticleCitations::readFile(const string& filename)
 }
 \end{cpp}
 
-As this example shows, bugs don’t always show up right away. It often takes a debugger and some persistence to find them.
+正如这个例子所示，bug并不总是立即显现。通常需要调试器和一些坚持，才能找到它们。
 
-\mySamllsection{Using the Visual C++ 2022 Debugger}
+\mySamllsection{使用Visual C++ 2022调试器}
 
-This section explains the same debugging procedure as described in the previous section but uses the Microsoft Visual C++ 2022 debugger instead of GDB.
+本节解释了与上一节相同但使用Microsoft Visual C++ 2022调试器，而不是GDB的调试过程。
 
-First, you need to create a project. Either click the New Project button in the Visual Studio 2022’s welcome screen or select File -> New -> Project. In the Create A New Project dialog, search for the Console App project template with tags C++, Windows, and Console, and click Next. Enter ArticleCitations as the name for the project, choose a folder where to save the project, and click Create. Once your project is created, you can see a list of project files in the Solution Explorer. If this docking window is not visible, select View -> Solution Explorer. The project will already contain a file called ArticleCitations.cpp listed under Source Files in the Solution Explorer tree. Select this file in the Solution Explorer and delete it, as you will add your own files.
+首先，需要创建一个项目。在Visual Studio 2022的欢迎屏幕上点击“新建项目”按钮，或者选择文件 -> 新建 -> 项目。在“创建新项目”对话框中，搜索带有C++、Windows和控制台标签的控制台应用程序项目模板，然后点击“下一步”。输入ArticleCitations作为项目的名称，选择一个保存项目的文件夹，然后点击“创建”。项目创建完成，可以在解决方案资源管理器中看到项目文件列表。如果这个停靠窗口不可见，请选择视图 -> 解决方案资源管理器。项目将已经包含一个名为ArticleCitations.cpp的文件，列在解决方案资源管理器树中的源文件下。在解决方案资源管理器中选择这个文件，然后删除它，添加自己的文件。
 
-Now let’s add our files. Right-click the ArticleCitations project in the Solution Explorer and select Add -> Existing Item. Add all the files from the 06\_ArticleCitations\verb|\|04\_AfterLogDebugging folder in the downloadable source code archive to the project. Your Solution Explorer should look similar to Figure 31.1.
+现在添加我们的文件。在解决方案资源管理器中右键点击ArticleCitations项目，然后选择添加 -> 现有项。将下载源代码归档中06\_ArticleCitations\verb|\|04\_AfterLogDebugging文件夹中的所有文件添加到项目中。现在的解决方案资源管理器应该类似于图31.1。
 
-\myGraphic{0.5}{content/part5/chapter31/images/1.png}{FIGURE 31.1}
+\myGraphic{0.5}{content/part5/chapter31/images/1.png}{图 31.1}
 
-This example uses C++23 features which are not yet enabled by default in Visual C++ 2022 at the time of this writing. To enable them, right-click the ArticleCitations project in the Solution Explorer window and click Properties. In the Properties window, select Configuration Properties ➪ General and set the C++ Language Standard option to “ISO C++23 Standard” or “Preview - Features From The Latest C++ Working Draft”, whichever is available in your version of Visual C++. The ISO C++23 Standard option is not currently there yet, but it will appear in a future update of Visual C++. While still in the Properties window, go to Configuration Properties ➪ C/C++ -> Command Line and add /utf-8 as Additional Options. This makes sure that characters such as the ö in Gödel are properly printed.
+这个示例使用了C++23特性，在Visual C++ 2022中目前还没有默认启用。要启用它们，请在解决方案资源管理器窗口中右键点击ArticleCitations项目，然后点击属性。在属性窗口中，选择配置属性 -> 常规，并将C++语言标准选项设置为“ISO C++23标准”或“预览 - 来自最新C++工作草案的功能”，取决于你Visual C++的版本。ISO C++23标准选项目前还没有，但将在Visual C++的未来更新中出现。在属性窗口中，转到配置属性 -> C/C++ -> 命令行，并添加/utf-8作为附加选项。这将确保诸如Gödel中的ö这样的字符能正确打印。
 
-Make sure the configuration is set to Debug and not Release and then compile the whole program by selecting Build -> Build Solution. Then copy the paper1.txt and paper2.txt test files to your ArticleCitations project folder, which is the folder containing the ArticleCitations .vcxproj file.
+确保配置设置为调试而不是发布，然后通过选择构建 -> 构建解决方案来编译整个程序。然后将paper1.txt和paper2.txt测试文件复制到ArticleCitations项目的文件夹中，这个文件夹包含ArticleCitations.vcxproj文件。
 
-Run the application with Debug -> Start Debugging and test the program by first specifying the paper1.txt file. It should properly read the file and output the result to the console. Then, test paper2.txt. The debugger breaks the execution with a message similar to Figure 31.2.
+通过选择调试 -> 开始调试来运行应用程序。首先指定paper1.txt文件。应该正确读取文件并输出结果到控制台，再测试paper2.txt。调试器会中断执行，显示一个类似于图31.2的消息。
 
-\myGraphic{0.5}{content/part5/chapter31/images/2.png}{FIGURE 31.2}
+\myGraphic{0.5}{content/part5/chapter31/images/2.png}{图 31.2}
 
-This shows that an std::bad\_array\_new\_length exception is thrown. If the code you see is not code you have written, then you need to find the line in your code that caused the exception. To do so, use the call stack window (Debug -> Windows -> Call Stack). In the call stack, you need to find the first line that contains code you wrote. This is shown in Figure 31.3. You can double-click a line in the call stack window to jump to that line in the code.
+这表明抛出了std::bad\_array\_new\_length异常。如果看到的代码不是自己编写的代码，那么需要找到自己代码中导致异常的行。要做到这一点，请使用调用堆栈窗口（调试 -> 窗口 -> 调用堆栈）。在调用堆栈中，需要找到第一个包含自己编写的代码的行。如图31.3所示。可以双击调用堆栈窗口中的行，跳转到代码中的那一行。
 
-\myGraphic{0.5}{content/part5/chapter31/images/3.png}{FIGURE 31.3}
+\myGraphic{0.5}{content/part5/chapter31/images/3.png}{图 31.3}
 
-Just as with GDB, you see that the problem is in ArticleCitations::copy().
+正如GDB示例中所见，问题在ArticleCitations::copy()中。
 
-You can now inspect variables by simply hovering your mouse over the name of a variable. If you hover over src, you’ll notice that m\_numCitations is -1. The reason and the fix are the same as in the GDB example.
+现在可以简单地将鼠标悬停在变量名上以检查其值。如果悬停在src上，会注意到m\_numCitations是-1。原因和修复方法与GDB示例相同。
 
-Instead of hovering over variables to inspect their values, you can also use the Debug -> Windows -> Autos window, which shows a list of variables. Figure 31.4 shows this list with the src variable expanded to show its data members. From this window, you can also see that m\_numCitations is -1.
+除了悬停在变量上以检查它们的值之外，还可以使用调试 -> 窗口 -> 自动窗口，它显示了一个变量列表。图31.4显示了这个列表，其中src变量展开以显示其数据成员。从这个窗口，还可以看到m\_numCitations是-1。
 
-\myGraphic{0.5}{content/part5/chapter31/images/4.png}{FIGURE 31.4}
+\myGraphic{0.5}{content/part5/chapter31/images/4.png}{图 31.4}
 
-\mySubsubsection{31.5.8.}{Lessons from the ArticleCitations Example}
+\mySubsubsection{31.5.8.}{从ArticleCitations示例中学到的教训}
 
-You might be inclined to disregard this example as too small to be representative of real debugging. Although the buggy code is not lengthy, many classes that you write will not be much bigger, even in large projects. Imagine if you had failed to test this example thoroughly before integrating it with the rest of the project. If these bugs showed up later, you and other engineers would spend more time narrowing down the problem before you could debug it as shown here. Additionally, the techniques shown in this example apply to all debugging, whether on a large or small scale.
+你可能会倾向于认为这个示例太小，不足以代表真实的调试工作。尽管有错误的代码并不长，但编写的许多类在大型项目中也不会大多少。想象一下，如果将这个示例与项目的其他部分集成之前没有彻底测试它，如果这些错误后来出现，你和其它工程师将花费更多时间来缩小问题范围，才能像这里展示的那样进行调试。此外，这个示例中展示的技术适用于所有调试工作，无论规模大小。
 
 
 

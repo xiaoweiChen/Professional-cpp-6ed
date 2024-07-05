@@ -1,32 +1,30 @@
 \noindent
-\textbf{WHAT’S IN THIS CHAPTER?}
+\textbf{内筒概要}
 
 \begin{itemize}
 \item
-The fundamental law of debugging, and bug taxonomies
+调试和bug分类的基本法则
 
 \item
-Tips for avoiding bugs
+避免bug的提示
 
 \item
-How to plan for bugs
+如何为bug做计划
 
 \item
-The different kinds of memory errors
+不同类型的内存错误
 
 \item
-How to use a debugger to pinpoint code causing a bug
+如何使用调试器来精确定位导致bug的代码
 \end{itemize}
 
-\noindent
-\textbf{WILEY.COM DOWNLOADS FOR THIS CHAPTER}
+本章的所有代码示例都可以在\url{https://github.com/Professional-CPP/edition-6}获得。
 
-Please note that all the code examples for this chapter are available as part of this chapter’s code download on the book’s website at \url{www.wiley.com/go/proc++6e} on the Download Code tab.
+代码将包含错误。每个专业程序员都希望编写无错误的代码，但很少有软件工程师在这方面取得成功。正如计算机用户所知，错误在计算机软件中普遍存在，编写的软件也不例外。
 
-Your code will contain bugs. Every professional programmer would like to write bug-free code, but the reality is that few software engineers succeed in this endeavor. As computer users know, bugs are endemic in computer software. The software that you write is probably no exception.
+除非打算贿赂同事来修复所有的错误，如果不懂得如何调试C++代码，就不能成为一名专业的C++开发者。区分经验丰富的开发者和新手的一个指标是他们的调试技能。
 
-Therefore, unless you plan to bribe your co-workers into fixing all your bugs, you cannot be a professional C++ programmer without knowing how to debug C++ code. One factor that often distinguishes experienced programmers from novices is their debugging skills.
+尽管调试的重要性显而易见，但在课程和书籍中很少给予足够的关注。调试似乎是一种每个人都知道，但没有人知道如何教授的技能。本章试图提供具体的调试指南和技巧。
 
-Despite the obvious importance of debugging, it is rarely given enough attention in courses and books. Debugging seems to be the type of skill that everyone wants you to know, but no one knows how to teach. This chapter attempts to provide concrete debugging guidelines and techniques.
+本章从调试的基本法则和错误的分类开始，接着是避免错误的提示。计划处理错误的技巧包括错误日志、调试跟踪、断言和转储崩溃。具体给出了调试出现问题的提示，包括重现错误和调试可重现错误、不可重现错误、内存错误和多线程程序的技巧。本章以一个逐步调试的示例作为结尾。
 
-This chapter starts with the fundamental law of debugging and bug taxonomies, followed by tips for avoiding bugs. Techniques for planning for bugs include error logging, debug traces, assertions, and crash dumps. Specific tips are given for debugging the problems that arise, including techniques for reproducing bugs and debugging reproducible bugs, nonreproducible bugs, memory errors, and multithreaded programs. The chapter concludes with a step-by-step debugging example.

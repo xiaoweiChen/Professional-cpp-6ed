@@ -1,65 +1,65 @@
 
-While unit tests are the best first line of defense against bugs, they are only part of the larger testing process. Higher-level tests focus on how pieces of the product work together, as opposed to the relatively narrow focus of unit tests. In a way, higher-level tests are more challenging to write because it’s less clear what tests need to be written. Still, you cannot really claim that the program works until you have tested how its pieces work together.
+单元测试是防止缺陷的第一道防线，但它们只是更大测试过程中的一个部分。更高层次的测试专注于产品部件如何协同工作，而不是单元测试相对狭窄的关注点。某种程度上，更高层次的测试更难以编写，因为不太清楚需要编写哪些测试，但只有测试了部件如何协同工作，才能说程序运行正常。
 
-\mySubsubsection{30.4.1.}{Integration Tests}
+\mySubsubsection{30.4.1.}{集成测试}
 
-An integration test covers areas where components meet. Unlike a unit test, which generally acts on the level of a single class, an integration test usually involves two or more classes. Integration tests excel at testing interactions between two components, often written by two different programmers. In fact, the process of writing an integration test often reveals important incompatibilities between designs.
+集成测试覆盖组件相遇的区域。与单元测试不同，集成测试通常涉及两个或更多类。集成测试擅长测试两个组件之间的交互，通常由两个不同的开发者编写。实际上，编写集成测试的过程揭示了设计之间的不兼容性。
 
-\mySamllsection{Sample Integration Tests}
+\mySamllsection{示例集成测试}
 
-Because there are no hard-and-fast rules to determine what integration tests you should write, some examples might help you get a sense of when integration tests are useful. The following scenarios depict cases where an integration test is appropriate, but they do not cover every possible case. Just as with unit tests, over time you will refine your intuition for useful integration tests.
+由于没有硬性规则来确定应该编写哪些集成测试，一些示例可能有助于了解何时使用集成测试。以下场景描述了适合集成测试的情况，但它们并不涵盖所有可能的情况。就像单元测试一样，随着时间的推移，将逐渐培养出对有用集成测试的直觉。
 
-\mySamllsection{A JSON-Based File Serialize}
+\mySamllsection{基于JSON的文件序列化}
 
-Suppose that your project includes a persistence layer that is used to save certain types of objects to disk and to read them back in. The hip way to serialize data is to use the JSON format, so a logical breakdown of components might include a JSON conversion layer sitting on top of a custom file API. Both of these components can be thoroughly unit tested. The JSON layer can have unit tests that ensure that different types of objects are correctly converted to JSON and populated from JSON. The file API can have tests that read, write, update, and delete files on disk.
+假设项目包括一个持久层，用于将某些类型的对象保存到磁盘并从磁盘读取。使用JSON格式是当前流行的数据序列化方式，组件的逻辑分解可能包括一个位于自定义文件API之上的JSON转换层，这两个组件都可以进行彻底的单元测试。JSON层可以有单元测试，确保不同类型的对象正确转换为JSON并从JSON填充。文件API可以有测试，用于在磁盘上读取、写入、更新和删除文件。
 
-When these modules start to work together, integration tests are appropriate. At the least, you should have an integration test that saves an object to disk through the JSON layer and then reads it back in and does a comparison to the original. Because the test covers both modules, it is a basic integration test.
+当这些模块开始协同工作时，集成测试就适用了。应该有一个集成测试，该测试通过JSON层将对象保存到磁盘，然后读取它并将其与原始对象进行比较。因为该测试覆盖了两个模块，所以它是一个基本的集成测试。
 
-\mySamllsection{Readers and Writers to a Shared Resource}
+\mySamllsection{共享资源的读者和写者}
 
-Imagine a program that contains a data structure shared by different components. For example, a stock-trading program can have a queue of buy-and-sell requests. Components related to receiving stock transaction requests can add orders to the queue, and components related to performing stock trades can take data off the queue. You can unit test the heck out of the queue class, but until it is tested with the actual components that will be using it, you really don’t know if any of your assumptions are wrong.
+想象一个包含共享数据结构的程序。例如，一个股票交易程序可以有一个买入和卖出请求的队列。与接收股票交易请求相关的组件可以向队列添加订单，与执行股票交易相关的组件可以从队列中获取数据。可以对队列类进行大量单元测试，但在与实际使用它的组件一起测试之前，不知道设计时的假设是否正确。
 
-A good integration test uses the stock request components and the stock trade components as clients of the queue class. You can write some sample orders and make sure that they successfully enter and exit the queue through the client components.
+好的集成测试使用股票请求组件和股票交易组件作为队列类的客户端。可以编写一些示例订单，并确保它们通过客户端组件成功进入和退出队列。
 
-\mySamllsection{Wrapper Around a Third-Party Library}
+\mySamllsection{第三方库的包装器}
 
-Integration tests do not always need to occur at integration points in your own code. Many times, integration tests are written to test the interaction between your code and a third-party library.
+集成测试并不总是需要发生在自己的代码的集成点上。很多时候，集成测试是为了测试与第三方库之间的交互。
 
-For example, you may be using a database connection library to talk to a relational database system. Perhaps you built an object-oriented wrapper around the library that adds support for connection caching or provides a friendlier interface. This is an important integration point to test because, even though the wrapper probably provides a more useful interface to the database, it introduces possible misuse of the original library.
+例如，可能正在使用一个数据库连接库与关系型数据库系统进行通信。也许为该库构建了一个面向对象的包装器，该包装器增加了连接缓存的支持或提供了更友好的界面。这是一个重要的集成点，尽管包装器可能为数据库提供了更有用的接口，但它可能引入了对原始库的潜在误用。
 
-In other words, writing a wrapper is a good thing, but writing a wrapper that introduces bugs will be a disaster.
+换句话说，编写包装器是一件好事，但如果引入了错误的包装器，那将是一场灾难。
 
-\mySamllsection{Integration Testing Techniques}
+\mySamllsection{集成测试技术}
 
-When it comes to actually writing integration tests, there is often a fine line between integration and unit tests. If a unit test is modified so that it touches another component, is it suddenly an integration test? In a way, the answer is moot because a good test is a good test, regardless of the type of test. I recommend you use the concepts of integration and unit testing as two approaches to testing, but avoid getting caught up in labeling the category of every single test.
+实际编写集成测试时，集成测试与单元测试之间的界限往往很模糊。如果一个单元测试被修改以触及另一个组件，它是否突然变成了一个集成测试？从某种程度上说，答案无关紧要，因为好的测试就是好的测试，无论测试类型如何。我建议将集成测试和单元测试的概念作为两种测试方法，但避免陷入给每个测试贴上类别的困境。
 
-In terms of implementation, integration tests are often written by using a unit testing framework, further blurring their distinction. As it turns out, unit testing frameworks provide an easy way to write a yes/no test and produce useful results. Whether the test is looking at a single unit of functionality or the intersection of two components hardly makes a difference from the framework’s point of view.
+实现方面，集成测试通常使用单元测试框架编写，进一步模糊了它们的区别。事实上，单元测试框架提供了一种编写是/否测试，并产生有用结果的简单方法。无论测试是关注单一功能单元还是两个组件的交集，从框架的角度来看，这几乎没有区别。
 
-However, for performance reasons or organizational reasons, you may want to attempt to separate unit tests from integration tests. For example, your group may decide that everybody must run integration tests before checking in new code, but be a bit laxer on running unrelated unit tests. Separating the two types of tests also increases the value of results. If a test failure occurs within the JSON class tests, it will be clear that it’s a bug in that class, not in the interaction between that class and the file API.
+然而，出于性能或组织原因，可能希望尝试将单元测试与集成测试分开。例如，团队可能决定每个人都必须在提交新代码之前运行集成测试，但对无关的单元测试可以稍微宽松一些，将两种类型的测试分开也增加了结果的价值。如果JSON类测试中发生测试失败，将清楚地表明是该类中的错误，而不是该类与文件API之间的交互错误。
 
-\mySubsubsection{30.4.2.}{System Tests}
+\mySubsubsection{30.4.2.}{系统测试}
 
-System tests operate at an even higher level than integration tests. These tests examine the program as a whole. System tests often make use of a virtual user that simulates a human being working with the program. Of course, the virtual user must be programmed with a script of actions to perform. Other system tests rely on scripts or a fixed set of inputs and expected outputs.
+系统测试在集成测试之上，甚至更高一个层次。这些测试审视程序的整体，系统测试经常使用虚拟用户来模拟人类与程序的交互。当然，虚拟用户必须编写一个动作脚本来执行，其他系统测试依赖于脚本或一组固定的输入和预期输出。
 
-Much like unit and integration tests, an individual system test performs a specific test and expects a specific result. It is not uncommon to use system tests to make sure that different features work in combination with one another.
+与单元测试和集成测试一样，单个系统测试执行特定的测试并期望特定的结果。通常，系统测试用于确保不同的特性以组合的方式进行工作。
 
-In theory, a fully system-tested program would contain a test for every permutation of every feature. This approach quickly grows unwieldy, but you should still make an effort to test many features in combination. For example, a graphics program could have a system test that imports an image, rotates it, performs a blur filter, converts it to black and white, and then saves it. The test would compare the saved image to a file that contains the expected result.
+理论上，一个完全系统测试的程序将，包含对每个特性的每个可能性的测试。这种方法很快就会变得难以处理，但仍然应该努力测试许多特性的组合。例如，一个图形程序可能有一个系统测试，该测试导入一个图像，对其进行旋转，应用模糊滤镜，转换为黑白，然后保存。该测试将保存的图像与包含预期结果的文件进行比较。
 
-Unfortunately, few specific rules can be stated about system tests because they are highly dependent on the actual application. For applications that process files with no user interaction, system tests can be written much like unit and integration tests. For graphical programs, a virtual user approach may be best. For server applications, you might need to build stub clients that simulate network traffic. The important part is that you are actually testing real use of the program, not just a piece of it.
+不幸的是，关于系统测试，很难制定具体的规则，它们高度依赖于实际应用程序。对于没有用户交互处理文件的程序，系统测试可以像单元测试和集成测试一样编写。对于图形程序，虚拟用户方法可能是最佳选择。对于服务器应用程序，可能需要构建模拟网络流量客户端的测试桩。重要的是，实际上是在测试程序的真实使用情况，而不仅仅是其一部分。
 
-\mySubsubsection{30.4.3.}{Regression Tests}
+\mySubsubsection{30.4.3.}{回归测试}
 
-Regression testing is more of a testing concept than a specific type of test. The idea is that once a feature works, developers tend to put it aside and assume that it will continue to work. Unfortunately, new features and other code changes often conspire to break previously working functionality.
+回归测试更像是一个测试概念，而不是特定类型的测试。其思想是，当特性工作正常，开发者往往会将其搁置一旁，并假设它将继续正常工作。不幸的是，新特性和其他代码更改往往会导致之前正常工作的功能出现问题。
 
-Regression tests are often put in place as a sanity check for features that are, more or less, complete and working. If the regression test is well written, it will cease to pass when a change is introduced that breaks the feature.
+回归测试通常作为对那些基本完成且工作的特性的“常识”检查。如果回归测试编写得很好，当引入导致特性故障的更改时，测试将不再通过。
 
-If your company has an army of quality-assurance testers, regression testing may take the form of manual testing. The tester acts as a user would and goes through a series of steps, gradually testing every feature that worked in the previous release. This approach is thorough and accurate if carefully performed, but is not particularly scalable.
+如果公司有一支质量保证测试团队，回归测试可能以手动测试的形式出现。测试人员像用户一样进行一系列步骤，逐渐测试以前版本中工作的每个特性。如果仔细执行，这种方法既彻底又准确，但不可扩展。
 
-At the other extreme, you could build a completely automated system that performs each function as a virtual user. This would be a scripting challenge, though several commercial and noncommercial packages exist to ease the scripting of various types of applications.
+另一个极端，可以构建一个完全自动化的系统，该系统以虚拟用户的方式执行每个功能。这将是脚本编写的一个挑战，但有一些商业和非商业软件包可以简化各种类型应用程序的脚本编写。
 
-A middle ground is known as smoke testing. Some tests will only test a subset of the most important features that should work. The idea is that if something is broken, it should show up right away. If smoke tests pass, they could be followed by more rigorous manual or automated testing. The term smoke testing was introduced a long time ago, in electronics. After a circuit was built, with different components like vacuum tubes, resistors, and so on, the question was, “Is it assembled correctly?” A solution was to “plug it in, turn it on, and see if smoke comes out.” If smoke came out, the design might be wrong, or the assembly might be wrong. By seeing what part went up in smoke, the error could be determined.
+一个中间方法称为冒烟测试。一些测试只会测试最重要的功能子集，这些功能应该工作。如果某个部分出现问题，应该立即显现。如果冒烟测试通过，可以用更严格的手动或自动化测试所取代。冒烟测试的概念最早是在电子学领域引入的。在构建一个电路，包括不同组件如真空管、电阻器等之后，问题就是：“它组装正确吗？”一个解决方案是：“插上电源，打开，看看是否冒烟。”如果冒烟(短路产生高温)，设计可能错误，或者组装可能错误。通过观察哪个部分冒烟，从而判断错误。
 
-Some bugs are like nightmares: they are both terrifying and recurring. Recurring bugs are frustrating and a poor use of engineering resources. To prevent bugs from recurring, you should write regression tests for bugs that you fix. By writing a test for a bug fix, you both prove that the bug is fixed and set up an alert that is triggered if the bug ever comes back—for example, if your change is rolled back or otherwise undone, or if two branches are not merged correctly into the main development branch. When a regression test of a previously fixed bug fails, it should be easy to fix because the regression test can refer to the original bug number and describe how it was fixed the first time.
+一些缺陷就像噩梦一样：既可怕又反复出现。反复出现的缺陷令人沮丧，是对工程资源的浪费。为了防止缺陷反复出现，应该为修复的缺陷编写回归测试。通过为修复的缺陷编写测试，既证明了缺陷已经修复，又设置了一个警报，如果缺陷再次出现，会触发这个警报——例如，的更改回滚或以其他方式撤销，或者两个分支没有正确合并到主开发分支。当一个已经修复的缺陷的回归测试失败时，修复起来应该很容易，因为回归测试可以引用原始的缺陷编号，并描述第一次是如何修复的。
 
 
 

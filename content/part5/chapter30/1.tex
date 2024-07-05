@@ -1,52 +1,52 @@
 
-Large programming projects are rarely finished when a feature-complete goal is reached. There are always bugs to find and fix, both during and after the main development phase. It is essential to understand the shared responsibility of quality control and the life cycle of a bug to perform well in a group.
+大型编程项目很少在功能完整的目标达成时就结束。无论是在主要开发阶段期间还是之后，总是有错误需要发现和修复。为了在团队中表现良好，理解质量控制的共享责任和错误的生命周期也非常重要。
 
-\mySubsubsection{30.1.1.}{Whose Responsibility Is Testing?}
+\mySubsubsection{30.1.1.}{谁负责测试？}
 
-Software development organizations have different approaches to testing. In a small startup, there may not be a group of people whose full-time job is testing the product. Testing may be the responsibility of the individual developers, or all the employees of the company may be asked to lend a hand and try to break the product before its release. In larger organizations, a full-time quality assurance staff probably qualifies a release by testing it according to a set of criteria. Nonetheless, some aspects of testing may still be the responsibility of the developers. Even in organizations where the developers have no role in formal testing, you still need to be aware of what your responsibilities are in the larger process of quality assurance.
+软件开发组织有不同的测试方法。一个小型初创公司中，可能没有一群人的全职工作是测试产品。测试可能是个人开发者的责任，或者公司所有员工都可能要求在产品发布前帮忙测试，并尝试破坏产品。较大的组织中，全职质量保证人员可能会根据一套标准测试产品以确定其是否可以发布。尽管如此，某些方面的测试可能仍然是由开发者的责任。即使在开发者不参与正式测试的组织中，仍然需要了解质量保证更大过程中的责任是什么。
 
-\mySubsubsection{30.1.2.}{The Life Cycle of a Bug}
+\mySubsubsection{30.1.2.}{错误的生命周期}
 
-All good engineering groups recognize that bugs will occur in software both before and after its release. There are many different ways to deal with these problems. 图 30.1 shows a formal bug process, expressed as a flow chart. In this particular process, a bug is always filed by a member of the QA team. The bug reporting software sends a notification to the development manager, who sets the priority of the bug and assigns the bug to the appropriate module owner. The module owner can accept the bug or explain why the bug actually belongs to a different module or is invalid, giving the development manager the opportunity to assign it to someone else.
-
-Once the bug has found its rightful owner, a fix is made, and the developer marks the bug as “fixed.” At this point, the QA engineer verifies that the bug no longer exists and marks the bug as “closed” or reopens the bug if it is still present.
+所有优秀的工程团队都认识到，软件在发布前后都会出现错误。有许多不同的方法来处理这些问题。图 30.1 展示了一个正式的错误处理流程，用流程图表示。在这个特定的流程中，错误总是由 QA 团队的成员提交。错误报告软件会向开发经理发送通知，开发经理设置错误的优先级，并将错误分配给适当的模块负责人。模块负责人可以接受错误，或者解释为什么错误实际上属于另一个模块或无效，给开发经理机会将其分配给其他人。
 
 \myGraphic{0.8}{content/part5/chapter30/images/1.png}{图 30.1}
 
-图 30.2 shows a less formal approach. In this workflow, anybody can file a bug and assign an initial priority and a module. The module owner receives the bug report and can either accept it or reassign it to another engineer or module. When a correction is made, the bug is marked as “fixed.” Toward the end of the testing phase, all the developers and QA engineers divide up the fixed bugs and verify that each bug is no longer present in the current build. The release is ready when all bugs are marked as “closed.”
+当错误找到了其所有者，就会进行修复，开发者将错误标记为“已修复”。此时，QA 工程师验证错误，若已不再存可将错误标记为“已关闭”，如果再次错误出现，则重新打开错误。
+
+图 30.2 展示了一个不太正式的方法。在这个工作流程中，任何人都可以提交错误并分配一个初始优先级和一个模块。模块负责人收到错误报告，可以接受它或者将其重新分配给另一个工程师或模块。进行更正后，错误标记为“已修复”。在测试阶段即将结束时，所有开发者和 QA 工程师分配修复的错误，并验证每个错误在当前构建中不再存在。当所有错误都标记为“已关闭”时，就可以准备发布了。
 
 \myGraphic{0.5}{content/part5/chapter30/images/2.png}{图 30.2}
 
-\mySubsubsection{30.1.3.}{Bug-Tracking Tools}
+\mySubsubsection{30.1.3.}{错误跟踪工具}
 
-There are many ways to keep track of software bugs, from informal spreadsheet- or e-mail-based schemes to expensive third-party bug-tracking software. The appropriate solution for your organization depends on the group’s size, the nature of the software, and the level of formality you want to build around bug fixing.
+有许多方法可以跟踪软件错误，从非正式的基于电子表格或电子邮件的计划，到昂贵的第三方错误跟踪软件。适合组织的解决方案取决于团队的大小、软件的性质，以及希望在错误修复周围构建的正式程度。
 
-There are also a number of free open-source bug-tracking solutions available. One of the more popular free tools for bug tracking is Bugzilla (bugzilla.org), written by the authors of the Mozilla and Firefox web browser. As an open-source project, Bugzilla has gradually accumulated a number of useful features to the point where it now rivals expensive bug-tracking software packages. Here are just a few of its many features:
+还有许多免费的开源错误跟踪解决方案可用。一个更受欢迎的免费错误跟踪工具是 Bugzilla（bugzilla.org），由 Mozilla 和 Firefox 网络浏览器的作者编写。作为一个开源项目，Bugzilla 逐渐积累了许多有用的功能，现在它甚至可以与昂贵的错误跟踪软件相媲美。以下只是其众多功能中的一小部分：
 
 \begin{itemize}
 \item
-Customizable settings for a bug, including its priority, associated component, status, and so on
+可自定义的错误设置，包括其优先级、关联组件、状态等
 
 \item
-E-mail notification of new bug reports or changes to an existing report
+关于新错误报告或现有报告变更的电子邮件通知
 
 \item
-Tracking of dependencies between bugs and resolution of duplicate bugs
+跟踪错误之间的依赖关系并解决重复错误
 
 \item
-Reporting and searching tools
+报告和搜索工具
 
 \item
-A web-based interface for filing and updating bugs
+用于提交和更新错误的基于网页的界面
 \end{itemize}
 
-图 30.3 shows a bug being entered into a Bugzilla project that was set up for the second edition of this book. For my purposes, each chapter was input as a Bugzilla component. The filer of the bug can specify the severity of the bug (that is, how big of a deal it is). A summary and description are included to make it possible to search for the bug or list it in a report format.
+图 30.3 展示了一个错误被输入到为本书第二版设置的 Bugzilla 项目中。为了我的目的，每一章都可作为 Bugzilla 的一个组件，错误提交者可以指定错误的严重性（即它有多大影响）。包括摘要和描述，以便可以搜索错误或以报告格式列出它。
 
 \myGraphic{0.8}{content/part5/chapter30/images/3.png}{图 30.3}
 
-When writing a bug report, make sure to include as much information as possible in the report. For example, if your bug report is about an error you get, put the full error message in the bug report as text, not only as a screenshot. This allows other people to find your bug report if they come across the same error.
+在编写错误报告时，请确保在报告中尽可能多地包含信息。例如，如果错误报告是关于收到的错误，请将完整的错误消息作为文本放入错误报告中，而不仅仅是截图。这样其他人在遇到相同的错误时，可以找到已有的错误报告。
 
-Bug-tracking tools like Bugzilla are essential components of a professional software development environment. In addition to supplying a central list of currently open bugs, bug-tracking tools provide an important archive of previous bugs and their fixes. A support engineer, for instance, might use the tool to search for a problem similar to one reported by a customer. If a fix was made, the support person will be able to tell the customer which version they need to update to or how to work around the problem.
+像 Bugzilla 这样的错误跟踪工具，是专业软件开发环境的基本组成部分。除了提供当前打开错误的中央列表外，错误跟踪工具还提供了以前错误及其修复的重要档案。例如，支持工程师可能会使用该工具搜索与客户报告的问题类似的问题。如果进行了修复，支持人员将能够告诉客户他们需要更新到哪个版本，或者如何解决问题。
 
 
 

@@ -1,25 +1,25 @@
-As a software engineer, your role in testing may range anywhere from basic unit testing responsibility to complete management of an automated test system. Because testing roles and styles vary so much, here are several tips from my experience that may help you in different testing situations:
+作为软件工程师，在测试中的角色可能从基本的单元测试责任，到完全管理自动化测试系统不等。由于测试角色和风格变化很大，以下是一些基于我经验的建议：
 
 \begin{itemize}
 \item
-Spend some time designing your automated test system. A system that runs constantly throughout the day will detect failures quickly. A system that sends e-mails to engineers automatically or sits in the middle of the room loudly playing show tunes when a failure occurs, will result in increased visibility of problems.
+花些时间设计自动化测试系统。一个全天候运行的系统可以快速检测到失败。一个在失败时自动向工程师发送电子邮件或在房间中播放音乐剧的系统，可以提高问题的可见性。
 
 \item
-Don’t forget about stress testing. Even if a full suite of unit tests passes for your database access class, it could still fall down when used by several dozen threads simultaneously. You should test your product under the most extreme conditions it could face in the real world.
+不要忘记压力测试。即使数据库访问类的完整套件单元测试通过了，当它被几十个线程同时使用时，也可能出现问题。应该在产品可能面临的最极端的真实环境中测试产品。
 
 \item
-Test on a variety of platforms or a platform that closely mirrors the customer’s system. One technique of testing on multiple platforms is to use a virtual machine environment that allows you to run several different platforms on the same physical machine.
+各种平台上进行测试，或者在与客户系统紧密相似的平台上进行测试。在多个平台上进行测试的一种技术，可在同一物理机器上运行几个不同平台的虚拟机环境。
 
 \item
-Some tests can be written to intentionally inject faults in a system. For example, you could write a test that deletes a file while it is being read, or that simulates a network outage during a network operation.
+可以编写一些测试来故意向系统中注入错误。例如，可以编写一个在文件读取时删除文件的测试，或者模拟网络操作期间的网络故障。
 
 \item
-Bugs and tests are closely related. Bug fixes should be proven by writing regression tests. A comment with a test could refer to the original bug number.
+错误和测试密切相关，错误修复应通过编写回归测试来验证。带有测试的注释可以引用原始错误编号。
 
 \item
-Don’t remove tests that are failing. When a co-worker is slaving over a bug and finds out you removed tests, he will come looking for you.
+不要删除失败的测试。当您的同事在调试错误时，如果发现删除了测试，他可能会来找您。
 \end{itemize}
 
 \begin{myWarning}{WARNING}
-The most important tip I can give you is to remember that testing is part of software development. If you agree with that and accept it before you start coding, it won’t be quite as unexpected when the feature is finished, but there is still more work to do to prove that it works.
+最重要的建议是记住测试是软件开发的一部分。如果同意这一点，并在开始编码之前接受它，当功能完成后，这不会多么出乎意料，但仍然需要做更多工作来证明它的工作情况。
 \end{myWarning}
