@@ -1,25 +1,25 @@
 
-When graphical operating systems first came on the scene in the 1980s, procedural programming was the norm. At the time, writing a GUI application usually involved manipulating complex data structures and passing them to OS-provided functions. For example, to draw a rectangle in a window, you might have had to populate a Window struct with the appropriate information and pass it to a drawRect() function.
+当图形操作系统在20世纪80年代首次出现时，程序设计语言主要是面向过程的。当时，编写图形用户界面（GUI）应用程序通常涉及操作复杂的数据结构，并将它们传递给操作系统提供的函数。例如，要在窗口中绘制一个矩形，可能需要填充一个 Window 结构体，并将其传递给 drawRect() 函数。
 
-As object-oriented programming (OOP) grew in popularity, programmers looked for a way to apply the OOP paradigm to GUI development. The result is known as an object-oriented framework. In general, a framework is a set of classes that are used collectively to provide an object-oriented interface to some underlying functionality. By frameworks, programmers usually mean large class libraries that are used for general application development. However, a framework can really represent functionality of any size. If you write a suite of classes that provides database functionality for your application, those classes could be considered a framework.
+随着面向对象编程（OOP）的流行，开发者开始寻找将OOP范式应用于GUI开发的方法。结果就是所谓的面向对象框架。框架是一组类，提供对某些底层功能的面向对象接口。框架通常指用于通用应用程序开发的大型类库，框架可以真正代表任何功能。如果编写一组类来为应用程序提供数据库功能，那些类可以认为是框架。
 
-\mySubsubsection{32.3.1.}{Working with Frameworks}
+\mySubsubsection{32.3.1.}{使用框架}
 
-The defining characteristic of a framework is that it provides its own set of techniques and patterns. Frameworks usually require a bit of learning to get started with because they have their own mental model. Before you can work with a large application framework, such as the Microsoft Foundation Classes (MFC), you need to understand its view of the world.
+框架定义的特征是提供技术和模式。框架通常需要一些学习才能开始使用，因为它们有自己的思维模型。开始使用大型应用程序框架之前，如微软基础类（MFC），需要了解它的世界观。
 
-Frameworks vary greatly in their abstract ideas and in their actual implementation. Many frameworks are built on top of legacy procedural APIs, which may affect various aspects of their design. Other frameworks are written from the ground up with object-oriented design in mind. Some frameworks might ideologically oppose certain aspects of the C++ language. For example, a framework could consciously shun the notion of multiple inheritance.
+框架在抽象思想和实际实现上都有很大的不同。许多框架建立在遗留的过程式API之上，这可能影响它们的设计。其他框架则是从底层开始编写，以面向对象的设计为目标。一些框架可能会反对C++语言的某些方面。例如，一个框架可能会故意放弃多重继承的概念。
 
-When you start working with a new framework, your first task is to find out what makes it tick. To what design principles does it subscribe? What mental model are its developers trying to convey? What aspects of the language does it use extensively? These are all vital questions, even though they may sound like things that you’ll pick up along the way. If you fail to understand the design, model, or language features of the framework, you will quickly get into situations where you overstep the bounds of the framework.
+当开始使用新的框架时，首要任务是找出其核心。遵循哪些设计原则？开发者试图传达什么样的思维模型？广泛使用语言的哪些方面？这些都是至关重要的问题，尽管听起来像是在过程中会学到的东西。如果没有理解框架的设计、模型或语言特性，很快就无法进入框架之内。
 
-An understanding of the framework’s design will also make it possible for you to extend it. For example, if the framework omits a feature, such as support for printing, you could write your own printing classes using the same model as the framework. By doing so, you retain a consistent model for your application, and you have code that can be reused by other applications.
+了解框架的设计也能够扩展它。例如，如果框架缺少某个功能，比如打印支持，可以编写自己的打印类，使用与框架相同的模型。这样做，可以在应用程序中保持一致的模型，并且有其他应用程序可重用的代码。
 
-Additionally, a framework might use certain specific data types. For example, the MFC framework uses the CString data type to represent strings, instead of using the Standard Library std::string class. This does not mean you have to switch to the data types provided by the framework for your entire code base. Instead, you could convert the data types on the boundaries between the framework code and the rest of your code.
+此外，框架可能会使用某些特定的数据类型。例如，MFC框架使用 CString 数据类型来表示字符串，而不是使用标准库中的 std::string 类。这并不意味着必须将整个代码库中的数据类型更改为框架提供的数据类型，而可以在框架代码与代码库的其他部分之间的边界上转换数据类型。
 
-\mySubsubsection{32.3.2.}{The Model-View-Controller Paradigm}
+\mySubsubsection{32.3.2.}{模型-视图-控制器范式}
 
-As I mentioned earlier, frameworks vary in their approaches to object-oriented design. One common paradigm is known as model-view-controller (MVC). This paradigm models the notion that many applications commonly deal with a set of data, one or more views on that data, and manipulation of the data.
+如我之前所提到的，框架在面向对象设计方面有很大的不同。常见的范式是所谓的模型-视图-控制器（MVC），这个范式模拟了许多应用程序经常处理的数据集、对该数据的一个或多个视图，以及数据操作。
 
-In MVC, a set of data is called the model. In a race car simulator, the model would keep track of various statistics, such as the current speed of the car and the amount of damage it has sustained. In practice, the model often takes the form of a class with many getters and setters. The class definition for the model of the race car might look as follows:
+MVC中，一组数据称为模型。在赛车模拟器中，模型会跟踪各种统计数据，比如：汽车的当前速度和受损程度。实际上，模型通常以具有许多getter和setter类的形式出现。赛车模型的类定义可能如下所示：
 
 \begin{cpp}
 class RaceCar
@@ -39,13 +39,13 @@ class RaceCar
 };
 \end{cpp}
 
-A view is a particular visualization of the model. For example, there could be two views on a RaceCar. The first view could be a graphical view of the car, and the second could be a graph that shows the level of damage over time. The important point is that both views are operating on the same data—they are different ways of looking at the same information. This is one of the main advantages of the MVC paradigm: by keeping data separated from its display, you can keep your code more organized and easily create additional views.
+视图是数据的一种特定可视化方式。例如，对于一个 RaceCar，可能有两种视图。第一种是汽车的图形视图，第二种是显示随时间变化的损坏程度的图表。重要的是，这两种视图都在操作相同的数据——查看同一信息的不同方式。这是MVC范式的主要优点之一：通过将数据与其显示分离，可以使代码更组织化，并轻松创建其他视图。
 
-The final piece to the MVC paradigm is the controller. The controller is the piece of code that changes the model in response to some event. For example, when the driver of the race car simulator runs into a concrete barrier, the controller instructs the model to bump up the car’s damage level and reduce its speed. The controller can also manipulate the view. For example, when the user scrolls a scrollbar in the user interface, the controller instructs the view to scroll its content.
+MVC范式的最后一部分是控制器，控制器是响应某些事件而改变模型的代码部分。例如，当赛车模拟器中的驾驶员撞上混凝土障碍物时，控制器会指示模型增加汽车的损坏程度，并减少其速度。控制器还可以操纵视图，当用户在用户界面上滚动滚动条时，控制器会指示视图滚动其内容。
 
-The three components of MVC interact in a feedback loop. Actions are handled by the controller, which adjusts the model and/or views. If the model changes, it notifies the views to update themselves. Figure 32.4 shows this interaction.
+MVC的三个组成部分在一个反馈循环中相互作用。动作由控制器处理，调整模型和/或视图。如果模型发生变化，会通知视图进行更新。图32.4展示了这种交互。
 
-
+\myGraphic{0.7}{content/part5/chapter32/images/4.png}{图 32.4}
 
 
 

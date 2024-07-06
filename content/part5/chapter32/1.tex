@@ -1,9 +1,9 @@
 
-Chapter 1, “A Crash Course in C++ and the Standard Library,” explains that the C++ standard specification is more than 2,000 pages long. The standard defines a lot of keywords and a very large number of language features. It is impossible to memorize it all. Even C++ experts need to look things up sometimes. With that in mind, this section presents examples of coding techniques that are used in almost all C++ programs. When you remember the concept but forgot the syntax, turn to the following sections for a refresher.
+第1章中说了，C++标准规范超过2000页，该标准定义了许多关键字和大量的语言特性。要记住这一切是不可能的，即使是C++专家有时也需要查阅资料。考虑到这一点，本节展示了所有C++程序中都会用到的编码技术示例。当记得概念但忘记了语法时，可以参考以下各节来复习。
 
-\mySubsubsection{32.1.1.}{. . .Write a Class}
+\mySubsubsection{32.1.1.}{编写类}
 
-Don’t remember how to get started? No problem—here is the definition of a Simple class defined in a module interface file:
+不记得如何开始？没问题——这里是一个在模块接口文件中定义的Simple类：
 
 \begin{cpp}
 export module simple;
@@ -39,14 +39,14 @@ export class Simple
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-This class definition shows some things that are possible but not recommended. In your own class definitions, you should avoid having public or protected data members. A class should encapsulate its data; hence, you should make data members private and provide public or protected getter and setter member functions.
+这个类定义展示了一些可能，但并不推荐的做法。在自己的类定义中，应避免使用public或protected的数据成员。一个类应该封装其数据；因此，应该将数据成员设为private，并提供public或protected的getter和setter成员函数。
 \end{myNotic}
 
-As explained in Chapter 10, “Discovering Inheritance Techniques,” if your class is meant to be a base class for other classes, you must make at least your destructor virtual. It’s allowed to leave the destructor non-virtual, but then I recommend to mark the class as final so that no other classes can derive from it. If you only want to make your destructor virtual but you don’t need any code inside the destructor, then you can explicitly default it, as in the Simple class example.
+正如第10章中解释的，如果类意图作为其他类的基类，必须将析构函数设为虚。非基类的析构函数为非虚，但这样一来，我建议将类标记为final，这样其他类就不能从它派生了。如果只想将析构函数设为虚，但不需要在析构函数内部有任何实现，那么可以像Simple类示例中那样显式地将其默认化。
 
-This example also demonstrates that you can explicitly delete or default special member functions. The copy constructor and copy assignment operator are deleted to prevent unintentional copying, while the move constructor and move assignment operator are explicitly defaulted.
+这个例子还展示了可以显式地删除或默认特殊成员函数。删除复制构造函数和复制赋值操作符，以避免无意的复制，而显式地默认化移动构造函数和移动赋值操作符。
 
-Next, here is the module implementation file:
+接下来，这是模块的实现文件：
 
 \begin{cpp}
 module simple;
@@ -63,14 +63,14 @@ void Simple::privateMemberFunction() { /* Implementation */ }
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Class member function definitions can also appear directly in the module interface file as demonstrated in the next section. You are not required to split a class up into a module interface file and a module implementation file.
+类成员函数的定义也可以直接出现在模块接口文件中，如下一部分所示。不必将类分割成模块接口文件和模块实现文件。
 \end{myNotic}
 
-Chapters 8, “Gaining Proficiency with Classes and Objects,” and 9, “Mastering Classes and Objects,” provide all the details for writing your own classes.
+第8章和第9章提供了编写自定义类的所有细节。
 
-\mySubsubsection{32.1.2.}{. . .Derive from an Existing Class}
+\mySubsubsection{32.1.2.}{从现有类派生}
 
-To derive from an existing class, you declare a new class that is an extension of another class. Here is the definition for a class called DerivedSimple, deriving from Simple, and defined in a derived\_simple module:
+要从现有类派生，需要声明一个扩展了另一个类的新类。这里是一个名为DerivedSimple的类的定义，从Simple派生而来，并在derived\_simple模块中定义：
 
 \begin{cpp}
 export module derived_simple;
@@ -95,11 +95,11 @@ export class DerivedSimple : public Simple
 };
 \end{cpp}
 
-Consult Chapter 10 for details on inheritance techniques.
+在第10章中查找有关继承技术的详细信息。
 
-\mySubsubsection{32.1.3.}{. . .Write a Lambda Expression}
+\mySubsubsection{32.1.3.}{编写Lambda表达式}
 
-Lambda expressions allow you to write small anonymous inline functions. They are especially powerful in combination with the C++ Standard Library algorithms. The following code snippet shows an example. It uses the count\_if() algorithm and a lambda expression to count the number of even values in a vector. Additionally, the lambda expression captures the callCount variable by reference from its enclosing scope to keep track of the number of times it gets called.
+Lambda表达式允许您编写小型匿名内联函数，与C++标准库算法结合使用时尤其强大。以下代码片段展示了一个示例，使用count\_if()算法和一个Lambda表达式来计算vector中偶数值的数量。此外，Lambda表达式通过从其封闭作用域，捕获callCount变量来跟踪其调用的次数。
 
 \begin{cpp}
 vector values { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -114,13 +114,13 @@ println("There are {} even elements in the vector.", evenCount);
 println("Lambda was called {} times.", callCount);
 \end{cpp}
 
-Chapter 19, “Function Pointers, Function Objects, and Lambda Expressions,” discusses lambda expressions in detail.
+第19章详细讨论了Lambda表达式。
 
-\mySubsubsection{32.1.4.}{. . .Use the Copy-and-Swap Idiom}
+\mySubsubsection{32.1.4.}{使用复制-交换习语}
 
-The copy-and-swap idiom is discussed in detail in Chapter 9. It’s an idiom to implement a possibly throwing operation on an object with a strong exception-safety guarantee, that is, all-or-nothing. You simply create a copy of the object, modify that copy (can be a complex algorithm, possibly throwing exceptions), and finally, when no exceptions have been thrown, swap the copy with the original object using a non-throwing swap(). An assignment operator is an example of an operation for which you can use the copy-and-swap idiom. Your assignment operator first makes a local copy of the source object and then swaps this copy with the current object using only a non-throwing swap() implementation.
+复制-交换习语在第9章中详细讨论，是一种在对象上实现可能抛出异常的操作的习语，具有强烈的异常安全保证，即要么全部成功，要么全部失败。只需创建对象的一个副本，修改该副本（可能是一个复杂的算法，可能会抛出异常）。最后，在没有抛出异常的情况下，使用非抛出swap()将副本与原始对象交换。赋值运算符就是可以使用复制-交换习语的操作的一个例子。赋值运算符首先制作源对象的一个本地副本，然后使用仅有的非抛出swap()实现将这个副本与当前对象交换。
 
-Here is a concise example of the copy-and-swap idiom used for a copy assignment operator. The class defines a copy constructor, a copy assignment operator, and a swap() member function marked as noexcept.
+以下是用于复制赋值运算符的复制-交换习语的一个简洁示例。该类定义了一个复制构造函数、一个复制赋值运算符和一个标记为noexcept的swap()成员函数。
 
 \begin{cpp}
 export module copy_and_swap;
@@ -142,7 +142,7 @@ export class CopyAndSwap final
 export void swap(CopyAndSwap& first, CopyAndSwap& second) noexcept;
 \end{cpp}
 
-Here are the implementations:
+以下是实现：
 
 \begin{cpp}
 CopyAndSwap::~CopyAndSwap() { /* Implementation of destructor. */ }
@@ -177,11 +177,11 @@ CopyAndSwap& CopyAndSwap::operator=(const CopyAndSwap& rhs)
 }
 \end{cpp}
 
-Consult Chapter 9 for a more detailed discussion.
+更详细的讨论，请查阅第9章。
 
-\mySubsubsection{32.1.5.}{. . .Throw and Catch Exceptions}
+\mySubsubsection{32.1.5.}{抛出和捕获异常}
 
-If you’ve been working on a team that doesn’t use exceptions (for shame!) or if you’ve gotten used to Java-style exceptions, the C++ syntax may escape you. Here’s a refresher that uses the built-in exception class std::runtime\_error. In most larger programs, you will write your own exception classes.
+如果曾经在一个不使用异常的团队工作过，或者已经习惯了Java风格的异常，那么C++的语法可能会感到陌生。这里是一个使用内置异常类std::runtime\_error的复习。在大多数较大的程序中，需要编写自己的异常类。
 
 \begin{cpp}
 import std;
@@ -204,11 +204,11 @@ int main()
 }
 \end{cpp}
 
-Chapter 14, “Handling Errors,” discusses exceptions in more detail.
+第14章更详细地讨论了异常。
 
-\mySubsubsection{32.1.6.}{. . .Write a Class Template}
+\mySubsubsection{32.1.6.}{编写类模板}
 
-Template syntax can be confusing. The most forgotten piece of the template puzzle is that code that uses a class template needs to be able to see the class template definition as well as the member function implementations. The same holds for function templates. One technique to accomplish this is to simply put the class member function implementations directly in the interface file containing the class template definition. The following example demonstrates this and implements a class template that wraps a reference to an object and includes a getter. Here is the module interface file:
+模板语法可能会令人困惑。最容易遗忘的模板部分是，使用类模板的代码需要能够看到类模板定义，以及成员函数的实现，函数模板也是如此。实现技巧就是将类成员函数的实现，直接放在包含类模板定义的接口文件中。下面的例子演示了这一点，并实现了一个包装对对象引用的类模板，包括一个getter。这里是模块接口文件：
 
 \begin{cpp}
 export module simple_wrapper;
@@ -223,7 +223,7 @@ class SimpleWrapper
 };
 \end{cpp}
 
-The code can be tested as follows:
+可以这样进行测试：
 
 \begin{cpp}
 import simple_wrapper;
@@ -249,11 +249,11 @@ int main()
 }
 \end{cpp}
 
-Details about templates can be found in Chapter 12, “Writing Generic Code with Templates,” and Chapter 26, “Advanced Templates.”
+关于模板的详细信息可以在第12章和第26章中找到。
 
-\mySubsubsection{32.1.7.}{. . .Constrain Template Parameters}
+\mySubsubsection{32.1.7.}{约束模板参数}
 
-With concepts, you can put constraints on template parameters of class and function templates. For example, the following code snippet constrains the template type parameter T of the SimpleWrapper class template from the previous section to be either a floating-point or an integral type. Specifying a type for T that does not satisfy these constraints will cause a compilation error.
+使用概念，可以对类和函数模板的模板参数施加约束。例如，下面的代码片段约束了上一节中SimpleWrapper类模板的模板类型参数T，使其只能是浮点类型或整型。指定一个不满足这些约束的T类型将导致编译错误。
 
 \begin{cpp}
 import std;
@@ -269,11 +269,11 @@ class SimpleWrapper
 };
 \end{cpp}
 
-Chapter 12 explains concepts in detail.
+第12章详细解释了概念。
 
-\mySubsubsection{32.1.8.}{. . .Write to a File}
+\mySubsubsection{32.1.8.}{写入文件}
 
-The following program outputs a message to a file and then reopens the file and appends another message. Additional details can be found in Chapter 13, “Demystifying C++ I/O.”
+以下程序将消息输出到一个文件，然后重新打开文件并追加另一个消息。更多细节可以在第13章中找到。
 
 \begin{cpp}
 import std;
@@ -298,9 +298,9 @@ int main()
 }
 \end{cpp}
 
-\mySubsubsection{32.1.9.}{. . .Read from a File}
+\mySubsubsection{32.1.9.}{读取文件}
 
-Details for file input are discussed in Chapter 13. Here is a quick sample program for file reading basics. It reads the file written by the program in the previous section and outputs it one whitespaceseparated token at a time.
+文件输入的细节在第13章中讨论。这里有一个快速示例程序，用于基本的文件读取。读取上一节程序写入的文件，并以每次一个由空格分隔的标记的形式输出。
 
 \begin{cpp}
 import std;
@@ -321,7 +321,7 @@ int main()
 }
 \end{cpp}
 
-The following reads an entire text file with a single call to getline(). This doesn’t work with binary files, as they might contain \verb|\|0 characters in their contents.
+以下代码使用一次getline()调用读取整个文本文件，这对于包含内容中的\verb|\|0字符的二进制文件不起作用。
 
 \begin{cpp}
 string fileContents;
@@ -329,7 +329,7 @@ getline(inputFile, fileContents, '\0');
 println("{}", fileContents);
 \end{cpp}
 
-An alternative is to use an istreambuf\_iterator (see Chapter 17, “Understanding Iterators and the Ranges Library”):
+另一种方法是使用istreambuf\_iterator（参见第17章）：
 
 \begin{cpp}
 string fileContents {

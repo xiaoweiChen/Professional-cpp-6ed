@@ -29,7 +29,7 @@ Let’s first define the ILogger interface:
 export class ILogger
 {
     public:
-        virtual ˜ILogger() = default; // Virtual destructor.
+        virtual ~ILogger() = default; // Virtual destructor.
 
         // Enumeration for the different log levels.
         enum class LogLevel { Debug, Info, Error };

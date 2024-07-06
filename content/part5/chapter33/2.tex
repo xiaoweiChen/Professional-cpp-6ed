@@ -13,13 +13,13 @@ There are two major types of factory-related patterns in object-oriented program
 
 \mySubsubsection{33.2.1.}{Example: A Car Factory Simulation}
 
-Imagine a factory capable of producing cars. The factory creates the type of car that is requested from it. First, a hierarchy is needed to represent several types of cars. Figure 33.1 introduces an ICar interface with a virtual member function to retrieve information about a specific car. The Toyota and Ford cars derive from ICar, and finally, both Ford and Toyota have a sedan and an SUV model.
+Imagine a factory capable of producing cars. The factory creates the type of car that is requested from it. First, a hierarchy is needed to represent several types of cars. 图 33.1 introduces an ICar interface with a virtual member function to retrieve information about a specific car. The Toyota and Ford cars derive from ICar, and finally, both Ford and Toyota have a sedan and an SUV model.
 
-Next to the car hierarchy, we need a factory hierarchy. An abstract factory just exposes an interface to create a sedan or an SUV independent of the brand, with concrete factories constructing concrete models from concrete brands. Figure 33.2 shows this hierarchy.
+Next to the car hierarchy, we need a factory hierarchy. An abstract factory just exposes an interface to create a sedan or an SUV independent of the brand, with concrete factories constructing concrete models from concrete brands. 图 33.2 shows this hierarchy.
 
-\myGraphic{0.5}{content/part5/chapter33/images/1.png}{FIGURE 33.1}
+\myGraphic{0.8}{content/part5/chapter33/images/1.png}{图 33.1}
 
-\myGraphic{0.5}{content/part5/chapter33/images/2.png}{FIGURE 33.2}
+\myGraphic{0.5}{content/part5/chapter33/images/2.png}{图 33.2}
 
 \mySubsubsection{33.2.2.}{Implementation of an Abstract Factory}
 
@@ -29,7 +29,7 @@ The implementation of the car hierarchy is straightforward:
 export class ICar
 {
     public:
-    virtual ˜ICar() = default; // Always a virtual destructor!
+    virtual ~ICar() = default; // Always a virtual destructor!
     virtual std::string info() const = 0;
 };
 
@@ -68,7 +68,7 @@ Next up is the ICarFactory interface. It simply exposes member functions to crea
 export class ICarFactory
 {
     public:
-        virtual ˜ICarFactory() = default; // Always a virtual destructor!
+        virtual ~ICarFactory() = default; // Always a virtual destructor!
         virtual std::unique_ptr<ICar> makeSuv() = 0;
         virtual std::unique_ptr<ICar> makeSedan() = 0;
 };

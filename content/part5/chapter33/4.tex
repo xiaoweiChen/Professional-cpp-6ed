@@ -10,7 +10,7 @@ An example of using a factory function is an alternative implementation of the p
 class Foo
 {
     public:
-        virtual ˜Foo() = default; // Always a virtual destructor!
+        virtual ~Foo() = default; // Always a virtual destructor!
         // Omitted defaulted copy/move ctor, copy/move assignment op.
         static unique_ptr<Foo> create(); // Factory function.
         // Public functionality...

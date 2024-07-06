@@ -1,60 +1,57 @@
 \noindent
-\textbf{WHAT’S IN THIS CHAPTER?}
+\textbf{内筒概要}
 
 \begin{itemize}
 \item
-What a pattern is and what the difference is with a design technique
+什么是模式，其与设计技术的区别
 
 \item
-How to use the following patterns:
+如何使用以下模式:
 
 \begin{itemize}
 \item
-Strategy
+策略
 
 \item
-Abstract factory
+抽象工厂
 
 \item
-Factory method
+工厂方法
 
 \item
-Adapter
+适配器
 
 \item
-Proxy
+代理
 
 \item
-Iterator
+迭代器
 
 \item
-Observer
+观察者
 
 \item
-Decorator
+装饰器
 
 \item
-Chain of responsibility
+责任链
 
 \item
-Singleton
+单例
 \end{itemize}
 \end{itemize}
 
-\noindent
-\textbf{WILEY.COM DOWNLOADS FOR THIS CHAPTER}
+本章的所有代码示例都可以在\url{https://github.com/Professional-CPP/edition-6}获得。
 
-Please note that all the code examples for this chapter are available as part of this chapter’s code download on the book’s website at \url{www.wiley.com/go/proc++6e} on the Download Code tab.
+设计模式是一种标准化的程序组织方法，用于解决通用问题，设计模式比技术更不依赖于特定的语言。模式与技术的区别确实有些模糊，不同的书籍采用不同的定义。本书将技术定义为特定于C++语言的策略，而模式是一种更通用的面向对象设计的策略，适用于面向对象的语言，如C++、C\#、Java或Smalltalk。实际上，如果熟悉C\#或Java编程，会更了解这些模式。
 
-A design pattern is a standard approach to program organization that solves a general problem. Design patterns are less language-specific than are techniques. The difference between a pattern and a technique is admittedly fuzzy, and different books employ different definitions. This book defines a technique as a strategy particular to the C++ language, while a pattern is a more general strategy for object-oriented design applicable to any object-oriented language, such as C++, C\#, Java, or Smalltalk. In fact, if you are familiar with C\# or Java programming, you will recognize many of these patterns.
+设计模式有名称，这是一个很大的优势。名称带有意义，因此有助于更轻松地交流解决方案。模式名称也有助于开发人员更快地理解解决方案，但某些模式有多个不同的名称，不同来源对某些模式的描述和分类有时略有不同。事实上，根据使用的书籍或其他来源，可能会发现相同的名称应用于不同的模式。甚至对于哪些设计方法可以称为模式，还存在一些争议。除了少数例外，本书遵循了《设计模式：可重用面向对象软件元素》（Design Patterns: Elements of Reusable Object-Oriented Software）一书中使用的术语，该书由Erich Gamma等人撰写（Addison-Wesley Professional，1994年），其他模式名称和变体也有所提及。
 
-Design patterns have names, and that’s a big advantage. The name carries meaning and therefore helps to more easily communicate about solutions. The names of patterns also help developers to more quickly understand a solution. However, certain patterns have several different names, and the distinctions between certain patterns is sometimes a bit vague with different sources describing and categorizing them slightly differently. In fact, depending on the books or other sources you use, you may find the same name applied to different patterns. There is even disagreement as to which design approaches qualify as patterns. With a few exceptions, this book follows the terminology used in the seminal book Design Patterns: Elements of Reusable Object-Oriented Software, by Erich Gamma et al. (Addison-Wesley Professional, 1994). Other pattern names and variations are noted when appropriate.
+设计模式的概念虽然简单，但非常强大。当能够识别程序中反复出现的面向对象交互，找到优雅的解决方案，往往就变成了选择适当模式应用的问题。
 
-The design pattern concept is a simple but powerful idea. Once you are able to recognize the recurring object-oriented interactions that occur in a program, finding an elegant solution often becomes a matter of selecting the appropriate pattern to apply.
+由于有专门讨论设计模式的书籍，本章简要描述了更重要的设计模式中的一些详细情况，并提供了示例实现。可对对设计模式有一个很好的了解。
 
-As there are books available discussing nothing but design patterns, this chapter briefly describes just a small selection of the more important design patterns in detail and presents sample implementations. This gives you a pretty good idea about what design patterns are all about.
-
-Any aspect of design is likely to provoke debate among programmers, and I believe that is a good thing. Don’t simply accept these patterns as the only way to accomplish a task—draw on their approaches and ideas to refine them and form new patterns.
+开发者之间很可能关于设计引发辩论，我相信这是一件好事。不要仅仅接受这些模式作为完成任务的唯一方式——利用方法和理念来完善它们，从而形成新的模式。
 
 
 

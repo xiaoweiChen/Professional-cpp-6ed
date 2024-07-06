@@ -1,13 +1,13 @@
 
-As you read this paragraph, thousands of C++ programmers throughout the world are solving problems that have already been solved. Someone in a cubicle in San Jose is writing a smart pointer implementation from scratch that uses reference counting. A young programmer on a Mediterranean island is designing a class hierarchy that could benefit immensely from the use of mixin classes.
+当您阅读这段话时，世界各地的成千上万的C++程序员正在解决已经解决的问题。圣何塞的一个小隔间里有人，正在从头开始编写一个使用引用计数的智能指针实现。地中海岛屿上的一位年轻程序员，正在设计一个可以从混合类中获得好处的类层次结构。
 
-As a professional C++ programmer, you ought to spend less of your time reinventing the wheel and more of your time adapting reusable concepts in new ways. This section gives some examples of general-purpose approaches that you can apply directly to your own programs or customize for your needs.
+作为一名专业的C++开发者，应该少花时间重新发明轮子，而多花时间以新的方式适应可重用的概念。本节给出了一些可以直接应用于自己的程序，或根据需要定制的通用方法示例。
 
-\mySubsubsection{32.2.1.}{Resource Acquisition Is Initialization}
+\mySubsubsection{32.2.1.}{资源获取即初始化}
 
-Resource acquisition is initialization (RAII) is a simple yet powerful concept. It is used to acquire ownership of some resources and to automatically free these acquired resources when an RAII instance goes out of scope. Both initialization and destruction happen at a deterministic point in time. Basically, the constructor of a new RAII instance acquires ownership of a certain resource and initializes the instance with that resource, which is why it’s called resource acquisition is initialization. The destructor automatically frees the acquired resource when the RAII instance is destroyed.
+资源获取即初始化（RAII）是一个简单但强大的概念，用于获取某些资源的所有权，并在RAII实例离开作用域时，自动释放这些获取的资源，初始化和销毁都在确定的时间点发生。基本上，新RAII实例的构造函数获取某个资源的所有权，并使用该资源初始化实例，这就是为什么称为资源获取即初始化。当RAII实例销毁时，析构函数自动释放获取的资源。
 
-Here is an example of a File RAII class that safely wraps a C-style file handle (std::FILE) and automatically closes the file when the RAII instance goes out of scope. The RAII class also provides get(), release(), and reset() member functions that behave similarly to the same member functions on certain Standard Library classes, such as std::unique\_ptr. RAII classes usually disallow copy construction and copy assignment; hence, this implementation deletes those members.
+下面是一个 File RAII 类的示例，安全地包装了C风格文件句柄（std::FILE），并在RAII实例离开作用域时自动关闭文件。RAII类还提供了 get()、release() 和 reset() 成员函数，这些函数的行为与标准库中某些类（如 std::unique\_ptr）上的同名成员函数相似。RAII类通常不允许复制构造和复制赋值，所以这个实现删除了这些成员。
 
 \begin{cpp}
 import std;
@@ -55,39 +55,39 @@ class File final
 };
 \end{cpp}
 
-It can be used as follows:
+可以按以下方式使用：
 
 \begin{cpp}
 File myFile { std::fopen("input.txt", "r") };
 \end{cpp}
 
-As soon as the myFile instance goes out of scope, its destructor is called, and the file is automatically closed.
+当myFile实例超出作用域，其析构函数就会调用，文件会自动关闭。
 
-There is one important pitfall with using RAII classes that you need to be aware of. You can accidentally write a statement that you think is properly creating an RAII instance within a certain scope, but that is instead creating a temporary object, which is immediately destroyed when that statement has finished executing. For example, the following statement correctly uses the File RAII class:
+使用RAII类时，有一个重要的陷阱。可能会意外地编写一个语句，以为它在某个作用域内正确创建了RAII实例，但实际上它创建了一个临时对象，该语句执行完毕后立即销毁。例如，以下语句正确使用了File RAII类：
 
 \begin{cpp}
 File myFile { std::fopen("input.txt", "r") };
 \end{cpp}
 
-However, you could accidentally forget to give the RAII instance a name as follows:
+然而，可能会不小心忘记为RAII实例命名，如下所示：
 
 \begin{cpp}
 File { std::fopen("input.txt", "r") };
 \end{cpp}
 
-This statement creates a temporary File instance, which is immediately destroyed at the end of the statement. This does not trigger any warning or error from the compiler. To avoid this, you should mark the constructor of RAII classes with the [[nodiscard]] attribute. For example:
+这个语句创建了一个临时的File实例，该实例在语句结束时立即销毁。编译器不会对此发出任何警告或错误。为了避免这种情况，应该使用[[nodiscard]]属性标记RAII类的构造函数。例如：
 
 \begin{cpp}
 [[nodiscard]] explicit File(std::FILE* file) : m_file{ file } { }
 \end{cpp}
 
-With this change, creating a File instance without giving it a name triggers a compiler warning such as the following:
+这样，创建一个没有命名的File实例会触发编译器警告，如下所示：
 
 \begin{shell}
 warning C4834: discarding return value of function with 'nodiscard' attribute
 \end{shell}
 
-Of course, with the File RAII class, you probably will never forget to give it a name as you most likely will want to do something with the opened file. However, sometimes you need to create an instance of an RAII class in a certain scope, without having to directly interact any further with that created instance, e.g., mutex locks. Let’s look at such an example using an RAII class from the Standard Library, std::unique\_lock (see Chapter 27, “Multithreaded Programming with C++”). The following code snippet shows proper use of a unique\_lock. I’m initially not using the uniform initialization syntax to initialize the unique\_lock but will get back to this in the subsequent discussion.
+当然，使用File RAII类时，可能永远不会忘记为它命名，很可能会想对打开的文件进行操作。但有时需要在一个特定的作用域内创建一个RAII类的实例，而不需要直接与该创建的实例进一步交互(例如，互斥锁)。来看一个使用标准库中的RAII类std::unique\_lock的示例（参见第27章），以下代码段展示了unique\_lock的正确使用。我最初没有使用统一初始化语法来初始化unique\_lock，但稍后的讨论中会提到这一点。
 
 \begin{cpp}
 class Foo
@@ -103,59 +103,59 @@ class Foo
 };
 \end{cpp}
 
-The setData() member function uses the unique\_lock RAII class to construct a local lock object that locks the m\_mutex data member and automatically unlocks that mutex at the end of the function.
+setData()成员函数使用unique\_lock RAII类来构造一个局部锁对象，该对象锁定m\_mutex数据成员，并在函数结束时自动解锁该互斥量。
 
-However, because you do not directly use the lock variable after it has been defined, it is easy to make the following mistake:
+但因为定义锁变量后不直接使用，所以很容易犯以下错误：
 
 \begin{cpp}
 unique_lock<mutex>(m_mutex);
 \end{cpp}
 
-In this code, you accidentally forgot to give the unique\_lock a name. This compiles, but it does not do what you intended it to do! It actually declares a local variable called m\_mutex (hiding the m\_mutex data member) and initializes it with a call to the unique\_lock’s default constructor. The result is that the m\_mutex data member is not locked! The compiler will give a warning, though, if the warning level is set high enough. Something along the lines of:
+这段代码中，忘记了给unique\_lock一个名字。这可以编译，但它不会做想让它做的事！它实际上声明了一个名为m\_mutex的局部变量（隐藏了m\_mutex数据成员），并用调用unique\_lock的默认构造函数来初始化。结果是m\_mutex数据成员没有锁定！如果编译器的警告级别设置得足够高，会给出警告：
 
 \begin{shell}
 warning C4458: declaration of 'm_mutex' hides class member
 \end{shell}
 
-If you use uniform initialization syntax as follows, the compiler doesn’t generate the “hiding class member” warning, but it also does not do what you want. The following creates a temporary lock on m\_mutex, but since it’s temporary, the lock is immediately released at the end of this statement.
+如果使用以下统一初始化语法，编译器不会生成“隐藏类成员”的警告，但也不会做你想做的事。以下创建了一个临时的m\_mutex锁，但由于它是临时的，这个锁在这个语句结束时立即释放。
 
 \begin{cpp}
 unique_lock<mutex> { m_mutex };
 \end{cpp}
 
-Recently, some compilers actually do mark the unique\_lock constructors with [[nodiscard]], just as I recommended with the File RAII example. One such compiler is Visual C++ 2022. If you use such a compiler, the previous statement generates a warning about the fact that the return value of the constructor is discarded.
+最近，一些编译器实际上标记了unique\_lock构造函数为[[nodiscard]]，就像我推荐给File RAII示例一样。这样的编译器之一是Visual C++ 2022。如果使用这样的编译器，前面的语句会生成一个警告，指出构造函数的返回值丢弃了。
 
-Additionally, you could make a typo in the name passed as argument, for example as follows:
+此外，可能会在作为参数传递的名称中犯一个打字错误，例如：
 
 \begin{cpp}
 unique_lock<mutex>(m);
 \end{cpp}
 
-Here you forgot to give a name for the lock, and you made a typo in the name of the argument. This code simply declares a local variable called m and initializes it with the default constructor of unique\_lock. The compiler does not even generate a warning, unless maybe a warning that m is an unreferenced local variable. In this case, though, if you would use uniform initialization syntax as follows, then the compiler issues an error complaining about an undeclared identifier m:
+在这里，忘记为锁提供一个名字，并且在参数的名称中犯了一个输入错误。这段代码只是声明了一个名为m的局部变量，并用unique\_lock的默认构造函数初始化它。编译器甚至不会生成警告，可能会生成一个m是未引用局部变量的警告。不过，如果使用以下统一初始化语法，编译器会发出错误，抱怨未声明的标识符m：
 
 \begin{cpp}
 unique_lock<mutex> { m };
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-Make sure you always name your RAII instances! Additionally, I recommend not to include a default constructor in an RAII class. That avoids some of the issues discussed here.
+确保为RAII实例命名！此外，我建议不要在RAII类中包含默认构造函数。这样可以避免这里讨论的问题。
 \end{myWarning}
 
-\mySubsubsection{32.2.2.}{Double Dispatch}
+\mySubsubsection{32.2.2.}{双重分派}
 
-Double dispatch is a technique that adds an extra dimension to the concept of polymorphism. As described in Chapter 5, “Designing with Classes,” polymorphism lets the program determine behavior based on types at run time. For example, you could have an Animal class with a move() member function. All Animals move, but they differ in terms of how they move. The move() member function is defined for every derived class of Animal so that the appropriate member function can be called, or can be dispatched to, for the appropriate animal at run time without knowing the type of the animal at compile time. Chapter 10 explains how to use virtual member functions to implement this run-time polymorphism.
+双重分派是一种技术，为多态性的概念增加了一个维度。正如第5章中所述，多态性允许程序基于运行时类型确定行为。例如，可能有一个带有 move() 成员函数的 Animal 类。所有动物都会移动，但在移动方式上有所不同。move() 成员函数为 Animal 的每个派生类定义，以便在运行时为适当类型的动物调用适当的成员函数，而不需要在编译时知道动物的类型。第10章解释了，如何使用虚成员函数来实现这种运行时多态。
 
-Sometimes, however, you need a member function to behave according to the run-time type of two objects, instead of just one. For example, suppose you want to add a member function to the Animal class that returns true if the animal eats another animal, and false otherwise. The decision is based on two factors: the type of animal doing the eating and the type of animal being eaten. Unfortunately, C++ provides no language mechanism to choose a behavior based on the run-time type of more than one object. Virtual member functions alone are insufficient for modeling this scenario because they determine a member function, or behavior, depending on the run-time type of only the receiving object.
+然而，有时需要一个成员函数根据两个对象的运行时类型来表现，而不仅仅是其中一个。例如，想为 Animal 类添加一个成员函数，如果动物吃掉另一个动物则返回 true，否则返回 false。这个决定基于两个因素：吃掉的动物的类型和被吃的动物的类型。不幸的是，C++没有提供语言机制来根据多于一个对象的运行时类型来选择行为。虚成员函数本身不足以模拟这种情况，因为它们仅根据接收对象的运行时类型，来确定成员函数或行为。
 
-Some object-oriented languages provide the ability to choose a member function at run time based on the run-time types of two or more objects. They call this feature multimethods. In C++ there is no core language feature to support multimethods, but you can use the double dispatch technique, which provides a way to make functions virtual for more than one object.
+一些面向对象的语言提供了在运行时，基于两个或更多对象的运行时类型，来选择成员函数的能力，这个特性称为多方法。在C++中没有核心语言特性来支持多方法，但可以使用双重分派技术，其提供了一种使函数对多于一个对象虚拟化的方法。
 
 \begin{myNotic}{NOTE}
-Double dispatch is really a special case of multiple dispatch, in which a behavior is chosen depending on the run-time types of two or more objects. In practice, double dispatch, which chooses a behavior based on the run-time types of exactly two objects, is usually sufficient.
+双重分派实际上是多分派的一个特例，其中选择行为取决于两个或更多对象的运行时类型。实践中，双重分派通常足够使用，基于两个对象的运行时类型来选择行为。
 \end{myNotic}
 
-\mySamllsection{Attempt \#1: Brute Force}
+\mySamllsection{尝试 \#1: 简单暴力法}
 
-The most straightforward way to implement a member function whose behavior depends on the run-time types of two different objects is to take the perspective of one of the objects and use a series of if/else constructs to check the type of the other. For example, you could implement a member function called eats() in each class derived from Animal that takes the other animal as a parameter. The member function is declared pure virtual in the base class as follows:
+实现一个其行为取决于两个不同对象运行时类型成员函数的最直接方法是，采取其中一个对象的视角，并使用一系列 if/else 构造来检查另一个对象的类型。例如，可以在每个从 Animal 派生的类中实现一个名为 eats() 的成员函数，该函数接受另一个动物作为参数。在基类中，该成员函数被声明为纯虚函数，如下所示：
 
 \begin{cpp}
 class Animal
@@ -165,7 +165,7 @@ class Animal
 };
 \end{cpp}
 
-Each derived class implements the eats() member function and returns the appropriate value based on the type of the parameter. The implementation of eats() for several derived classes follows. Note that the TRex avoids any if statements because—according to the author—a T-rex, like any carnivorous dinosaur, eats anything.
+每个派生类实现 eats() 成员函数，并根据参数的类型返回适当的值。下面是几个派生类的 eats() 实现示例。请注意，TRex 避免使用任何 if 语句，因为——根据作者的说法——像食肉恐龙一样，TRex 吃任何东西。
 
 \begin{cpp}
 bool Bear::eats(const Animal& prey) const
@@ -186,22 +186,22 @@ bool TRex::eats(const Animal& prey) const
 }
 \end{cpp}
 
-This brute-force approach works, and it’s probably the most straightforward technique for a small number of classes. However, there are several reasons why you might want to avoid this approach.
+这种简单暴力法有效，对于少量的类来说可能是最直接的技术。然而，有几个原因可能要避免使用这种方法。
 
 \begin{itemize}
 \item
-Object-oriented programming (OOP) purists often frown upon explicitly querying the type of an object because it implies a design that is lacking a proper object-oriented structure.
+面向对象编程（OOP）的纯粹主义者通常不赞成显式查询对象的类型，因为这暗示了一个缺乏适当面向对象结构的设计。
 
 \item
-As the number of types grows, such code can become messy and repetitive.
+随着类型数量的增长，这样的代码可能会变得混乱和重复。
 
 \item
-This approach does not force derived classes to consider new types. For example, if you added a Donkey, the Bear class would continue to compile but would return false when told to eat a Donkey, even though everybody knows that bears eat donkeys. A bear would refuse to eat a donkey because there is no else if statement checking explicitly for Donkeys.
+这种方法并没有强制派生类考虑新的类型。例如，添加了一个 Donkey，Bear 类将继续编译，但当告知吃一个 Donkey 时会返回 false，尽管众所周知熊吃驴。一只熊会拒绝吃一头驴，因为没有显式检查 Donkey 的 else if 语句。
 \end{itemize}
 
-\mySamllsection{Attempt \#2: Single Polymorphism with Overloading}
+\mySamllsection{尝试 \#2: 使用重载的单多态性}
 
-You could attempt to use polymorphism with overloading to circumvent all of the cascading if/else constructs. Instead of giving each class a single eats() member function that takes an Animal reference, why not overload the member function for each derived class of Animal? The base class definition would look like this:
+可能会尝试使用带有重载的多态性，来规避所有的级联if/else构造。为什么不将每个类的一个eats()成员函数改为每个Animal的派生类重载成员函数呢？基类定义将如下所示：
 
 \begin{cpp}
 class Animal
@@ -213,7 +213,7 @@ class Animal
 };
 \end{cpp}
 
-Because the member functions are pure virtual in the base class, each derived class is forced to implement the behavior for every other type of Animal. For example, the Bear class contains the following member functions:
+由于基类中的成员函数是纯虚的，每个派生类都需要实现针对每种其他类型Animal的行为。例如，Bear类包含以下成员函数：
 
 \begin{cpp}
 class Bear : public Animal
@@ -225,7 +225,7 @@ class Bear : public Animal
 };
 \end{cpp}
 
-This approach initially appears to work, but it really solves only half of the problem. To call the proper eats() member function on an Animal, the compiler needs to know the compile-time type of the animal being eaten. A call such as the following will be successful because the compile-time types of both the animal that eats and the animal that is eaten are known:
+这种方法最初看起来是可行的，但实际上只解决了半个问题。为了在Animal上调用适当的eats()成员函数，编译器需要知道被吃掉的动物的编译时类型。以下调用将是成功的，因为吃和被吃的动物的编译时类型都是已知的：
 
 \begin{cpp}
 Bear myBear;
@@ -233,14 +233,14 @@ Fish myFish;
 println("Bear eats fish? {}", myBear.eats(myFish));
 \end{cpp}
 
-The missing piece is that the solution is polymorphic in only one direction. You can access myBear through an Animal reference, and the correct member function will be called:
+缺失的部分是解决方案只在一个方向上具有多态性。可以通过Animal引用访问myBear，并且将调用正确的成员函数：
 
 \begin{cpp}
 Animal& animalRef { myBear };
 println("Bear eats fish? {}", animalRef.eats(myFish));
 \end{cpp}
 
-However, the reverse is not true. If you pass an Animal reference to the eats() member function, you will get a compilation error because there is no eats() member function that takes an Animal. The compiler cannot determine, at compile time, which version to call. The following example does not compile:
+反之则不然。如果将Animal引用传递给eats()成员函数，将得到编译错误，没有接受Animal的eats()成员函数。编译器无法在编译时确定调用哪个版本。以下示例无法编译：
 
 \begin{cpp}
 Animal& animalRef { myFish };
@@ -248,19 +248,19 @@ println("Bear eats fish? {}",
     myBear.eats(animalRef)); // BUG! No member function Bear::eats(Animal&)
 \end{cpp}
 
-Because the compiler needs to know which overloaded version of the eats() member function is going to be called at compile time, this solution is not truly polymorphic. It would not work, for example, if you were iterating over an array of Animal references and passing each one to a call to eats().
+因为编译器需要在编译时知道，将要调用eats()成员函数的哪个重载版本，所以这个解决方案并不是真正的多态性。例如，正在遍历一个Animal引用数组并将每个引用传递给eats()，代码将无法工作。
 
-\mySamllsection{Attempt \#3: Double Dispatch}
+\mySamllsection{尝试 \#3: 双重分派}
 
-The double dispatch technique is a truly polymorphic solution to the multiple-type problem. In C++, polymorphism is achieved by overriding member functions in derived classes. At run time, member functions are called based on the actual type of the object. The preceding single polymorphic attempt didn’t work because it attempted to use polymorphism to determine which overloaded version of a member function to call instead of using it to determine on which class to call the member function.
+双重分派技术是解决多类型问题的真正多态解决方案。在C++中，多态性是通过派生类中覆盖成员函数来实现的。运行时，根据对象的实际类型调用成员函数。前面的单多态尝试没有成功，因为它试图使用多态性来确定调用哪个重载版本的成员函数，而不是用来确定调用哪个类的成员函数。
 
-To begin, focus on a single derived class, perhaps the Bear class. The class needs a member function with the following declaration:
+首先，关注一个派生类，也许是 Bear 类。该类需要一个具有以下声明的成员函数：
 
 \begin{cpp}
 bool eats(const Animal& prey) const override;
 \end{cpp}
 
-The key to double dispatch is to determine the result based on a member function call on the argument. Suppose that the Animal class has a member function called eatenBy(), which takes an Animal reference as a parameter. This member function returns true if the current Animal gets eaten by the one passed in. With such a member function, the definition of eats() becomes simple:
+双重分派的关键是基于参数上的成员函数调用来确定结果。假设 Animal 类有一个名为 eatenBy() 的成员函数，接受一个 Animal 引用作为参数。如果当前的 Animal 传递进来的那个类吃掉，这个成员函数返回 true。有了这样的成员函数，eats() 的定义就变得简单了：
 
 \begin{cpp}
 bool Bear::eats(const Animal& prey) const
@@ -269,9 +269,9 @@ bool Bear::eats(const Animal& prey) const
 }
 \end{cpp}
 
-At first, it looks like this solution adds another layer of member function calls to the single polymorphic member function. After all, each derived class still has to implement a version of eatenBy() for every derived class of Animal. However, there is a key difference. Polymorphism is occurring twice! When you call the eats() member function on an Animal, polymorphism determines whether you are calling Bear::eats(), Fish::eats(), or one of the others. When you call eatenBy(), polymorphism again determines which class’s version of the member function to call. It calls eatenBy() on the run-time type of the prey object. Note that the run-time type of *this is always the same as the compile-time type so that the compiler can call the correct overloaded version of eatenBy() for the argument (in this case Bear).
+乍一看，这个解决方案似乎给单多态成员函数增加了一个成员函数调用层。毕竟，每个派生类必须为 Animal 每个派生类实现一个eatenBy()，但有一个关键的区别。多态性发生了两次！当在 Animal 上调用 eats() 成员函数时，多态性确定是在调用 Bear::eats()、Fish::eats()，还是其他的。当调用 eatenBy() 时，多态性再次确定调用哪个类的版本的成员函数，调用的是 prey 对象的运行时类型的 eatenBy()。注意，*this 的运行时类型始终与编译时类型相同，这样编译器就可以为参数（本例中为 Bear）调用正确的重载版本的 eatenBy()。
 
-The following are the class definitions for the Animal hierarchy using double dispatch. The forward class declarations are necessary because the base class uses references to the derived classes. Note that each Animal-derived class implements the eats() member function in the same way, but it cannot be factored up into the base class. The reason is that if you attempt to do so, the compiler won’t know which overloaded version of the eatenBy() member function to call because *this would be an Animal, not a particular derived class. Member function overload resolution is determined according to the compile-time type of the object, not its run-time type.
+下面是使用双重分派技术的 Animal 层次结构的类定义。前向类声明是必要的，因为基类使用了派生类的引用。每个从 Animal 派生的类都以相同的方式实现 eats() 成员函数，但它不能提升到基类中。原因是如果尝试这样做，编译器将不知道调用哪个重载版本的 eatenBy() 成员函数，因为 *this 将是一个 Animal，而不是特定的派生类。成员函数重载解析是根据对象的编译时类型确定的，而不是运行时类型。
 
 \begin{cpp}
 // Forward declarations.
@@ -319,57 +319,57 @@ class TRex : public Animal
 };
 \end{cpp}
 
-Double dispatch is a concept that takes a bit of getting used to. I suggest playing with this code to familiarize yourself with the concept and its implementation.
+双重分派是一个需要时间来适应的概念。我建议仔细研究这段代码，以便熟悉这个概念及其实现。
 
-\mySubsubsection{32.2.3.}{Mixin Classes}
+\mySubsubsection{32.2.3.}{混合类}
 
-Chapters 5 and 6, “Designing for Reuse,” introduce mixin classes. They answer the question, “What else is this class able to do?” and the answer often ends with “-able.” Examples are Clickable, Drawable, Printable, Lovable, and so on. Mixin classes are a way that you can add functionality to a class without committing to a full is-a relationship. There are several techniques to implement mixin classes in C++. This section looks at the following:
+第5章和第6章介绍了混合类，回答了“这个类还能做什么？”的问题，答案往往以“-able”结尾。例如，Clickable、Drawable、Printable、Lovable等。混合类是一种在不承诺完全的is-a关系的情况下向类添加功能的方法。在C++中实现混合类有几种技术。本节将探讨以下内容：
 
 \begin{itemize}
 \item
-Using multiple inheritance
+使用多重继承
 
 \item
-Using class templates
+使用类模板
 
 \item
-Using CRTP
+使用CRTP
 
 \item
-Using CRTP and “deducing this”
+使用CRTP和“推断this”
 \end{itemize}
 
-\mySamllsection{Using Multiple Inheritance}
+\mySamllsection{使用多重继承}
 
-This section examines how to design, implement, and use a mixin class using the multiple inheritance technique.
+本节探讨如何使用多重继承技术设计、实现和使用混合类。
 
-\mySamllsection{Designing a Mixin Class}
+\mySamllsection{设计混合类s}
 
-Mixin classes contain actual code that can be reused by other classes. A single mixin class implements a well-defined piece of functionality. For example, you might have a mixin class called Playable that is mixed into certain types of media objects. The mixin class could, for example, contain most of the code to communicate with the computer’s sound drivers. By mixing in the class, the media object would get that functionality for free.
+混合类包含可以重用其他类的代码，单个混合类实现了一个定义良好的功能。例如，可能有一个名为Playable的混合类，用于某些类型的媒体对象。混合类可能包含与计算机声音驱动程序通信的大部分代码。通过混合该类，媒体对象将免费获得该功能。
 
-When designing a mixin class, you need to consider what behavior you are adding and whether it belongs in the object hierarchy or in a separate class. Using the previous example, if all media classes are playable, the base class should derive from Playable instead of mixing the Playable class into all of the derived classes. If only certain media classes are playable and they are scattered throughout the hierarchy, a mixin class makes sense.
+设计混合类时，需要考虑添加的行为是否属于对象层次结构或单独类。以之前的例子为例，如果所有媒体类都可播放，基类应该从Playable派生，而不是将Playable类混合所有派生类。如果只有某些媒体类可播放，并且它们分布在层次结构中，那么使用混合类有意义。
 
-One of the cases where mixin classes are particularly useful is when you have classes organized into a hierarchy on one axis, but they also contain similarities on another axis. For example, consider a war simulation game played on a grid. Each grid location can contain an Item with attack and defense capabilities and other characteristics. Some items, such as a Castle, are stationary. Others, such as a Knight or FloatingCastle, can move throughout the grid. When initially designing the object hierarchy, you might end up with something like Figure 32.1, which organizes the classes according to their attack and defense capabilities.
+混合类特别有用的情况之一是，当类在一个轴上组织成层次结构，而在另一个轴上它们也具有相似性时。例如，在一个网格上玩的一场战争模拟游戏。每个网格位置可以包含一个具有攻击和防御能力以及其他特征的Item。某些项目，如城堡是固定的。其他项目，如骑士或浮动城堡，可以在网格上移动。在最初设计对象层次结构时，可能会得到类似于图32.1的结构，根据攻击和防御能力来组织类。
 
-The hierarchy in Figure 32.1 ignores the movement functionality that certain classes contain. Building your hierarchy around movement would result in a structure similar to Figure 32.2.
+\myGraphic{0.8}{content/part5/chapter32/images/1.png}{图 32.1}
 
-Of course, the design of Figure 32.2 throws away all the organization of Figure 32.1. What’s a good object-oriented programmer to do?
+图32.1中的层次结构忽略了某些类包含的运动功能。围绕运动构建层次结构会导致类似于图32.2的结构。
 
-Assuming that you go with the first hierarchy, organized around attackers and defenders, you need some way to work movement into the equation. One possibility is that, even though only a portion of the derived classes support movement, you could add a move() member function to the Item base class. The default implementation would do nothing, but certain derived classes would override move() to actually change their location on the grid.
+\myGraphic{0.8}{content/part5/chapter32/images/2.png}{图 32.2}
 
-\myGraphic{0.5}{content/part5/chapter32/images/1.png}{FIGURE 32.1}
+当然，图32.2的设计会丢弃图32.1的所有组织。一个好的面向对象的开发者应该怎么做呢？
 
-\myGraphic{0.5}{content/part5/chapter32/images/2.png}{FIGURE 32.2}
+假设选择第一个层次结构，围绕攻击者和防御者组织，需要一种方法将运动纳入方程。一种可能性是，尽管只有部分派生类支持运动，可以在Item基类中添加一个move()成员函数。默认实现将不做任何事情，但某些派生类将重写move()以实际改变在网格上的位置。
 
-Another approach is to write a Movable mixin class. The elegant hierarchy from Figure 32.1 could be preserved, but certain classes in the hierarchy would derive from Movable in addition to their parent. Figure 32.3 shows this design.
+另一种方法是编写一个Movable混合类。图32.1中的优雅层次结构可以得到保留，但层次结构中的某些类，除了父类之外还从Movable派生。图32.3展示了这种设计。
 
-\myGraphic{0.5}{content/part5/chapter32/images/3.png}{FIGURE 32.3}
+\myGraphic{0.8}{content/part5/chapter32/images/3.png}{图 32.3}
 
-Yet another approach is to flatten the hierarchy and don’t use run time polymorphism at all. Instead, you can use static polymorphism and/or type-erasure whenever you need to deal polymorphically with a subset of your types. These approaches are not further discussed in this text.
+还有一种方法是将层次结构扁平化，根本不使用运行时多态，可以在需要以多态方式处理类型子集的情况下，使用静态多态性和/或类型擦除。这些方法在本文中不再进一步讨论。
 
-\mySamllsection{Implementing a Mixin Class}
+\mySamllsection{实现混合类}
 
-Writing a mixin class is no different from writing a normal class. In fact, it’s usually much simpler. Using the earlier war simulation, the Movable mixin class might look as follows:
+编写一个混合类与编写一个普通类没有区别。实际上，会更简单。使用之前的战争模拟，Movable 混合类可能如下所示：
 
 \begin{cpp}
 class Movable
@@ -379,39 +379,39 @@ class Movable
 };
 \end{cpp}
 
-This Movable mixin class implements the actual code to move an item on the grid. It also provides a type for Items that can be moved. This allows you to create, for example, an array of all movable items without knowing or caring what actual derived class of Item they belong to.
+这个 Movable 混合类实现了在网格上移动项目的实际代码，还为可以移动的项目提供了一个类型。可以创建一个包含所有可移动项目的数组，而无需知道或关心它们属于 Item 的哪个派生类。
 
-\mySamllsection{Using a Mixin Class}
+\mySamllsection{使用混合类}
 
-The code for using a mixin class is syntactically equivalent to multiple inheritance. In addition to deriving from your parent class in the main hierarchy, you also derive from the mixin class. Here’s an example:
+使用混合类的代码在语法上等同于多重继承。除了从主层次结构中派生出父类外，还从混合类派生：
 
 \begin{cpp}
 class FloatingCastle : public Castle, public Movable { /* … */ };
 \end{cpp}
 
-This mixes in the functionality provided by the Movable mixin class into the FloatingCastle class. Now you have a class that exists in the most logical place in the hierarchy, but still shares commonality with objects elsewhere in the hierarchy.
+这将在 FloatingCastle 类中混合了 Movable 混合类提供的功能。现在有一个类，它存在于层次结构中合理的位置，但仍然与层次结构中其他位置的对象共享共性。
 
-\mySamllsection{Using Class Templates}
+\mySamllsection{使用类模板}
 
-A second option to implement a mixin class in C++ is to make the mixin class itself a class template accepting a template type parameter and then deriving itself from that type.
+C++ 中实现混合类的第二种方法是使混合类本身，成为一个接受模板类型参数的类模板，然后从该类型派生。
 
-Chapter 6 explains the mechanism for implementing a SelfDrivable mixin class template that can then be used to create self-drivable cars and trucks. Now that you are fluent in class templates (Chapters 12 and 26), the SelfDrivable mixin example from Chapter 6 should hold no surprises anymore. The mixin class is defined as follows:
+第 6 章解释了实现一个 SelfDrivable 混合类模板的机制，该混合类可以用于创建自驱动的汽车和卡车。现在已经精通类模板（第 12 章和第 26 章），第 6 章中的 SelfDrivable 混合示例应该很熟悉了。混合类定义如下：
 
 \begin{cpp}
 template <typename T>
 class SelfDrivable : public T { /* … */ };
 \end{cpp}
 
-If you then have a Car and a Truck class, you can easily define a self-drivable car and truck as follows:
+如果有 Car 和 Truck 类，可以轻松地定义一个自驱动的汽车和卡车如下：
 
 \begin{cpp}
 SelfDrivable<Car> selfDrivingCar;
 SelfDrivable<Truck> selfDrivingTruck;
 \end{cpp}
 
-This way, functionality can be added to existing classes, Car and Truck, without having to modify those classes at all.
+这样，功能可以添加到现有的类，Car 和 Truck，而无需修改这些类。
 
-Here is a complete example:
+这是一个完整的示例：
 
 \begin{cpp}
 template <typename T>
@@ -443,11 +443,11 @@ int main()
 \end{cpp}
 
 
-\mySamllsection{Using CRTP}
+\mySamllsection{使用CRTP}
 
-Another technique to implement a mixin class in C++ is to use the curiously recurring template pattern (CRTP).
+在C++中实现混合类的另一种技术是使用奇异重复模板模式（CRTP）。
 
-The mixin class itself is again a class template, but this time it accepts a template type parameter representing the type of a derived class and doesn’t inherit itself from any other class. In the implementation a static\_cast() is required to cast this to the type of the derived class.
+混合类本身再次是一个类模板，但这次它接受一个模板类型参数，表示派生类的类型，并不从其他类继承。实现中需要使用static\_cast()将this转换为派生类的类型。
 
 \begin{cpp}
 template <typename Derived>
@@ -462,7 +462,7 @@ class SelfDrivable
 };
 \end{cpp}
 
-Concrete classes, such as Car and Truck, then inherit from SelfDrivable and pass their own type as the template type argument for SelfDrivable.
+具体的类，如Car和Truck，然后从SelfDrivable继承，并将它们的类型作为SelfDrivable的模板类型参数传递。
 
 \begin{cpp}
 class Car : public SelfDrivable<Car>
@@ -477,7 +477,7 @@ class Truck : public SelfDrivable<Truck>
 };
 \end{cpp}
 
-These can be used as follows:
+这些可以按以下方式使用：
 
 \begin{shell}
 Car car;
@@ -488,9 +488,9 @@ truck.drive();
 
 \CXXTwentythreeLogo{-40}{-50}
 
-\mySamllsection{Using CRTP and Deducing this}
+\mySamllsection{使用CRTP和“推断this”}
 
-The implementation of SelfDrivable::drive() in the previous CRTP example requires a static\_cast() to get access to the correct derived type. Thanks to the C++23 “deducing this” feature, the SelfDrivable class can be implemented more elegantly as follows using an explicit object parameter. In this implementation, the SelfDrivable mixin class is no longer a class template, but SelfDrivable::drive() is now a member function template. The parameter annotated with this is known as an explicit object parameter (see Chapter 8, “Gaining Proficiency with Classes and Objects”).
+前面的CRTP示例中，SelfDrivable::drive()的实现需要一个static\_cast()来获取对正确派生类型的访问权限。由于C++23的“推断this”特性，SelfDrivable类可以更优雅地实现。如下所示，使用一个显式的对象参数。这个实现中，SelfDrivable混合类不再是类模板，但SelfDrivable::drive()现在是成员函数模板。标记为this的参数称为显式对象参数（参见第8章）。
 
 \begin{cpp}
 class SelfDrivable
@@ -500,18 +500,16 @@ class SelfDrivable
 };
 \end{cpp}
 
-Car and Truck then simply derive from SelfDrivable:
+Car和Truck然后简单地从SelfDrivable继承：
 
 \begin{cpp}
 class Car : public SelfDrivable { /* Same as before */ };
 class Truck : public SelfDrivable { /* Same as before */ };
 \end{cpp}
 
-\myGraphic{0.5}{content/part5/chapter32/images/4.png}{FIGURE 32.4}
+模型-视图-控制器（MVC）模式在许多流行框架中获得了广泛的支持。即使是非传统的应用程序，如网络应用程序，也正在朝着MVC的方向发展，它强制实施了数据、数据操作和数据显示之间的清晰分离。
 
-The model-view-controller paradigm has gained widespread support within many popular frameworks. Even nontraditional applications, such as web applications, are moving in the direction of MVC because it enforces a clear separation between data, the manipulation of data, and the displaying of data.
-
-The MVC pattern has evolved into several different variants, such as model-view-presenter (MVP), model-view-adapter (MVA), model-view-viewmodel (MVVM), and so on.
+MVC模式已经演变成几种不同的版本，例如：模型-视图-呈现者（MVP）、模型-视图-适配器（MVA）、模型-视图-视图模型（MVVM）等。
 
 
 

@@ -7,17 +7,17 @@ In the real world, when you talk about driving a car, you can do so without refe
 
 The same concepts apply to C++ programming. The first concept, a generic car that’s drivable, is nothing new; it’s standard polymorphism, described in Chapter 5, “Designing with Classes.” You could write an abstract ICar interface that defines a virtual drive() member function. Both Toyota and Ford could be implementing such an interface.
 
-Your program could drive cars without knowing whether they were really Toyotas or Fords. However, with standard object-oriented programming, the one place that you’d need to specify Toyota or Ford would be when you created the car. Here, you would need to call the constructor for one or the other. You couldn’t just say, “I want a car.” However, suppose that you also had a parallel class hierarchy of car factories. The CarFactory base class could define a public non-virtual requestCar() member function that forwards the work to a private virtual createCar() member function. The ToyotaFactory and FordFactory derived classes override the createCar() member function to build a Toyota or a Ford. Figure 33.3 shows the ICar and CarFactory hierarchies.
+Your program could drive cars without knowing whether they were really Toyotas or Fords. However, with standard object-oriented programming, the one place that you’d need to specify Toyota or Ford would be when you created the car. Here, you would need to call the constructor for one or the other. You couldn’t just say, “I want a car.” However, suppose that you also had a parallel class hierarchy of car factories. The CarFactory base class could define a public non-virtual requestCar() member function that forwards the work to a private virtual createCar() member function. The ToyotaFactory and FordFactory derived classes override the createCar() member function to build a Toyota or a Ford. 图 33.3 shows the ICar and CarFactory hierarchies.
 
-\myGraphic{0.7}{content/part5/chapter33/images/3.png}{FIGURE 33.3}
+\myGraphic{0.8}{content/part5/chapter33/images/3.png}{图 33.3}
 
-Now, suppose that there is one CarFactory object in a program. When code in the program, such as a car dealer, wants a new car, it calls requestCar() on the CarFactory object. Depending on whether that car factory is really a ToyotaFactory or a FordFactory, the code gets either a Toyota or a Ford. Figure 33.4 shows the objects in a car dealer program using a ToyotaFactory.
+Now, suppose that there is one CarFactory object in a program. When code in the program, such as a car dealer, wants a new car, it calls requestCar() on the CarFactory object. Depending on whether that car factory is really a ToyotaFactory or a FordFactory, the code gets either a Toyota or a Ford. 图 33.4 shows the objects in a car dealer program using a ToyotaFactory.
 
-\myGraphic{0.7}{content/part5/chapter33/images/4.png}{FIGURE 33.4}
+\myGraphic{0.8}{content/part5/chapter33/images/4.png}{图 33.4}
 
-Figure 33.5 shows the same program, but with a FordFactory instead of a ToyotaFactory. Note that the CarDealer object and its relationship with the factory stay the same.
+图 33.5 shows the same program, but with a FordFactory instead of a ToyotaFactory. Note that the CarDealer object and its relationship with the factory stay the same.
 
-\myGraphic{0.7}{content/part5/chapter33/images/5.png}{FIGURE 33.5}
+\myGraphic{0.8}{content/part5/chapter33/images/5.png}{图 33.5}
 
 This example demonstrates using polymorphism with factories. When you ask the car factory for a car, you might not know whether it’s a Toyota factory or a Ford factory, but either way it will give you a car that you can drive. This approach leads to easily extensible programs; simply changing the factory instance can allow the program to work on a completely different set of objects and classes.
 
@@ -56,7 +56,7 @@ The CarFactory also provides a public member function to query the number of car
 export class CarFactory
 {
     public:
-        virtual ˜CarFactory() = default; // Always a virtual destructor!
+        virtual ~CarFactory() = default; // Always a virtual destructor!
         // Omitted defaulted default ctor, copy/move ctor, copy/move assignment op.
 
         std::unique_ptr<ICar> requestCar()

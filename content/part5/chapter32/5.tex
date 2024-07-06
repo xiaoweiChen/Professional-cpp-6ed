@@ -2,14 +2,14 @@
 
 \begin{itemize}
 \item
-Exercise 32-1: Write an RAII class template, Pointer<T>, that can store a pointer to a T and automatically deletes the memory when such an RAII instance goes out of scope. Provide a reset() and release() member function, and an overloaded operator*.
+\textbf{练习 32-1}: 编写一个RAII类模板Pointer<T>，可以存储指向T的指针，并在RAII实例超出作用域时自动删除内存。提供reset()和release()成员函数，以及重载的operator*。
 
 \item
-Exercise 32-2: Modify your class template from Exercise 32-1 so that it throws an exception if the argument given to the constructor is nullptr.
+\textbf{练习 32-2}: 修改你在练习 32-1中的类模板，如果构造函数中给出的参数是nullptr，则抛出异常。
 
 \item
-Exercise 32-3: Take your solution from Exercise 32-2 and add a member function template called assign() with a template type parameter E. The function should accept an argument of type E and assign this argument to the data to which the wrapped pointer is pointing. Add a constraint to the member function template to make sure type E is in fact assignable to an lvalue of type T.
+\textbf{练习 32-3}: 基于练习 32-2中的解决方案，并添加一个名为assign()的成员函数模板，带有模板类型参数E。该函数应接受类型为E的参数，并将其分配给包装指针所指向的数据。向成员函数模板添加一个约束，以确保类型E实际上可以赋值给类型T的左值。
 
 \item
-Exercise 32-4: Write a lambda expression returning the sum of two arguments. Both arguments must be of the same type. The lambda expression should work with all kind of data types, such as integral types, floating-point types, and even std::strings. Try out your lambda expression by calculating the sum of 11 and 22, 1.1 and 2.2, and “Hello ” and “world!”
+\textbf{练习 32-4}: 编写一个返回两个参数和的Lambda表达式。两个参数必须是相同的类型。Lambda表达式应适用于所有类型的数据，如整数类型、浮点类型，甚至std::strings。尝试通过计算11和22、1.1和2.2以及“Hello”和“world!”的和来测试Lambda表达式。
 \end{itemize}

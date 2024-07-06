@@ -7,7 +7,7 @@ As you know, C++ does not have any built-in facilities for graphical programming
 
 \mySubsubsection{33.10.1.}{Example: Event Handling}
 
-Consider a drawing program: an application with a window in which shapes can be drawn. The user can press a mouse button somewhere in the application’s window. If that happens, the application should figure out whether the user clicked a shape. If so, the shape is asked to handle the “mouse button down” event. If it decides it doesn’t need to handle the event, it passes the event to the window, which gets the next crack at the event. If the window is also not interested in the event, it forwards it to the application itself, which is the final object in the chain to handle the event. It’s a chain of responsibility because each handler may either handle the event or pass the event to the next handler in the chain.
+Consider a drawing program: an application with a window in which shapes can be drawn. The user can press a mouse button somewhere in the application’s window. If that happens, the application should 图 out whether the user clicked a shape. If so, the shape is asked to handle the “mouse button down” event. If it decides it doesn’t need to handle the event, it passes the event to the window, which gets the next crack at the event. If the window is also not interested in the event, it forwards it to the application itself, which is the final object in the chain to handle the event. It’s a chain of responsibility because each handler may either handle the event or pass the event to the next handler in the chain.
 
 \mySubsubsection{33.10.2.}{Implementation of a Chain of Responsibility}
 

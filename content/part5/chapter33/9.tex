@@ -23,13 +23,13 @@ Paragraphs in HTML are wrapped in <p> and </p> tags. Here’s an example:
 <p>This is a paragraph.</p>
 \end{shell}
 
-Suppose you are writing an HTML editing application. Your users should be able to type in paragraphs of text and apply one or more styles to them. You could make each type of paragraph a new derived class, as shown in Figure 33.7, but that design is cumbersome and would grow exponentially as new styles are added.
+Suppose you are writing an HTML editing application. Your users should be able to type in paragraphs of text and apply one or more styles to them. You could make each type of paragraph a new derived class, as shown in 图 33.7, but that design is cumbersome and would grow exponentially as new styles are added.
 
-\myGraphic{0.7}{content/part5/chapter33/images/7.png}{FIGURE 33.7}
+\myGraphic{0.8}{content/part5/chapter33/images/7.png}{图 33.7}
 
-The alternative is to consider styled paragraphs not as types of paragraphs, but as decorated paragraphs. This leads to situations like the one shown in Figure 33.8, where an ItalicParagraph operates on a BoldParagraph, which in turn operates on a Paragraph. The recursive decoration of objects nests the styles in code just as they are nested in HTML.
+The alternative is to consider styled paragraphs not as types of paragraphs, but as decorated paragraphs. This leads to situations like the one shown in 图 33.8, where an ItalicParagraph operates on a BoldParagraph, which in turn operates on a Paragraph. The recursive decoration of objects nests the styles in code just as they are nested in HTML.
 
-\myGraphic{0.7}{content/part5/chapter33/images/8.png}{FIGURE 33.8}
+\myGraphic{0.4}{content/part5/chapter33/images/8.png}{图 33.8}
 
 \mySubsubsection{33.9.2.}{Implementation of a Decorator}
 
