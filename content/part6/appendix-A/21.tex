@@ -1,32 +1,32 @@
 
-Efficiency questions are quite common in interviews because many organizations are facing scalability issues with their code and need programmers who are savvy about performance.
+效率问题在面试中非常常见，因为许多组织面临着其代码的可扩展性问题，并需要了解性能的开发者。
 
-\mySubsubsection{A.21.1.}{Things to Remember}
+\mySubsubsection{A.21.1.}{需要注意的事项}
 
 \begin{itemize}
 \item
-Language-level efficiency is important, but it can only go so far; design-level choices are ultimately much more significant.
+语言层面的效率很重要，只能走这么远；设计层面的选择最终更为重要。
 
 \item
-Algorithms with bad complexity, such as quadratic algorithms, should be avoided.
+具有不良复杂度的算法，如二次算法，应避免使用。
 
 \item
-Reference parameters are more efficient because they avoid copying.
+引用参数更有效率，因为它们避免了复制。
 
 \item
-Object pools can help avoid the overhead of creating and destroying objects.
+对象池可以帮助避免创建和销毁对象的开销。
 
 \item
-Profiling is vital to determine which operations are really consuming the most time, so you don’t waste effort trying to optimize code that is not a performance bottleneck.
+性能分析至关重要，以确定哪些操作实际上消耗了最多的时间，这样就不会浪费精力试图优化不是性能瓶颈的代码。
 \end{itemize}
 
-\mySubsubsection{A.21.2.}{Types of Questions}
+\mySubsubsection{A.21.2.}{问题的类型}
 
-Often, the interviewer will use her own product as an example to drive efficiency questions. Sometimes the interviewer will describe an older design and some performance-related symptoms she experienced. The candidate is supposed to come up with a new design that alleviates the problem. Unfortunately, there is a major problem with a question like this: what are the odds that you’re going to come up with the same solution that the company did when the problem was actually solved? Because the odds are slim, you need to be extra careful to justify your designs. You might not come up with the actual solution, but you could still have an answer that is correct or even better than the company’s newer design.
+通常，面试官会用自己的产品作为例子来提出效率问题。有时，面试官会描述一个较旧的设计以及她经历的一些与性能相关的症状。候选人应提出一个新的设计来缓解这个问题，但这种问题有一个主要问题：你有多大几率会提出与公司解决实际问题时所采用的相同解决方案？因为几率很低，需要格外小心地证明你的设计。可能不会提出实际的解决方案，但答案仍然可能是正确的，甚至比公司的最新设计还要好。
 
-Other types of efficiency questions may ask you to tweak some C++ code for performance or iterate on an algorithm. For example, the interviewer could show you code that contains extraneous copies or inefficient loops.
+其他类型的效率问题可能会要求调整一些C++代码以提高性能或迭代算法。例如，面试官可能会向你展示包含多余的复制或低效循环的代码。
 
-The interviewer might also ask you for a high-level description of profiling tools (such as gprof or Visual C++), what their benefits are, and why you should use them.
+面试官还可能会问关于性能分析工具（如gprof或Visual C++）的高层次描述、好处，以及为什么要使用它们。
 
 
 

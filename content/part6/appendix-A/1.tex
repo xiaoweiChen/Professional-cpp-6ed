@@ -1,82 +1,82 @@
 
-A technical interview will often include some basic C++ questions to weed out the candidates who put C++ on their résumé simply because they’ve heard of the language. These questions might be asked during a phone screen, when a developer or recruiter calls you before bringing you in for an in-person interview. They could also be asked via e-mail or in person. When answering these questions, remember that the interviewer is just trying to establish that you’ve actually learned and used C++. You generally don’t need to get every detail right to earn high marks.
+技术面试通常会包括一些基本的C++问题，以排除那些仅因为听说过这门语言就把C++放在简历上的候选人。这些问题可能会在电话筛选、开发者或招聘人员在亲自面试之前给打电话时提出，也可能是通过电子邮件或面对面提问。回答这些问题时，要记住面试官只是想确认你确实学习了并使用了C++。一般来说，不需要在每个细节上都回答正确才能得到高分。
 
-\mySubsubsection{A.1.1.}{Things to Remember}
+\mySubsubsection{A.1.1.}{需要记住的事项}
 
 \begin{itemize}
 \item
-Use of functions
+函数的使用
 
 \item
-Uniform initialization
+统一初始化
 
 \item
-Basic use of modules
+基本模块的使用
 
 \item
-Use of the standard named module std (C++23)
+使用标准命名模块std（C++23）
 
 \item
-How to print text to the screen using the modern std::print() and println() functions (C++23)
+如何使用现代std::print()和println()函数打印文本到屏幕（C++23）
 
 \item
-How to print text to the screen using std::cout
+如何使用std::cout打印文本到屏幕
 
 \item
-Use of namespaces and nested namespaces
+命名空间和嵌套命名空间的使用
 
 \item
-Language basics, such as loop syntax, including the range-based for loop, conditional statements, the conditional operator, and variables
+语言基础，例如循环语法，包括基于范围的for循环、条件语句、条件运算符和变量
 
 \item
-Use of the three-way comparison operator
+三向比较运算符的使用
 
 \item
-Enumerations
+枚举
 
 \item
-The difference between the stack and the free store
+栈和堆的区别
 
 \item
-The many uses of const
+const的多种用途
 
 \item
-What pointers and references are and their differences
+指针和引用的定义，以及它们的区别
 
 \item
-The need for references to be bound to a variable when they are declared and that the binding cannot be changed
+引用在声明时需要绑定到一个变量上，并且绑定后不能更改
 
 \item
-The advantages of pass-by-reference over pass-by-value
+引用传递与通过值传递的优势
 
 \item
-Structured bindings
+结构化绑定
 
 \item
-The auto keyword, and its use with structured bindings and to deduce the type of an expression or a function’s return type
+auto关键字，以及在结构化绑定和推断表达式或函数返回类型中的使用
 
 \item
-Basic use of Standard Library containers such as std::array and vector
+基本使用标准库容器，如std::array和vector
 
 \item
-Using std::pair and optional
+使用std::pair和optional
 
 \item
-How type aliases and typedefs work
+类型别名和typedef的工作原理
 
 \item
-The general idea behind attributes
+属性的基本概念
 \end{itemize}
 
-\mySubsubsection{A.1.2.}{Types of Questions}
+\mySubsubsection{A.1.2.}{问题的类型}
 
-Basic C++ questions will often come in the form of a vocabulary test. The interviewer may ask you to define C++ terms, such as auto or enum class. She may be looking for the textbook answer, but you can often score extra points by giving sample usage or extra detail. For example, when asked to define the auto keyword, you can score extra points by not only explaining the use of auto to define variables, but also its use with function return type deduction and structured bindings.
+基本的C++问题往往以测试的形式出现。面试官可能会要求你定义C++术语，例如auto或enum class。她可能会寻找教科书上的答案，但通常可以通过提供示例用法或额外细节来获得额外加分。例如，当被问到定义auto关键字时，你可以通过不仅解释auto用于定义变量，还解释它用于函数返回类型推断和结构化绑定来获得加分。
 
-The other form that basic C++ competence questions can take is a short program that you write in front of the interviewer. An interviewer may give you a warm-up question, such as, “Write Hello, World in C++.” When you get a seemingly simple question like this, make sure that you score all the extra points you can by showing that you are namespace-savvy and up-to-date with the latest standards; i.e., you use the modern std::print() and println() functions instead of the C-style printf() function, and you know that a single import of std gives access to the entire Standard Library. However, upgrading a code base with every new C++ standard takes time, so a lot of companies don’t always use the latest C++ standard. That means you still need to know how to do things using older standards. For the “Hello, World” program, you should also demonstrate that you can write it using std::cout and \#include instead of std::println() and import.
+基本C++能力问题也可以以面试官让你在他们面前编写一个简短程序的形式出现。面试官可能会给你一个热身问题，比如，“用C++写一个'Hello, World'。”当你得到这样一个看似简单的问题时，要确保能通过展示了解命名空间和最新的标准（即使用现代的std::print()和println()函数而不是C风格的printf()函数，以及知道一个import std可以访问整个标准库）来获得尽可能多的额外加分。然而，随着每一次新的C++标准的发布，升级代码库需要时间，所以很多公司并不总是使用最新的C++标准。所以仍然需要知道如何使用旧的标准，对于“Hello, World”程序，你也需要展示你能够使用std::cout和\#include，而不是std::println()和import来编写它。
 
-Asking a candidate to define const is a classic C++ interview question. The keyword provides a sliding scale with which an interviewer can assess an answer. For example, a fair candidate will talk about const variables. A good candidate will explain const member functions and pass-by-referenceto-const and explain why this can be more efficient than pass-by-value. A great candidate might talk about the relationship of const to thread-safety (discussed in Chapter 27, “Multithreaded Programming with C++”), show how to define static const data members (discussed in Chapter 9, “Mastering Classes and Objects”), or differentiate const from constexpr (see Chapter 9).
+要求候选人定义const是一个经典的C++面试问题。这个关键字提供了一个可以评估答案的滑动标尺，一个公平的候选人会谈论const变量。一个好的候选人会解释const成员函数和通过引用传递到const，并解释为什么这可能比通过值传递更有效。一个出色的候选人可能会谈论const与线程安全性的关系（见第27章），展示如何定义静态const数据成员（见第9章），或者区分const和constexpr（见第9章）。
 
-Certain topics described in this chapter also come in find-the-bug type problems. Be on the lookout for misuse of references. For example, imagine a class that contains a reference as a data member:
+本章中描述的某些主题也以查找错误的问题形式出现。要注意引用使用不当的情况。例如，一个包含引用作为数据成员的类：
 
 \begin{cpp}
 class Gwenyth
@@ -90,7 +90,7 @@ int main()
 }
 \end{cpp}
 
-The statement in main() won’t compile, and the compiler will spit out an error saying that it attempts to reference a deleted function. Because m\_caversham is a reference, it needs to be bound to a variable when the class is constructed. The compiler-generated default constructor cannot do that, so the compiler implicitly deletes the default constructor of Gwenyth. You need to provide a constructor and initialize the reference in the constructor initializer. The class could take the variable to be referenced as a parameter to the constructor:
+main()中的语句不会编译，编译器会输出一个错误，说它试图引用一个删除的函数。因为m\_caversham是一个引用，需要在类被构造时绑定到一个变量上。编译器生成的默认构造函数无法做到这一点，所以编译器隐式地删除了Gwenyth的默认构造函数。需要提供一个构造函数，并在构造函数初始化器中初始化引用。类可以接受要引用的变量作为构造函数的参数：
 
 \begin{cpp}
 class Gwenyth

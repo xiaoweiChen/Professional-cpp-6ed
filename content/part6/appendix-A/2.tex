@@ -1,58 +1,58 @@
 
 
-Strings are important and are used in almost every kind of application. An interviewer will most likely ask at least one question related to string handling in C++.
+字符串在几乎每种类型的应用程序中都至关重要，因此面试官很可能至少会问一个与C++字符串处理相关的问题。
 
-\mySubsubsection{A.2.1.}{Things to Remember}
+\mySubsubsection{A.2.1.}{需要记住的事项}
 
 \begin{itemize}
 \item
-The std::string and string\_view classes
+std::string和string\_view类
 
 \item
-To prefer const string\& or string as function return type instead of string\_view
+优先使用const string\&或string作为函数返回类型，而不是string\_view
 
 \item
-Differences between the C++ std::string class and C-style (char*) strings, including why C-style strings should be avoided
+C++的std::string类与C风格（char*）字符串的区别，包括为什么应该避免使用C风格字符串
 
 \item
-Conversion of strings to numeric types such as integers and floating-point numbers, and vice versa
+将字符串转换为整数和浮点数等数字类型，反之亦然
 
 \item
-String formatting using std::format()
+使用std::format()进行字符串格式化
 
 \item
-String printing using std::print() and println() (C++23)
+使用std::print()和println()进行字符串打印 (C++23)
 
 \item
-How to format and print entire ranges at once (C++23)
+如何一次性格式化和打印整个范围 (C++23)
 
 \item
-Raw string literals
+原始字符串字面量
 
 \item
-The importance of localization
+本地化的重要性
 
 \item
-Ideas behind Unicode
+Unicode背后的理念
 
 \item
-The high-level concepts of locales and facets
+locale和facet的高层次概念
 
 \item
-What regular expressions are
+正则表达式的概念
 \end{itemize}
 
-\mySubsubsection{A.2.2.}{Types of Questions}
+\mySubsubsection{A.2.2.}{问题的类型}
 
-An interviewer could ask you to explain how you can append two strings together. With this question, the interviewer wants to find out whether you are thinking as a C++ programmer or as a C programmer. If you get such a question, you should explain the std::string class and show how to use it to append two strings. It’s also worth mentioning that the string class handles all memory management for you automatically, and contrasting this to C-style strings.
+面试官可能会问你如何将两个字符串拼接在一起。对于这个问题，面试官想要了解你是以C++程序员，还是以C程序员的方式思考。如果遇到这样的问题，你应该解释std::string类，并展示如何使用它来拼接两个字符串。同时，也应该提到字符串类会自动处理所有内存管理，并与C风格字符串进行对比。
 
-Most interviewers won’t ask specific details about localization. If you do receive a question about your experience with localization, be sure to mention the importance of considering worldwide use from the beginning of the project.
+大多数面试官不会询问关于本地化的具体细节。如果你被问及本地化经验，确保提到从项目开始时就考虑全球使用的重要性。
 
-You might also be asked about the general idea behind locales and facets. Most likely, you will not have to explain the exact syntax, but you should explain that they allow you to format text and numbers according to the rules of a certain language or country.
+你可能会被问到locale和facet的基本概念。尽管你可能不需要解释确切的语法，但应该解释它们可以根据特定语言或国家的规则来格式化文本和数字。
 
-You might get a question about Unicode, but almost certainly it will be a question to explain the ideas and the basic concepts behind Unicode instead of implementation details. So, make sure you understand the high-level concepts of Unicode and that you can explain their use in the context of localization. You should also know about the different options for encoding Unicode characters, such as UTF-8 and UTF-16, without specific details.
+你可能会被问到关于Unicode的问题，但几乎可以肯定的是，这个问题是要求你解释Unicode背后的理念和基本概念，而不是实现细节。确保你理解Unicode的高层次概念，并能解释它们在本地化上下文中的使用。还应该知道不同的Unicode字符编码选项，如UTF-8和UTF-16，而不需要具体细节。
 
-As discussed in Chapter 21, regular expressions can have a daunting syntax. It is unlikely that an interviewer will ask you about little details of regular expressions. However, you should be able to explain the concept of regular expressions and what kind of string manipulations you can do with them.
+正如第21章所讨论的，正则表达式的语法可能令人望而生畏。面试官不太可能问你正则表达式的细节，但你应该能够解释正则表达式的概念，以及可以使用它们进行哪些字符串操作。
 
 
 

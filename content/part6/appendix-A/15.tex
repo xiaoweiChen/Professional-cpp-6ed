@@ -1,65 +1,66 @@
 
-As you’ve seen, certain aspects of the Standard Library can be difficult to work with. Few interviewers would expect you to recite the details of Standard Library classes unless you claim to be a Standard Library expert. If you know that the job you’re interviewing for makes heavy use of the Standard Library, you might want to write some Standard Library code the day before to refresh your memory. Otherwise, recalling the high-level design of the Standard Library and its basic usage should suffice.
+标准库的某些方面可能难以处理，很少有面试官会期望你背诵标准库类的详细信息，除非你声称自己是标准库的专家。如果你知道你面试的工作会大量使用标准库，可能会想在面试前一天写一些标准库代码来刷新你的记忆。否则，回忆标准库的高级设计和基本用法应该就足够了。
 
-\mySubsubsection{A.15.1.}{Things to Remember}
+\mySubsubsection{A.15.1.}{需要注意的事项}
 
 \begin{itemize}
 \item
-The different types of containers and their relationships with iterators
+不同类型的容器，及其与迭代器的关联
 
 \item
-Use of vector, which is the most frequently used Standard Library class
+使用vector，这是最常用的标准库类
 
 \item
-The span class and why you should use it
+span类，以及为什么应该使用它
 
 \item
-What an mdspan is (C++23)
+什么是mdspan(C++23)
 
 \item
-Use of associative containers, such as map
+使用关联容器，如map
 
 \item
-The differences between associative containers, e.g., map, unordered associative containers, e.g., unordered\_map, and flat associative container adapters (C++23), e.g., flat\_map
+关联容器与其他关联容器（例如，map、无序关联容器（例如，unordered\_map）以及扁平关联容器适配器（C++23），例如flat\_map）之间的区别
 
 \item
-How to work with function pointers, function objects (callable objects), and lambda expressions
+如何与函数指针、函数对象（可调用对象）和Lambda表达式一起工作
 
 \item
-What transparent operator functors are
+什么是透明运算符函数
 
 \item
-The purpose of Standard Library algorithms and some of the built-in algorithms
+标准库算法，及其内置算法的目的
 
 \item
-The use of lambda expressions in combination with Standard Library algorithms
+Lambda表达式与标准库算法的组合使用
 
 \item
-The remove-erase idiom
+remove-erase模式
 
 \item
-The fact that a lot of Standard Library algorithms have an option to execute them in parallel to improve performance
+许多标准库算法都可以并行执行以提高性能
 
 \item
-The ways in which you can extend the Standard Library (details are most likely unnecessary)
+如何扩展标准库（不必要了解细节）
 
 \item
-What ranges, projections, views, and range factories are
+范围、投影、视图和范围工厂是什么
 
 \item
-The expressiveness of the Ranges library
+范围库的表达能力
 
 \item
-Your own opinions about the Standard Library
+对标准库的看法
 \end{itemize}
 
-\mySubsubsection{A.15.2.}{Types of Questions}
+\mySubsubsection{A.15.2.}{问题的类型}
 
-If interviewers are dead set on asking detailed Standard Library questions, there really are no bounds to the types of questions they could ask. If you’re feeling uncertain about syntax, though, you should state the obvious during the interview: “In real life, of course, I’d look that up in Professional C++, but I’m pretty sure it works like this . . .” At least that way, the interviewer is reminded that he should forgive the details, as long as you get the basic idea right.
+如果面试官坚持要问详细的标准库问题，真的可以问任何类型的问题。如果你对语法不确定，应该在面试中直言不讳：“在现实生活中，我当然会在《Professional C++》中查找那个细节，但我相当确定它像这样工作……”至少这样，面试官会提醒应该原谅细节，只要你把基本概念搞对。
 
-High-level questions about the Standard Library are often used to gauge how much you’ve used the Standard Library without making you recall all the details. For example, casual users of the Standard Library may be familiar with associative and non-associative containers. A slightly more advanced user would be able to define an iterator, describe how iterators work with containers, and describe the remove-erase idiom. Other high-level questions could ask you about your experience with Standard Library algorithms, or whether you’ve customized the Standard Library. An interviewer might also gauge your knowledge about function objects and lambda expressions, and their use with Standard Library algorithms. When talking about lambda expressions, you can score extra points if you explain the use of the auto keyword to define generic lambda expressions.
+关于标准库的高级问题通常用来衡量使用标准库的程度，而不需要回忆所有细节。例如，标准库的普通用户可能熟悉关联和非关联容器。一个稍微高级的用户能够定义一个迭代器，描述迭代器如何与容器一起工作，并描述remove-erase模式。其他高级问题可能要求你谈论你对标准库算法的经验，或者你是否自定义了标准库。面试官还可能衡量你对函数对象和Lambda表达式的了解，以及它们与标准库算法的使用。当你谈论Lambda表达式时，如果解释了使用auto关键字来定义泛型Lambda表达式的用法，将获得额外分数。
 
-You might also be asked to explain the benefits of using the ranges library. Remember, it basically allows you to write code that describes what you want to do instead of how you want to do it.
+可能会要求解释使用范围库的好处，可以编写描述想要做什么的代码。
+
 
 
 

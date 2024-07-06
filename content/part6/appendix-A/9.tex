@@ -1,60 +1,60 @@
 
-Questions about inheritance usually come in the same forms as questions about classes. The interviewer might also ask you to implement a class hierarchy to show that you have worked with C++ enough to write derived classes without looking it up in a book.
+关于继承的问题通常与类的问题形式相同。面试官还可能会让你实现一个类层次结构，以显示你已经足够熟悉C++，能够编写派生类而不用查书。
 
-\mySubsubsection{A.9.1.}{Things to Remember}
+\mySubsubsection{A.9.1.}{需要注意的事项}
 
 \begin{itemize}
 \item
-The syntax for inheritance
+继承的语法
 
 \item
-The difference between private and protected from the derived class’s point of view
+从派生类的角度来看，private和protected的区别
 
 \item
-Member function overriding and virtual
+成员函数重写和虚拟
 
 \item
-The difference between overloading, overriding, and hiding
+重载、重写和隐藏之间的区别
 
 \item
-The reason why base-class destructors should be virtual
+为什么基类析构函数应该声明为虚
 
 \item
-Chained constructors
+链式构造函数
 
 \item
-The ins and outs of upcasting and downcasting
+向上转型和向下转型的细节
 
 \item
-The different types of casts in C++
+C++中的不同类型的强制转换
 
 \item
-The principle of polymorphism
+多态的原则
 
 \item
-Pure virtual member functions and abstract base classes
+纯虚成员函数和抽象基类
 
 \item
-Multiple inheritance
+多重继承
 
 \item
-Run-time type information (RTTI)
+运行时类型信息（RTTI）
 
 \item
-Inherited constructors
+继承的构造函数
 
 \item
-The final keyword on classes
+类的final关键字
 
 \item
-The override and final keywords on member functions
+成员函数上的override和final关键字
 \end{itemize}
 
-\mySubsubsection{A.9.2.}{Types of Questions}
+\mySubsubsection{A.9.2.}{问题的类型}
 
-Many of the pitfalls in inheritance questions are related to getting the details right. When you are writing a base class, don’t forget to make the member functions virtual. If you mark all member functions virtual, be prepared to justify that decision. You should be able to explain what virtual means and how it works. Also, don’t forget the public keyword before the name of the parent class in the derived class definition (for example, class Derived : public Base). It’s unlikely that you’ll be asked to perform nonpublic inheritance during an interview.
+继承问题中的许多陷阱都与细节的正确性有关。当编写一个基类时，不要忘记使成员函数为虚。如果将所有成员函数都标记为虚，请准备好解释这个决定。你应该能够解释什么是虚函数，以及它是如何工作的。此外，不要忘记在派生类定义中在基类名称前加上public关键字（例如，class Derived : public Base）。在面试中，不太可能被要求执行非公有继承。
 
-More challenging inheritance questions have to do with the relationship between a base class and a derived class. Be sure you know how the different access levels work, especially the difference between private and protected. Remind yourself of the phenomenon known as slicing, when certain types of casts cause a class to lose its derived class information.
+更具挑战性的继承问题与基类和派生类之间的关系有关。务必了解不同访问级别的运作方式，尤其是private和protected之间的区别。提醒自己了解所谓的切片现象，当某些类型的强制转换导致类丢失其派生类信息。
 
 
 

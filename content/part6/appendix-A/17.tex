@@ -1,22 +1,22 @@
 
-Generating good random numbers in software is a complex topic, and interviewers know this. They will not ask any syntactical details about it, but you need to know the basics and concepts behind the <random> library, which is part of the C++ Standard Library.
+在软件中生成好的随机数是一个复杂的话题，面试官也知道这一点。他们不会问任何语法细节，但你需要知道<random>库背后的基本概念，这是C++标准库的一部分。
 
-\mySubsubsection{A.17.1.}{Things to Remember}
+\mySubsubsection{A.17.1.}{需要注意的事项}
 
 \begin{itemize}
 \item
-Using the <random> library as the preferred technique of generating random numbers
+使用<random>库作为生成随机数的首选技术
 
 \item
-How random number engines and distributions work together to generate random numbers
+随机数引擎和分布如何共同生成随机数
 
 \item
-What seeding means and why it is important
+什么是种子，以及为什么它很重要
 \end{itemize}
 
-\mySubsubsection{A.17.2.}{Types of Questions}
+\mySubsubsection{A.17.2.}{问题的类型}
 
-An interviewer might show you a piece of code that is using the C functions rand() and srand() to generate random numbers and ask you to comment on the code snippet. You should explain that those C functions are not recommended anymore and why it’s better to use the functionality provided by <random>.
+面试官可能会给你展示一段使用C函数rand()和srand()生成随机数的代码，并让你对代码片段进行评论。应该解释说那些C函数不再推荐使用，以及为什么使用<random>提供的功能更好。
 
-In the context of questions related to random numbers, it is important to explain the differences between true random numbers and pseudorandom numbers. You will score extra points if you explain that you can use a random\_device to generate a truly random seed for a pseudorandom number generator, as well as why you would use a pseudorandom number generator instead of just using a random\_device all the time.
+涉及随机数的问题中，重要的是要解释真随机数和伪随机数之间的区别。如果解释说你可以使用random\_device为伪随机数生成器生成一个真正的随机种子，以及为什么总是不使用random\_device，而使用伪随机数生成器，会得到额外分数。
 

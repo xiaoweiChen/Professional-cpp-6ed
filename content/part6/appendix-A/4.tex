@@ -1,50 +1,52 @@
 
-Your interviewer will want to make sure that in addition to knowing the C++ language, you are skilled at applying it. You might not be asked a design question explicitly, but good interviewers have a variety of techniques to sneak design into other questions, as you’ll see.
+面试官将想确保你不仅了解C++语言，而且能够熟练地应用它。你可能不会被明确地问到设计问题，但优秀的面试官有多种技巧将设计融入其他问题中。
 
-A potential employer will also want to know that you’re able to work with code that you didn’t write yourself. If you’ve listed third-party libraries on your résumé, then you should be prepared to answer questions about them. If you didn’t list specific libraries, a general understanding of the importance of libraries will probably suffice.
+潜在雇主还想知道是否能够与自己参与编写的代码一起工作。如果你在简历上列出了第三方库，那么应该准备好回答有关它们的问题。如果你没有列出具体的库，对库的重要性有一个大致的了解可能就足够了。
 
-\mySubsubsection{A.4.1.}{Things to Remember}
+\mySubsubsection{A.4.1.}{需要注意的事项}
 
 \begin{itemize}
 \item
-Design is subjective. Be prepared to defend design decisions you make during the interview.
+设计是主观的。准备在面试期间捍卫你做出的设计决策。
 
 \item
-Before the interview, recall the details of a design you’ve done in the past in case you are asked for an example.
+面试前，回想一下过去设计的一个细节。
 
 \item
-Be prepared to sketch out a design visually, including class hierarchies.
+准备好以视觉方式草绘设计，包括类层次结构。
 
 \item
-Be prepared to tout the benefits and disadvantages of code reuse.
+准备好介绍代码重用的好处和缺点。
 
 \item
-Understand the concept of libraries.
+理解库的概念。
 
 \item
-Know the tradeoffs between building from scratch and reusing existing code.
+了解从头开始构建和使用现有代码之间的权衡。
 
 \item
-Know the basics of big-O notation, or at least remember that O(n log n) is better than O($n^2$).
+了解大O表示法的基本知识，或者至少记住O(n log n)比O($n^2$)更好。
 
 \item
-Understand the functionality that is included in the C++ Standard Library.
+理解C++标准库中包含的功能。
 
 \item
-Know the high-level definition of design patterns.
+了解设计模式的高级定义。
 \end{itemize}
 
-\mySubsubsection{A.4.2.}{Types of Questions}
+\mySubsubsection{A.4.2.}{问题的类型}
 
-Design questions are hard for an interviewer to come up with; any program that you could design in an interview setting is probably too simple to demonstrate real-world design skills. Design questions may come in a fuzzier form, such as “Tell me the steps in designing a good program” or “Explain the fundamental rule of code reuse.” They can also be less explicit. When discussing your previous job, the interviewer may ask, “Can you explain the design of that project to me?” Be careful not to expose intellectual property from your previous jobs, though.
+设计问题对面试官来说很难提出.面试环境中设计的程序可能都太简单，无法展示实际的设计技能。设计问题可能以更模糊的形式出现，例如“告诉我设计一个好程序的步骤”或“解释代码重用的基本规则”，也可以不那么明确。当讨论以前的工作时，面试官可能会问：“能向我解释那个项目的设计吗？”不过，要小心不要泄露你以前工作的知识产权。
 
-If the interviewer is asking you about a specific library, he will probably focus on the high-level aspects of the library as opposed to technical specifics. For example, you may be asked to explain what the strengths and weaknesses of the Standard Library are from a library design point of view.
-The best candidates talk about the Standard Library’s breadth and standardization as strengths and its sometimes-complex usage as a drawback.
+如果面试官问你关于一个特定的库，可能会关注库的高层次方面，而不是技术细节。例如，可能会被问到解释标准库在库设计方面的优点和缺点。
 
-You may also be asked a design question that initially doesn’t sound as if it’s related to libraries. For example, the interviewer could ask how you would go about creating an application that downloads MP3 music from the web and plays it on a local computer. This question isn’t explicitly related to libraries, but that’s what it’s getting at; the question is really asking about process.
+最好的候选人在谈到标准库的广度和标准化时会提到它们的优势，在谈到使用有时复杂时会提到它的缺点。
 
-You should begin by talking about how you would gather requirements and do initial prototypes. Because the question mentions two specific technologies, the interviewer would like to know how you would deal with them. This is where libraries come into play. If you tell the interviewer that you would write your own web classes and MP3-playing code, you won’t fail the test, but you will be challenged to justify the time and expense of reinventing these tools.
+你可能会被问到一个最初听起来似乎与库无关的设计问题。面试官可能会问你如何创建一个应用程序，该应用程序从网上下载MP3音乐并在本地计算机上播放。这个问题与库没有直接关联，但这就是它所指的方向；这个问题实际上是在问过程。
 
-A better answer is to say that you would survey existing libraries that perform web and MP3 functionality to see if one exists that suits the project. You might want to name some technologies that you would start with, such as libcurl (curl.haxx.se) for web retrieval in Linux or the Windows Media library for music playback in Windows.
+应该从谈论你如何收集需求和做初步原型开始。由于这个问题提到了两种特定的技术，面试官想知道会如何处理它们，这就是库发挥作用的地方。如果告诉面试官你会编写自己的web类和MP3播放代码，但需要证明重新发明这些工具的时间和成本的合理性。
 
-Mentioning some websites with free libraries, and some ideas of what those websites provide, might also get you extra points. Some examples are codeguru.com and codeproject.com for Windows libraries, boost.org and github.com for platform-independent C++ libraries, and so on. Giving examples of some of the licenses that are available for open-source software, such as the GNU General Public License, Boost Software License, Creative Commons license, MIT license, OpenBSD license, and so on, might score you extra credit.
+更好的回答是说你会调查现有的执行web和MP3功能的库，看看是否有一个适合项目的库。你可能想说出一些一开始使用的技术，比如libcurl（curl.haxx.se）用于Linux上的web检索，或者Windows Media库用于Windows上的音乐播放。
+
+提到一些提供免费库的网站，以及这些网站提供的一些想法，可能会让你得到额外的分数。一些例子是codeguru.com和codeproject.com提供Windows库，boost.org和github.com提供跨平台的C++库，等等。提供一些开源软件可用的许可证的例子，比如GNU通用公共许可证、Boost软件许可、Creative Commons许可、MIT许可、OpenBSD许可等，可能会让你得到额外的学分。
+

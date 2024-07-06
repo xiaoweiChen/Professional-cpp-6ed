@@ -1,44 +1,44 @@
 
-You can be sure that an interviewer will ask you some questions related to memory management, including your knowledge of smart pointers. Besides smart pointers, you will also get more low-level questions. The goal is to determine whether the object-oriented aspects of C++ have distanced you too much from the underlying implementation details. Memory management questions will give you a chance to prove that you know what’s really going on.
+你可以肯定面试官会问你一些与内存管理相关的问题，包括对智能指针的了解。除了智能指针，还会得到更多底层的问题。目标是为了确定C++的面向对象方面是否让你与底层实现细节太过疏远。内存管理问题将给你一个证明知道真正发生什么的机会。
 
-\mySubsubsection{A.7.1.}{Things to Remember}
+\mySubsubsection{A.7.1.}{需要注意的事项}
 
 \begin{itemize}
 \item
-Know how to draw the stack and the free store; this can help you understand what’s going on.
+了解如何绘制栈和堆区；这有助于你理解正在发生的事情。
 
 \item
-Avoid using low-level memory allocation and deallocation functions. In modern C++, there should be no calls to new, delete, new[], delete[], malloc(), free(), and so on. Instead, use smart pointers.
+避免使用低层的内存分配和释放函数。在现代C++中，不应该有对new、delete、new[]、delete[]、malloc()、free()等的调用。相反，使用智能指针。
 
 \item
-Understand smart pointers; use std::unique\_ptr by default, shared\_ptr for shared ownership.
+理解智能指针；默认使用std::unique\_ptr，shared\_ptr用于共享所有权。
 
 \item
-Use std::make\_unique() to create a unique\_ptr.
+使用std::make\_unique()创建一个unique\_ptr。
 
 \item
-Use std::make\_shared() to create a shared\_ptr.
+使用std::make\_shared()创建一个shared\_ptr。
 
 \item
-Never use auto\_ptr; it has been removed since C++17.
+永远不要使用auto\_ptr；它自C++17起已被移除。
 
 \item
-If you do need to use low-level memory allocation functions, use new, delete, new[], and delete[], never malloc() and free().
+如果你确实需要使用低层的内存分配函数，使用new、delete、new[]和delete[]，而不是malloc()和free()。
 
 \item
-If you have an array of pointers to objects, you still need to allocate memory for each individual pointer and delete the memory—the array allocation syntax doesn’t take care of pointers.
+如果你有一个指向对象的指针数组，仍然需要为每个单独的指针分配内存并释放内存——数组分配语法不会处理指针。
 
 \item
-Be aware of the existence of memory allocation problem detectors, such as Valgrind, to expose memory problems.
+要了解内存分配问题检测器的存在，如Valgrind，以暴露内存问题。
 \end{itemize}
 
-\mySubsubsection{A.7.2.}{Types of Questions}
+\mySubsubsection{A.7.2.}{问题的类型}
 
-Find-the-bug questions often contain memory issues, such as double deletion, new/delete/new[]/ delete[] mix-up, and memory leaks. When you are tracing through code that makes heavy use of pointers and arrays, you should draw and update the state of the memory as you process each line of code.
+寻找错误的问题经常包含内存问题，如重复删除、new/delete/new[]/delete[]的混淆和内存泄漏。当跟踪使用大量指针和数组的代码时，应该绘制并更新处理每一行代码时的内存状态。
 
-Another good way to find out if a candidate understands memory is to ask how pointers and arrays differ. At this point, the question might catch you off guard for a moment. If that’s the case, skim Chapter 7 again for the discussion on pointers and arrays.
+了解候选人是否理解内存的另一个好方法是，询问指针和数组之间的区别。在这种情况下，问题可能会让你措手不及。如果是这样，请再次快速浏览第7章关于指针和数组的讨论。
 
-When answering questions about memory allocation, it’s always a good idea to mention the concept of smart pointers and their benefits for automatically cleaning up memory and other resources. You should also mention that it’s much better to use Standard Library containers, such as std::vector, instead of C-style arrays, because the Standard Library containers handle memory management for you automatically.
+在回答关于内存分配的问题时，总是提到智能指针的概念，及其自动清理内存和其他资源的好处是个好主意。还应该提到，使用标准库容器，如std::vector，而不是C风格数组，因为标准库容器为你自动处理内存管理。
 
 
 

@@ -1,121 +1,121 @@
 
-There is no limit to the types of questions you can be asked about classes and objects. Some interviewers are syntax-fixated and might throw some complicated code at you. Others are less concerned with the implementation and more interested in your design skills.
+关于类和对象，被问到的问题类型没有限制。一些面试官可能更注重语法，可能会给你一些复杂的代码。其他人则更关注设计技能，而不是实现。
 
-\mySubsubsection{A.8.1.}{Things to Remember}
-
-\begin{itemize}
-\item
-Basic class definition syntax.
-
-\item
-Access specifiers for member functions and data members.
-
-\item
-The use of the this pointer.
-
-\item
-How name resolution works.
-
-\item
-Object creation and destruction, both on the stack and the free store.
-
-\item
-Cases when the compiler generates a constructor for you.
-
-\item
-Constructor initializers.
-
-\item
-Copy constructors and assignment operators.
-
-\item
-Delegating constructors.
-
-\item
-The mutable keyword.
-
-\item
-Member function overloading and default arguments.
-
-\item
-const members.
-
-\item
-Friend classes and member functions.
-
-\item
-Managing dynamically allocated memory in classes.
-
-\item
-static member functions and data members.
-
-\item
-Inline member functions and the fact that the inline keyword is just a hint for the compiler, which can ignore the hint.
-
-\item
-The key idea of separating interface and implementation classes, which says that interfaces should only contain public member functions, should be as stable as possible, and should not contain any data members or private/protected member functions. Thus, interfaces can remain stable while implementations are free to change under them.
-
-\item
-In-class member initializers.
-
-\item
-Explicitly defaulted and deleted special member functions.
-
-\item
-The difference between rvalues and lvalues.
-
-\item
-Rvalue references.
-
-\item
-Move semantics with move constructors and move assignment operators.
-
-\item
-The copy-and-swap idiom and what it is used for.
-
-\item
-The rule of zero versus the rule of five.
-
-\item
-Basic operator overloading syntax.
-
-\item
-The three-way comparison operator for classes.
-
-\item
-What explicit object parameters are (C++23).
-
-\item
-What constexpr and consteval functions and classes are.
-\end{itemize}
-
-\mySubsubsection{A.8.2.}{Types of Questions}
-
-Questions such as “What does the keyword mutable mean?” are great for phone screening. A recruiter may have a list of C++ terms and will move candidates to the next stage of the process based on the number of terms that they get right. You might not know all of the terms thrown at you, but keep in mind that other candidates are facing the same questions, and it’s one of the few metrics available to a recruiter.
-
-The find-the-bug style of questions is popular among interviewers and course instructors alike. You will be presented with some nonsense code and asked to point out its flaws. Interviewers struggle to find quantitative ways to analyze candidates, and this is one of the few ways to do it. In general, your approach should be to read each line of code and voice your concerns, brainstorming aloud. The types of bugs can fall into several categories:
+\mySubsubsection{A.8.1.}{需要注意的事项}
 
 \begin{itemize}
 \item
-Syntax errors: These are rare; interviewers know you can find compile-time bugs with a compiler.
+基本类定义语法。
 
 \item
-Memory problems: These include problems such as leaks and double deletion.
+成员函数和数据成员的访问修饰符。
 
 \item
-“You wouldn’t do that” problems: This category includes things that are technically correct but are not recommended. For example, you wouldn’t use C-style character arrays; you would use std::string instead.
+this指针的使用。
 
 \item
-Style errors: Even if the interviewer doesn’t count it as a bug, point out poor comments or variable names.
+名称解析的工作方式。
+
+\item
+对象的创建和销毁，无论是栈上还是堆区。
+
+\item
+编译器生成构造函数。
+
+\item
+构造函数初始化器。
+
+\item
+复制构造函数和赋值运算符。
+
+\item
+委托构造函数。
+
+\item
+mutable关键字。
+
+\item
+成员函数重载和默认参数。
+
+\item
+const成员。
+
+\item
+友元类和成员函数。
+
+\item
+类中管理动态分配的内存。
+
+\item
+static成员函数和数据成员。
+
+\item
+内联成员函数以及内联关键字只是对编译器的提示，编译器可以忽略这个提示。
+
+\item
+将接口和实现分离的关键思想，即接口应只包含公共成员函数，应尽可能稳定，不应包含数据成员或private/protected的成员函数。接口可以保持稳定，而实现则可以在其下方自由更改。
+
+\item
+内联成员初始化器。
+
+\item
+显式默认化和删除的特殊成员函数。
+
+\item
+右值和左值的区别。
+
+\item
+右值引用
+
+\item
+使用移动构造函数和移动赋值运算符的移动语义。
+
+\item
+复制-交换模式，及其用途。
+
+\item
+零法则与五法则。
+
+\item
+基本运算符重载语法。
+
+\item
+用于类的三向比较运算符。
+
+\item
+显式对象参数是什么 (C++23).
+
+\item
+什么是constexpr和consteval函数和类。
 \end{itemize}
 
-Here’s a find-the-bug problem that demonstrates each of these areas:
+\mySubsubsection{A.8.2.}{问题的类型}
+
+“mutable关键字是什么意思？”这样的问题非常适合电话筛选。招聘人员可能有一份C++术语列表，并根据候选人正确回答的术语数量将他们推进到流程的下一阶段。你可能不知道所有抛给你的术语，但其他候选人也面临着同样的问题，这是招聘人员可以使用的少数几个指标之一。
+
+面试官和课程讲师都喜欢“寻找错误”风格的问题，将被展示一些胡言乱语的代码，并被要求指出其缺陷。面试官很难找到定量分析候选人的方法，这是他们为数不多的几种方法。一般来说，你的方法应该是逐行阅读代码，大声说出你的担忧，进行头脑风暴。错误可以分为几类：
+
+\begin{itemize}
+\item
+语法错误：这些很少见，面试官知道你可以使用编译器找到编译时错误。
+
+\item
+内存问题：这包括泄漏和重复删除等问题。
+
+\item
+“你不会这样做”的问题：这个类别包括技术上正确但不推荐的事情。例如，不会使用C风格的字符数组，会使用std::string代替。
+
+\item
+风格错误：即使面试官不将其视为错误，也要指出糟糕的注释或变量名。
+\end{itemize}
+
+这里有一个展示这些领域的“寻找错误”问题：
 
 \begin{cpp}
 class Buggy
 {
     Buggy(int param);
-    ˜Buggy();
+    ~Buggy();
     void turtle(int i = 7, int j);
     protected:
     double fjord(double val);
@@ -130,7 +130,7 @@ Buggy::Buggy(int param)
     m_graphicDimension = new double;
 }
 
-Buggy::˜Buggy()
+Buggy::~Buggy()
 {}
 
 double Buggy::fjord(double val)
@@ -149,7 +149,7 @@ void Buggy::turtle(int i, int j)
 }
 \end{cpp}
 
-Take a careful look at the code, and then consult the following improved version:
+仔细查看代码，然后参考以下改进版本：
 
 \begin{cpp}
 import std; // Import the Standard Library functionality.
@@ -186,6 +186,6 @@ double Buggy::fjord(double val)
 }
 \end{cpp}
 
-You should explain why you changed m\_graphicDimension from a double* pointer to a double value. If you do need to use pointers, you should explain why you should never use raw pointers that represent ownership but smart pointers instead.
+你应该解释为什么将m\_graphicDimension从double*指针更改为double值。如果你确实需要使用指针，应该解释为什么永远不应该使用代表所有权的原始指针，而应该使用智能指针。
 
 
