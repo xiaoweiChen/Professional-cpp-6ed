@@ -1,13 +1,13 @@
 
-The observer pattern is used to have observers be notified by observable objects (= subjects). Concrete observers are registered with the observable object they are interested in. When the observable object’s state changes, it notifies all registered observers of this change. The main benefit of using the observer pattern is that it decreases coupling. The observable class does not need to know the concrete observer types that are observing it.
+观察者模式用于让观察者被可观察对象（=主题）通知，具体的观察者注册到他们感兴趣的可观察对象上。当可观察对象的状态发生变化时，会通知所有注册的观察者这一变化。使用观察者模式的主要好处是减少了耦合。可观察类不需要知道正在观察它的具体观察者类型。
 
-\mySubsubsection{33.8.1.}{Example: Exposing Events from Subjects}
+\mySubsubsection{33.8.1.}{示例:公开主题事件}
 
-This example consists of generic-purpose events with a variadic number of arguments. Subjects can expose specific events, for example an event raised when the subject’s data is modified, an event raised when the subject’s data is deleted, and so on.
+这个示例包括具有可变数量参数的通用事件。主题可以公开特定的事件，例如：当主题的数据修改时、当主题的数据删除时等。
 
-\mySubsubsection{33.8.2.}{Implementation of an Observable}
+\mySubsubsection{33.8.2.}{可观察对象的实现}
 
-First, a variadic class template Event is defined. Variadic class templates are discussed in Chapter 26, “Advanced Templates.” The class stores a map of functions with a variadic number of arguments. An addObserver() member function is provided to register a new observer in the form of a function that should be notified when this event is raised. addObserver() returns an EventHandle that subsequently can be passed to removeObserver() to unregister the observer. This EventHandle is just a number that is increased with every registered observer. Finally, the raise() member function notifies all registered observers that the event has been raised.
+首先，定义了一个可变参数的类模板 Event，这个类存储了一个具有可变数量参数的函数map。提供一个 addObserver() 成员函数来注册一个新的观察者，形式为一个在事件触发时应该通知的函数。addObserver() 返回一个 EventHandle，随后可以传递给 removeObserver() 以取消注册观察者。这个 EventHandle 只是一个数字，每次注册一个观察者时都会增加。最后，raise() 成员函数通知所有注册的观察者事件已触发。
 
 \begin{cpp}
 using EventHandle = unsigned int;
@@ -42,7 +42,7 @@ class Event final
 };
 \end{cpp}
 
-Any class that wants to expose events on which observers can register themselves just needs to provide register and unregister member functions. Thanks to the use of a variadic class template, Event instances can be created with any number of parameters. This allows an observable object to pass any relevant information to observers. Here is an example:
+想要暴露的观察者可以注册自己的事件类，只需提供注册和取消注册成员函数即可。由于使用了可变参数的类模板，可以创建任意数量参数的 Event 实例。这使得可观察对象可以向观察者传递相关信息。这是一个示例：
 
 \begin{cpp}
 class ObservableSubject
@@ -75,15 +75,15 @@ class ObservableSubject
 };
 \end{cpp}
 
-\mySubsubsection{33.8.3.}{Using an Observer}
+\mySubsubsection{33.8.3.}{使用观察者}
 
-The following is some test code that demonstrates how to use the implemented observer pattern. Suppose we have the following stand-alone global function modified() that can handle modification events:
+以下是一些测试代码，演示了如何使用实现的观察者模式。假设有一个可以处理修改事件的独立全局函数 modified()：
 
 \begin{cpp}
 void modified(int a, double b) { println("modified({}, {})", a, b); }
 \end{cpp}
 
-Suppose that we also have a class Observer capable of handling modification events:
+假设还有一个可以处理修改事件的类 Observer：
 
 \begin{cpp}
 class Observer final
@@ -108,7 +108,7 @@ class Observer final
 };
 \end{cpp}
 
-Finally, we can construct an ObservableSubject instance and register some observers:
+最后，可以构建一个 ObservableSubject 实例，并注册一些观察者：
 
 \begin{cpp}
 ObservableSubject subject;
@@ -128,7 +128,7 @@ subject.modifyData();
 subject.deleteData();
 \end{cpp}
 
-The output is as follows:
+输出如下：
 
 \begin{shell}
 modified(1, 2.3)
@@ -140,7 +140,7 @@ deleted
 \end{shell}
 
 \begin{myNotic}{NOTE}
-One issue with the observer pattern that you need to keep in mind is the lifetime coupling between observers and subjects. In the previous example, for instance, the destructor of Observer works only if the subject is still alive.
+使用观察者模式时，需要注意的问题是观察者与主题之间的生命周期耦合。之前的例子中，如果主题仍然存在，Observer 的析构函数才能正常工作。
 \end{myNotic}
 
 

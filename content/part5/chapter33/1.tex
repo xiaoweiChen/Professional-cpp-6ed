@@ -1,29 +1,29 @@
 
-The strategy design pattern is one way to support the dependency inversion principle (DIP); see Chapter 6, “Designing for Reuse.” With this pattern, interfaces are used to invert dependency relationships. Interfaces are created for every provided service. If a component needs a set of services, interfaces to those services are injected into the component, a mechanism called dependency injection. Using the strategy pattern makes unit testing easier, as you can easily mock services away. As an example, this section discusses a logging mechanism implemented with the strategy pattern.
+策略设计模式是支持依赖倒置原则（DIP）的一种方式；请参见第6章。通过这种模式，接口用来倒置依赖关系。为每个提供的服务创建接口。如果一个组件需要一组服务，这些服务的接口就会注入到组件中，这种机制称为依赖注入。使用策略模式可以使单元测试更容易，因为您可以轻松地为服务模拟，本节介绍了使用策略模式实现的日志机制。
 
-\mySubsubsection{33.1.1.}{Example: A Logging Mechanism}
+\mySubsubsection{33.1.1.}{示例：日志机制}
 
-The strategy-based logger example uses an interface, or abstract base class, called ILogger. Any code that wants to log something uses this ILogger interface. Subsequently, a concrete implementation of this interface is then injected into any code that needs to be able to use the logging functionality. With this pattern, a unit test can, for example, inject a special mock implementation for the ILogger interface to verify that the right information gets logged. A huge advantage of this pattern is that concrete loggers can easily be swapped without having to modify any library code; client code simply passes in the logger it wants to use.
+基于策略的日志记录器示例使用了一个名为ILogger的接口或抽象基类，想要记录内容的代码都使用这个ILogger接口，这个接口的具体实现会注入到需要使用日志功能的代码中。单元测试也可以使用这种模式，例如，为ILogger接口注入一个特殊的模拟实现，以验证是否记录了正确的信息。这种模式的一个巨大优势是，可以轻松地更换具体的日志记录器，而无需修改库代码；客户端代码只需传入想要使用的日志记录器即可。
 
-\mySubsubsection{33.1.2.}{Implementation of a Strategy-Based Logger}
+\mySubsubsection{33.1.2.}{基于策略的日志记录器的实现}
 
-This implementation provides a Logger class with the following features:
+这个实现提供了一个具有以下功能的Logger类：
 
 \begin{itemize}
 \item
-It can log single strings.
+可以记录单个字符串。
 
 \item
-Each log message is prefixed with the current system time and an associated log level.
+每条日志消息都带有当前系统时间和相关的日志级别前缀。
 
 \item
-The logger can be set up to only log messages above a certain log level.
+可以设置日志记录器只记录高于一定日志级别的消息。
 
 \item
-Every logged message is flushed to disk so that it will appear in the file immediately.
+每条记录的消息都会刷新到磁盘，以便立即出现在文件中。
 \end{itemize}
 
-Let’s first define the ILogger interface:
+首先定义ILogger接口：
 
 \begin{cpp}
 export class ILogger
@@ -42,7 +42,7 @@ export class ILogger
 };
 \end{cpp}
 
-Next, a concrete Logger class is implemented as follows:
+接下来，具体的Logger类实现：
 
 \begin{cpp}
 export class Logger : public ILogger
@@ -60,7 +60,7 @@ export class Logger : public ILogger
 };
 \end{cpp}
 
-The implementation of the Logger class is straightforward. Once the log file has been opened, each log message is written to it with the log level prepended and then flushed to disk.
+Logger类的实现是直接的。打开了日志文件，每条日志消息都会写入到文件，并带有日志级别前缀，然后刷新到磁盘。
 
 \begin{cpp}
 Logger::Logger(const string& logFilename)
@@ -95,9 +95,9 @@ void Logger::log(string_view message, LogLevel logLevel)
 }
 \end{cpp}
 
-\mySubsubsection{33.1.3.}{Using the Strategy-Based Logger}
+\mySubsubsection{33.1.3.}{使用基于策略的日志记录器}
 
-Suppose you have a class called Foo that wants to use the logging functionality. With the strategy pattern, a concrete ILogger instance is injected into the class, for example through the constructor:
+假设有一个名为Foo的类，想要使用日志功能。使用策略模式，具体的ILogger实例注入到类中，例如通过构造函数：
 
 \begin{cpp}
 class Foo
@@ -118,7 +118,7 @@ class Foo
 };
 \end{cpp}
 
-When a Foo instance is created, a concrete ILogger is injected into it:
+创建Foo实例时，具体的ILogger可注入到其中：
 
 \begin{cpp}
 Logger concreteLogger { "log.out" };

@@ -1,17 +1,17 @@
 
-The proxy pattern is one of several patterns that divorce the abstraction of a class from its underlying representation. A proxy object serves as a stand-in for a real object. Such objects are generally used when using the real object would be time-consuming or impossible. For example, take a document editor. A document could contain several big objects, such as images. Instead of loading all those images when opening the document, the document editor could substitute proxy objects for all the images. These proxies don’t immediately load the images. Only when the user scrolls down in the document and reaches an image does the document editor ask the image proxy to draw itself. At that time, the proxy delegates the work to the real image object, which loads the image.
+代理模式是一种将类的抽象与其底层表示分离的多个模式，代理对象作为真实对象的替身。这类对象通常在访问真实对象代价较高或不可能时使用。有一个文档编辑器，文档可能包含几个大对象，如图片。而不是在打开文档时加载所有这些图片，文档编辑器可以用代理对象替换所有图片。这些代理不会立即加载图片，只有在用户在文档中滚动并到达图片时，文档编辑器才会要求图片代理绘制自己。此时，代理将工作委派给真实的图片对象，后者加载图片。
 
-Proxies can also be used to properly shield certain functionality from clients, while at the same time making sure that clients can’t even use casts to get around the shielding.
+代理还可以用于正确地屏蔽某些功能，同时确保客户端无法使用强制类型转换来绕过屏蔽。
 
-\mySubsubsection{33.6.1.}{Example: Hiding Network Connectivity Issues}
+\mySubsubsection{33.6.1.}{示例：隐藏网络连接问题}
 
-Consider a networked game with a Player class that represents a person on the Internet who has joined the game. The Player class includes functionality that requires network connectivity, such as an instant messaging feature. If a player’s connection becomes unresponsive, the Player object representing that person can no longer receive instant messages.
+考虑一个具有玩家类（Player）的网络游戏，该类代表互联网上加入游戏的玩家。玩家类包括需要网络连接的功能，如即时消息功能。如果玩家的连接变得无响应，代表该玩家的玩家对象将无法再接收即时消息。
 
-Because you don’t want to expose network problems to the user, it may be desirable to have a separate class that hides the networked parts of a Player. This PlayerProxy object would substitute for the actual Player object. Either clients of the class would use the PlayerProxy class at all times as a gatekeeper to the real Player class, or the system would substitute a PlayerProxy when a Player became unavailable. During a network failure, the PlayerProxy object could still display the player’s name and last known state and could continue to function when the original Player object could not. Thus, the proxy class hides some undesirable semantics of the underlying Player class.
+因为不想向用户暴露网络问题，可能希望有一个单独的类来隐藏玩家的网络部分。这个玩家代理对象将代替实际的玩家对象。客户可能始终使用玩家代理类，作为通往真实玩家类的入口，或者系统在玩家不可用时替换玩家代理。在网络故障期间，玩家代理对象仍然可以显示玩家的名字和最后已知状态，并继续在原始玩家对象无法工作时执行。因此，代理类隐藏了底层玩家类的一些不受欢迎的语义。
 
-\mySubsubsection{33.6.2.}{Implementation of a Proxy}
+\mySubsubsection{33.6.2.}{代理的实现}
 
-The first step is defining an IPlayer interface containing the public interface for a Player:
+第一步是定义一个 IPlayer 接口，包含玩家的公共接口：
 
 \begin{cpp}
 class IPlayer
@@ -25,7 +25,7 @@ class IPlayer
 };
 \end{cpp}
 
-The Player class implements the IPlayer interface as follows. Imagine for this example that sendInstantMessage() requires network connectivity to properly function and raises an exception if the network connection is down.
+玩家类实现了 IPlayer 接口。在这个例子中，sendInstantMessage() 需要网络连接才能正常工作，并且如果网络连接断开，则抛出异常。
 
 \begin{cpp}
 class Player : public IPlayer
@@ -38,7 +38,7 @@ class Player : public IPlayer
 };
 \end{cpp}
 
-The PlayerProxy class also implements the IPlayer interface and contains another IPlayer instance (the “real” Player):
+玩家代理类也实现了 IPlayer 接口，并包含另一个 IPlayer 实例（“真实”的玩家）：
 
 \begin{cpp}
 class PlayerProxy : public IPlayer
@@ -55,20 +55,20 @@ class PlayerProxy : public IPlayer
 };
 \end{cpp}
 
-The constructor takes ownership of the given IPlayer:
+构造函数接受并拥有给定的 IPlayer 实例：
 
 \begin{cpp}
 PlayerProxy::PlayerProxy(unique_ptr<IPlayer> player)
     : m_player { move(player) } { }
 \end{cpp}
 
-The getName() member function just forwards to the underlying player:
+getName() 成员函数简单地转发给底层的玩家：
 
 \begin{cpp}
 string PlayerProxy::getName() const { return m_player->getName(); }
 \end{cpp}
 
-The implementation of the PlayerProxy’s sendInstantMessage() member function checks the network connectivity and either returns a default string or forwards the request. This hides the fact that the sendInstantMessage() member function on the underlying Player object raises an exception when the network connection is down.
+玩家代理的 sendInstantMessage() 成员函数检查网络连接，并根据情况返回默认字符串或转发请求。这隐藏了底层玩家对象的 sendInstantMessage() 成员函数在网络连接断开时抛出异常的事实。
 
 \begin{cpp}
 string PlayerProxy::sendInstantMessage(string_view message) const
@@ -78,9 +78,9 @@ string PlayerProxy::sendInstantMessage(string_view message) const
 }
 \end{cpp}
 
-\mySubsubsection{33.6.3.}{Using a Proxy}
+\mySubsubsection{33.6.3.}{使用代理}
 
-If a proxy is well written, using it should be no different from using any other object. For the PlayerProxy example, the code that uses the proxy could be completely unaware of its existence. The following function, designed to be called when the Player has won, could be dealing with an actual Player or a PlayerProxy. The code is able to handle both cases in the same way because the proxy ensures a valid result.
+如果代理编写得很好，使用它与使用其他对象没有什么不同。对于 PlayerProxy 示例，使用代理的代码可能完全不知道它的存在。以下函数，旨在在玩家获胜时调用，可能与实际玩家或玩家代理对象打交道。代码能够以相同的方式处理这两种情况，因为代理能确保有一个结果。
 
 \begin{cpp}
 bool informWinner(const IPlayer& player)

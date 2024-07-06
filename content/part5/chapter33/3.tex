@@ -1,37 +1,37 @@
 
-The second type of factory-related pattern is called the factory method pattern. With this pattern, it is entirely up to the concrete factory to decide what kind of object to create. In the earlier abstract factory example, the ICarFactory had a member function to either create an SUV or create a sedan. With the factory method pattern, you just ask for a car from the factory, and the concrete factories decide what exactly to build. Let’s look at another car factory simulation.
+第二种与工厂相关的模式称为工厂方法模式。使用这种模式，具体工厂完全决定创建哪种对象。早期的抽象工厂示例中，ICarFactory 有一个成员函数，用于创建 SUV 或轿车。使用工厂方法模式，只需向工厂请求一辆汽车，具体工厂决定究竟要建造什么。让我们看看另一个汽车工厂的模拟。
 
-\mySubsubsection{33.3.1.}{Example: A Second Car Factory Simulation}
+\mySubsubsection{33.3.1.}{示例：模拟第二个汽车工厂}
 
-In the real world, when you talk about driving a car, you can do so without referring to the specific type of car. You could be discussing a Toyota or a Ford. It doesn’t matter, because both Toyotas and Fords are drivable. Now, suppose that you want a new car. You would then need to specify whether you wanted a Toyota or a Ford, right? Not always. You could just say, “I want a car,” and depending on where you were, you would get a specific car. If you said “I want a car” in a Toyota factory, chances are you’d get a Toyota. (Or you’d get arrested, depending on how you asked.) If you said “I want a car” in a Ford factory, you’d get a Ford.
+现实世界中，当谈论驾驶汽车时，可以对特定类型的汽车不进行指明。可能是在讨论丰田或福特。这没关系，因为丰田和福特都是可驾驶的。现在，想要一辆新车，需要指定想要丰田还是福特，对吧？不一定。可以说，“我想要一辆车”，根据所在的地点，会得到一辆特定的车。如果在丰田工厂说“我想要一辆车”，那么可能会得到一辆丰田。（或者会被逮捕，取决于如何提出请求。）如果在福特工厂说“我想要一辆车”，会得到一辆福特。
 
-The same concepts apply to C++ programming. The first concept, a generic car that’s drivable, is nothing new; it’s standard polymorphism, described in Chapter 5, “Designing with Classes.” You could write an abstract ICar interface that defines a virtual drive() member function. Both Toyota and Ford could be implementing such an interface.
+同样的概念也适用于 C++ 编程。第一个概念，一个可驾驶的通用汽车，并不是什么新鲜事；这是标准的多态性，在第5章中描述。可以编写一个抽象的 ICar 接口，定义一个虚拟的 drive() 成员函数。丰田和福特都可以实现这样的接口。
 
-Your program could drive cars without knowing whether they were really Toyotas or Fords. However, with standard object-oriented programming, the one place that you’d need to specify Toyota or Ford would be when you created the car. Here, you would need to call the constructor for one or the other. You couldn’t just say, “I want a car.” However, suppose that you also had a parallel class hierarchy of car factories. The CarFactory base class could define a public non-virtual requestCar() member function that forwards the work to a private virtual createCar() member function. The ToyotaFactory and FordFactory derived classes override the createCar() member function to build a Toyota or a Ford. 图 33.3 shows the ICar and CarFactory hierarchies.
+程序可以在不知道它们是丰田还是福特的情况下驾驶汽车，但在使用标准面向对象编程时，需要指定丰田或福特的地方是在创建汽车时。这里，需要调用一个或另一个的构造函数。这时，不能只说“我想要一辆车”，但还有一个平行的汽车工厂类层次结构。CarFactory 基类可以定义一个公共的非虚拟 requestCar() 成员函数，将工作转发给一个private的虚拟 createCar() 成员函数。ToyotaFactory 和 FordFactory 派生类覆盖 createCar() 成员函数以构建丰田或福特。图 33.3 显示了 ICar 和 CarFactory 层次结构。
 
 \myGraphic{0.8}{content/part5/chapter33/images/3.png}{图 33.3}
 
-Now, suppose that there is one CarFactory object in a program. When code in the program, such as a car dealer, wants a new car, it calls requestCar() on the CarFactory object. Depending on whether that car factory is really a ToyotaFactory or a FordFactory, the code gets either a Toyota or a Ford. 图 33.4 shows the objects in a car dealer program using a ToyotaFactory.
+现在程序中有一个 CarFactory 对象。当程序中的代码，比如一个汽车经销商，想要一辆新车时，会调用 CarFactory 对象的 requestCar()。取决于这个汽车工厂实际上是 ToyotaFactory 还是 FordFactory，代码会得到一辆 Toyota 或 Ford。图 33.4 显示了使用 ToyotaFactory 的汽车经销商程序中的对象。
 
 \myGraphic{0.8}{content/part5/chapter33/images/4.png}{图 33.4}
 
-图 33.5 shows the same program, but with a FordFactory instead of a ToyotaFactory. Note that the CarDealer object and its relationship with the factory stay the same.
+图 33.5 显示了相同的程序，但是用 FordFactory 代替了 ToyotaFactory。注意，CarDealer 对象及其与工厂的关系保持不变。
 
 \myGraphic{0.8}{content/part5/chapter33/images/5.png}{图 33.5}
 
-This example demonstrates using polymorphism with factories. When you ask the car factory for a car, you might not know whether it’s a Toyota factory or a Ford factory, but either way it will give you a car that you can drive. This approach leads to easily extensible programs; simply changing the factory instance can allow the program to work on a completely different set of objects and classes.
+这个例子演示了使用工厂的多态性。当要求汽车工厂提供一辆汽车时，不知道是丰田工厂还是福特工厂，但无论如何它都会给你一辆可以驾驶的汽车。这种方法导致了易于扩展的程序，简单地改变工厂实例就可以使程序适用于完全不同的对象和类集。
 
-\mySubsubsection{33.3.2.}{Implementation of a Factory Method}
+\mySubsubsection{33.3.2.}{工厂方法的实现}
 
-One reason for using factories is that the type of the object you want to create may depend on some condition. For example, if you want a car, you might want to put your order into the factory that has received the fewest requests so far, regardless of whether the car you eventually get is a Toyota or a Ford. The following implementation shows how to write such factories in C++.
+使用工厂的一个原因是，想要创建的对象类型可能取决于某些条件。例如，想要一辆汽车，可能想把订单放入到目前为止接收请求最少的工厂，而不考虑最终得到的汽车是 Toyota 还是 Ford。以下展示了如何在 C++ 中实现这样的工厂。
 
-The first thing we need is the hierarchy of cars:
+首先需要的是汽车的层次结构：
 
 \begin{cpp}
 export class ICar
 {
     public:
-        virtual ˜ICar() = default; // Always a virtual destructor!
+        virtual ~ICar() = default; // Always a virtual destructor!
         virtual std::string info() const = 0;
 };
 
@@ -48,9 +48,9 @@ export class Toyota : public ICar
 };
 \end{cpp}
 
-The CarFactory base class is a bit more interesting. Each factory keeps track of the number of cars produced. When the public non-virtual requestCar() member function is called, the number of cars produced at the factory is increased by one, and the private virtual createCar() member function is called, which creates and returns a new concrete car. This idiom is also called the non-virtual interface idiom (NVI). The idea is that individual factories override createCar() to return the appropriate type of car. The CarFactory itself implements requestCar(), which takes care of updating the number of cars produced. The requestCar() member function is an example of the template method design pattern.
+CarFactory 基类更有趣一些，每个工厂都跟踪生产的汽车数量。当调用public非虚拟 requestCar() 成员函数时，工厂生产的汽车数量增加一，并调用private虚拟 createCar() 成员函数，后者创建并返回一个新的具体汽车。这种模式也称为非虚拟接口模式（NVI）。这个想法是，各个工厂覆盖 createCar() 以返回适当的类型的汽车。CarFactory 本身实现 requestCar()，负责更新生产的汽车数量。requestCar() 成员函数是模板方法设计模式的一个例子。
 
-The CarFactory also provides a public member function to query the number of cars produced at each factory. The class definitions for the CarFactory class and derived classes are as follows:
+CarFactory 还提供了一个public成员函数，用于查询每个工厂生产的汽车数量。CarFactory 类和派生类的类定义如下：
 
 \begin{cpp}
 export class CarFactory
@@ -87,15 +87,15 @@ export class ToyotaFactory final : public CarFactory
 };
 \end{cpp}
 
-As you can see, the derived classes simply override createCar() to return the specific type of car that they produce.
+派生类简单地覆盖了 createCar()，以返回它们生产的特定类型的汽车。
 
 \begin{myNotic}{NOTE}
-Factory methods are one way to implement virtual constructors, which are member functions that create objects of different types. For example, the requestCar() member function creates both Toyotas and Fords, depending on the concrete factory object on which it is called.
+工厂方法是实现虚拟构造函数的一种方式，虚拟构造函数是创建不同类型对象的成员函数。例如，requestCar() 成员函数根据调用它的具体工厂对象创建 Toyota 和 Ford。
 \end{myNotic}
 
-\mySubsubsection{33.3.3.}{Using a Factory Method}
+\mySubsubsection{33.3.3.}{使用工厂方法}
 
-The simplest way to use a factory is to instantiate it and to call the appropriate member function, as in the following piece of code:
+使用工厂的最简单方法是实例化，并调用适当的成员函数，如下面的代码段所示：
 
 \begin{cpp}
 ToyotaFactory myFactory;
@@ -103,7 +103,7 @@ auto myCar { myFactory.requestCar() };
 println("{}", myCar->info()); // Outputs Toyota
 \end{cpp}
 
-A more interesting example makes use of the virtual constructor idea to build a car in the factory that has the fewest cars produced. To do this, you can create a new factory, called LeastBusyFactory, that derives from CarFactory and that accepts a number of other CarFactory objects in its constructor. As all CarFactory classes have to do, LeastBusyFactory overrides the createCar() member function. Its implementation finds the least busy factory in the list of factories passed to the constructor and asks that factory to create a car. Here is the implementation of such a factory:
+一个更有趣的例子是利用虚拟构造函数，在生产的汽车最少的工厂中建造一辆汽车。为此，可以创建一个新的工厂，称为 LeastBusyFactory，它从 CarFactory 派生并在其构造函数中接受其他 CarFactory 对象的列表。与所有 CarFactory 类必须做的那样，LeastBusyFactory 覆盖了 createCar() 成员函数。它的实现查找传递给构造函数的工厂列表中最不繁忙的工厂，并要求该工厂创建一辆汽车。这是一个此类工厂的实现：
 
 \begin{cpp}
 class LeastBusyFactory final : public CarFactory
@@ -134,7 +134,7 @@ unique_ptr<ICar> LeastBusyFactory::createCar()
 }
 \end{cpp}
 
-The following code makes use of this factory to build 10 cars, whatever brand they might be, from the factory that has produced the least number of cars:
+以下代码使用这个工厂，让生产汽车数量最少的工厂建造10辆汽车，无论它们是什么品牌：
 
 \begin{cpp}
 vector<unique_ptr<CarFactory>> factories;
@@ -159,7 +159,7 @@ for (unsigned i { 0 }; i < 10; ++i) {
 }
 \end{cpp}
 
-When executed, the program prints out the make of each car produced.
+当程序执行时，会打印出每辆生产汽车的品牌。
 
 \begin{shell}
 Toyota
@@ -174,9 +174,9 @@ Ford
 Toyota
 \end{shell}
 
-\mySubsubsection{33.3.4.}{Other Uses}
+\mySubsubsection{33.3.4.}{其他用法}
 
-You can use a factory method pattern for more than just modeling real-world factories. For example, consider a word processor in which you want to support documents in different languages, where each document uses a single language. There are many aspects of the word processor in which the choice of document language requires different support: the character set used in the document (whether accented characters are needed), the spell checker, the thesaurus, and the way the document is displayed, to name just a few. You could use factories to design a clean word processor by writing a LanguageFactory base class and derived factories for each language of interest, such as EnglishLanguageFactory and FrenchLanguageFactory. When the user specifies a language for a document, the program uses the appropriate LanguageFactory to create language-specific instances of certain functionality. For example, it calls the createSpellchecker() member function on the factory to create a language-specific spell checker. It then replaces the current spell checker for the previous language attached to the document with the newly constructed spell checker for the new language.
+可以使用工厂方法模式来模拟现实世界的工厂以外的更多场景。例如，一个文字处理器，希望支持不同语言的文档，其中每个文档使用一种语言。文字处理器有许多方面，选择文档语言需要不同的支持：文档中使用的字符集（是否需要带重音的字符）、拼写检查器、同义词词典以及文档的显示方式等。可以使用工厂来设计一个文字处理器，通过编写一个 LanguageFactory 基类和为每种感兴趣的语言派生的工厂，例如 EnglishLanguageFactory 和 FrenchLanguageFactory。当用户为文档指定一种语言时，程序使用适当的 LanguageFactory 来创建特定语言的功能实例。例如，在工厂上调用 createSpellchecker() 成员函数来创建一个特定语言的拼写检查器，再用新语言的新的拼写检查器替换，前一种语言的拼写检查器。
 
 
 

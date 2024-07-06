@@ -1,17 +1,17 @@
-By solving the following exercises, you can practice the material discussed in this chapter. Solutions to all exercises are available with the code download on the book’s website at \url{www.wiley.com/go/proc++6e}. However, if you are stuck on an exercise, first reread parts of this chapter to try to find an answer yourself before looking at the solution from the website.
+通过解决下面的练习，可以练习本章讨论的内容。所有练习的解决方案都可以在本书的网站\url{www.wiley.com/go/proc++6e}下载到源码。然而，若在练习中卡住了，在从网站上寻找解决方案之前，可以考虑先重读本章的部分内容，试着自己找到答案。
 
 \begin{itemize}
 \item
-Exercise 34-1: Write a program that outputs the sizes of all standard C++ integer types. If possible, try to compile and execute it with different compilers on different platforms.
+\textbf{练习34-1}: 编写一个程序，输出所有标准C++整数类型的大小。如果可能的话，尝试在不同的编译器和不同的平台上编译并执行它。
 
 \item
-Exercise 34-2: This chapter introduces the concept of big- and little-endian encoding of integer values. It also explained that over a network, it’s recommended to always use big-endian encoding and to convert as necessary. Write a program that can convert 16-bit unsigned integers between little- and big-endian encoding in both directions. Pay special attention to the data types you use. Write a main() function to test your function.
+\textbf{练习34-2}: 本章介绍了整数值的大端和小端编码概念。还解释说，在网络上，总是建议使用大端编码，并按需要进行转换。编写一个程序，可以双向转换16位无符号整数的小端和大端编码。注意使用的数据类型，编写一个main()函数来测试你的函数。
 
 \item
-Bonus exercise: Can you do the same for 32-bit integers?
+\textbf{加分练习}：能为32位整数做同样的事情吗？
 
 \item
-Exercise 34-3: The networking example in the Shifting Paradigms section showing how to use a C-style API with C++ might be a bit abstract. It doesn’t present an entire implementation as that would require networking code which is neither provided by the C nor the C++ Standard Library. In this exercise, let’s look at a much smaller C-style library that you might want to use in your C++ code. The C-style library basically consists of two functions. The first function, reverseString(), allocates a new string and initializes it with the reverse of a given source string. The second function, freeString(), frees the memory allocated by reverseString(). Here are their declarations with descriptive comments:
+\textbf{练习34-3}: “转变范式”部分中的网络示例展示了，如何使用C风格的API与C++一起使用，可能有点抽象。它没有提供一个完整的实现，因为这将需要网络代码，而这些代码既不包含在C标准库中，也不包含在C++标准库中。这个练习中，我们看看一个更小的C风格库，可能会在自己的C++代码中使用它。这个C风格库基本上由两个函数组成。第一个函数，reverseString()，分配一个新的字符串并初始化为给定源字符串的反转。第二个函数，freeString()，释放reverseString()分配的内存。以下是它们的声明，带有描述性注释：
 
 \begin{cpp}
 /// <summary>
@@ -28,8 +28,8 @@ char* reverseString(const char* string);
 void freeString(char* string);
 \end{cpp}
 
-How would you use this “library” from your C++ code?
+如何在C++代码中使用这个“库”？
 
 \item
-Exercise 34-4: All examples about mixing C and C++ code in this chapter have been about calling C code from C++. Of course, the opposite is also possible when limiting yourself to data types known by C. In this exercise, you’ll combine both directions. Write a C function called writeTextFromC(const char*) that calls a C++ function called writeTextFromCpp(const char*) that uses std::println() to print out the given string to the standard output. To test your code, write a main() function in C++ that calls the C function writeTextFromC().
+\textbf{练习34-4}: 本章中关于在C和C++代码中混合的例子都是关于从C++调用C代码，当限制自己使用C已知的数据类型时，也可以相反。这个练习中，将结合两个方向。编写一个名为writeTextFromC(const char*)的C函数，调用一个名为writeTextFromCpp(const char*)的C++函数，该函数使用std::println()将给定的字符串打印到标准输出。为了测试代码，用C++编写一个main()函数，调用C函数writeTextFromC()。
 \end{itemize}

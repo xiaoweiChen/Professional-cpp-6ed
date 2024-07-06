@@ -1,24 +1,24 @@
 
-For certain types of programs, C++ may not be the best tool for the job. For example, if your Unix program needs to interact closely with the shell environment, you may be better off writing a shell script than a C++ program. If your program performs heavy text processing, you may decide that the Perl language is the way to go. If you need a lot of database interaction, then C\# or Java might be a better choice. C\# in combination with the WPF framework or the Uno platform might be better suited to write modern graphical user interface applications, and so on. Still, if you do decide to use another language, you sometimes might want to be able to call into C++ code, for example, to perform some computational-expensive operations; or the other way around, you might want to call non-C++ code from C++. Fortunately, there are some techniques you can use to get the best of both worlds—the specific specialty of another language combined with the power and flexibility of C++.
+对于某些类型的程序，C++可能不是最佳的工具。例如，如果Unix程序需要与shell环境紧密交互，编写shell脚本可能比编写C++程序更好。如果程序进行大量的文本处理，可能会决定Perl语言是更好的选择。如果需要大量的数据库交互，那么C\#或Java可能是更好的选择。结合WPF框架或Uno平台的C\#可能更适合编写现代图形用户界面应用程序等。然而，即使决定使用另一种语言，有时可能希望能够调用C++代码，例如：执行一些计算昂贵的操作；或者反过来，可能希望从C++调用非C++代码。幸运的是，有一些技术可以帮助你两全其美——另一种语言的特定专业性与C++的强大灵活性的结合。
 
-\mySubsubsection{34.2.1.}{Mixing C and C++}
+\mySubsubsection{34.2.1.}{混合使用C和C++}
 
-As you already know, the C++ language is almost a superset of the C language. Most C code can easily be converted to C++, but there are a few things to keep in mind. A handful of C features are not supported by C++; for example, C supports variable-length arrays (VLAs), while C++ does not. Other things to keep in mind are the use of reserved words. In C, for example, the term class has no particular meaning. Thus, it could be used as a variable name, as in the following C code:
+C++语言几乎是C语言的一个超集，大多数C代码可以很容易地转换为C++，但有一些事情需要记住。有一些C特性C++不支持；例如，C支持可变长度数组（VLAs），C++不支持。其他需要注意的事情是保留字的使用。在C中，例如：class这个术语没有特定的意义，因此可以作为变量名使用，如下面的C代码所示：
 
 \begin{cpp}
 int class = 1; // Compiles in C, not C++
 printf("class is %d\n", class);
 \end{cpp}
 
-This program compiles and runs in C but yields an error when compiled as C++ code. When you translate, or port, a program from C to C++, these are the types of errors you will face. Fortunately, the fixes are usually quite simple. In this case, rename the class variable to, e.g., classID and the code will compile.
+这个程序在C中编译和运行，但当作为C++代码编译时会产生错误。当将程序从C移植到C++时，会面临这种类型的错误。幸运的是，修复也很简单。这种情况下，将class变量重命名为classID，代码就可以编译了。
 
-On the other hand, every C++ compiler is also a C compiler. There is no reason to compile “C as C++”; you can just compile “C as C”. If your project consists of a mixture of C and C++, you can simply link the C and C++ object files together into the final executable. This ease of incorporating C code in a C++ program comes in handy when you encounter a useful library or legacy code that was written in C. Functions and classes, as you’ve seen many times in this book, work just fine together. A class member function can call a function, and a function can make use of objects.
+另一方面，每个C++编译器也是一个C编译器。没有理由将“C编译为C++”；可以直接将“C编译为C”。如果项目由C和C++的混合组成，可以简单地将C和C++对象文件链接到最终的执行文件中。这种轻松地将C代码融入C++程序的能力在遇到用C编写的有用库或遗留代码时非常有用。函数和类，正如在本书中多次看到的那样，可以很好地一起工作。类成员函数可以调用函数，函数也可以使用对象。
 
-\mySubsubsection{34.2.2.}{Shifting Paradigms}
+\mySubsubsection{34.2.2.}{范式转变}
 
-One of the dangers of mixing C and C++ is that your program may start to lose its object-oriented properties. For example, if your object-oriented web browser is implemented with a procedural networking library, the program will be mixing these two paradigms. Given the importance and quantity of networking tasks in such an application, you might consider writing an object-oriented wrapper around the procedural library. A typical design pattern that can be used for this is called the façade.
+混合使用C和C++的一个危险是，程序可能开始失去其面向对象的特性。例如，如果面向对象的网络浏览器是用过程式网络库实现的，程序将混合这两种范式。鉴于此类应用程序中网络任务的重要性和数量，可以考虑为过程式库编写一个面向对象的包装器，可以用于此的经典设计模式，称为外观模式（façade）。
 
-For example, imagine that you are writing a web browser in C++, but you are using a networking library that has a C-style API and contains the functions declared in the following code. Note that the HostHandle and ConnectionHandle data structures have been omitted for brevity.
+例如，正在用C++编写一个网络浏览器，但正在使用一个具有C风格API的过程式网络库，其中包含以下代码中声明的函数。为了简洁起见，省略了HostHandle和ConnectionHandle数据结构。
 
 \begin{cpp}
 // networklib.h
@@ -42,9 +42,9 @@ char* retrieveWebPage(ConnectionHandle* connection, const char* page);
 void freeWebPage(char* page);
 \end{cpp}
 
-The networklib.h interface is fairly simple and straightforward. However, it is not object-oriented, and a C++ programmer who uses such a library is bound to feel icky, to use a technical term. This library isn’t organized into a cohesive class. Of course, the authors of the library could have written a better interface, but as the user of a library, you have to accept what you are given. Writing a wrapper is your opportunity to customize the interface.
+网络库networklib.h的接口相当简单和直接，但不是面向对象的，使用这样一个库的C++开发者肯定会感到不舒服，用一个技术术语来说。这个库没有组织成一个连贯的类，库作者本可以编写一个更好的接口。但作为库的用户，必须接受所得到的东西。编写包装器是定制接口的机会。
 
-Before you build an object-oriented wrapper for this library, take a look at how it might be used as-is to gain an understanding of its actual usage. In the following program, the networklib library is used to retrieve the web page at \url{www.example.com/index.html}:
+为这个库构建面向对象的包装器之前，先看看它实际是如何使用的，以获得对实际用法的理解。下面的程序中，networklib库用来检索位于\url{www.example.com/index.html}的网页：
 
 \begin{cpp}
 HostHandle* myHost { lookupHostByName("www.example.com") };
@@ -58,11 +58,11 @@ closeConnection(myConnection); myConnection = nullptr;
 freeHostHandle(myHost); myHost = nullptr;
 \end{cpp}
 
-A possible way to make the library more object-oriented is to provide a single abstraction that recognizes the commonality between looking up a host, connecting to the host, and retrieving a web page. A good object-oriented wrapper hides the needless complexity of the HostHandle and ConnectionHandle types.
+使库更加面向对象的一种可能方法是提供单一的抽象，识别在查找主机、连接到主机和检索网页之间的共性。好的面向对象包装器隐藏了HostHandle和ConnectionHandle类型的复杂性。
 
-This example follows the design principles described in Chapters 5, “Designing with Classes,” and 6, “Designing for Reuse”: the new class should capture the common use case for the library. The previous example shows the most frequently used pattern: first a host is looked up, then a connection is established, and finally a page is retrieved. It is also likely that subsequent pages will be retrieved from the same host, so a good design will accommodate that mode of use as well.
+这个例子遵循了第5章和第6章中描述的设计原则：新类应该捕获库的常见用例。前面的例子显示了最常使用的模式：首先查找主机，然后建立连接，最后检索页面。后续的页面很可能也是从同一个主机检索的，所以好的设计也会适应那种使用模式。
 
-To start, the HostRecord class wraps the functionality of looking up a host. It’s an RAII class. Its constructor uses lookupHostByName() to perform the lookup. The unique\_ptr data member uses a custom deleter to automatically free the retrieved HostHandle by calling freeHostHandle(). See Chapter 7, “Memory Management,” for a discussion of using custom deleters with unique\_ptr. Here is the code:
+首先，HostRecord类包装了查找主机的功能，是一个RAII类。构造函数使用lookupHostByName()来执行查找。unique\_ptr数据成员使用一个自定义删除器来自动释放检索到的HostHandle，通过调用freeHostHandle()。有关使用unique\_ptr自定义删除器的讨论，请参见第7章。这是代码：
 
 \begin{cpp}
 export class HostRecord final
@@ -79,7 +79,7 @@ export class HostRecord final
 };
 \end{cpp}
 
-Next, a WebHost class is implemented that uses the HostRecord class. The WebHost class creates a connection to a given host and supports retrieving webpages. It’s also an RAII class. When the WebHost object is destroyed, it automatically closes the connection to the host. The getPage() member function calls retrieveWebPage() and immediately stores the result in a unique\_ptr with a custom deleter, freeWebPage(). Here is the code:
+接下来，实现了一个使用HostRecord类的WebHost类。WebHost类创建与指定主机的连接，并支持检索网页，也是一个RAII类。当WebHost对象销毁时，会自动关闭与主机的连接。getPage()成员函数调用retrieveWebPage()，并立即将结果存储在一个具有自定义删除器的unique\_ptr中，即freeWebPage()。以下是代码：
 
 \begin{cpp}
 export class WebHost final
@@ -115,9 +115,9 @@ std::string WebHost::getPage(const std::string& page)
 }
 \end{cpp}
 
-The WebHost class effectively encapsulates the behavior of a host and provides useful functionality without unnecessary calls and data structures. The implementation of the WebHost class makes extensive use of the networklib library without exposing any of its workings to the user. The constructor of WebHost uses a HostRecord RAII object for the specified host. The resulting HostRecord is used to set up a connection to the host, which is stored in the m\_connection data member for later use. The HostRecord RAII object is automatically destroyed at the end of the constructor. The WebHost destructor destroys m\_connection which closes the connection. The getPage() member function uses retrieveWebPage() to retrieve a web page, converts it to an std::string, uses freeWebPage() to free memory, and returns the retrieved page as an std::string.
+WebHost类有效地封装了主机的行为，并提供了有用的功能，而没有不必要的调用和数据结构。WebHost类的实现广泛使用了networklib库，而没有向用户暴露其工作原理，WebHost的构造函数使用了一个HostRecord RAII对象来指定主机。生成的HostRecord用于设置与主机的连接，该连接存储在m\_connection数据成员中，以备后用。HostRecord RAII对象在构造函数结束时自动销毁，WebHost析构函数销毁m\_connection，关闭连接。getPage()成员函数使用retrieveWebPage()检索网页，将其转换为std::string，使用freeWebPage()释放内存，并返回检索到的页面作为std::string。
 
-The WebHost class makes the common case easy for the client programmer. Here is an example:
+WebHost类为客户程序员提供了简单的接口。这里是一个例子：
 
 \begin{cpp}
 WebHost myHost { "www.example.com" };
@@ -126,18 +126,18 @@ println("The result is:\n{}", result);
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Networking-savvy readers may note that keeping a connection open to a host indefinitely is considered bad practice and doesn’t adhere to the HTTP specification. You should not do this in production-quality code. However, for this example, I’ve chosen elegance over etiquette.
+精通网络的读者可能会注意到，无限期保持与主机的连接开启是一个坏习惯，并且不符合HTTP规范，不应在生产代码中这样做。对于这个例子，我选择了优雅，而不是规范。
 \end{myNotic}
 
-As you can see, the WebHost class provides an object-oriented wrapper around the C-style library. By providing an abstraction, you can change the underlying implementation without affecting client code, and you can provide additional features. These features can include connection reference counting, automatically closing connections after a specific time to adhere to the HTTP specification, automatically reopening the connection on the next getPage() call, and so on.
+WebHost类提供了一个面向对象的包装器，围绕C风格库。通过提供抽象，可以在不影响客户代码的情况下更改底层实现，并且可以提供额外的功能。这些功能可以包括连接引用计数，自动在特定时间后关闭连接以遵守HTTP规范，在下一个getPage()调用时自动重新打开连接等。
 
-You’ll explore writing wrappers a bit more in one of the exercises at the end of this chapter.
+将在本章末尾的练习中进一步探讨编写包装器。
 
-\mySubsubsection{34.2.3.}{Linking with C Code}
+\mySubsubsection{34.2.3.}{链接C代码}
 
-The previous example assumed that you had the raw C code to work with. The example took advantage of the fact that most C code will successfully compile with a C++ compiler. If you only have compiled C code, perhaps in the form of a library, you can still use it in your C++ program, but you need to take a few extra steps.
+之前的示例假设有原始的C代码可供使用，示例利用了大多数C代码都可以成功编译为C++编译器的这一事实。如果只有编译后的C代码，可能以库的形式，仍然可以在C++程序中使用，但需要一些处理步骤。
 
-Before you can start using compiled C code in your C++ programs, you first need to know about a concept called name mangling. To implement function overloading, the complex C++ namespace is “flattened.” For example, if you have a C++ program, it is legitimate to write the following:
+在C++程序中开始使用编译后的C代码之前，首先需要了解一个称为名称混淆（name mangling）的概念。为了实现函数重载，“展开”复杂的C++命名空间。例如，有一个C++程序，写入以下内容是合法的：
 
 \begin{cpp}
 void myFunc(double);
@@ -145,7 +145,7 @@ void myFunc(int);
 void myFunc(int, int);
 \end{cpp}
 
-However, this would mean that the linker would see several different functions, all called myFunc, and would not know which one you want to call. Therefore, all C++ compilers perform an operation that is referred to as name mangling and is the logical equivalent of generating names, as follows:
+然而，链接器将看到几个不同的函数，它们都称为myFunc，并且不知道想调用哪个。因此，所有C++编译器都会执行一种称为名称混淆的操作，这是生成名称的逻辑等价，如下所示：
 
 \begin{shell}
 myFunc_double
@@ -153,7 +153,7 @@ myFunc_int
 myFunc_int_int
 \end{shell}
 
-To avoid conflicts with other names you might have defined, the compiler might generate names that are reserved as identifiers, for example, names beginning with double underscores or names beginning with an underscore followed by an uppercase letter. Alternatively, some compilers generate names that have characters that are legal to the linker but not legal in C++ source code. For example, Microsoft VC++ generates names as follows:
+为了避免与可能定义的其他名称发生冲突，编译器可能会生成作为标识符保留的名称，例如：以双下划线开头的名称或以一个下划线后面跟着一个大写字母开头的名称。一些编译器生成的名称在链接器中是合法的，但在C++源代码中不合法。例如，Microsoft VC++生成的名称如下所示：
 
 \begin{shell}
 ?myFunc@@YAXN@Z
@@ -161,20 +161,20 @@ To avoid conflicts with other names you might have defined, the compiler might g
 ?myFunc@@YAXHH@Z
 \end{shell}
 
-This encoding is complex and often vendor specific. The C++ standard does not specify how function overloading should be implemented on a given platform, so there is no standard for name mangling algorithms.
+这种编码很复杂，通常是供应商特定的。C++标准并没有指定如何在给定平台上实现函数重载，因此没有名称混淆算法的标准。
 
-In C, function overloading is not supported (the compiler will complain about duplicate definitions). So, names generated by the C compiler are quite simple, for example, \_myFunc.
+在C中，不支持函数重载（编译器会抱怨重复定义），所以C编译器生成的名称相对简单，例如，\_myFunc。
 
-Now, if you compile a simple program with the C++ compiler, even if it has only one instance of the myFunc name, it still generates a request to link to a mangled name. However, when you link with the C library, it cannot find the desired mangled name, and the linker complains. Therefore, it is necessary to tell the C++ compiler to not mangle that name. This is done by using the extern "C" qualification both in the header file (to instruct the client code to create a name compatible with C) and, if your library source is in C++, at the definition site (to instruct the library code to generate a name compatible with C).
+现在，如果用C++编译器编译一个简单的程序，即使它只有一个myFunc名称的实例，仍然生成一个链接到混淆名称的请求，但当链接到C库时，无法找到所需的混淆名称，并且链接器会抱怨，所以需要告诉C++编译器不要混淆那个名称。这可以通过在头文件（以指示客户端代码创建与C兼容的名称）和（如果库源是C++）定义位置使用extern "C"来实现（以指示库代码生成与C兼容的名称）。
 
-Here is the syntax of extern "C":
+以下是extern "C"的语法：
 
 \begin{cpp}
 extern "C" declaration1();
 extern "C" declaration2();
 \end{cpp}
 
-or:
+或:
 
 \begin{cpp}
 extern "C" {
@@ -183,7 +183,7 @@ extern "C" {
 }
 \end{cpp}
 
-The C++ standard says that any language specification can be used, so in principle, the following could be supported by a compiler:
+C++标准指出，任何语言规范都可以使用，因此从原则上讲，编译器可能支持以下语句：
 
 \begin{cpp}
 extern "C" void myFunc(int i);
@@ -192,9 +192,9 @@ extern "Pascal" void someLegacySubroutine(int n);
 extern "Ada" bool aimMissileDefense(double angle);
 \end{cpp}
 
-In practice, many compilers only support "C". Each compiler vendor will inform you which language designators they support.
+实际上，许多编译器只支持"C"。每个编译器供应商都会告知他们支持哪些语言设计符。
 
-As an example, the following code specifies the function prototype for cFunction() as an external C function:
+例如，以下代码指定了cFunction()函数原型为外部C函数：
 
 \begin{cpp}
 extern "C" {
@@ -207,9 +207,9 @@ int main()
 }
 \end{cpp}
 
-The actual definition for cFunction() is provided in a compiled binary file attached in the link phase. The extern keyword informs the compiler that the linked-in code was compiled in C.
+cFunction()的实际定义在链接阶段的编译二进制文件中提供，extern关键字告知编译器，链接的代码用C语言实现。
 
-A more common pattern for using extern is at the header level. For example, if you are using a graphics library written in C, it probably came with an .h file for you to include. The author of this header file should condition it on whether it is being compiled for C or C++. A C++ compiler predefines the symbol \_\_cplusplus if you are compiling for C++. The symbol is not defined for C compilations. This symbol can be used to condition a header file as follows:
+在头文件使用extern的更常见模式是。例如，正在使用一个用C编写的图形库，可能附带了一个.h文件。这个头文件的作者应该根据是否编译为C或C++来条件化它。C++编译器预定义了符号\_\_cplusplus，如果为C++编译，该符号不会为C编译定义。这个符号可以用来条件化头文件如下：
 
 \begin{cpp}
 #ifdef __cplusplus
@@ -222,13 +222,13 @@ A more common pattern for using extern is at the header level. For example, if y
 #endif
 \end{cpp}
 
-This means that drawCircle() and drawSquare() are functions that are in a library compiled by the C compiler. Using this technique, the same header file can be used in both C and C++ clients.
+所以drawCircle()和drawSquare()是在由C编译器编译的库中的函数。使用这种技术，相同的头文件可以在C和C++客户端中使用。
 
-Whether you are including C code in your C++ program or linking against a compiled C library, remember that even though C++ is almost a superset of C, they are different languages with different design goals. Adapting C code to work in C++ is quite common, but providing an object-oriented C++ wrapper around procedural C code is often much better.
+无论是将C代码包含在C++程序中，还是链接到编译好的C库，尽管C++几乎是C的超集，但它们是不同的语言，有不同的设计目标。将C代码适配到C++中是很常见的，但通常提供面向对象的C++包装器来包装过程式C代码会更好。
 
-\mySubsubsection{34.2.4.}{Calling C++ Code from C\#}
+\mySubsubsection{34.2.4.}{在C\#中调用C++代码}
 
-Even though this is a C++ book, I won’t pretend that there aren’t other languages out there. One example is C\#. By using the Interop services from C\#, it’s pretty easy to call C++ code from within your C\# applications. An example scenario could be that you develop parts of your application, like the graphical user interface, in C\#, but use C++ to implement certain performance-critical or computational-expensive components. To make Interop work, you need to write a library in C++, which can be called from C\#. On Windows, the library will be in a .dll file. The following C++ example defines a functionInDLL() function that is compiled into a library. The function accepts a Unicode string and returns an integer. The implementation writes the received string to the console and returns the value 42 to the caller:
+尽管这是一本关于C++的书，但不会假装其他语言不存在。通过使用C\#的Interop服务，从C\#应用程序中调用C++代码相对简单。一个可能的场景是，在C\#中开发应用程序的部分，如图形用户界面，但使用C++来实现某些性能关键或计算昂贵的组件。要使Interop工作，需要用C++编写一个库，可以从C\#中调用。在Windows上，库将是一个.dll文件。以下C++示例定义了一个名为functionInDLL()的函数，该函数会编译成库。该函数接受一个Unicode字符串并返回一个整数。实现将接收到的字符串写入控制台，并返回值42给调用者：
 
 \begin{cpp}
 import std;
@@ -245,21 +245,21 @@ extern "C"
 }
 \end{cpp}
 
-Keep in mind that you are implementing a function in a library, not writing a program, so you do not need a main() function. How you compile this code depends on your development environment. If you are using Microsoft Visual C++, you need to go to the properties of your project and select Dynamic Library (.dll) as the configuration type. The example uses \_\_declspec(dllexport) to tell the linker that this function should be made available to clients of the library. This is the way you do it with Microsoft Visual C++. Other linkers might use a different mechanism to export functions.
+请注意，正在实现一个库中的函数，而不是编写一个程序，所以不需要main()函数。如何编译这段代码取决于开发环境。如果使用的是Microsoft Visual C++，需要进入你的项目的属性，并选择动态库（.dll）作为配置类型。该示例使用\_\_declspec(dllexport)来告诉链接器这个函数应该对库的客户可用。这是使用Microsoft Visual C++的方法，其他链接器可能使用不同的机制来导出函数。
 
-Once you have the library, you can call it from C\# by using the Interop services. First, you need to include the Interop namespace:
+有了库，就可以通过使用Interop服务从C\#调用它。首先，需要包含Interop命名空间：
 
 \begin{cpp}
 using System.Runtime.InteropServices;
 \end{cpp}
 
-Next, you define the function prototype and tell C\# where it can find the implementation of the function. This is done with the following statement, assuming you have compiled the library as HelloCpp.dll:
+接下来，定义函数原型并告诉C\#函数的实现在哪里。这是通过以下语句完成的，假设已经将库编译为HelloCpp.dll：
 
 \begin{cpp}
 [DllImport("HelloCpp.dll", CharSet = CharSet.Unicode)] public static extern int functionInDLL(String s);
 \end{cpp}
 
-The first line is saying that C\# should import this function from a library called HelloCpp.dll and that it should use Unicode strings. The second line specifies the actual prototype of the function, which is a function accepting a string as parameter and returning an integer. The following code shows a complete example of how to use the C++ library from C\#:
+第一行表示C\#应该从名为HelloCpp.dll的库中导入这个函数，并使用Unicode字符串。第二行指定了函数的实际原型，即一个接受字符串参数并返回整数的函数。以下代码展示了如何从C\#使用C++库的完整示例：
 
 \begin{cpp}
 using System;
@@ -282,7 +282,7 @@ namespace HelloCSharp
 }
 \end{cpp}
 
-The output is as follows:
+输出如下：
 
 \begin{shell}
 Written by C#.
@@ -290,15 +290,15 @@ The following string was received by C++: 'Some string from C#.'
 C++ returned the value 42
 \end{shell}
 
-The details of the C\# code are outside the scope of this C++ book, but the general idea should be clear with this example.
+C\#代码的详请超出了这本C++书的范围，但这个例子应该足以展示了这个想法。
 
-This section only talked about calling C++ functions from C\# and didn’t say anything about using C++ classes from C\#. That will be remedied in the next section with the introduction of C++/CLI.
+本节只讨论了从C\#调用C++函数，并没有说如何在C\#使用C++类。下一节将介绍C++/CLI，解决这个问题。
 
-\mySubsubsection{34.2.5.}{Use C\# Code from C++ and C++ from C\# with C++/CLI}
+\mySubsubsection{34.2.5.}{使用C++/CLI在C++中调用C\#代码和在C\#中调用C++代码}
 
-To use C\# code from C++, you can use C++/CLI. CLI stands for Common Language Infrastructure and is the backbone of all .NET languages such as C\#, Visual Basic .NET, and so on. C++/CLI was created by Microsoft in 2005 to be a version of C++ that supports the CLI. In December 2005, C++/CLI has been standardized as the ECMA-372 standard. You can write your C++ programs in C++/CLI and gain access to any other piece of functionality written in any other language that supports the CLI, such as C\#. Keep in mind, though, that C++/CLI might lag behind the latest C++ standard, meaning that it does not necessarily support all latest C++ features. Discussing the C++/CLI language in detail is outside the scope of this pure C++ book. Only a few small examples are given.
+要从C++调用C\#代码，可以使用C++/CLI。CLI代表通用语言基础设施，是所有.NET语言（如C\#、Visual Basic .NET等）的基础。C++/CLI是由微软在2005年创建的，以支持CLI的C++版本。2005年12月，C++/CLI已标准化为ECMA-372标准,可以使用C++/CLI编写C++程序，并访问支持CLI的其他语言编写的功能。不过，需要注意的是，C++/CLI可能落后于最新的C++标准，所以它不一定支持所有最新的C++特性。详细讨论C++/CLI语言超出了这本纯C++书籍的范围。这里只给出了几个例子。
 
-Suppose you have the following C\# class in a C\# library:
+假设有一个C\#库中的C\#类：
 
 \begin{cpp}
 namespace MyLibrary
@@ -310,7 +310,7 @@ namespace MyLibrary
 }
 \end{cpp}
 
-You can consume this C\# library from your C++/CLI code as follows. The important bits are highlighted. CLI objects are managed by a memory garbage collector that automatically cleans up memory when memory is not needed anymore. As such, you cannot just use the standard C++ new operator to create managed objects; you have to use gcnew, an abbreviation for “garbage collect new.” Instead of storing the resulting pointer in a normal C++ pointer variable such as MyClass* or in a smart pointer such as std::unique\_ptr<MyClass>, you have to store it using a handle, MyClass\^{}, usually pronounced as “MyClass hat.”
+可以像以下方式从您的C++/CLI代码消费这个C\#库。CLI对象由内存垃圾收集器管理，当不再需要内存时，会自动清理内存。不能仅使用标准的C++ new运算符来创建托管对象，而必须使用gcnew，它是“垃圾收集新”的缩写。而不是将结果指针存储在普通的C++指针变量中，如MyClass*，或存储在智能指针中，如std::unique\_ptr<MyClass>，必须使用句柄，通常称为“MyClass hat”。
 
 \begin{cpp}
 #include <iostream>
@@ -326,7 +326,7 @@ int main(array<System::String^>^ args)
 }
 \end{cpp}
 
-C++/CLI can also be used in the other direction; you can write managed C++ ref classes, which are then accessible by any other CLI language. Here is a simple example of a managed C++ ref class:
+C++/CLI也可以在相反的方向使用，可以编写托管的C++引用类，然后可以在任何其他CLI语言中使用。这是一个简单的托管C++引用类的例子：
 
 \begin{cpp}
 #pragma once
@@ -343,7 +343,7 @@ namespace MyCppLibrary
 }
 \end{cpp}
 
-This C++/CLI ref class can then be used from C\# as follows:
+这个C++/CLI引用类可以在C\#中使用：
 
 \begin{cpp}
 using MyCppLibrary;
@@ -361,15 +361,15 @@ namespace MyLibrary
 }
 \end{cpp}
 
-As you can see, the basics are not that complicated, but these examples all use primitive datatypes, such as double. It starts to become more complicated if you need to work with non-primitive datatypes such as strings, vectors, and so on, because then you need to start marshaling objects between C\# and C++/CLI, and vice versa. However, this would take us too far for this brief introduction to C++/CLI.
+基础知识并不复杂，但这些例子都使用原始数据类型，如double。如果需要处理非原始数据类型，如字符串、vector等，需要开始在C\#和C++/CLI之间，以及相反方向进行对象序列化，这会使情况变得更加复杂，本书就不再进行介绍了。
 
-\mySubsubsection{34.2.6.}{Calling C++ Code from Java with JNI}
+\mySubsubsection{34.2.6.}{使用JNI从Java调用C++代码}
 
-The Java Native Interface (JNI) is part of the Java language that allows programmers to access functionality that was not written in Java. Because Java is a cross-platform language, the original intent was to make it possible for Java programs to interact with the operating system. JNI also allows programmers to make use of libraries written in other languages, such as C++. Access to C++ libraries may be useful to a Java programmer who has a performance-critical or computational-expensive piece of code or who needs to use legacy code.
+Java Native Interface (JNI)是Java语言的一部分，允许开发者访问不是用Java编写的功能。由于Java是一种跨平台语言，最初的意图是使Java程序能够与操作系统交互。JNI还允许程序员使用其他语言编写的库，对C++库的访问可能对需要性能关键或计算昂贵代码有用。
 
-JNI can also be used to execute Java code within a C++ program, but such a use is far less common. Because this is a C++ book, I do not include an introduction to the Java language. This section is recommended if you already know Java and want to incorporate C++ code into your Java code.
+JNI也可以用于在C++程序中执行Java代码，但这种用法非常罕见。由于这是一本关于C++的书，我不会介绍Java语言。如果已经了解Java，并且想将C++代码整合到Java代码中，建议你阅读本节。
 
-To begin your Java cross-language adventure, start with the Java program. For this example, the simplest of Java programs will suffice:
+要开始Java跨语言之旅，首先从Java程序开始。对于这个例子，最简单的Java程序就足够了：
 
 \begin{cpp}
 public class HelloCpp
@@ -381,20 +381,20 @@ public class HelloCpp
 }
 \end{cpp}
 
-Next, you need to declare a Java method that will be written in another language. To do this, you use the native keyword and leave out the implementation:
+接下来，需要声明一个将在另一种语言中编写的Java方法，使用native关键字并省略实现：
 
 \begin{cpp}
 // This will be implemented in C++.
 public static native void callCpp();
 \end{cpp}
 
-The C++ code will eventually be compiled into a shared library that gets dynamically loaded into the Java program. You can load this library inside a Java static block so that it is loaded when the Java program begins executing. The name of the library can be whatever you want, for example, hellocpp.so on Linux systems, or hellocpp.dll on Windows systems.
+C++代码最终将编译成一个动态库，该库在Java程序开始执行时动态加载。可以在Java的静态块中加载这个库，这样就在Java程序开始执行时加载。库的名称可以是你想要的，例如：在Linux系统上为hellocpp.so，在Windows系统上为hellocpp.dll。
 
 \begin{cpp}
 static { System.loadLibrary("hellocpp"); }
 \end{cpp}
 
-Finally, you need to actually call the C++ code from within the Java program. The callCpp() Java method serves as a placeholder for the not-yet-written C++ code. Here is the complete Java program:
+最后，需要实际上在Java程序中调用C++代码。callCpp() Java方法作为尚未编写的C++代码的占位符。以下是完整的Java程序：
 
 \begin{cpp}
 public class HelloCpp
@@ -412,25 +412,25 @@ public class HelloCpp
 }
 \end{cpp}
 
-That’s all for the Java side. Now, just compile the Java program as you normally would:
+这是Java的所有内容。现在，像往常一样编译Java程序：
 
 \begin{shell}
 javac HelloCpp.java
 \end{shell}
 
-Then use the javah program (I like to pronounce it as jav-AHH!) to create a header file for the native function:
+然后使用javah程序（我喜欢发音为jav-AHH!）为原生函数创建一个头文件：
 
 \begin{shell}
 javah HelloCpp
 \end{shell}
 
-After running javah, you will find a file named HelloCpp.h, which is a fully working (if somewhat ugly) C/C++ header file. Inside of that header file is a C function definition for a function called Java\_HelloCpp\_callCpp(). Your C++ program will need to implement this function. The full prototype is as follows:
+运行javah后，会找到一个名为HelloCpp.h的文件，这是一个完全工作的（尽管有些丑陋）C/C++头文件。在该头文件中有一个名为Java\_HelloCpp\_callCpp()的C函数定义，C++程序需要实现这个函数。完整的原型如下所示：
 
 \begin{cpp}
 JNIEXPORT void JNICALL Java_HelloCpp_callCpp(JNIEnv*, jclass);
 \end{cpp}
 
-Your C++ implementation of this function can make full use of the C++ language. This example just outputs some text from C++. First, you need to include the jni.h header file and the HelloCpp.h file that was created by javah. You also need to include any C++ headers that you intend to use.
+C++实现可以充分利用C++语言，这个例子只是从C++输出一些文本。首先，需要包含jni.h头文件和javah创建的HelloCpp.h文件，还需要包含打算使用的C++头文件。
 
 \begin{cpp}
 #include <jni.h>
@@ -438,7 +438,7 @@ Your C++ implementation of this function can make full use of the C++ language. 
 #include <iostream>
 \end{cpp}
 
-The C++ function is written as normal. The parameters to the function allow interaction with the Java environment and the object that called the native code. They are beyond the scope of this example.
+C++函数按正常方式编写，函数的参数允许与Java环境及其调用的原生代码进行交互。
 
 \begin{cpp}
 JNIEXPORT void JNICALL Java_HelloCpp_callCpp(JNIEnv*, jclass)
@@ -447,33 +447,33 @@ JNIEXPORT void JNICALL Java_HelloCpp_callCpp(JNIEnv*, jclass)
 }
 \end{cpp}
 
-How to compile this code into a library depends on your environment, but you will most likely need to tweak your compiler’s settings to include the JNI headers. Using the GCC compiler on Linux, your compile command might look like this:
+将此代码编译成库取决于环境，但可能需要调整编译器的设置以包含JNI头文件。在Linux上的GCC编译器，编译命令可能看起来像这样：
 
 \begin{shell}
 g++ -shared -I/usr/java/jdk/include/ -I/usr/java/jdk/include/linux \
 HelloCpp.cpp -o hellocpp.so
 \end{shell}
 
-The output from the compiler is the library used by the Java program. As long as the shared library is somewhere in the Java class path, you can execute the Java program as you normally would:
+编译器的输出是Java程序使用的库。只要动态库在Java类路径中的某个位置，就可以像往常一样执行Java程序：
 
 \begin{shell}
 java HelloCpp
 \end{shell}
 
-You should see the following result:
+应该能看到以下结果：
 
 \begin{shell}
 Hello from Java!
 Hello from C++!
 \end{shell}
 
-Of course, this example just scratches the surface of what is possible through JNI. You could use JNI to interface with OS-specific features or hardware drivers. For complete coverage of JNI, you should consult a Java text.
+当然，这个例子只是展示了通过JNI可以实现的功能的冰山一角，可以使用JNI与操作系统的特定功能或硬件驱动程序进行交互。对于JNI的完整介绍，可以参考Java相关的文献。
 
-\mySubsubsection{34.2.7.}{Calling Scripts from C++ Code}
+\mySubsubsection{34.2.7.}{在C++代码中调用脚本}
 
-The original Unix OS included a rather limited C library, which did not support certain common operations. Unix programmers therefore developed the habit of launching scripts from applications to accomplish tasks that should have had API or library support. Scripts can be written in languages such as Perl and Python, but they can also be shell scripts for executing in a shell such as Bash.
+最初的Unix操作系统包括一个相当有限的C库，不支持某些常见操作。Unix开发者养成了从应用程序启动脚本，来完成本应由API或库支持的任务的习惯。脚本可以用Perl和Python等语言编写，但也可以是用Bash等shell编写的脚本。
 
-Today, many of these Unix programmers still insist on using scripts as a form of subroutine call. To enable these kinds of interoperabilities, C++ provides the std::system() function defined in <cstdlib>. It requires only a single argument, a string representing the command you want to execute. Here are some examples:
+今天，许多Unix程序员仍然坚持使用脚本作为子程序调用的形式。为了实现这种互操作性，C++提供了在<cstdlib>中定义的std::system()函数。只需要一个参数，即想要执行的命令的字符串表示。以下是一些示例：
 
 \begin{cpp}
 system("python my_python_script.py"); // Launch a Python script.
@@ -481,19 +481,19 @@ system("perl my_perl_script.pl"); // Launch a Perl script.
 system("my_shell_script.sh"); // Launch a Shell script.
 \end{cpp}
 
-However, there are significant risks to this approach. For example, if there is an error in the script, the caller may or may not get a detailed error indication. The system() call is also exceptionally heavyduty, because it has to create an entire new process to execute the script. This may ultimately be a serious performance bottleneck in your application.
+然而，这种方法存在重大风险。如果脚本中有错误，调用者可能无法获得详细的错误指示。system()调用也非常重，必须创建一个全新的进程来执行脚本。这最终可能会成为应用程序的性能瓶颈。
 
-Using system() to launch scripts is not further discussed in this text. In general, you should explore the features of C++ libraries to see if there are better ways to do something. There are some platformindependent wrappers around a lot of platform-specific libraries, for example, the Boost Asio library, which provides portable networking and other low-level I/O, including sockets, timers, serial ports, and so on. If you need to work with a filesystem, you can use the platform-independent <filesystem> API available as part of the C++ Standard Library since C++17, and discussed in Chapter 13. Concepts like launching a Perl script with system() to process some textual data may not be the best choice. Using techniques like the regular expressions library of C++, see Chapter 21, “String Localization and Regular Expressions,” might be a better choice for your string processing needs.
+本书中，使用system()来启动脚本的方法不再进一步讨论。一般来说，应该探索C++库的功能，看看是否有更好的方法来做某件事。有许多与许多特定平台库相关的平台无关的包装器，例如，Boost Asio库，提供了可移植的网络和其他低层I/O，包括套接字、定时器、串行端口等。如果需要与文件系统工作，可以使用自C++17标准库中的<filesystem> API，这是一种平台无关的API，具体讨论见第13章。使用system()启动Perl脚本来处理一些文本数据，可能不是最佳选择。对于字符串处理需求，使用C++的正则表达式库，可能是一个更好的选择。
 
-\mySubsubsection{34.2.8.}{Calling C++ Code from Scripts}
+\mySubsubsection{34.2.8.}{在脚本中调用C++代码}
 
-C++ contains a built-in general-purpose mechanism to interface with other languages and environments. You’ve already used it many times, probably without paying much attention to it—it’s the arguments to and return value from the main() function.
+C++内置了一个通用的机制，用于与其他语言和环境进行接口。已经多次使用过它，可能没有太关注——就是main()函数的参数和返回值。
 
-C and C++ were designed with command-line interfaces in mind. The main() function receives the arguments from the command line and returns a status code that can be interpreted by the caller. In a scripting environment, arguments to and status codes from your program can be a powerful mechanism that allows you to interface with the environment.
+C和C++最初是为命令行界面设计的。main()函数从命令行接收参数，并返回一个状态码。在脚本环境中，程序的参数和状态码可以是一个强大的机制，允许开发者与环境进行交互。
 
-\mySamllsection{A Practical Example: Encrypting Passwords}
+\mySamllsection{实际例子：密码加密}
 
-Assume that you have a system that writes everything a user sees and types to a file for auditing purposes. The file can be read only by the system administrator so that she can figure out who to blame if something goes wrong. An excerpt of such a file might look like this:
+假设有一个系统，会将用户看到和输入的所有内容写入文件，以便进行审计。这个文件只能由系统管理员读取，这样就可以确定如果出了问题，该归责于谁。这样一个文件的内容看起来像这样：
 
 \begin{shell}
 Login: bucky-bo
@@ -504,15 +504,15 @@ bucky-bo has no mail
 bucky-bo> exit
 \end{shell}
 
-While the system administrator may want to keep a log of all user activity, she may also want to obscure everybody’s passwords in case the file is somehow obtained by a hacker. She decides to write a script to parse the log files and to use C++ to perform the actual encryption. The script then calls out to a C++ program to perform the encryption.
+虽然系统管理员可能希望保留所有用户活动的日志，但也可能希望如果黑客以某种方式获取文件，可以隐藏所有人的密码。她决定编写一个脚本来解析日志文件，并使用C++来执行实际的加密，脚本会调用一个C++程序来执行加密。
 
-The following script uses the Perl language, though almost any scripting language could accomplish this task. Note also that these days, there are libraries available for Perl that perform encryption, but, for the sake of this example, let’s assume the encryption is done in C++. If you don’t know Perl, you will still be able to follow along. The most important element of the Perl syntax for this example is the ` character. The ` character instructs the Perl script to shell out to an external command. In this case, the script will shell out to a C++ program called encryptString.
+以下脚本使用Perl语言编写，需要注意的是，Perl有库可以执行加密，但为了这个例子，假设加密是在C++中完成的。如果不了解Perl，可以了解一下这个例子。对于这个例子，Perl语法中最重要的元素是`字符。 `字符告诉Perl脚本要调用一个外部命令。这个例子中，脚本将调用一个名为encryptString的C++程序。
 
 \begin{myNotic}{NOTE}
-Launching an external process causes a big performance overhead because a completely new process has to be created. You shouldn’t use it when you need to call the external process often. In this password encryption example, it is okay, because you can assume that a log file will contain only a few password lines.
+启动外部进程会带来很大的性能开销，因为必须创建一个全新的进程。如果需要频繁调用外部进程，不建议使用这种方法。这个密码加密的例子中，这是可以的，因为可以假设日志文件中只包含几个密码。
 \end{myNotic}
 
-The strategy for the script is to loop over every line of a file, userlog.txt, looking for lines that contain a password prompt. The script writes a new file, userlog.out, which contains the same text as the source file, except that all passwords are encrypted. The first step is to open the input file for reading and the output file for writing. Then, the script needs to loop over all the lines in the file. Each line in turn is placed in a variable called \$line.
+脚本的策略是遍历文件中的每一行，寻找包含密码提示的行。脚本将写入一个新的文件userlog.out，其中包含与源文件相同的文本，只是加密所有的密码。第一步是打开输入文件用于读取，输出文件用于写入，脚本需要遍历文件中的所有行，每一行依次放置在变量\$line中。
 
 \begin{shell}
 open (INPUT, "userlog.txt") or die "Couldn't open input file!";
@@ -520,13 +520,13 @@ open (OUTPUT, ">userlog.out") or die "Couldn't open output file!";
 while ($line = <INPUT>) {
 \end{shell}
 
-Next, the current line is checked against a regular expression to see if this particular line contains the Password: prompt. If it does, Perl stores the password in the variable \$1.
+接下来，当前行与正则表达式进行比较，以查看该特定行是否包含密码提示。如果是，Perl将密码存储在变量\$1中。
 
 \begin{shell}
     if ($line =˜ m/^Password: (.*)/) {
 \end{shell}
 
-If a match is found, the script calls the encryptString program with the detected password to obtain an encrypted version of it. The output of the program is stored in the \$result variable, and the result status code from the program is stored in the variable \$?. The script checks \$? and quits immediately if there is a problem. If everything is okay, the password line is written to the output file with the encrypted password instead of the original one.
+如果找到匹配，脚本调用encryptString程序并传递检测到的密码，以获取加密版本。程序的输出存储在变量\$result中，程序的结果状态码存储在变量\$?中。脚本检查\$?并在遇到问题时立即退出。如果一切正常，密码行将写入输出文件，加密其中密码。
 
 \begin{shell}
         $result = `./encryptString $1`;
@@ -535,7 +535,7 @@ If a match is found, the script calls the encryptString program with the detecte
     } else {
 \end{shell}
 
-If the current line is not a password prompt, the script writes the line as is to the output file. At the end of the loop, it closes both files and exits.
+如果当前行不是密码提示，脚本将该行原样写入输出文件。循环结束后，脚本关闭两个文件并退出。
 
 \begin{shell}
         print OUTPUT "$line";
@@ -545,11 +545,11 @@ close (INPUT);
 close (OUTPUT);
 \end{shell}
 
-That’s it. The only other required piece is the actual C++ program. Implementation of a cryptographic algorithm is beyond the scope of this book. The important piece is the main() function because it accepts the string that should be encrypted as an argument.
+唯一其他需要的是实际的C++程序，密码算法的实现超出了本书的范围。重要的是main()函数，因为它接受应该加密的字符串作为参数。
 
-Arguments are contained in the argv array of C-style strings. You should always check the argc parameter before accessing an element of argv. If argc is 1, there is one element in the argument list, and it is accessible as argv[0]. Actual command-line parameters begin at argv[1]. The zeroth element of the argv array is generally the name of the program, but because it is controlled by whoever spawned the current process, e.g., by the Linux execve() system call, it can technically hold any data at all. All you’re guaranteed is that each argument in argv[0] through argv[argc-1] is a nullterminated string, and argv[argc] itself is a null pointer.
+参数存储在argv数组中，这是一个C风格的字符串数组。访问argv的元素之前，应该始终检查argc参数。如果argc是1，参数列表中有一个元素，可以访问argv[0]。实际的命令行参数从argv[1]开始，argv数组的第零个元素通常是程序的名称，但由当前进程的创建者控制，例如通过Linux的execve()系统调用，可以存储任何数据。开发者需要保证的是，argv[0]到argv[argc-1]之间的每个参数都是一个以null字符终止的字符串，而argv[argc]本身是一个null指针。
 
-The following is the main() function for a C++ program that encrypts the input string. Notice that the program returns 0 for success and non-0 for failure, as is standard in Linux.
+以下是一个C++程序的主函数，该程序用于加密输入字符串。程序返回0表示成功，非0表示失败，这是Linux的标准做法。
 
 \begin{cpp}
 int main(int argc, char** argv)
@@ -563,48 +563,48 @@ int main(int argc, char** argv)
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-There is actually a subtle security hole in this code. When the to-beencrypted string is passed to the C++ program as a command-line argument, it may be visible to other users through the process table. One example of a more secure way to get the information into the C++ program would be to send it through standard input.
+实际上，这段代码有一个微妙的漏洞。当待加密的字符串作为C++程序的命令行参数传递时，可能通过进程表被其他用户看到。一种更安全的方法将信息传递给C++程序是通过标准输入。
 \end{myNotic}
 
-Now that you’ve seen how easily C++ programs can be incorporated into scripting languages, you can combine the strengths of the two languages for your own projects. You can use a scripting language to interact with the operating system and control the flow of the script, and a traditional programming language like C++ for the heavy lifting.
+现在已经了解了如何将C++程序整合到脚本语言中，可以将这两种语言的优势结合起来，用于自己的项目。可以使用脚本语言与操作系统交互并控制脚本的流程，而使用像C++这样的传统编程语言进行繁重的计算。
 
 \begin{myNotic}{NOTE}
-This example is just to demonstrate how to use Perl and C++ together. The C++ Standard Library includes regular expressions support, which makes it easy to convert this Perl/C++ solution into a pure C++ solution. This pure C++ solution will run much faster because it avoids calling an external program. See Chapter 21 for details on the regular expressions library.
+这个例子只是为了展示如何一起使用Perl和C++。C++标准库包括正则表达式支持，这使得将这个Perl/C++解决方案转换为纯C++解决方案变得容易。这个纯C++解决方案将运行得更快，避免了调用外部程序。关于正则表达式库的详细信息，请参见第21章。
 \end{myNotic}
 
-\mySubsubsection{34.2.9.}{Calling Assembly Code from C++}
+\mySubsubsection{34.2.9.}{在C++使用汇编代码}
 
-C++ is considered a fast language, especially relative to other languages. Yet, in some rare cases, you might want to use raw assembly code when speed is absolutely critical. The compiler generates assembly code from your source files, and this generated assembly code is fast enough for virtually all purposes. Both the compiler and the linker (when it supports link time code generation) use optimization algorithms to make the generated assembly code as fast as possible. These optimizers are getting more and more powerful by using special processor instruction sets such as MMX, SSE, and AVX. These days, it’s hard to write your own assembly code that outperforms the code generated by the compiler, unless you know all the little details of these enhanced instruction sets.
+C++是一种快速的语言，尤其是与其他语言相比。但某些罕见的情况下，当速度至关重要时，可能希望使用原始汇编代码。编译器会从源文件生成汇编代码，这个生成的汇编代码对于几乎所有目的都足够快。编译器和链接器（支持链接时间代码生成时）使用优化算法使生成的汇编代码尽可能快，这些优化器越来越强大，可利用特殊的处理器指令集有，MMX、SSE和AVX。如今，无需编写自己的汇编代码，其性能超过编译器生成的代码，除非知道这些指令集的所有细节。
 
-However, in case you do need it, the keyword asm can be used by a C++ compiler to allow the programmer to insert raw assembly code. The keyword is part of the C++ standard, but its implementation is compiler-defined. In some compilers, you can use asm to drop from C++ down to the level of assembly right in the middle of your program. Sometimes, the support for the asm keyword depends on your target architecture, and sometimes a compiler uses a non-standard keyword instead of the asm keyword. For example, Microsoft Visual C++ 2022 does not support the asm keyword. Instead, it supports the \_\_asm keyword when compiling in 32-bit mode, and does not support inline assembly at all when compiling in 64-bit mode.
+如果确实需要它，关键字asm可以由C++编译器使用，允许开发者插入原始汇编代码。这个关键字是C++标准的一部分，但其实现是编译器定义的。某些编译器中，可以使用asm关键字在程序的中间直接从C++下降到汇编级别。有时，对asm关键字的的支持取决于您的目标架构，有时编译器使用非标准的关键字，而不是asm关键字。例如，Microsoft Visual C++ 2022不支持asm关键字，而在32位模式下，支持\_\_asm关键字；而在64位模式下，根本不支持内联汇编。
 
-Assembly code can be useful in some applications, but I don’t recommend it for most programs. There are several reasons to avoid assembly code:
+汇编代码在某些应用程序中是有用的，但我并不推荐它在大多数程序中使用。避免手写汇编代码有几个原因：
 
 \begin{itemize}
 \item
-Your code is no longer portable to another processor once you start including raw assembly code for your platform.
+开始为平台编写的原始汇编代码，代码就不再可移植到另一个处理器。
 
 \item
-Most programmers don’t know assembly languages and won’t be able to modify or maintain your code.
+大多数程序员不了解汇编语言，无法修改或维护这部分代码。
 
 \item
-Assembly code is not known for its readability. It can hurt your program’s use of style.
+汇编代码以其可读性不佳而闻名，可能会损害程序的风格。
 
 \item
-Most of the time, it is not necessary. If your program is slow, look for algorithmic problems, or consult some of the other performance suggestions from Chapter 29, “Writing Efficient C++.”
+大多数时候，是不必要的。如果认为程序运行缓慢，请寻找算法问题，或者遵循第29章中的一些性能建议。
 \end{itemize}
 
 \begin{myWarning}{WARNING}
-When you encounter performance issues in your application, use a profiler to determine the real hotspot, and look into algorithmic speed-ups! Only start thinking about using assembly code if you have exhausted all other options, and even then, think about the disadvantages of assembly code.
+当遇到应用程序中的性能问题时，请使用性能分析器确定真正的热点，并查看算法提速！只有当已经用尽所有其他选项时，才考虑使用汇编代码。甚至到那时，也要考虑汇编代码的缺点。
 \end{myWarning}
 
-Practically, if you have a computationally expensive block of code, you should move it to its own C++ function. If you determine, using performance profiling (see Chapter 29), that this function is a performance bottleneck, and there is no way to write the code smaller and faster, you might use raw assembly code to try to increase its performance.
+实际上，有一个计算密集型的代码块，应该将其放到自己的C++函数中。如果使用性能分析（请参阅第29章）确定此函数是性能瓶颈，并且无法以更小更快的方式编写代码，可能需要使用原始汇编代码来尝试提高其性能。
 
-In such a case, one of the first things you want to do is declare the function extern "C" so the C++ name mangling is suppressed. Then, you can write a separate module in assembly code that performs the function more efficiently. The advantage of a separate module is that there is both a “reference implementation” in C++ that is platform-independent, and also a platform-specific high-performance implementation in raw assembly code. The use of extern "C" means that the assembly code can use a simple naming convention (otherwise, you have to reverse-engineer your compiler’s name mangling algorithm). Then, you can link with either the C++ version or the assembly code version.
+这种情况下，首先要做的是声明该函数为extern "C"，以抑制C++名称混淆。再编写一个单独的模块，使用汇编代码更有效地执行该函数。单独模块的优势在于，既有平台无关的“参考实现”的C++版本，也有原始汇编代码中的平台特定的高性能实现。使用extern "C"意味着汇编代码可以使用简单的命名约定（否则，必须反向工程编译器的名称混淆算法），就可以链接C++版本或汇编代码版本。
 
-You would write this module in assembly code and run it through an assembler, rather than using the inline asm keyword in C++. This is particularly true in many of the popular x86-compatible 64-bit compilers, where the inline asm keyword is not supported.
+将使用汇编代码编写此模块，并通过汇编器运行，而不是在C++中使用内联asm关键字。这在许多流行的x86兼容的64位编译器中尤为重要，在这些编译器中，并不支持内联asm关键字。
 
-Even though it is possible, you should use raw assembly code only if there are significant performance improvements. Additionally, don’t forget Amdahl’s law. For example, a 10x speedup in your encryption routine sounds great, but if your program spends 90 percent of its time not doing encryption, that means that 10x speedup is for 10 percent of the program only—just a 9 percent overall improvement!
+即使有可能，也应该只在有显著的性能提升时，才使用原始汇编代码。此外，不要忘记阿姆达尔定律。例如，加密例程的10倍加速听起来很棒，但如果程序90\%的时间都在进行加密，10倍的加速只适用于程序的10\%——整体上只提高了9\%！
 
 
 

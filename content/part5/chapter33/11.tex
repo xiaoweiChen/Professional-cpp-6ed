@@ -1,40 +1,40 @@
 
-The singleton is one of the simplest design patterns. In English, the word singleton means “one of a kind” or “individual.” It has a similar meaning in programming. The singleton pattern is a strategy for enforcing the existence of exactly one instance of a class in a program. Applying the singleton pattern to a class guarantees that only one object of that class type will ever be created. The singleton pattern also specifies that the one object is globally accessible from anywhere in the program. Programmers usually refer to a class following the singleton pattern as a singleton class.
+单例模式是设计模式中最简单的一种。英语中，“单例”意味着“独一无二的”或“唯一的”。编程中，具有类似的意义。单例模式是一种策略，用于确保程序中存在一个类的唯一实例。将单例模式应用于一个类可以保证该类类型只会创建一个对象。单例模式还规定了这个唯一对象在整个程序中都是全局可访问的，开发者通常将遵循单例模式的类称为单例类。
 
-If your program relies on the assumption that there will be exactly one instance of a class, you could enforce that assumption with the singleton pattern. Technically, in C++, you could achieve the same thing using global variables and free functions in some namespace instead of a class, but other languages, such as Java, don’t have the concept of global variables.
+如果程序依赖于确切地只有一个类实例的假设，可以通过单例模式来强制这个假设。从技术上讲，可以使用全局变量和某个命名空间中的自由函数来实现相同的功能，而不是使用类，但是像 Java 这样的其他语言就没有全局变量的概念。
 
-However, the singleton pattern has a number of disadvantages that you need to be aware of. If you have multiple singletons, it’s not always easy to guarantee that they are initialized in the right order at program startup. It’s also not easy to ensure a singleton is still there when callers need it during program shutdown. On top of that, singleton classes introduce hidden dependencies, cause tight coupling, and complicate unit testing. In a unit test, for example, you might want to write a mock version (see Chapter 30, “Becoming Adept at Testing”) of a singleton that accesses the network or a database, but given the nature of a typical singleton implementation, that’s hard to do.
+然而，单例模式有许多缺点。如果你的程序中有多个单例，有时很难保证它们在程序启动时以正确的顺序初始化，也很难保证在程序关闭时单例仍然存在。此外，单例类引入了隐藏的依赖关系，导致紧密耦合，并使单元测试变得更加复杂。例如，在单元测试中，可能想要编写一个访问网络或数据库的单例的模拟版本（参见第 30 章），但由于单例的特性，这很难做到。
 
-A more appropriate design pattern is the strategy design pattern, discussed earlier in this chapter. With the strategy design pattern, you create an interface for each service you provide and inject the interfaces a component needs into the component. Strategy makes it easy to introduce different implementations which helps with mocking (stub versions) for unit testing. Still, the singleton pattern is discussed here because you will encounter it, especially in legacy code bases.
+一个更合适的设计模式是策略设计模式，使用策略设计模式，为提供的每个服务创建一个接口，并将组件需要的接口注入到组件中。策略模式使引入不同的实现变得容易，有助于单元测试的模拟（桩版本）。尽管如此，在这里堆单例模式进行讨论，因为在遗留代码库中会遇到它。
 
 \begin{myWarning}{WARNING}
-Avoid using the singleton pattern in new code because of its numerous problems. Prefer other patterns, such as the strategy design pattern.
+编写新代码时应避免使用单例模式，它存在许多问题。建议使用其他模式，例如策略设计模式。
 \end{myWarning}
 
-\mySubsubsection{33.11.1.}{Example: A Logging Mechanism}
+\mySubsubsection{33.11.1.}{示例：日志机制}
 
-Many applications have a notion of a logger—a class that is responsible for writing status information, debugging data, and errors to a central location. A logging class could have the following characteristics:
+许多应用程序都有一个日志的概念——一个负责将状态信息、调试数据和错误写入中央位置的类。一个日志类可能具有以下特性：
 
 \begin{itemize}
 \item
-It is available at all times.
+始终可用。
 
 \item
-It is easy to use.
+易于使用。
 
 \item
-There is only one instance.
+只有一个实例。
 \end{itemize}
 
-The singleton pattern could be used to accomplish these requirements. But again, in new code I recommend avoiding introducing new singletons.
+单例模式可以用来实现这些要求。但在新代码中，我建议避免引入新的单例。
 
-\mySubsubsection{33.11.2.}{Implementation of a Singleton}
+\mySubsubsection{33.11.2.}{单例的实现}
 
-There are two approaches to implement singleton behavior in C++. The first approach uses a class with only static member functions. Such a class needs no instantiation and is accessible from anywhere. The problem with this technique is that it lacks a built-in mechanism for construction and destruction. And, technically, a class that uses all static member functions doesn’t really follow the singleton design pattern but the monostate design pattern; that is, such a class can have multiple instances but only one state. The term singleton implies that there is exactly one instance of the class. The monostate design pattern is not further discussed in this section.
+在 C++ 中实现单例行为有三种方法。第一种方法使用只有静态成员函数的类，这样的类不需要实例化，并且可以从程序中访问。这种技术的问题是它缺乏构建和销毁的内置机制。从技术上讲，使用所有静态成员函数的类并不真正遵循单例设计模式，而是遵循单状态设计模式，所以这样的类可以有多个实例，但只有一个状态。单例模式意味着该类只有一个实例，单状态设计模式在本节中就不再讨论。
 
-The second approach uses access control levels to regulate the creation and access of one single instance of a class. This is a true singleton and illustrated with the example of a Logger class, providing similar features as the strategy-based Logger discussed earlier in this chapter.
+第二种方法使用访问控制级别来控制类的创建和访问。这是真正的单例，并通过 Logger 类的示例进行说明，提供了与本章早些时候讨论的基于策略的 Logger 类似的功能。
 
-To build a true singleton in C++, you can use the access control mechanisms as well as the static keyword. An actual Logger instance exists at run time, and the class enforces that only one instance is ever instantiated. Clients can always get a hold of that single instance through a static member function called instance(). The class definition looks like this:
+要构建真正的单例，可以使用访问控制机制以及静态关键字。实际的 Logger 实例在运行时存在，并且类强制只创建一个实例。客户端可以通过一个名为 instance() 的静态成员函数获取那个唯一的实例。类的定义如下所示：
 
 \begin{cpp}
 export class Logger final
@@ -76,13 +76,13 @@ export class Logger final
 };
 \end{cpp}
 
-This implementation is based on Scott Meyers’ singleton pattern. This means that the instance() member function contains a local static instance of the Logger class. C++ guarantees that this local static instance is initialized in a thread-safe fashion, so you don’t need any manual thread synchronization in this version of the singleton pattern. These are called magic statics or thread-safe static local variables. Note that only the initialization is thread-safe! If multiple threads are going to call member functions on the Logger class, then you should make the Logger member functions themselves thread safe as well. See Chapter 27, “Multithreaded Programming with C++,” for a detailed discussion on synchronization mechanisms to make a class thread-safe.
+这个实现基于Scott Meyers的单例模式，instance()成员函数包含了一个Logger类的本地静态实例。C++保证了这个本地静态实例是以线程安全的方式初始化的，所以在单例模式的这个版本中，不需要手动同步线程，这称为魔术静态变量或线程安全的静态局部变量。注意，只有初始化是线程安全的！如果多个线程将要调用Logger类的成员函数，那么也应该使Logger的成员函数本身也是线程安全的。关于如何使一个类线程安全的同步机制的详细讨论，请参见第27章。
 
-The implementation of the Logger class is straightforward. Once the log file has been opened, each log message is written to it with a timestamp and the log level prepended, and then flushed to disk.
+Logger类的实现是直接的。当日志文件打开，每个日志消息都会写入文件，并附加时间戳和日志级别，然后刷新到磁盘。
 
-The constructor and destructor are called automatically when the static instance of the Logger class in the instance() member function is created and destroyed. Because the constructor and destructor are private, no external code can create or delete a Logger.
+当instance()成员函数中的Logger类的静态实例创建和销毁时，将自动调用构造函数和析构函数。因为构造函数和析构函数是private的，所以外部代码不能创建或删除一个Logger。
 
-Here are the implementations of the setLogFilename() and instance() member functions and the constructor and destructor. The other member functions have the same implementations as in the strategy-based logger example earlier in this chapter.
+以下是setLogFilename()和instance()成员函数，以及构造函数和析构函数的实现。其他成员函数的实现与本章前面基于策略的日志器示例中的实现相同。
 
 \begin{cpp}
 void Logger::setLogFilename(string logFilename)
@@ -108,9 +108,9 @@ Logger::~Logger()
 { println(m_outputStream, "{}: Logger stopped.", chrono::system_clock::now()); }
 \end{cpp}
 
-\mySubsubsection{33.11.3.}{Using a Singleton}
+\mySubsubsection{33.11.3.}{使用单例}
 
-The singleton Logger class can be tested as follows:
+单例Logger类的测试方法如下所示:
 
 \begin{cpp}
 // Set the log filename before the first call to instance().
@@ -126,7 +126,7 @@ Logger::instance().setLogLevel(Logger::LogLevel::Error);
 Logger::instance().log("A debug message", Logger::LogLevel::Debug);
 \end{cpp}
 
-After executing, the file log.out contains the following lines:
+执行后，文件 log.out 将包含以下行：
 
 \begin{shell}
 2023-08-12 17:36:15.1370238: Logger started.

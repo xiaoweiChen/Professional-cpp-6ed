@@ -1,8 +1,8 @@
-The previous sections describe two concrete patterns related to factories: the abstract factory pattern and the factory method pattern.
+前面的部分描述了与工厂相关的两种具体模式：抽象工厂模式和工厂方法模式。
 
-There are other types of factories. For example, a factory can also be implemented in a single class instead of a class hierarchy. In that case, a single create() member function on the factory takes a type or string parameter from which it decides which object to create, instead of delegating that work to concrete subclasses. Such a function is commonly called a factory function. This factory pattern does not provide dependency inversion and does not allow customization of the construction process.
+还有其他类型的工厂。例如，工厂也可以在单个类中实现，而不是在类层次结构中。这时，工厂上的单个 create() 成员函数接受一个类型或字符串参数，从中决定创建哪个对象，而不是将这项工作委托给具体的子类。这样的函数通常被称为工厂函数，这种工厂模式不提供依赖倒置，也不允许自定义构建过程。
 
-An example of using a factory function is an alternative implementation of the pimpl idiom, discussed in Chapter 9, “Mastering Classes and Objects.” It provides a wall between the public interface and the concrete implementation of the provided functionality. This use of a factory function looks as follows. First, the following is publicly exposed, with a create() factory function:
+使用工厂函数的一个例子是在第9章中讨论的 pimpl 习语的替代实现，提供了公共接口和提供的功能的具体实现之间的隔离。使用工厂函数的方式如下。首先，公开暴露的是以下内容，包括一个 create() 工厂函数：
 
 \begin{cpp}
 // Public interface (to be included in the rest of the program,
@@ -20,7 +20,7 @@ class Foo
 };
 \end{cpp}
 
-Next, the implementation is hidden from the outside world:
+接下来，实现对外部隐藏：
 
 \begin{cpp}
 // Implementation
@@ -36,7 +36,7 @@ unique_ptr<Foo> Foo::create()
 }
 \end{cpp}
 
-Any client code that needs a Foo instance can create one as follows:
+需要 Foo 实例的客户端，可以按如下方式创建：
 
 \begin{cpp}
 auto fooInstance { Foo::create() };

@@ -1,116 +1,116 @@
 
-There are several reasons why the C++ language encounters platform issues. C++ is a high-level language, and the standard does not specify certain low-level details. For example, the layout of an object in memory is unspecified by the standard and left to the compiler[Starting with C++23, the order of members is defined by the standard and must be in the same order as they are declared in the class definition—older standards allowed compilers to reorder members. However, other aspects of object layout, such as padding and alignment, are platform-specific.]. Different compilers can use different memory layouts for objects.
+C++语言遇到平台问题的原因有几个。C++是一种高级语言，标准没有指定某些低级细节，对象在内存中的布局是由编译器决定的，而不是由标准指定的（从C++23开始，成员的顺序由标准定义，必须与类定义中声明的顺序相同——旧标准允许编译器重新排序成员）。不同的编译器可以为对象使用不同的内存布局。
 
-C++ also faces the challenge of providing a standard language and a Standard Library without a standard implementation. Varying interpretations of the specification among C++ compiler and library vendors can lead to trouble when moving from one system to another.
+C++还面临着在不具有标准实现的情况下，提供标准语言和标准库的挑战。C++编译器和库供应商对规范的不同解释，可能导致在从一个系统转移到另一个系统时出现问题。
 
-Finally, C++ is selective in what the language provides as standard. Despite the existence of the Standard Library, programs often need functionality that is not provided by the language or the Standard Library. This functionality generally comes from third-party libraries or the platform itself, and can vary greatly.
+最后，C++在选择语言提供哪些功能作为标准方面是有选择性的。尽管存在标准库，程序通常需要语言或标准库不提供的功能。这种功能通常来自第三方库或平台本身，可能会有很大的差异。
 
-\mySubsubsection{34.1.1.}{Architecture Issues}
+\mySubsubsection{34.1.1.}{架构问题}
 
-The term architecture generally refers to the processor, or family of processors, on which a program runs. A standard PC running Windows or Linux generally runs on the x86 or x64 architecture, and older versions of macOS were usually found on the PowerPC architecture. As a high-level language, C++ shields you from the differences between these architectures. For example, a Core i7 processor may have a single instruction that performs the same functionality as six PowerPC instructions. As a C++ programmer, you don’t need to know what this difference is or even that it exists. One advantage to using a high-level language is that the compiler takes care of converting your code into the processor’s native assembly code format.
+架构一词通常指的是程序运行的处理器或处理器族，运行Windows或Linux的标准PC通常运行在x86或x64架构上，而较旧的macOS版本通常在PowerPC架构上。作为一种高级语言，C++封装了这些架构之间的差异。例如，Core i7处理器可能有一个指令执行与六个PowerPC指令相同的功能。作为C++开发者，不需要知道这种差异是什么，甚至不需要知道其存在。使用高级语言的一个优点是，编译器负责将代码转换成处理器的本地汇编代码格式。
 
-However, processor differences do sometimes rise up to the level of C++ code. The first one discussed, the size of integers, is important if you are writing cross-platform code. The others you won’t face often, unless you are doing particularly low-level work, but still, you should be aware that they exist.
+然而，处理器差异有时会上升到C++代码层面。首先讨论整数的大小，对于编写跨平台代码是很重要的。其他的除非正在进行特别低层的工作，否则不会经常遇到，但仍应该知道它们的存在。
 
-\mySamllsection{Size of Integers}
+\mySamllsection{整数大小}
 
-The C++ standard does not define the exact size of integer types. The standard just says the following in section [basic.fundamental]:
+C++标准没有定义整数类型的确切大小，标准只在[basic.fundamental]部分说了以下内容：
 
 \begin{myNotic}{NOTE}
-There are five standard signed integer types: signed char, short int, int, long int, and long long int. In this list, each type provides at least as much storage as those preceding it in the list.
+有五种标准的有符号整数类型：signed char、short int、int、long int 和 long long int。这个列表中，每种类型至少提供与列表中它前面的类型一样多的存储空间。
 \end{myNotic}
 
-The standard does give a few additional hints for the size of these types, but never an exact size. The actual size is compiler-dependent. Thus, if you want to write truly cross-platform code, you cannot rely on these types. One of the exercises at the end of this chapter asks you to investigate this further.
+标准确实对这些类型的大小提供了一些提示，但从未给出确切的大小。实际大小取决于编译器。如果想编写真正的跨平台代码，不能依赖于这些类型。本章末尾的一个练习要求进一步调研这个问题。
 
-Besides these core language integer types, the C++ Standard Library does define a number of types that have clearly specified sizes, all defined in the std namespace in <cstdint>, although some of the types are optional. Here is an overview:
+除了这些核心语言的整数类型之外，C++标准库确实定义了许多具有明确指定大小的类型，所有这些类型都定义在<Cstdint>中的std命名空间中，其中一些类型是可选的。以下是一个概述：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{TYPE} & \textbf{DESCRIPTION}                                                                                                                                \\ \hline
+\textbf{类型} & \textbf{描述}                                                                                                                                \\ \hline
 \endfirsthead
 %
 \endhead
 %
 \begin{tabular}[c]{@{}l@{}}int8\_t\\ int16\_t\\ int32\_t\\ int64\_t\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Signed integers of which the size is exactly 8, 16, 32, or 64 bits. On exotic\\ platforms, some of these types might be absent. For example, if your exotic\\ platform doesn’t support an 8-bit type, int8\_t will simply be absent.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}大小恰好为8、16、32或64位的有符号整数。在特殊平台上，这些类型中的一些\\可能不存在。例如，特殊平台不支持8位类型，int8\_t将根本不存在。\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}int\_fast8\_t\\ int\_fast16\_t\\ int\_fast32\_t\\ int\_fast64\_t\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Signed integers with sizes of at least 8, 16, 32, or 64 bits. For these,\\ the compiler should use the fastest integer type it has that satisfies the\\ requirements.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}大小至少为8、16、32或64位的有符号整数。对于这些，编译器应使用满足要求\\的最快的整数类型。\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}int\_least8\_t\\ int\_least16\_t\\ int\_least32\_t\\ int\_least64\_t\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Signed integers with sizes of at least 8, 16, 32, or 64 bits — the smallest such\\ types that exist. These types are guaranteed always to exist, even on exotic\\ platforms. For example, a hypothetical platform with 24-bit bytes would alias\\ both int\_least8\_t and int\_least16\_t to its 24-bit char type.\end{tabular} \\ \hline
-intmax\_t     & An integer type with the maximum size supported by the compiler.                                                                                    \\ \hline
-intptr\_t     & \begin{tabular}[c]{@{}l@{}}An integer type big enough to store a pointer. This type is also optional, but\\ most compilers support it.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}大小至少为8、16、32或64位的有符号整数——存在最小的此类类型。即使是在\\特殊平台上，这些类型也保证存在。例如，一个24位字节的平台将把int\_least8\_t\\和int\_least16\_t都别名为它的24位char类型。\end{tabular} \\ \hline
+intmax\_t     & 编译器支持的最大尺寸的整数类。                                                                                    \\ \hline
+intptr\_t     & \begin{tabular}[c]{@{}l@{}}足够大以存储指针的整数类型。这个类型也是可选的，大多数编译器都支持。\end{tabular} \\ \hline
 \end{longtable}
 
-There are also unsigned variants available, such as uint8\_t, uint\_fast8\_t, and so on.
+还有可用的无符号变体，如uint8\_t、uint\_fast8\_t等。
 
 \begin{myNotic}{NOTE}
-When writing cross-platform code, I recommend using the <cstdint> types instead of the basic integer types.
+当编写跨平台代码时，我建议使用<cstdint>类型，而不是基本整数类型。
 \end{myNotic}
 
-\mySamllsection{Binary Compatibility}
+\mySamllsection{二进制兼容性}
 
-As you probably already know, you cannot take a program compiled for a Core i7 computer and run it on a PowerPC-based Mac. These two platforms are not binary compatible because their processors do not support the same set of instructions. When you compile a C++ program, your source code is turned into binary instructions that the computer executes. That binary format is defined by the platform, not by the C++ language.
+可能已经知道，不能将一个为Core i7计算机编译的程序在基于PowerPC的Mac上运行。这两个平台不兼容，因为它们的处理器不支持相同的指令集。当编译一个C++程序时，源代码转换成计算机执行的二进制指令。这个二进制格式是由平台定义的，而不是由C++语言定义的。
 
-One solution to support platforms that are not binary compatible is to build each version separately with a compiler on each target platform.
+支持非二进制兼容平台的一个解决方案是，使用目标平台上的编译器分别构建每个版本。
 
-Another solution is cross-compilation. When you are using platform X for your development, but you want your program to run on platforms Y and Z, you can use a cross-compiler on your platform X that generates binary code for platforms Y and Z.
+另一个解决方案是交叉编译。在平台X上进行开发，但希望程序在平台Y和Z上运行时，可以在平台X上使用交叉编译器为平台Y和Z生成二进制代码。
 
-You can also make your program open source. When you make your source code available to end users, they can compile it natively on their systems and build a version of the program that is in the correct binary format for their machines. As discussed in Chapter 4, “Designing Professional C++ Programs,” open-source software has become increasingly popular. One of the major reasons is that it allows programmers to collaboratively develop software and increase the number of platforms on which it can run.
+也可以开源程序，将源代码提供给最终用户时，他们可以在自己的系统上本地编译并在自己的机器上构建正确二进制格式的程序版本。如第4章中所述，开源软件变得越来越流行。主要原因是允许其他开发者协作开发软件，增加可以在其上运行的平台数量。
 
-\mySamllsection{Address Sizes}
+\mySamllsection{地址大小}
 
-When someone describes an architecture as 64-bit, they most likely mean that the address size is 64 bits, or 8 bytes. In general, a system with a larger address size can handle more memory and might operate more quickly on complex programs.
+当有人描述一个架构为64位时，很可能是指地址大小为64位，即8字节。一般来说，具有较大地址大小的系统可以处理更多内存，并且可能更快地处理复杂程序。
 
-Because pointers are memory addresses, they are inherently tied to address sizes. Sometimes, programmers are taught that pointers are always 8 bytes, but this is wrong. For example, consider the following code snippet, which outputs the size of a pointer:
+因为指针是内存地址，所以与地址大小固有地联系在一起。有时，开发者会认为指针总是8字节，但这是不正确的。例如，考虑以下代码片段，它输出一个指针的大小：
 
 \begin{cpp}
 int *ptr { nullptr };
 println("ptr size is {} bytes", sizeof(ptr));
 \end{cpp}
 
-If this program is compiled and executed on a 32-bit x86 system, the output will be as follows:
+如果这个程序在32位x86系统上编译和执行，输出将是：
 
 \begin{shell}
 ptr size is 4 bytes
 \end{shell}
 
-If you compile and run it on an x86-64 system, the output will be as follows:
+如果在x86-64系统上编译和运行它，输出将是：
 
 \begin{shell}
 ptr size is 8 bytes
 \end{shell}
 
-From a programmer’s point of view, the upshot of varying pointer sizes is that you cannot equate a pointer with either 4 or 8 bytes. More generally, you need to be aware that most sizes are not prescribed by the C++ standard. The standard only says that a long is at least as long as an int, which is at least as long as a short, and so on.
+从开发者的角度来看，指针大小不同的后果是不能将指针等同于4或8字节。更一般地说，需要意识到大多数大小不是由C++标准规定的。标准只说long至少和int一样长，int至少和short一样长等。
 
-The size of a pointer is also not necessarily the same as the size of an integer. For example, on a 64-bit platform, pointers are 64-bit, but integers could be 32-bit. Casting a 64-bit pointer to a 32-bit integer results in losing 32 critical bits! The standard does define an std::uintptr\_t type alias in <cstdint> which is an integer type at least big enough to hold a pointer. The definition of this type is optional according to the standard, but virtually all compilers support it.
+指针的大小也不一定与整数的大小相同。例如，在64位平台上，指针是64位的，但整数可能是32位的。将64位指针转换为32位整数会导致丢失32个关键位！标准在<cstdint>中定义了一个std::uintptr\_t类型别名，是一个至少足够大以容纳指针的整数类型。这个类型的定义是可选的，但所有编译器都支持。
 
 \begin{myWarning}{WARNING}
-Never assume that a pointer is 32 bits or 64 bits. Never cast a pointer to an integer, unless you use std::uintptr\_t.
+永远不要假设指针是32位或64位。除非使用std::uintptr\_t，否则永远不要将指针转换为整数。
 \end{myWarning}
 
-\mySamllsection{Byte Order}
+\mySamllsection{字节序}
 
-All modern computers store numbers in a binary representation, but the representation of the same number on two platforms may not be identical. This sounds contradictory, but as you’ll see, there are two approaches to representing numbers that both make sense.
+所有现代计算机都以二进制形式存储数字，但在两个平台上的同一数字的表示可能并不相同。这听起来似乎矛盾，但表示数字有两种方法，都有其合理性。
 
-Most computers these days are byte-addressable, meaning that every byte in memory has a unique memory address. Numeric types in C++ usually occupy multiple bytes. For example, a short may occupy 2 bytes. Imagine that your program contains the following line:
+现今的大多数计算机都是按字节寻址的，内存中的每个字节都有一个唯一的内存地址。C++中的数字类型通常占用多个字节。例如，一个short可能占用2个字节。想象一下，程序包含以下代码：
 
 \begin{cpp}
 short myShort { 513 };
 \end{cpp}
 
-In binary, the number 513 is 0000 0010 0000 0001. This number contains 16 ones and zeros, or 16 bits. Because there are 8 bits in a byte, the computer needs 2 bytes to store the number. Because each individual memory address contains 1 byte, the computer needs to split the number up into multiple bytes. Assuming that a short is 2 bytes, the number is split into two parts. The higher part of the number is put into the high-order byte, and the lower part of the number is put into the low-order byte. In this case, the high-order byte is 0000 0010 and the low-order byte is 0000 0001.
+二进制中，数字513是0000 0010 0000 0001。这个数字包含16个1和0，或者16位。因为每个字节有8位，所以计算机需要2个字节来存储这个数字。因为每个单独的内存地址包含1个字节，所以计算机需要将数字分成多个字节。假设short是2个字节，数字分成两部分。数字的高位被放入高阶字节，数字的低位放入低阶字节。这时，高阶字节是0000 0010，低阶字节是0000 0001。
 
-Now that the number has been split up into memory-sized parts, the only question that remains is how to store them in memory. Two bytes are needed, but the order of the bytes is underdetermined and, in fact, depends on the architecture of the system in question.
+现在数字已经分成内存大小的部分，剩下的问题是如何将它们存储在内存中。需要两个字节，但字节的顺序不确定，这取决于所讨论系统的架构。
 
-One way to represent the number is to put the high-order byte first in memory and the low-order byte next. This strategy is called big-endian ordering because the bigger part of the number comes first. PowerPC and SPARC processors use a big-endian approach. Some other processors, such as x86, arrange the bytes in the opposite order, putting the low-order byte first in memory. This approach is called little-endian ordering because the smaller part of the number comes first. An architecture may choose one approach or the other, usually based on backward compatibility. For the curious, the terms big-endian and little-endian predate modern computers by several hundred years. Jonathan Swift coined the terms in his eighteenth-century novel Gulliver’s Travels to describe the opposing camps of a debate about the proper end on which to break an egg.
+表示数字的一种方法是将高阶字节首先放入内存，然后是低阶字节。这种策略称为大端序，因为数字的大部分先出现。PowerPC和SPARC处理器使用大端序方法。其他一些处理器，如x86，将字节以相反的顺序排列，将低阶字节首先放入内存。这种方法称为小端序，因为数字的小部分先出现。一个架构可以选择其中一种方法，通常基于向后兼容性。对于好奇的人来说，大端序和小端序这两个术语比现代计算机早了几百年。乔纳森·斯威夫特在18世纪的小说《格列佛游记》中创造了这些术语，用来描述关于从哪一端敲开鸡蛋辩论中的对立阵营。
 
-Regardless of the endianness a particular architecture uses, your programs can continue to use numerical values without paying any attention to whether the machine uses big-endian ordering or little-endian ordering. That ordering only comes into play when data moves between architectures. For example, if you are sending binary data across a network, you may need to consider the endianness of the other system. One solution is to use the standard network byte ordering, which is always big-endian. So, before sending data across a network, you convert it to big-endian, and whenever you receive data from a network, you convert it from big-endian to the native endianness of your system.
+无论特定架构使用的是大端序还是小端序，程序都可以继续使用数字值，而不必注意机器是大端序还是小端序。只有当数据在架构之间迁移时，字节序才变得重要。例如，正在通过网络发送二进制数据，可能需要考虑另一系统的字节顺序。一个解决方案是使用标准网络字节顺序，它始终是大端序。因此，在通过网络发送数据之前，将其转换为大端序，每当您从网络接收数据时，将其从大端序转换为系统的本地字节序。
 
-Similarly, if you are writing binary data to a file, you may need to consider what happens when that file is opened on a system with opposite byte ordering.
+类似地，如果正在将二进制数据写入文件，可能需要考虑当该文件在字节序相反的系统上打开时会发生什么。
 
-The Standard Library includes the std::endian enumeration, defined in <bit>, which can be used to determine whether the current system is a big- or little-endian system. The following code snippet outputs the native byte ordering of your system:
+标准库包括在<bit>中定义的std::endian枚举，可以用来确定当前系统是大端还是小端系统。以下代码片段输出系统的本地字节序：
 
 \begin{cpp}
 switch (endian::native)
@@ -124,76 +124,76 @@ switch (endian::native)
 }
 \end{cpp}
 
-\mySubsubsection{34.1.2.}{Implementation Issues}
+\mySubsubsection{34.1.2.}{实现问题}
 
-When a C++ compiler is written, it is designed by a human being who attempts to adhere to the C++ standard. Unfortunately, the C++ standard is more than 2,000 pages long and written in a combination of prose, pseudocode, and examples. Two human beings implementing a compiler according to such a standard are unlikely to interpret every piece of prescribed information in the same way or to catch every single edge case. As a result, compilers will have bugs.
+当编写C++编译器时，它是由试图遵循C++标准的人设计的。不幸的是，C++标准超过2000页，并且是用散文、伪代码和示例混合编写的。根据这样的标准实现编译器的两个人，可能会以不同的方式解释每一条规定信息，或者没有捕捉到每一个边缘情况，所以编译器会有错误。
 
-\mySamllsection{Compiler Quirks and Extensions}
+\mySamllsection{编译器的怪癖和扩展}
 
-There is no simple rule for finding or avoiding compiler bugs. The best you can do is to stay up to speed on compiler updates and perhaps subscribe to a mailing list or newsgroup for your compiler. If you suspect that you have encountered a compiler bug, a simple web search for the error message or condition you have witnessed could uncover a workaround or patch.
+没有简单的规则来寻找或避免编译器错误，能做的最好的事情是跟上编译器更新的步伐，也许订阅编译器的邮件列表或新闻组。如果怀疑遇到了编译器错误，对错误信息或见证的条件进行简单的网络搜索，可能会发现一个变通方案或补丁。
 
-One area that compilers are notorious for having trouble with is language features that are added by recent updates to the standard. Although in recent years, vendors of major compilers are pretty quick in adding support for the latest features.
+编译器在处理最近标准更新中添加的语言特性时，容易出现问题。然而，在最近几年，主要编译器的供应商在添加对最新特性的支持方面相当迅速。
 
-Another issue to be aware of is that compilers often include their own language extensions without making it obvious to the programmer. For example, variable-length stack-based arrays (VLAs) are not part of the C++ language; however, they are part of the C language. Some compilers support both the C and C++ standards and can allow the use of VLAs in C++ code. One such compiler is g++. The following compiles and runs as expected with the g++ compiler:
+另一个需要注意的问题是，编译器经常包含它们自己的语言扩展，而不向开发者明确指出。例如，可变长度堆栈数组（VLAs）不是C++语言的一部分，但它们是C语言的一部分。一些编译器支持C和C++标准，并允许在C++代码中使用VLAs。这样的一个编译器是g++。以下代码在g++编译器中编译和运行如预期：
 
 \begin{cpp}
 int i { 4 };
 char myStackArray[i]; // Not a standard language feature!
 \end{cpp}
 
-Some compiler extensions may be useful, but if there is a chance that you will switch compilers at some point, you should see if your compiler has a strict mode where it avoids using such extensions. For example, compiling the previous code with the -pedantic flag passed to g++ yields the following warning:
+一些编译器扩展可能很有用，但如果可能在某个时候更换编译器，应该看看你的编译器是否有避免使用此类扩展的严格模式。例如，将-pedantic标志传递给g++编译前面的代码会产生以下警告：
 
 \begin{shell}
 warning: ISO C++ forbids variable length array 'myStackArray' [-Wvla]
 \end{shell}
 
-The C++ specification allows for a certain type of compiler-defined language extension through the \#pragma mechanism. \#pragma is a preprocessor directive whose behavior is defined by the implementation. If the implementation does not understand the directive, it ignores it. For example, some compilers allow the programmer to turn compiler warnings off temporarily with \#pragma.
+C++规范允许通过\#pragma机制进行某种类型的编译器语言扩展。\#pragma是一个预处理指令，其行为由实现定义。如果实现不理解该指令，就会忽略它。例如，一些编译器允许开发者使用\#pragma临时关闭编译器的警告。
 
-\mySamllsection{Library Implementations}
+\mySamllsection{库实现}
 
-Most likely, your compiler includes an implementation of the C++ Standard Library. Because the Standard Library is written in C++, however, you aren’t required to use the implementation that came bundled with your compiler. You could use a third-party Standard Library that, for example, has been optimized for speed, or you could even write your own.
+编译器很可能包括C++标准库的一个实现，但因为标准库用C++编写，所以没有必要使用与编译器捆绑的实现。可以使用一个第三方的标准库，例如：一个为了速度优化的标准库，或者可以编写自己的标准库。
 
-Of course, Standard Library implementers face the same problems that compiler writers face: the standard is subject to interpretation. In addition, certain implementations may make tradeoffs that are incompatible with your needs. For example, one implementation may optimize for speed, while another implementation may focus on optimizing for being able to catch misuses at run time.
+当然，标准库实现者面临的问题与编译器编写者相同：标准容易受到理解能力的影响。此外，某些实现可能做出了与需求不兼容的权衡。例如，一个实现可能优化了速度，而另一个实现可能专注于优化能够在运行时捕获误用的能力。
 
-When working with a Standard Library implementation, or indeed any third-party library, it is important to consider the tradeoffs that the designers made during the development. Chapter 4 contains a more detailed discussion of the issues involved in using libraries.
+使用标准库实现或任何第三方库时，考虑设计者在开发过程中所做的权衡非常重要。第4章包含了使用库涉及的更详细讨论。
 
-\mySamllsection{Handling Different Implementations}
+\mySamllsection{处理不同的实现}
 
-As discussed in the previous sections, not all compilers and Standard Library implementations behave exactly the same. This is something you need to keep in mind when doing cross-platform development. Concretely, as a developer, you are most likely using a single toolchain, that is, a single compiler with a single Standard Library implementation. It’s unlikely that you will personally verify all your code changes with all toolchains that your product must build with. The solution: continuous integration and automated testing.
+如前几节所述，并不是所有的编译器和标准库实现都表现得完全一样。在进行跨平台开发时，需要记住的事情。具体来说，作为开发者，很可能使用的是单一的工具链，即单一的编译器与单一的标准库实现。亲自验证所有代码更改与产品必须构建的所有工具链是不太可能的，解决方案是持续集成和自动化测试。
 
-You should set up a continuous integration environment that automatically builds all code changes on all toolchains that you need to support. The moment a build breaks on one of the toolchains, the developer who broke the build should automatically be informed.
+应该设置一个持续集成环境，自动在所有需要支持的工具链上构建所有代码更改。当在其中一个工具链上构建失败，应该自动通知开发者导致构建失败的原因。
 
-Not all development environments use the same project files to describe all the source files, compiler switches, and so on. If you need to support multiple environments, manually maintaining separate project files for each is a maintenance nightmare. Instead, it’s better to a use a single type of project file or single set of build scripts that can then automatically be transformed to concrete project files or concrete build scripts for specific toolchains. One such tool is called CMake. The collection of source files, compiler switches, libraries to link with, and so on, are described in CMake configuration files, which also have support for scripting. The CMake tool then automatically generates project files, for example for Visual C++ for development on Windows, or Xcode for development on macOS.
+并不是所有的开发环境都使用相同的项目文件，来描述所有的源文件、编译器开关等。如果需要支持多个环境，为每个环境手动维护独立的项目文件是一个维护噩梦。最好是使用单一类型的项目文件或单一集合的构建脚本，然后自动转换为特定工具链的具体项目文件或具体构建脚本。有这样一个工具叫做CMake。源文件、编译器开关、要链接的库等的集合在CMake配置文件中描述，这些文件也支持脚本编写。然后CMake工具自动生成项目文件，例如：用于Windows上的Visual C++开发，或用于macOS上的Xcode开发。
 
-Once the continuous integration environment produces a build, automated testing should be triggered for that build. This should run a suite of test scripts on the produced executable to verify its correct behavior. Also in this step, if something goes wrong, the developer should automatically be informed.
+当持续集成环境产生了构建，就应该触发自动化测试。这应该运行一系列测试脚本，以验证产生的可执行文件的正确行为。这一步中，如果出现问题，也应该自动通知开发者。
 
-\mySubsubsection{34.1.3.}{Platform-Specific Features}
+\mySubsubsection{34.1.3.}{平台特定的功能}
 
-C++ is a great general-purpose language. Thanks to the Standard Library, the language is packed with so many features that a casual programmer could happily code in C++ for years without going beyond what is built in. However, professional programs require facilities that C++ does not provide. This section lists several important features that are provided by the platform or third-party libraries, not by the C++ language or the C++ Standard Library:
+C++是一种极好的通用编程语言。得益于标准库，C++语言包含了如此多的功能，以至于一个普通的开发者可以在不超出内置功能的情况下，快乐地用C++编程多年。然而，专业程序需要更多工具。本节列出了一些重要的功能，这些功能由平台或第三方库提供，而不是由C++语言或C++标准库提供：
 
 \begin{itemize}
 \item
-Graphical user interfaces: Most commercial programs today run on an operating system that has a graphical user interface, containing such elements as clickable buttons, movable windows, and hierarchical menus. C++, like the C language, has no notion of these elements. To write a graphical application in C++, you can use platform-specific libraries that allow you to draw windows, accept input through the mouse, and perform other graphical tasks. A better option is to use a third-party library, such as wxWidgets (\url{wxwidgets.org}), Qt (\url{qt.io}), Uno (\url{platform.uno}), and many more that provide an abstraction layer for building graphical applications. These libraries often provide support for many different target platforms.
+图形用户界面：大多数商业程序运行在具有图形用户界面的操作系统中，包含可点击的按钮、可移动的窗口和分层菜单等元素。C++和C语言一样，没有这些元素的概念。要用C++编写图形应用程序，可以使用绘制窗口、通过鼠标接受输入和其他图形任务的特定平台库。更好的选择是使用第三方库，如wxWidgets (\url{wxwidgets.org})、Qt (\url{qt.io})、Uno (\url{platform.uno})等，这些库为构建图形应用程序提供了抽象层。这些库通常支持许多不同的目标平台。
 
 \item
-Networking: The Internet has changed the way we write applications. These days, most applications check for updates through the web, and games provide a networked multiplayer mode. C++ does not provide a mechanism for networking yet, though several standard libraries exist. The most common means of writing networking software is through an abstraction called sockets. A socket library implementation can be found on most platforms, and it provides a simple procedure-oriented way to transfer data over a network. Some platforms support a stream-based networking system that operates like I/O streams in C++. There are also thirdparty networking libraries available that provide a networking abstraction layer. These libraries often support many different target platforms. Choosing a networking library that is IPvindependent would be a better choice than choosing one that only supports IPv4, as IPv6 is already being used.
+网络：互联网改变了我们编写应用程序的方式。如今，大多数应用程序通过网络检查更新，游戏提供网络多人模式。C++还没有提供网络机制，尽管存在几个标准库，编写网络软件的最常见方式是通过称为套接字的抽象。大多数平台上都可以找到套接字库的实现，提供了一种简单的面向过程的在网络间传输数据的方法。一些平台支持像C++中的I/O流那样的基于流的网络系统。还有提供网络抽象层的第三方网络库可用，这些库通常支持许多不同的目标平台。选择支持IP独立的网络库比仅支持IPv4的库要好，因为IPv6已经在使用了。
 
 \item
-OS events and application interaction: In pure C++ code, there is little interaction with the surrounding operating system and other applications. The command-line arguments are about all you get in a standard C++ program without platform extensions. For example, operations such as copy and paste (which interact with the operating system’s “clipboard”) are not directly supported in C++. You can either use platform-provided libraries or use thirdparty libraries that support multiple platforms. For example, both wxWidgets and Qt are examples of libraries that abstract the clipboard operations and support multiple platforms.
+操作系统事件和应用程序交互：纯C++代码中，与周围操作系统和其他应用程序的交互很少。没有平台扩展的标准C++程序中，几乎只能获得命令行参数。例如，复制和粘贴（与操作系统的“剪贴板”交互）在C++中并不直接支持。可以使用平台提供的库或使用支持多个平台的第三方库。例如，wxWidgets和Qt都是抽象剪贴板操作并支持多个平台的库的例子。
 
 \item
-Low-level files: Chapter 13, “Demystifying C++ I/O,” explains standard I/O in C++, including reading and writing files. Many operating systems provide their own file APIs, which are usually incompatible with the standard file classes in C++. These libraries often provide OS-specific file tools, such as a mechanism to get the home directory of the current user.
+底层文件：第13章解释了C++中的标准I/O，包括文件的读写。许多操作系统提供自己的文件API，这些API通常与C++标准库中的文件类不兼容。这些库通常提供操作系统特定的文件工具，例如：获取当前用户的主目录的机制。
 
 \item
-Threads: Concurrent threads of execution within a single program were not directly supported in C++03 or earlier. Since C++11, a threading support library has been included with the Standard Library, as explained in Chapter 27, “Multithreaded Programming with C++,” and C++17 has added parallel algorithms, as discussed in Chapter 20, “Mastering Standard Library Algorithms.” If you need more powerful threading functionality besides what the Standard Library provides, then you need to use third-party libraries. Two examples are Intel’s Threading Building Blocks (TBB) and the STE||AR Group’s High Performance ParalleX (HPX) library.
+线程：在C++03或更早的版本中，并不直接支持单个程序内的并发线程执行。自从C++11以来，线程支持库已经包含在标准库中，如第27章所解释的，C++17增加了并行算法，如第20章所讨论的。如果需要比标准库提供的更强大的线程功能，那么需要使用第三方库，两个选项是Intel的线程构建模块（TBB）和STE||AR Group的高性能并行X（HPX）库。
 \end{itemize}
 
 \begin{myNotic}{NOTE}
-If you are doing cross-platform development and you need functionality not provided by the C++ language or the C++ Standard Library, you should try to find a third-party cross-platform library that provides the functionality you require. If, instead, you start using platform-specific APIs directly, then you are complicating your cross-platform code a lot, as you will have to implement the functionality for each platform you need to support.
+如果正在进行跨平台开发，并且需要C++语言或C++标准库未提供的功能，应该尝试找到提供所需功能的第三方跨平台库。如果直接开始使用特定平台的API，那么将大大复杂化跨平台代码，因为需要为每个需要支持的平台实现该功能。
 \end{myNotic}
 
 \begin{myNotic}{NOTE}
-When using third-party libraries, if possible, get these libraries as source code and build them yourself with the exact toolchains you need.
+使用第三方库时，如果可能，请获取这些库的源代码，并使用需要的确切工具链自行构建。
 \end{myNotic}
 
 

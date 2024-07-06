@@ -1,29 +1,29 @@
 
-A factory in real life constructs tangible objects, such as tables or cars. Similarly, a factory in objectoriented programming constructs objects. When you use factories in your program, portions of code that want to create a particular object ask a factory for an instance of the object instead of calling the object constructor themselves. For example, an interior decorating program might have a FurnitureFactory object. When part of the code needs a piece of furniture such as a table, it calls the createTable() member function of the FurnitureFactory object, returning a new table. This is the main benefit of factories; they abstract the object creation process.
+现实世界中，工厂生产的是有形的物体，比如桌子或汽车。同样地，面向对象编程中的工厂用于构造对象。当在程序中使用工厂时，想要创建特定对象的代码片段会向工厂请求对象的实例，而不是自己调用对象构造函数。例如，一个室内装饰程序可能有一个 FurnitureFactory 对象。当部分代码需要一件家具，比如桌子时，会调用 FurnitureFactory 对象的 createTable() 成员函数，返回一个桌子。这就是工厂的主要优点，抽象了对象创建过程。
 
-At first glance, factories seem to lead to complicated designs. It appears that you’re only adding another layer of indirection to the program. Instead of calling createTable() on a FurnitureFactory, you could simply create a new Table object directly. However, a benefit of using factories is that they can be used alongside class hierarchies to construct objects without knowing their exact type. As you’ll see in the following example, factories can run parallel to class hierarchies. This is not to say they must run parallel to class hierarchies. Factories may as well just create any number of concrete types.
+乍一看，工厂似乎会导致设计复杂化。看起来只是在程序中增加了一个间接层。与其在 FurnitureFactory 上调用 createTable()，完全可以直接创建一个新的 Table 对象。然而，使用工厂的一个好处是，可以与类层次结构一起使用来构造对象，而无需知道其确切类型。工厂可以与类层次结构并行运行，这并不是说它们必须与类层次结构并行运行，工厂也可以只创建任意数量的具体类型。
 
-Another benefit of factories is that instead of directly creating various objects all over your code, you pass around factories that allow different parts of the program to create objects of the same kind for a particular domain.
+使用工厂的另一个好处是，可以在代码中传递工厂，而不是直接创建各种对象，这样程序的不同部分就可以为特定的域创建相同类型的对象。
 
-Another reason to use a factory is when the creation of your objects requires certain information, states, resources, and so on, owned by the factory, and which clients of the factory should not know about. A factory can also be used if creating your objects requires a complex series of steps to be executed in the right order, or if all created objects need to be linked to other objects in a correct manner, and so on.
+使用工厂的另一个原因是，当创建对象需要由工厂拥有，由于工厂的客户端不知道的信息、状态、资源等时。如果创建对象需要执行一系列复杂的步骤，并且需要按照正确的顺序执行，或者如果所有创建的对象都需要正确地与其他对象链接等，也可以使用工厂。
 
-Factories can be swapped; using dependency injection, you can easily substitute a different factory in your program. And, just as you can use polymorphism with the created objects, you can use polymorphism with factories. The following example demonstrates this.
+工厂可以交换，使用依赖注入，可以在程序中轻松替换不同的工厂。而且，正如可以对创建的对象使用多态性一样，也可以对工厂使用多态性。接下来的例子演示了这一点。
 
-There are two major types of factory-related patterns in object-oriented programming: the abstract factory pattern and the factory method pattern. This section discusses the abstract factory pattern, while the next section discusses the factory method pattern.
+面向对象编程中有两种主要的与工厂相关的模式：抽象工厂模式和工厂方法模式。本节讨论抽象工厂模式，下一节讨论工厂方法模式。
 
-\mySubsubsection{33.2.1.}{Example: A Car Factory Simulation}
+\mySubsubsection{33.2.1.}{示例：模拟汽车工厂}
 
-Imagine a factory capable of producing cars. The factory creates the type of car that is requested from it. First, a hierarchy is needed to represent several types of cars. 图 33.1 introduces an ICar interface with a virtual member function to retrieve information about a specific car. The Toyota and Ford cars derive from ICar, and finally, both Ford and Toyota have a sedan and an SUV model.
-
-Next to the car hierarchy, we need a factory hierarchy. An abstract factory just exposes an interface to create a sedan or an SUV independent of the brand, with concrete factories constructing concrete models from concrete brands. 图 33.2 shows this hierarchy.
+想象一个能够生产汽车的工厂，工厂创建请求它的类型的汽车。首先，需要一个层次结构来表示几种类型的汽车。图 33.1 引入了一个 ICar 接口，带有一个虚拟成员函数来检索有关特定汽车的信息。Toyota 和 Ford 汽车从 ICar 派生，最后，Ford 和 Toyota 都有一个轿车和一个 SUV 模型。
 
 \myGraphic{0.8}{content/part5/chapter33/images/1.png}{图 33.1}
 
+除了汽车层次结构，我们还需要一个工厂层次结构。抽象工厂只暴露了一个接口来创建一个独立于品牌的轿车或 SUV，具体工厂构建具体品牌的具体模型。图 33.2 显示了这个层次结构。
+
 \myGraphic{0.5}{content/part5/chapter33/images/2.png}{图 33.2}
 
-\mySubsubsection{33.2.2.}{Implementation of an Abstract Factory}
+\mySubsubsection{33.2.2.}{抽象工厂的实现}
 
-The implementation of the car hierarchy is straightforward:
+汽车层次的实现是直接的：
 
 \begin{cpp}
 export class ICar
@@ -62,7 +62,7 @@ export class ToyotaSuv : public Toyota
 };
 \end{cpp}
 
-Next up is the ICarFactory interface. It simply exposes member functions to create a sedan or an SUV without knowing any concrete factory or car.
+接下来是 ICarFactory 接口。简单地暴露了成员函数，来创建一个不知道具体工厂或汽车的轿车或 SUV。
 
 \begin{cpp}
 export class ICarFactory
@@ -74,7 +74,7 @@ export class ICarFactory
 };
 \end{cpp}
 
-Then finally we have the concrete factories, creating concrete car models. Only the FordFactory is shown; the ToyotaFactory is similar.
+然后有了具体的工厂，创建具体的汽车模型。只显示了 FordFactory，与ToyotaFactory 类似。
 
 \begin{cpp}
 export class FordFactory : public ICarFactory
@@ -87,11 +87,11 @@ export class FordFactory : public ICarFactory
 };
 \end{cpp}
 
-The approach used in this example is called an abstract factory because the type of object created depends on which concrete factory is being used.
+这个例子中使用的这种方法称为抽象工厂，创建的对象类型取决于使用的具体工厂。
 
-\mySubsubsection{33.2.3.}{Using an Abstract Factory}
+\mySubsubsection{33.2.3.}{使用抽象工厂}
 
-The following example shows how to use the implemented factories. It has a function that accepts an abstract car factory and uses that to build both a sedan and an SUV and prints out information about each produced car. This function has no idea about any concrete factory or any concrete cars; i.e., it only uses interfaces. The main() function creates two factories, one for Fords and one for Toyotas, and then asks the createSomeCars() function to use each of these factories to create some cars.
+以下示例展示了如何使用已实现的工厂，有一个函数，接受一个抽象汽车工厂，并使用它来构建一辆轿车和一辆 SUV，并打印出每辆生产汽车的信息。这个函数对具体工厂或任何具体汽车一无所知；即，只使用接口。main() 函数创建了两个工厂，一个用于 Fords，一个用于 Toyotas，然后要求 createSomeCars() 函数使用这些工厂来创建一些汽车。
 
 \begin{cpp}
 void createSomeCars(ICarFactory& carFactory)
@@ -111,7 +111,7 @@ int main()
 }
 \end{cpp}
 
-The output of this code snippet is as follows:
+这段代码的输出如下：
 
 \begin{shell}
 Sedan: Ford Sedan
