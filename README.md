@@ -44,7 +44,7 @@ Sixth Edition  <a href=""><img src="cover.png" height="256px" align="right"></a>
 
     `xelatex -synctex=1 -interaction=nonstopmode -shell-escape -8bit "C++-Standard-Library".tex`
 
-  * 为了内容中表格和目录索引能正常生成，需要至少两次连续编译
+  * 为了内容中表格和目录索引能正常生成，至少需要连续编译两次
 
 * vscode中配置LaTeX：https://blog.csdn.net/Ruins_LEE/article/details/123555016
 
