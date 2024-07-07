@@ -1,26 +1,26 @@
-C++ includes a threading support library, which allows you to write platform-independent multithreaded applications. See Chapter 27 for details. The threading support library consists of the following header files:
+C++包含了一个线程库，允许编写平台独立的多线程应用程序。有关详细信息，请参阅第27章。线程库由以下头文件组成：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{HEADER}                              & \textbf{CONTENTS}                                                                                                     \\ \hline
+\textbf{头文件}                              & \textbf{内容}                                                                                                     \\ \hline
 \endfirsthead
 %
 \endhead
 %
-\textless{}atomic\textgreater{}              & Defines the atomic types, atomic\textless{}T\textgreater{}, and atomic operations.                                    \\ \hline
-\textless{}barrier\textgreater{}             & Defines the barrier class.                                                                                            \\ \hline
-\textless{}condition\_variable\textgreater{} & \begin{tabular}[c]{@{}l@{}}Defines the condition\_variable and condition\_variable\_\\ any classes.\end{tabular}      \\ \hline
-\textless{}coroutine\textgreater{}           & Defines all functionality for writing coroutines.                                                                     \\ \hline
-\textless{}future\textgreater{}              & Defines future, promise, packaged\_task, and async().                                                                 \\ \hline
-\textless{}generator\textgreater (C++23)     & Defines the generator awaitable class.                                                                                \\ \hline
-\textless{}latch\textgreater{}               & Defines the latch class.                                                                                              \\ \hline
+\textless{}atomic\textgreater{}              & 定义了原子类型，atomic<T>，以及原子操作。                                    \\ \hline
+\textless{}barrier\textgreater{}             & 定义了barrier类。                                                                                            \\ \hline
+\textless{}condition\_variable\textgreater{} & \begin{tabular}[c]{@{}l@{}}定义了condition\_variable和condition\_variable\_any类。\end{tabular}      \\ \hline
+\textless{}coroutine\textgreater{}           & 定义了编写协程的所有功能。                                                                     \\ \hline
+\textless{}future\textgreater{}              & 定义了future，promise，packaged\_task和async()。                                                                \\ \hline
+\textless{}generator\textgreater (C++23)     & 定义了可等待的generator 类。                                                                                \\ \hline
+\textless{}latch\textgreater{}               & 定义了latch类。                                                                                              \\ \hline
 \textless{}mutex\textgreater{}               & \begin{tabular}[c]{@{}l@{}}Defines call\_once() and the different non-shared mutex and\\ lock classes.\end{tabular}   \\ \hline
-\textless{}semaphore\textgreater{}           & Defines the counting\_semaphore and binary\_semaphore classes.                                                        \\ \hline
-\textless{}shared\_mutex\textgreater{}       & \begin{tabular}[c]{@{}l@{}}Defines the shared\_mutex, shared\_timed\_mutex, and shared\_\\ lock classes.\end{tabular} \\ \hline
-\textless{}stop\_token\textgreater{}         & \begin{tabular}[c]{@{}l@{}}Defines the stop\_token, stop\_source, and stop\_callback\\ classes.\end{tabular}          \\ \hline
+\textless{}semaphore\textgreater{}           & 定义了call\_once()和不同的非共享互斥锁和锁类。                                                        \\ \hline
+\textless{}shared\_mutex\textgreater{}       & \begin{tabular}[c]{@{}l@{}}定义了counting\_semaphore和binary\_semaphore类。\end{tabular} \\ \hline
+\textless{}stop\_token\textgreater{}         & \begin{tabular}[c]{@{}l@{}}定义了shared\_mutex，shared\_timed\_mutex和shared\_lock类。\end{tabular}          \\ \hline
 \textless{}thread\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Defines the thread and jthread classes, and functions yield(),\\ get\_id(), sleep\_for(), and sleep\_until().\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}定义了thread和jthread类，以及函数yield()，get\_id()，sleep\_for()和sleep\_until()。\end{tabular} \\ \hline
 \end{longtable}

@@ -1,27 +1,27 @@
-The interface to the C++23 Standard Library consists of 107 header files, 21 of which present the C Standard Library. Starting with C++23, you simply import the named module std to get access to the entire Standard Library, as has been done in all examples throughout this book. There is no longer a need to explicitly import or include individual header files, except for certain non-importable header files, such as <cassert>. However, if your compiler does not yet support the C++23 std named module, then you need to import or include the appropriate header files. In that case, it’s often difficult to remember which header files you need to include in your source code, so this appendix provides a brief description of the most useful functionality of each header, organized into eight categories:
+C++23标准库的接口包括107个头文件，其中21个呈现C标准库。从C++23开始，只需导入名为std的模块，就可以访问整个标准库，正如本书中的所有示例所做的那样。除了某些不可导入的头文件（如< cassert >）外，不再需要显式导入或包含单个头文件。如果的编译器尚不支持C++23的std命名模块，需要导入或包含适当的头文件。通常很难记住您需要在源代码中包含哪些头文件，因此本附录提供了每个头文件最有用的功能的简要描述，分为八个类别：
 
 \begin{itemize}
 \item
-The C Standard Library
+C标准库
 
 \item
-Containers
+容器
 
 \item
-Algorithms, iterators, ranges, and allocators
+算法、迭代器、范围和分配器
 
 \item
-General utilities
+通用工具
 
 \item
-Mathematical utilities
+数学工具
 
 \item
-Exceptions
+异常
 
 \item
-I/O streams
+I/O流
 
 \item
-Threading support library
+线程库
 \end{itemize}

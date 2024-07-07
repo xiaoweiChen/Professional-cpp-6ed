@@ -1,97 +1,97 @@
-The C++ Standard Library includes almost the entire C Standard Library. The header files are generally the same, except for these two points:
+C++标准库几乎包含了整个C标准库。头文件通常是一样的，除了以下两点：
 
 \begin{itemize}
 \item
-The header names are <cname> instead of <name.h>.
+头文件名是<cname>而不是<name.h>。
 
 \item
-All the names declared in the <cname> header files are in the std namespace.
+所有在<cname>头文件中声明的名字都在std命名空间中。
 \end{itemize}
 
 \begin{myNotic}{NOTE}
-You can still include <name.h> if you want, but that puts the names into the global namespace instead of the std namespace. Additionally, up until C++23, the use of <name.h> C Standard Library headers was deprecated. Starting with C++23, their use is no longer deprecated, but discouraged.
+仍然可以包含<name.h>，但这会将名字放入全局命名空间而不是std命名空间。此外，直到C++23为止，使用<name.h> C标准库头文件标记为废弃。从C++23开始，使用不再标记为废弃，但会被劝阻。
 \end{myNotic}
 
 
 \begin{myNotic}{NOTE}
-The C Standard Library headers are not guaranteed to be importable using an import statement. Hence, use \#include <cname> instead of import <cname>;. Of course, using import std; also makes everything from the C Standard Library available in the std namespace, except for macros such as assert() from <cassert>.
+C标准库头文件不保证能使用import语句导入，使用\#include <cname>，而不是import <cname>;。使用import std;也会使C标准库中的所有内容在std命名空间中可用，除了像断言宏assert()这样的宏，因为它们来自<cassert>。
 \end{myNotic}
 
-The following table lists all C Standard Library headers and provides a summary of their most useful functionality. Note that it’s recommended to avoid using C functionality, and instead use equivalent C++ features whenever possible:
+下表列出了所有C标准库头文件，并提供了它们最常用功能。请注意，推荐避免使用C功能，而尽可能使用等效的C++特性：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{HEADER} &
-\textbf{CONTENTS} \\ \hline
+\textbf{头文件} &
+\textbf{内容} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 \textless{}cassert\textgreater{} &
-assert() macro. \\ \hline
+assert() 宏。 \\ \hline
 \textless{}cctype\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Character predicates and manipulation functions, such as isspace() and\\ tolower().\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}字符谓词和操纵函数，例如isspace()和tolower()。\end{tabular} \\ \hline
 \textless{}cerrno\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Defines errno expression, a macro to get the last error number for certain C\\ functions.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}定义errno表达式，获取某些C函数的最后错误号的宏。\end{tabular} \\ \hline
 \textless{}cfenv\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Supports the floating-point environment, such as floating-point exceptions,\\ rounding, and so on.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}支持浮点，如浮点异常，四舍五入等。\end{tabular} \\ \hline
 \textless{}cfloat\textgreater{} &
-C-style defines related to floating-point arithmetic, such as FLT\_MAX. \\ \hline
+与浮点运算相关的C风格的定义，如FLT\_MAX。 \\ \hline
 \textless{}cinttypes\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Defines a number of macros to use with the printf(), scanf(), and similar\\ functions. This header also includes a few functions to work with intmax\_t.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}定义了一些宏，用于与printf()，scanf()，和类似的函数一起使用。此头文件还包含\\一些与intmax\_t相关联的函数。\end{tabular} \\ \hline
 \textless{}climits\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}C-style limit defines, such as INT\_MAX. It is recommended to use the C++\\ equivalents from \textless{}limits\textgreater instead.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}C风格的限制定义，如INT\_MAX。建议使用<limits>中C++的等价物。\end{tabular} \\ \hline
 \textless{}clocale\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}A few localization macros and functions like LC\_ALL and setlocale(). See also\\ the C++ equivalents in \textless{}locale\textgreater{}.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}一些本地化宏和函数，如LC\_ALL和setlocale()。参见<locale>中C++的等价物。\end{tabular} \\ \hline
 \textless{}cmath\textgreater{} &
-Math utilities, including trigonometric functions sqrt(), fabs(), and others. \\ \hline
+数学实用工具，包括三角函数sqrt()，fabs()。 \\ \hline
 \textless{}csetjmp\textgreater{} &
-setjmp() and longjmp(). Never use these in C++! \\ \hline
+setjmp()和longjmp()。勿在C++中使用！ \\ \hline
 \textless{}csignal\textgreater{} &
-signal() and raise(). Avoid these in C++. \\ \hline
+signal()和raise()。在C++中避免使用。 \\ \hline
 \textless{}cstdarg\textgreater{} &
-Macros and types for processing variable-length argument lists. \\ \hline
+处理变长参数列表的宏和类型。 \\ \hline
 \textless{}cstddef\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Important constants such as NULL, and important types such as\\ size\_t and byte.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}重要的常量，如NULL，和重要的类型，如size\_t和byte。\end{tabular} \\ \hline
 \textless{}cstdint\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Defines a number of standard integer types such as int8\_t, int64\_t and so on.\\ It also includes macros specifying minimum and maximum values of those types.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}定义了一系列标准整数类型，如int8\_t，int64\_t等。还包括了指定这些类型的最小\\值和最大值的宏。\end{tabular} \\ \hline
 \textless{}cstdio\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}File operations, including fopen() and fclose(). Formatted I/O: printf(),\\ scanf(), and family. Character I/O: getc(), putc(), and family. File\\ positioning: fseek() and ftell(). It is recommended to use C++ streams\\ instead. (See the section “I/O Streams,” later in this appendix.)\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}文件操作，包括fopen()和fclose()。格式化I/O：printf()，scanf()及其族函数。字\\符I/O：getc()，putc()及其家族。文件定位：fseek()和ftell()，建议使用C++流代\\替。（参见附录后面的“I/O流”部分。）\end{tabular} \\ \hline
 \textless{}cstdlib\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Random numbers with rand() and srand() (deprecated since C++14; use the\\ C++ \textless{}random\textgreater functionality instead). This header includes the abort() and\\ exit() functions, which you should avoid; C-style memory allocation functions\\ calloc(), malloc(), realloc(), and free(); C-style searching and sorting\\ with qsort() and bsearch(); string to number conversions: atof(), atoi();\\ and a set of functions related to multibyte/wide string manipulation.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}rand()和srand()生成随机数（自C++14以来已废弃；使用C++的<random>）。此头\\文件包括abort()和exit()函数，应该避免使用；C风格的内存分配函数calloc()，\\malloc()，realloc()和free()；C风格的搜索和排序与qsort()和bsearch()；字符串到数\\字转换：atof()，atoi()；以及一组与多字节/宽字符串操作相关联的函数。\end{tabular} \\ \hline
 \textless{}cstring\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Low-level memory management functions, including memcpy() and memset().\\ This header includes C-style string functions, such as strcpy() and strcmp().\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}低层内存管理函数，包括memcpy()和memset()。此头文件包括C风格的字符串函数，\\如strcpy()和strcmp()。\end{tabular} \\ \hline
 \textless{}ctime\textgreater{} &
-Time-related functions, including time() and localtime(). \\ \hline
+与时间相关的函数，包括time()和localtime()。\\ \hline
 \textless{}cuchar\textgreater{} &
-Defines a number of Unicode-related macros, and functions like mbrtoc16(). \\ \hline
+定义了一系列Unicode相关的宏，以及像mbrtoc16()这样的函数 \\ \hline
 \textless{}cwchar\textgreater{} &
-Versions of string, memory, and I/O functions for wide characters. \\ \hline
+宽字符版本的字符串，内存和I/O函数。 \\ \hline
 \textless{}cwctype\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Versions of functions in \textless{}cctype\textgreater for wide characters: iswspace(),\\ towlower(), and so on.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}<cctype>中为宽字符设计的函数版本：iswspace()，towlower()等。\end{tabular} \\ \hline
 \end{longtable}
 
-The following C Standard Library headers have been removed since C++20:
+自C++20以来，以下C标准库头文件已移除：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{HEADER}                    & \textbf{CONTENTS}                                                                \\ \hline
+\textbf{头文件}                    & \textbf{内容}                                                                \\ \hline
 \endfirsthead
 %
 \endhead
 %
-\textless{}ccomplex\textgreater{}  & Only included \textless{}complex\textgreater{}.                                  \\ \hline
+\textless{}ccomplex\textgreater{}  &仅包含 \textless{}complex\textgreater{}.                                  \\ \hline
 \textless{}ciso646\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}In C, the \textless{}iso646.h\textgreater file defines macros and, or, and so on. In C++, those are\\ keywords, so this header was empty.\end{tabular} \\ \hline
-\textless{}cstdalign\textgreater{} & Alignment-related macro \_\_alignas\_is\_defined.                                \\ \hline
-\textless{}cstdbool\textgreater{}  & Boolean type-related macro \_\_bool\_true\_false\_are\_defined.                  \\ \hline
-\textless{}ctgmath\textgreater{}   & Only included \textless{}complex\textgreater and \textless{}cmath\textgreater{}. \\ \hline
+\begin{tabular}[c]{@{}l@{}}在C中，<iso646.h>文件定义了and，or等宏。在C++中，这些是关键字，所以这个\\头文件是空的。\end{tabular} \\ \hline
+\textless{}cstdalign\textgreater{} & 与对齐相关的宏 \_\_alignas\_is\_defined.                                \\ \hline
+\textless{}cstdbool\textgreater{}  & 布尔类型相关的宏 \_\_bool\_true\_false\_are\_defined.                  \\ \hline
+\textless{}ctgmath\textgreater{}   & 仅包含 \textless{}complex\textgreater 和 \textless{}cmath\textgreater{}. \\ \hline
 \end{longtable}
 
 

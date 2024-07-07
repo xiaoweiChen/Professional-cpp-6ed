@@ -1,4 +1,4 @@
-The following table lists all the header files related to I/O streams in C++. However, normally your applications only need to include <fstream>, <iomanip>, <iostream>, <istream>, <ostream>, and <sstream>. Consult Chapter 13 for details:
+下表列出了C++中与输入输出流相关的所有头文件。通常情况下，应用程序只需要包含<fstream>、<iomanip>、<iostream>、<istream>、<ostream>和<sstream>。有关更多信息，请参阅第13章：
 
 
 % Please add the following required packages to your document preamble:
@@ -6,36 +6,36 @@ The following table lists all the header files related to I/O streams in C++. Ho
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{HEADER} &
-\textbf{CONTENTS} \\ \hline
+\textbf{头文件} &
+\textbf{内容} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 \textless{}fstream\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Defines the basic\_filebuf, basic\_ifstream, basic\_ofstream, and\\ basic\_fstream classes. This header declares the filebuf, wfilebuf,\\ ifstream, wifstream, ofstream, wofstream, fstream, and wfstream\\ type aliases.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}定义了basic\_filebuf，basic\_ifstream，basic\_ofstream，和basic\_fstream类。\\此头文件声明了filebuf，wfilebuf，ifstream，wifstream，ofstream，\\wofstream，fstream，和wfstream类型别名。\end{tabular} \\ \hline
 \textless{}iomanip\textgreater{} &
-Declares the I/O manipulators not declared elsewhere (mostly in \textless{}ios\textgreater{}). \\ \hline
+声明了未在其他地方声明的I/O操作符（主要在<ios>中）。 \\ \hline
 \textless{}ios\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Defines the ios\_base and basic\_ios classes. This header declares most of\\ the stream manipulators. You rarely have to include this header directly.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}定义了ios\_base和basic\_ios类。此头文件声明了大多数流操作符，很少需\\要直接包含此头文件。\end{tabular} \\ \hline
 \textless{}iosfwd\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Forward declarations of the templates and type aliases found in the other I/O\\ stream header files. You rarely need to include this header directly.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}其他I/O流头文件中找到的模板和类型别名的前向声明，很少需要直接包含\\此头文件。\end{tabular} \\ \hline
 \textless{}iostream\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Declares cin, cout, cerr, clog, and the wide-character counterparts. Includes\\ \textless{}istream\textgreater{}, \textless{}ostream\textgreater{}, \textless{}streambuf\textgreater{}, and \textless{}ios\textgreater{}. Note that it’s not just a\\ combination of \textless{}istream\textgreater and \textless{}ostream\textgreater{}.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}声明cin，cout，cerr，clog，和宽字符对应项。包含<istream>，<ostream>，\\<streambuf>和<ios>，不仅仅是<istream>和<ostream>的组合。\end{tabular} \\ \hline
 \textless{}istream\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Defines the basic\_istream and basic\_iostream classes. This header\\ declares the istream, wistream, iostream, and wiostream type aliases.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}定义了basic\_istream和basic\_iostream类。此头文件声明了istream，\\wistream，iostream和wiostream类型别名。\end{tabular} \\ \hline
 \textless{}ostream\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Defines the basic\_ostream class. This header declares the ostream and\\ wostream type aliases.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}定义了basic\_ostream类。此头文件声明了ostream和wostream类型别名。\end{tabular} \\ \hline
 \textless{}spanstream\textgreater (C++23) &
-\begin{tabular}[c]{@{}l@{}}Defines the basic\_spanbuf, basic\_ispanstream, basic\_ospanstream, and\\ basic\_spanstream classes. This header declares the spanbuf, wspanbuf,\\ ispanstream, wispanstream, ospanstream, wospanstream, spanstream,\\ and wspanstream type aliases.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}定义了basic\_spanbuf，basic\_ispanstream，basic\_ospanstream和\\basic\_spanstream类。此头文件声明了spanbuf，wspanbuf，ispanstream，\\wispanstream，ospanstream，wospanstream，spanstream和wspanstream类\\型别名。\end{tabular} \\ \hline
 \textless{}sstream\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Defines the basic\_stringbuf, basic\_istringstream, basic\_\\ ostringstream, and basic\_stringstream classes. This header declares\\ the stringbuf, wstringbuf, istringstream, wistringstream,\\ ostringstream, wostringstream, stringstream, and wstringstream\\ type aliases.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}定义了basic\_stringbuf，basic\_istringstream，basic\_ostringstream和\\basic\_stringstream类。此头文件声明了stringbuf，wstringbuf，istringstream，\\wistringstream，ostringstream，wostringstream，stringstream和wstringstream\\类型别名。\end{tabular} \\ \hline
 \textless{}streambuf\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Defines the basic\_streambuf class. This header declares the type aliases\\ streambuf and wstreambuf. You rarely have to include this header directly.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}定义了basic\_streambuf类。此头文件声明了类型别名streambuf和\\wstreambuf，很少需要直接包含此头文件。\end{tabular} \\ \hline
 \textless{}strstream\textgreater{} &
-Deprecated. \\ \hline
+已弃用。 \\ \hline
 \textless{}syncstream\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Defines all classes related to synchronized output streams, such as\\ osyncstream and wosyncstream. See Chapter 27, “Multithreaded\\ Programming with C++.”\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}D定义了与同步输出流相关的所有类，如osyncstream和wosyncstream。参见\\第27章。\end{tabular} \\ \hline
 \end{longtable}
 
 

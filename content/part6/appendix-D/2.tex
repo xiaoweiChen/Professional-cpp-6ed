@@ -1,98 +1,98 @@
-Class diagrams are used to visualize individual classes and can include data members and member functions. They are also used to show the relationships between different classes.
+类图用于可视化单个类，并可以包括数据成员和成员函数，还用于展示不同类之间的关系。
 
-\mySubsubsection{D.2.1.}{Class Representation}
+\mySubsubsection{D.2.1.}{类表示}
 
-A class is represented in UML as a box with a maximum of three compartments, containing the following:
+UML中，一个类表示为一个最多具有三个部分的框，包含以下信息：
 
 \begin{itemize}
 \item
-The name of the class
+类的名字
 
 \item
-The data members of the class
+类的数据成员
 
 \item
-The member functions of the class
+类的成员函数
 \end{itemize}
 
-Figure D.1 shows an example. MyClass has two data members—one of type string, the other of type float—and it has two member functions. The plus and minus signs in front of each member specify its visibility. The following table lists the most commonly used visibilities:
+图 D.1 显示了一个例子。MyClass有两个数据成员，一个是string类型，另一个是float类型，它还有两个成员函数。每个成员前面的加号和减号指定了其可见性。下表列出了最常用的可见性：
 
-\myGraphic{0.3}{content/part6/appendix-D/images/1.png}{FIGURE D.1}
+\myGraphic{0.4}{content/part6/appendix-D/images/1.png}{图 D.1}
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{VISIBILITY} & \textbf{MEANING} \\ \hline
+\textbf{可见性} & \textbf{意义} \\ \hline
 \endfirsthead
 %
 \endhead
 %
-+                   & public member    \\ \hline
--                   & private member   \\ \hline
-\#                  & protected member \\ \hline
++                   & 公有成员    \\ \hline
+-                   & 私有成员   \\ \hline
+\#                  & 受保护成员 \\ \hline
 \end{longtable}
 
-Depending on the goal of your class diagram, sometimes details of members are left out, in which case a class is represented with a box, as shown in Figure D.2. This can, for example, be used if you are only interested in visualizing the relationships between different classes.
+根据类图目标，有时会省略成员的细节，类可表示为一个简单的框，如图 D.2 所示。例如，只对可视化不同类之间的关系感兴趣，就可以使用这种表示方式。
 
-\myGraphic{0.2}{content/part6/appendix-D/images/2.png}{FIGURE D.2}
+\myGraphic{0.2}{content/part6/appendix-D/images/2.png}{图 D.2}
 
-\mySubsubsection{D.2.2.}{Relationship Representation}
+\mySubsubsection{D.2.2.}{关系表示}
 
 UML 2 supports six kinds of relationships between classes: inheritance, realization/implementation, aggregation, composition, association, and dependency. The following sections introduce these relationships.
 
-\mySamllsection{Inheritance}
+\mySamllsection{继承}
 
-Inheritance is visualized using a line starting from the derived class and going to the base class. The line ends in a hollow triangle on the side of the base class, depicting the is-a relationship. Figure D.3 shows an example.
+Inheritance is visualized using a line starting from the derived class and going to the base class. The line ends in a hollow triangle on the side of the base class, depicting the is-a relationship. 图 D.3 shows an example.
 
-\myGraphic{0.2}{content/part6/appendix-D/images/3.png}{FIGURE D.3}
+\myGraphic{0.5}{content/part6/appendix-D/images/3.png}{图 D.3}
 
-\mySamllsection{Realization/Implementation}
+\mySamllsection{认识/实现}
 
-A class implementing an interface is basically inheriting from that interface (is-a relationship). However, to make a distinction between generic inheritance and interface realization, the latter is visualized similar to inheritance but using a dashed instead of a solid line, as shown in Figure D.4. The ListBox class is derived from UIElement and implements/realizes the IClickable and IScrollable interfaces.
+实现接口的类基本上是从该接口继承（is-a关系），但为了区分通用继承和接口实现，后者类似继承但使用虚线而不是实线表示，如图 D.4 所示。ListBox类从UIElement派生，并实现了IClickable和IScrollable接口。
 
-\myGraphic{0.2}{content/part6/appendix-D/images/4.png}{FIGURE D.4}
+\myGraphic{0.6}{content/part6/appendix-D/images/4.png}{图 D.4}
 
-\mySamllsection{Aggregation}
+\mySamllsection{聚集}
 
-Aggregation represents a has-a relationship. It is visualized using a line with a hollow diamond shape on the side of the class that contains the instance or instances of the other class. In an aggregation relationship, you can also optionally specify the multiplicity of each participant in the relationship. The location of the multiplicity, that is, on which side of the line you need to write it, can be confusing at first. For example, in Figure D.5, a Class can contain/aggregate one or more Students, and each Student can follow zero or more Classes. An aggregation relationship means that the aggregated object or objects can continue to live when the aggregator is destroyed. For example, if a Class is destroyed, its Students are not destroyed.
+聚集表示has-a关系使用一条带有空心菱形形状的线表示，在包含另一个类实例或实例的类的一侧。在聚集关系中，还可以选择性地指定关系中每个参与者的关系多重性。多重性的位置，即在连线的哪一侧书写，一开始可能会令人困惑。例如，在图 D.5 中，一个Class可以包含一个或多个Students，每个Student可以跟随零个或多个Classes。聚集关系意味着即使销毁聚合器，聚合的对象或对象也可以继续存活。例如，销毁一个Class，它的Students不会被销毁。
 
-\myGraphic{0.2}{content/part6/appendix-D/images/5.png}{FIGURE D.5}
+\myGraphic{0.6}{content/part6/appendix-D/images/5.png}{图 D.5}
 
-The following table lists a few examples of possible multiplicities:
+下表列出了一些可能的多重性示例：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{MULTIPLICITY} & \textbf{MEANING}       \\ \hline
+\textbf{多重性} & \textbf{意义}       \\ \hline
 \endfirsthead
 %
 \endhead
 %
-N                     & Exactly N instances    \\ \hline
-0..1                  & Zero or one instance   \\ \hline
-0..*                  & Zero or more instances \\ \hline
-N..*                  & N or more instances    \\ \hline
+N                     & 正好N个实例    \\ \hline
+0..1                  & 零个或一个实例   \\ \hline
+0..*                  & 零个或多个实例 \\ \hline
+N..*                  & N个或更多实例    \\ \hline
 \end{longtable}
 
-\mySamllsection{Composition}
+\mySamllsection{组合}
 
-Composition is similar to aggregation and is visually represented almost the same, except that a full diamond is used instead of a hollow diamond. With composition, in contrast to aggregation, if the class that contains instances of the other class is destroyed, those contained instances are destroyed as well. Figure D.6 shows an example. A Window can contain zero or more Buttons, and each Button has to be contained by exactly one Window. If the Window is destroyed, all Buttons it contains are destroyed as well.
+组合类似于聚集，并且视觉上几乎相同，只是使用实心菱形代替空心菱形。与聚集相反，如果销毁包含其他类实例的类，则那些包含的实例也会销毁。图 D.6 显示了一个例子。一个Window可以包含零个或多个Buttons，每个Button必须在一个Window中。如果销毁Window，所有它包含的Buttons也会销毁。
 
-\myGraphic{0.2}{content/part6/appendix-D/images/6.png}{FIGURE D.6}
+\myGraphic{0.5}{content/part6/appendix-D/images/6.png}{图 D.6}
 
-\mySamllsection{Association}
+\mySamllsection{关联}
 
-An association is a generalization of an aggregation. It represents a binary link between classes, while an aggregation is a unidirectional link. A binary link can be traversed in both directions. Figure D.7 shows an example. Every Book knows who its authors are, and every Author knows which books she wrote.
+关联是聚集的一种泛化，代表了类之间的二元链接，而聚集是一个单向链接。二元链接可以在两个方向上遍历。图 D.7 显示了一个例子。每本书都知道它的作者是谁，每位作者也知道她写了哪些书。
 
-\myGraphic{0.2}{content/part6/appendix-D/images/7.png}{FIGURE D.7}
+\myGraphic{0.5}{content/part6/appendix-D/images/7.png}{图 D.7}
 
-\mySamllsection{Dependency}
+\mySamllsection{依赖}
 
-A dependency visualizes that a class depends on another class. It is depicted as a dashed line with an arrow pointing toward the dependent class. Usually, some text on the dashed line describes the dependency. To come back to the car factory example of Chapter 33, “Applying Design Patterns,” a CarFactory is dependent on a Car because the factory creates the cars. This is visualized in Figure D.8.
+依赖表示一个类依赖于另一个类，表示为一个箭头指向依赖类的虚线。通常，虚线上有一些文字描述依赖关系。回到第33章中的汽车工厂例子，CarFactory依赖于Car，因为工厂创造汽车。这在图 D.8 中可视化为：
 
-\myGraphic{0.2}{content/part6/appendix-D/images/8.png}{FIGURE D.8}
+\myGraphic{0.5}{content/part6/appendix-D/images/8.png}{图 D.8}
 

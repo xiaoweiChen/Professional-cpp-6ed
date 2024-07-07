@@ -1,20 +1,20 @@
-Exceptions are covered in Chapter 14. Two header files provide most of the requisite definitions, but some exceptions for specific domains are defined in the header file for that domain:
+异常处理在第14章中有详细的讲解。主要的异常定义由两个头文件提供，但特定领域的一些异常则在该领域的头文件中定义：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|}
 \hline
-\textbf{HEADER} &
-\textbf{CONTENTS} \\ \hline
+\textbf{头文件} &
+\textbf{内容} \\ \hline
 \endfirsthead
 %
 \endhead
 %
 \textless{}exception\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}Defines the exception and bad\_exception classes, and the set\_terminate()\\ and uncaught\_exceptions() functions.\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}定义了exception和bad\_exception类，以及set\_terminate()和\\uncaught\_exceptions()函数。\end{tabular} \\ \hline
 \textless{}stdexcept\textgreater{} &
-Non-domain-specific exceptions not defined in \textless{}exception\textgreater{}. \\ \hline
+非领域特定的异常，这些异常未在<exception>中定义。 \\ \hline
 \end{longtable}
 
 
