@@ -1,5 +1,5 @@
 # Professional C++  
-Sixth Edition  <a href=""><img src="cover.png" height="256px" align="right"></a>
+6th Edition  <a href=""><img src="cover.png" height="256px" align="right"></a>
 
 * 作者：Marc Gregoire 
 * 译者：陈晓伟
