@@ -1,5 +1,5 @@
 
-支持字符串作为一等对象的语言，则具有一系列吸引人的特性，例如能够扩展到任意大小，提取子字符串或替换子字符串。其他语言中，例如C，字符串几乎很难用；没有真正好的字符串数据类型，只是固定大小的字节数组。C字符串库只不过是一组相当原始的函数，甚至没有边界检查。C++提供了一个字符串类型作为一等数据类型。在讨论C++为字符串提供了什么之前，先快速了解一下C风格字的符串。
+支持字符串作为一等对象的语言，则具有一系列吸引人的特性，例如能够扩展到任意大小，提取子字符串或替换子字符串。其他语言中(例如C)，字符串几乎很难用；没有真正好的字符串数据类型，只是固定大小的字节数组。C字符串库只不过是一组相当原始的函数，甚至没有边界检查。C++提供了一个字符串类型作为一等数据类型。在讨论C++为字符串提供了什么之前，先快速了解一下C风格的字符串。
 
 \mySubsubsection{2.1.1.}{C风格的字符串}
 
@@ -13,7 +13,7 @@ C语言中，字符串表示为字符数组。字符串的最后一个字符是�
 
 C++包含了几个来自C语言的字符串操作函数，这些函数定义在<cstring>头文件中。通常情况下，这些函数不分配内存。
 
-例如，strcpy()函数接受两个字符串作为参数，会将第二个字符串复制到第一个字符串中，不管是否适合。下面的代码试图构建一个strcpy()的封装函数，该函数分配正确数量的内存并返回结果，而不是接受一个已经分配的字符串。这个初始尝试将是错误的！使用strlen()函数来获取字符串的长度，调用者负责释放由copyString()分配的内存。
+strcpy()函数接受两个字符串作为参数，会将第二个字符串复制到第一个字符串中，不管是否适合。下面的代码试图构建一个strcpy()的封装函数，该函数分配正确数量的内存并返回结果，而不是接受一个已经分配的字符串。这个尝试是错误的！使用strlen()函数来获取字符串的长度，调用者负责释放由copyString()分配的内存。
 
 \begin{cpp}
 char* copyString(const char* str)
@@ -35,7 +35,7 @@ char* copyString(const char* str)
 }
 \end{cpp}
 
-记住strlen()只返回字符串中的实际字符数的一种方法是，若为由几个其他字符串组成的字符串分配空间会发生什么。例如，若函数接受三个字符串，并返回一个字符串，它是这三个字符串的连接，它有多大?为了容纳足够的空间，它将是所有三个字符串加在一起的长度，加上一个空格用于结尾的\textbackslash{}0字符。strlen()在字符串长度中包含\textbackslash{}0，则分配的内存将太大。下面的代码使用strcpy()和strcat()函数来执行此操作。strcat()中的cat表示连接。
+记住strlen()只返回字符串中的实际字符数的一种方法是，若为由几个其他字符串组成的字符串分配空间会发生什么。若函数接受三个字符串，并返回一个字符串，则是这三个字符串的连接，它有多大?为了容纳足够的空间，其将是所有三个字符串加在一起的长度，加上一个空格用于结尾的\textbackslash{}0字符。strlen()在字符串长度中包含\textbackslash{}0，则分配的内存将太大。下面的代码使用strcpy()和strcat()函数来执行此操作，strcat()中的cat表示连接。
 
 \begin{cpp}
 char* appendStrings(const char* str1, const char* str2, const char* str3)
@@ -48,7 +48,7 @@ char* appendStrings(const char* str1, const char* str2, const char* str3)
 }
 \end{cpp}
 
-C和C++中的sizeof()运算符可用于获取特定数据类型或变量的大小。例如，sizeof(char)返回1，因为char的大小为1字节。但在C风格字符串的上下文中，sizeof()与strlen()不同，永远不要使用sizeof()来获取字符串的长度。它会根据C风格字符串的存储方式返回不同的大小。若存储为char[]，那么sizeof()返回字符串实际使用的内存，包括\textbackslash{}0字符，如下例所示:
+C和C++中的sizeof()运算符可用于获取特定数据类型或变量的大小。sizeof(char)返回1，因为char的大小为1字节。但在C风格字符串的上下文中，sizeof()与strlen()不同，永远不要使用sizeof()来获取字符串的长度，它会根据C风格字符串的存储方式返回不同的大小。若存储为char[]，那么sizeof()返回字符串实际使用的内存，包括\textbackslash{}0字符，如下例所示:
 
 \begin{cpp}
 char text1[] { "abcdef" };
@@ -64,34 +64,34 @@ size_t s3 { sizeof(text2) }; // is platform-dependent
 size_t s4 { strlen(text2) }; // is 6
 \end{cpp}
 
-这里，s3在32位模式下编译时为4，在64位模式下编译时为8，因为其返回的是const char*的大小，这是一个指针。
+s3在32位模式下编译时为4，在64位模式下编译时为8，因为其返回的是const char*的大小，这是一个指针。
 
 在<cstring>头文件中可以找到操作C风格字符串的完整函数列表。
 
 \begin{myWarning}{WARNING}
-当在Microsoft Visual Studio中使用C风格字符串函数时，编译器很可能会给你关于这些函数已弃用的安全相关警告甚至错误。可以通过使用其他C标准库函数，例如strcpy\_s()或strcat\_s()，来消除这些警告，这些函数是“安全C库”标准（ISO/IEC TR 24731）的一部分。然而，最好的解决方案是切换到C++的std::string类，首先来了解一下字符串字面量。
+在Microsoft Visual Studio中使用C风格字符串函数时，编译器很可能会给你关于这些函数已弃用的安全相关警告甚至错误。可以通过使用其他C标准库函数，例如strcpy\_s()或strcat\_s()，来消除这些警告，这些函数是“安全C库”标准（ISO/IEC TR 24731）的一部分，但最好的解决方案是切换到C++的std::string类，首先来了解一下字符串字面量。
 \end{myWarning}
 
 \mySubsubsection{2.1.2.}{字符串字面量}
 
-C++程序中，会使用引号括起来的字符串。例如，下面的代码通过包含字符串本身而不是包含它的变量来输出字符串hello:
+C++程序中，会使用引号括起来的字符串。下面的代码通过包含字符串本身，而不是包含它的变量来输出字符串hello:
 
 \begin{cpp}
 println("hello");
 \end{cpp}
 
-在前一行中，"hello" 是一个字符串字面量，因为其为一个值，而不是一个变量。字符串字面量实际上存储在内存的只读部分。这允许编译器通过重用对等字符串字面量的引用来优化内存使用，即使你的程序500次使用字符串字面量 "hello"，编译器也可以通过在内存中只创建一个 "hello" 实例来优化内存，这称为字面量池化。
+前一行中，"hello" 是一个字符串字面量，因为其为一个值，而不是一个变量。字符串字面量实际上存储在内存的只读部分。这允许编译器通过重用对等字符串字面量的引用来优化内存使用，即使程序500次使用字符串字面量 "hello"，编译器也可以通过在内存中只创建一个 "hello" 实例来优化内存，这称为字面量池化。
 
 字符串字面量可以赋值给变量，但是由于字符串字面量存储在内存的只读部分，并且由于可能进行字面量池化，将其赋值给变量可能会有风险。
 
-C++标准正式规定字符串字面量的类型为“n个const char的数组”；当为了与旧的、不支持const的代码向后兼容，一些编译器不会将字符串字面量赋值给const char*类型的变量。其允许将字符串字面量赋值给没有const char*，程序会正常工作，除非尝试更改字符串。通常，修改字符串字面量是未定义行为。例如，可能会导致程序崩溃，可能会继续工作并产生无法解释的结果，可能会忽略修改，或者也会正常工作；这一切都取决于编译器。例如，以下代码就展示了一种未定义行为：
+C++标准正式规定字符串字面量的类型为“n个const char的数组”；当为了与旧的、不支持const的代码向后兼容，一些编译器不会将字符串字面量赋值给const char*类型的变量。其允许将字符串字面量赋值给const char*变量，程序会正常工作，除非尝试更改字符串。通常，修改字符串字面量是未定义行为，可能会导致程序崩溃，可能会继续工作并产生无法解释的结果，可能会忽略修改，或者也会正常工作；这一切都取决于编译器。例如，以下代码就展示了一种未定义行为：
 
 \begin{cpp}
 char* ptr { "hello" }; // Assign the string literal to a variable.
 ptr[1] = 'a'; // Undefined behavior!
 \end{cpp}
 
-更安全的编码方式是在引用字符串字面量时使用指向const字符的指针。下面的代码包含相同的错误，但由于将字面量赋给了const char*，编译器捕获了写入只读内存的尝试:
+更安全的编码方式是在引用字符串字面量时使用指向const字符的指针。下面的代码包含相同的错误，但由于将字面量赋给了const char*变量，编译器捕获了写入只读内存的尝试:
 
 \begin{cpp}
 const char* ptr { "hello" }; // Assign the string literal to a variable.
@@ -108,13 +108,13 @@ arr[1] = 'a'; // The contents can be modified.
 
 \mySamllsection{原字符串字面量}
 
-原字符串字面量是可以跨越多行代码的字符串字面量，不需要转义嵌入的双引号，并且将转义序列(如\textbackslash{}t和\textbackslash{}n)处理为普通文本而不是转义序列。转义序列将在第1章“C++和标准库速成”中讨论。例如，容易用一个普通的字符串字面值写下面的代码，因为字符串包含未转义的双引号，所以会得到一个编译错误:
+原字符串字面量是可以跨越多行代码的字符串字面量，不需要转义嵌入的双引号，并且将转义序列(如\textbackslash{}t和\textbackslash{}n)处理为普通文本而不是转义序列。容易用一个普通的字符串字面值写下面的代码，因为字符串包含未转义的双引号，所以会得到一个编译错误:
 
 \begin{cpp}
 println("Hello "World"!"); // Error!
 \end{cpp}
 
-通常，必须转义双引号，如下所示:
+通常，必须转义双引号:
 
 \begin{cpp}
 println("Hello \"World\"!");
@@ -139,12 +139,14 @@ Line 1
 Line 2
 \end{shell}
 
-使用原字符串文字，而不是使用\textbackslash{}n转义序列开始新行，可以简单地按Enter键在源代码中开始真正的新行，如下所示。输出与前面使用嵌入的\textbackslash{}n的代码段相同。
+使用原字符串文字，而不是使用\textbackslash{}n转义序列开始新行，可以简单地按Enter键在源代码中开始真正的新行，如下所示。
 
 \begin{cpp}
 println(R"(Line 1
 Line 2)");
 \end{cpp}
+
+输出与前面使用嵌入的\textbackslash{}n的代码段相同。
 
 忽略转义序列原字符串中的字面量。例如，下面的原始字符串文字中，\textbackslash{}t转义序列不会使用制表符替换，而是保留为反斜杠后跟字母t的字符串:
 
@@ -158,7 +160,7 @@ println(R"(Is the following a tab character? \t)");
 Is the following a tab character? \t
 \end{shell}
 
-因为原字符串字面值以)"结尾，所以不能使用此语法在字符串中嵌入a)"。例如，下面的字符串是无效的，因为它在字符串的中间包含了)":
+因为原字符串字面值以)"结尾，所以不能使用此语法在字符串中嵌入a)"。下面的字符串是无效的，因为它在字符串的中间包含了)":
 
 \begin{cpp}
 println(R"(Embedded )" characters)"); // Error!
@@ -178,13 +180,13 @@ C++原字符串字面量允许包含任何字符，而不需要进行转义。�
 println(R"-(Embedded )" characters)-");
 \end{cpp}
 
-原字符串文字可以更容易地处理数据库查询字符串、正则表达式、文件路径等。正则表达式将在第21章“字符串本地化和正则表达式”中讨论。
+原字符串文字可以更容易地处理数据库查询字符串、正则表达式、文件路径等。
 
 \mySubsubsection{2.1.3.}{C++的std::string类}
 
 作为标准库的一部分，C++提供了对字符串概念的实现。std::string是一个类(实际上是std::basic\_string类模板的实例化)，支持许多与<cstring>函数相同的功能，也会为处理内存分配。string类定义在<string>中，位于std命名空间中。
 
-\mySamllsection{C风格的字符串有什么问题?}
+\mySamllsection{C风格的字符串的问题}
 
 理解C++的string类的必要性，请考虑C风格字符串的优缺点。
 
@@ -222,9 +224,9 @@ println(R"-(Embedded )" characters)-");
 
 列表是精心构建的，也许有更好的方法，而C++字符串将解决C风格字符串的所有问题。
 
-\mySamllsection{使用std::string类}
+\mySamllsection{std::string类}
 
-尽管string是一个类，但可以将其视为内置类型来处理。通过重载运算符，C++字符串比C风格的字符串使用起来要简单得多。接下来的两个部分将通过演示运算符重载，如何简化字符串的连接和比较来开始讨论。随后的部分将讨论C++字符串如何处理内存、与C风格字符串的兼容性，以及可以对字符串执行的内置操作。
+尽管string是一个类，但可以将其视为内置类型来处理。通过重载运算符，C++字符串比C风格的字符串使用起来要简单得多。接下来的两个部分将通过演示运算符重载，如何简化字符串的连接和比较来开始讨论。随后的部分将讨论C++字符串如何处理内存、与C风格字符串的兼容性，可以对字符串执行的内置操作。
 
 \mySamllsection{连接字符串}
 
@@ -251,13 +253,13 @@ char* a { "12" };
 char b[] { "12" };
 \end{cpp}
 
-因为它比较的是指针值，所以像下面这样编写比较总是返回false，而非字符串的内容:
+因为比较的是指针值，所以像下面这样编写比较总是返回false，而非字符串的内容:
 
 \begin{cpp}
 if (a == b) { /* ... */ }
 \end{cpp}
 
-注意，C数组和指针是相关的。可以将C数组(如示例中的b数组)视为指向数组中第一个元素的指针。第7章“内存管理”会深入地讨论了数组-指针的二元性。
+C数组和指针是相关的，可以将C数组(如示例中的b数组)视为指向数组中第一个元素的指针。
 
 要比较C字符串，必须这样写:
 
@@ -265,9 +267,9 @@ if (a == b) { /* ... */ }
 if (strcmp(a, b) == 0) { /* ... */ }
 \end{cpp}
 
-此外，无法使用<、<=、>=或>来比较C字符串，因此strcmp()执行三向比较，返回小于0、0或大于0的值，这取决于字符串的字典顺序关系。这导致代码笨拙且难以阅读，也更容易出错。
+无法使用<、<=、>=或>来比较C字符串，因此strcmp()执行三向比较，返回小于0、0或大于0的值，这取决于字符串的字典顺序关系。这导致代码笨拙且难以阅读，也更容易出错。
 
-对于C++的string，比较操作符(==、!=、<等)都进行了重载，以处理字符串的实际字符。例如:
+对于C++的string，比较操作符(==、!=、<等)都进行了重载，以处理字符串的实际字符:
 
 \begin{cpp}
 string a { "Hello" };
@@ -276,7 +278,7 @@ println("'{}' < '{}' = {}", a, b, a < b); // 'Hello' < 'World' = true
 println("'{}' > '{}' = {}", a, b, a > b); // 'Hello' > 'World' = false
 \end{cpp}
 
-C++的string类还提供了一个compare()成员函数，其行为类似于strcmp()，并具有类似的返回类型。下面是一个例子:
+C++的string类还提供了一个compare()成员函数，其行为类似于strcmp()，并具有类似的返回类型:
 
 \begin{cpp}
 string a { "12" };
@@ -288,15 +290,15 @@ if (result > 0) { println("greater"); }
 if (result == 0) { println("equal"); }
 \end{cpp}
 
-与strcmp()一样，使用起来也很麻烦，需要记住返回值的确切含义。此外，由于返回值只是一个整数，很容易忘记这个整数的含义，并可能会出现下面这样的错误代码:
+与strcmp()一样，使用起来也很麻烦，需要记住返回值的确切含义。由于返回值只是一个整数，很容易忘记这个整数的含义，并可能会出现下面这样的错误代码:
 
 \begin{cpp}
 if (a.compare(b)) { println("equal"); }
 \end{cpp}
 
-compare()返回0表示相等，其他值表示不相等。所以，这行代码做了与它的本意相反的事情；对于不相等的字符串，它输出“相等”!若只是想检查两个字符串是否相等，不要使用compare()，而只需使用==。
+compare()返回0表示相等，其他值表示不相等。所以这行代码做了与它的本意相反的事情，对于不相等的字符串，它输出“相等”!若只是想检查两个字符串是否相等，不要使用compare()，而只需使用==。
 
-C++20起，通过在第1章中介绍的三向比较运算符改进了这一点。string类支持此操作符。这里有一个例子:
+C++20起，三向比较运算符改进了这一点。string类支持此操作符:
 
 \begin{cpp}
 auto result { a <=> b };
@@ -307,7 +309,7 @@ if (is_eq(result)) { println("equal"); }
 
 \mySamllsection{内存处理}
 
-如下面的代码所示，当字符串操作需要扩展字符串时，内存需求将由字符串类自动处理，因此内存溢出已成为过去。此代码展示了可以使用方括号操作符[]访问单个字符，就像使用C风格字符串一样。
+如下面的代码所示，当字符串操作需要扩展字符串时，内存需求将由字符串类自动处理。此代码展示了可以使用方括号操作符[]访问单个字符，就像使用C风格字符串一样。
 
 \begin{cpp}
 string myString { "hello" };
@@ -327,19 +329,19 @@ hello, there
 Hello, there
 \end{shell}
 
-这个例子中，有几点需要注意。一是尽管字符串在某些地方分配和调整大小，但没有内存泄漏，所有这些字符串对象都作为栈变量创建。虽然string类肯定需要进行大量的分配和调整大小操作，但是当字符串对象离开作用域时，string析构函数会清理这些内存。析构函数具体如何工作，在第8章“类和对象”中有详细解释。
+有几点需要注意：一是尽管字符串在某些地方分配和调整大小，但没有内存泄漏，所有这些字符串对象都作为栈变量创建。虽然string类肯定需要进行大量的分配和调整大小操作，但是当字符串对象离开作用域时，string析构函数会清理这些内存。析构函数具体如何工作，在第8章中有详细解释。
 
-另一点需要注意的是，运算符按你的期望工作。例如，=运算符会复制字符串，这很可能是想要的结果。若习惯了使用基于数组的字符串，会感觉到解脱，或有些困惑。不必担心——当学会信任string类去做正确的事情，生活就会变得轻松许多。
+另一点需要注意的是，操作符按期望工作。例如，=运算符会复制字符串，这很可能是想要的结果。若习惯了使用基于数组的字符串，会感觉到解脱，或有些困惑。不必担心——当学会信任string类去做正确的事情，生活就会变得轻松许多。
 
 \mySamllsection{与C风格字符串的兼容性}
 
-为了兼容性，可以在字符串上使用c\_str()成员函数来获取一个代表C风格字符串的const char指针。当字符串需要进行任何内存重新分配，或者字符串对象销毁时，返回的指针就会无效。应该在使用结果之前调用成员函数，以便它准确地反映字符串的当前内容，并且绝不能从函数中返回在基于栈的字符串对象上调用的c\_str()的结果。
+为了兼容性，可以在字符串上使用c\_str()成员函数来获取一个代表C风格字符串的const char指针。当字符串需要进行内存的重新分配，或者字符串对象销毁时，返回的指针就会无效。应该在使用结果之前调用成员函数，以便它准确地反映字符串的当前内容，并且绝不能从函数中返回在基于栈的字符串对象上调用的c\_str()的结果。
 
 还有一个data()成员函数，在C++14之前，总是返回一个const char*，就像c\_str()一样。从C++17开始，当在非常量字符串上调用时，data()会返回一个char*指针。
 
 \mySamllsection{字符串操作}
 
-string 类支持许多额外的操作。以下列表突出显示了一些操作。请查阅标准库参考（见附录 B，“带注释的参考文献”）以获取可以在字符串对象支持操作的完整列表。
+string 类支持许多额外的操作。以下列表突出显示了一些操作。请查阅标准库参考（见附录 B）以获取可以在字符串对象支持操作的完整列表。
 
 \CXXTwentythreeLogo{-40}{-110}
 
@@ -401,7 +403,7 @@ auto& string2 { "Hello World" }; // string2 is a const char[12].
 auto string3 { "Hello World"s }; // string3 is an std::string.
 \end{cpp}
 
-标准字s在std::literals::string\_literals命名空间中定义，但string\_literals和字面量命名空间都是内联命名空间。因此，使用这些字符串字面量有以下几种方式:
+标准字s在std::literals::string\_literals命名空间中定义，但string\_literals和字面量命名空间都是内联命名空间，使用这些字符串字面量有以下几种方式:
 
 \begin{cpp}
 using namespace std;
@@ -430,7 +432,7 @@ namespace std {
 vector names { "John", "Sam", "Joe" };
 \end{cpp}
 
-推导出的类型将是vector<const char*>，而不是vector<string>！这是一个容易犯的错误，可能会导致你的代码出现一些奇怪的行为，甚至在之后的操作中导致崩溃。
+推导出的类型将是vector<const char*>，而不是vector<string>！这是一个容易犯的错误，可能会导致代码出现一些奇怪的行为，甚至在之后的操作中导致崩溃。
 
 若想要一个vector<string>，请使用std::string的字面量。注意以下示例中每个字符串字面量后面的s：
 
@@ -454,7 +456,7 @@ std命名空间在<string>头文件中定义了许多辅助函数，这些函数
 string to_string(T val);
 \end{cpp}
 
-这些函数使用起来很简单。例如，下面的代码将长双精度值转换为字符串:
+这些函数使用起来很简单，下面的代码将长双精度值转换为字符串:
 
 \begin{cpp}
 long double d { 3.14L };
@@ -508,11 +510,11 @@ stoi()、stol()、stoll()、stoll()和stoll()接受整数值，并有一个名�
 
 \mySamllsection{低级数值转换}
 
-C++ 标准库在<charconv>头文件中提供了一些较低级别的数值转换函数。这些函数不执行内存分配，也不直接与std::strings一起工作，而是使用调用者提供的原始内存。此外，它们针对高性能进行了优化，并且与地域设置无关（关于地域设置的详细信息，请参见第21章）所以，这些函数的速度可能比其他较高级别的数值转换函数快几个数量级。
+C++ 标准库在<charconv>头文件中提供了一些较低级别的数值转换函数。这些函数不执行内存分配，也不直接与std::strings一起工作，而是使用调用者提供的原始内存。它们针对高性能进行了优化，并且与地域设置无关（关于地域设置的详细信息，请参见第21章），所以这些函数的速度可能比其他较高级别的数值转换函数快几个数量级。
 
 这些函数还设计用于完美回转（round-tripping），可将数值序列化为字符串表示形式，然后反序列化结果字符串回到数值，可以得到与原始值完全相同的值。
 
-若需要高性能、完美回转、与地域设置无关的转换，例如将数值数据序列化/反序列化为人类可读的格式时(如JSON、XML等)，应该使用这些函数。
+若需要高性能、完美回转、与地域设置无关的转换，将数值数据序列化/反序列化为人类可读的格式时(如JSON、XML等)，应该使用这些函数。
 
 \mySamllsection{转换为字符串}
 
@@ -522,7 +524,7 @@ C++ 标准库在<charconv>头文件中提供了一些较低级别的数值转换
 to_chars_result to_chars(char* first, char* last, IntegerT value, int base = 10);
 \end{cpp}
 
-这里，integer可以是任何有符号或无符号整数类型或char。结果的类型为to\_chars\_result，其类型定义如下:
+integer可以是有符号或无符号整数类型或char。结果的类型为to\_chars\_result，其类型定义为:
 
 \begin{cpp}
 struct to_chars_result {
@@ -533,7 +535,7 @@ struct to_chars_result {
 
 ptr成员要么等于已写入字符的“超出末尾”指针（若转换成功），要么等于last（若转换失败，这种情况下ec==errc::value\_too\_large）。若ec等于一个默认构造的errc，则转换成功。
 
-以下是其使用的一个例子：
+以下是一个例子：
 
 \begin{cpp}
 const size_t BufferSize { 50 };
@@ -560,7 +562,7 @@ to_chars_result to_chars(char* first, char* last, FloatT value,
                          chars_format format, int precision);
 \end{cpp}
 
-这里，FloatT可以是任何浮点类型，例如float、double或long double。格式化可以用chars\_format标志组合来指定。
+FloatT可以是任何浮点类型，例如float、double或long double。格式化可以用chars\_format标志组合来指定。
 
 \begin{cpp}
 enum class chars_format {
@@ -582,7 +584,7 @@ if (error == errc{}) { println("{}", out); /* Conversion successful. */ }
 
 \mySamllsection{字符串的转换}
 
-对于反向转换(即将字符序列转换为数值)，可以使用以下函数集(从C++23起，to\_chars()和from\_chars()的整数重载标记为constexpr)，可以在编译时在其他constexpr函数和类中求值。有关constexpr的讨论，请参见第9章“类和对象”。
+对于反向转换(即将字符序列转换为数值)，可以使用以下函数集(从C++23起，to\_chars()和from\_chars()的整数重载标记为constexpr)，可以在编译时在其他constexpr函数和类中求值。
 
 \begin{cpp}
 from_chars_result from_chars(const char* first, const char* last, IntegerT& value,
@@ -591,7 +593,7 @@ from_chars_result from_chars(const char* first, const char* last, FloatT& value,
                              chars_format format = chars_format::general);
 \end{cpp}
 
-Here, from\_chars\_result is a type defined as follows:
+from\_chars\_result是定义如下:
 
 \begin{cpp}
 struct from_chars_result {
@@ -623,11 +625,11 @@ if (error2 == errc{}) {
 
 \mySubsubsection{2.1.5.}{std::string\_view类}
 
-C++17之前，对于接受只读字符串的函数，参数类型的选择一直是一个难题。比如需要const char*的情况下，若有一个可用的std::string，则需要调用c\_str()或data()来获取一个const char*。更糟糕的是，函数会失去字符串的面向对象特性，以及所有便捷的成员函数。那参数是const string\&？这种情况下，总是需要一个字符串。如果传递字符串字面量，编译器会自动地创建一个临时字符串对象，其中包含字符串字面量的副本，并将对该对象的引用传递给函数，因此会有一些开销。有时人们会编写同一函数的多个重载——一个接受 const char*，另一个接受 const string\&——但这显然不是一个优雅的解决方案。
+C++17之前，对于接受只读字符串的函数，参数类型的选择一直是一个难题。需要const char*的情况下，若有一个可用的std::string，则需要调用c\_str()或data()来获取一个const char*。更糟糕的是，函数会失去字符串的面向对象特性，以及所有便捷的成员函数。那参数是const string\&？这种情况下，总是需要一个字符串。如果传递字符串字面量，编译器会自动地创建一个临时字符串对象，其中包含字符串字面量的副本，并将对该对象的引用传递给函数，因此会有一些开销。有时人们会编写同一函数的多个重载——一个接受 const char*，另一个接受 const string\&——但这显然不是一个优雅的解决方案。
 
 自从C++17起，所有这些问题可以使用std::string\_view类得到了解决，它是std::basic\_string\_view模板的一个实例，定义在<string\_view>中。string\_view 是const string\&的直接替代品，没有开销，从不复制字符串！string\_view提供了一个字符串的只读视图，并支持类似于字符串的接口，包括C++23引入的contains() 成员函数。一个例外是缺少c\_str()，但有data()可用。另外，string\_view添加了remove\_prefix(size\_t)和remove\_suffix(size\_t)成员函数，通过将起始指针向前移动给定的偏移量，或将结束指针向后移动给定的偏移量来缩短字符串。就像字符串一样，从C++23开始，使用nullptr构造string\_view将导致编译错误。
 
-若知道如何使用std::string，那么使用string\_view非常类似。extractExtension()函数从给定的文件名中提取，并返回包括点字符在内的扩展名。注意，因为它们的复制成本非常低，所以string\_views通过值传递，并只包含指向字符串的指针和字符串的长度。rfind()成员函数从字符串的末尾开始搜索另一个给定的字符串或字符，在 string\_view上调用的substr()成员函数返回的string\_view，传递给字符串构造函数以转换为字符串，然后从函数返回。
+若知道如何使用std::string，使用string\_view也非常类似。extractExtension()函数从给定的文件名中提取，并返回包括点字符在内的扩展名。因为复制成本非常低，所以string\_views通过值传递，并只包含指向字符串的指针和字符串的长度。rfind()成员函数从字符串的末尾开始搜索另一个给定的字符串或字符，在string\_view上调用的substr()成员函数返回的string\_view，传递给字符串构造函数以转换为字符串，然后从函数返回。
 
 \begin{cpp}
 string extractExtension(string_view filename)
@@ -637,7 +639,7 @@ string extractExtension(string_view filename)
 }
 \end{cpp}
 
-这个函数可以用于各种不同的字符串:
+这个函数可以用于不同的字符串:
 
 \begin{cpp}
 string filename { R"(c:\temp\my file.ext)" };
@@ -651,7 +653,7 @@ println("Literal: {}", extractExtension(R"(c:\temp\my file.ext)"));
 
 对extractExtension()的所有这些调用中，没有一个参数的副本。extractExtension()函数的filename参数只是一个指针和一个长度，非常高效。
 
-还有一个string\_view构造函数，可用于从非NUL(\textbackslash{}0)终止的字符串内存中构造string\_view。当确实有一个以NUL结束的字符串缓冲区，但是已经知道字符串的长度时就很有用，所以string\_view构造函数不需要再次计算字符数。下面是一个例子:
+还有string\_view构造函数，可用于从非NUL(\textbackslash{}0)终止的字符串内存中构造string\_view。当确实有一个以NUL结束的字符串缓冲区，已经知道字符串的长度时就很有用了，所以string\_view构造函数不需要再次计算字符数。下面是一个例子:
 
 \begin{cpp}
 const char* raw { /* ... */ };
@@ -665,13 +667,13 @@ println("Raw: {}", extractExtension({ raw, length }));
 println("Raw: {}", extractExtension(string_view { raw, length }));
 \end{cpp}
 
-最后，还可以从公共范围构造string\_view，该范围是基于迭代器的范围，从C++23起，可以从现代范围构造的。迭代器、公共范围和现代范围将在第17章“理解迭代器和范围库”中讨论。
+最后，还可以从公共范围构造string\_view，该范围是基于迭代器的范围，从C++23起，可以从范围构造。
 
 \begin{myNotic}{NOTE}
 当函数需要一个只读字符串作为其参数之一时，使用std::string\_view而非const string\&或const char*.
 \end{myNotic}
 
-不能使用string\_view隐式地构造字符串。因为从string\_view构造字符串总是涉及复制数据，禁止这样做是为了防止意外地复制string\_view中的字符串。要将string\_view转换为字符串，请使用显式字符串构造函数。这是extractExtension()中的return语句所做的:
+不能使用string\_view隐式地构造字符串。因为从string\_view构造字符串总是涉及复制数据，禁止这样做是为了防止意外地复制string\_view中的字符串。要将string\_view转换为字符串，请使用显式字符串构造函数。这是extractExtension()中的return语句所做的工作:
 
 \begin{cpp}
 return string { filename.substr(filename.rfind('.')) };
@@ -699,7 +701,7 @@ result2.append(sv.data(), sv.size());
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-返回字符串的函数应该返回const string\&或字符串，但不能返回string\_view。若它所引用的字符串需要重新分配，返回string\_view会带来使返回的string\_view无效的风险。
+返回字符串的函数应该返回const string\&或字符串，但不能返回string\_view。若引用的字符串需要重新分配，返回string\_view会带来使返回的string\_view无效的风险。
 \end{myWarning}
 
 \begin{myWarning}{WARNING}
@@ -716,7 +718,7 @@ string_view sv { s + " World!" };
 println("{}", sv);
 \end{cpp}
 
-此代码片段具有未定义的行为，可能会崩溃，可能会打印“hello World!”(没有字母H)等等。为什么这是未定义的行为? string\_view sv的初始化表达式的结果是一个带有“Hello World!”内容的临时字符串。然后，string\_view存储一个指向这个临时字符串的指针。第二行代码的末尾，这个临时字符串销毁，从而给string\_view留下一个悬空指针。
+此代码片段具有未定义的行为，可能会崩溃，可能会打印“hello World!”(没有字母H)等。为什么这是未定义的行为? string\_view sv的初始化表达式的结果是一个带有“Hello World!”内容的临时字符串。然后，string\_view存储一个指向这个临时字符串的指针。第二行代码的末尾，这个临时字符串销毁，从而给string\_view留下一个悬空指针。
 
 \begin{myWarning}{WARNING}
 永远不要使用std::string\_view来存储临时字符串视图。
@@ -741,19 +743,19 @@ using namespace std;
 
 \mySubsubsection{2.1.6.}{非标准字符串}
 
-许多C++程序员不使用C++风格字符串的原因有几个。一些程序员简单地不知道string类型，因为它并不是C++规范中一直存在的部分。其他人多年来发现C++字符串没有提供他们需要的行为，或者不喜欢std::string对字符编码完全无知，因此开发了他们自己的字符串类型。
+许多C++程序员不使用C++风格字符串的原因有几个。一些开发者只是单纯的不知道string类型，因为它并不是C++规范中一直存在的部分。其他人多年来发现C++字符串没有提供他们需要的行为，或者不喜欢std::string对字符编码完全无知，因此开发了他们自己的字符串类型。
 
-也许最常见的原因是，开发框架和操作系统倾向于有自己的字符串表示方式，例如Microsoft MFC框架中的CString类，这是为了向后兼容或解决遗留问题。开始一个C++项目时，提前决定团队将如何表示字符串是很重要的。有些事情是肯定的：
+也许最常见的原因是，开发框架和操作系统倾向于有自己的字符串表示方式，Microsoft MFC框架中的CString类，这是为了向后兼容或解决遗留问题。开始一个C++项目时，提前决定团队将如何表示字符串是很重要的。有些事情是肯定的：
 
 \begin{itemize}
 \item
 永远不要选择C风格的字符串表示。
 
 \item
-可以对正在使用的框架中可用的字符串功能进行标准化，例如MFC、Qt等的内置字符串特性。
+可以对正在使用的框架中可用的字符串功能进行标准化，MFC、Qt等的内置字符串特性。
 
 \item
-若使用std::string作为字符串，则使用std::string\_view将只读字符串传递给函数;否则，请查看框架是否支持类似string\_views的功能。
+若使用std::string作为字符串，则使用std::string\_view将只读字符串传递给函数;否则，请查看框架是否支持类似string\_view的功能。
 \end{itemize}
 
 

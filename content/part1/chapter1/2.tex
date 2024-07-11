@@ -1,9 +1,9 @@
 
-以下程序基于本章结构讨论中早些时候使用的员工数据库示例。这次，将得到一个完全功能的C++程序，该程序使用了本章讨论的许多特性。这个实际示例包括使用类、异常、流、vector、命名空间、引用，以及其他语言特性。
+以下程序基于本章早些时候使用的员工数据库示例。这次，将得到一个完全功能的C++程序，该程序使用了本章讨论的许多特性，包括使用类、异常、流、vector、命名空间、引用，以及其他语言特性。
 
 \mySubsubsection{1.2.1.}{员工档案系统}
 
-接下来实现一个程序来管理公司的员工记录与以下功能:
+接下来实现一个程序来管理公司的员工档案:
 
 \begin{itemize}
 \item
@@ -22,7 +22,7 @@
 查看所有前雇员
 \end{itemize}
 
-该程序的设计将代码分为三个部分。Employee类封装了描述单个员工的个人信息，Database类管理公司的所有员工。最后，一个单独的UserInterface文件提供了程序的交互性。
+该程序的设计将代码分为三个部分。Employee类封装了描述单个员工的个人信息，Database类管理公司的所有员工。最后，在一个单独的UserInterface文件提供了程序的交互性。
 
 \mySubsubsection{1.2.2.}{Employee类}
 
@@ -30,7 +30,7 @@ Employee类维护雇员的所有信息，成员函数提供了查询和更改该
 
 \mySamllsection{Employee.cppm}
 
-Employee.cppm模块接口文件定义了Employee类。接下来，文本将逐个描述此文件的部分。文件的前几行如下所示：
+Employee.cppm模块接口文件定义了Employee类，文本将逐个描述此文件的部分。文件的前几行如下所示：
 
 \begin{cpp}
 export module employee;
@@ -40,16 +40,16 @@ namespace Records {
 
 第一行是模块声明，声明该文件导出一个名为employee的模块，后面跟着对标准库功能的导入。此代码还声明了随花括号内的后续代码位于Records命名空间中，Records是本程序中用于应用程序特定代码的命名空间。
 
-接下来，在Records命名空间内部定义了以下两个常量。本书不对常量添加任何特殊前缀，以大写字母起始，以便更好地与变量区分开。
+在Records命名空间内部定义了以下两个常量。本书不对常量添加特殊前缀，以大写字母起始，以便更好地与变量区分开。
 
 \begin{cpp}
 const int DefaultStartingSalary { 30'000 };
 export const int DefaultRaiseAndDemeritAmount { 1'000 };
 \end{cpp}
 
-第一个常量代表新员工的默认起始工资。因为模块外的代码不需要访问它，所以这个常量没有导出。员工模块内的代码可以作为Records::DefaultStartingSalary来访问这个常量。
+第一个常量代表新员工的默认起始工资。模块外的代码不需要访问它，所以这个常量没有导出。员工模块内的代码可以使用Records::DefaultStartingSalary来访问这个常量。
 
-第二个常量是晋升或降职员工的默认金额。因为导出了这个常量，所以模块外的代码可以访问，例如，可以通过两倍的默认金额来晋升一个员工。
+第二个常量是晋升或降职员工的默认金额。因为导出了这个常量，所以模块外的代码可以访问，可以通过两倍的默认金额来晋升一个员工。
 
 接下来，定义并导出了Employee类，及其公共成员函数：
 
@@ -81,7 +81,7 @@ export class Employee
         bool isHired() const;
 \end{cpp}
 
-提供了一个构造函数，接受一个首字母和姓。promote()和demote()成员函数都有整数参数，其默认值等于DefaultRaiseAndDemeritAmount。这样，其他代码可以省略参数，默认值会自动使用。提供了一些成员函数来雇佣和解雇员工，以及一个显示员工信息的成员函数。一些setter和getter提供了修改员工信息或查询员工当前信息的功能。
+提供了一个构造函数，接受一个首字母和姓。promote()和demote()成员函数都有整数参数，其默认值等于DefaultRaiseAndDemeritAmount。其他代码可以省略参数，默认值会自动使用。提供了一些成员函数来雇佣和解雇员工，以及一个显示员工信息的成员函数。一些setter和getter提供了修改员工信息或查询员工当前信息的功能。
 
 数据成员声明为私有，其他代码不能直接进行修改：
 
@@ -108,9 +108,9 @@ import std;
 using namespace std;
 \end{cpp}
 
-第一行指定这个源文件属于哪个模块，后面是一个std的导入和一个using指令。
+第一行指定这个源文件属于哪个模块，后面是std的导入和using指令。
 
-接受姓和名的构造函数只设置相应的数据成员:
+接受姓和名的构造函数，只设置相应的数据成员:
 
 \begin{cpp}
 namespace Records {
@@ -134,14 +134,14 @@ void Employee::demote(int demeritAmount)
 }
 \end{cpp}
 
-hire()和fire()成员函数只是设置了m\_hired的状态:
+hire()和fire()成员函数只是设置了m\_hired状态:
 
 \begin{cpp}
 void Employee::hire() { m_hired = true; }
 void Employee::fire() { m_hired = false; }
 \end{cpp}
 
-display()成员函数使用println()来显示当前员工的信息。这段代码是Employee类的一部分，所以可以直接访问数据成员，比如m\_salary，而不是使用getter，比如getSalary()。然而，当getter和setter存在时，即使是在类中，使用它们是一种良好的编程风格。
+display()成员函数使用println()来显示当前员工的信息。这段代码是Employee类的一部分，所以可以直接访问数据成员，比如m\_salary，而不是使用getter，比如getSalary()。当getter和setter存在时，即使是在类中，使用它们是一种良好的编程风格。
 
 \begin{cpp}
 void Employee::display() const
@@ -176,11 +176,11 @@ void Employee::display() const
 }
 \end{cpp}
 
-尽管这些成员函数看似微不足道，但拥有getter和setter总比将数据成员公开的好。例如，将来可以在setSalary()成员函数中执行边界检查。getter和setter可以将断点插入，会让调试更容易。另一个原因是，当决定更改在类中存储数据的方式时，只需要修改这些getter和setter即可。
+尽管这些成员函数看似微不足道，但拥有getter和setter总比将数据成员公开的好，将来可以在setSalary()成员函数中执行边界检查。getter和setter可以将断点插入，会让调试更容易。另一个原因是，当决定更改在类中存储数据的方式时，只需要修改这些getter和setter即可。
 
 \mySamllsection{EmployeeTest.cpp}
 
-编写单个类时，需要对它们进行隔离测试。下面的代码包含一个main()函数，该函数使用Employee类执行一些简单的操作。当确定Employee类可以正常工作，就应该删除或注释掉这个文件，这样就不会试图用多个main()函数编译代码。
+编写单个类时，需要对它们进行隔离测试。下面的代码包含一个main()函数，该函数使用Employee类执行一些简单的操作。当确定Employee类可以正常工作，就应该删除或注释掉这个文件，这样就不会用多个main()函数编译代码。
 
 \begin{cpp}
 import std;
@@ -204,7 +204,7 @@ int main()
 }
 \end{cpp}
 
-另一种，并且更好的测试单个类的方法是单元测试。单元测试是用于测试特定功能的小代码块，其会保留在代码库中。所有的单元测试都会频繁执行；例如，由构建系统自动执行。这样做的好处是，若对现有功能进行了一些更改，单元测试会立即提示，是否破坏了某项功能。
+另一种，并且更好的测试单个类的方法是单元测试。单元测试是用于测试特定功能的小代码块，其会保留在代码库中。所有的单元测试都会频繁执行，由构建系统自动执行。好处是，若对现有功能进行了一些更改，单元测试会立即提示，是否破坏了某项功能。
 
 \mySubsubsection{1.2.3.}{Database类}
 
@@ -238,9 +238,9 @@ namespace Records {
                                   const std::string& lastName);
 \end{cpp}
 
-数据库提供了一种简单的方法来添加新员工，通过提供首字母和姓，这个成员函数返回新员工的引用。外部代码还可以通过调用getEmployee()成员函数来获取员工的引用。这个成员函数声明了两个重载版本。一个允许按员工编号检索。另一个需要首字母和姓。
+数据库提供了一种简单的方法来添加新员工，通过提供首字母和姓，这个成员函数返回新员工的引用。外部代码还可以通过调用getEmployee()成员函数来获取员工的引用，这个成员函数声明了两个重载版本。一个允许按员工编号检索，另一个需要首字母和姓。
 
-因为数据库是所有员工记录的中心存储库，所以有以下成员函数来显示所有员工、当前雇佣的员工和解雇的员工：
+数据库是所有员工记录的中心存储库，所以有以下成员函数来显示所有员工、当前雇佣的员工和解雇的员工：
 
 \begin{cpp}
             void displayAll() const;
@@ -282,9 +282,9 @@ namespace Records {
     }
 \end{cpp}
 
-addEmployee()成员函数创建一个新的Employee对象，填充其信息，并将其添加到vector中。数据成员m\_nextEmployeeNumber在使用后递增，以便下一个员工将获得一个新号。vector的back()成员函数返回vector中最后一个元素的引用，即新添加的雇员。
+addEmployee()成员函数创建一个新的Employee对象填充其信息，并将其添加到vector中。数据成员m\_nextEmployeeNumber在使用后递增，以便下一个员工将获得一个新编号。vector的back()成员函数返回vector中最后一个元素的引用，即新添加的雇员。
 
-getEmployee()成员函数之一实现如下。第二个重载的实现与此类似，因此没有展示。它们都使用基于范围的for循环遍历m\_employees中的所有员工，并检查Employee是否与传递给成员函数的信息相匹配。若没有找到匹配项，则抛出异常。注意，在基于范围的for循环中使用了auto\&，循环不想处理Employees的副本，而是要处理对m\_employees中的Employees的引用。
+getEmployee()成员函数的实现如下。第二个重载的实现与此类似，因此没有展示。它们都使用基于范围的for循环遍历m\_employees中的所有员工，并检查Employee是否与传递给成员函数的信息相匹配。若没有找到匹配项，则抛出异常。注意，基于范围的for循环中使用了auto\&，循环不想处理Employees的副本，而是要处理对m\_employees中的Employees的引用。
 
 \begin{cpp}
     Employee& Database::getEmployee(int employeeNumber)
@@ -298,7 +298,7 @@ getEmployee()成员函数之一实现如下。第二个重载的实现与此类�
     }
 \end{cpp}
 
-下面的display成员函数都使用类似的算法:循环遍历所有员工，并要求每个员工在显示条件匹配时将自己显示到终端。
+下面的display成员函数都使用类似的算法:循环遍历所有员工，并要求每个员工在显示条件匹配时输出到终端。
 
 \begin{cpp}
     avoid Database::displayAll() const
@@ -359,9 +359,9 @@ int main()
 
 \mySubsubsection{1.2.4.}{用户接口}
 
-该程序的最后一部分是一个基于菜单的用户界面，使用户可以轻松地使用员工数据库。
+该程序的最后一部分是一个基于菜单的用户界面，用户可以轻松地使用员工数据库。
 
-下面的main()函数包含一个循环，该循环显示菜单，执行选定的操作，然后再次执行所有操作。对于大多数操作，都定义了单独的函数。对于更简单的操作，比如显示雇员，实际的代码会放在适当的位置。
+下面的main()函数包含一个循环，该循环显示菜单，执行选定的操作，然后再次执行所有操作。对于大多数操作，都定义了单独的函数。对于更简单的操作(比如:显示雇员)，实际的代码会放在适当的位置。
 
 \begin{cpp}
 import std;
@@ -493,9 +493,9 @@ void doPromote(Database& db)
 
 \mySubsubsection{1.2.5.}{评估项目}
 
-程序涵盖了从简单到更复杂的一系列主题，有多种方式可以扩展这个程序。例如，用户界面并没有暴露出Database和Employee类的所有功能，可以修改UI以包括这些特性。还可以尝试实现这两个类的其他功能，这将是一个练习本章所学材料的好方法。
+程序涵盖了从简单到更复杂的一系列主题，有多种方式可以扩展这个程序。用户界面并没有暴露出Database和Employee类的所有功能，可以修改UI以包括这些特性。还可以尝试实现这两个类的其他功能，这将是一个练习本章所学知识的好方法。
 
-若对这个程序的某些部分感到困惑，请参阅本章的相关部分来复习这些主题。若仍然不清楚，学习最好的方式是编写代码并尝试各种操作。例如，不确定如何使用条件运算符，可以编写一个短小的main()函数来使用看看。
+若对这个程序的某些部分感到困惑，请参阅本章的相关部分来复习这些主题。若仍然不清楚，学习最好的方式是编写代码并尝试各种操作。不确定如何使用条件运算符，可以编写一个短小的main()函数来使用看看。
 
 
 
