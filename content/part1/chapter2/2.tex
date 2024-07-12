@@ -15,7 +15,7 @@ C风格的函数:
 \item
 例如:
 \begin{cpp}
-    printf("x has value %d and y has value %d.\n", x, y);
+printf("x has value %d and y has value %d.\n", x, y);
 \end{cpp}
 \end{itemize}
 
@@ -32,50 +32,50 @@ C++ I/O流:
 \item
 例如:
 \begin{cpp}
-    cout << "x has value " << x << " and y has value " << y << '.' << endl;
+cout << "x has value " << x << " and y has value " << y << '.' << endl;
 \end{cpp}
 \end{itemize}
 
 \end{itemize}
 
-C++20引入了<format>头文件，其中定义的std::format()来格式化字符串。它基本上结合了C风格函数和c++ I/O流的所有优点，是一种类型安全且可扩展的格式化机制。例如:
+C++20引入了<format>头文件，其中定义的std::format()来格式化字符串，结合了C风格函数和C++ I/O流的所有优点，是一种类型安全且可扩展的格式化机制:
 
 \begin{cpp}
 cout << format("x has value {} and y has value {}.", x, y) << endl;
 \end{cpp}
 
-C++23引入了std::print()和println()。例如:
+C++23引入了std::print()和println():
 
 \begin{cpp}
 println("x has value {} and y has value {}.", x, y);
 \end{cpp}
 
-此外，std::print()和println()更好地支持将UTF-8 Unicode文本写入Unicode兼容的终端。Unicode将在第21章讨论，这里有一个简单的例子:
+此外，std::print()和println()更好地支持将UTF-8 Unicode文本写入Unicode兼容的控制台:
 
 \begin{cpp}
 println("こんにちは世界");
 \end{cpp}
 
-这将正确地将字符串“こんにちは世界”(日语中表示“Hello World”)打印到控制台(要编译包含Unicode字符的源代码，可能需要传递编译器开关)。对于Visual C++，必须传递/utf-8编译器开关。对于GCC，使用命令行选项-finputcharset=UTF-8。Clang假定所有文件默认都是UTF-8格式)若尝试使用C++ I/O流输出这个字符串，根据您的控制台设置，输出可能会是一些乱码，例如“πüôπéôπü½πüíπü»Σ╕ûτòî”:
+这将正确地将字符串“こんにちは世界”(日语中表示“Hello World”)打印到控制台(要编译包含Unicode字符的源代码，需要传递编译器选项)。对于Visual C++，必须传递/utf-8编译器选项。对于GCC，使用命令行选项-finputcharset=UTF-8。Clang假定所有文件默认都是UTF-8格式)若尝试使用C++ I/O流输出这个字符串，根据控制台设置，输出可能会是一些乱码，例如“πüôπéôπü½πüíπü»Σ╕ûτòî”:
 
 \begin{cpp}
 cout << "こんにちは世界" << endl;
 \end{cpp}
 
-由于支持Unicode，甚至可以打印表情符号。若输终端可以正确支持Unicode，下面的代码将打印一个笑脸符号。对此使用cout可能会输出乱码。
+由于支持Unicode，甚至可以打印表情符号。若输控制台可以正确支持Unicode，下面的代码将打印一个笑脸符号。对此使用cout可能会输出乱码。
 
 \newfontfamily\emojifont{Segoe UI Emoji}
 println("{\emojifont 😊}");
 
-std::print()和println()是向控制台写入文本的推荐方式，本书中的所有示例都使用了它们。它们是类型安全的，可扩展以支持自定义类型，易于阅读，支持Unicode输出，支持不同语言的本地化等。除了这些好处之外，print()和println()的性能也比直接使用C++ I/O流要好得多，在print()和println()底层仍然使用流的方式。
+std::print()和println()是向控制台写入文本的推荐方式，本书中的所有示例都使用了它们。它们是类型安全的，可扩展以支持自定义类型，易于阅读，支持Unicode输出，支持不同语言的本地化等。除了这些好处之外，print()和println()的性能也比直接使用C++ I/O流要好得多，print()和println()在底层仍然使用流。
 
 \mySubsubsection{2.2.1.}{格式化字符串}
 
-std::format()、print()和println()使用格式字符串，该字符串指定在输出字符串中必须如何格式化给定参数。基本形式在前面介绍过，并且在示例中使用过。现在是时候看看这些格式字符串到底有多强大了。
+std::format()、print()和println()使用格式字符串，该字符串指定在输出字符串中必须如何格式化给定参数。基本形式在前面介绍过，并且在示例中使用过，是时候看看这些格式字符串有多强大了。
 
-format字符串通常是format()、print()和println()的第一个参数。格式字符串可以包含一组花括号\{\}，表示替换字段，可以根据需要替换的字段。format()、print()和println()的后续参数是用于填充这些替换字段的值。若在输出中需要\{和\}字符，则需要将它们转义为\{\{或\}\}。
+格式字符串通常是format()、print()和println()的第一个参数。格式字符串可以包含一组花括号\{\}，表示替换字段，可以根据需要替换的字段。format()、print()和println()的后续参数是用于填充这些替换字段的值。若在输出中需要\{和\}字符，则需要将它们转义为\{\{或\}\}。
 
-到目前为止，替换字段一直是空的花括号\{\}，但这仅仅是个开始。在这些花括号内可以是格式为[index][:specifier]的字符串:
+目前为止，替换字段一直是空的花括号\{\}，而这仅仅是个开始。在这些花括号内可以是格式为[index][:specifier]的字符串:
 
 \begin{itemize}
 \item
@@ -85,7 +85,7 @@ format字符串通常是format()、print()和println()的第一个参数。格�
 可选说明符是一个格式说明符，用于规定在输出中必须如何格式化值，会在“格式说明符”一节中详细说明。
 \end{itemize}
 
-必须向format()、print()和println()传递格式字符串。例如，不能直接打印如下值:
+必须向format()、print()和println()传递格式字符串，不能直接打印如下值:
 
 \begin{cpp}
 int x { 42 };
@@ -133,7 +133,7 @@ println("Read {0} bytes from {1}", n, "file1.txt");
 println("Read {0} bytes from {}", n, "file1.txt");
 \end{cpp}
 
-可以更改输出字符串中格式化值的顺序，而不必更改参数的实际顺序。若想在软件中翻译字符串，这是一个有用的功能。某些语言在句子中有不同的顺序。例如，前面的格式字符串可以翻译为中文。中文中，句子中替换字段的顺序是颠倒的，但由于在格式字符串中使用了参数索引，println()的参数顺序可以保持不变。
+可以更改输出字符串中格式化值的顺序，而不必更改参数的实际顺序。若想在软件中翻译字符串，这是一个有用的功能。某些语言在句子中有不同的语序。例如，前面的格式字符串可以翻译为中文。中文中，句子中替换字段的顺序是颠倒的，但由于在格式字符串中使用了参数索引，println()的参数顺序可以保持不变。
 
 \begin{cpp}
 println("从{1}中读取{0}个字节。 ", n, "file1.txt");
@@ -141,7 +141,7 @@ println("从{1}中读取{0}个字节。 ", n, "file1.txt");
 
 \mySubsubsection{2.2.3.}{输出到不同地方}
 
-到目前为止，每次调用print()和println()都有一个格式字符串作为第一个参数，后面跟着一些附加参数。例如:
+目前为止，每次调用print()和println()都有一个格式字符串作为第一个参数，后面跟着一些附加参数:
 
 \begin{cpp}
 println("x has value {} and y has value {}.", x, y);
@@ -149,7 +149,7 @@ println("x has value {} and y has value {}.", x, y);
 
 这将字符串打印到标准输出流，即与std::cout相同的流。
 
-正如第1章所解释的，还有std::cerr，它传输到标准错误控制台。可以使用print()和println()打印到错误控制台，如下所示:
+还有std::cerr，传输到标准错误控制台。可以使用print()和println()打印到错误控制台:
 
 \begin{cpp}
 println(cerr, "x has value {} and y has value {}.", x, y);
@@ -166,7 +166,7 @@ string s { "Hello World!" };
 println(s); // Error! Does not compile
 \end{cpp}
 
-所产生的错误依赖于编译器。但在撰写本文时，其标准相当模糊，并不总是有助于立即确定错误的确切原因。例如，以下是来自Microsoft Visual C++ 2022编译器的报错:
+所产生的错误依赖于编译器。但在撰写本文时，其标准相当模糊，并不总是有助于立即确定错误的确切原因。以下是Microsoft Visual C++ 2022编译器产生的错误:
 
 \begin{shell}
 error C7595: 'std::basic_format_string<char>::basic_format_string': call to immediate function is not a constant expression
@@ -179,7 +179,7 @@ string s { "Hello World!" };
 println("{}", s);
 \end{cpp}
 
-因为它们是编译时常量，所以允许使用constexpr格式的字符串。第9章“类和对象”将详细讨论constexpr关键字。
+因为是编译时常量，所以允许使用constexpr格式的字符串。第9章将详细介绍constexpr关键字。
 
 \begin{cpp}
 constexpr auto formatString { "Value: {}" };
@@ -188,7 +188,7 @@ println(formatString, 11); // Value: 11
 
 \mySamllsection{非编译时常量格式字符串}
 
-当需要为不同的语言本地化/翻译格式字符串时，格式字符串必须是编译时常量的事实可能有点麻烦，可以使用std::vprint\_unicode()或std::vprint\_nonunicode()来代替std::print()。不过用起来有点难，不能像使用print()那样只传递参数，而是需要使用std::make\_format\_args()协助。这里有一个例子:
+当需要为不同的语言本地化/翻译格式字符串时，格式字符串必须是编译时常量可能有点麻烦，可以使用std::vprint\_unicode()或std::vprint\_nonunicode()来代替std::print()。不过用起来有点难，不能像使用print()那样只传递参数，而是需要使用std::make\_format\_args()协助。这里有一个例子:
 
 \begin{cpp}
 enum class Language { English, Dutch };
@@ -218,7 +218,7 @@ Numbers: 1 and 2.
 Getallen: 1 en 2.
 \end{shell}
 
-因为它需要一个编译时常量格式字符串，下面使用print()的不能编译:
+需要一个编译时常量格式字符串，下面使用print()的代码不能编译:
 
 \begin{cpp}
 print(GetLocalizedFormat(language), 1, 2);
@@ -226,7 +226,7 @@ print(GetLocalizedFormat(language), 1, 2);
 
 \mySamllsection{处理非编译时常量格式字符串中的错误}
 
-当在运行时而不是在编译时验证格式字符串时，任何格式字符串错误都会引发std::format\_error异常。std::format()、print()和println()等函数永远不会抛出这样的异常，因为格式字符串都是在编译时验证的。但像std::vformat()和vprint\_unicode()(参见上一节)这样的函数不要求格式字符串是常量，因此在编译时不进行验证，而是在运行时验证，这些函数可能抛出format\_error异常。下面是一个例子:
+在运行时时验证格式字符串时，格式字符串错误都会引发std::format\_error异常。std::format()、print()和println()等函数永远不会抛出这样的异常，因为格式字符串都是在编译时验证的。但像std::vformat()和vprint\_unicode()(参见上一节)这样的函数不要求格式字符串是常量，因此在编译时不进行验证，而是在运行时验证，这些函数可能抛出format\_error异常:
 
 \begin{cpp}
 try {
@@ -254,7 +254,7 @@ try {
 
 宽度指定应该将给定值格式化为的字段的最小宽度。
 
-这也可以是另一组花括号，称为动态宽度。若在花括号中指定了索引，例如\{3\}，则动态宽度的值将从具有给定索引的参数中获取。否则，若没有指定索引，例如\{\}，则从参数列表中的下一个参数中获取宽度。
+这也可以是另一组花括号，称为动态宽度。若在花括号中指定了索引，例如\{3\}，则动态宽度的值将从具有给定索引的参数中获取。若没有指定索引(如\{\})，则从参数列表中的下一个参数中获取宽度。
 
 下面是一些例子:
 
@@ -295,7 +295,7 @@ println("|{:_>7}|", i);   // |_____42|
 println("|{:_^7}|", i);   // |__42___|
 \end{cpp}
 
-下面是一个有趣的技巧，可以输出特定次数的字符。你不需要自己键入包含正确字符数的字符串字面值，而是在格式说明符中显式指定所需的字符数:
+下面是一个有趣的技巧，可以输出特定次数的字符。不需要自己键入包含正确字符数的字符串字面值，而是在格式说明符中显式指定所需的字符数:
 
 \begin{cpp}
 println("|{:=>16}|", ""); // |================|
@@ -303,7 +303,7 @@ println("|{:=>16}|", ""); // |================|
 
 \mySamllsection{符号}
 
-符号部分可以是下列形式之一:
+符号可以是下列形式之一:
 
 \begin{itemize}
 \item
@@ -330,7 +330,7 @@ println("|{:< 5}|", -i); // |-42 |
 
 \#部分启用备用格式化规则。若对整型启用了该功能，并且还指定了十六进制、二进制或八进制数字格式，则替代格式将在格式化的数字前面插入0x、0x、0b、0b或0。若为浮点类型启用，则替代格式将始终输出一个小数分隔符，即使后面没有数字。
 
-下面两个部分给出了使用其他格式的示例。
+下面两个部分给出了其他格式的示例。
 
 \mySamllsection{类型}
 
@@ -338,10 +338,10 @@ println("|{:< 5}|", -i); // |-42 |
 
 \begin{itemize}
 \item
-整数类型:b(二进制)，b(二进制，但如果指定了\#，则用0B代替0B)， d(十进制)，o(八进制)，x(十六进制，小写字母a, b, c, d, e, f)， x(十六进制，大写字母a, b, c, d, e, f，如果指定了\#，则用0X代替0X)。若类型未指定，则d用于整型。
+整数类型:b(二进制)，b(二进制，如果指定了\#，则用0B代替0B)， d(十进制)，o(八进制)，x(十六进制，小写字母a, b, c, d, e, f)， x(十六进制，大写字母a, b, c, d, e, f，如果指定了\#，则用0X代替0X)。若类型未指定，则d用于整型。
 
 \item
-浮点类型:支持以下浮点格式。科学格式、固定格式、通用格式和十六进制格式的结果与本章前面讨论的std::chars\_format::scientific、固定格式、通用格式和十六进制格式的结果相同。
+浮点类型:支持以下浮点格式。科学格式、固定格式、通用格式和十六进制格式的结果，与本章前面讨论的std::chars\_format::scientific、固定格式、通用格式和十六进制格式的结果相同。
 
 \begin{itemize}
 \item
@@ -364,10 +364,10 @@ a, A: 由小写字母(a)或大写字母(a)组成的十六进制表示法
 布尔值:s(以文本形式输出真或假)，b, B, c, d, o, x, X(以整数形式输出1或0)。若类型未指定，则s用于布尔类型。
 
 \item
-字符:c(字符复制到输出)，?(转义字符复制到输出;参见“格式化转义字符和字符串”一节)，b, B, d, o, x, X(整数表示)。若类型未指定，则c用于字符类型。
+字符:c(字符复制到输出)，?(转义字符复制到输出)，b, B, d, o, x, X(整数表示)。若类型未指定，则c用于字符类型。
 
 \item
-字符串:s(字符串复制到输出)，?(转义字符串被复制到输出;参见“格式化转义字符和字符串”一节)。若类型未指定，则s用于字符串类型。
+字符串:s(字符串复制到输出)，?(转义字符串复制到输出)。若类型未指定，则s用于字符串类型。
 
 \item
 指针:p(以0x为前缀的指针的十六进制表示法)。若类型未指定，则p用于指针类型。只有void*类型的指针可以被格式化。其他指针类型必须首先转换为void*类型，例如使用static\_cast<void*>(myPointer)。
@@ -397,7 +397,7 @@ println("|{:_^10}|", s); // |__ProCpp__|
 
 精度只能用于浮点型和字符串类型。其指定为一个点，后面跟着要为浮点类型输出的十进制数，或者为字符串输出的字符数。浮点类型的位数包括所有数字，包括小数点分隔符之前的数字，除非使用固定浮点表示法(对于f)，精度是小数点后的位数。
 
-与宽度一样，精度也可以是另一组花括号，这称为动态精度。这时，精度要么来自参数列表中的下一个参数，要么来自给定索引的参数。
+与宽度一样，精度也可以是另一组花括号，这称为动态精度。精度要么来自参数列表中的下一个参数，要么来自给定索引的参数。
 
 以下是一些使用浮点类型的例子：
 
@@ -415,7 +415,7 @@ println("|{2:{0}.{1}}|", width, precision, d);  // |      1.37|
 
 \mySamllsection{0}
 
-说明符的0部分，对于数值，是要将零插入到格式化的值中，以达到说明符的[width]部分指定的所需最小宽度(见前面)。这些零插入到数值的前面，但是在正负号之后，以及在任何0x、0x、0b或0b前缀之后。若指定了对齐方式，则忽略0说明符。
+说明符的0部分，对于数值要将零插入到格式化的值中，以达到说明符的[width]部分指定的所需最小宽度(见前面)。这些零插入到数值的前面，但是在正负号之后，以及在任何0x、0x、0b或0b前缀之后。若指定了对齐方式，则忽略0说明符。
 
 下面是一些例子:
 
@@ -479,15 +479,15 @@ println("|{:?}|", '"');                 // |'"'|
 
 \mySubsubsection{2.2.7.}{格式范围}
 
-第 1 章介绍了std::vector、array和pair容器来存储多个数据元素。C++23起，可以直接格式化这些元素的范围。对于如vector和array这样的范围，默认输出由方括号包围，各个元素由逗号分隔。若范围的元素是字符串，其输出默认是进行转义的。
+第 1 章介绍了std::vector、array和pair容器来存储多个数据元素。C++23起，可以直接格式化这些元素的范围。对于如vector和array这样的范围，默认输出由方括号包围，各个元素由逗号分隔。若范围的元素是字符串，其输出默认进行转义。
 
-范围的格式化可以通过嵌套格式说明符来控制。一般形式如下：
+范围的格式化可以通过嵌套格式说明符来控制。一般形式为：
 
 \begin{shell}
 [[fill]align][width][n][range-type][:range-underlying-spec]
 \end{shell}
 
-方括号之间的内容都是可选的。与其他格式说明符一样，fill指定填充字符，align指定输出的对齐方式，width指定输出字段的宽度。若指定了n，输出将不包含范围的左括号和右括号。range类型可以是以下类型之一:
+方括号之间的内容可选。与其他格式说明符一样，fill指定填充字符，align指定输出的对齐方式，width指定输出字段的宽度。若指定了n，输出将不包含范围的左括号和右括号。范围类型可以是以下类型:
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -507,7 +507,7 @@ s                   & \begin{tabular}[c]{@{}l@{}}将范围格式化为字符串(
 
 范围基础规范是范围各个元素的可选格式说明符，范围说明符可以嵌套多个层次。若元素仍然是范围(例如，嵌套vector)，则范围基础规范是另一个范围格式说明符，依此类推。
 
-来看一些例子。首先，格式化一个数字vector:
+来看一些例子，格式化vector<int>:
 
 \begin{cpp}
 vector values { 11, 22, 33 };
@@ -515,7 +515,7 @@ println("{}", values); // [11, 22, 33]
 println("{:n}", values); // 11, 22, 33
 \end{cpp}
 
-若要替换开始和结束方括号，可以将格式说明符的n说明符与开始和结束字符结合起来。例如，下面的代码将输出用花括号括起来，希望在输出中出现的大括号需要转义为\{\{和\}\}。
+若要替换开始和结束方括号，可以将格式说明符的n说明符与开始和结束字符结合起来。下面的代码将输出用花括号括起来，希望在输出中出现的大括号需要转义为\{\{和\}\}。
 
 \begin{cpp}
 println("{{{:n}}}", values); // {11, 22, 33}
@@ -560,7 +560,7 @@ println("{:s}", chars);     // World    !
 println("{:?s}", chars);    // "World\t!"
 \end{cpp}
 
-下面是一些输出pair的示例。默认情况下，pair被圆括号包围，而不是方括号，两个元素用逗号分隔。使用n说明符将删除左括号和右括号。m说明符还删除括号并用":"分隔元素。
+下面是一些输出pair的示例。默认情况下，使用圆括号包围pair，而不是方括号，两个元素用逗号分隔。使用n说明符将删除左括号和右括号。m说明符还删除括号并用":"分隔元素。
 
 \begin{cpp}
 pair p { 11, 22 };
@@ -569,7 +569,7 @@ println("{:n}", p);   // 11, 22
 println("{:m}", p);   // 11: 22
 \end{cpp}
 
-最后，这里有一些输出vector的vector的例子:
+最后，这里有一些输出嵌套vector的例子:
 
 \begin{cpp}
 vector<vector<int>> vv { {11, 22}, {33, 44, 55} };
@@ -581,7 +581,7 @@ println("{:n:n:*^4}", vv);  // *11*, *22*, *33*, *44*, *55*
 
 \mySubsubsection{2.2.8.}{支持自定义类型}
 
-可以扩展格式化库以添加对自定义类型的支持。这涉及到编写std::formatter类模板的特化，其中包含两个成员函数模板:parse()和format()。我知道，在这里各位读者可能还没有理解这个例子中的所有语法，因为它使用了以下所有技术:
+可以扩展格式化库以添加对自定义类型的支持。这涉及到编写std::formatter类模板的特化，其中包含两个成员函数模板:parse()和format()。我知道，在这里各位读者可能还没有理解这个例子中的所有语法，因为它使用了以下技术:
 
 \begin{itemize}
 \item
@@ -597,7 +597,7 @@ constexpr函数，第9章内容
 迭代器，第17章内容
 \end{itemize}
 
-为了完整起见，并让各位体验一下，来看看如何实现自定义格式化器，此时可以回到这个示例。
+为了完整起见，并让各位体验一下，来看看如何实现自定义格式化器，可以回到这个示例。
 
 假设有下面的类来存储一个键值对:
 
@@ -622,7 +622,7 @@ KeyValue对象的自定义格式化程序，可以通过编写以下类模板特
 自定义格式说明符:\{:k\}只输出键，\{:v\}只输出值，\{:b\}和\{\}同时输出键和值。
 
 \item
-嵌套格式说明符:为键和/或值指定可选格式。语法如下:\{:b:KeyFormat:ValueFormat\}。
+嵌套格式说明符:为键和/或值指定可选格式。语法为:\{:b:KeyFormat:ValueFormat\}。
 
 \begin{cpp}
 template <>
@@ -700,7 +700,7 @@ class std::formatter<KeyValue>
 \end{cpp}
 \end{itemize}
 
-parse()成员函数负责解析给定的字符范围[begin(context), end(context))中的格式说明符，将解析的结果存储在formatter类的数据成员中，并返回一个指向解析格式说明符字符串末尾之后的字符的迭代器。其中两个数据成员是m\_keyFormatter类型为formatter<string>和m\_valueFormatter类型为formatter<int>，分别用于处理格式说明符的KeyFormat和ValueFormat部分。
+parse()成员函数负责解析给定的字符范围[begin(context), end(context))中的格式说明符，将解析的结果存储在formatter类的数据成员中，并返回一个指向解析格式说明符字符串末尾之后字符的迭代器。其中两个数据成员是m\_keyFormatter类型为formatter<string>和m\_valueFormatter类型为formatter<int>，分别用于处理格式说明符的KeyFormat和ValueFormat部分。
 
 format()成员函数根据parse()解析的格式规范格式化第一个参数给定的值，将结果写入ctx.out()，并返回一个指向输出末尾的迭代器。该函数使用std::format\_to()，与std::format()类似，不同之处在于它接受一个输出迭代器，指示输出应该写入的位置。
 
