@@ -27,17 +27,17 @@
 
 \mySubsubsection{4.6.2.}{设计步骤}
 
-设计程序时，应该采取一种系统化的方法，从一般到具体逐步进行。以下步骤并不适用于所有程序，但提供了一种一般性指导原则。设计应包括适当的图表和表格，UML是行业标准。可以参考附录D了解简要介绍，UML定义了多种标准的图，可以使用它们来记录软件设计，例如类图、序列图等。我建议在适用的情况下使用UML或类似UML的图。然而，我不主张严格遵循UML语法，因为一个清晰、易于理解的图，比拥有一个语法正确的图更为重要。
+设计程序时，应该采取一种系统化的方法，从一般到具体逐步进行。以下步骤并不适用于所有程序，只是提供了一种一般性指导原则。设计应包括适当的图表和表格，UML是行业标准。可以参考附录D了解简要介绍，UML定义了多种标准的图，可以使用它们来记录软件设计，如类图、序列图等。我建议在适用的情况下使用UML或类似UML的图，但我不主张严格遵循UML语法，因为一个清晰、易于理解的图，比拥有一个语法正确的图更为重要。
 
 \mySamllsection{将程序划分为子系统}
 
-第一步是将程序划分为功能性子系统，并指定子系统之间的接口和交互。这一点上，不要担心数据结构和算法的具体细节，甚至是类。只是在尝试了解程序的各个部分，以及它们之间如何交互。可以在一个表格中列出子系统，该表格表达子系统的高层行为或功能，子系统向其他子系统导出接口，以及使用其他子系统消的接口。
+第一步是将程序划分为功能性子系统，并指定子系统之间的接口和交互。不要担心数据结构和算法的具体细节，甚至是类。只是在尝试了解程序的各个部分，以及它们之间如何交互。可以在一个表格中列出子系统，该表格表达子系统的高层行为或功能，子系统向其他子系统导出接口，以及使用其他子系统的接口。
 
-对于这个国际象棋游戏，推荐的设计是使用模型-视图-控制器（MVC）范式，以清晰地区分存储数据和显示数据。这个范式模拟了这样一个概念：许多应用程序通常处理一组数据，该数据的一个或多个视图，以及该数据的操作。 MVC 中，一组数据称为模型，视图是模型的特定可视化，控制器是响应某些事件而改变模型的代码片段。MVC 的三个组件相互作用形成一个反馈循环：动作由控制器处理，控制器调整模型，导致视图或视图的变化。控制器也可以直接修改视图，例如 UI 元素。图 4.4 可视化这种交互。使用这个范式，清晰地分离不同的组件，允许修改一个组件而不影响其他组件。例如，可以轻松地在基于文本的界面和图形用户界面之间切换，或者在桌面 PC 上运行的界面和手机上运行的界面之间切换，而不必触及底层的数据模型或逻辑。
+对于这个国际象棋游戏，推荐的设计是使用模型-视图-控制器（MVC）范式，以清晰地区分存储数据和显示数据。这个范式模拟了这样一个情况：许多应用程序通常处理一组数据，该数据的一个或多个视图，以及该数据的操作。 MVC 中，一组数据称为模型，视图是模型的特定可视化，控制器是响应某些事件而改变模型的代码片段。MVC 的三个组件相互作用形成一个反馈循环：动作由控制器处理，控制器调整模型，导致视图或视图的变化。控制器也可以直接修改视图，例如 UI 元素。图 4.4 可视化这种交互。使用这个范式，清晰地分离不同的组件，允许修改一个组件而不影响其他组件。可以轻松地在基于文本的界面和图形用户界面之间切换，或者在桌面 PC 上运行的界面和手机上运行的界面之间切换，而不必触及底层的数据模型或逻辑。
 
 \myGraphic{0.7}{content/part2/chapter4/images/4.png}{图4.4}
 
-下表显示了象棋游戏的可能子系统:
+下表显示了象棋游戏的子系统:
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -57,22 +57,22 @@ GamePlay &
 1 &
 \begin{tabular}[c]{@{}l@{}}开始游戏\\ 控制游戏流程\\ 控制绘图\\ 宣布获胜者\\ 结束游戏\end{tabular} &
 Game Over &
-\begin{tabular}[c]{@{}l@{}}Take Turn (on\\ Player)\\ Draw (on\\ ChessBoardView)\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}Take Turn (on Player)\\ Draw (on ChessBoardView)\end{tabular} \\ \hline
 ChessBoard &
 1 &
 \begin{tabular}[c]{@{}l@{}}储存棋子\\ 检查棋局状态\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}Get Piece At\\ Set Piece At\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Game Over (on\\ GamePlay)\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}Game Over (on GamePlay)\end{tabular} \\ \hline
 ChessBoardView &
 1 &
 \begin{tabular}[c]{@{}l@{}}绘制相关的ChessBoard\end{tabular} &
 Draw &
-\begin{tabular}[c]{@{}l@{}}Draw (on\\ ChessPieceView)\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}Draw (on ChessPieceView)\end{tabular} \\ \hline
 ChessPiece &
 32 &
 \begin{tabular}[c]{@{}l@{}}移动\\ 检查移动是否符合规则\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}Move\\ Check Move\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}Get Piece At (on\\ ChessBoard)\\ Set Piece At (on\\ ChessBoard)\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}Get Piece At (on ChessBoard)\\ Set Piece At (on ChessBoard)\end{tabular} \\ \hline
 ChessPieceView &
 32 &
 \begin{tabular}[c]{@{}l@{}}绘制相关的ChessPiece\end{tabular} &
@@ -80,9 +80,9 @@ Draw &
 无 \\ \hline
 Player &
 2 &
-\begin{tabular}[c]{@{}l@{}}通过提示用户移动，\\并获取用户的移动信息进行交互\\ 移动棋子\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}通过提示用户移动，并\\获取用户的移动信息进\\行交互\\ 移动棋子\end{tabular} &
 Take Turn &
-\begin{tabular}[c]{@{}l@{}}Get Piece At (on\\ ChessBoard)\\ Move (on\\ ChessPiece)\\ Check Move (on\\ ChessPiece)\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}Get Piece At (on ChessBoard)\\ Move (on ChessPiece)\\ Check Move (on ChessPiece)\end{tabular} \\ \hline
 ErrorLogger &
 1 &
 \begin{tabular}[c]{@{}l@{}}将错误消息写入日志文件\end{tabular} &
@@ -90,29 +90,29 @@ Log Error &
 无 \\ \hline
 \end{longtable}
 
-如表所示，这个国际象棋游戏的功能子系统，包括一个 GamePlay 子系统，一个 ChessBoard 和 ChessBoardView，32 个 ChessPieces 和 ChessPieceViews，两个 Players 和一个 ErrorLogger。然而，这并不是唯一合理的方法。在软件设计，就像编程本身一样，通常有许多不同的方法可以实现相同的目标。并非所有解决方案都是平等的；有些显然比其他的更好，通常有多个有效的解决方案。
+如表所示，这个国际象棋游戏的功能子系统，包括一个 GamePlay 子系统，一个 ChessBoard 和 ChessBoardView，32 个 ChessPieces 和 ChessPieceViews，两个 Players 和一个 ErrorLogger。在软件设计，就像编程本身一样，通常有许多不同的方法可以实现相同的目标。并非所有解决方案都是平等的；有些显然比其他的更好，通常有多个有效的解决方案。
 
-好的子系统划分将程序划分为其基本的功能部分。例如，玩家是与 ChessBoard、ChessPieces 或 GamePlay 不同的子系统。将玩家归入 GamePlay 子系统是没有意义的，因为它们在逻辑上是独立的子系统。其他选择可能没有那么明显。
+好的子系统划分将程序划分为其基本的功能部分，玩家是与 ChessBoard、ChessPieces 或 GamePlay 不同的子系统。将玩家归入 GamePlay 子系统没有意义，它们在逻辑上是独立的子系统，其他可能没有那么明显。
 
 这个 MVC 设计中，ChessBoard 和 ChessPiece 子系统是模型的一部分。ChessBoardView 和 ChessPieceView 是视图的一部分，而 Player 是控制器的一部分。
 
-由于通常很难从表格中可视化子系统关系，因此在图中显示程序的子系统通常很有帮助，其中线条代表从一个子系统到另一个子系统的调用。图 4.5 显示了国际象棋游戏子系统，可视化为一个基于 UML 的图。
+由于很难从表格中可视化子系统关系，因此在图中显示程序的子系统通常很有帮助，其中线条代表从一个子系统到另一个子系统的调用。图 4.5 显示了国际象棋游戏子系统，可视化为基于 UML 的图。
 
 \myGraphic{0.9}{content/part2/chapter4/images/5.png}{图 4.5}
 
 \mySamllsection{选择线程模型}
 
-设计的早期阶段，考虑如何编写算法中实现特定循环的多线程还为时过早。然而，在这一步中，应该选择程序中的高级线程数量，并指定它们的交互。高级线程的例子包括 UI 线程、音频播放线程、网络通信线程等。
+设计的早期阶段，考虑如何编写算法中实现特定循环的多线程还为时过早。在这一步中，应该选择程序中的高层线程数量，并指定它们的交互。高层线程的例子包括 UI 线程、音频播放线程、网络通信线程等。
 
 多线程设计中，应尽可能避免共享数据，这会使设计更简单、更安全。如果无法避免共享数据，应使用锁。
 
-如果不熟悉多线程程序，或者平台不支持多线程，则应该使程序单线程运行。然而，如果程序有多个不同的任务，每个任务都可以并行工作，那么将有可能是多线程化。例如，图形用户界面应用程序通常有一个线程执行主要的应用程序工作，另一个线程等待用户按下按钮或选择菜单项。多线程编程在第 27 章中涉及。
+如果不熟悉多线程程序，或者平台不支持多线程，则应该使程序单线程运行。如果程序有多个不同的任务，每个任务都可以并行工作，那么将有可能是多线程化。图形用户界面应用程序通常有一个线程执行主要的应用程序工作，另一个线程等待用户按下按钮或选择菜单项。多线程编程在第 27 章中进行介绍。
 
 国际象棋程序只需要一个线程来控制游戏流程。
 
 \mySamllsection{指定类层次结构}
 
-这一步中，需要确定在程序中编写的类层次结构。国际象棋程序可以使用一个类层次结构来表示棋子。这个层次结构可以如图 4.6 所示那样工作，通用的 ChessPiece 类作为抽象基类。ChessPieceView 类也需要一个类似的层次结构。
+这一步中，需要确定在程序中编写的类层次结构。国际象棋程序可以使用一个类层次结构来表示棋子。层次结构可以如图 4.6 所示那样，通用的 ChessPiece 类作为抽象基类。ChessPieceView 类也需要一个类似的层次结构。
 
 \myGraphic{0.8}{content/part2/chapter4/images/6.png}{图 4.6}
 
@@ -124,7 +124,7 @@ Log Error &
 
 \mySamllsection{指定类、数据结构、算法和模式}
 
-这一步中，需要考虑更详细的层次，并指定每个子系统的具体细节，包括将为每个子系统编写的具体类。很可能会发现自己将每个子系统本身建模为一个类。这些信息可以再次总结在一个表格中。
+这一步中，需要考虑更详细的层次，并指定每个子系统的具体细节，包括将为每个子系统编写的具体类。很可能会发现自己将每个子系统本身建模为一个类。这些信息可以总结在一个表格中。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -177,11 +177,11 @@ ErrorLogger类 &
 \begin{tabular}[c]{@{}l@{}}依赖注入策略\end{tabular} \\ \hline
 \end{longtable}
 
-表中已经提供了一些关于软件设计中的不同类的信息，但它并没有清晰地描述它们之间的交互。UML 序列图可以用来模型化这样的交互。图 4.8 展示了这样一个图，可视化了前一个表格中一些类之间的关系。
+表中已经提供了一些关于软件设计中的不同类的信息，但并没有清晰地描述它们之间的交互。UML 序列图可以用来模型化这样的交互。图 4.8 展示了这样一个图，可视化了前一个表格中一些类之间的关系。
 
-\myGraphic{0.9}{content/part2/chapter4/images/8.png}{图 4.8}
+\myGraphic{0.7}{content/part2/chapter4/images/8.png}{图 4.8}
 
-图 4.8 中的图表只展示了单一的迭代，从 GamePlay 到 Player 的 TakeTurn 调用，这只是一个部分序列图。在 TakeTurn 完成后，GamePlay 对象应该请求 ChessBoardView 绘制自身，这反过来又应该请求不同的 ChessPieceViews 进行绘制。此外，应该扩展序列图，以可视化棋子如何吃掉对方的棋子，并包括对王车易位（castling move）的支持，这是一种涉及玩家的王和任意一个车（rook）的移动。王车易位是唯一一种玩家同时移动两个棋子的走法。
+图 4.8 中的图表只展示了单一的迭代，从 GamePlay 到 Player 的 TakeTurn 调用，这只是一个部分序列图。 TakeTurn 完成后，GamePlay 对象应该请求 ChessBoardView 绘制自身，这反过来又应该请求不同的 ChessPieceViews 进行绘制。此外，应该扩展序列图，以可视化棋子如何吃掉对方的棋子，并包括对王车易位（castling move）的支持，这是一种涉及玩家的王和任意一个车（rook）的移动。王车易位是唯一一种玩家可同时移动两个棋子的走法。
 
 设计文档的这一部分通常会呈现每个类的实际接口，但这个例子将省略那个层次的细节。
 
@@ -220,7 +220,7 @@ ErrorLogger &
 不适用(无直接用户界面)。 \\ \hline
 \end{longtable}
 
-错误处理的通用规则是处理所有事情,仔细考虑所有可能的错误情况。如果忘记了一个可能性，它将作为程序中的错误出现！不要将任何东西视为“意外”错误。期待所有可能性：内存分配失败、无效用户输入、磁盘故障和网络故障，仅举几例。然而，正如国际象棋游戏的表格所示，应该以不同的方式处理用户错误和内部错误。例如，用户输入一个无效的移动，不应该导致的国际象棋程序终止。第 14 章会更深入地介绍错误处理。
+错误处理的通用规则是处理所有事情,仔细考虑所有可能的错误情况。如果忘记了一个可能性，它将作为程序中的错误出现！不要将任何东西视为“意外”错误。期待所有可能性：内存分配失败、无效用户输入、磁盘故障和网络故障，仅举几例。然而，正如国际象棋游戏的表格所示，应该以不同的方式处理用户错误和内部错误。用户输入一个无效的移动，不应该导致的国际象棋程序终止。第 14 章会更深入地介绍错误处理。
 
 
 
