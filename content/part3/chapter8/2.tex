@@ -1,11 +1,11 @@
 
-编写一个类时，需要指定将应用于该类对象的行为（或成员函数），以及每个对象将包含的属性（或数据成员）。
+定义一个类时，需要指定将应用于该类对象的行为（或成员函数），以及每个对象将包含的属性（或数据成员）。
 
-编写类的过程包含两个部分：定义类本身和其成员函数。
+定义类的过程包含两个部分：定义类本身和其成员函数。
 
 \mySubsubsection{8.2.1.}{类的定义}
 
-这里是对一个名为spreadsheet\_cell的模块中一个简单的SpreadsheetCell类的进行尝试，每个单元格只能存储一个数字：
+对一个名为spreadsheet\_cell的模块中一个简单的SpreadsheetCell类的进行尝试，每个单元格只能存储一个数字：
 
 \begin{cpp}
 export module spreadsheet_cell;
@@ -20,9 +20,9 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-如第1章所述，第一行指定这是一个名为spreadsheet\_cell的模块的定义。每个类定义都以关键字class开始，后跟类名。如果类在模块中定义，并且必须对导入模块的客户端可见，那么类关键字前缀为export。类定义是一个声明，以分号结束。
+第一行指定这是一个名为spreadsheet\_cell的模块的定义，每个类定义都以关键字class开始后跟类名。如果类在模块中定义，并且必须对导入模块的客户端可见，则class关键字前缀为export。类定义是一个声明，以分号结束。
 
-类定义通常放在与类同名的文件中。例如，SpreadsheetCell类定义放在名为SpreadsheetCell.cppm的文件中，会一些编译器要求使用特定的扩展名。
+类定义通常放在与类同名的文件中。SpreadsheetCell类定义放在名为SpreadsheetCell.cppm的文件中，会一些编译器要求使用特定的扩展名。
 
 \mySamllsection{类成员}
 
@@ -37,19 +37,19 @@ double getValue() const;
 
 第1章指出，将不会改变对象的成员函数声明为const，比如getValue()成员函数。
 
-变量声明的一行声明了这个类的数据成员：
+这里声明了这个类的数据成员：
 
 \begin{cpp}
 double m_value;
 \end{cpp}
 
-一个类定义了将应用于其对象的成员函数和数据成员，这仅适用于类的特定实例，即对象。唯一的例外是静态成员，这在第9章中解释。类定义了概念；对象包含实际成员。所以，每个对象都包含自己的m\_value数据成员的值，对象共享成员函数的实现。类可以包含任意数量的成员函数和数据成员，但不能给数据成员和成员函数起相同的名字。
+类定义了将应用于其对象的成员函数和数据成员，这仅适用于类的特定实例即对象。唯一的例外是静态成员，这在第9章中解释。类定义了概念，对象包含实际成员，每个对象都包含自己的m\_value数据成员的值，对象共享成员函数的实现。类可以包含任意数量的成员函数和数据成员，但不能给数据成员和成员函数起相同的名字。
 
 \mySamllsection{访问控制}
 
-类中的每个成员都受以下三种访问说明符之一：public、private或protected。受保护访问说明符在继承的上下文中在第10章中解释。访问说明符适用于其之后的所有成员声明，直到下一个访问说明符。SpreadsheetCell类中，setValue()和getValue()成员函数为public，而m\_value数据成员问为private。
+类中的每个成员都受以下三种访问说明符之一：public、private或protected。访问说明符适用于其之后的所有成员声明，直到下一个访问说明符。SpreadsheetCell类中，setValue()和getValue()成员函数为public，而m\_value数据成员问为private。
 
-类的默认访问说明符是private：第一个访问说明符之前的所有成员声明都为private。例如，将public访问说明符移动到setValue()成员函数声明之后，则setValue()成员函数问private，而非public：
+类的默认访问说明符是private：第一个访问说明符之前的所有成员声明都为private。将public访问说明符移动到setValue()成员函数声明之后，则setValue()成员函数问private，而非public：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -64,7 +64,7 @@ export class SpreadsheetCell
 
 在C++中，struct可以有与class相同的成员函数。只有一个区别：对于struct，默认访问说明符是public，而class是private。
 
-例如，SpreadsheetCell类可以改写为使用struct：
+SpreadsheetCell类可以改写为struct：
 
 \begin{cpp}
 export struct SpreadsheetCell
@@ -88,7 +88,7 @@ export struct Point
 
 \mySamllsection{声明的顺序}
 
-可以按任何顺序声明成员和访问控制说明符：C++不强制任何限制，比如成员函数在前，数据成员在后，或者public在前，private在后。此外，可以重复访问说明符。例如，SpreadsheetCell定义可以如下所示：
+可以按任何顺序声明成员和访问控制说明符：C++不强制任何限制，比如成员函数在前，数据成员在后，或者public在前，private在后。此外，可以重复访问说明符，SpreadsheetCell的定义可以为：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -102,11 +102,11 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-然而，为了清晰起见，最好根据访问说明符对声明进行分组，并在那些声明内对成员函数和数据成员进行分组。
+为了清晰起见，最好根据访问说明符对声明进行分组，可以对那些声明内对成员函数和数据成员进行分组。
 
 \mySamllsection{类内成员初始化器}
 
-数据成员可以直接在类定义中进行初始化。例如，SpreadsheetCell类可以直接在类定义中将m\_value默认初始化为0：
+数据成员可以直接在类定义中进行初始化，SpreadsheetCell类可以直接在类定义中将m\_value默认初始化为0：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -123,9 +123,9 @@ export class SpreadsheetCell
 
 \mySubsubsection{8.2.2.}{定义成员函数}
 
-前面的SpreadsheetCell类定义足以创建该类的对象。然而，如果尝试调用setValue()或getValue()成员函数，链接器会抱怨成员函数尚未定义。这是因为这些成员函数目前只有原型，而没有实现。通常，类定义放在模块接口文件中。对于成员函数的定义，可以选择将其放在模块接口文件中或模块实现文件中。
+SpreadsheetCell类定义足以创建该类的对象，如果尝试调用setValue()或getValue()成员函数，链接器会抱怨成员函数尚未定义，因为这些成员函数目前只有声明没有实现。通常，类定义放在模块接口文件中，对于成员函数的定义，可以将其放在模块接口文件中或模块实现文件中。
 
-以下是在类内实现成员函数的SpreadsheetCell类：
+以下SpreadsheetCell类，其成员函数在类内实现：
 
 \begin{cpp}
 export module spreadsheet_cell;
@@ -140,9 +140,9 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-与头文件不同，在C++模块中，将成员函数定义放在模块接口文件中并无害处。这在第11章中有更详细的讨论。然而，为了保持模块接口文件的清洁和不含任何实现细节，本书通常将成员函数定义放在模块实现文件中。
+与头文件不同，在C++模块中，将成员函数定义放在模块接口文件中并无害处。为了保持模块接口文件的清洁和不含实现细节，本书通常将成员函数定义放在模块实现文件中。
 
-模块实现文件的第一行指定实现属于哪个模块。以下是spreadsheet\_cell模块,SpreadsheetCell类中两个成员函数的定义：
+模块实现文件的第一行指定实现属于哪个模块。以下是spreadsheet\_cell模块，SpreadsheetCell类中两个成员函数的定义：
 
 \begin{cpp}
 module spreadsheet_cell;
@@ -165,11 +165,11 @@ double SpreadsheetCell::getValue() const
 void SpreadsheetCell::setValue(double value)
 \end{cpp}
 
-双冒号称为作用域解析运算符。在这个上下文中，这个语法告诉编译器即将到来的setValue()成员函数的定义属于SpreadsheetCell类。还要注意，定义成员函数时，不需要访问说明符。
+双冒号称为作用域解析操作符，这个语法告诉编译器即将到来的setValue()成员函数的定义属于SpreadsheetCell类。定义成员函数时，不需要访问说明符。
 
 \mySamllsection{访问数据成员}
 
-类的非静态成员函数，如setValue()和getValue()，总是代表该类的特定对象执行。成员函数体内，可以访问该对象的所有数据成员。前面setValue()的定义中，修改了对象内的m\_value变量：
+类的非静态成员函数，如setValue()和getValue()，总是代表该类的特定对象。成员函数体内，可以访问该对象的所有数据成员。setValue()的定义中，修改了对象内的m\_value：
 
 \begin{cpp}
 m_value = value;
@@ -179,7 +179,7 @@ m_value = value;
 
 \mySamllsection{调用其他成员函数}
 
-可以从一个成员函数内部调用类的其他成员函数。例如，考虑对SpreadsheetCell类进行扩展，将单元格的值设置为字符串或数字。尝试将字符串设置为单元格的值时，单元格会尝试将字符串转换为数字。如果字符串不代表有效的数字，则忽略单元格值。这个程序中，不是数字的字符串将生成单元格值为0。以下是对SpreadsheetCell类定义的首次尝试：
+可以从一个成员函数内部调用类的其他成员函数。考虑对SpreadsheetCell类进行扩展，将单元格的值设置为字符串或数字。尝试将字符串设置为单元格的值时，单元格会尝试将字符串转换为数字。如果字符串不代表有效的数字，则忽略单元格值，不是数字的字符串将生成单元格值为0。以下是对SpreadsheetCell类定义的首次尝试：
 
 \begin{cpp}
 export module spreadsheet_cell;
@@ -199,7 +199,7 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-这个版本的类只将数据存储为double。如果客户端将数据设置为字符串，则会将其转换为double。如果文本不是有效的数字，则double值设置为0。类定义展示了两个新的成员函数，用于设置和检索单元格的文本表示，以及两个新的私有辅助成员函数，用于将double转换为字符串以及反之。以下是所有成员函数的实现：
+这个版本的类只将数据存储为double。如果客户端将数据设置为字符串，则会将其转换为double。如果文本不是有效的数字，则double值设置为0。类定义展示了两个新的成员函数，用于设置和检索单元格的文本表示，以及两个新的私有辅助成员函数，用于将double转换为字符串，以及将字符串转换为double。以下是所有成员函数的实现：
 
 \begin{cpp}
 module spreadsheet_cell;
@@ -241,13 +241,13 @@ double SpreadsheetCell::stringToDouble(string_view value) const
 
 std::to\_string()和from\_chars()函数在第2章中进行了解释。
 
-使用此doubleToString()成员函数的实现，例如6.1的值转换为6.100000。因为它是一个私有的辅助成员函数，可以自由修改实现，而无需修改任何客户端(调用)代码。
+使用此doubleToString()成员函数的实现，例如6.1的值转换为6.100000。因为它是一个私有的辅助成员函数，可以自由修改实现，而无需修改客户端(调用)代码。
 
 \mySubsubsection{8.2.3.}{使用对象}
 
-前面的类定义说明，SpreadsheetCell包含一个数据成员、四个公共成员函数和两个私有成员函数。类定义实际上并没有创建任何SpreadsheetCell对象，只是指定了其外貌和行为。类就像建筑蓝图，蓝图指定房子应该是什么样子，但是绘制蓝图的行为并不会建造房子，而房子必须根据制定的蓝图来建造。
+类定义说明，SpreadsheetCell包含一个数据成员、四个公共成员函数和两个私有成员函数。类定义实际上并没有创建任何SpreadsheetCell对象，只是指定了其外貌和行为。类就像建筑蓝图，蓝图指定房子应该是什么样子，但是绘制蓝图的行为并不会建造房子，而房子必须根据制定的蓝图来建造。
 
-C++中可以从SpreadsheetCell类定义构造一个SpreadsheetCell“对象”，通过声明一个类型为SpreadsheetCell的变量。就像一个建筑商可以根据一套给定的蓝图建造多套房子一样，开发者也可以使用一个SpreadsheetCell类，创建多个SpreadsheetCell对象。有两种创建和使用对象的方式：栈和堆。
+C++中可以从SpreadsheetCell类定义构造一个SpreadsheetCell“对象”，通过声明一个类型为SpreadsheetCell的变量。就像一个建筑商可以根据一套给定的蓝图建造多套房子一样，开发者也可以使用SpreadsheetCell类，创建多个SpreadsheetCell对象。有两种创建和使用对象的方式：栈和堆。
 
 \mySamllsection{栈上对象}
 
@@ -261,7 +261,7 @@ println("cell 1: {}", myCell.getValue());
 println("cell 2: {}", anotherCell.getValue());
 \end{cpp}
 
-创建对象的方式和声明简单变量的方式一样，只不过变量的类型是类名。像myCell.setValue(6);中的点称为“点”运算符，也称为成员访问运算符；允许调用对象的公共成员函数。如果对象中有任何公共数据成员，也可以用点运算符访问。记住，不推荐使用公共数据成员。
+创建对象的方式和声明简单变量的方式一样，只不过变量的类型是类名。像myCell.setValue(6);中的点称为“点”操作符，也称为成员访问操作符；允许调用对象的公共成员函数。如果对象中有公共数据成员，也可以用点操作符访问，不推荐使用公共数据成员。
 
 程序的输出如下：
 
@@ -282,7 +282,7 @@ delete myCellp;
 myCellp = nullptr;
 \end{cpp}
 
-当创建一个堆区对象时，可通过“箭头”运算符：->来访问它的成员。箭头运算符结合了解引用(*)和成员访问(.)。也可以使用这两个运算符，但这在风格上会显得笨拙：
+当创建一个堆区对象时，可通过“箭头”操作符：->来访问它的成员。箭头操作符结合了解引用(*)和成员访问(.)。也可以使用这两个操作符，但这在风格上会显得笨拙：
 
 \begin{cpp}
 SpreadsheetCell* myCellp { new SpreadsheetCell { } };
@@ -292,7 +292,7 @@ delete myCellp;
 myCellp = nullptr;
 \end{cpp}
 
-必须释放在堆区上分配的内存，通过调用delete来释放在堆区上为对象分配的内存。为了确保安全并避免内存问题，应该使用智能指针，如下例所示：
+必须释放在堆区上分配的内存，通过调用delete来释放在堆区上为对象分配的内存。为了确保安全并避免内存问题，应该使用智能指针：
 
 \begin{cpp}
 auto myCellp { make_unique<SpreadsheetCell>() };
@@ -305,7 +305,7 @@ println("cell 1: {} {}", myCellp->getValue(), myCellp->getString());
 使用智能指针，不需要手动释放内存。
 
 \begin{myWarning}{WARNING}
-使用new分配一个对象时，在完成使用后，要么用delete释放，要么使用智能指针自动管理内存！
+使用new分配一个对象，完成使用后，要么用delete释放，要么使用智能指针自动管理内存！
 \end{myWarning}
 
 \begin{myNotic}{NOTE}
@@ -314,7 +314,7 @@ println("cell 1: {} {}", myCellp->getValue(), myCellp->getString());
 
 \mySubsubsection{8.2.4.}{this指针}
 
-每个正常的成员函数调用都会隐式传递一个指向调用对象的指针，作为名为this的“隐藏”参数。可以使用this指针来访问数据成员或调用成员函数，也可以将其传递给其他成员函数或函数。有时它也有助于消除名称歧义。例如，可以定义SpreadsheetCell类使用value数据成员而不是m\_value。这时，setValue()看起来如下：
+每个正常的成员函数调用都会隐式传递一个指向调用对象的指针，作为名为this的“隐藏”参数。可以使用this指针来访问数据成员或调用成员函数，也可以将其传递给其他成员函数或函数。有时它也有助于消除名称歧义，可以定义SpreadsheetCell类使用value数据成员而不是m\_value。这时，setValue()看起来如下：
 
 \begin{cpp}
 void SpreadsheetCell::setValue(double value)
@@ -326,10 +326,10 @@ void SpreadsheetCell::setValue(double value)
 这行代码令人困惑。指的是作为参数传递的value，还是对象成员的value？
 
 \begin{myNotic}{NOTE}
-使用某些编译器或编译器设置，上述混淆的行可能会编译，而没有任何警告或错误，但不会产生预期的结果。
+使用某些编译器或编译器设置，上述混淆的行可能会编译，而没有警告或错误，但不会产生预期的结果。
 \end{myNotic}
 
-为了消除名称歧义，你可以使用this指针：
+为了消除名称歧义，可以使用this指针：
 
 \begin{cpp}
 void SpreadsheetCell::setValue(double value)
@@ -340,7 +340,7 @@ void SpreadsheetCell::setValue(double value)
 
 然而，如果使用第3章中描述的命名约定，就永远不会遇到这种名称冲突。
 
-还可以使用this指针从对象的成员函数中调用一个接受对象指针作为参数的函数。例如，编写了一个独立的printCell()函数（不是成员函数）：
+还可以使用this指针从对象的成员函数中，调用一个接受对象指针作为参数的函数。例如，编写了一个独立的printCell()函数（不是成员函数）：
 
 \begin{cpp}
 void printCell(const SpreadsheetCell& cell)
@@ -349,7 +349,7 @@ void printCell(const SpreadsheetCell& cell)
 }
 \end{cpp}
 
-如果想从setValue()成员函数中调用printCell()，必须传递*this作为参数，以便printCell()引用setValue()操作的SpreadsheetCell：
+如果想在setValue()成员函数中调用printCell()，必须传递*this作为参数，以便printCell()引用setValue()操作的SpreadsheetCell：
 
 \begin{cpp}
 void SpreadsheetCell::setValue(double value)
@@ -360,13 +360,13 @@ void SpreadsheetCell::setValue(double value)
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-与其编写printCell()函数，不如编写自定义格式化器，如第2章所述。然后，可以使用以下行来打印名为myCell的SpreadsheetCell：
+与其编写printCell()函数，不如编写自定义格式化器，可通过以下行来打印名为myCell的SpreadsheetCell：
 
 \begin{cpp}
 std::println("{}", myCell);
 \end{cpp}
 
-或者，可以重载<{}<运算符。然后，可以编写如下内容：
+或者，可以重载<{}<操作符，可以编写如下内容：
 
 \begin{cpp}
 cout << myCell << endl;
@@ -377,7 +377,7 @@ cout << myCell << endl;
 
 \CXXTwentythreeLogo{-40}{15}
 
-从C++23开始，可以使用显式的对象参数，而不是依赖于编译器提供隐式的this参数。通常，这个显式的对象参数是一个引用类型。以下代码段使用显式对象参数，实现了前面部分的SpreadsheetCell的setValue()成员函数：
+从C++23开始，可以使用显式的对象参数，而不是依赖于编译器提供隐式的this参数，这个显式的对象参数通常是一个引用类型。以下代码段使用显式对象参数，实现了前面部分的SpreadsheetCell的setValue()成员函数：
 
 \begin{cpp}
 void SpreadsheetCell::setValue(this SpreadsheetCell& self, double value)
@@ -387,26 +387,26 @@ void SpreadsheetCell::setValue(this SpreadsheetCell& self, double value)
 }
 \end{cpp}
 
-现在，setValue()的第一个参数是显式的对象参数，通常称为self，但也可以使用其他名称。self的类型前缀为this关键字。这个显式的对象参数必须是成员函数的第一个参数。使用显式的对象参数，函数就不再有隐式定义的this；因此，在setValue()的函数体内，必须明确使用self来访问SpreadsheetCell。
+setValue()的第一个参数是显式的对象参数，通常称为self，但也可以使用其他名称。self的类型前缀为this关键字，这个显式的对象参数必须是成员函数的第一个参数。使用显式的对象参数，函数就不再有隐式定义的this；在setValue()的函数体内，必须明确使用self来访问SpreadsheetCell。
 
-调用使用显式对象参数的成员函数与调用使用隐式this参数的成员函数没有区别。现在setValue()指定了两个参数，self和value，但仍然可以通过传递一个参数（想要设置的值）来调用：
+调用使用显式对象参数的成员函数，与调用使用隐式this参数的成员函数没有区别。现在setValue()指定了两个参数，self和value，但仍然可以通过传递一个参数（想要设置的值）来调用：
 
 \begin{cpp}
 SpreadsheetCell myCell;
 myCell.setValue(6);
 \end{cpp}
 
-如本节所示，使用显式对象参数，会使代码更加冗长。然而，在以下情况下它们很有用：
+如本节所示，使用显式对象参数，会使代码更加冗长。然而，在以下情况下很有用：
 
 \begin{itemize}
 \item
-提供更明确的语法来编写返回类型引用成员函数。
+提供更明确的语法，来编写返回类型引用成员函数。
 
 \item
-对于成员函数模板，其中显式对象参数的类型是模板类型参数。这在实现成员函数的const和非const重载时避免代码重复，如第12章所述。
+对于成员函数模板，其中显式对象参数的类型是模板类型参数。在实现成员函数的const和非const重载时避免代码重复，如第12章所述。
 
 \item
-用于编写第19章中解释的递归Lambda表达式。
+用于定义第19章中解释的递归Lambda表达式。
 \end{itemize}
 
 
