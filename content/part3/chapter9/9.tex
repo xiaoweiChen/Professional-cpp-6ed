@@ -86,7 +86,7 @@ Spreadsheet::Impl::Impl(size_t width, size_t height)
 Spreadsheet::~Spreadsheet() = default;
 \end{cpp}
 
-实际上，它必须在实现文件中默认，而不是直接在类定义中。原因是因为 Impl 类只在 Spreadsheet 类定义中进行了声明；也就是说，编译器知道将会有一个 Spreadsheet::Impl 类，但还不知道其定义。因为编译器会尝试使用还尚未定义的 Impl 类的析构函数，所以不能在类定义中默认析构函数。这种情况下，对于其他成员函数也是如此，例如：移动构造函数和移动赋值运算符。
+实际上，它必须在实现文件中默认，而不是直接在类定义中。原因是因为 Impl 类只在 Spreadsheet 类定义中进行了声明；也就是说，编译器知道将会有一个 Spreadsheet::Impl 类，但还不知道其定义。因为编译器会尝试使用还尚未定义的 Impl 类的析构函数，所以不能在类定义中默认析构函数。这种情况下，对于其他成员函数也是如此，例如：移动构造函数和移动赋值操作符。
 
 Spreadsheet 成员函数的实现，如 setCellAt() 和 getCellAt()，只是将请求传递给底层 Impl 对象：
 
@@ -123,7 +123,7 @@ Spreadsheet::Spreadsheet(const Spreadsheet& src)
 
 复制构造函数看起来有点奇怪，需要复制源 Spreadsheet 底层的 Impl。复制构造函数需要引用 Impl，而不是指针，所以必须解引用 m\_impl 指针才能得到对象本身。
 
-Spreadsheet 赋值运算符也必须将赋值传递给底层的 Impl：
+Spreadsheet 赋值操作符也必须将赋值传递给底层的 Impl：
 
 \begin{cpp}
 Spreadsheet& Spreadsheet::operator=(const Spreadsheet& rhs)
@@ -133,7 +133,7 @@ Spreadsheet& Spreadsheet::operator=(const Spreadsheet& rhs)
 }
 \end{cpp}
 
-赋值运算符的第一行看起来有点奇怪。Spreadsheet 赋值运算符需要将调用传递给 Impl 赋值运算符，这个运算符只在复制对象时运行。通过解引用 m\_impl 指针，强制执行直接对象赋值，这会调用 Impl 的赋值运算符。
+赋值操作符的第一行看起来有点奇怪。Spreadsheet 赋值操作符需要将调用传递给 Impl 赋值操作符，这个操作符只在复制对象时运行。通过解引用 m\_impl 指针，强制执行直接对象赋值，这会调用 Impl 的赋值操作符。
 
 swap() 成员函数只是交换单个数据成员：
 

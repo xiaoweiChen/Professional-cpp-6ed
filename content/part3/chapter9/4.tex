@@ -3,7 +3,7 @@
 
 \mySubsubsection{9.4.1.}{constexpr 关键字}
 
-C++ 有常量表达式，这些表达式在编译时进行评估。某些情况下，必须是常量表达式。例如，当定义一个数组时，数组的大小需要是常量表达式。因此，以下代码在 C++ 中无效：
+C++ 有常量表达式，这些表达式在编译时进行计算。某些情况下，必须是常量表达式。当定义一个数组时，数组的大小需要是常量表达式，以下代码在 C++ 中无效：
 
 \begin{cpp}
 const int getArraySize() { return 32; }
@@ -35,7 +35,7 @@ int myArray[getArraySize() + 1]; // OK
 
 常量表达式只能用于 constexpr 和整数、布尔、字符和枚举常量。
 
-函数声明为 constexpr 时，会有一些限制，编译器必须在编译时评估该函数。例如， constexpr 函数不允许有副作用，也不允许有异常从函数中逸出，可以在函数内的 try 块中抛出和捕获异常。constexpr 函数可以无条件地使用其他 constexpr 函数，也可以调用非 constexpr 函数，但只有在运行时才会触发这些调用，而不是在编译时。例如：
+函数声明为 constexpr 时会有一些限制，编译器必须在编译时计算该函数。constexpr 函数不允许有副作用，也不允许有异常从函数中逸出，可以在函数内的 try 块中抛出和捕获异常。constexpr 函数可以无条件地使用其他 constexpr 函数，也可以调用非 constexpr 函数，但只有在运行时才会触发这些调用，而不是在编译时：
 
 \begin{cpp}
 void log(string_view message) { print("{}", message); }
@@ -50,31 +50,31 @@ constexpr int computeSomething(bool someFlag)
 }
 \end{cpp}
 
-constexpr函数computeSomething()，包括了对 log() 的使用，log()是一个非 constexpr 的函数，这个调用仅在 someFlag 为 true 时执行。 computeSomething() 在 someFlag 参数为 false 时，就可以在常量表达式中使用，例如：
+constexpr函数computeSomething()，包括了对 log() 的使用，log()是一个非 constexpr 的函数，这个调用仅在 someFlag 为 true 时执行。 computeSomething() 在 someFlag 参数为 false 时，就可以在常量表达式中使用：
 
 \begin{cpp}
 constexpr auto value1 { computeSomething(false) };
 \end{cpp}
 
-将 someFlag 设置为 true ，将无法在常量表达式中完成。以下代码片段无法通过编译：
+将 someFlag 设置为 true ，将无法在常量表达式中完成。以下代码段将无法通过编译：
 
 \begin{cpp}
 constexpr auto value2 { computeSomething(true) };
 \end{cpp}
 
-以下代码工作正常，会在运行时进行，而非编译时：
+以下代码工作正常，会在运行时进行：
 
 \begin{cpp}
 const auto value3 { computeSomething(true) };
 \end{cpp}
 
-\CXXTwentythreeLogo{-40}{-40}
-
 C++23 放宽了对 constexpr 函数的限制：允许 goto 语句、标签（除了 case 标签）和静态和静态 constexpr 变量存在于在 constexpr 函数中。C++23之前这些都不可以。
+
+\CXXTwentythreeLogo{-40}{20}
 
 \mySubsubsection{9.4.2.}{consteval 关键字}
 
-constexpr 关键字指定一个函数可能在编译时执行，但这并不能完全保证。比如下面的 constexpr 函数：
+constexpr 关键字指定一个函数可能在编译时执行，但这并不能完全保证，比如下面的 constexpr 函数：
 
 \begin{cpp}
 constexpr double inchToMm(double inch) { return inch * 25.4; }
@@ -87,7 +87,7 @@ constexpr double const_inch { 6.0 };
 constexpr double mm1 { inchToMm(const_inch) }; // at compile time
 \end{cpp}
 
-然而，如果像这样调用，函数将在运行时执行！
+如果像这样调用，函数将在运行时执行！
 
 \begin{cpp}
 double dynamic_inch { 8.0 };
@@ -102,7 +102,7 @@ consteval double inchToMm(double inch) { return inch * 25.4; }
 
 现在，在 mm1 的定义中使用 inchToMm() 可以编译，并会在编译时进行计算。然而，在 mm2 的定义中使用 inchToMm() 会导致编译错误，其无法在编译时进行计算。
 
-一个立即函数只能在计算常量期间调用。例如，以下立即函数：
+立即函数只能在计算常量期间调用：
 
 \begin{cpp}
 consteval int f(int i) { return i; }
@@ -110,7 +110,7 @@ consteval int f(int i) { return i; }
 
 \CXXTwentythreeLogo{-40}{-40}
 
-这个立即函数可以在一个 constexpr 函数中调用，但只有在 constexpr 函数在计算常量期间执行时才能调用。例如，以下函数使用 if consteval 语句来检查是否在计算常量期间，如果是，则可以调用 f()；否则，在 else 分支中， 不能调用f()。
+这个立即函数可以在一个 constexpr 函数中调用，但只有在 constexpr 函数在计算常量期间执行时才能调用。以下函数使用 if consteval 语句来检查是否在计算常量期间，如果是，则可以调用 f()；否则，在 else 分支中，不能调用f()。
 
 \begin{cpp}
 constexpr int g(int i)
@@ -148,13 +148,13 @@ constexpr Matrix matrix { 8, 2 };
 constexpr Matrix matrixDefault;
 \end{cpp}
 
-现在，就可以使用 constexpr 对象了，例如，创建一个足够大的数组以线性形式存储矩阵：
+现在，就可以使用 constexpr 对象了，创建一个足够大的数组以线性形式存储矩阵：
 
 \begin{cpp}
 int linearizedMatrix[matrix.getSize()]; // OK
 \end{cpp}
 
-编译器生成的（无论是隐式还是显式使用 =default）成员函数，如默认构造函数、析构函数、赋值运算符等，都为 constexpr ，除非类中操作数据成员的成员函数不是 constexpr 函数。
+编译器生成的（无论是隐式还是显式使用 =default）成员函数，如默认构造函数、析构函数、赋值操作符等，都为 constexpr ，除非类中操作数据成员的成员函数不是 constexpr 函数。
 
 constexpr 和 consteval 成员函数的定义对编译器可用，以便在编译时计算。若类在模块中定义，这样的成员函数必须在模块接口文件中定义，而不是在模块实现文件中。
 

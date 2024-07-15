@@ -3,7 +3,7 @@ C++为成员函数提供了无数的选择，本节将介绍其中所有棘手�
 
 \mySubsubsection{9.3.1.}{静态成员函数}
 
-成员函数与数据成员一样，有时适用于整个类，而不是每个对象。当然，也可以编写静态成员函数和数据成员。例如，第 8 章的 SpreadsheetCell 类，有两个辅助成员函数：stringToDouble() 和 doubleToString()。这些成员函数不访问特定对象的信息，可以是静态的。以下是带有静态成员函数的类定义：
+成员函数与数据成员一样，有时适用于整个类，而不是每个对象，也可以编写静态成员函数和数据成员。第 8 章的 SpreadsheetCell 类，有两个辅助成员函数：stringToDouble() 和 doubleToString()。这些成员函数不访问特定对象的信息，可以是静态的。以下是带有静态成员函数的类定义：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -16,18 +16,18 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-这两个成员函数的实现与之前的实现相同,成员函数定义前不需要重复 static。注意，因为没有 this 指针，静态成员函数不针对特定对象，也不能访问该对象的静态成员，静态成员函数和普通函数一样。唯一的区别是，可以访问类的private静态成员和protected静态成员。此外，还可以访问对象的private和protected的非静态成员，如果静态成员函数使用要这些对象，需要将此类对象的引用或指针作为参数传入。
+这两个成员函数的实现与之前的实现相同，成员函数定义前不需要重复 static。因为没有 this 指针，静态成员函数不针对特定对象，也不能访问该对象的静态成员，静态成员函数和普通函数一样。唯一的区别是，可以访问类的private静态成员和protected静态成员，还可以访问对象的private和protected的非静态成员，如果静态成员函数使用要这些对象，需要将此类对象的引用或指针作为参数传入。
 
-类的成员函数中，可以像调用普通成员函数一样调用静态成员函数。因此，SpreadsheetCell 中的所有成员函数的实现保持不变。
+类的成员函数中，可以像调用普通成员函数一样调用静态成员函数，SpreadsheetCell 中的所有成员函数的实现保持不变。
 
-类的外部，需要使用作用域解析运算符（::）在类名前限定静态成员函数的名称。访问控制按常规进行。例如，有一个名为 Foo 的类，其中有一个名为 bar() 的公共静态成员函数，可以调用 bar()，如下所示：
+类的外部，需要使用作用域解析操作符（::）在类名前限定静态成员函数的名称。访问控制按常规进行。例如，有一个名为 Foo 的类，其中有一个名为 bar() 的公共静态成员函数，可以调用 bar()，如下所示：
 
 \begin{cpp}
 Foo::bar();
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-将 doubleToString() 和 stringToDouble() 定义为private静态成员函数的示例，只是为了展示如何定义和使用静态成员函数。对于这个特定的案例，两个成员函数都没有访问 SpreadsheetCell 实例的数据。因此，也可以在 spreadsheet\_cell 模块的实现文件中，将这些辅助函数定义在 SpreadsheetCell 类之外的匿名命名空间中（参见第 11 章）。
+将 doubleToString() 和 stringToDouble() 定义为private静态成员函数的示例，只是为了展示如何定义和使用静态成员函数。对于这个特定的案例，两个成员函数都没有访问 SpreadsheetCell 实例的数据。也可以在 spreadsheet\_cell 模块的实现文件中，将这些辅助函数定义在 SpreadsheetCell 类之外的匿名命名空间中（参见第 11 章）。
 \end{myNotic}
 
 \mySubsubsection{9.3.2.}{常量成员函数}
@@ -44,7 +44,7 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-const 指定是成员函数声明的一部分，定义时也要有const：
+const 指定是成员函数声明的一部分，定义时也需要const：
 
 \begin{cpp}
 double SpreadsheetCell::getValue() const
@@ -58,11 +58,11 @@ string SpreadsheetCell::getString() const
 }
 \end{cpp}
 
-将成员函数标记为 const 意味着与客户端代码达成共识，保证不会在成员函数内部更改对象。如果声明一个实际上会修改数据成员的 const 成员函数，编译器会报错。
+将成员函数标记为 const 代表与客户端代码达成共识，保证不会在成员函数内部更改对象。如果声明一个实际上会修改数据成员的 const 成员函数，编译器会报错。
 
-不能将静态成员函数声明为 const，静态成员函数不针对类的实例，所以不可能修改类实例的内部值。
+不能将静态成员函数声明为 const，静态成员函数不针对类的实例，不可能修改类实例的内部值。
 
-可以对一个非常量对象调用常量和非常量成员函数，但只能对一个常量对象调用常量成员函数。以下是一些示例：
+可以对非常量对象调用常量和非常量成员函数，但只能对常量对象调用常量成员函数。以下是一些示例：
 
 \begin{cpp}
 SpreadsheetCell myCell { 5 };
@@ -76,11 +76,11 @@ myCellConstRef.setString("6"); // Compilation Error!
 
 开发者应该养成声明不修改对象的常量成员函数的习惯，这样就可以在程序中使用常量引用对象。
 
-不过，常量对象仍然可以销毁，会调用其析构函数。然而，析构函数不允许声明为 const。
+常量对象仍然可以销毁，会调用其析构函数，而析构函数不允许声明为 const。
 
 \mySamllsection{可变数据成员}
 
-有时会编写一个“逻辑上”是常量的成员函数，其实会更改对象的数据成员。这种更改不会影响用户可见的数据，但的确会对数据成员有修改，所以编译器不允许声明这个成员函数为const。例如，想要对电子表格应用程序进行性能分析，以获取关于数据读取次数的信息。一种粗糙的方法是在 SpreadsheetCell 类中添加一个计数器，每当调用 getValue() 或 getString() 时，这个计数器就会增加。这使得那些成员函数在编译器的眼中不再是const，解决方案是将新计数器变量标记为mutable，告诉编译器在常量成员函数中可以更改：
+有时会编写一个“逻辑上”是常量的成员函数，会更改对象的数据成员。这种更改不会影响用户可见的数据，但的确会对数据成员有修改，所以编译器不允许声明这个成员函数为const。例如，想要对电子表格应用程序进行性能分析，以获取关于数据读取次数的信息。一种粗糙的方法是在 SpreadsheetCell 类中添加一个计数器，每当调用 getValue() 或 getString() 时，这个计数器就会增加。这使得那些成员函数在编译器的眼中不再是const，解决方案是将新计数器变量标记为mutable，告诉编译器在常量成员函数中可以更改：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -110,7 +110,7 @@ string SpreadsheetCell::getString() const
 
 \mySubsubsection{9.3.3.}{重载成员函数}
 
-一个类可以有多个构造函数，这些构造函数只在参数的数量和/或类型上有所不同。哲理，可以通过使用不同的参数数量和/或类型来重载一个函数或成员函数。例如，在 SpreadsheetCell 类中，可以将 setString() 和 setValue() 都重命名为 set()。现在类定义如下：
+类可以有多个构造函数，这些构造函数只在参数的数量和/或类型上有所不同。这里，可以通过使用不同的参数数量和/或类型来重载一个函数或成员函数。在 SpreadsheetCell 类中，可以将 setString() 和 setValue() 都重命名为 set()。现在类定义如下所示：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -122,19 +122,19 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-set() 成员函数的实现保持不变。当调用 set() 时，编译器会根据传递参数来确定调用哪个实例：如果传递一个 string\_view，编译器会调用 string\_view 实例；如果传递一个 double，编译器会调用 double 实例——这称为重载解析。
+set() 成员函数的实现保持不变。调用 set() 时，编译器会根据传递参数来确定调用哪个实例：如果传递一个 string\_view，编译器会调用 string\_view 实例；如果传递一个 double，编译器会调用 double 实例——这称为重载解析。
 
-可以对 getValue() 和 getString() 做同样的事情：都重命名为 get()。然而，这次不行。C++ 不允许仅基于返回类型重载成员函数，因为在许多情况下，编译器无法确定应该调用哪个成员函数实例。例如，成员函数的返回值没有使用，那么编译器就无法知道开发者到底想要用哪个成员函数。
+可以对 getValue() 和 getString() 做同样的事情：都重命名为 get()，但这次不行。C++ 不允许仅基于返回类型重载成员函数，在许多情况下，编译器无法确定应该调用哪个成员函数实例。例如，成员函数的返回值没有使用，那么编译器就无法知道开发者到底想要用哪个成员函数。
 
 \mySamllsection{基于 const 的重载}
 
-基于 const 重载成员函数，可以编写两个具有相同名称和参数的成员函数，其中一个声明为 const，另一个不加const。如果是常量对象，编译器会调用常量成员函数；如果是非常量对象，编译器会调用非常量重载。编写这两个重载的成员函数可能会引入代码重复，因为常量和非常量重载的实现很可能相同。应尽可能避免代码重复，即使只是几行代码，遵循第 6 章中讨论的 DRY（不要重复自己）原则，使未来维护代码变得更加容易。
+基于 const 重载成员函数，可以编写两个具有相同名称和参数的成员函数，其中一个声明为 const，另一个不加const。如果是常量对象，编译器会调用常量成员函数；如果是非常量对象，编译器会调用非常量重载。编写这两个重载的成员函数可能会引入代码重复，因为常量和非常量重载的实现可能相同。应尽可能避免代码重复，即使只是几行代码，遵循第 6 章中讨论的 DRY（不要重复自己）原则，使未来维护代码变得更加容易。
 
-接下来的部分提供了两种避免编写此类重载成员函数时代码重复的解决方案。
+接下来的部分提供了两种避免编写此类重载成员函数时，代码重复的解决方案。
 
 \mySamllsection{Scott Meyers的const\_cast模式}
 
-为了避免代码重复，可以使用 Scott Meyers 的 const\_cast() 模式。例如，Spreadsheet 类有一个名为 getCellAt() 的成员函数，返回一个对非 const SpreadsheetCell 的引用。可以添加一个 const 重载，返回一个对 const SpreadsheetCell 的引用：
+为了避免代码重复，可以使用 Scott Meyers 的 const\_cast() 模式。Spreadsheet 类有一个名为 getCellAt() 的成员函数，返回一个对非 const SpreadsheetCell 的引用。可以添加一个 const 重载，返回一个对 const SpreadsheetCell 的引用：
 
 \begin{cpp}
 export class Spreadsheet
@@ -161,7 +161,7 @@ SpreadsheetCell& Spreadsheet::getCellAt(size_t x, size_t y)
 }
 \end{cpp}
 
-该模式首先使用 std::as\_const()（定义在<utility>中）将 *this（ Spreadsheet\&）转换为 const Spreadsheet\&。接下来，调用 getCellAt() 的 const 重载，返回一个 const SpreadsheetCell\&。然后，使用 const\_cast 将其转换为 非const SpreadsheetCell\&。
+该模式首先使用 std::as\_const()（定义在<utility>中）将 *this（ Spreadsheet\&）转换为 const Spreadsheet\&。接下来，调用 getCellAt() 的 const 重载，返回 const SpreadsheetCell\&。然后，使用 const\_cast 将其转换为 非const SpreadsheetCell\&。
 
 有了这两个 getCellAt() 重载，现在可以在const和非const Spreadsheet 对象上调用 getCellAt()：
 
@@ -175,7 +175,7 @@ const SpreadsheetCell& cell2 { sheet2.getCellAt(1, 1) };
 
 \mySamllsection{private辅助成员函数}
 
-当实现常量和非常量重载时，避免代码重复的另一种方法是使用private非常量返回类型的常量辅助成员函数。常量和非常量重载的成员函数然后都调用这个辅助函数。例如，对于前面的 getCellAt() 重载，可以添加一个 getCellAtHelper() 如下：
+当实现常量和非常量重载时，避免代码重复的另一种方法是使用private非常量返回类型的常量辅助成员函数。常量和非常量重载的成员函数然后都调用这个辅助函数。对于前面的 getCellAt() 重载，可以添加一个 getCellAtHelper()：
 
 \begin{cpp}
 export class Spreadsheet
@@ -189,7 +189,7 @@ export class Spreadsheet
 };
 \end{cpp}
 
-实现如下：
+实现为：
 
 \begin{cpp}
 SpreadsheetCell& Spreadsheet::getCellAt(size_t x, size_t y)
@@ -211,7 +211,7 @@ SpreadsheetCell& Spreadsheet::getCellAtHelper(size_t x, size_t y) const
 
 \mySamllsection{显式删除重载}
 
-重载的成员函数可以显式删除，可以禁止以特定参数调用成员函数。例如，SpreadsheetCell 类有一个名为 setValue(double) 的成员函数，可以通过以下方式调用：
+重载的成员函数可以显式删除，可以禁止以特定参数调用成员函数。SpreadsheetCell 类有一个名为 setValue(double) 的成员函数，可以通过以下方式调用：
 
 \begin{cpp}
 SpreadsheetCell cell;
@@ -230,11 +230,11 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-因此，当setValue()的参数为整数时，编译器会报错。
+当setValue()的参数为整数时，编译器会报错。
 
 \mySamllsection{引用限定成员函数}
 
-无论对象是临时还是非临时，都可以调用普通类成员函数。假设有一个简单的类，它只是记住构造时传递的字符串：
+无论对象是临时还是非临时，都可以调用普通类成员函数。假设有一个简单的类，只是记住构造时传递的字符串：
 
 \begin{cpp}
 class TextHolder
@@ -247,7 +247,7 @@ class TextHolder
 };
 \end{cpp}
 
-当然，可以在 TextHolder 的非临时实例上调用 getText() 成员函数。例如：
+可以在 TextHolder 的非临时实例上调用 getText() 成员函数：
 
 \begin{cpp}
 TextHolder textHolder { "Hello world!" };
@@ -260,9 +260,9 @@ println("{}", textHolder.getText());
 println("{}", TextHolder{ "Hello world!" }.getText());
 \end{cpp}
 
-无论是临时还是非临时实例，都可以明确指定一个成员函数，可以在哪种类型的实例上使用。这可以通过在成员函数声明时添加引用限定符来实现。如果一个成员函数只能用于非临时实例，可以在成员函数声明处添加 \& 限定符。类似地，如果一个成员函数只能用于临时实例上，可以在成员函数声明处添加 \&\& 限定符。
+无论是临时还是非临时实例，都可以明确指定一个成员函数，可以在哪种类型的实例上使用。可以通过在成员函数声明时添加引用限定符来实现。如果一个成员函数只能用于非临时实例，可以在成员函数声明处添加 \& 限定符。类似地，如果成员函数只能用于临时实例上，可以在成员函数声明处添加 \&\& 限定符。
 
-以下修改后的 TextHolder 类通过返回 m\_text 的引用为常量 来实现 \& 限定的 getText()。另一方面，通过返回 m\_text 的 右值引用，实现了getText() 的 \&\& 限定版本，这样 m\_text 可以从 TextHolder 中移动出来，从临时 TextHolder 实例中获取文本，这会更有效率。
+以下修改后的 TextHolder 类通过返回 m\_text 的常量引用来实现 \& 限定的 getText()。另一方面，通过返回 m\_text 的 右值引用，实现了getText() 的 \&\& 限定版本，这样 m\_text 可以从 TextHolder 中移动出来，从临时 TextHolder 实例中获取文本，这会更有效率。
 
 \begin{cpp}
 class TextHolder
@@ -286,7 +286,7 @@ println("{}", TextHolder{ "Hello world!" }.getText());
 
 第一次调用 getText() 会调用 \& 版本，而第二次调用会调用 \&\& 版本。
 
-使用引用限定符的第二个例子，是防止用户将值分配给类的临时实例。例如，可以向 TextHolder 添加一个赋值运算符：
+使用引用限定符的第二个例子，是防止用户将值分配给类的临时实例。可以向 TextHolder 添加一个赋值操作符：
 
 \begin{cpp}
 class TextHolder
@@ -297,7 +297,7 @@ class TextHolder
 };
 \end{cpp}
 
-向 TextHolder 添加了这样的赋值运算符，因为对象很快就会消失，所以向 TextHolder 的临时实例分配新值就没有多大意义了：
+向 TextHolder 添加了这样的赋值操作符。因为对象很快就会消失，所以向 TextHolder 的临时实例分配新值就没有多大意义了：
 
 \begin{cpp}
 TextHolder makeTextHolder() { return TextHolder { "Hello World!" }; }
@@ -308,13 +308,13 @@ int main()
 }
 \end{cpp}
 
-这样的无意义操作，可以将赋值运算符限定为仅在 左值 上工作来避免：
+这样的无意义操作，可以将赋值操作符限定为仅在 左值 上工作来避免：
 
 \begin{cpp}
 TextHolder& operator=(const string& rhs) & { m_text = rhs; return *this; }
 \end{cpp}
 
-有了这个赋值运算符，main() 中的 “Pointless!” 语句将无法编译。现在只能将值分配给 左值：
+有了这个赋值操作符，main() 中的 “Pointless!” 语句将无法编译。现在只能将值分配给 左值：
 
 \begin{cpp}
 auto text { makeTextHolder() };
@@ -346,9 +346,9 @@ class TextHolder
 
 \mySubsubsection{9.3.4.}{内联成员函数}
 
-C++ 允许编译器，对一个函数的调用不实现为对一个代码块的调用。相反，编译器可以直接将函数体插入到调用函数的代码中。这个过程称为内联，使用这种行为的函数称为内联函数。
+C++ 允许编译器，对一个函数的调用不实现为对一个代码块的调用，编译器可以直接将函数体插入到调用函数的代码中。这个过程称为内联，使用这种行为的函数称为内联函数。
 
-可以通过在其名称前放置 inline 关键字来指定一个内联成员函数。例如，将 SpreadsheetCell 类的访问器成员函数声明为内联：
+可以通过在其名称前放置 inline 关键字来指定一个内联成员函数，将 SpreadsheetCell 类的访问器成员函数声明为内联：
 
 \begin{cpp}
 inline double SpreadsheetCell::getValue() const
@@ -364,15 +364,15 @@ inline std::string SpreadsheetCell::getString() const
 }
 \end{cpp}
 
-这里给了编译器一个提示，在 getValue() 和 getString() 的调用处，直接插入实际的成员函数体。注意，inline 关键字只是给编译器的提示。如果编译器认为这会损害性能，可能会忽略。
+这里给了编译器一个提示，在 getValue() 和 getString() 的调用处，会直接插入实际的成员函数体。注意，inline 关键字只是给编译器的提示。如果编译器认为这会损害性能，可能会忽略。
 
-有一个注意事项：内联函数的定义应该在调用的每个源文件中可用。这听起来是有道理的：如果编译器看不到函数定义，那怎么能插入函数体呢？因此，编写内联成员函数时，应该将这些成员函数的定义与所属的类定义放在相同的文件中。
+有一个注意事项：内联函数的定义应该在调用的每个源文件中可用。这听起来是有道理的：如果编译器看不到函数定义，那怎么能插入函数体呢？编写内联成员函数时，应该将这些成员函数的定义与所属的类定义放在相同的文件中。
 
 \begin{myNotic}{NOTE}
-高级 C++ 编译器不需要将内联成员函数的定义放在与类定义相同的文件中。例如，Microsoft Visual C++ 支持链接时间代码生成 (LTCG)，即使函数体没有声明为内联，即使没有在类定义的同一文件中定义，也会自动内联小函数体。GCC 和 Clang 也有类似的功能。
+高级 C++ 编译器不需要将内联成员函数的定义放在与类定义相同的文件中。Microsoft Visual C++ 支持链接时间代码生成 (LTCG)，即使函数体没有声明为内联，即使没有在类定义的同一文件中定义，也会自动内联小函数体。GCC 和 Clang 也有类似的功能。
 \end{myNotic}
 
-C++ 模块之外，如果成员函数的定义直接放在类定义中，那么该成员函数会隐式地标记为内联，即使没有 inline 关键字。对于从模块导出的类，情况并非如此。如果想让这样的成员函数内联，需要用 inline 关键字标记。例如：
+C++ 模块之外，如果成员函数的定义直接放在类定义中，该成员函数会隐式地标记为内联，即使没有 inline 关键字。对于从模块导出的类，情况并非如此。如果想让这样的成员函数内联，需要用 inline 关键字标记：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -396,7 +396,7 @@ export class SpreadsheetCell
 
 \mySubsubsection{9.3.5.}{默认参数}
 
-C++ 中与函数重载类似的一个特性是默认参数，可以在原型中为函数参数指定默认值。如果用户为那些参数提供了参数，将忽略默认值。如果用户省略了那些参数，将使用默认值。不过有一个限制：只能为从最右边的参数开始的连续参数列表提供默认值。否则，编译器将无法将缺失参数与默认参数匹配。默认参数可以用于函数、成员函数和构造函数。例如，可以为 Spreadsheet 构造函数的宽度和高度分配默认值：
+C++ 中与函数重载类似的一个特性是默认参数，在原型中为函数参数指定默认值。如果用户为那些参数提供了参数，将忽略默认值。如果用户省略了那些参数，将使用默认值。不过有一个限制：只能为从最右边的参数开始的连续参数列表提供默认值；否则，编译器将无法将缺失参数与默认参数匹配。默认参数可以用于函数、成员函数和构造函数。可以为 Spreadsheet 构造函数的宽度和高度分配默认值：
 
 \begin{cpp}
 export class Spreadsheet
@@ -407,9 +407,9 @@ export class Spreadsheet
 };
 \end{cpp}
 
-Spreadsheet 构造函数的实现保持不变。注意，只在函数声明中指定默认参数，而非定义中。
+Spreadsheet 构造函数的实现保持不变。只在函数声明中指定默认参数，而非定义中。
 
-现在，即使只有一个非复制构造函数，也可以调用 Spreadsheet 构造函数，并提供零、一个或两个参数：
+即使只有一个非复制构造函数，也可以调用 Spreadsheet 构造函数，并提供零、一个或两个参数：
 
 \begin{cpp}
 Spreadsheet s1;
@@ -417,10 +417,10 @@ Spreadsheet s2 { 5 };
 Spreadsheet s3 { 5, 6 };
 \end{cpp}
 
-具有所有参数默认值的构造函数可以作为默认构造函数，可以不指定参数就构造该类的对象。如果尝试声明一个默认构造函数和一个带有所有参数默认值的多参数构造函数，编译器会报错，它不知道没有指定参数时，应该调用哪个构造函数。
+具有所有参数默认值的构造函数可以作为默认构造函数，可以不指定参数就构造该类的对象。如果尝试声明一个默认构造函数和一个带有所有参数默认值的多参数构造函数，编译器会报错，因为它不知道没有指定参数时应该调用哪个构造函数。
 
 \begin{myNotic}{NOTE}
-可以用默认参数完成的，也可以用函数重载完成。可以编写三个不同的构造函数，每个都有不同数量的参数。由于默认参数的存在，一个构造函数可以接受(三种)不同数量的参数。实践中，可以选择最合适的方式进行使用。
+可以用默认参数完成的，也可以用函数重载完成。可以编写三个不同的构造函数，每个都有不同数量的参数。由于默认参数的存在，一个构造函数可以接受(三种)不同数量的参数。实践中，可以选择最合适的方式。
 \end{myNotic}
 
 
