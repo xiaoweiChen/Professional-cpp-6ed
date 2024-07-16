@@ -3,19 +3,19 @@
 
 \begin{itemize}
 \item
-因为这两个类包含完全独立的代码，原始类的错误修复不会反映在新类中。
+两个类包含完全独立的代码，原始类的错误修复不会反映在新类中。
 
 \item
-编译器不知道两个类之间的关系，所以它们不是多态的（参见第5章）——它们不是同一事物的不同变体。
+编译器不知道两个类之间的关系，所以它们不是多态的（参见第5章）——不是同一类的变体。
 
 \item
 这种方法没有建立真正的is-a关系。新类与原始类相似，只有相似的代码，而不是同一类型的对象。
 
 \item
-原始代码可能无法获得，可能只存在于预编译的二进制格式中，所以复制和粘贴代码可能不可行。
+原始代码可能无法获得，可能只存在于预编译的二进制格式中，所以复制和粘贴代码不可行。
 \end{itemize}
 
-毫不奇怪，C++提供了内置支持来定义真正的is-a关系。C++中is-a关系的特征将在下一节描述。
+毫不奇怪，C++提供了内置支持来定义真正的is-a关系。C++中is-a关系的特征将在下一节中介绍。
 
 \mySubsubsection{10.1.1.}{扩展类}
 
@@ -45,7 +45,7 @@ class Derived : public Base
 };
 \end{cpp}
 
-Derived是一个完整的类，共享了Base类的特性。现在先别担心public——其含义会在后面进行解释。图10.1展示了Derived和Base之间的简单关系。可以像声明任何其他对象一样声明Derived类型的对象，甚至可以定义一个从Derived继承的第三个类，形成一个类链，如图10.2所示。
+Derived是一个完整的类，共享了Base类的特性。先别担心public——其含义会在后面进行解释。图10.1展示了Derived和Base之间的简单关系。可以像声明其他对象一样声明Derived类型的对象，可以定义一个从Derived继承的第三个类，形成一个类链，如图10.2所示。
 
 \myGraphic{0.2}{content/part3/chapter10/images/1.png}{图 10.1}
 
@@ -63,7 +63,7 @@ Derived不必是Base的唯一派生类。其他类也可以从Base继承，并�
 
 对于客户端或代码的其他部分来说，因为Derived继承自Base，Derived类型的对象也是一个Base类型的对象。所以Base的所有public成员函数和数据成员，以及Derived的所有public成员函数和数据成员都可用。
 
-使用派生类的代码不需要知道，在继承链中哪个类定义了成员函数就可以调用。例如，以下代码调用了Derived对象的两个成员函数，即使其中一个成员函数由Base类定义：
+使用派生类的代码不需要知道，在继承链中哪个类定义了成员函数就可以调用。以下代码调用了Derived对象的两个成员函数，即使其中一个成员函数由Base类定义：
 
 \begin{cpp}
 Derived myDerived;
@@ -81,12 +81,12 @@ myBase.someOtherFunction(); // Error! Base doesn't have a someOtherFunction().
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-从使用对象的角度来看，对象属于其定义的类以及基类。
+从使用对象的角度来看，对象属于其定义的类，以及基类。
 \end{myNotic}
 
-指向类类型的指针或引用，可以引用声明类类型的对象或其任何派生类的对象，这个棘手的问题会在本章后面详细解释。现在要理解的是，指向Base的指针实际上可以指向Derived对象，引用也是如此。客户端仍然只能访问Base中存在的成员函数和数据成员，但通过这种机制，操作Base的代码也可以操作Derived。
+指向类类型的指针或引用，可以引用声明类类型的对象或其任何派生类的对象，这个棘手的问题会在本章后面详细介绍。现在要理解的是，指向Base的指针实际上可以指向Derived对象，引用也是如此。客户端仍然只能访问Base中存在的成员函数和数据成员，但通过这种机制，操作Base的代码也可以操作Derived。
 
-例如，以下代码编译并运行良好，即使看起来类型并不匹配：
+以下代码编译并运行良好，即使看起来类型并不匹配：
 
 \begin{cpp}
 Base* base { new Derived {} }; // Create Derived, store in Base pointer.
@@ -102,9 +102,9 @@ base->someOtherFunction();
 
 \mySamllsection{派生类对继承的看法}
 
-对于派生类来说，在编写方式或行为方面并没有太大变化。仍可以在派生类中定义成员函数和数据成员，就像在常规类中一样。前面Derived的定义声明了一个名为someOtherFunction()的成员函数，Derived类可以通过添加成员函数来增强Base类。
+对于派生类来说，在编写方式或行为方面并没有太大变化。可以在派生类中定义成员函数和数据成员，就像在常规类中一样。前面Derived的定义声明了一个名为someOtherFunction()的成员函数，Derived类可以通过添加成员函数来增强Base类。
 
-派生类可以访问其基类中声明的public和protected的成员函数和数据成员，就像是自己的成员一样，从技术上讲确实是。例如，Derived上someOtherFunction()的实现可以利用在Base中，声明为一部分的数据成员m\_protectedInt。访问基类成员与在派生类中声明成员没有什么不同：
+派生类可以访问其基类中声明的public和protected的成员函数和数据成员，就像是自己的成员一样，从技术上讲确实是。Derived上someOtherFunction()的实现可以利用在Base中，声明为一部分的数据成员m\_protectedInt。访问基类成员与在派生类中声明成员没有什么不同：
 
 \begin{cpp}
 void Derived::someOtherFunction()
@@ -114,7 +114,7 @@ void Derived::someOtherFunction()
 }
 \end{cpp}
 
-如果一个类将成员声明为protected，派生类可以访问它们。如果声明为private，派生类则无法访问。以下someOtherFunction()的实现无法编译，因为派生类试图访问基类中的private数据成员：
+如果类将成员声明为protected，派生类可以访问。如果声明为private，派生类则无法访问。因为派生类试图访问基类中的private数据成员，以下someOtherFunction()的实现无法编译：
 
 \begin{cpp}
 void Derived::someOtherFunction()
@@ -125,15 +125,15 @@ void Derived::someOtherFunction()
 }
 \end{cpp}
 
-private访问说明符可以控制潜在的派生类如何与基类交互。
+private访问说明符可以控制派生类如何与基类交互。
 
-第4章给出了以下规则：所有数据成员都应该是private；如果希望从类外部访问数据成员，请提供公共的getter和setter。现在这个规则可以扩展到protected访问说明符。
+第4章给出了以下规则：所有数据成员都应该是private；如果希望从类外部访问数据成员，请提供public getter和setter。现在这个规则可以扩展到protected访问说明符。
 
 \begin{myWarning}{WARNING}
-所有数据成员都应该是private。如果希望从类外部访问数据成员，请提供公共的getter和setter；如果只想让派生类访问，请提供protected的getter和setter。
+所有数据成员都应该是private。如果希望从类外部访问数据成员，请提供public getter和setter；如果只想让派生类访问，请提供protected的getter和setter。
 \end{myWarning}
 
-默认将数据成员设为private的原因是，提供了最高级别的封装。可以更改表示数据的方式，同时保持公共和受保护的接口不变。此外，在不直接访问数据成员的情况下，可以在public和protected的setter中轻松添加对输入数据的检查。成员函数也应该默认为private。只公开那些设计为公共的成员函数，如果只想让派生类访问，请将成员函数设为protected。
+默认将数据成员设为private的原因是，提供了最高级别的封装。可以更改表示数据的方式，同时保持public和protected接口不变。在不直接访问数据成员的情况下，可以在public和protected的setter中轻松添加对输入数据的检查。成员函数也应该默认为private，只公开那些设计为公共的成员函数。如果只想让派生类访问，请将成员函数设为protected。
 
 \begin{myNotic}{NOTE}
 从派生类的角度来看，基类中的所有public和protected的数据成员和成员函数都可用。
@@ -154,25 +154,25 @@ private访问说明符可以控制潜在的派生类如何与基类交互。
 \endhead
 %
 public &
-\begin{tabular}[c]{@{}l@{}}可以调用一个对象的public成员函数\\或访问其public数据成员。
+\begin{tabular}[c]{@{}l@{}}可以调用一个对象的public成员函数或访\\问其public数据成员。
 \end{tabular} &
 \begin{tabular}[c]{@{}l@{}}希望客户端进行的操作（成员函数）。\\可访问对private和protected数据成\\员进行操作的成员函数（getter和\\setter）。
 \end{tabular} \\ \hline
 protected &
-\begin{tabular}[c]{@{}l@{}}类中的任何成员函数都可以调用protected\\的成员函数和protected的数据成员。派生\\类的成员函数可以访问基类的protected成员。
+\begin{tabular}[c]{@{}l@{}}类中的任何成员函数都可以调用protected\\的成员函数和protected的数据成员。派生\\类的成员函数可以访问基类的protected成\\员。
 \end{tabular} &
 \begin{tabular}[c]{@{}l@{}}不想让客户端使用的成员函数。
 \end{tabular} \\ \hline
 private &
 \begin{tabular}[c]{@{}l@{}}只有类中的成员函数可以调用private成员\\函数和private数据成员。派生类中的成员\\函数不能访问基类的private成员。
 \end{tabular} &
-\begin{tabular}[c]{@{}l@{}}默认情况下，一切都应该是private，\\尤其是数据成员。如果只想允许派生\\类访问，可以提供protected的getter\\和setter；如果希望客户端访问，可\\以提供public的getter和setter。
+\begin{tabular}[c]{@{}l@{}}默认情况下，一切都应该是private，\\尤其是数据成员。如果只允许派生类\\访问，可以提供protected的getter和\\setter；如果希望客户端访问，可以提\\供public的getter和setter。
 \end{tabular} \\ \hline
 \end{longtable}
 
 \mySamllsection{防止继承}
 
-C++允许将一个类标记为final，当尝试继承时将出现编译错误。一个类可以通过在类名后面直接使用final关键字来标记“不可继承”。例如，一个类尝试从下面的Foo类继承，编译器将报错：
+C++允许将一个类标记为final，当尝试继承时将出现编译错误。一个类可以通过在类名后面直接使用final关键字来标记“不可继承”。一个类尝试从下面的Foo类继承，编译器将报错：
 
 \begin{cpp}
 class Foo final { };
