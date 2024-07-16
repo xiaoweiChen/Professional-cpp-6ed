@@ -1,9 +1,9 @@
 
-在 C++ 中，基本类型在第 1 章中进行了回顾，而第 8 章至第 10 章展示了如何使用类编写自己的类型。本节探讨了将一种类型转换为另一种类型的复杂性。
+C++ 中基本类型在第 1 章中进行了复习，而第 8 章至第 10 章展示了如何使用类编写自己的类型。本节探讨了将一种类型转换为另一种类型的复杂性。
 
 C++ 提供五种特定的类型转换：const\_cast(), static\_cast(), reinterpret\_cast(), dynamic\_cast(), 和 std::bit\_cast。第一种在第1章中介绍过，并且 static\_cast() 可用于在某些原始类型之间进行转换，但在继承的背景下这会更复杂。既然已经熟练地编写自己的类，并理解了类继承，现在是时候来了解一下这些转换了。
 
-请注意，旧式的 C 风格类型转换，如 (int)myFloat，在 C++ 中仍然有效，并且在新代码库中仍然广泛使用。C 风格类型转换涵盖了除 bit\_cast() 之外的所有 C++ 类型转换，因此更易出错，可能会得到意外的结果。我强烈建议只在新的代码中使用 C++ 风格的类型转换，这样会更安全。
+旧式的 C 风格类型转换，如 (int)myFloat，在 C++ 中仍然有效，并且在新代码库中仍然广泛使用。C 风格类型转换涵盖了除 bit\_cast() 之外的所有 C++ 类型转换，因此更易出错，可能会得到意外的结果。我强烈建议只在新的代码中使用 C++ 风格的类型转换，这样会更安全。
 
 \mySubsubsection{10.7.1.}{static\_cast()}
 
@@ -15,7 +15,7 @@ int j { 4 };
 double result { static_cast<double>(i) / j };
 \end{cpp}
 
-还可以使用static\_cast()执行由用户定义的构造函数，或转换例程允许的显式转换。例如，类A有一个接受类B对象的构造函数，可以使用static\_cast()将B对象转换为A对象。在大多数情况下，编译器会自动执行转换。
+还可以使用static\_cast()执行由用户定义的构造函数，或转换例程允许的显式转换。类A有一个接受类B对象的构造函数，可以使用static\_cast()将B对象转换为A对象。大多数情况下，编译器会自动执行转换。
 
 static\_cast()的另一个用途是在继承层次结构中执行向下转换：
 
@@ -48,7 +48,7 @@ int main()
 
 这些强制转换适用于指针和引用，但不适用于对象本身。
 
-请注意，使用static\_cast()进行的强制转换不执行运行时类型检查。允许将Base指针转换为Derived指针，或将Base引用转换为Derived引用，即使运行时Base实际上不是Derived。例如，以下代码编译并执行，但使用指针d可能会导致失败，包括访问超出对象边界的内存。
+使用static\_cast()进行的强制转换不执行运行时类型检查，允许将Base指针转换为Derived指针，或将Base引用转换为Derived引用，即使运行时Base实际上不是Derived。以下代码编译并执行，但使用指针d可能会导致失败，包括访问超出对象内存的边界。
 
 \begin{cpp}
 Base* b { new Base {} };
@@ -57,11 +57,11 @@ Derived* d { static_cast<Derived*>(b) };
 
 为了安全地执行这种带有运行时类型检查的强制转换，请使用dynamic\_cast()。
 
-static\_cast()并不是万能的，不能将一种类型的指针static\_cast()到另一种不相关的类型指针。如果没有可用的转换构造函数，不能直接将一个类型的对象static\_cast()到另一个类型的对象。不能将const类型static\_cast()到非const类型，不能将指针static\_cast()到整数。基本上，只能做符合C++类型规则的事情。
+static\_cast()并不是万能的，不能将一种类型的指针static\_cast()到另一种不相关的类型指针。如果没有可用的转换构造函数，不能直接将一个类型的对象static\_cast()到另一个类型的对象。不能将const类型static\_cast()到非const类型，不能将指针static\_cast()到整数，只能做符合C++类型规则的事情。
 
 \mySubsubsection{10.7.2.}{reinterpret\_cast()}
 
-reinterpret\_cast()比static\_cast()更加强大，也更不安全。可以使用它执行一些技术上不被C++类型规则允许，但可能在某些情况下对开发者有意义的转换。例如，可以使用reinterpret\_cast()将一个类型的引用转换为另一个不相关类型的引用。同样，可以将一个指针类型转换为其他指针类型，即使它们在继承层次结构中并不相关。然而，将指针转换为void可以隐式进行，不需要显式转换。要将void转换回正确类型的指针，static\_cast()就足够了。void指针只是指向内存中某个位置的一个指针，没有与void指针关联的类型信息。这里有一些例子：
+reinterpret\_cast()比static\_cast()更加强大，也更不安全。可以使用它执行一些技术上不被C++类型规则允许，但可能在某些情况下对开发者有意义的转换。可以使用reinterpret\_cast()将一个类型的引用转换为另一个不相关类型的引用，也可以将一个指针类型转换为其他指针类型，即使它们在继承层次结构中并不相关。将指针转换为void可以隐式进行，不需要显式转换。要将void转换回正确类型的指针，static\_cast()就足够了。void指针只是指向内存中某个位置的一个指针，没有与void指针关联的类型信息。这里有一些例子：
 
 \begin{cpp}
 class X {};
@@ -89,10 +89,10 @@ int main()
 
 reinterpret\_cast()并不是万能的，对可以强制转换的内容有很多限制。建议谨慎使用这些类型的强制转换，这些限制在本文中就不进一步讨论了。
 
-通常，应该小心使用reinterpret\_cast()，因为它允许在没有进行类型检查的情况下进行转换。
+通常，应该小心使用reinterpret\_cast()，它允许在没有进行类型检查的情况下进行转换。
 
 \begin{myWarning}{WARNING}
-还可以使用reinterpret\_cast()将指针转换为整型类型，然后转换回来。但是，只能将指针转换为足够大的整型类型来容纳它。例如，尝试使用reinterpret\_cast()将64位指针转换为32位整数将导致编译错误。
+还可以使用reinterpret\_cast()将指针转换为整型类型，然后转换回来，但只能将指针转换为足够大的整型类型来容纳它。例如，尝试使用reinterpret\_cast()将64位指针转换为32位整数将导致编译错误。
 \end{myWarning}
 
 \mySubsubsection{10.7.3.}{dynamic\_cast()}
@@ -137,9 +137,9 @@ try {
 }
 \end{cpp}
 
-请注意，可以使用static\_cast()或reinterpret\_cast()在继承层次结构中执行相同的向下转换。dynamic\_cast()与static\_cast()和reinterpret\_cast()的区别在于，执行运行时（动态）类型检查，而static\_cast()和reinterpret\_cast()即使在类型错误的情况下也会执行转换。
+可以使用static\_cast()或reinterpret\_cast()在继承层次结构中执行相同的向下转换，dynamic\_cast()与static\_cast()和reinterpret\_cast()的区别在于，执行运行时（动态）类型检查，而static\_cast()和reinterpret\_cast()即使在类型错误的情况下也会执行转换。
 
-记住，运行时类型信息存储在对象的虚表中。因此，为了使用dynamic\_cast()，类必须至少有一个虚成员函数。如果类没有虚表，尝试使用dynamic\_cast()将导致编译错误。例如，Microsoft Visual C++会给报以下错误：
+记住，运行时类型信息存储在对象的虚表中。为了使用dynamic\_cast()，类必须至少有一个虚成员函数。如果类没有虚表，尝试使用dynamic\_cast()将导致编译错误。Microsoft Visual C++会给报以下错误：
 
 \begin{shell}
 error C2683: 'dynamic_cast' : 'Base' is not a polymorphic type.
@@ -161,7 +161,7 @@ auto asUint { bit_cast<unsigned int>(asFloat) };
 if (bit_cast<float>(asUint) == asFloat) { println("Roundtrip success."); }
 \end{cpp}
 
-bit\_cast() 的一个用例是用于二进制 I/O 的简单可复制类型。例如，可以将这类类型的单个字节写入文件。将文件重新读取到内存时，可以使用 bit\_cast() 来正确解释从文件读取的字节。
+bit\_cast() 的一个用例是用于二进制 I/O 的简单可复制类型，可以将这类类型的单个字节写入文件。将文件重新读取到内存时，可以使用 bit\_cast() 来正确解释从文件读取的字节。
 
 \mySubsubsection{10.7.5.}{总结}
 
@@ -185,8 +185,8 @@ bit\_cast() 的一个用例是用于二进制 I/O 的简单可复制类型。例
 \begin{tabular}[c]{@{}l@{}}推荐dynamic\_cast()\\或 static\_cast()\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}同一继承层次结构中，将类对象的引用转换为对另一个类对对象的引用\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐dynamic\_cast()\\或 static\_cast()\end{tabular} \\ \hline
-将指针到类型转为不相关的指针到类型                                                                                & reinterpret\_cast() \\ \hline
-将引用到类型转为不相关的引用到类型                                                                            & reinterpret\_cast() \\ \hline
+将类型指针转为不相关的类型指针                                                                                & reinterpret\_cast() \\ \hline
+将类型引用转为不相关的类型引用                                                                            & reinterpret\_cast() \\ \hline
 将函数指针转为函数指针                                                                                  & reinterpret\_cast() \\ \hline
 \end{longtable}
 

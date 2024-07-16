@@ -1,5 +1,5 @@
 
-编写派生类时，需要注意父类和子类之间的交互。诸如创建顺序、构造函数链和类型转换等都可能是错误的来源。
+编写派生类时，需要注意父类和子类之间的交互。诸如创建顺序、构造函数链和类型转换等，都可能是错误的来源。
 
 \mySubsubsection{10.3.1.}{父类的构造函数}
 
@@ -45,9 +45,9 @@ int main()
 }
 \end{cpp}
 
-当创建myDerived对象时，首先调用Base的构造函数，输出字符串"1"。接下来，初始化m\_dataMember，调用Something构造函数，输出字符串"2"。最后，调用Derived构造函数，输出"3"。
+创建myDerived对象时，首先调用Base的构造函数，输出字符串"1"。接下来，初始化m\_dataMember，调用Something构造函数，输出字符串"2"。最后，调用Derived构造函数，输出"3"。
 
-请注意，Base构造函数是自动调用的。如果存在，C++会自动调用父类的默认构造函数。如果父类中不存在默认构造函数，或者想使用另一个父构造函数，可以在初始化器中链式调用构造函数，就像初始化数据成员一样。例如，以下代码展示了一个没有默认构造函数的Base类。所以Derived必须明确告诉编译器如何调用Base构造函数，否则代码将无法编译。
+注意，Base构造函数是自动调用的。如果存在，C++会自动调用父类的默认构造函数。父类中不存在默认构造函数，或者想使用另一个父构造函数，可以在初始化器中链式调用构造函数，就像初始化数据成员一样。以下代码展示了一个没有默认构造函数的Base类，Derived必须明确告诉编译器如何调用Base构造函数，否则代码将无法编译。
 
 \begin{cpp}
 class Base
@@ -63,7 +63,7 @@ class Derived : public Base
 };
 \end{cpp}
 
-Derived构造函数将常量（7）传递给Base构造函数。当然，Derived也可以传递一个变量：
+Derived构造函数将常量（7）传递给Base构造函数，Derived也可以传递一个变量：
 
 \begin{cpp}
 Derived::Derived(int i) : Base { i } { /* Other Derived's initialization ... */ }
@@ -113,7 +113,7 @@ class Derived : public Base
 };
 \end{cpp}
 
-如果前面的析构函数没有声明为虚，代码似乎可以正常工作。然而，如果代码曾经对一个实际上指向Derived实例的Base指针调用delete，析构链将出错错误。例如，从前面代码的所有析构函数中移除virtual和override关键字，当一个Derived对象当作指向Base的指针访问并删除时，就会出现问题：
+如果前面的析构函数没有声明为虚，代码似乎可以正常工作。如果代码曾经对一个实际上指向Derived实例的Base指针调用delete，析构链将出错错误。从前面代码的所有析构函数中移除virtual和override关键字，当一个Derived对象当作指向Base的指针访问并删除时，就会出现问题：
 
 \begin{cpp}
 Base* ptr { new Derived{} };
@@ -130,17 +130,17 @@ delete ptr;
 
 \mySubsubsection{10.3.3.}{构造函数和析构函数中使用虚成员函数}
 
-构造函数和析构函数中，虚成员函数的行为有所不同。如果派生类覆写了基类中的一个虚成员函数，那么从基类的构造函数或析构函数中调用该成员函数时，会调用基类实现的虚成员函数！换句话说，从构造函数或析构函数内部对虚成员函数的使用，是在编译时静态解析的。
+构造函数和析构函数中，虚成员函数的行为有所不同。如果派生类覆写了基类中的一个虚成员函数，从基类的构造函数或析构函数中调用该成员函数时，会调用基类实现的虚成员函数！换句话说，从构造函数或析构函数内部对虚成员函数的使用，是在编译时静态解析的。
 
-这种行为背后原因是派生类实例初始化的顺序。创建派生类实例时，基类的构造函数都会首先调用，然后才是派生类实例的初始化。因此，在派生类尚未完全初始化的情况下，调用覆写的虚成员函数非常危险。析构函数的情况也类似，因为销毁对象时，析构函数的调用顺序相反。
+这种行为背后原因是派生类实例初始化的顺序。创建派生类实例时，基类的构造函数都会首先调用，然后才是派生类实例的初始化。在派生类尚未完全初始化的情况下，调用覆写的虚成员函数非常危险。析构函数的情况也类似，因为销毁对象时，析构函数的调用顺序相反。
 
 如果确实需要在构造函数中实现多态行为(并不推荐这么做)，可以在基类中定义一个initialize()虚成员函数，派生类可以覆写它。创建类实例，需要在构造完成后调用这个initialize()成员函数。
 
-同样，如果需要在析构函数中实现多态行为(同样不推荐)，可以定义一个shutdown()虚成员函数，在对象销毁前调用它。
+同样，如果需要在析构函数中实现多态行为(同样不推荐)，可以定义一个shutdown()虚成员函数，在对象销毁前调用。
 
 \mySubsubsection{10.3.4.}{引用父类名称}
 
-当在一个派生类中覆写成员函数时，实际上是在其他代码的考虑中替换了原始函数。然而，父类的那个成员函数仍然存在，有时可能想要使用它。例如，一个覆写的成员函数可能希望继续执行基类实现的功能，并在此基础上增加一些其他功能。WeatherPrediction类中的getTemperature()成员函数，它返回当前温度的字符串表示：
+在一个派生类中覆写成员函数时，实际上是在其他代码的考虑中替换了原始函数。然而，父类的那个成员函数仍然存在，有时可能想要使用它。一个覆写的成员函数可能希望继续执行基类实现的功能，并在此基础上增加一些其他功能。WeatherPrediction类中的getTemperature()成员函数，返回当前温度的字符串：
 
 \begin{cpp}
 export class WeatherPrediction
@@ -162,7 +162,7 @@ export class MyWeatherPrediction : public WeatherPrediction
 };
 \end{cpp}
 
-假设派生类首先调用基类的getTemperature()成员函数，然后在其后添加°F：
+假设派生类首先调用基类的getTemperature()成员函数，并在其后添加°F：
 
 \begin{cpp}
 string MyWeatherPrediction::getTemperature() const
@@ -172,7 +172,7 @@ string MyWeatherPrediction::getTemperature() const
 }
 \end{cpp}
 
-这并没什么用，根据C++的名称解析规则，首先解析本地作用域，然后解析类作用域，结果最终调用MyWeatherPrediction::getTemperature()。这会导致无限递归，直到栈空间耗尽（一些编译器在编译时检测到这个错误并报告）。
+这没什么用，根据C++的名称解析规则，首先解析本地作用域，然后解析类作用域，结果最终调用MyWeatherPrediction::getTemperature()。这会导致无限递归，直到栈空间耗尽（一些编译器在编译时检测到这个错误并报告）。
 
 为了让这个功能正常工作，需要使用作用域解析运算符：
 
@@ -185,7 +185,7 @@ string MyWeatherPrediction::getTemperature() const
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Microsoft Visual C++支持非标准的\_\_super关键字（有两个下划线）。这允许这样写：
+Microsoft Visual C++支持非标准的\_\_super关键字（有两个下划线）。可以这样写：
 
 \begin{cpp}
 return __super::getTemperature() + "\u00B0F";
@@ -245,18 +245,18 @@ int main()
 }
 \end{cpp}
 
-Book基类有两个虚成员函数：getDescription()和getHeight()。所有派生类都覆写了getDescription()，但只有Romance类通过调用其父类（Paperback）的getHeight()并除以2来覆写getHeight()。Paperback没有覆写getHeight()，但C++会向上遍历类的层次结构，找到一个实现getHeight()的类。这个例子中，Paperback::getHeight()会解析为Book::getHeight()。
+Book基类有两个虚成员函数：getDescription()和getHeight()。所有派生类都覆写了getDescription()，只有Romance类通过调用其父类（Paperback）的getHeight()并除以2来覆写getHeight()。Paperback没有覆写getHeight()，但C++会向上遍历类的层次结构，找到一个实现getHeight()的类。这个例子中，Paperback::getHeight()会解析为Book::getHeight()。
 
 \mySubsubsection{10.3.5.}{上下转换}
 
-可以将对象强制转换为它的父类，或者赋值给它的父类：
+可以将对象强制转换为其父类，或者赋值给它的父类：
 
 \begin{cpp}
 Derived myDerived;
 Base myBase { myDerived }; // Slicing!
 \end{cpp}
 
-这种情况下会发生切片，因为最终结果是一个Base对象，而Base对象缺少在Derived类中定义的额外功能。然而，如果将派生类赋值给指向其基类的指针或引用，则不会发生切片：
+这种情况下会发生切片，因为最终结果是一个Base对象，而Base对象缺少在Derived类中定义的功能。如果将派生类赋值给指向其基类的指针或引用，则不会发生切片：
 
 \begin{cpp}
 Base& myBase { myDerived }; // No slicing!
@@ -265,10 +265,10 @@ Base& myBase { myDerived }; // No slicing!
 通常，这是正确地以基类的形式引用派生类的方式，也称为向上转换。这就是为什么函数接受类的引用，而不是直接使用这些类的对象。通过使用引用，派生类可以在不切片的情况下进行传递。
 
 \begin{myWarning}{WARNING}
-When upcasting, use a pointer or reference to the base class to avoid slicing.
+进行向上转换时，请使用指向基类的指针或引用来避免切片。
 \end{myWarning}
 
-从基类转换到其派生类，也称为向下转换，通常不受专业C++开发者的欢迎，因为不保证对象确实属于那个派生类，并且向下转换是设计不良的标志：
+从基类转换到其派生类，也称为向下转换，通常不受专业C++开发者的欢迎。因为不保证对象确实属于那个派生类，并且向下转换是设计不良的标志：
 
 \begin{cpp}
 void presumptuous(Base* base)
@@ -278,11 +278,11 @@ void presumptuous(Base* base)
 }
 \end{cpp}
 
-如果presumptuous()的作者也编写了调用presumptuous()的代码，因为作者知道函数期望参数是Derived类型的，一切可能都会好，尽管代码很丑。然而，如果其他开发者调用presumptuous()，可能会传递一个Base。没有编译时检查可以执行来强制参数的类型，并且函数盲目地假设base实际上是指向Derived对象的指针。
+如果presumptuous()的作者也编写了调用presumptuous()的代码，因为作者知道函数期望参数是Derived类型的，一切可能都会好，尽管代码很丑。如果其他开发者调用presumptuous()，可能会传递一个Base。没有编译时检查可以执行来强制参数的类型，并且函数盲目地假设base实际上是指向Derived对象的指针。
 
-向下转换有时是必要的，可以在受控的情况下使用。然而，如果要进行向下转换，应该使用dynamic\_cast()，使用对象的内置类型来拒绝不合理的转换。这种内置类型通常位于vtable中，所以dynamic\_cast()只对具有vtable的对象有效，即至少有一个虚拟成员的对象。如果dynamic\_cast()在指针上转换失败，结果将是nullptr，而不是指向非意义数据的指针。如果dynamic\_cast()在对象引用上转换失败，将抛出std::bad\_cast异常。本章的最后部分会详细讨论了不同的转换方式。
+向下转换有时是必要的，可以在受控的情况下使用。如果要进行向下转换，应该使用dynamic\_cast()，使用对象的内置类型来拒绝不合理的转换。这种内置类型通常位于vtable中，所以dynamic\_cast()只对具有vtable的对象有效，即至少有一个虚拟成员的对象。如果dynamic\_cast()在指针上转换失败，结果将是nullptr，而不是指向非意义数据的指针。如果dynamic\_cast()在对象引用上转换失败，将抛出std::bad\_cast异常。本章的最后会详细介绍不同的转换方式。
 
-上一个示例可以按以下方式编写：
+上一个示例可以这样写：
 
 \begin{cpp}
 void lessPresumptuous(Base* base)
@@ -294,7 +294,7 @@ void lessPresumptuous(Base* base)
 }
 \end{cpp}
 
-然而，使用向下转换通常是设计不良的标志。应该重新思考并修改设计，尽可能避免向下转换。例如，lessPresumptuous()函数只真正适用于Derived对象，所以应该接受Derived指针，而不是Base指针，这将消除向下转换的必要。如果函数应该与从Base继承的不同派生类一起工作，那么使用多态性的解决方案，这将在下一节讨论。
+然而，使用向下转换通常是设计不良的标志。应该重新思考并修改设计，尽可能避免向下转换。例如，lessPresumptuous()函数只真正适用于Derived对象，所以应该接受Derived指针，而不是Base指针，这将消除向下转换的必要。如果函数应该与从Base继承的不同派生类一起工作，可以使用多态性的解决方案，这将在下一节中介绍。
 
 \begin{myWarning}{WARNING}
 仅在必要时使用向下转换，并使用dynamic\_cast()。

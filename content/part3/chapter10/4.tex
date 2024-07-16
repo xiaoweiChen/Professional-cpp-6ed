@@ -1,9 +1,9 @@
 
-现在已经理解了派生类与其父类之间的关系，可以使用继承在其最强大的场景中——多态性。第5章讨论了多态性，如何以可互换的方式使用具有共同父类的对象，并使用对象代替父类。
+现在已经理解了派生类与其父类之间的关系，可以使用继承在其最强大的场景中——多态性。第5章讨论了多态性，以可互换的方式使用具有共同父类的对象，并使用对象代替父类。
 
 \mySubsubsection{10.4.1.}{回归电子表格}
 
-第8章和第9章使用电子表格作为适合面向对象设计的应用程序的示例，SpreadsheetCell表示单个数据元素，该元素始终存储单个double值。以下是SpreadsheetCell的简化类定义。请注意，单元格可以设置为double或string\_view，但始终存储为double。然而，在这个示例中，单元格的当前值始终作为字符串返回。
+第8章和第9章使用电子表格作为适合面向对象设计的应用程序的示例，SpreadsheetCell表示单个数据元素，该元素始终存储单个double值。以下是SpreadsheetCell的简化类定义。单元格可以设置为double或string\_view，但始终存储为double。在这个示例中，单元格的当前值始终作为字符串返回。
 
 \begin{cpp}
 class SpreadsheetCell
@@ -19,7 +19,7 @@ class SpreadsheetCell
 };
 \end{cpp}
 
-实际的电子表格应用程序中，单元格可以存储不同的东西。一个单元格可以存储一个double，但它也可能存储一段文本。可能还需要额外的单元格类型，例如：公式单元格或日期单元格。要如何支持这些呢？
+实际的电子表格应用程序中，单元格可以存储不同的东西。一个单元格可以存储一个double，但也可能存储一段文本。可能还需要额外的单元格类型，例如：公式单元格或日期单元格。要如何支持这些内容呢？
 
 \mySubsubsection{10.4.2.}{多态电子表格单元格}
 
@@ -27,18 +27,18 @@ SpreadsheetCell类需要一次层次化的改造。一个合理的方法是将Sp
 
 \myGraphic{0.3}{content/part3/chapter10/images/7.png}{图 10.7}
 
-如果实现图10.7所示的设计，可能会发现派生类将覆盖基类的所有功能。因为双精度浮点数与字符串处理不同，所以这种关系可能并不完全符合最初的设想。然而，包含字符串的单元格与包含双精度浮点数的单元格之间显然存在一种关系。与其使用图10.7中的模型，暗示DoubleSpreadsheetCell以某种方式“as a”StringSpreadsheetCell，不如让这些类成为具有共同父类SpreadsheetCell的对等类。图10.8展示了这样的设计。
+如果实现图10.7所示的设计，可能会发现派生类将覆盖基类的所有功能。因为双精度浮点数与字符串处理不同，所以这种关系可能并不完全符合最初的设想。包含字符串的单元格与包含双精度浮点数的单元格之间，显然存在一种关系。与其使用图10.7中的模型，暗示DoubleSpreadsheetCell以某种方式成为StringSpreadsheetCell，不如让这些类成为具有共同父类SpreadsheetCell的对等类。图10.8展示了这样的设计。
 
 \myGraphic{0.6}{content/part3/chapter10/images/8.png}{图 10.8}
 
-图10.8中的设计展示了对SpreadsheetCell层次结构的多态方法。因为DoubleSpreadsheetCell和StringSpreadsheetCell都继承自共同的父类SpreadsheetCell，所以在外部代码看来它们可以互换，所以这意味着：
+图10.8中的设计展示了对SpreadsheetCell层次结构的多态方法。因为DoubleSpreadsheetCell和StringSpreadsheetCell都继承自共同的父类SpreadsheetCell，所以在外部代码看来它们可以互换：
 
 \begin{itemize}
 \item
 两个派生类都支持由基类定义的相同接口（一组成员函数）。
 
 \item
-使用SpreadsheetCell对象的代码可以调用接口中的成员函数，甚至不知道单元格是DoubleSpreadsheetCell还是StringSpreadsheetCell。
+SpreadsheetCell对象可以调用接口中的成员函数，甚至不知道单元格是DoubleSpreadsheetCell还是StringSpreadsheetCell。
 
 \item
 通过虚成员函数的魔力，根据对象的类调用接口中每个成员函数的相应实例。
@@ -49,11 +49,11 @@ SpreadsheetCell类需要一次层次化的改造。一个合理的方法是将Sp
 
 \mySubsubsection{10.4.3.}{SpreadsheetCell基类}
 
-由于所有电子表格单元格都从SpreadsheetCell基类派生，因此首先编写这个类可能是个好主意。设计基类时，需要考虑派生类之间的关系。这些信息中，可以推导出可以放入父类中的共性。例如，字符串单元格和双精度浮点数单元格都包含单个数据片段，因此相似。由于数据来自用户，并将显示回给用户，因此值设置为字符串，并作为字符串检索。这些行为是构成基类的通用功能。
+所有电子表格单元格都从SpreadsheetCell基类派生，因此首先编写这个类可能是个好主意。设计基类时，需要考虑派生类之间的关系，可以推导出可以放入父类中的共性。字符串单元格和双精度浮点数单元格都包含单个数据片段，因此相似。由于数据来自用户，并将显示回给用户，因此值设置为字符串，并作为字符串检索。这些行为是构成基类的通用功能。
 
 \mySamllsection{第一次尝试}
 
-SpreadsheetCell基类负责定义所有SpreadsheetCell派生类将支持的行为。这个例子中，所有单元格都需要能够将值设置为字符串，还需要能够以字符串形式返回当前值。基类定义声明了这些成员函数，以及一个显式默认的虚析构函数，但它没有数据成员。定义位于spreadsheet\_cell模块中。
+SpreadsheetCell基类负责定义所有SpreadsheetCell派生类将支持的行为。这个例子中，所有单元格都需要能够将值设置为字符串，还需要能够以字符串形式返回当前值。基类定义声明了这些成员函数，以及显式默认的虚析构函数，但没有数据成员。定义位于spreadsheet\_cell模块中。
 
 \begin{cpp}
 export module spreadsheet_cell;
@@ -68,13 +68,13 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-当开始为这个类编写.cpp文件时，很快就会遇到一个问题。考虑到电子表格单元格的基类既不包含双精度浮点数也不包含字符串数据成员，该如何实现它？更一般地说，如何编写一个基类，声明派生类支持的行为，而不实际定义这些行为的具体实现？
+为这个类编写.cpp文件时，很快就会遇到一个问题。考虑到电子表格单元格的基类既不包含双精度浮点数，也不包含字符串数据成员，该如何实现？更一般地说，如何编写一个基类，声明派生类支持的行为，而不实际定义这些行为的具体实现？
 
-一种可能的方法是为这些行为实现“什么都不做”的功能。例如，因为基类没有东西可以设置，所以在SpreadsheetCell基类上调用set()成员函数将没有效果。然而，这种方法仍然不太对。理想情况下，永远不应该有基类的实例对象。因为是在DoubleSpreadsheetCell或StringSpreadsheetCell示例上调用set()，所以应该总是有作用的。一个好的解决方案应该强制执行这个约束。
+一种可能的方法是为这些行为实现“什么都不做”的功能。因为基类没有东西可以设置，所以在SpreadsheetCell基类上调用set()成员函数将没有效果，但这种方法仍然不太对。理想情况下，永远不应该有基类的实例对象。因为是在DoubleSpreadsheetCell或StringSpreadsheetCell示例上调用set()，所以应该总是有作用的。一个好的解决方案应该强制执行这个约束。
 
 \mySamllsection{纯虚成员函数和抽象基类}
 
-纯虚成员函数是在类定义中明确未定义的成员函数。一个成员函数为纯虚，则告诉编译器当前类中不存在该成员函数的定义。至少有一个纯虚成员函数的类称为抽象类，因为没有代码能够对其实例化。编译器会强制执行，如果一个类包含一个或多个纯虚成员函数，那么永远不能用来构造该类型的对象。
+纯虚成员函数是在类定义中明确未定义的成员函数。一个成员函数为纯虚，则告诉编译器当前类中不存在该成员函数的定义。至少有一个纯虚成员函数的类称为抽象类，没有代码能够对其实例化。编译器会强制执行，如果一个类包含一个或多个纯虚成员函数，则永远不能用来构造该类型的对象。
 
 指定纯虚成员函数有一个特殊的语法。成员函数声明后面跟着=0，且不需要编写实现。
 
@@ -94,7 +94,7 @@ export class SpreadsheetCell
 SpreadsheetCell cell; // Error! Attempts creating abstract class instance.
 \end{cpp}
 
-当实现了StringSpreadsheetCell类，以下代码将编译良好，因为它实例化了抽象基类的派生类：
+实现了StringSpreadsheetCell类，以下代码就没有编译问题，因为它实例化了抽象基类的派生类：
 
 \begin{cpp}
 unique_ptr<SpreadsheetCell> cell { new StringSpreadsheetCell {} };
@@ -104,15 +104,15 @@ unique_ptr<SpreadsheetCell> cell { new StringSpreadsheetCell {} };
 抽象类提供了一种方式，可以避免其他代码直接实例化对象，而不是它的派生类。
 \end{myNotic}
 
-请注意，SpreadsheetCell类没有什么可以实现的。所有成员函数都是纯虚的，析构函数显式设置为默认。
+SpreadsheetCell类没有什么可以实现的，所有成员函数都是纯虚的，析构函数显式设置为默认。
 
 \mySubsubsection{10.4.4.}{各个派生类}
 
-编写StringSpreadsheetCell和DoubleSpreadsheetCell类只是实现父类中定义的功能。因为想让客户能够实例化和使用字符串单元格和double单元格，所以单元格不能是抽象的——必须实现从父类继承的所有纯虚成员函数。如果一个派生类没有实现所有从基类继承的纯虚成员函数，那么这个派生类也是抽象的，客户将无法实例化派生类的对象。
+编写StringSpreadsheetCell和DoubleSpreadsheetCell类只是实现父类中定义的功能，想让客户能够实例化和使用字符串单元格和double单元格，所以单元格不能是抽象的——必须实现从父类继承的所有纯虚成员函数。如果一个派生类没有实现所有从基类继承的纯虚成员函数，那么这个派生类也是抽象的，客户将无法实例化派生类的对象。
 
 \mySamllsection{StringSpreadsheetCell的类定义}
 
-StringSpreadsheetCell类在其自己的模块中定义，名为string\_spreadsheet\_cell。编写StringSpreadsheetCell类的定义的第一步是从SpreadsheetCell继承，所以需要导入spreadsheet\_cell模块。
+StringSpreadsheetCell类在其自己的模块中定义，名为string\_spreadsheet\_cell。编写StringSpreadsheetCell类的定义的第一步是从SpreadsheetCell继承，需要导入spreadsheet\_cell模块。
 
 接下来，重写继承的纯虚成员函数，这次不再设置为零。
 
@@ -144,7 +144,7 @@ std::string getString() const override { return m_value.value_or(""); }
 
 \mySamllsection{DoubleSpreadsheetCell类定义和实现}
 
-双精度浮点数版本遵循类似的模式，但逻辑不同。除了从基类继承的接受string\_view的set()成员函数外，还提供了一个新的set()成员函数，允许客户端使用双精度浮点数参数设置值。此外，还提供了一个新的getValue()成员函数，以双精度浮点数形式检索值。两个新的private静态成员函数用于在字符串和双精度浮点数之间进行转换，反之亦然。与StringSpreadsheetCell一样，其也有一个名为m\_value的数据成员，但这里是optional<double>类型。
+双精度浮点数版本遵循类似的模式，但逻辑不同。除了从基类继承的接受string\_view的set()成员函数外，还提供了一个新的set()成员函数，允许客户端使用双精度浮点数参数设置值。还提供了一个新的getValue()成员函数，以双精度浮点数形式检索值。两个新的private静态成员函数用于在字符串和双精度浮点数之间进行转换，反之亦然。与StringSpreadsheetCell一样，其也有一个名为m\_value的数据成员，但这里是optional<double>类型。
 
 \begin{cpp}
 export module double_spreadsheet_cell;
@@ -166,7 +166,7 @@ export class DoubleSpreadsheetCell : public SpreadsheetCell
 };
 \end{cpp}
 
-接受双精度浮点数的set()成员函数和getValue()的实现都很简单。string\_view重载使用了private静态成员函数stringToDouble()。getString()成员函数将存储的双精度浮点数值作为字符串返回，如果没有存储值则返回空字符串，使用std::optional的has\_value()成员函数来查询optional是否有值。如果有值，则使用value()成员函数来检索。
+接受双精度浮点数的set()成员函数和getValue()的实现都很简单，string\_view重载使用了private静态成员函数stringToDouble()。getString()成员函数将存储的双精度浮点数值作为字符串返回，如果没有存储值则返回空字符串，使用std::optional的has\_value()成员函数来查询optional是否有值。如果有值，则使用value()成员函数来检索。
 
 \begin{cpp}
 virtual void set(double value) { m_value = value; }
@@ -181,11 +181,11 @@ std::string getString() const override
 
 已经看到了实现层次结构中，电子表格单元格的一个主要优势——代码简单。每个类都可以专注于自己的功能。
 
-请注意，doubleToString()和stringToDouble()与第8章中的实现相同，所以在这里省略了相应的实现代码。
+doubleToString()和stringToDouble()与第8章中的实现相同，所以在这里省略了相应的实现代码。
 
 \mySubsubsection{10.4.5.}{利用多态}
 
-现在SpreadsheetCell层次结构是多态的，客户端代码可以利用多态获益。以下测试程序探索了这些特性。
+SpreadsheetCell层次结构是多态的，客户端代码可以利用多态获益。以下测试程序探索了这些特性。
 
 为了演示多态性，测试程序声明了一个包含三个SpreadsheetCell指针的vector。由于SpreadsheetCell是一个抽象类，不能创建该类型的对象，但可以有一个指向SpreadsheetCell的指针或引用(实际上是指向派生类的)。因为是一个SpreadsheetCell父类型的vector，允许存储两种派生类的异构混合，其中的元素可能是StringSpreadsheetCell或DoubleSpreadsheetCell。
 
@@ -193,7 +193,7 @@ std::string getString() const override
 vector<unique_ptr<SpreadsheetCell>> cellArray;
 \end{cpp}
 
-vector的前两个元素指向新的StringSpreadsheetCell实例，而第三个是一个新的DoubleSpreadsheetCell实例。
+vector的前两个元素指向新的StringSpreadsheetCell实例，而第三个是一个DoubleSpreadsheetCell实例。
 
 \begin{cpp}
 cellArray.push_back(make_unique<StringSpreadsheetCell>());
@@ -201,7 +201,7 @@ cellArray.push_back(make_unique<StringSpreadsheetCell>());
 cellArray.push_back(make_unique<DoubleSpreadsheetCell>());
 \end{cpp}
 
-现在vector包含多态数据，可以对vector中的对象应用基类声明的成员函数。代码只是使用SpreadsheetCell指针——编译器在编译时不知道对象的实际类型。然而，由于对象继承自SpreadsheetCell，必须支持SpreadsheetCell的成员函数。
+现在vector包含多态数据，可以对vector中的对象应用基类声明的成员函数。代码只是使用SpreadsheetCell指针——编译器在编译时不知道对象的实际类型。由于对象继承自SpreadsheetCell，必须支持SpreadsheetCell的成员函数。
 
 \begin{cpp}
 cellArray[0]->set("hello");
@@ -209,7 +209,7 @@ cellArray[1]->set("10");
 cellArray[2]->set("18");
 \end{cpp}
 
-当调用getString()成员函数时，每个对象都正确地返回其值的表示字符串。重要的是，不同的对象以不同的方式执行此操作。StringSpreadsheetCell返回其存储的值，或空字符串。DoubleSpreadsheetCell首先执行转换，如果包含值则进行转换；否则，返回空字符串。作为开发者，不需要知道对象是如何做到这一点的——只需要知道，对象是SpreadsheetCell，所以可以完成这种行为即可。
+当调用getString()成员函数时，每个对象都正确地返回其值的表示字符串，不同的对象以不同的方式执行此操作。StringSpreadsheetCell返回其存储的值，或空字符串。DoubleSpreadsheetCell首先执行转换，如果包含值则进行转换；否则，返回空字符串。作为开发者，不需要知道对象是如何做到这一点的——只需要知道，对象是SpreadsheetCell，所以可以完成这种行为即可。
 
 \begin{cpp}
 println("Vector: [{},{},{}]", cellArray[0]->getString(),
@@ -220,7 +220,7 @@ println("Vector: [{},{},{}]", cellArray[0]->getString(),
 
 \mySubsubsection{10.4.6.}{考虑未来}
 
-从面向对象设计的角度来看，新的SpreadsheetCell层次结构实现无疑是一个改进。然而，它仍然不足以作为一个实际电子表格程序的实际类层次结构，原因有几个。
+从面向对象设计的角度来看，新的SpreadsheetCell层次结构实现无疑是一个改进，但它仍然不足以作为一个实际电子表格程序的实际类层次结构，原因有几个。
 
 首先，尽管设计有所改进，但仍然缺少一个特性：从一种单元格类型转换为另一种单元格类型的能力。将它们分为两个类后，单元格对象变得更加松散。为了提供从DoubleSpreadsheetCell转换为StringSpreadsheetCell的能力，可以添加一个转换构造函数，也称为类型构造函数。看起来类似于复制构造函数，但不是接受同一类的对象的引用，而是接受兄弟类的对象的引用。还需要注意，现在必须声明一个默认构造函数，可以显式默认，因为当声明了自己的构造函数，编译器就不会生成默认构造函数。
 
@@ -244,7 +244,7 @@ export class StringSpreadsheetCell : public SpreadsheetCell
 
 其次，如何为单元格实现重载运算符是一个有趣的问题，有几种可能的方法。
 
-一种方法是为每种单元格组合实现每个运算符的版本。由于只有两个派生类，这是可管理的。实现一个operator+函数来加和两个双精度浮点数单元格，或来加和两个字符串单元格，以及将一个双精度浮点数单元格与一个字符串单元格进行加和。对于每种组合，由开发者决定会有什么样的结果。例如，两个双精度浮点数单元格相加的结果可能是将两个值数学相加的结果。两个字符串单元格相加的结果可能是一个表示两个字符串连接的字符串等。
+一种方法是为每种单元格组合实现每个运算符的版本。由于只有两个派生类，这是可管理的。实现一个operator+函数来加和两个双精度浮点数单元格，或来加和两个字符串单元格，以及将一个双精度浮点数单元格与一个字符串单元格进行加和。对于每种组合，由开发者决定会有什么样的结果。两个双精度浮点数单元格相加的结果可能是将两个值数学相加的结果，两个字符串单元格相加的结果可能是一个表示两个字符串连接的字符串等。
 
 另一种方法是决定一个共同的表现形式，早期的实现在某种程度上已经将字符串标准化为共同的表现形式。一个operator+可以涵盖所有情况，可以利用这个共同的表现形式。
 
@@ -280,7 +280,7 @@ export StringSpreadsheetCell operator+(const StringSpreadsheetCell& lhs,
 }
 \end{cpp}
 
-只要编译器有办法将特定单元格转换为StringSpreadsheetCell，该运算符就会工作。鉴于前面有一个StringSpreadsheetCell构造函数接受DoubleSpreadsheetCell作为参数的示例，如果这是使operator+工作的唯一方法，编译器将自动执行转换。所以以下将双精度浮点数单元格添加到字符串单元格的代码将工作，即使只提供了两个operator+实现：一个用于添加两个双精度浮点数单元格，另一个用于添加两个字符串单元格。
+只要编译器有办法将特定单元格转换为StringSpreadsheetCell，该运算符就会工作。鉴于前面有一个StringSpreadsheetCell构造函数接受DoubleSpreadsheetCell作为参数的示例，如果这是使operator+工作的唯一方法，编译器将自动执行转换。以下将双精度浮点数单元格添加到字符串单元格的代码将工作，只提供了两个operator+实现：一个用于添加两个双精度浮点数单元格，另一个用于添加两个字符串单元格。
 
 \begin{cpp}
 DoubleSpreadsheetCell doubleCell; doubleCell.set(8.4);
@@ -289,11 +289,11 @@ StringSpreadsheetCell result { stringCell + doubleCell };
 println("{}", result.getString()); // Prints Hello 8.400000
 \end{cpp}
 
-如果对多态性感到有些不确定，可以从这个例子的代码开始尝试。实验性代码是一个很好的起点，可以简单地练习多态性的各个方面。
+如果对多态性感到有些不确定，可以从这个例子的代码开始尝试。实验性代码是一个很好的起点，可以简单地练习使用多态性。
 
 \mySubsubsection{10.4.7.}{为纯虚成员函数提供实现}
 
-从技术上讲，可以为纯虚成员函数提供实现。这个实现不能在类定义本身，必须在类外提供。尽管如此，该类仍是抽象的，派生类仍然需要为纯虚成员函数提供实现。然而，对纯虚成员函数的实现可以调用，例如：在派生类中调用：
+从技术上讲，可以为纯虚成员函数提供实现。这个实现不能在类定义本身，必须在类外提供。尽管如此，该类仍是抽象的，派生类仍然需要为纯虚成员函数提供实现。对纯虚成员函数的实现可以调用，例如：在派生类中调用：
 
 \begin{cpp}
 class Base
