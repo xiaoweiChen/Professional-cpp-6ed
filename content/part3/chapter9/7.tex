@@ -1,4 +1,4 @@
-枚举也可以是类的数据成员。例如，为 SpreadsheetCell 类添加对单元格的上色支持：
+枚举也可以是类的数据成员，对 SpreadsheetCell 类添加对单元格上色功能：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -21,7 +21,7 @@ void SpreadsheetCell::setColor(Color color) { m_color = color; }
 SpreadsheetCell::Color SpreadsheetCell::getColor() const { return m_color; }
 \end{cpp}
 
-新的成员函数可以这样使用：
+新成员函数可以这样使用：
 
 \begin{cpp}
 SpreadsheetCell myCell { 5 };

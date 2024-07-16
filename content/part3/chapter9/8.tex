@@ -1,17 +1,17 @@
 
-若希望对对象执行操作，例如添加、比较或将它们流式传输到文件或从文件中读取。例如，在可以对电子表格执行算术操作（例如对整行单元格求和）时，电子表格才是有用的。所有这些都可以通过重载操作符来实现。
+若希望对对象执行操作，例如添加、比较或将它们流式传输到文件或从文件中读取。可以对电子表格执行算术操作（例如对整行单元格求和）时，电子表格才是有用的。所有这些都可以通过重载操作符来实现。
 
-许多人发现操作符重载的语法复杂且令人困惑，但它本来是为了降低代码的复杂度。正如您将在本节中发现的那样，这不是为编写类的开发者简化，而是为使用类的使用者简化。重点是将新类应尽可能与内置类型（如 int 和 double）相似：使用 + 添加对象比应该调用的成员函数 add() 还是 sum() 要简单。
+许多人发现操作符重载的语法复杂且令人困惑，但它本来是为了降低代码的复杂度。这不是为编写类的开发者简化，而是为使用类的使用者简化。重点是将新类应尽可能与内置类型（如 int 和 double）相似：使用 + 添加对象比应该调用的成员函数 add() 还是 sum() 要简单。
 
 \begin{myNotic}{NOTE}
 提供操作符重载可视为对客户端的服务。
 \end{myNotic}
 
-此时，可能想知道究竟可以重载哪些操作符——(几乎)所有操作符——甚至有一些从未听说过的。本章只是触及了表面：本章前面介绍了赋值操作符，本节将介绍基本的算术操作符、简化算术操作符和比较操作符，重载流插入和提取操作符也很实用。此外，可以使用操作符重载做一些复杂的操作，标准库广泛使用了操作符重载。第 15 章解释了如何以及何时重载其余的操作符，第 16 到 24 章将介绍标准库。
+此时，可能想知道究竟可以重载哪些操作符——(几乎)所有操作符——甚至有一些从未听说过的。本章只是触及了表面：本章前面介绍了赋值操作符，本节将介绍基本的算术操作符、简化算术操作符和比较操作符，重载流插入和提取操作符也很实用。可以使用操作符重载做一些复杂的操作，标准库广泛使用了操作符重载。第 15 章解释了如何以及何时重载其余的操作符，第 16 到 24 章将介绍标准库。
 
 \mySubsubsection{9.8.1.}{示例：为 SpreadsheetCell 实现 加法操作符}
 
-SpreadsheetCell 对象应该能够以真正的面向对象方式，将自己的内容与其他 SpreadsheetCell 对象中的内容相加。两个单元格的内容进行加法时，其结果会生成到第三个(新的)单元格中。对于 SpreadsheetCell 来说，加法的含义是单元格内的数值相加。
+SpreadsheetCell 对象应该能够以真正的面向对象方式，将自己的内容与其他 SpreadsheetCell 对象中的内容相加。两个单元格的内容进行加法时，其结果会生成到第三个(新的)单元格中。对于 SpreadsheetCell 来说，加法的含义是，单元格内的数值相加。
 
 \mySamllsection{第一次尝试：add 成员函数}
 
@@ -26,7 +26,7 @@ export class SpreadsheetCell
 };
 \end{cpp}
 
-这个成员函数将两个单元格的内容相加，返回一个新的第三个单元格，其值是前两个单元格的和。该函数声明为 const，并接受一个对 const SpreadsheetCell 的引用，所以 add() 不会改变任一源单元格。下面是其实现：
+这个成员函数将两个单元格的内容相加，返回一个新的第三个单元格，其值是前两个单元格的和。该函数声明为 const，并接受一个对 const SpreadsheetCell 的引用，所以 add() 不会改变源单元格。下面是实现：
 
 \begin{cpp}
 SpreadsheetCell SpreadsheetCell::add(const SpreadsheetCell& cell) const
@@ -43,11 +43,11 @@ SpreadsheetCell aThirdCell { myCell.add(anotherCell) };
 auto aFourthCell { aThirdCell.add(anotherCell) };
 \end{cpp}
 
-这样可行，但略显笨拙。当然，我们可以做得更好。
+这样可行，但略显笨拙。
 
 \mySamllsection{第二次尝试：将 operator+ 作为成员函数重载}
 
-能够使用加号将两个单元格相加，就像将两个 int 或两个 double 相加一样，会非常方便：
+能够使用加号将两个单元格相加，就像将两个 int 或两个 double 相加一样：
 
 \begin{cpp}
 SpreadsheetCell myCell { 4 }, anotherCell { 5 };
@@ -55,7 +55,7 @@ SpreadsheetCell aThirdCell { myCell + anotherCell };
 auto aFourthCell { aThirdCell + anotherCell };
 \end{cpp}
 
-C++ 允许为类编写自己的加法操作符，使其正确地为您的类工作。为此，需要一个名为 operator+ 的成员函数：
+C++ 允许为类编写自己的加法操作符，使其正确地为类工作。为此，需要一个名为 operator+ 的成员函数：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -67,7 +67,7 @@ export class SpreadsheetCell
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-可以在 operator 和加号之间插入空格。例如，可以写 operator +，而非 operator+。本书采用了不带空格的方式。
+可以在 operator 和加号之间插入空格。可以写 operator +，而非 operator+。本书采用了不带空格的方式。
 \end{myNotic}
 
 重载的 operator+ 成员函数定义与 add() 成员函数的实现相同：
@@ -81,25 +81,25 @@ SpreadsheetCell SpreadsheetCell::operator+(const SpreadsheetCell& cell) const
 
 现在，可以使用加号操作符将两个单元格相加，如前所示。
 
-这种语法需要一些时间来适应。不要过于担心奇怪的成员函数名 operator+ ——只是一个名称，就像 foo 或 add 一样。要理解其余的语法，有助于了解真正发生的事情。当 C++ 编译器解析程序并遇到操作符时，例如 +、-、= 或 <{}<，会尝试找到具有相应参数的函数或成员函数，分别名为 operator+、operator-、operator= 或 operator<{}<。例如，当编译器看到以下代码时，会尝试在 SpreadsheetCell 类中找到名为 operator+ 的成员函数，该函数接受另一个 SpreadsheetCell 作为参数（或者，如本章后面所讨论的，接受两个 SpreadsheetCell 参数的全局函数）：
+这种语法需要一些时间来适应。不要过于担心奇怪的成员函数名 operator+ ——只是一个名称，就像 foo 或 add 一样。要理解其余的语法，有助于了解真正发生的事情。当 C++ 编译器解析程序并遇到操作符时，例如 +、-、= 或 <{}<，尝试找到具有相应参数的函数或成员函数，分别名为 operator+、operator-、operator= 或 operator<{}<。当编译器看到以下代码时，会尝试在 SpreadsheetCell 类中找到名为 operator+ 的成员函数，该函数接受另一个 SpreadsheetCell 作为参数（或者，如本章后面所讨论的，接受两个 SpreadsheetCell 参数的全局函数）：
 
 \begin{cpp}
 SpreadsheetCell aThirdCell { myCell + anotherCell };
 \end{cpp}
 
-如果 SpreadsheetCell 类包含这样的 operator+ 成员函数，那么前面的行将转换为：
+如果 SpreadsheetCell 类包含这样的 operator+ 成员函数，前面的行将转换为：
 
 \begin{cpp}
 SpreadsheetCell aThirdCell { myCell.operator+(anotherCell) };
 \end{cpp}
 
-请注意，operator+ 接受的参数类型不必与编写它的类相同。可以为 SpreadsheetCells 编写一个接受 Spreadsheet 的 operator+ 以加和 SpreadsheetCell的值。这对开发者来说可能没有意义，但编译器会允许。下一节将给出一个接受 double 值的 operator+ 示例。
+operator+ 接受的参数类型不必与编写它的类相同，可以为 SpreadsheetCells 编写一个接受 Spreadsheet 的 operator+ 以加和 SpreadsheetCell的值。这对开发者来说可能没有意义，但编译器会允许。下一节将给出一个接受 double 值的 operator+ 示例。
 
-注意，可以为 operator+ 分配任何您想要的返回类型，但应该遵循最小惊讶原则；也就是说， operator+ 的返回类型通常应该为用户所期望。
+可以为 operator+ 分配想要的返回类型，但应该遵循最小惊讶原则；也就是说，operator+ 的返回类型通常应该为用户所期望。
 
 \mySamllsection{隐式转换}
 
-令人惊讶的是，在编写了前面展示的 operator+，不仅可以添加两个单元格，还可以将单元格添加到 string\_view、double 或 int！这里有一些例子：
+前面展示的 operator+，不仅可以添加两个单元格，还可以将单元格添加到 string\_view、double 或 int！这里有一些例子：
 
 \begin{cpp}
 SpreadsheetCell myCell { 4 }, aThirdCell;
@@ -109,9 +109,9 @@ aThirdCell = myCell + 5.6;
 aThirdCell = myCell + 4;
 \end{cpp}
 
-这段代码能够工作是因为，编译器为了找到一个合适的 operator+，不仅仅查找具有指定确切类型的，还会尝试找到合适的类型转换。SpreadsheetCell 类有转换构造函数（在第 8 章中介绍），可以将 double 或 string\_view 转换为 SpreadsheetCell。前面的示例中，编译器看到 SpreadsheetCell 尝试与 double 类型变量求和时，会找到接受 double 的 SpreadsheetCell 构造函数，并构造一个临时 SpreadsheetCell 对象传递给 operator+。同样，当编译器看到尝试将 SpreadsheetCell 添加到 string\_view 的行时，也会接受 string\_view 的 SpreadsheetCell 构造函数，创建一个临时 SpreadsheetCell传递给 operator+。
+这段代码能够工作是因为，编译器为了找到一个合适的 operator+，不仅仅查找具有指定确切类型的，还会尝试找到合适的类型转换。SpreadsheetCell 类有转换构造函数（在第 8 章中介绍），可以将 double 或 string\_view 转换为 SpreadsheetCell。前面的示例中，编译器看到 SpreadsheetCell 尝试与 double 类型变量求和时，会找到接受 double 的 SpreadsheetCell 构造函数，并构造一个临时 SpreadsheetCell 对象传递给 operator+。当编译器看到尝试将 SpreadsheetCell 添加到 string\_view 的行时，也会接受 string\_view 的 SpreadsheetCell 构造函数，创建临时 SpreadsheetCell传递给 operator+。
 
-然而，因为必须创建临时对象，所以使用隐式转换的构造函数可能效率不高。这个例子中，为了避免在与 double 进行加和时进行隐式构造，可以创建第二个 operator+：
+因为必须创建临时对象，所以使用隐式转换的构造函数可能效率不高。为了避免在与 double 进行加和时进行隐式构造，可以创建第二个 operator+：
 
 \begin{cpp}
 SpreadsheetCell SpreadsheetCell::operator+(double rhs) const
@@ -122,7 +122,7 @@ SpreadsheetCell SpreadsheetCell::operator+(double rhs) const
 
 \mySamllsection{第三次尝试：全局 operator+}
 
-隐式转换允许使用 operator+ 成员函数将 SpreadsheetCell 对象的值与 int 和 double 相加。然而，如以下代码所示，操作符不可交换：
+隐式转换允许使用 operator+ 成员函数将 SpreadsheetCell 对象的值与 int 和 double 相加。如以下代码所示，操作符不可交换：
 
 \begin{cpp}
 aThirdCell = myCell + 5.6; // Works fine.
@@ -131,9 +131,9 @@ aThirdCell = 5.6 + myCell; // FAILS TO COMPILE!
 aThirdCell = 4 + myCell; // FAILS TO COMPILE!
 \end{cpp}
 
-当 SpreadsheetCell 对象在操作符的左侧时，隐式转换工作正常，但当它在右侧时则不工作。加法应该是交换的呀！这里的问题是 operator+ 成员函数必须在 SpreadsheetCell 对象上使用，并且该对象必须在操作符的左侧，这就是 C++ 语言的定义方式。因此，无法使此代码使用 operator+ 成员函数工作。
+当 SpreadsheetCell 对象在操作符的左侧时，隐式转换工作正常，但当在右侧时则不工作。加法应该是交换的呀！这里的问题是 operator+ 成员函数必须在 SpreadsheetCell 对象上使用，并且该对象必须在操作符的左侧，这就是 C++ 语言的定义方式，这里无法使用operator+成员函数。
 
-然而，如果用一个不绑定到特定对象的全局 operator+ 函数，替换类内的 operator+ 成员函数，就可以工作。该函数如下所示：
+然而，如果用一个不绑定到特定对象的全局 operator+ 函数，替换类内的 operator+ 成员函数即可。该函数如下所示：
 
 \begin{cpp}
 SpreadsheetCell operator+(const SpreadsheetCell& lhs,
@@ -177,7 +177,7 @@ aThirdCell = 10;
 
 \mySubsubsection{9.8.2.}{重载算术操作符}
 
-现在已经了解了如何编写 operator+，其余的基本算术操作符就简单了。这里是 +、-、* 和 / 的声明，要用 +、-、* 和 / 替换 ，得到四个函数，也可以重载 \%，但对于存储在 SpreadsheetCells 中的 double 值来说，这没有意义。
+现在已经了解了如何编写 operator+，其余的基本算术操作符就简单了。这里是 +、-、* 和 / 的声明，要用 +、-、* 和 / 替换 ，得到四个函数，也可以重载 \%，但对于存储在 SpreadsheetCells 中的 double 值来说，没有意义。
 
 \begin{cpp}
 export class SpreadsheetCell { /* Omitted for brevity */ };
@@ -186,7 +186,7 @@ export SpreadsheetCell operator<op>(const SpreadsheetCell& lhs,
     const SpreadsheetCell& rhs);
 \end{cpp}
 
-operator- 和 operator* 的实现与 operator+ 的实现类似，这里先忽略。对于 operator/，唯一棘手的是检查除零。这个实现在检测到除零时抛出异常：
+operator- 和 operator* 的实现与 operator+ 的实现类似，这里先忽略。对于 operator/，唯一棘手的是除零。这个实现在检测到除零时抛出异常：
 
 \begin{cpp}
 SpreadsheetCell operator/(const SpreadsheetCell& lhs,
@@ -199,17 +199,17 @@ SpreadsheetCell operator/(const SpreadsheetCell& lhs,
 }
 \end{cpp}
 
-C++ 不要求在 operator* 中实现乘法，在 operator/ 中实现除法。可以在 operator/ 中实现乘法，在 operator+ 中实现除法。然而，这样做会非常令人困惑，而且没有理由这样做。所以在可能的情况下，坚持在实现中使用操作符的通用含义。
+C++ 不要求在 operator* 中实现乘法，在 operator/ 中实现除法。可以在 operator/ 中实现乘法，在 operator+ 中实现除法。然而，这样做会非常令人困惑，而且没有理由这样做。
 
 \begin{myNotic}{NOTE}
-在 C++ 中，不能改变操作符的优先级。例如，* 和 / 总是在 + 和 - 之前计算。用户定义的操作符能做的是，在确定了运算的优先级之后指定实现。C++ 也不允许发明新的操作符符号或改变操作符的参数数量。操作符重载在第 15 章中详细介绍。
+不能改变C++中操作符的优先级。例如，* 和 / 总是在 + 和 - 之前计算。用户定义的操作符能做的是，在确定了运算的优先级之后指定实现。C++ 也不允许发明新的操作符符号或改变操作符的参数数量。操作符重载在第 15 章中详细介绍。
 \end{myNotic}
 
 \mySamllsection{重载算术简写操作符}
 
-除了基本算术操作符之外，C++ 还提供了简写操作符，如 += 和 -=。有些读者可能认为，已经为类编写 operator+ 了，就会自动生成 operator+=，但事实并非如此。必须显式地重载算术简写操作符。这些操作符与基本算术操作符的区别在于，它们改变操作符左侧的对象，而不是创建一个新对象。另一个不同之处在于，像赋值操作符一样，它们会产生一个引用，为修改对象后的结果。
+除了基本算术操作符之外，C++ 还提供了简写操作符，如 += 和 -=。有些读者可能认为，已经为类编写 operator+ 了，就会自动生成 operator+=，但事实并非如此。必须显式地重载算术简写操作符，这些操作符与基本算术操作符的区别在于，改变操作符左侧的对象，而不是创建一个新对象。另一个不同之处在于，像赋值操作符一样，会产生一个引用，为修改对象后的结果。
 
-算术简写操作符始终需要在类对象的左侧，所以应该将它们写为成员函数，而不是全局函数。这里是 SpreadsheetCell 类的声明：
+算术简写操作符始终需要在类对象的左侧，所以应该可写为成员函数，而不是全局函数。这里是 SpreadsheetCell 类的声明：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -233,7 +233,7 @@ SpreadsheetCell& SpreadsheetCell::operator+=(const SpreadsheetCell& rhs)
 }
 \end{cpp}
 
-算术简写操作符是基本算术操作符和赋值操作符的组合。有了前面的定义，现在可以编写如下代码：
+算术简写操作符是基本算术操作符和赋值操作符的组合。有了前面的定义，现在可以有如下代码：
 
 \begin{cpp}
 SpreadsheetCell myCell { 4 }, aThirdCell { 2 };
@@ -241,7 +241,7 @@ aThirdCell -= myCell;
 aThirdCell += 5.4;
 \end{cpp}
 
-但是，不能编写这样的代码：
+但不能这样写：
 
 \begin{cpp}
 5.4 += aThirdCell;
@@ -264,7 +264,7 @@ SpreadsheetCell operator+(const SpreadsheetCell& lhs, const SpreadsheetCell& rhs
 
 \mySubsubsection{9.8.3.}{重载比较操作符}
 
-比较操作符 >、<、<=、>=、== 和 != 是为类定义的另一组有用的操作符。C++20 标准为这些操作符带来了很多变化，并添加了三向比较操作符，也称为空格船操作符，<=>，这在第 1 章中有过介绍。为了更了解自从 C++20 以来发生了什么变化，让我们首先看看在 C++20 之前需要做什么，若编译器还不支持三向比较操作符，开发则需要做什么。
+比较操作符 >、<、<=、>=、== 和 != 是为类定义的另一组有用的操作符。C++20 标准为这些操作符带来了很多变化，并添加了三向比较操作符，也称为空格船操作符，<=>。为了更了解自从 C++20 以来发生了什么变化，让我们首先看看在 C++20 之前需要做什么，若编译器还不支持三向比较操作符，开发者需要做什么。
 
 \mySamllsection{C++20 前的重载比较操作符}
 
@@ -278,7 +278,7 @@ class SpreadsheetCell { /* Omitted for brevity */ };
 bool operator<op>(const SpreadsheetCell& lhs, const SpreadsheetCell& rhs);
 \end{cpp}
 
-这里是 operator== 的定义，其他定义类似。
+这是 operator== 的定义，其他定义类似。
 
 \begin{cpp}
 bool operator==(const SpreadsheetCell& lhs, const SpreadsheetCell& rhs)
@@ -291,7 +291,7 @@ bool operator==(const SpreadsheetCell& lhs, const SpreadsheetCell& rhs)
 这些重载的比较操作符是在比较 double 值。大多数时候，对浮点值进行相等性或不等性测试不是一个好主意。应该使用一个接近零的测试，但这超出了本书的范围。
 \end{myNotic}
 
-具有更多数据成员的类中，比较每个数据成员可能会很痛苦。当实现了 == 和 <，就可以在那些两个的基础上编写其余的比较操作符。例如，这是一个使用 operator< 定义 operator>= 的示例：
+具有更多数据成员的类中，比较每个数据成员可能会很痛苦。当实现了 == 和 <，就可以在那些两个的基础上实现其余的比较操作符。下面是一个使用 operator< 定义 operator>= 的示例：
 
 \begin{cpp}
 bool operator>=(const SpreadsheetCell& lhs, const SpreadsheetCell& rhs)
@@ -308,7 +308,7 @@ if (myCell > aThirdCell || myCell < 10) {
 }
 \end{cpp}
 
-正如所看到的，需要编写六个单独的函数来支持六个比较操作符，而且这只是用来比较两个 SpreadsheetCells 之间。当前实现的六个比较函数可以用来比较 SpreadsheetCell 与 double，因为 double 参数会隐式转换为 SpreadsheetCell。就像之前对 operator+ 一样，可以通过实现显式函数来比较 double 来避免。对于每个操作符<op>，将需要以下三个重载：
+需要编写六个单独的函数来支持六个比较操作符，而且这只是用来比较两个 SpreadsheetCells 之间。当前实现的六个比较函数可以用来比较 SpreadsheetCell 与 double，因为 double 参数会隐式转换为 SpreadsheetCell。就像之前对 operator+ 一样，可以通过实现显式函数来比较 double 来避免。对于每个操作符<op>，需要以下三个重载：
 
 \begin{cpp}
 bool operator<op>(const SpreadsheetCell& lhs, const SpreadsheetCell& rhs);
@@ -320,7 +320,7 @@ bool operator<op>(const SpreadsheetCell& lhs, double rhs);
 
 \mySamllsection{ C++20 起的重载比较操作符}
 
-现在转换一下话题，看看 C++20 及以后版本带来了什么。从 C++20 开始，为类添加比较操作符的支持变得更加简单。首先，现在实际上推荐将 operator== 作为类的成员函数而不是全局函数来实现。同时，添加 [[nodiscard]] 属性也是一个好主意，这样操作符的结果就不能忽略：
+现在转换一下话题，看看 C++20 及以后版本带来了什么。从 C++20 开始，为类添加比较操作符的支持变得更加简单。首先，推荐将 operator== 作为类的成员函数而不是全局函数来实现。同时，添加 [[nodiscard]] 属性也是一个好主意，这样操作符的结果就不能忽略：
 
 \begin{cpp}
 [[nodiscard]] bool operator==(const SpreadsheetCell& rhs) const;
@@ -333,7 +333,7 @@ if (myCell == 10) { println("myCell == 10"); }
 if (10 == myCell) { println("10 == myCell"); }
 \end{cpp}
 
-现在， 10 == myCell 这样的表达式在编译器中会重写为 myCell == 10，其中可以调用 operator== 成员函数。此外，通过实现 operator==，编译器自动添加了对 != 的支持；使用 != 的表达式会重写为使用 == 的表达式。
+现在， 10 == myCell 这样的表达式在编译器中会重写为 myCell == 10，其中可以调用 operator== 成员函数。通过实现 operator==，编译器自动添加了对 != 的支持；使用 != 的表达式会重写为使用 == 的表达式。
 
 接下来，为了实现对完整比较操作符集的支持，只需要实现一个额外的重载操作符，即 operator<=>。当类有了 operator== 和 <=> 的重载，编译器自动提供六个比较操作符！对于 SpreadsheetCell 类，operator<=> 为：
 
@@ -342,7 +342,7 @@ if (10 == myCell) { println("10 == myCell"); }
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-编译器不会将 == 或 != 比较重写为 <=>。这是为了避免性能问题，因为 operator== 的显式实现通常比使用 <=> 更有效率。例如， std::string的 operator== 和 != 实现，首先比较两个字符串的长度。如果长度不同，operator== 和 != 可以立即返回 false 和 true， 而不必检查每个字符。但operator<=> 总是必须比较每个字符，直到找到不匹配的两个字符。
+编译器不会将 == 或 != 比较重写为 <=>。这是为了避免性能问题，operator== 的显式实现通常比使用 <=> 更有效率。例如， std::string的 operator== 和 != 实现，首先比较两个字符串的长度。如果长度不同，operator== 和 != 可以立即返回 false 和 true， 而不必检查每个字符。但operator<=> 总是必须比较每个字符，直到找到不匹配的两个字符。
 \end{myNotic}
 
 SpreadsheetCell 类中存储的值是一个 double。回想一下第 1 章，浮点类型只有偏序，所以返回的类型是 std::partial\_ordering。实现很简单：
@@ -354,7 +354,7 @@ partial_ordering SpreadsheetCell::operator<=>(const SpreadsheetCell& rhs) const
 }
 \end{cpp}
 
-通过实现 operator<=>，编译器自动为提供 >、<、<= 和 >= ，通过重写使用这些操作符的表达式来使用 <=> 。例如，myCell < aThirdCell 会自动重写为 std::is\_lt(myCell <=> aThirdCell) ，其中 is\_lt() 是一个比较函数；参见第 1 章。
+通过实现 operator<=>，编译器自动为提供 >、<、<= 和 >= ，通过重写使用这些操作符的表达式来使用 <=> 。例如，myCell < aThirdCell 会自动重写为 std::is\_lt(myCell <=> aThirdCell) ，其中 is\_lt() 是一个比较函数。
 
 因此，只实现 operator== 和 operator<=>，SpreadsheetCell 类就支持完整的比较操作符集：
 
@@ -410,26 +410,26 @@ partial_ordering SpreadsheetCell::operator<=>(double rhs) const
 
 \mySamllsection{编译器生成的比较操作符}
 
-观察 SpreadsheetCell 的 operator== 和 <=> 实现，它们只是比较了所有数据成员。这种情况下，C++20（以及后续版本）可以进一步减少所需的代码量。如可以显式默认复制构造函数一样，operator== 和 <=> 也可以显式默认，则编译器会生成它们，并通过比较类定义中声明的每个数据成员的顺序来实现，这称为成员的字典序比较。
+观察 SpreadsheetCell 的 operator== 和 <=> 实现，只是比较了所有数据成员，C++20（以及后续版本）可以进一步减少所需的代码量。如可以显式默认复制构造函数一样，operator== 和 <=> 也可以显式默认，则编译器会生成它们，并通过比较类定义中声明的每个数据成员的顺序来实现，这称为成员的字典序比较。
 
-此外，如果只是显式默认 operator<=>，编译器还会自动包含一个默认的 operator==。因此，对于没有显式为 double 实现 operator== 和 <=> 的 SpreadsheetCell （我将在本节的稍后部分回到这一点），可以简单地用下面的代码来为 SpreadsheetCell 添加对六个比较操作符的支持：
+此外，如果只是显式默认 operator<=>，编译器还会自动包含一个默认的 operator==。对于没有显式为 double 实现 operator== 和 <=> 的 SpreadsheetCell （我将在本节的稍后部分回到这一点），可以简单地用下面的代码来为 SpreadsheetCell 添加对六个比较操作符的支持：
 
 \begin{cpp}
 [[nodiscard]] std::partial_ordering operator<=>(
     const SpreadsheetCell&) const = default;
 \end{cpp}
 
-此外，可以使用 auto 作为 operator<=> 的返回类型，编译器会根据数据成员的 <=> 操作符的返回类型推断返回类型：
+可以使用 auto 作为 operator<=> 的返回类型，编译器会根据数据成员的 <=> 操作符的返回类型推断返回类型：
 
 \begin{cpp}
 [[nodiscard]] auto operator<=>(const SpreadsheetCell&) const = default;
 \end{cpp}
 
-如果类中不是所有数据成员都支持 operator<=>，那么默认的 operator<=> 会退回为使用 < 和 == 来比较数据成员。这种情况下，返回类型推断不会起作用，需要显式指定返回类型为 strong\_ordering、partial\_ordering 或 weak\_ordering。如果数据成员没有可用的 < 和 ==，那么默认的 operator<=> 会隐式删除。
+如果类中不是所有数据成员都支持 operator<=>，默认的 operator<=> 会退回为使用 < 和 == 来比较数据成员。返回类型推断不会起作用，需要显式指定返回类型为 strong\_ordering、partial\_ordering 或 weak\_ordering。如果数据成员没有可用的 < 和 ==，默认的 operator<=> 会隐式删除。
 
-总的来说，为了使编译器能够生成默认的 <=> 操作符，类中所有数据成员要么支持 operator<=>，这种情况下返回类型可以是 auto；要么支持 < 和 ==，但在这种情况下返回类型不能是 auto。由于 SpreadsheetCell 只有一个 double 数据成员，编译器推断返回类型为 partial\_ordering。
+为了使编译器能够生成默认的 <=> 操作符，类中所有数据成员要么支持 operator<=>，这种情况下返回类型可以是 auto；要么支持 < 和 ==，但在这种情况下返回类型不能是 auto。由于 SpreadsheetCell 只有一个 double 数据成员，编译器推断返回类型为 partial\_ordering。
 
-本节的开始，这个显式默认的 operator<=> 对于没有显式为 double 实现 operator== 和 <=> 的 SpreadsheetCell 版本有效。如果确实添加了那些显式的 double 版本，将添加一个声明 operator==(double)。因此，编译器将不会自动生成 operator==(const SpreadsheetCell\&)，所以需要显式默认一下：
+本节的开始，这个显式默认的 operator<=> 对于没有显式为 double 实现 operator== 和 <=> 的 SpreadsheetCell 版本有效。如果确实添加了那些显式的 double 版本，将添加一个声明 operator==(double)。编译器将不会自动生成 operator==(const SpreadsheetCell\&)，所以需要显式默认：
 
 \begin{cpp}
 export class SpreadsheetCell
@@ -458,7 +458,7 @@ export class SpreadsheetCell
 
 \begin{itemize}
 \item
-如果默认的<=> 适用于类，那么只需要通过成员函数显式地默认生成<=> 即可。某些情况下，可能还需要显式地默认生成 ==。
+如果默认的<=> 适用于类，只需要通过成员函数显式地默认生成<=> 即可。某些情况下，可能还需要显式地默认生成 ==。
 
 \item
 否则，只需重载并实现 == 和 <=> 成员函数即可。

@@ -1,6 +1,6 @@
-类定义不仅可以包含成员函数和数据成员，还可以包含嵌套类和结构体、类型别名和枚举。在类中声明的内容，都在该类的范围内。如果是public的，可以通过使用 类名和作用域解析语法在外部访问。
+类定义不仅可以包含成员函数和数据成员，还可以包含嵌套类和结构体、类型别名和枚举。在类中声明的内容，都在该类的范围内。如果是public的，可以通过使用类名和作用域解析语法在外部访问。
 
-也可以在另一个类定义中提供类定义。例如， SpreadsheetCell 类实际上是 Spreadsheet 类的一部分。由于它是 Spreadsheet 类的一部分，不妨将其重命名为 Cell：
+也可以在另一个类定义中提供类定义。SpreadsheetCell 类实际上是 Spreadsheet 类的一部分，它是 Spreadsheet 类的一部分，不妨将其重命名为 Cell：
 
 \begin{cpp}
 export class Spreadsheet
@@ -38,7 +38,7 @@ const Spreadsheet::Cell& Spreadsheet::getCellAt(size_t x, size_t y) const
 }
 \end{cpp}
 
-直接在 Spreadsheet 类中完全定义嵌套的 Cell 类会使 Spreadsheet 类的定义变得有些臃肿。可以只在 Spreadsheet 类中包含 Cell 的声明，然后分别定义 Cell 类来缓解这种情况：
+直接在 Spreadsheet 类中完全定义嵌套的 Cell 类，会使 Spreadsheet 类的定义变得有些臃肿。可以只在 Spreadsheet 类中包含 Cell 的声明，然后定义 Cell 类来缓解这种情况：
 
 \begin{cpp}
 export class Spreadsheet
@@ -58,7 +58,7 @@ class Spreadsheet::Cell
 };
 \end{cpp}
 
-正常的访问控制也适用于嵌套类。如果声明了一个私有的或受保护的嵌套类，只能在外部类内部使用。嵌套类可以访问外部类的所protected和private成员。另一方面，外部类只能访问嵌套类的public成员。
+正常的访问控制也适用于嵌套类。如果声明了一个私有的或受保护的嵌套类，只能在外部类内部使用。嵌套类可以访问外部类的所protected和private成员，外部类只能访问嵌套类的public成员。
 
 
 
