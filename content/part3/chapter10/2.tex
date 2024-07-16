@@ -1,5 +1,5 @@
 
-已经熟悉了继承的基本语法，现在是时候探索继承是C++语言的一个重要特性的主要原因。继承是一种允许利用现有代码的工具。本节介绍了一个继承的示例，目的是为了复用代码。
+已经熟悉了继承的基本语法，现在是时候探索继承了。继承是一种允许利用现有代码的工具。本节介绍了一个继承的示例，目的是为了复用代码。
 
 \mySubsubsection{10.2.1.}{WeatherPrediction类}
 
@@ -33,13 +33,13 @@ export class WeatherPrediction
 };
 \end{cpp}
 
-注意，这个类将所有成员函数设置为虚，因为该类假定它们可能在派生类中覆写。
+注意，该类假定它们可能在派生类中覆写，所以这个类将所有成员函数设置为虚。
 
-这个类解决了程序的大部分问题。然而，它并不完全符合需求。首先，所有的温度都是用华氏度给出的，你的程序还需要以摄氏度进行。此外，showResult()成员函数可能不会以要求的方式显示结果。
+这个类解决了程序的大部分问题，但并不完全符合需求。首先，所有的温度都用华氏度给出，程序还需要以摄氏度进行，showResult()成员函数可能不会按要求的方式显示结果。
 
 \mySubsubsection{10.2.2.}{派生类中添加功能}
 
-在第5章中学习继承时，添加功能是第一个介绍的。本质上，程序需要一个类似于WeatherPrediction类的类，但带有一些额外的功能。听起来继承是一个很好的重用代码的案例。首先，定义一个新类MyWeatherPrediction，继承自WeatherPrediction：
+在第5章中学习继承时，添加功能是第一个介绍的。程序需要一个类似于WeatherPrediction类的类，但带有一些功能。听起来继承是一个很好的重用代码的案例，定义一个新类MyWeatherPrediction，继承自WeatherPrediction：
 
 \begin{cpp}
 import weather_prediction;
@@ -49,9 +49,9 @@ export class MyWeatherPrediction : public WeatherPrediction
 };
 \end{cpp}
 
-前面的类定义编译没问题。MyWeatherPrediction类可以用来代替WeatherPrediction，提供相同的功能，但目前还没有新的功能。为了这个修改，需要在类中添加摄氏度的相关内容。这里有一个难题，因为不知道类内部是如何工作的。如果所有的内部计算都用华氏度进行，你么添加对摄氏度的支持？一种方法是让派生类作为一个中介，在用户（可以使用其他单位）和基类（只理解华氏度）之间进行接口。
+前面的类定义编译没问题。MyWeatherPrediction类可以用来代替WeatherPrediction，提供相同的功能，但目前还没有新的功能。为了这个修改，需要在类中添加摄氏度的相关内容。这里有一个难题，不知道类内部是如何工作的。如果所有的内部计算都用华氏度进行，如何添加对摄氏度的支持？一种方法是让派生类作为中介，在用户（可以使用其他单位）和基类（只理解华氏度）之间做中介。
 
-支持摄氏度的第一步是在类中添加新的成员函数，允许客户端以摄氏度设置当前温度，并以摄氏度获取明天的预测。还需要私有的辅助函数，在两个方向上进行摄氏度和华氏度的转换。因为它们对所有实例都是相同的，所以这些函数可以是静态的。
+支持摄氏度的第一步是在类中添加新的成员函数，允许客户端以摄氏度设置当前温度，并以摄氏度获取明天的预测。还需要私有的辅助函数，在两个方向上进行摄氏度和华氏度的转换。它们对所有实例都是相同的，所以这些函数可以是静态的。
 
 \begin{cpp}
 export class MyWeatherPrediction : public WeatherPrediction
@@ -65,7 +65,7 @@ export class MyWeatherPrediction : public WeatherPrediction
 };
 \end{cpp}
 
-新成员函数遵循与父类相同的命名约定。请记住，从其他代码的角度来看，MyWeatherPrediction对象具有MyWeatherPrediction和WeatherPrediction中定义的所有功能，采用父类的命名约定可以提供一致的接口。
+新成员函数遵循与父类相同的命名约定。从其他代码的角度来看，MyWeatherPrediction对象具有MyWeatherPrediction和WeatherPrediction中定义的所有功能，采用父类的命名约定可以提供一致的接口。
 
 摄氏度/华氏度转换函数的实现留给读者作为练习——这是一个有趣的练习！另外两个成员函数更有趣。为了以摄氏度设置当前温度，首先转换温度，然后以基类理解的单位呈现给基类：
 
@@ -87,9 +87,9 @@ int MyWeatherPrediction::getTomorrowTempCelsius() const
 }
 \end{cpp}
 
-因为它们以提供新接口的方式“包装”了现有的功能，可以说这两个新成员函数有效地重用了父类。
+它们以提供新接口的方式“包装”了现有的功能，可以说这两个新成员函数有效地重用了父类。
 
-也可以完全添加与父类现有功能无关的新功能。例如，添加一个成员函数，从互联网获取其他预报，或者根据预测的天气添加一个建议活动的成员函数。
+可以完全添加与父类现有功能无关的新功能。添加一个成员函数，从互联网获取其他预报，或者根据预测的天气添加一个建议活动的成员函数。
 
 \mySubsubsection{10.2.3.}{派生类中的功能替换}
 
@@ -122,7 +122,7 @@ void MyWeatherPrediction::showResult() const
 }
 \end{cpp}
 
-对于使用这个类的使用者来说，好像旧版本的showResult()从未存在过。只要对象是MyWeatherPrediction对象，就会调用新版本。因此，MyWeatherPrediction作为一个新类，具有针对更具体目的的新功能，因为它利用了其基类的现有功能，所以无需编写大量代码。
+对于使用这个类的使用者来说，好像旧版本的showResult()从未存在过。只要对象是MyWeatherPrediction对象，就会调用新版本。MyWeatherPrediction作为一个新类，具有针对更具体目的的新功能，因为它利用了其基类的现有功能，所以无需编写大量代码。
 
 
 
