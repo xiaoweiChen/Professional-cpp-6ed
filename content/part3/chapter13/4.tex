@@ -1,5 +1,5 @@
 
-因为读写文件总是涉及位置和数据，所以文件非常适合流。在C++中，std::ofstream和ifstream类为文件提供了输出和输入功能，其定义在<fstream>中。
+因为读写文件总是涉及位置和数据，所以文件非常适合流。C++中std::ofstream和ifstream类为文件提供了输出和输入功能，其定义在<fstream>中。
 
 处理文件系统时，特别重要的是检测和处理错误情况。正在处理的文件可能位于刚刚脱机的网络文件存储上，或者可能会尝试写入位于已满磁盘上的文件，也许正在尝试打开一个当前用户没有权限的文件。可以通过使用前面描述的标准错误处理机制，来检测错误。
 
@@ -32,7 +32,7 @@ ios\_base::noreplace(C++23) & \begin{tabular}[c]{@{}l@{}}输出选项。以独�
 \end{tabular}     \\ \hline
 \end{longtable}
 
-模式可以组合使用。例如，如果想以二进制模式打开文件用于输出，同时截断现有数据，指定得打开模式如下所示：
+模式可以组合使用。如果想以二进制模式打开文件用于输出，同时截断现有数据，指定的打开模式如下所示：
 
 \begin{cpp}
 ios_base::out | ios_base::binary | ios_base::trunc
@@ -65,13 +65,13 @@ int main(int argc, char* argv[])
 
 二进制模式下，请求流写入的的字节会写入文件。读取时，字节会以文件中的确切形式返回。
 
-文本模式下，有些隐藏的转换正在发生：写入或从文件读取的每行都以\verb|\|n结尾。然而，文件中行的结束如何编码取决于操作系统。例如，在Windows上，一行以\verb|\|r\verb|\|n而不是单个\verb|\|n字符结束。因此，当文件以文本模式打开时，写入文件的以\verb|\|n结尾的行，底层实现会自动将\verb|\|n转换为\verb|\|r\verb|\|n后再写入文件。类似地，从文件中读取一行时，从文件中读取的\verb|\|r\verb|\|n会自动转换回\verb|\|n后再返回。
+文本模式下，有些隐藏的转换正在发生：写入或从文件读取的每行都以\verb|\|n结尾，文件中行的结束如何编码取决于操作系统。在Windows上，一行以\verb|\|r\verb|\|n而不是单个\verb|\|n字符结束。因此，当文件以文本模式打开时，写入文件的以\verb|\|n结尾的行，底层实现会自动将\verb|\|n转换为\verb|\|r\verb|\|n后再写入文件。类似地，从文件中读取一行时，从文件中读取的\verb|\|r\verb|\|n会自动转换回\verb|\|n后再返回。
 
 \mySubsubsection{13.4.2.}{使用seek()和tell()跳转}
 
-seekx()和tellx()成员函数存在于所有输入和输出流中，seekx()成员函数允许在输入或输出流中的任意位置移动。seekx()有几种形式，对于输入流，成员函数称为seekg()（g代表get），对于输出流，它称为seekp()（p代表put）。可能会想知道为什么既有seekg()又有seekp()成员函数，而不是一个seek()成员函数。原因是，有既是输入又是输出的流，例如文件流。这种情况下，流需要记住一个读取位置和一个单独的写入位置，这也称作双向I/O，本章后面将详细介绍。
+seekx()和tellx()成员函数存在于所有输入和输出流中，seekx()成员函数允许在输入或输出流中的任意位置移动。seekx()有几种形式，对于输入流，成员函数为seekg()（g代表get），对于输出流，为seekp()（p代表put）。可能会想知道为什么既有seekg()又有seekp()成员函数，而不是一个seek()成员函数。原因是，有既是输入又是输出的流，例如文件流。这种情况下，流需要记住一个读取位置和一个单独的写入位置，这也称作双向I/O，本章后面将详细介绍。
 
-seekg()和seekp()各有两个重载。一个重载接受一个单一参数，即绝对位置，并移动到这个绝对位置。第二个重载接受一个偏移量和位置，并在给定位置上寻找相对偏移量。位置的类型是std::streampos，而偏移量的类型是std::streamoff；两者都按字节进行。有三个预定义的位置可用，如下表所示：
+seekg()和seekp()各有两个重载。一个重载接受单一参数，即绝对位置，并移动到这个绝对位置。第二个重载接受一个偏移量和位置，并在给定位置上寻找相对偏移量。位置的类型是std::streampos，而偏移量的类型是std::streamoff；两者都按字节进行。有三个预定义的位置可用，如下表所示：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -88,19 +88,19 @@ ios\_base::end    & 流的末尾              \\ \hline
 ios\_base::cur    & 流的当前位置 \\ \hline
 \end{longtable}
 
-例如，要在输出流中移动到绝对位置，可以使用seekp()的一个参数重载。如下例所示，使用constant ios\_base::beg将位置移动到流的开始：
+要在输出流中移动到绝对位置，可以使用seekp()的一个参数重载，使用ios\_base::beg将位置移动到流的开始：
 
 \begin{cpp}
 outStream.seekp(ios_base::beg);
 \end{cpp}
 
-输入流中移动与在输出流中移动相同，只是换成使用seekg()成员函数了：
+输入流中移动与在输出流中移动相同，只是换成seekg()成员函数了：
 
 \begin{cpp}
 inStream.seekg(ios_base::beg);
 \end{cpp}
 
-两个参数的重载用于在流中移动相对位置。第一个参数规定要移动多少位置，第二个参数提供起始点。要相对于文件的开头移动，使用constant ios\_base::beg。要相对于文件末尾移动，使用ios\_base::end。要相对于当前位置移动，使用ios\_base::cur。例如，以下行将输出流的位置移动到开头后的第二个字节，注意整数会隐式转换为streampos和streamoff类型。
+两个参数的重载用于在流中移动相对位置。第一个参数规定要移动多少位置，第二个参数提供起始点。要相对于文件的开头移动，使用ios\_base::beg。要相对于文件末尾移动，使用ios\_base::end。要相对于当前位置移动，使用ios\_base::cur。以下行将输出流的位置移动到开头后的第二个字节，整数会隐式转换为streampos和streamoff类型。
 
 \begin{cpp}
 outStream.seekp(2, ios_base::beg);
@@ -220,19 +220,19 @@ inFile >> nextToken;
 // outFile HAS been flushed.
 \end{cpp}
 
-flush()成员函数定义在ostream基类中，也可以将一个输出流链接到另一个输出流中。例如：
+flush()成员函数定义在ostream基类中，也可以将一个输出流链接到另一个输出流中：
 
 \begin{cpp}
 outFile.tie(&anotherOutputFile);
 \end{cpp}
 
-这样，每次你向一个文件写入数据时，已发送到另一个文件的缓冲数据将刷新。可以使用这种机制来保持两个文件内容同步。
+每次你向一个文件写入数据时，已发送到另一个文件的缓冲数据将刷新。可以使用这种机制来保持两个文件内容同步。
 
 这种流链接的一个例子是cout和cin之间的链接。每当尝试从cin输入数据时，cout会自动刷新。cerr和cout之间也有链接，所以cerr的输出都会刷新cout。另一方面，clog流没有链接到cout。这些流宽字符版本之间也有类似的链接。
 
 \mySubsubsection{13.4.4.}{读取整个文件}
 
-可以使用getline()读取整个文件的内容，通过指定\verb|\|0作为分隔符。只要文件内容中不包含\verb|\|0字符，这就可以工作。例如：
+可以使用getline()读取整个文件的内容，通过指定\verb|\|0作为分隔符。只要文件内容中不包含\verb|\|0字符，这就可以工作：
 
 \begin{cpp}
 ifstream inputFile { "some_data.txt" };

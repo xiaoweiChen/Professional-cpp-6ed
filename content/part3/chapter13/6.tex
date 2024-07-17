@@ -3,7 +3,7 @@ C++标准库包括一个文件系统库，定义在<filesystem>中，位于std::
 
 \mySubsubsection{13.6.1.}{路径}
 
-库的基本组件是路径。路径可以是绝对的或相对的，可以包含可选的文件名。例如，以下代码定义了几个路径。注意，使用raw字符串字面量，这在第2章中引入，以避免转义反斜杠：
+库的基本组件是路径。路径可以是绝对的或相对的，可以包含可选的文件名。以下代码定义了几个路径。注意，使用原字符串字面量，这在第2章中引入，以避免转义反斜杠：
 
 \begin{cpp}
 path p1 { R"(D:\Foo\Bar)" };
@@ -38,7 +38,7 @@ println("{}", p.string());
 
 Windows上的输出为D:\verb|\|Foo\verb|\|Bar\verb|\|Bar。
 
-可以使用concat()或operator+=将字符串拼接到现有路径，这不会插入任何路径分隔符！这是一个例子：
+使用concat()或operator+=将字符串拼接到现有路径，这不会插入任何路径分隔符！
 
 \begin{cpp}
 path p { "D:\\Foo" };
@@ -47,7 +47,7 @@ p += "Bar";
 println("{}", p.string());
 \end{cpp}
 
-Windows上，现在的输出为D:\verb|\|FooBarBar。
+Windows上的输出为D:\verb|\|FooBarBar。
 
 \begin{myWarning}{WARNING}
 append()和operator/=会自动插入平台相关的路径分隔符，而concat()和operator+=不会。
@@ -94,7 +94,7 @@ file
 
 \mySubsubsection{13.6.2.}{目录}
 
-路径仅代表文件系统上的目录或文件，路径可能指向不存在的目录或文件。如果想查询实际的目录或文件，需要从路径构造一个directory\_entry。directory\_entry接口支持诸如exists()、is\_directory()、is\_regular\_file()、file\_size()、last\_write\_time()等操作。
+路径仅代表文件系统上的目录或文件，路径可能指向不存在的目录或文件。如果想查询实际的目录或文件，需要从路径构造一个directory\_entry。directory\_entry接口支持，诸如exists()、is\_directory()、is\_regular\_file()、file\_size()、last\_write\_time()等操作。
 
 以下示例从一个路径构建directory\_entry来查询文件的大小：
 
@@ -122,7 +122,7 @@ println("Free: {}", s.free);
 
 \mySubsubsection{13.6.4.}{目录迭代}
 
-如果想递归地遍历给定目录中的所有文件和子目录，可以使用recursive\_directory\_iterator。为了开始迭代过程，需要一个指向directory\_entry的迭代器。为了知道何时停止迭代，还需要一个结束迭代器。要创建开始迭代器，构造一个recursive\_directory\_iterator并传递要迭代的目录路径。要构造结束迭代器，使用默认构造函数创建一个recursive\_directory\_iterator。要获取迭代器所指的directory\_entry的访问权限，使用解引用运算符*。通过简单地使用自加运算符递增迭代器，直到达到结束迭代器，就可以遍历集合中的所有元素。注意，结束迭代器不再属于集合，不再指向有效的directory\_entry，并且不能解引用。
+如果想递归地遍历给定目录中的所有文件和子目录，可以使用recursive\_directory\_iterator。为了开启迭代过程，需要一个指向directory\_entry的迭代器。为了知道何时停止迭代，还需要一个结束迭代器。要创建开始迭代器，构造一个recursive\_directory\_iterator并传递要迭代的目录路径。要构造结束迭代器，使用默认构造函数创建一个recursive\_directory\_iterator。要获取迭代器所指的directory\_entry的访问权限，使用解引用操作符*。通过简单地使用自加操作符递增迭代器，直到达到结束迭代器，就可以遍历集合中所有元素。结束迭代器不再属于集合，不再指向有效的directory\_entry，并且不能解引用。
 
 \begin{cpp}
 void printDirectoryStructure(const path& p)
