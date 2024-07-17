@@ -1,45 +1,45 @@
 
-概念是一组用于约束类模板和函数模板的模板参数的命名要求，编写为谓词，并在编译时计算以验证传递给模板的模板参数。概念的主要目标是使与模板相关的编译器错误更易于人类阅读。每个人都遇到过这种情况：当为类或函数模板提供错误的参数时，编译器会喷出数百甚至数千行的错误，很难从编译器的错误信息中找到出错的根本原因。
+概念是一组用于约束类模板和函数模板的模板参数的命名要求，编写为谓词，并在编译时计算以验证传递给模板的模板参数。概念的主要目标是，使与模板相关的编译器错误更易于阅读。每个人都遇到过这种情况：当为类或函数模板提供错误的参数时，编译器会喷出数百甚至数千行的错误，很难从编译器的错误信息中找到出错的根本原因。
 
 编译器生成那么多错误信息的原因是，编译器只是盲目地使用提供的模板参数实例化模板。当实例化模板时，就会进行编译。这时，编译器才能发现提供的模板类型参数是否不支持模板实现中，需要的某些操作。这可能与实例化模板的地方相去甚远，因此会出现无数的错误。有了概念，编译器可以在开始实例化模板之前验证提供的模板参数是否满足某些约束。
 
-概念允许编译器在未满足某些类型约束时，输出可读的错误消息。因此，为了获得有意义的语义错误，建议编写概念以模拟语义要求。避免仅验证语法方面而没有语义意义的概念，例如仅检查类型是否支持 operator+ 的概念。这样的概念只会检查语法，而不是语义。std::string 支持operator+，但与整数的 operator+ 相比，它的含义完全不同。另一方面，sortable 和 swappable 等概念是模拟某些语义的良好概念示例。
+概念允许编译器在未满足某些类型约束时，输出可读的错误消息。为了获得有意义的语义错误，建议编写概念以模拟语义要求。避免仅验证语法方面而没有语义意义的概念，仅检查类型是否支持 operator+ 的概念。这样的概念只会检查语法，而不是语义。std::string 支持operator+，但与整数的 operator+ 相比，其含义完全不同。另一方面，sortable 和 swappable 等概念是模拟某些语义的良好概念示例。
 
 \begin{myNotic}{NOTE}
-编写概念时，请确保它们建模于语义，而非仅是语法。
+编写概念时，请确保建模于语义，而非仅是语法。
 \end{myNotic}
 
 先看看概念的语法。
 
 \mySubsubsection{12.5.1.}{语法}
 
-概念定义的语法，即命名约束集的模板，如下所示：
+概念定义的语法，即命名约束集的模板：
 
 \begin{cpp}
 template <parameter-list>
 concept concept-name = constraints-expression;
 \end{cpp}
 
-熟悉的模板头开始，但与类和函数模板不同，概念永远不会实例化。接下来，使用新的关键字 concept，后跟概念名称，可以使用任何名称。约束表达式可以是常量表达式，即可以在编译时计算的表达式。约束表达式必须产生布尔值（确切地说是 bool，因为编译器不会插入任何类型转换）。这也可以是常量表达式的逻辑与 \&\& 或逻辑或 || 的结合。约束在运行时从不计算，约束表达式在下一节中会有详细的介绍。
+熟悉的模板头开始，但与类和函数模板不同，概念永远不会实例化。使用新的关键字 concept，后跟概念名称，可以使用任何名称。约束表达式可以是常量表达式，即可以在编译时计算的表达式。约束表达式必须产生布尔值（确切地说是 bool，因为编译器不会插入任何类型转换）。也可以是常量表达式的逻辑与 \&\& 或逻辑或 || 的结合。约束在运行时不计算，约束表达式在下一节中会有详细的介绍。
 
-概念表达式具有以下语法：
+概念表达式有以下语法：
 
 \begin{cpp}
 concept-name<argument-list>
 \end{cpp}
 
-概念表达式会计算为真或假。如果计算为真，那么可以说给定的模板参数模型化了这个概念。下一节将给出一个例子。
+概念表达式会计算为true或false。如果计算为true，可以说给定的模板参数模型化了这个概念。下一节将给出一个例子。
 
 \mySubsubsection{12.5.2.}{约束表达式}
 
-计算为布尔值的常量表达式，可以直接用作概念定义的约束，并且不需要进行任何类型转换。这里有一个例子：
+计算为布尔值的常量表达式，可以直接用作概念定义的约束，并且不需要进行类型转换。这里有一个例子：
 
 \begin{cpp}
 template <typename T>
 concept Big = sizeof(T) > 4;
 \end{cpp}
 
-基于这个概念，概念表达式 Big<char> 和 Big<short> 通常计算为 false，而像 Big<long double> 这样的概念表达式，通常计算为 true。概念表达式在编译时计算为布尔值，可以使用静态断言进行验证。静态断言使用 static\_assert()，允许在编译时断言某些条件。断言需要为true，如果断言为假，编译器会发出错误。第 26 章更详细地介绍了静态断言，但它们可以直接使用概念表达式。以下代码断言 Big<char> 和 Big<short> 确实计算为 false，而 Big<long double> 计算为 true：
+基于这个概念，概念表达式 Big<char> 和 Big<short> 通常计算为 false，而像 Big<long double> 这样的概念表达式，通常计算为 true。概念表达式在编译时计算为布尔值，可以使用静态断言进行验证。静态断言使用 static\_assert()，允许在编译时断言某些条件。断言需要为true，如果断言为假，编译器会发出错误。第 26 章更详细地介绍了静态断言，可以直接使用概念表达式。以下代码断言 Big<char> 和 Big<short> 确实计算为 false，而 Big<long double> 计算为 true：
 
 \begin{cpp}
 static_assert(!Big<char>);
@@ -47,7 +47,7 @@ static_assert(!Big<short>);
 static_assert(Big<long double>);
 \end{cpp}
 
-编译这个时，不应该有任何编译错误。然而，如果删除第一行的感叹号，那么编译器将报出以下错误：
+编译这个时，不应该有编译错误。然而，如果删除第一行的感叹号，那么编译器将报出以下错误：
 
 \begin{shell}
 error C2607: static assertion failed
@@ -65,7 +65,7 @@ Requires 表达式具有以下语法：
 requires (parameter-list) { requirements; }
 \end{cpp}
 
-(parameter-list) 是可选的，语法上类似于函数的参数列表，但不允许有默认参数值。Requires 表达式的参数列表用于，引入在 requires 表达式内的局部变量，Requires 表达式的主体不能有常规的变量声明。
+(parameter-list) 是可选的，语法上类似于函数的参数列表，但不允许有默认值。Requires 表达式的参数列表用于，引入在 requires 表达式内的局部变量，requires 表达式的主体不能有常规的变量声明。
 
 requirements 是一个需求序列，每个需求必须以分号结束。
 
@@ -75,7 +75,7 @@ requirements 是一个需求序列，每个需求必须以分号结束。
 
 简单需求是一个任意表达式语句，不以 requires 开头。不允许变量声明、循环、条件语句等。这个表达式语句永远不会计算；编译器只是验证它是否可以编译。
 
-例如，以下概念定义指定类型 T 必须是可增量的；也就是说，类型 T 必须支持后置和前置 ++ 操作符。记住，无法在 requires 表达式的体内定义局部变量；相反，可以将这些变量定义为参数，例如这里的 x。
+以下概念定义指定类型 T 必须可增；也就是说，类型 T 必须支持后置和前置 ++ 操作符。记住，无法在 requires 表达式的体内定义局部变量，但可以将这些变量定义为参数，例如这里的 x。
 
 \begin{cpp}
 template <typename T>
@@ -84,20 +84,19 @@ concept Incrementable = requires(T x) { x++; ++x; };
 
 \mySamllsection{类型需求}
 
-类型需求用于验证某个类型是否有效。以关键字 typename 开头，后面跟着要检查的类型。例如，以下概念要求某个类型 T 有一个 value\_type 成员：
+类型需求用于验证某个类型是否有效。以关键字 typename 开头，后面跟着要检查的类型。以下概念要求某个类型 T 有一个 value\_type 成员：
 
 \begin{cpp}
 template <typename T>
 concept C = requires { typename T::value_type; };
 \end{cpp}
 
-类型需求也可以用来验证给定类型是否可以与给定模板实例化。以下是一个例子：
+类型需求也可以用来验证，给定类型是否可以与给定模板实例化：
 
 \begin{cpp}
 template <typename T>
 concept C = requires { typename SomeTemplate<T>; };
 \end{cpp}
-
 
 \mySamllsection{复合需求}
 
@@ -109,7 +108,7 @@ concept C = requires { typename SomeTemplate<T>; };
 
 noexcept 和 ->类型约束都是可选的。大括号内的表达式后面没有分号，但复合要求末尾有一个分号。
 
-来看个例子。以下概念要求给定类型，要有一个不抛出的析构函数和不抛出的 swap() 成员函数：
+以下概念要求给定类型，要有一个不抛出的析构函数和不抛出的 swap() 成员函数：
 
 \begin{cpp}
 template <typename T>
@@ -119,7 +118,7 @@ concept C = requires (T x, T y) {
 };
 \end{cpp}
 
-类型约束简单地说，就是一个带有零个或多个模板类型参数的概念的名称。箭头左侧表达式的类型，自动作为第一个模板类型参数传递给类型约束。因此，类型约束总是比相应概念定义的模板类型参数数量少一个参数。例如，对于一个只有一个模板类型的概念定义，类型约束不需要任何模板参数，可以指定空括号< >，或者省略它们。以下概念验证给定类型是否有一个名为 size() 的成员函数，其返回类型可转换为 size\_t，还验证 size() 是否标记为 const，因为参数 x 的类型是 const T。
+类型约束简单地说，就是一个带有零个或多个模板类型参数的概念的名称。箭头左侧表达式的类型，自动作为第一个模板类型参数传递给类型约束。类型约束总是比相应概念定义的模板类型参数数量少一个参数。例如，对于一个只有一个模板类型的概念定义，类型约束不需要模板参数，可以指定空括号< >，或者省略它们。以下概念验证给定类型是否有一个名为 size() 的成员函数，其返回类型可转换为 size\_t，还验证 size() 是否标记为 const，因为参数 x 的类型是 const T。
 
 \begin{cpp}
 template <typename T>
@@ -128,7 +127,7 @@ concept C = requires (const T x) {
 };
 \end{cpp}
 
-std::convertible\_to<From, To> 是由标准库在 <concepts> 中预定义的一个概念，它有两个模板类型参数。箭头左侧表达式的类型，自动作为第一个模板类型参数传递给 convertible\_to 类型约束。因此，只需要指定 To 模板类型参数，在这个例子中是 size\_t。
+std::convertible\_to<From, To> 是由标准库在 <concepts> 中预定义的一个概念，它有两个模板类型参数。箭头左侧表达式的类型，自动作为第一个模板类型参数传递给 convertible\_to 类型约束。只需指定 To 模板类型参数，在这个例子中是 size\_t。
 
 这里还有一个例子。以下概念要求类型 T 的实例可比较：
 
@@ -148,7 +147,7 @@ concept Comparable = requires(const T a, const T b) {
 { a == b } -> bool;
 \end{cpp}
 
-相反，正确的类型约束可能是这样：
+而正确的类型约束可能是这样：
 
 \begin{cpp}
 { a == b } -> convertible_to<bool>;
@@ -157,7 +156,7 @@ concept Comparable = requires(const T a, const T b) {
 
 \mySamllsection{嵌套需求}
 
-requires 表达式可以具有嵌套需求。例如，以下是一个要求类型支持前置和后置递增和递减操作的概念。此外，requires 表达式有一个嵌套要求，用于验证类型的大小是否为 4 字节。
+requires 表达式可以具有嵌套需求，以下是一个要求类型支持前置和后置递增和递减操作的概念。此外，requires 表达式有一个嵌套要求，用于验证类型的大小是否为 4 字节。
 
 \begin{cpp}
 template <typename T>
@@ -169,7 +168,7 @@ concept C = requires (T t) {
 
 \mySamllsection{组合概念表达式}
 
-现有的概念表达式可以使用逻辑与（\&\&）和逻辑或（||）进行组合。例如，有一个类似于 Incrementable 的 Decrementable 概念；以下示例展示了一个要求类型既可递增又可递减的概念：
+概念表达式可以使用逻辑与（\&\&）和逻辑或（||）进行组合。有一个类似于 Incrementable 的 Decrementable 概念，以下示例展示了一个要求类型既可递增又可递减的概念：
 
 \begin{cpp}
 template <typename T>
@@ -194,11 +193,11 @@ concept IncrementableAndDecrementable = Incrementable<T> && Decrementable<T>;
 可调用概念: invocable, predicate等
 \end{itemize}
 
-此外，<iterator> 定义了与迭代器相关的概念，如 random\_access\_iterator, forward\_iterator, incrementable, indirectly\_copyable, indirectly\_swappable 等。像 indirectly\_copyable 这样的概念,并不是要验证给定的迭代器本身是否可复制，而是要验证由给定迭代器指向的元素是否可复制，这就是“indirectly”名称的由来。最后，<iterator> 还定义了算法需求，如 mergeable, sortable, permutable 等。
+<iterator> 定义了与迭代器相关的概念，如 random\_access\_iterator，forward\_iterator，incrementable，indirectly\_copyable，indirectly\_swappable等。像 indirectly\_copyable 这样的概念，并不是要验证给定的迭代器本身是否可复制，而是要验证由给定迭代器指向的元素是否可复制，这就是“indirectly”名称的由来。最后，<iterator> 还定义了算法需求，如 mergeable, sortable, permutable 等。
 
 C++ 范围库也提供了一组标准概念。第17章详细介绍了迭代器和范围，而第20章更深入地探讨了标准库提供的算法。查阅标准库参考资料，以获取可用的标准概念的完整列表。
 
-如果需要这些标准概念中的任何一个，可以直接使用，无需自行实现。例如，以下概念要求类型 T 派生自 Foo 类：
+如果需要这些标准概念，可以直接使用，无需自行实现。以下概念要求类型 T 派生自 Foo 类：
 
 \begin{cpp}
 template <typename T>
@@ -214,7 +213,7 @@ concept IsConvertibleToBool = convertible_to<T, bool>;
 
 更具体的示例将在接下来的章节中给出。
 
-当然，这些标准概念也可以组合成更具体的概念。例如，以下概念要求类型 T 既可默认构造，又可复制构造：
+当然，这些标准概念也可以组合成更具体的概念，以下概念要求类型 T 既可默认构造，又可复制构造：
 
 \begin{cpp}
 template <typename T>
@@ -223,20 +222,20 @@ concept DefaultAndCopyConstructible =
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-编写语义完整且正确的概念并不总是容易。如果可能，可使用可用的标准概念或它们的组合来约束类型。
+编写语义完整且正确的概念并不简单，可使用可用的标准概念或它们的组合来约束类型。
 \end{myNotic}
 
 \mySubsubsection{12.5.4.}{带类型约束的 auto}
 
-类型约束可以用于约束使用 auto 类型推导定义的变量，用于约束在函数返回类型时的推导，用于约束简化函数模板和泛型 Lambda 表达式中的参数等。使用类型约束与 auto 类型推导，可以使代码更具自文档性。如果某个时候违反了约束，还可以导致更好的错误消息，因为错误会指向变量定义，而不是代码中后面某个不支持的运算。
+类型约束可以用于约束使用 auto 类型推导定义的变量，用于约束在函数返回类型时的推导，用于约束简化函数模板和泛型 Lambda 表达式中的参数。使用类型约束与 auto 类型推导，可以使代码更具自文档性。如果违反了约束，还可以导致更好的错误消息，因为错误会指向变量定义，而不是代码中后面某个不支持的运算。
 
-例如，以下代码编译时没有错误，因为推导出的类型是 int，它支持 Incrementable 概念：
+以下代码编译时没有错误，因为推导出的类型是 int，支持 Incrementable 概念：
 
 \begin{cpp}
 Incrementable auto value1 { 1 };
 \end{cpp}
 
-然而，以下代码会导致编译错误，指出约束未得到满足。由于使用了标准字面量 s，推导出的类型是 std::string，而 string 并不支持 Incrementable：
+以下代码会导致编译错误，指出约束未得到满足。由于使用了标准字面量 s，推导出的类型是 std::string，而 string 并不支持 Incrementable：
 
 \begin{cpp}
 Incrementable auto value { "abc"s };
@@ -251,7 +250,7 @@ template <typename T> requires constraints-expression
 void process(const T& t);
 \end{cpp}
 
-约束表达式可以是任何常量表达式，或者常量表达式的逻辑与和逻辑或的组合，结果是一个布尔类型，就像概念定义中的约束表达式一样。例如，约束表达式可以是概念表达式：
+约束表达式可以是常量表达式，或者常量表达式的逻辑与和逻辑或的组合，结果是一个布尔类型，就像概念定义中的约束表达式一样。约束表达式可以是概念表达式：
 
 \begin{cpp}
 template <typename T> requires Incrementable<T>
@@ -310,14 +309,14 @@ template <Incrementable T>
 void process(const T& t);
 \end{cpp}
 
-这些是复合需求中讨论的类型约束，所以比模板类型参数少一个：
+这些是复合需求中讨论的类型约束，比模板类型参数少一个：
 
 \begin{cpp}
 template <convertible_to<bool> T>
 void process(const T& t);
 \end{cpp}
 
-完全类似于:
+类似于:
 
 \begin{cpp}
 template <typename T> requires convertible_to<T, bool>
@@ -330,7 +329,7 @@ void process(const T& t);
 void process(const Incrementable auto& t);
 \end{cpp}
 
-当要求不满足时，编译错误是可读的。例如，用整数参数调用 process() 函数如预期工作。但用 std::string 调用它，就会产生一个错误，因为约束不满足。例如，Clang 编译器会产生以下错误。乍一看，这可能看起来有点冗长，但实际上却出人意料地易于理解。
+当要求不满足时，编译错误是可读的。用整数参数调用 process() 函数如预期工作，但用 std::string 调用它，就会产生一个错误，因为约束不满足。例如，Clang 编译器会产生以下错误。这可能看起来有点冗长，但实际上却出人意料地易于理解。
 
 \begin{shell}
 <source>:17:2: error: no matching function for call to 'process'
@@ -360,12 +359,12 @@ concept Incrementable = requires(T x) { x++; ++x; };
 \end{itemize}
 
 \begin{myNotic}{NOTE}
-随着类型约束的引入，函数和类模板的无约束模板类型参数应该成为过去式。每个模板类型不可避免地，需要满足与类型实现中所做的操作直接相关的某些约束。因此，应该在模板上放置一个类型约束，以便编译器可以在编译时进行验证。
+随着类型约束的引入，函数和类模板的无约束模板类型参数应该成为过去式。每个模板类型不可避免地需要，满足与类型实现中所做的操作直接相关的某些约束。因此，应该在模板上放置一个类型约束，以便编译器可以在编译时进行验证。
 \end{myNotic}
 
 \mySamllsection{约束子包含}
 
-可以用不同的类型约束重载函数模板。编译器总是使用具有最具体约束的模板；更具体的约束包含/暗示较不具体的约束。这里有一个例子：
+可以用不同的类型约束重载函数模板。编译器总是使用具有最具体约束的模板；更具体的约束包含/暗示较不具体的约束：
 
 \begin{cpp}
 template <typename T> requires integral<T>
@@ -382,22 +381,22 @@ process(int { 1 });
 process(short { 2 });
 \end{cpp}
 
-在主流的系统上， int 有 32 位，short 有 16 位，输出如下：
+主流的系统上，int 有 32 位，short 有 16 位，输出如下：
 
 \begin{shell}
 integral<T> && sizeof(T) == 4
 integral<T>
 \end{shell}
 
-首先，编译器通过规范化约束表达式来解决子包含问题。在规范化约束表达式时，所有概念表达式都会递归地扩展到它们的定义，直到结果是一个由布尔常量表达式的合取和析取组成的单一常量表达式。规范化的约束表达式然后包含另一个，如果编译器可以证明其包含了另一个。只有合取和析取可用来证明子包含，从不考虑否定的情况。
+编译器通过规范化约束表达式，来解决子包含问题。在规范化约束表达式时，所有概念表达式都会递归地扩展到它们的定义，直到结果是一个由布尔常量表达式的合取和析取组成的单一常量表达式。规范化的约束表达式然后包含另一个，如果编译器可以证明其包含了另一个。只有合取和析取可用来证明子包含，从不考虑否定的情况。
 
 这种子包含推理仅在语法层面上进行，而不是语义层面上。例如，sizeof(T)>4 在语义上比 sizeof(T)>=4 更具体，但在语法上前者不会包含后者。
 
-然而，需要注意的是，在规范化过程中不会展开类型特征，例如前面使用的 std::is\_arithmetic 特征。因此，如果有一个预定义的概念和一个类型特征可用，应该使用概念而不是类型特征。例如，使用 std::integral 概念，而不是 std::is\_integral 类型特征。
+需要注意的是，规范化过程中不会展开类型特征，例如前面使用的 std::is\_arithmetic 特征。如果有一个预定义的概念和一个类型特征可用，应该使用概念而不是类型特征。使用 std::integral 概念，而不是 std::is\_integral 类型特征。
 
 \mySubsubsection{12.5.6.}{类型约束和类模板}
 
-目前为止，所有类型约束的示例都是使用函数模板，类型约束也可以使用类似的语法与类模板一起使用。作为一个例子，回顾一下本章前面提到的 GameBoard 类模板。以下是对它的一个新定义，要求其模板类型参数是 GamePiece 的派生类：
+所有类型约束的示例都是使用函数模板，类型约束也可以使用类似的语法与类模板一起使用。作为一个例子，回顾一下本章前面提到的 GameBoard 类模板。以下是对它的一个新定义，要求其模板类型参数是 GamePiece 的派生类：
 
 \begin{cpp}
 template <std::derived_from<GamePiece> T>
@@ -412,7 +411,7 @@ class GameBoard : public Grid<T>
 };
 \end{cpp}
 
-成员函数实现也需要更新。这里是一个例子：
+成员函数实现也需要更新：
 
 \begin{cpp}
 template <std::derived_from<GamePiece> T>
@@ -420,17 +419,16 @@ void GameBoard<T>::move(std::size_t xSrc, std::size_t ySrc,
     std::size_t xDest, std::size_t yDest) { /*...*/ }
 \end{cpp}
 
-或者，也可以使用以下 requires 子句：
+也可以使用以下 requires 子句：
 
 \begin{cpp}
 template <typename T> requires std::derived_from<T, GamePiece>
 class GameBoard : public Grid<T> { /*...*/ };
 \end{cpp}
 
-
 \mySubsubsection{12.5.7.}{类型约束和类成员函数}
 
-可以对类模板的特定成员函数施加约束。例如，GameBoard 类模板的 move() 成员函数，可以进一步约束为要求类型 T 可移动：
+可以对类模板的特定成员函数施加约束。GameBoard 类模板的 move() 成员函数，可以进一步约束为要求类型 T 可移动：
 
 \begin{cpp}
 template <std::derived_from<GamePiece> T>
@@ -445,7 +443,7 @@ class GameBoard : public Grid<T>
 };
 \end{cpp}
 
-样的 requires 子句也需要在成员函数定义中重复：
+同样的 requires 子句也需要在成员函数定义中重复：
 
 \begin{cpp}
 template <std::derived_from<GamePiece> T>
@@ -454,13 +452,13 @@ void GameBoard<T>::move(std::size_t xSrc, std::size_t ySrc,
 { /*...*/ }
 \end{cpp}
 
-记住，本章早些时候介绍过选择性实例化，可以使用这个 GameBoard 类模板与非可移动类型，只要不调用 move() 即可。
+本章早些时候介绍过选择性实例化，可以使用这个 GameBoard 类模板与非可移动类型，只要不调用 move() 即可。
 
 \mySubsubsection{12.5.8.}{基于约束类模板的特化与函数模板重载}
 
-如本章前面所述，可以为类模板编写特化版本，为函数模板编写重载，以便为某些类型提供不同的实现。也可以为满足某些约束的一组类型编写特化或重载。
+可以为类模板编写特化版本，为函数模板编写重载。以便为某些类型提供不同的实现，也可以为满足某些约束的一组类型编写特化或重载。
 
-让我们再次看看本章前面提到的 Find() 函数模板：
+再看看本章前面提到的 Find() 函数模板：
 
 \begin{cpp}
 template <typename T>
@@ -490,7 +488,7 @@ optional<size_t> Find(const T& value, const T* arr, size_t size)
 }
 \end{cpp}
 
-AreEqual() 如下定义，也使用了一个类型约束。epsilon 逻辑背后的数学详细讨论超出了本书的范围，对于这里的讨论并不重要。
+AreEqual() 如下定义，也使用了一个类型约束。epsilon 逻辑背后的数学知识超出了本书的范围，且对于这里的讨论并不重要。
 
 \begin{cpp}
 template <std::floating_point T>
@@ -505,17 +503,17 @@ bool AreEqual(T x, T y, int precision = 2)
 
 \mySubsubsection{12.5.9.}{最佳实践}
 
-如本节所示，概念是一种强大的机制，用于约束类型，提供了很大的灵活性。请记住以下几点：
+概念是一种强大的机制，用于约束类型，提供了很大的灵活性。请记住以下几点：
 
 \begin{itemize}
 \item
-优先使用预定义的标准库概念或它们的组合，而不是编写自己的概念，因为编写完整和正确的概念既困难又耗时。
+优先使用预定义的标准库概念或它们的组合，而不是编写自己的概念，编写完整和正确的概念既困难又耗时。
 
 \item
 当编写自己的概念时，确保它们模拟语义要求，而不仅仅是语法要求。例如，代码技术上只需要 operator== 和 <，不要编写只要求这两个操作符可用的概念，因为那将是一个语法约束。相反，要求类型为可排序的——这是一个语义约束。
 
 \item
-通过在开始时使用适当的语义类型要求，不太可能需要在以后添加更多的要求。例如，类模板受到只要求 operator== 和 < 的概念约束，可能需要在未来添加 operator> 的需求。这样做会破坏现有代码。如果从一开始就使用一个正确的概念来模拟可排序性，就不会破坏现有代码。
+通过在开始时使用适当的语义类型要求，不太可能需要在以后添加更多的要求。类模板受到只要求 operator== 和 < 的概念约束，可能需要在未来添加 operator> 的需求。这样做会破坏现有代码。如果从一开始就使用一个正确的概念来模拟可排序性，就不会破坏现有代码。
 
 \item
 如果不修改 requires 表达式的参数，请标记该参数为 const 以捕获这一需求。
@@ -524,7 +522,7 @@ bool AreEqual(T x, T y, int precision = 2)
 编写新的类或函数模板时，尽量对所有模板类型参数放置适当的类型约束。无约束的模板类型参数应该是过去式。
 
 \item
-记住，可以对auto的类型推导进行类型约束。
+可以对auto的类型推导进行类型约束。
 \end{itemize}
 
 

@@ -1,5 +1,5 @@
 
-也可以为独立的函数编写模板，模板的语法与类模板的语法相似。例如，可以编写以下泛型函数，在数组中查找值并返回其索引：
+也可以为独立的函数编写模板，模板的语法与类模板的语法相似。可以编写以下泛型函数，在数组中查找值并返回其索引：
 
 \begin{cpp}
 template <typename T>
@@ -14,7 +14,7 @@ optional<size_t> Find(const T& value, const T* arr, size_t size)
 }
 \end{cpp}
 
-Find() 函数模板可以用于任何类型的数组。例如，可以查找 int 在数组中的索引，或者在 SpreadsheetCell 数组中的索引。
+Find() 函数模板可以用于任何类型的数组。可以查找 int 在数组中的索引，或者在 SpreadsheetCell 数组中的索引。
 
 可以以两种方式调用该函数：显式指定模板类型参数并使用尖括号，或者省略类型参数，让编译器从参数中推导出类型参数。
 
@@ -54,7 +54,7 @@ res = Find(cell1, cellArray, sizeCellArray);
 res = Find<SpreadsheetCell>(cell1, cellArray, sizeCellArray);
 \end{cpp}
 
-Find()函数模板先前的实现需要将数组的大小作为参数之一。有时编译器知道数组的准确大小，例如对于基于栈的数组。如果能够在不传递数组大小的条件下调用 Find() 函数，那将非常方便。可以通过添加以下函数模板来实现这一点，该实现的目的是将调用转发到之前的 Find() 函数模板。函数模板还可以像类模板一样接受非类型参数。
+Find()函数模板先前的实现需要将数组的大小作为参数之一。有时编译器知道数组的准确大小，基于栈的数组，如果能够在不传递数组大小的条件下调用 Find() 函数将非常方便。可以通过添加以下函数模板来实现这一点，该实现的目的是将调用转发到之前的 Find() 函数模板。函数模板还可以像类模板一样接受非类型参数。
 
 \begin{cpp}
 template <typename T, size_t N>
@@ -71,9 +71,9 @@ int myInt { 3 }, intArray[] {1, 2, 3, 4};
 optional<size_t> res { Find(myInt, intArray) };
 \end{cpp}
 
-与类模板成员函数定义一样，函数模板定义（不仅仅是原型）必须对所有使用它们的源文件可用。因此，应该将定义放在模块接口文件中，并在多个源文件使用时进行导出。
+与类模板成员函数定义一样，函数模板定义（不仅仅是原型）必须对使用它们的源文件可用。应该将定义放在模块接口文件中，并在多个源文件使用时进行导出。
 
-最后，函数模板的模板参数可以有默认值，就像类模板一样。
+函数模板的模板参数可以有默认值，就像类模板一样。
 
 \begin{myNotic}{NOTE}
 C++ 标准库提供了一个更强大的 std::find() 函数模板。有关详细信息，请参阅第 20 章。
@@ -81,15 +81,15 @@ C++ 标准库提供了一个更强大的 std::find() 函数模板。有关详细
 
 \mySubsubsection{12.3.1.}{函数重载与函数模板}
 
-想要提供一个可以与不同数据类型一起工作的函数时，有两种选择：提供函数重载或提供函数模板。应该如何进行选择呢？
+想要提供可以与不同数据类型一起工作的函数时，有两种选择：提供函数重载或提供函数模板。应该如何进行选择呢？
 
-编写一个应该与不同数据类型一起工作的函数，且该函数体的所有数据类型都相同，那就提供一个函数模板。如果函数体对于每种数据类型都不同，就提供函数重载。
+编写一个应该与不同数据类型一起工作的函数，且该函数体的所有数据类型都相同，提供一个函数模板。如果函数体对于每种数据类型都不同，就提供函数重载。
 
 \mySubsubsection{12.3.2.}{函数模板的重载}
 
-理论上，C++ 语言允许像编写类模板特化一样，编写函数模板的特化。然而，不太需要这样做，这样的函数模板的特化不参与重载解析，可能会有意外的行为。
+C++ 语言允许像编写类模板特化一样，编写函数模板的特化。但不太需要这样做，这样的函数模板的特化不参与重载解析，可能会有意外的行为。
 
-相反，可以通过非模板函数或其他函数模板来重载函数模板。例如，想要为 const char* C 风格字符串编写一个 Find() 重载，使用 strcmp() ，而非 operator== 来比较（见第2章），因为 == 仅比较指针，而不是实际字符串。这是一个重载的例子：
+可以通过非模板函数或其他函数模板来重载函数模板，为 const char* C 风格字符串编写一个 Find() 重载，使用 strcmp() ，而非 operator== （见第2章），因为 == 仅比较指针，而不是实际字符串。这是一个重载的例子：
 
 \begin{cpp}
 optional<size_t> Find(const char* value, const char** arr, size_t size)
@@ -103,7 +103,7 @@ optional<size_t> Find(const char* value, const char** arr, size_t size)
 }
 \end{cpp}
 
-这个函数重载可以这样使用：
+函数重载可以这样使用：
 
 \begin{cpp}
 // Using an array for word to make sure no literal pooling happens, see Chapter 2.
@@ -117,19 +117,19 @@ else { println("Not found"); }
 
 对 Find() 的调用正确地在索引 1 处找到了字符串“two”。
 
-如果明确指定模板类型参数如下，那么函数模板将以 T=const char* 调用，而不是 const char* 的重载：
+如果明确指定模板类型参数，函数模板为 T=const char* ，而不是 const char* 的重载：
 
 \begin{cpp}
 res = Find<const char*>(word, words, sizeWords);
 \end{cpp}
 
-因为没有比较实际的字符串，而是指针，所以这个对 Find() 的调用没有找到任何匹配项。
+因为没有比较实际的字符串而是指针，所以这个对 Find() 的调用没有找到任何匹配项。
 
 当编译器的重载解析过程产生两个可能的候选项，一个是函数模板，另一个是非模板函数时，编译器总是倾向于使用非模板函数。
 
 \mySubsubsection{12.3.3.}{函数模板作为类模板的友元}
 
-想要在类模板中重载操作符时，函数模板非常有用。例如，想要为 Grid 类模板重载加法操作符（operator+），以便能够将两个网格相加。结果将是一个与两个操作数中最小的 Grid 大小相同的 Grid。只有当两个单元格都包含实际值时，相应的单元格才会相加。假设希望将 operator+ 作为一个独立的函数模板,定义应该放在 Grid.cppm 模块接口文件中，如下所示。实现使用 <algorithm> 中定义的 std::min()，返回两个参数的最小值：
+想要在类模板中重载操作符时，函数模板非常有用。例如，想要为 Grid 类模板重载加法操作符（operator+），以便能够将两个网格相加。结果将是一个与两个操作数中最小的 Grid 大小相同的 Grid。只有当两个单元格都包含实际值时，相应的单元格才会相加。将 operator+ 作为一个独立的函数模板，定义应该放在 Grid.cppm 模块接口文件中，如下所示。实现使用 <algorithm> 中定义的 std::min()，返回两个参数的最小值：
 
 \begin{cpp}
 export template <typename T>
@@ -154,7 +154,7 @@ Grid<T> operator+(const Grid<T>& lhs, const Grid<T>& rhs)
 
 要查询一个可选值是否包含实际值，可以使用 has\_value() 成员函数，并用 value() 获取这个值。
 
-这个函数模板适用于任何 Grid，只要Grid中存储的元素类型有一个加法操作符。这个实现唯一的问题在于，访问了 Grid 类的私有成员 m\_width 和 m\_height。显然的解决方案是使用public的 getWidth() 和 getHeight() 成员函数，来看看如何使一个函数模板成为类模板的朋友。这个例子中，可以使 operator+ 成为 Grid 类模板的友元。然而，Grid 和 operator+ 都是模板。真正想要的是，对于特定类型 T 的每个 operator+ 实例化，都成为同一类型的 Grid 模板实例化的友元。语法如下所示：
+这个函数模板适用于任何 Grid，只要Grid中存储的元素类型有一个加法操作符。这个实现唯一的问题在于，访问了 Grid 类的私有成员 m\_width 和 m\_height。解决方案是使用public的 getWidth() 和 getHeight() 成员函数，来看看如何使一个函数模板成为类模板的朋友。这个例子中，可以使 operator+ 成为 Grid 类模板的友元。然而，Grid 和 operator+ 都是模板。对于特定类型 T 的每个 operator+ 实例化，都成为同一类型的 Grid 模板实例化的友元：
 
 \begin{cpp}
 export template <typename T>
@@ -166,10 +166,9 @@ class Grid
 };
 \end{cpp}
 
-这个友元声明很巧妙：对于类型 T 的类模板实例，T 实例化的 operator+ 是一个友元。换句话说，在类实例化和函数实例化之间有一对一的友元映射。特别注意 operator+ 上的显式模板指定 <T>，这个语法告诉编译器 operator+ 本身就是一个模板。
+这个友元声明很巧妙：对于类型 T 的类模板实例，T 实例化的 operator+ 是一个友元。在类实例化和函数实例化之间，有一对一的友元映射。operator+ 上的显式模板指定 <T>，这个语法告诉编译器 operator+ 本身就是一个模板。
 
 这个友元 operator+ 可以通过以下方式测试。以下代码首先定义了两个辅助函数模板：fillGrid()，用递增的数字填充 Grid，以及 printGrid()，其会将 Grid 中的值输出到控制台。
-
 
 \begin{cpp}
 template <typename T> void fillGrid(Grid<T>& grid)
@@ -205,11 +204,11 @@ int main()
 }
 \end{cpp}
 
-\mySubsubsection{12.3.4.}{关于模板类型参数推导的更多信息}
+\mySubsubsection{12.3.4.}{模板类型参数推导}
 
 编译器根据传递给函数模板的参数，来推导函数模板参数的类型。无法推导的模板参数必须显式指定。
 
-例如，以下 add() 函数模板需要三个模板参数：返回值的类型和两个操作数的类型：
+以下 add() 函数模板需要三个模板参数：返回值的类型和两个操作数的类型：
 
 \begin{cpp}
 template <typename RetType, typename T1, typename T2>
@@ -222,26 +221,26 @@ RetType add(const T1& t1, const T2& t2) { return t1 + t2; }
 auto result { add<long long, int, int>(1, 2) };
 \end{cpp}
 
-然而，因为 T1 和 T2 是函数的参数，编译器可以推导出这两个参数，所以可以只指定返回值的类型来调用 add()：
+因为 T1 和 T2 是函数的参数，编译器可以推导出这两个参数，所以可以只指定返回值的类型来调用 add()：
 
 \begin{cpp}
 auto result { add<long long>(1, 2) };
 \end{cpp}
 
-这只有在要推导的参数在参数列表的最后时才有效。假设函数模板定义如下：
+只有在要推导的参数在参数列表的最后时才有效。假设函数模板定义为：
 
 \begin{cpp}
 template <typename T1, typename RetType, typename T2>
 RetType add(const T1& t1, const T2& t2) { return t1 + t2; }
 \end{cpp}
 
-必须指定 RetType，因为编译器无法推导这个类型。因为 RetType 是第二个参数，也必须显式指定 T1：
+必须指定 RetType，编译器无法推导这个类型。因为 RetType 是第二个参数，也必须显式指定 T1：
 
 \begin{cpp}
 auto result { add<int, long long>(1, 2) };
 \end{cpp}
 
-也可以为返回类型模板参数提供一个默认值，这样就可以在不指定类型的情况下调用 add()了：
+也可以为返回类型模板参数提供一个默认值，就可以在不指定类型的情况下调用add()了：
 
 \begin{cpp}
 template <typename RetType = long long, typename T1, typename T2>
@@ -252,23 +251,23 @@ auto result { add(1, 2) };
 
 \mySubsubsection{12.3.5.}{函数模板的返回类型}
 
-继续使用 add() 函数模板的例子，是否可以让编译器推导返回值的类型呢？理想情况；返回类型取决于模板类型参数，如何做到这一点呢？例如，以下函数模板：
+继续使用 add() 函数模板的例子，是否可以让编译器推导返回值的类型呢？返回类型取决于模板类型参数，如何做到这一点呢？例如，以下函数模板：
 
 \begin{cpp}
 template <typename T1, typename T2>
 RetType add(const T1& t1, const T2& t2) { return t1 + t2; }
 \end{cpp}
 
-在这个例子中，RetType 应该是表达式 t1+t2 的类型，但不知道类型，因为不知道 T1 和 T2 是什么。
+这个例子中，RetType 应该是表达式 t1+t2 的类型，但不知道类型，不知道 T1 和 T2 分别是什么类型。
 
-正如第 1 章所讨论的，从 C++14 开始，可以要求编译器自动推导函数的返回类型。因此，可以简单地将 add() 写成如下形式：
+从 C++14 开始，可以要求编译器自动推导函数的返回类型，可以简单地将 add() 写为：
 
 \begin{cpp}
 template <typename T1, typename T2>
 auto add(const T1& t1, const T2& t2) { return t1 + t2; }
 \end{cpp}
 
-然而，使用 auto 推导表达式的类型会剥离引用和 const 限定符，而 decltype 不会剥离。对于 add() 函数模板来说，因为 operator+ 通常返回一个新的对象，所以可以剥离，但对于某些其他函数模板来说，这可能不那么理想，所以让来看看如何避免这种情况。
+使用 auto 推导表达式的类型会剥离引用和 const 限定符，而 decltype 不会剥离。对于 add() 函数模板来说，因为 operator+ 通常返回一个新的对象，所以可以剥离。但对于某些其他函数模板来说，这可能不那么理想，所以让来看看如何避免这种情况。
 
 继续函数模板示例之前，先看看 auto 和 decltype 在非模板示例中的区别。假设有以下函数：
 
@@ -278,25 +277,25 @@ const std::string message { "Test" };
 const std::string& getString() { return message; }
 \end{cpp}
 
-可以像这样调用 getString() ，并存储结果到一个带有指定类型的 auto 变量中：
+可以像这样调用 getString() ，并存储结果到指定类型的 auto 变量中：
 
 \begin{cpp}
 auto s1 { getString() };
 \end{cpp}
 
-因为 auto 剥离了引用和 const 限定符，s1 是类型 string 的，因此会进行复制。如果想要一个引用到 const，可以显式地将其作为一个引用并标记为 const：
+auto 剥离了引用和 const 限定符，s1 是类型 string 的，因此会进行复制。如果想要一个引用到 const，可以显式地将其作为引用并标记为 const：
 
 \begin{cpp}
 const auto& s2 { getString() };
 \end{cpp}
 
-另一种解决方案是使用 decltype，不会剥离任何限定符：
+另一种解决方案是使用 decltype，不会剥离限定符：
 
 \begin{cpp}
 decltype(getString()) s3 { getString() };
 \end{cpp}
 
-这种情况下，s3 是类型 const string\& ，但由于需要两次指定 getString()，这会导致代码重复，这在 getString() 是一个更复杂的表达式时会变得繁琐。这个问题可以通过使用 decltype(auto) 来解决：
+s3 是类型 const string\& ，但由于需要两次指定 getString()，这会导致代码重复，在 getString() 是一个更复杂的表达式时会变得繁琐。这个问题可以通过使用 decltype(auto) 来解决：
 
 \begin{cpp}
 decltype(auto) s4 { getString() };
@@ -311,16 +310,16 @@ template <typename T1, typename T2>
 decltype(auto) add(const T1& t1, const T2& t2) { return t1 + t2; }
 \end{cpp}
 
-C++14 之前，即在函数返回类型推导和 decltype(auto) 支持之前，可以使用 decltype(expression) 来解决，该表达式是在 C++11 中引入的。例如，有些读者可能觉得，可以写成以下形式：
+C++14 之前，即在函数返回类型推导和 decltype(auto) 支持之前，可以使用 decltype(expression) 来解决，该表达式是在 C++11 中引入的。有些读者可能觉得，可以写成以下形式：
 
 \begin{cpp}
 template <typename T1, typename T2>
 decltype(t1+t2) add(const T1& t1, const T2& t2) { return t1 + t2; }
 \end{cpp}
 
-然而，这是错误的。原型的开头就使用了 t1 和 t2，但这些参数编译器在当时还了解。t1 和 t2 在语义分析器到达参数列表的末尾时，才会被编译器所知。
+这是错误的，开头就使用了 t1 和 t2，但这些参数编译器在当时还了解。t1 和 t2 在语义分析器到达参数列表的末尾时，编译器才知晓。
 
-这个问题过去是通过替代函数语法来解决的。在这种语法中，auto 在原型行的开头使用，实际的返回类型在参数列表之后指定（后置返回类型）；因此，参数的名称（以及类型，从而推导出 t1+t2 的类型）是已知的：
+这个问题过去通过替代函数语法来解决。auto 在原型行的开头使用，实际的返回类型在参数列表之后指定（后置返回类型），参数的名称（以及类型，从而推导出 t1+t2 的类型）已知：
 
 \begin{cpp}
 template <typename T1, typename T2>
@@ -330,9 +329,9 @@ auto add(const T1& t1, const T2& t2) -> decltype(t1+t2)
 }
 \end{cpp}
 
-另一个选项是使用 std::declval<>()，返回请求类型的 rvalue 引用。这并不是一个完全构造的对象，因为没有调用构造函数！不能在运行时使用这个对象，应该与 decltype() 结合使用。它对于泛型代码，以及当需要创建一个未知类型的对象时，非常有用。这种情况下，不能调用任何构造函数，因为不知道未知类型支持哪些构造函数。
+另一个选项是使用 std::declval<>()，返回请求类型的 rvalue 引用。这并不是一个完全构造的对象，没有调用构造函数！不能在运行时使用这个对象，应该与 decltype() 结合使用。对于泛型代码，以及需要创建的未知类型对象时，非常有用。这种情况下，不能调用构造函数，因为不知道未知类型支持哪些构造函数。
 
-来看一个例子。前面的 add() 代码片段在原型开头有一个明确的返回类型 decltype(t1+t2)，但这在编译时不会通过，因为那时 t1 和 t2 的名称还不知道。为了修复这个问题，可以使用 declval<>()：
+来看一个例子。前面的 add() 代码片段在原型开头有一个明确的返回类型 decltype(t1+t2)，但这在编译时不会通过，因为 t1 和 t2 的名称那时还不知道。为了修复这个问题，可以使用 declval<>()：
 
 \begin{cpp}
 template <typename T1, typename T2>
@@ -355,22 +354,22 @@ template <typename T1, typename T2>
 decltype(auto) add(const T1& t1, const T2& t2) { return t1 + t2; }
 \end{cpp}
 
-从上面这个例子来看，指定一个简单函数模板的语法相当冗长。使用简化函数模板语法，可以更优雅地写成如下形式：
+指定简单函数模板的语法相当冗长。使用简化函数模板语法，可以更优雅地写为：
 
 \begin{cpp}
 decltype(auto) add(const auto& t1, const auto& t2) { return t1 + t2; }
 \end{cpp}
 
-使用这种语法，不再需要模板头 template<> 来指定模板参数。相反，之前实现中使用 T1 和 T2 作为函数参数的类型，现在指定为 auto。这种简化语法只是语法糖；编译器自动将这种简化的实现，翻译为更长的代码。基本上，每个指定为 auto 的函数参数都变成了模板类型参数。
+这种方式，不再需要模板头 template<> 来指定模板参数。相反，之前实现中使用 T1 和 T2 作为函数参数的类型，现在指定为 auto。这种简化语法只是语法糖；编译器自动将这种简化的实现，翻译为更长的代码。基本上，每个指定为 auto 的函数参数都变成了模板类型参数。
 
-需要记住两个注意事项。首先，每个指定为 auto 的参数都变成了不同的模板类型参数。假设有一个这样的函数模板：
+需要记住两个事项。首先，每个指定为 auto 的参数都变成了不同的模板类型参数。假设有一个这样的函数模板：
 
 \begin{cpp}
 template <typename T>
 decltype(auto) add(const T& t1, const T& t2) { return t1 + t2; }
 \end{cpp}
 
-这个版本只有一个模板类型参数，函数的两个参数 t1 和 t2 都是类型 const T\&。对于这样的函数模板，因为这会翻译为具有两个不同模板类型参数的函数模板，所以不能使用简化语法。
+这个版本只有一个模板类型参数，函数的两个参数 t1 和 t2 都是类型 const T\&。对于这样的函数模板，这会翻译为具有两个不同模板类型参数的函数模板，所以不能使用简化语法。
 
 第二个问题是，因为自动推导出的类型没有名称，所以不能在函数模板的实现中显式使用推导出的类型。如果需要这样做，要么继续使用更长的函数模板语法，要么使用 decltype() 来确定类型。
 
