@@ -1,13 +1,13 @@
 
-如前所述，代码可以抛出任何类型的异常，异常类是最有用的异常类型。实际上，异常类以层次结构编写，这样可以在捕获异常时使用多态。
+代码可以抛出任何类型的异常，异常类是最有用的异常类型。实际上，异常类以层次结构编写，可以在捕获异常时使用多态。
 
 \mySubsubsection{14.3.1.}{C++标准异常的层次结构}
 
-已经看到了C++标准异常层次结构中的几个异常：exception、runtime\_error 和 invalid\_argument。图14.3展示了完整的层次结构，完整起见，展示了所有标准异常，包括在后续章节中讨论的标准库部分抛出的异常。
+已经看到了C++标准异常层次结构中的几个异常：exception、runtime\_error 和 invalid\_argument。图14.3展示了完整的层次结构，展示了所有标准异常，包括在后续章节中讨论的标准库部分抛出的异常。
 
 \myGraphic{0.9}{content/part3/chapter14/images/3.png}{图 14.3}
 
-C++标准库抛出的异常都是这个层次结构中类的对象。层次结构中的每个类都支持一个what()成员函数，该函数返回一个描述异常的const char*字符串。可以在错误消息中使用这个字符串。
+C++标准库抛出的异常都是这个层次结构中类的对象。层次结构中的每个类都支持一个what()成员函数，该函数返回一个描述异常的const char*字符串，可以在错误消息中使用这个字符串。
 
 一些异常类需要在构造函数中设置由what()返回的字符串，这就是为什么在runtime\_error和invalid\_argument的构造函数中必须指定一个字符串。以下是另一个版本的readIntegerFile()，在错误消息中包含了文件名：
 
@@ -42,7 +42,7 @@ vector<int> readIntegerFile(const string& filename)
 
 \mySubsubsection{14.3.2.}{在类的层次结构中捕获异常}
 
-异常层次结构的特性是，可以以多态方式捕获异常。例如，以下两个catch语句，除了处理的异常类不同之外，其他都相同：
+异常层次结构的特性是，可以以多态方式捕获异常。以下两个catch语句，除了处理的异常类不同之外，其他都相同：
 
 \begin{cpp}
 try {
@@ -56,7 +56,7 @@ try {
 }
 \end{cpp}
 
-invalid\_argument和runtime\_error都是exception的派生类，所以可以用一个捕获exception的catch语句替换这两个catch语句：
+invalid\_argument和runtime\_error都是exception的派生类，可以用捕获exception的catch语句替换这两个catch语句：
 
 \begin{cpp}
 try {
@@ -67,13 +67,13 @@ try {
 }
 \end{cpp}
 
-捕获异常引用的catch语句匹配任何exception的派生类，包括invalid\_argument和runtime\_error。请注意，在异常层次结构中捕获异常的位置越高，错误处理就越不具体。通常，应该尽可能在具体的层次上捕获异常。
+捕获异常引用的catch语句匹配exception的派生类，包括invalid\_argument和runtime\_error。请注意，在异常层次结构中捕获异常的位置越高，错误处理就越不具体。通常，应该尽可能在具体的层上捕获异常。
 
 \begin{myWarning}{WARNING}
 当以多态方式捕获异常时，确保通过引用捕获！如果通过值捕获异常，可能会遇到切片问题，在这种情况下会丢失对象的信息。有关切片的详细信息，请参阅第10章。
 \end{myWarning}
 
-当使用多个catch子句时，catch子句会按照代码中出现的语法顺序进行匹配；第一个匹配的子句获胜。如果一个catch比后面的更具有包容性，将首先匹配，而后面的更具体的子句将不会执行。因此，应该按照从最具体到最不具体的顺序排列catch子句。例如，想显式捕获readIntegerFile()抛出的invalid\_argument异常，但还想保留一个通用的异常处理程序来处理其他任何异常。正确的做法如下所示：
+使用多个catch子句时，catch子句会按照代码中出现的语法顺序进行匹配；第一个匹配的子句获胜。如果一个catch比后面的更具有包容性，将首先匹配，而后面的更具体的子句将不会执行。应该按照从最具体到最不具体的顺序排列catch子句。例如，想显式捕获readIntegerFile()抛出的invalid\_argument异常，但还想保留一个通用的异常处理程序来处理其他任何异常。正确的做法如下所示：
 
 \begin{cpp}
 try {
@@ -86,7 +86,7 @@ try {
 }
 \end{cpp}
 
-第一个catch语句捕获invalid\_argument异常，第二个捕获其他类型的exception异常。然而，如果颠倒了catch子句的顺序，结果将不同：
+第一个catch语句捕获invalid\_argument异常，第二个捕获其他类型的exception异常。如果颠倒了catch子句的顺序，结果将不同：
 
 \begin{cpp}
 try {
@@ -99,7 +99,7 @@ try {
 }
 \end{cpp}
 
-这种情况下，任何从exception派生的类异常都会被第一个catch子句捕获；第二个catch将永远不会执行，有一些编译器对这种情况发出警告。
+这种情况下，从exception派生的类异常都会被第一个catch子句捕获；第二个catch将永远不会执行，有一些编译器会对这种情况发出警告。
 
 \mySubsubsection{14.3.3.}{编写异常类}
 
@@ -132,9 +132,9 @@ class FileError : public exception
 };
 \end{cpp}
 
-作为一个好的编程习惯，可使FileError成为标准异常层次结构的一部分，将其作为exception的子类似乎是合适的。从exception派生时，可以覆写what()成员函数，其原型如上所示，并且必须返回一个const char*字符串，该字符串在对象销毁之前有效。在FileError的情况下，这个字符串来自m\_message数据成员。FileError的派生类可以使用受保护的setMessage()成员函数设置消息，通用的FileError类还包含一个文件名和该文件名的公共访问器。
+一个好的编程习惯是，使FileError成为标准异常层次结构的一部分，将其作为exception的子类似乎是合适的。从exception派生时，可以覆写what()成员函数，其原型如上所示。并且必须返回一个const char*字符串，该字符串在对象销毁之前有效FileError中，这个字符串来自m\_message数据成员。FileError的派生类可以使用受保护的setMessage()成员函数设置消息，通用的FileError类还包含一个文件名和该文件名的公共访问器。
 
-readIntegerFile()中的第一个异常情况是文件无法打开，所以可能会创建一个从FileError派生的FileOpenError异常：
+readIntegerFile()中的第一个异常情况是文件无法打开，可能会创建一个从FileError派生的FileOpenError异常：
 
 \begin{cpp}
 class FileOpenError : public FileError
@@ -147,9 +147,9 @@ class FileOpenError : public FileError
 };
 \end{cpp}
 
-FileOpenError异常调用setMessage()，将m\_message字符串更改为表示文件打开错误的字符串。构造函数体中，getFilename()用于获取文件名。不能使用filename参数，因为在调用FileError构造函数时，构造函数初始化器已经移动了filename。在移动操作之后，就不应再使用该对象。
+FileOpenError异常调用setMessage()，将m\_message字符串更改为表示文件打开错误的字符串。构造函数体中，getFilename()用于获取文件名。不能使用filename参数，在调用FileError构造函数时，构造函数初始化器已经移动了filename。移动操作之后，就不应再使用该对象。
 
-readIntegerFile()中的第二个异常情况是如果文件无法正确读取。对于这个异常，在从what()返回的错误消息字符串中，包含错误发生的行号，以及文件名可能很有用。这里是一个从FileError派生的FileReadError异常：
+readIntegerFile()中的第二个异常情况是如果文件无法正确读取。对于这个异常，在从what()返回的错误消息字符串中，包含错误发生的行号，以及文件名可能很有用。这是一个从FileError派生的FileReadError异常：
 
 \begin{cpp}
 class FileReadError : public FileError
@@ -167,7 +167,7 @@ class FileReadError : public FileError
 };
 \end{cpp}
 
-当然，为了正确设置行号，需要修改readIntegerFile()以跟踪读取的行数，而不仅仅是直接读取整数。这里是一个使用新异常的新readIntegerFile()函数：
+为了正确设置行号，需要修改readIntegerFile()以跟踪读取的行数，而不仅仅是直接读取整数。这里是一个使用新异常的readIntegerFile()函数：
 
 \begin{cpp}
 vector<int> readIntegerFile(const string& filename)
@@ -205,7 +205,7 @@ vector<int> readIntegerFile(const string& filename)
 }
 \end{cpp}
 
-现在，调用readIntegerFile()的代码，使用多态来捕捉类型为FileError的异常：
+调用readIntegerFile()的代码，使用多态来捕捉类型为FileError的异常：
 
 \begin{cpp}
 try {
@@ -216,7 +216,7 @@ try {
 }
 \end{cpp}
 
-自定义异常类时，有一个需要注意的问题。当一段代码抛出异常时，抛出的对象或值会通过移动构造函数或复制构造函数进行移动或复制，如果编写了一个其对象将作为异常抛出的类，必须确保这些对象是可复制的和/或可移动的。如果的异常类中有动态分配的内存，该类必须有一个析构函数，还必须有复制构造函数和复制赋值运算符和/或移动构造函数和移动赋值运算符，参见第9章。
+自定义异常类时，有一个需要注意的问题。当一段代码抛出异常时，抛出的对象或值会通过移动构造函数或复制构造函数进行移动或复制，如果编写了一个其对象将作为异常抛出的类，必须确保这些对象是可复制的和/或可移动的。如果的异常类中有动态分配的内存，该类必须有一个析构函数，还必须有复制构造函数和复制赋值操作符和/或移动构造函数和移动赋值操作符，参见第9章。
 
 \begin{myWarning}{WARNING}
 作为异常抛出的对象，至少会移动或复制一次。
@@ -230,9 +230,9 @@ try {
 
 \mySubsubsection{14.3.4.}{嵌套异常}
 
-有可能会发生这样的情况：处理第一个异常期间，触发了第二个异常情况，需要抛出第二个异常。不幸的是，当抛出第二个异常时，当前正在尝试处理的第一个异常的所有信息都将丢失。C++为这个问题提供的解决方案称为嵌套异常，允许在新异常的上下文中嵌套一个捕获的异常。如果调用一个第三方库的函数，该函数抛出一个类型为A的异常，但只想在代码中使用类型为B的异常，这种情况也非常有用。这种情况下，捕获库中的所有异常并将它们嵌套在类型为B的异常中。
+有可能会发生这样的情况：处理第一个异常期间，触发了第二个异常情况，需要抛出第二个异常。不幸的是，当抛出第二个异常时，当前正在尝试处理的第一个异常的所有信息都将丢失。C++为这个问题提供的解决方案称为嵌套异常，允许在新异常的上下文中嵌套一个捕获的异常。如果调用一个第三方库的函数，该函数抛出一个类型为A的异常，但只想在代码中使用类型为B的异常，捕获库中的所有异常，并将它们嵌套在类型为B的异常中。
 
-使用std::throw\_with\_nested()来抛出一个内部嵌套了另一个异常的异常。这个新异常的捕获处理器可以使用dynamic\_cast()，来获取代表第一个异常的std::nested\_exception的访问权限。接下来的示例，首先定义了一个MyException类，该类从exception派生并在其构造函数中接受一个字符串：
+使用std::throw\_with\_nested()来抛出一个内部嵌套了另一个异常的异常，这个新异常的捕获处理器可以使用dynamic\_cast()，来获取代表第一个异常的std::nested\_exception的访问权限。接下来的示例，首先定义了一个MyException类，该类从exception派生并在其构造函数中接受一个字符串：
 
 \begin{cpp}
 class MyException : public exception
@@ -261,9 +261,9 @@ void doSomething()
 }
 \end{cpp}
 
-throw\_with\_nested()通过抛出一个未命名、编译器生成的新类型来实现，该类型同时派生自nested\_exception和（这个例子中）MyException。因此，这是C++中多重继承的一个示例，nested\_exception基类的默认构造函数通过调用std::current\_exception()自动捕获当前正在处理的异常，并将其存储在std::exception\_ptr中。exception\_ptr是一种指针样类型，能够存储空指针或指向使用current\_exception()捕获并抛出的异常对象的指针。exception\_ptr的实例可以传递给函数（通常是通过值）,并在不同的线程之间传递。
+throw\_with\_nested()通过抛出一个未命名、编译器生成的新类型来实现，该类型同时派生自nested\_exception和（这个例子中）MyException。这是C++中多重继承的一个示例，nested\_exception基类的默认构造函数通过调用std::current\_exception()自动捕获当前正在处理的异常，并将其存储在std::exception\_ptr中。exception\_ptr是一种指针样类型，能够存储空指针或指向使用current\_exception()捕获并抛出的异常对象的指针。exception\_ptr的实例可以传递给函数（通常是通过值），并在不同的线程之间传递。
 
-最后，以下代码片段演示了如何处理带有嵌套异常的异常。代码调用doSomething()，并且有一个用于捕获类型为MyException的异常的捕获处理。当它捕获这样的异常时，它写入一条消息，然后使用dynamic\_cast()获取嵌套异常的访问权限。如果没有嵌套异常，结果将是一个空指针。如果内部有嵌套异常，则在nested\_exception上调用rethrow\_nested()成员函数。这导致嵌套异常会重新抛出，然后可以在另一个try/catch块中再次捕获。
+以下代码片段演示了，如何处理带有嵌套异常的异常。代码调用doSomething()，并且有一个用于捕获类型为MyException的异常的捕获处理。捕获这样的异常时，写入一条消息，然后使用dynamic\_cast()获取嵌套异常的访问权限。如果没有嵌套异常，结果将是一个空指针。如果内部有嵌套异常，则在nested\_exception上调用rethrow\_nested()成员函数。这导致嵌套异常会重新抛出，然后可以在另一个try/catch块中再次捕获。
 
 \begin{cpp}
 try {

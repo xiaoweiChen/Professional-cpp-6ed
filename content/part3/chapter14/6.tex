@@ -45,7 +45,7 @@ column()          & 包含源代码中的当前列号
 
 \mySubsubsection{14.6.1.}{日志记录的源位置}
 
-source\_location类在日志记录方面非常有用。以前，日志记录通常涉及编写C风格的宏来自动收集当前文件名、函数名和行号，以便可以包含在日志输出中。现在，有了source\_location，可以编写一个纯C++函数来执行你的日志记录，并自动收集需要的定位数据。一个实现这个功能的好方法是定义一个像下面的logMessage()函数。这次，代码前面加了行号，以便更好地解释发生了什么。
+source\_location类在日志记录方面非常有用。以前，日志记录通常涉及编写C风格的宏来自动收集当前文件名、函数名和行号，以便可以包含在日志输出中。现在，有了source\_location，可以编写一个纯C++函数来执行日志记录，并自动收集需要的定位数据。实现这个功能的好方法是定义一个像下面的logMessage()函数。这次，代码前面加了行号，以便更好地解释发生了什么。
 
 \begin{shell}
 5.  void logMessage(string_view message,
@@ -66,7 +66,7 @@ source\_location类在日志记录方面非常有用。以前，日志记录通�
 20. }
 \end{shell}
 
-logMessage()的第二个参数是一个source\_location，其默认值为source\_location::current()静态成员函数的结果。这里，current()的调用不是在行6，而是在调用logMessage()的地方，即行14，而这正是我们感兴趣的位置。
+logMessage()的第二个参数是一个source\_location，其默认值为source\_location::current()静态成员函数的结果。current()的调用不是在行6，而是在调用logMessage()的地方，即行14，而这正是我们感兴趣的位置。
 
 使用Microsoft Visual C++执行此程序后，输出如下所示：
 
@@ -78,7 +78,7 @@ logMessage()的第二个参数是一个source\_location，其默认值为source\
 
 \mySubsubsection{14.6.2.}{自定义异常中自动嵌入源位置}
 
-source\_location在自定义异常中的另一个用途是自动存储异常抛出的位置。下面是一个例子：
+source\_location在自定义异常中的另一个用途是自动存储异常抛出的位置：
 
 \begin{cpp}
 class MyException : public exception

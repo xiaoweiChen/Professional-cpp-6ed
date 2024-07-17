@@ -21,7 +21,7 @@ vector<int> readIntegerFile(const string& filename)
 while (inputStream >> temp) {
 \end{cpp}
 
-如果>{}>运算符遇到错误，会设置ifstream对象的失败位。这种情况下，bool()转换运算符返回false，while循环终止。在第13章中，已经详细地介绍了流。
+如果>{}>操作符遇到错误，会设置ifstream对象的失败位，bool()转换操作符返回false，while循环终止。在第13章中，已经详细地介绍了流。
 
 可能会这样使用readIntegerFile()：
 
@@ -31,11 +31,11 @@ vector<int> myInts { readIntegerFile(filename) };
 println("{} ", myInts);
 \end{cpp}
 
-本节的其余部分将展示如何使用异常添加错误处理，但首先需要更深入地了解如何抛出和捕获异常。
+本节的其余部分将展示，如何使用异常添加错误处理，但首先需要深入地了解如何抛出和捕获异常。
 
 \mySubsubsection{14.2.1.}{抛出和捕获异常}
 
-异常处理包括在程序中提供两部分：一个try/catch结构来处理异常，以及一个抛出异常的throw语句。两者都必须以某种形式存在，才能使异常处理工作。但在许多情况下，抛出异常发生在一些库（包括C++运行时）的深处，开发者可能永远看不到，但仍需使用try/catch结构来应对。
+异常处理包括在程序中提供两部分：try/catch结构来处理异常，以及一个抛出异常的throw语句。两者都必须以某种形式存在，才能使异常处理工作。但在许多情况下，抛出异常发生在一些库（包括C++运行时）的深处，开发者可能永远看不到，但仍需使用try/catch结构来应对。
 
 try/catch结构如下所示：
 
@@ -50,13 +50,13 @@ try {
 // ... remaining code
 \end{cpp}
 
-异常抛出的代码可以直接包含一个throw，也可能调用一个函数，该函数要么直接抛出异常，要么通过一些未知的调用——调用一个抛出异常的函数。
+异常抛出的代码可以直接包含throw，也可能调用一个函数，该函数要么直接抛出异常，要么通过一些未知的调用——调用一个抛出异常的函数。
 
 如果没有抛出异常，catch块中的代码都不会执行，紧随其后的“剩余代码”将接着try块中最后执行的语句执行。
 
 如果抛出了异常，throw之后的代码或导致throw的调用的后续代码都不会执行；相反，控制权会立即转到catch块中，这取决于抛出的异常的类型。
 
-如果catch块没有进行控制转移——例如，通过从函数返回、抛出一个新异常或重新抛出捕获的异常——在catch块的最后一条语句之后将执行“剩余代码”。
+如果catch块没有进行控制转移——通过从函数返回、抛出一个新异常或重新抛出捕获的异常——在catch块的最后一条语句之后将执行“剩余代码”。
 
 演示异常处理最简单的例子是避免除以零。以下示例抛出一个类型为std::invalid\_argument的异常，该异常定义在<stdexcept>中：
 
@@ -86,7 +86,7 @@ int main()
 Caught exception: Divide by zero
 \end{shell}
 
-throw是C++中的一个关键字，是抛出异常的唯一方式。在代码段中，抛出一个invalid\_argument的实例，这是C++标准库提供的一个标准异常。所有标准库异常形成一个层次结构，这将在本章后面讨论。层次结构中的每个类都支持一个what()成员函数，该函数返回一个描述异常的const char*字符串，这是异常的构造函数中提供的字符串。
+throw是C++中的一个关键字，是抛出异常的唯一方式。代码段中，抛出一个invalid\_argument的实例，这是C++标准库提供的一个标准异常。所有标准库异常形成一个层次结构，这将在本章后面讨论。层次结构中的每个类都支持一个what()成员函数，该函数返回一个描述异常的const char*字符串，这是异常的构造函数中提供的字符串。
 
 \begin{myNotic}{NOTE}
 尽管what()的返回类型是const char*，但如果使用UTF-8编码异常，异常可以支持Unicode字符串。有关Unicode字符串的详细信息，参见第21章。
@@ -114,12 +114,12 @@ vector<int> readIntegerFile(const string& filename)
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-始终在函数的代码文档中记录函数可能抛出的异常，因为函数的使用者需要知道可能抛出哪些异常，以便正确处理它们。
+始终在函数的代码文档中记录函数可能抛出的异常，函数的使用者需要知道可能抛出哪些异常，以便正确处理。
 \end{myNotic}
 
 如果函数无法打开文件并执行throw exception\{\};语句，则跳过函数的其余部分，并转移到最近的异常处理程序。
 
-在代码中抛出异常的时候，需要编写了处理它们的代码。异常处理是一种“尝试”一个代码块的方式，另一个代码块可指定为对可能发生的问题做出反应。在main()函数中，catch语句通过打印错误消息，来对try块内抛出的exception的异常做出反应。如果try块在没有抛出异常的情况下完成，则跳过catch块。可以将try/catch块视为另一种if语句：如果在try块中抛出了异常，则执行catch块，否则跳过所有catch块。
+代码中抛出异常的时候，需要编写了处理它们的代码。异常处理是一种“尝试”一个代码块的方式，另一个代码块可指定为对可能发生的问题做出反应。在main()函数中，catch语句通过打印错误消息，来对try块内抛出的exception的异常做出反应。如果try块在没有抛出异常的情况下完成，则跳过catch块。可以将try/catch块视为另一种if语句：如果在try块中抛出了异常，则执行catch块，否则跳过所有catch块。
 
 \begin{cpp}
 int main()
@@ -137,12 +137,12 @@ int main()
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-尽管默认情况下流不会抛出异常，但可以通过调用它们的exceptions()成员函数，告诉流在出现错误条件时抛出异常。然而，大多数编译器在流抛出的异常中，提供的信息是无用的。对于这样的编译器，直接处理流的状态可能比使用异常更好。本书中不使用流异常。
+尽管默认情况下流不会抛出异常，但可以通过调用它们的exceptions()成员函数，告诉流在出现错误条件时抛出异常。大多数编译器在流抛出的异常中，提供的信息是无用的。对于这样的编译器，直接处理流的状态可能比使用异常更好。本书中不使用流异常。
 \end{myNotic}
 
 \mySubsubsection{14.2.2.}{异常类型}
 
-可以抛出任何类型的异常。前面的例子抛出了一个std::exception类型的对象，但异常不一定是对象，也可以像这样抛出一个int：
+C++中可以抛出任何类型的异常。前面的例子抛出了一个std::exception类型的对象，但异常不一定是对象，也可以像这样抛出一个int：
 
 \begin{cpp}
 vector<int> readIntegerFile(const string& filename)
@@ -206,11 +206,11 @@ try {
 \end{itemize}
 \end{myNotic}
 
-C++标准库定义了许多预定义的异常类，构成了一个类层次结构，本章将在后面介绍。此外，可以编写自己的异常类，并将它们放入标准结构中，这也会在本章后面介绍。
+C++标准库定义了许多预定义的异常类，构成了一个类层次结构，本章将在后面介绍。可以编写自己的异常类，并将它们放入标准结构中，这也会在本章后面介绍。
 
 \mySubsubsection{14.2.3.}{捕获异常对象——const的引用}
 
-在前面readIntegerFile()抛出exception类型对象的例子中，catch处理程序为：
+前面readIntegerFile()抛出exception类型对象的例子中，catch处理程序为：
 
 \begin{cpp}
 } catch (const exception& e) {
@@ -267,7 +267,7 @@ vector<int> readIntegerFile(const string& filename)
 }
 \end{cpp}
 
-main()中的代码不需要做太多更改，因为它已经捕获了exception类型的异常，runtime\_error就从其派生。然而，现在可能会在两种不同的情况下抛出异常，所以使用what()成员函数来获取捕获异常的描述：
+main()中的代码不需要做太多更改，因为已经捕获了exception类型的异常，runtime\_error就从其派生。然而，现在可能会在两种不同的情况下抛出异常，所以使用what()成员函数来获取捕获异常的描述：
 
 \begin{cpp}
 try {
@@ -342,7 +342,7 @@ try {
 
 \mySamllsection{匹配任何异常}
 
-可以编写一个捕获所有块的代码，使用特殊语法匹配任何可能的异常：
+可以编写一个捕获所有块的代码，使用特殊语法匹配可能的异常：
 
 \begin{cpp}
 try {
@@ -353,9 +353,9 @@ try {
 }
 \end{cpp}
 
-这三个点不是打字错误，它们是一个通配符，匹配任何异常类型。使用捕获所有块的问题是，得不到捕获异常的细节信息。当调用文档记录不良的代码时，这个技术可能很有用，以确保你捕获所有可能的异常。但即便如此，对一个未知异常又能做些什么来恢复呢？
+这三个点不是打字错误，而是一个通配符，匹配任何异常类型。使用捕获所有块的问题是，得不到捕获异常的细节信息。当调用文档记录不良的代码时，这个技术可能很有用，以确保捕获所有异常。但即便如此，对未知异常又能做些什么来恢复呢？
 
-捕获所有块的一个用处是记录抛出了异常，然后重新抛出异常。以下示例显示了如何显式处理invalid\_argument和runtime\_error异常的捕获处理程序，以及如何包含一个捕获所有其他异常的处理程序。任何catch块中，可以使用不带参数的throw关键字重新抛出当前捕获的异常。关于重新抛出异常的内容还有很多，但这需要等到本章后面再介绍。
+捕获所有块的一个用处是记录抛出了异常，然后重新抛出异常。以下示例显示了如何显式处理invalid\_argument和runtime\_error异常的捕获处理程序，以及如何包含一个捕获所有其他异常的处理程序。catch块中，可以使用不带参数的throw关键字重新抛出当前捕获的异常。关于重新抛出异常的内容还有很多，但这需要等到本章后面再介绍。
 
 \begin{cpp}
 try {
@@ -371,11 +371,11 @@ try {
 }
 \end{cpp}
 
-对抛出的异常集合有完整信息的情况下，不推荐使用捕获所有块，因为它以相同的方式处理每个异常类型。最好显式匹配异常类型并采取适当的、有针对性的行动。
+对抛出的异常集合有完整信息的情况下，不推荐使用捕获所有块，以相同的方式处理每个异常类型。最好显式匹配异常类型并采取适当的、有针对性的行动。
 
 \mySubsubsection{14.2.5.}{未捕获的异常}
 
-如果程序抛出了一个没有被捕获的异常，程序将会终止。可以在main()函数的地方有一个try/catch结构，捕获所有未处理的异常：
+如果程序抛出了一个没有捕获的异常，程序将会终止。可以在main()函数的地方有一个try/catch结构，捕获所有未处理的异常：
 
 \begin{cpp}
 try {
@@ -386,7 +386,7 @@ try {
 // Normal termination code.
 \end{cpp}
 
-然而，这种行为通常不是想要的。异常的目的是让程序有机会处理和纠正不良的或未预期的情况。
+然而，这种行为通常不是想要的。异常的目的是让程序有机会处理和纠正，不良或未预期的情况。
 
 \begin{myWarning}{WARNING}
 应当尽可能捕获并处理程序中抛出的所有异常。
@@ -407,9 +407,9 @@ try {
 // Normal termination code.
 \end{cpp}
 
-在对这个特性过于兴奋之前，应该知道回调函数必须使用abort()或\_Exit()来终止，不能忽略错误。abort()和\_Exit()都在<cstdlib>中定义，它们在清理资源之前终止应用程序。例如，对象析构函数将不会调用。\_Exit()函数接受一个整数参数，该参数返回给操作系统，可以用来确定进程是如何退出的。值为0或EXIT\_SUCCESS表示程序没有错误地退出；否则，程序异常终止。abort()函数不接受任何参数。此外，还有一个exit()函数，也接受一个整数参数，该参数返回给操作系统，并通过调用析构函数来清理资源，但不建议在terminate\_handler中调用exit()。
+对这个特性过于兴奋之前，应该知道回调函数必须使用abort()或\_Exit()来终止，不能忽略错误。abort()和\_Exit()都在<cstdlib>中定义，们在清理资源之前终止应用程序，对象析构函数将不会调用。\_Exit()函数接受一个整数参数，该参数返回给操作系统，可以用来确定进程是如何退出的。值为0或EXIT\_SUCCESS表示程序没有错误地退出；否则，程序异常终止。abort()函数不接受任何参数，还有一个exit()函数，也接受一个整数参数，该参数返回给操作系统，并通过调用析构函数来清理资源，但不建议在terminate\_handler中调用exit()。
 
-一个terminate\_handler可以用来在退出前打印一个有用的错误消息。这里有一个main()函数的例子，不捕获readIntegerFile()抛出的异常。相反，将terminate\_handler设置为一个自定义的回调。这个回调打印一个错误消息，并通过调用\_Exit()来终止进程。注意，这里使用了第1章介绍的[[noreturn]]属性。
+terminate\_handler可以用来在退出前打印一个有用的错误消息。这里有一个main()函数的例子，不捕获readIntegerFile()抛出的异常，将terminate\_handler设置为一个自定义的回调。这个回调打印一个错误消息，并通过调用\_Exit()来终止进程。注意，这里使用了第1章介绍的[[noreturn]]属性。
 
 \begin{cpp}
 [[noreturn]] void myTerminate()
@@ -428,17 +428,17 @@ int main()
 }
 \end{cpp}
 
-虽然这个例子中没有显示，但set\_terminate()在设置新terminate\_handler时，返回旧的terminate\_handler。terminate\_handler是程序范围的，所以当完成需要新terminate\_handler的代码时，恢复旧的terminate\_handler是一种好的风格。这个例子中，整个程序需要新的terminate\_handler，所以没有必要恢复。
+虽然这个例子中没有显示，set\_terminate()在设置新terminate\_handler时，返回旧的terminate\_handler。terminate\_handler是程序范围的，当完成需要新terminate\_handler的代码时，恢复旧的terminate\_handler是一种好的风格。这个例子中，整个程序需要新的terminate\_handler，所以没有必要恢复。
 
-虽然了解set\_terminate()很重要，但它并不是一个有效的异常处理方法。建议捕获并单独处理每个异常，以提供更精确的错误处理。
+虽然了解set\_terminate()很重要，但并不是一个有效的异常处理方法。建议捕获并单独处理每个异常，以提供更精确的错误处理。
 
 \begin{myNotic}{NOTE}
-专业编写的软件中，通常会设置一个terminate\_handler来在终止进程之前创建一个崩溃转储。崩溃转储通常包含诸如未捕获异常抛出时，调用堆栈和局部变量的信息。然后可以将这样的崩溃转储加载到调试器中，从而可以了解未捕获的异常是什么，以及是什么原因导致。然而，编写崩溃转储需要依赖于平台，因此本书不再进一步介绍。
+编写专业的软件中，通常会设置一个terminate\_handler来在终止进程之前创建一个崩溃转储。崩溃转储通常包含诸如未捕获异常抛出时，调用堆栈和局部变量的信息。然后可以将这样的崩溃转储加载到调试器中，从而可以了解未捕获的异常是什么，以及是什么原因导致。然而，崩溃转储需要依赖于平台，因此本书不再进一步介绍。
 \end{myNotic}
 
 \mySubsubsection{14.2.6.}{noexcept指定符}
 
-默认情况下，函数可以抛出任何异常。然而，可以使用noexcept指定符（一个C++关键字）来标记一个函数，以表明它不会抛出异常。例如，下面的函数标记为noexcept，因此它不允许抛出任何异常：
+默认情况下，函数可以抛出任何异常，也可以使用noexcept指定符（C++关键字）来标记一个函数，以表明它不会抛出异常。例如，下面的函数标记为noexcept，因此它不允许抛出异常：
 
 \begin{cpp}
 void printValues(const vector<int>& values) noexcept;
@@ -448,17 +448,17 @@ void printValues(const vector<int>& values) noexcept;
 标记为noexcept的函数必须不抛出异常。
 \end{myNotic}
 
-当一个标记为noexcept的函数抛出异常时，C++会调用terminate()来终止应用程序。
+当标记为noexcept的函数抛出异常时，C++会调用terminate()来终止应用程序。
 
-当在一个派生类中覆盖一个虚成员函数时，允许将覆盖的成员函数标记为noexcept，即使基类中的版本不是noexcept。相反的情况则不允许。
+当在派生类中覆盖虚成员函数时，允许将覆盖的成员函数标记为noexcept，即使基类中的版本不是noexcept，相反的情况则不允许。
 
 \mySubsubsection{14.2.7.}{noexcept(expression)指定符}
 
-noexcept(expression)指定符仅在给定的表达式返回true时，将函数标记为noexcept。换句话说，noexcept等于noexcept(true)，而noexcept(false)是noexcept(true)的反义词；也就是说，标记为noexcept(false)的成员函数可以抛出异常，这是默认行为
+noexcept(expression)指定符仅在给定的表达式返回true时，将函数标记为noexcept。noexcept等于noexcept(true)，而noexcept(false)是noexcept(true)的反义词，所以标记为noexcept(false)的成员函数可以抛出异常，这是默认行为
 
-\mySubsubsection{14.2.8.}{noexcept(expression)运算符}
+\mySubsubsection{14.2.8.}{noexcept(expression)操作符}
 
-noexcept(expression)运算符在给定的表达式是noexcept时返回true。这种计算发生在编译时。
+noexcept(expression)操作符在给定的表达式是noexcept时返回true，这种计算发生在编译时。
 
 这里有一个例子：
 
@@ -495,11 +495,11 @@ noexcept(f4())是false，f4()标记为noexcept，但只有当f2()不是noexcept�
 
 \mySubsubsection{14.2.9.}{抛出列表}
 
-旧版本的C++允许指定一个函数打算抛出的异常。这种指定称为抛出列表或指定异常。
+旧版本的C++允许指定一个函数打算抛出的异常，这种指定称为抛出列表或指定异常。
 
 \begin{myNotic}{NOTE}
 C++11已经弃用了异常指定，C++17已经移除了对异常指定的支持，除了noexcept和throw()。后者等同于noexcept。从C++20开始，对throw()的支持也移除了。
 \end{myNotic}
 
-因为C++17已经正式移除了对异常指定的支持，所以本书不再进一步介绍它们。
+因为C++17已经正式移除了对异常指定的支持，所以本书不再进一步介绍。
 

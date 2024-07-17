@@ -1,4 +1,4 @@
-使用throw关键字还可以重新抛出当前的异常，而不进行复制，如下例所示：
+throw关键字还可以重新抛出当前的异常，而不进行复制：
 
 \begin{cpp}
 void g() { throw invalid_argument { "Some exception" }; }
@@ -30,7 +30,7 @@ caught in f(): Some exception
 caught in main(): Some exception
 \end{shell}
 
-如果使用throw e;来重新抛出捕获的异常e，是不行的，因为这可能导致异常对象切片。例如，将f()修改为捕获std::exception，并将main()修改为捕获exception和invalid\_argument异常：
+如果使用throw e;来重新抛出捕获的异常e是不行的，因为这可能导致异常对象切片。例如，将f()修改为捕获std::exception，并将main()修改为捕获exception和invalid\_argument异常：
 
 \begin{cpp}
 void g() { throw invalid_argument { "Some exception" }; }
@@ -56,7 +56,7 @@ int main()
 }
 \end{cpp}
 
-请记住，invalid\_argument派生自exception，因此必须首先捕获。此代码的输出和期望一致：
+记住，invalid\_argument派生自exception，必须首先捕获。此代码的输出和期望一致：
 
 \begin{shell}
 caught in f(): Some exception

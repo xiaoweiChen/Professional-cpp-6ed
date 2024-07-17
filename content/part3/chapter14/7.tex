@@ -58,7 +58,7 @@ Entered C().
 ---------------------------------------------------------
 \end{shell}
 
-可以遍历栈跟踪的各个帧，并查询每个帧的信息。帧`std::stacktrace\_entry类表示，它支持以下成员函数：
+可以遍历栈跟踪的各个帧，并查询每个帧的信息。帧使用std::stacktrace\_entry类表示，有以下成员函数：
 
 \begin{itemize}
 \item
@@ -68,7 +68,7 @@ description(): 返回帧描述
 source\_file() 和  source\_line(): 包含帧的源文件名和源文件中的行号
 \end{itemize}
 
-例如，下面的handleStackTrace()的实现，并没有一次性打印整个栈跟踪，而是遍历了每个帧，只输出了每个帧的描述。
+下面的handleStackTrace()的实现，并没有一次性打印整个栈跟踪，而是遍历了每个帧，只输出了每个帧的描述。
 
 \begin{cpp}
 void handleStackTrace(const stacktrace& trace)
