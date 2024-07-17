@@ -129,7 +129,7 @@ res = Find<const char*>(word, words, sizeWords);
 
 \mySubsubsection{12.3.3.}{函数模板作为类模板的友元}
 
-想要在类模板中重载运算符时，函数模板非常有用。例如，想要为 Grid 类模板重载加法运算符（operator+），以便能够将两个网格相加。结果将是一个与两个操作数中最小的 Grid 大小相同的 Grid。只有当两个单元格都包含实际值时，相应的单元格才会相加。假设希望将 operator+ 作为一个独立的函数模板,定义应该放在 Grid.cppm 模块接口文件中，如下所示。实现使用 <algorithm> 中定义的 std::min()，返回两个参数的最小值：
+想要在类模板中重载操作符时，函数模板非常有用。例如，想要为 Grid 类模板重载加法操作符（operator+），以便能够将两个网格相加。结果将是一个与两个操作数中最小的 Grid 大小相同的 Grid。只有当两个单元格都包含实际值时，相应的单元格才会相加。假设希望将 operator+ 作为一个独立的函数模板,定义应该放在 Grid.cppm 模块接口文件中，如下所示。实现使用 <algorithm> 中定义的 std::min()，返回两个参数的最小值：
 
 \begin{cpp}
 export template <typename T>
@@ -154,7 +154,7 @@ Grid<T> operator+(const Grid<T>& lhs, const Grid<T>& rhs)
 
 要查询一个可选值是否包含实际值，可以使用 has\_value() 成员函数，并用 value() 获取这个值。
 
-这个函数模板适用于任何 Grid，只要Grid中存储的元素类型有一个加法运算符。这个实现唯一的问题在于，访问了 Grid 类的私有成员 m\_width 和 m\_height。显然的解决方案是使用public的 getWidth() 和 getHeight() 成员函数，来看看如何使一个函数模板成为类模板的朋友。这个例子中，可以使 operator+ 成为 Grid 类模板的友元。然而，Grid 和 operator+ 都是模板。真正想要的是，对于特定类型 T 的每个 operator+ 实例化，都成为同一类型的 Grid 模板实例化的友元。语法如下所示：
+这个函数模板适用于任何 Grid，只要Grid中存储的元素类型有一个加法操作符。这个实现唯一的问题在于，访问了 Grid 类的私有成员 m\_width 和 m\_height。显然的解决方案是使用public的 getWidth() 和 getHeight() 成员函数，来看看如何使一个函数模板成为类模板的朋友。这个例子中，可以使 operator+ 成为 Grid 类模板的友元。然而，Grid 和 operator+ 都是模板。真正想要的是，对于特定类型 T 的每个 operator+ 实例化，都成为同一类型的 Grid 模板实例化的友元。语法如下所示：
 
 \begin{cpp}
 export template <typename T>

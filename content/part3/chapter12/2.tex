@@ -1,5 +1,5 @@
 
-类模板定义了一组类定义的蓝图（即模板），其中一些变量的类型、成员函数的返回类型、或成员函数的参数类型，指定为模板类型参数。类模板类似于建筑蓝图，允许编译器通过用具体类型，替换模板类型参数来构建（也称为实例化）具体的类定义。
+类模板定义了一组类的蓝图（即模板），其中一些变量的类型、成员函数的返回类型、或成员函数的参数类型，指定为模板类型参数。类模板类似于建筑蓝图，允许编译器通过用具体类型，替换模板类型参数来构建（也称为实例化）具体的类定义。
 
 类模板主要用于存储对象的容器或数据结构，我们已经在本书的早些部分中多次使用过类模板，例如std::vector、unique\_ptr、string等。本节通过一个运行示例，即Grid容器，来讨论如何编写自己的类模板。为了保持示例的长度合理性，并且简单到足以说明具体点，章节的不同部分会为Grid容器添加不同的特性，但这些特性后续不会使用。
 
@@ -9,7 +9,7 @@
 
 \mySamllsection{不使用模板}
 
-不使用模板时，构建通用GameBoard的最佳方法是，利用多态性来存储通用的GamePiece对象。然后，可以让每种游戏的对象继承自GamePiece类。例如，棋类游戏中，ChessPiece派生于GamePiece类。通过多态性，编写来存储GamePieces的GameBoard，也可以存储ChessPieces。因为可能需要复制游戏板，所以GameBoard需要能够复制GamePieces。这种实现利用了多态性，因此一种解决方案是在GamePiece基类中添加纯虚的clone()成员函数，派生类必须实现它，以返回一个具体GamePiece的副本。以下是GamePiece的基本接口：
+不使用模板时，构建通用GameBoard的最佳方法是，利用多态性来存储通用的GamePiece对象，可以让每种游戏的对象继承自GamePiece类。例如，棋类游戏中，ChessPiece派生于GamePiece类。通过多态性，编写来存储GamePieces的GameBoard，也可以存储ChessPieces。因为可能需要复制游戏板，所以GameBoard需要能够复制GamePieces。这种实现利用了多态性，一种解决方案是在GamePiece基类中添加纯虚的clone()成员函数，派生类必须实现它，以返回一个具体GamePiece的副本。以下是GamePiece的基本接口：
 
 \begin{cpp}
 export class GamePiece
@@ -34,7 +34,7 @@ class ChessPiece : public GamePiece
 };
 \end{cpp}
 
-一个GameBoard代表一个二维网格，存储GamePieces在GameBoard中的选项可以是unique\_ptr的vector。然而，这不是最优的数据表示，因为数据将在内存中碎片化呈现。更好的是将棋子表示为线性化存储。将二维坐标，例如(x,y)，转换为一维位置很容易，公式为x+y*width。
+一个GameBoard代表一个二维网格，存储GamePieces在GameBoard中的选项可以是unique\_ptr的vector。这不是最优的数据表示，因为数据将在内存中碎片化呈现。更好的是将棋子表示为线性化存储。将二维坐标，例如(x,y)，转换为一维索引很容易，公式为x+y*width。
 
 \begin{cpp}
 export class GameBoard
@@ -69,7 +69,7 @@ export class GameBoard
 export void swap(GameBoard& first, GameBoard& second) noexcept;
 \end{cpp}
 
-此实现中，at() 函数返回给定位置的游戏棋子的引用。GameBoard 类作为二维数组的抽象，应当提供数组访问语义，即返回位置对象的引用。客户端代码不应存储此引用以备将来使用，当 m\_cells 需要调整大小时，该引用可能会失效。相反，客户端代码应在使用位置信息之前直接调用 at()，这遵循了标准库 vector 类的设计哲学。
+此实现中，at() 函数返回给定位置的游戏棋子的引用。GameBoard 类作为二维数组的抽象，应当提供数组访问语义，即返回位置对象的引用。客户端代码不应存储此引用以备将来使用，当 m\_cells 需要调整大小时，该引用可能会失效。客户端代码应在使用位置信息之前直接调用 at()，这遵循了标准库 vector 类的设计理念。
 
 \begin{myNotic}{NOTE}
 此实现提供了两个版本的 at() 函数；一个返回非常量引用，另一个返回常量引用。
@@ -78,10 +78,10 @@ export void swap(GameBoard& first, GameBoard& second) noexcept;
 \CXXTwentythreeLogo{-40}{-60}
 
 \begin{myNotic}{NOTE}
-从 C++23 开始，可以为 GameBoard 类提供多维下标运算符。通过提供这样的运算符，客户端可以编写 myGameBoard[x,y] 来代替 myGameBoard.at(x,y)，以获取位置 (x,y) 处的棋子。第 15 章中介绍了此运算符。
+从 C++23 开始，可以为 GameBoard 类提供多维下标操作符。通过提供这样的操作符，客户端可以编写 myGameBoard[x,y] 来代替 myGameBoard.at(x,y)，以获取位置 (x,y) 处的棋子。第 15 章中介绍了此操作符。
 \end{myNotic}
 
-以下是成员函数定义。注意，此实现使用了复制并交换（copy-and-swap）习语作为赋值运算符，以及 Scott Meyers 的 const\_cast() 模式来避免代码重复，两者都在第 9 章中介绍过。
+以下是成员函数定义，此实现使用了复制并交换（copy-and-swap）习语作为赋值操作符，以及 Scott Meyers 的 const\_cast() 模式来避免代码重复，两者都在第 9 章中介绍过。
 
 \begin{cpp}
 GameBoard::GameBoard(size_t width, size_t height)
@@ -185,13 +185,13 @@ gameBoard.at(0, 1) = std::make_unique<TicTacToePiece>();
 
 GameBoard 的另一个缺点是不能用来存储基本类型，如 int 或 double，因为单元格中存储的类型必须派生自 GamePiece。
 
-如果能编写一个通用 Grid 类模板，可以用来存储 ChessPiece、SpreadsheetCell、int、double 等就好了。在 C++ 中，可以通过编写一个类模板来实现这一点，类模板是类定义的蓝图。在类模板中，并非所有的类型都已知。然后客户端通过指定他们想要使用的类型来实例化模板，这称为泛型编程。泛型编程的最大优点是类型安全。在实例化的类定义，及其成员函数中使用的类型是具体类型，而不是像上一节多态解决方案中的抽象基类类型。
+如果能编写一个通用 Grid 类模板，可以用来存储 ChessPiece、SpreadsheetCell、int、double 等就好了。在 C++ 中，可以通过编写一个类模板来实现这一点，类模板是类定义的蓝图。在类模板中，并非所有的类型都已知。客户端通过指定他们想要使用的类型来实例化模板，这称为泛型编程。泛型编程的最大优点是类型安全。实例化的类定义，及其成员函数中使用的类型是具体类型，而不是像上一节多态解决方案中的抽象基类类型。
 
 先看看如何编写一个 Grid 类模板定义。
 
 \mySamllsection{Grid类模板定义}
 
-为了理解类模板，先了解其语法。以下示例展示了如何将 GameBoard 类修改为参数化的 Grid 类模板。请注意，名称已从 GameBoard 更改为 Grid。Grid 也应该能够与 int 和 double 等原始类型一起使用。这就是为什么我选择使用值语义，而不是 GameBoard 实现中使用的多态指针语义来实现这个解决方案。m\_cells 容器存储实际对象，而不是指针。与指针语义相比，使用值语义的缺点是不能有真正的空单元格；也就是说，单元格必须始终包含某些值。使用指针语义，空单元格存储的是 nullptr。幸运的是，第 1 章中介绍的 std::optional 此时派上了用场，其允许使用值语义，同时仍有一种表示空单元格的方式。
+为了理解类模板，先了解其语法。以下示例展示了如何将 GameBoard 类修改为参数化的 Grid 类模板。注意，名称已从 GameBoard 更改为 Grid，Grid 也应该能够与 int 和 double 等原始类型一起使用。这就是为什么我选择使用值语义，而不是 GameBoard 实现中使用的多态指针语义来实现这个解决方案。m\_cells 容器存储实际对象，而不是指针。与指针语义相比，使用值语义的缺点是不能有空单元格；也就是说，单元格必须始终包含某些值。使用指针语义，空单元格存储的是 nullptr。std::optional 此时可以派上用场了，其允许使用值语义，同时仍有一种表示空单元格的方式。
 
 \begin{cpp}
 export template <typename T>
@@ -232,13 +232,13 @@ class Grid
 export template <typename T>
 \end{cpp}
 
-这第一行说明以下类定义是一个模板，用于一个类型 T，并且它正在从模块中导出。 "template <typename T>" 部分称为模板头，模板和 typename 都是 C++ 的关键字。模板“参数化”类型，就像函数“参数化”值一样，就像在函数中使用参数名来代表调用者将传递的参数一样，在模板中使用模板类型参数名（如 T）来代表调用者将作为模板类型参数传递的类型。T 的名称没有什么特别的，可以使用想要的名称。通常，当使用单个类型时，称为 T，但这只是惯例而已，就像将索引数组的整数称为 i 或 j 一样。模板指定符适用于整个语句，即类模板定义。
+这第一行说明以下类定义是一个模板，用于一个类型 T，并且它正在从模块中导出。 "template <typename T>" 部分称为模板头，模板和 typename 都是 C++ 的关键字。模板“参数化”类型，就像函数“参数化”值一样，就像在函数中使用参数名来代表调用者将传递的参数一样，在模板中使用模板类型参数名（如 T）来代表调用者将作为模板类型参数传递的类型。T 的名称没有什么特别，可以使用想要的名称。当使用单个类型时，称为 T，但这只是惯例而已，就像将索引数组的整数称为 i 或 j 一样。模板指定符适用于整个语句，即类模板定义。
 
 \begin{myNotic}{NOTE}
 由于历史原因，可以使用关键字 class，而不是 typename 来指定模板类型参数。因此，许多书籍和现有程序使用如下语法：template <class T>。在这个上下文中使用 class 这个词是有问题的，因为它暗示类型必须是类，这并不正确。类型可以是类、结构体、联合体、语言的原始类型，如 int 或 double 等。为了避免这种混淆，本书使用 typename。
 \end{myNotic}
 
-之前的 GameBoard 类中，m\_cells 数据成员是一个指针vector，这需要特殊代码进行复制——因此需要复制构造函数和复制赋值运算符。Grid 类中，m\_cells 是一个optional的vector，所以编译器生成的复制构造函数和赋值运算符就足够了。然而，正如第 8 章中解释的那样，当有一个用户声明的析构函数，编译器隐式生成复制构造函数或复制赋值运算符就会过时，所以 Grid 类模板显式默认它们，还显式默认了移动构造函数和移动赋值运算符。以下是显式默认的复制赋值运算符：
+之前的 GameBoard 类中，m\_cells 数据成员是一个指针vector，这需要复制——因此需要复制构造函数和复制赋值操作符。Grid 类中，m\_cells 是一个optional的vector，所以编译器生成的复制构造函数和赋值操作符就足够了。然而，正如第 8 章中解释的那样，当有一个用户声明的析构函数，编译器隐式生成复制构造函数或复制赋值操作符就会过时，所以 Grid 类模板显式默认它们，还显式默认了移动构造函数和移动赋值操作符。以下是显式默认的复制赋值操作符：
 
 \begin{cpp}
 Grid& operator=(const Grid& rhs) = default;
@@ -250,9 +250,9 @@ rhs 参数的类型不再是 const GameBoard\&，而是 const Grid\&。在类定
 Grid<T>& operator=(const Grid<T>& rhs) = default;
 \end{cpp}
 
-然而，在类定义外部，必须使用 Grid<T>。当编写一个类模板时，以前的类名（Grid）实际上是模板名。想要谈论实际的 Grid 类或类型时，必须使用模板 ID，即 Grid<T>，这是 Grid 类模板为特化类型（如 int、SpreadsheetCell 或 ChessPiece）的实例化。
+在类定义外部，必须使用 Grid<T>。当编写一个类模板时，以前的类名（Grid）实际上是模板名。想要谈论实际的 Grid 类或类型时，必须使用模板 ID，即 Grid<T>，这是 Grid 类模板为特化类型（如 int、SpreadsheetCell 或 ChessPiece）的实例化。
 
-因为 m\_cells 不再存储指针，而是可选值，所以 at() 成员函数现在返回 optional<T> ，而不是 unique\_ptr。也就是说，值可以是类型 T 的值，也可以为空：
+因为 m\_cells 不再存储指针，而是可选值，所以 at() 成员函数现在返回 optional<T>。也就是说，值可以是类型 T 的值，也可以为空：
 
 \begin{cpp}
 std::optional<T>& at(std::size_t x, std::size_t y);
@@ -273,10 +273,10 @@ Grid<T>::Grid(std::size_t width, std::size_t height)
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-模板的成员函数定义,必须对任何使用该类模板的客户端代码可见。这限制了此类成员函数定义可以放置的位置。通常，只是简单地放在类模板定义本身的同一个文件中。关于绕过此限制的一些方法,将在本章后面讨论。
+模板的成员函数定义，必须对使用该类模板的客户端代码可见。这限制了此类成员函数定义可以放置的位置，只是简单地放在类模板定义本身的同一个文件中。关于绕过此限制的一些方法，将在本章后面讨论。
 \end{myNotic}
 
-请注意，:: 之前的名称是 Grid<T>，而不是 Grid。构造函数的主体与 GameBoard 构造函数相同，其余的成员函数定义也与 GameBoard 类中的相应部分相似：
+注意，:: 之前的名称是 Grid<T>，而不是 Grid。构造函数的主体与 GameBoard 构造函数相同，其余的成员函数定义也与 GameBoard 类中的相应部分相似：
 
 \begin{cpp}
 template <typename T>
@@ -307,7 +307,7 @@ std::optional<T>& Grid<T>::at(std::size_t x, std::size_t y)
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-如果类模板成员函数的实现需要,为某个模板类型参数提供默认值，例如 T，那么可以使用 T\{\} 语法。T\{\} 在 T 是类类型时调用对象的默认构造函数，或者在 T 是原始类型时生成零,这种语法称为零初始化语法。这是为类型未知，但需要合理默认值的变量提供了默认值。
+如果类模板成员函数的实现需要，为某个模板类型参数提供默认值，例如 T，那么可以使用 T\{\} 语法。T\{\} 在 T 是类类型时调用对象的默认构造函数，或者在 T 是原始类型时生成零，这种语法称为零初始化语法，这为需要合理默认值的变量提供了值。
 \end{myNotic}
 
 \mySamllsection{使用 Grid 模板}
@@ -382,9 +382,9 @@ int x { myGridOnFreeStore->at(0, 0).value_or(0) };
 
 \mySubsubsection{12.2.2.}{编译器如何处理模板}
 
-要理解模板的复杂性，需要学习编译器如何处理模板代码。当编译器遇到类模板成员函数定义时，会进行语法检查，但并不编译模板。编译器不能编译模板定义，因为不知道这些模板将用于哪种类型。对于像 x = y 这样的代码，如果不知道 x 和 y 的类型，编译器就无法生成代码，这是语法检查中，两阶段名称查找的第一步。
+要理解模板的复杂性，需要学习编译器如何处理模板代码。当编译器遇到类模板成员函数定义时，会进行语法检查，但并不编译模板。编译器不能编译模板定义，不知道这些模板将用于哪种类型。对于像 x = y 这样的代码，如果不知道 x 和 y 的类型，编译器就无法生成代码，这是语法检查中，两阶段名称查找的第一步。
 
-两阶段名称查找过程的第二步发生在编译器实例化模板时，例如 Grid<int>。在那一刻，编译器通过将类模板定义中的每个 T 替换为 int 来编写 Grid 模板的 int 版本的代码。当编译器遇到模板的不同实例化，例如 Grid<SpreadsheetCell>，会为 SpreadsheetCell 编写另一个版本的 Grid 类。编译器只编写没有在语言中使用模板支持。并且必须为每种元素类型编写单独的类。这里没有魔法；模板只是自动化了一个编写的过程。如果程序中没有为类型实例化类模板，则类模板定义的成员函数就永远不会编译。
+两阶段名称查找过程的第二步发生在编译器实例化模板时，例如 Grid<int>。编译器通过将类模板定义中的每个 T 替换为 int，来编写 Grid 模板的 int 版本的代码。当编译器遇到模板的不同实例化，例如 Grid<SpreadsheetCell>，会为 SpreadsheetCell 编写另一个版本的 Grid 类。编译器只编写使用模板的类，并且必须为每种元素类型编写单独的类。这里没有魔法，模板只是自动化了一个编写的过程。如果程序中没有为类型实例化类模板，则类模板定义的成员函数就永远不会编译。
 
 这个实例化过程解释了为什么需要在定义中使用 Grid<T>。当编译器为特定类型（如 int）实例化模板时，会用 int 替换 T，因此 Grid<int> 是类型。
 
@@ -396,40 +396,40 @@ int x { myGridOnFreeStore->at(0, 0).value_or(0) };
 Grid<int> myIntGrid;
 \end{cpp}
 
-编译器总会为类模板的所有虚成员函数生成代码。然而，对于非虚成员函数，编译器只生成那些实际调用的非虚成员函数的代码。例如，之前写了 Grid 类模板，现在在 main() 中只有以下代码：
+编译器总会为类模板的所有虚成员函数生成代码。对于非虚成员函数，编译器只生成那些实际调用的非虚成员函数的代码。之前的 Grid 类模板，现在在 main() 中只有以下代码：
 
 \begin{cpp}
 Grid<int> myIntGrid;
 myIntGrid.at(0, 0) = 10;
 \end{cpp}
 
-编译器只为 Grid 的 int 版本生成零参数构造函数、析构函数和 非常量 at() 成员函数，而不生成其他成员函数，如复制构造函数、赋值运算符或 getHeight()，这称为选择性实例化。
+编译器只为 Grid 的 int 版本生成零参数构造函数、析构函数和 非常量 at() 成员函数，而不生成其他成员函数，如复制构造函数、赋值操作符或 getHeight()，这称为选择性实例化。
 
 \mySamllsection{显式实例化}
 
-存在一种风险，即某些类模板成员函数中存在未隐式实例化所发现的编译错误。因为这些函数不编译，所以类模板的未使用成员函数可能包含语法错误。这使得测试所有代码的语法错误变得困难。可以使用显式模板实例化来强制编译器为所有成员函数（虚函数和非虚函数）生成代码：
+存在一种风险，即某些类模板成员函数中存在未隐式实例化所发现的编译错误。因为这些函数不编译，所以类模板的未使用成员函数可能包含语法错误，这使得测试所有代码的语法错误变得困难。可以使用显式模板实例化，来强制编译器为所有成员函数（虚函数和非虚函数）生成代码：
 
 \begin{cpp}
 template class Grid<string>;
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-显式模板实例化有助于发现错误，强制编译器编译所有类模板成员函数，即使这些函数未被使用。
+显式模板实例化有助于发现错误，强制编译器编译所有类模板成员函数，即使这些函数未使用。
 \end{myNotic}
 
 使用显式模板实例化时，不要只是尝试使用基本类型（如 int）来实例化类模板，而应尝试使用更复杂的类型（如 string），前提是类模板接受这些类型。
 
 \mySamllsection{模板对类型的要求}
 
-当编写与类型无关的代码时，必须对那些类型做出某些假设。例如，在 Grid 类模板中，假设元素类型（由 T 表示）是可析构的、可复制/移动构造的，以及可复制/移动赋值的。
+当编写与类型无关的代码时，必须对那些类型做出某些假设。在 Grid 类模板中，假设元素类型（由 T 表示）是可析构的、可复制/移动构造的，以及可复制/移动赋值的。
 
-当编译器尝试使用不支持类模板成员函数，调用的所有操作的类型来实例化模板时，代码将无法编译，而且错误消息通常会很模糊。然而，即使想要使用的类型不支持类模板的所有成员函数，也可以利用选择性实例化来使用一些成员函数。
+当编译器尝试使用不支持类模板成员函数，调用的所有操作的类型来实例化模板时，代码将无法编译，而且错误消息通常会很模糊。即使想要使用的类型不支持类模板的所有成员函数，也可以利用选择性实例化来使用一些成员函数。
 
 可以使用概念来编写模板参数的要求，编译器可以解释和验证这些要求。如果传递给实例化模板的模板参数不满足这些要求，编译器可以生成更易读的错误。概念将在本章后面讨论。
 
 \mySubsubsection{12.2.3.}{文件间的模板代码}
 
-对于类模板，使用它们的源文件都必须能够访问类模板定义和成员函数定义。有几种机制可以实现这一点。
+对于类模板，使用的源文件都必须能够访问类模板定义和成员函数定义。有几种机制可以实现这一点。
 
 \mySamllsection{与类模板定义在同一文件中的成员函数定义}
 
@@ -437,7 +437,7 @@ template class Grid<string>;
 
 \mySamllsection{成员函数定义在单独的文件中}
 
-或者，可以将类模板成员函数定义放在单独的模块接口分区文件中。然后，还需要将类模板定义放在其模块接口分区中。例如，Grid 类模板的主模块接口文件可能如下所示：
+或者，可以将类模板成员函数定义放在单独的模块接口分区文件中，还需要将类模板定义放在其模块接口分区中。例如，Grid 类模板的主模块接口文件可能如下所示：
 
 \begin{cpp}
 export module grid;
@@ -456,7 +456,7 @@ import std;
 export template <typename T> class Grid { ... };
 \end{cpp}
 
-成员函数的实现位于 implementation 分区中，还需要导入 definition 分区，因为需要 Grid 类模板的定义：
+成员函数的实现位于 implementation 分区中，为了了解 Grid 类模板的定义，还需要导入 definition 分区：
 
 \begin{cpp}
 export module grid:implementation;
@@ -479,13 +479,13 @@ Grid 示例中，Grid 类模板有一个模板参数：存储类型。当编写�
 template <typename T>
 \end{cpp}
 
-这个参数列表类似于函数的参数列表。与函数一样，可以编写具有任意个模板参数的类模板。此外，这些参数不一定是类型，可以具有默认值。
+这个参数列表类似于函数的参数列表。与函数一样，可以编写具有任意个模板参数的类模板。这些参数不一定是类型，可以有默认值。
 
 \mySamllsection{非类型模板参数}
 
-非类型模板参数是“普通”参数，如 int 和指针——你从函数中熟悉的参数类型。然而，非类型模板参数只能是整数类型（char、int、long 等）、枚举、指针、引用、std::nullptr\_t、auto、auto\&、auto*、浮点类型和类类型。后者有很多限制，但本文不进一步讨论。记住，模板是在编译时实例化的；因此，非类型模板参数的参数在编译时计算，所以这样的参数必须是字面量或编译时常量。
+非类型模板参数是“普通”参数，如 int 和指针——函数中熟悉的参数类型。然而，非类型模板参数只能是整数类型（char、int、long 等）、枚举、指针、引用、std::nullptr\_t、auto、auto\&、auto*、浮点类型和类类型。后者有很多限制，但本文不进一步讨论。模板在编译时实例化，所以非类型模板参数在编译时计算，这样的参数必须是字面量或编译时常量。
 
-Grid 类模板中，可以使用非类型模板参数来指定网格的高度和宽度，而不是在构造函数中指定。使用非类型模板参数的主要优点是，在编译代码之前就知道这些值。回想一下，编译器通过在编译前替换模板参数，来生成模板实例化的代码。因此，可以在以下实现中使用普通二维数组，而不是使用动态调整大小的vector来线性表示。以下是更改后的类模板定义：
+Grid 类模板中，可以使用非类型模板参数来指定网格的高度和宽度，而不是在构造函数中指定。使用非类型模板参数的主要优点是，在编译代码之前就知道这些值。回想一下，编译器通过在编译前替换模板参数，来生成模板实例化的代码。可以在以下实现中使用普通二维数组，而不是使用动态调整大小的vector来线性表示。以下是更改后的类模板定义：
 
 \begin{cpp}
 export template <typename T, std::size_t WIDTH, std::size_t HEIGHT>
@@ -516,7 +516,7 @@ class Grid
 };
 \end{cpp}
 
-模板参数列表现在有三个参数：存储的对象类型，以及网格的宽度和高度。宽度和高度用于创建一个二维数组来存储对象。以下是类模板成员函数的定义：
+模板参数列表现在有三个参数：存储的对象类型，网格的宽度和高度。宽度和高度用于创建一个二维数组来存储对象。以下是类模板成员函数的定义：
 
 \begin{cpp}
 template <typename T, std::size_t WIDTH, std::size_t HEIGHT>
@@ -547,9 +547,9 @@ std::optional<T>& Grid<T, WIDTH, HEIGHT>::at(std::size_t x, std::size_t y)
 }
 \end{cpp}
 
-请注意，之前指定了 Grid<T>，现在必须改为 Grid<T,WIDTH,HEIGHT> 来指定三个模板参数。
+之前指定了 Grid<T>，现在必须改为 Grid<T,WIDTH,HEIGHT> 来指定三个模板参数。
 
-可以按以下方式实例化此模板并使用它：
+可以按以下方式实例化此模板并使用：
 
 \begin{cpp}
 Grid<int, 10, 10> myGrid;
@@ -559,7 +559,7 @@ anotherGrid = myGrid;
 println("{}", anotherGrid.at(2, 3).value_or(0));
 \end{cpp}
 
-这段代码看起来很好，但不幸的是，它比最初预期的有更多的限制。首先，不能使用非常量整数来指定高度或宽度。以下代码无法编译：
+这段代码看起来很好，但它比最初预期的有更多的限制。首先，不能使用非常量整数来指定高度或宽度。以下代码无法编译：
 
 \begin{cpp}
 size_t height { 10 };
@@ -573,7 +573,7 @@ const size_t height { 10 };
 Grid<int, 10, height> testGrid; // Compiles and works
 \end{cpp}
 
-使用正确返回类型的 constexpr 函数也可以。例如，你有一个返回 size\_t 的 constexpr 函数，可以用它来初始化高度模板参数：
+使用正确返回类型的 constexpr 函数也可以。例如，有一个返回 size\_t 的 constexpr 函数，可以用它来初始化高度模板参数：
 
 \begin{cpp}
 constexpr size_t getHeight() { return 10; }
@@ -581,7 +581,7 @@ constexpr size_t getHeight() { return 10; }
 Grid<double, 2, getHeight()> myDoubleGrid;
 \end{cpp}
 
-第二个限制可能更为重要。现在宽度和高度是模板参数，它们成为每个网格类型的一部分，所以 Grid<int,10,10> 和 Grid<int,10,11> 是两种不同的类型。不能将一个类型的对象分配给另一个类型的对象，而且一种类型的变量不能传递给另一种类型的变量的函数。
+第二个限制可能更为重要。现在宽度和高度是模板参数，需要成为每个网格类型的一部分，所以 Grid<int,10,10> 和 Grid<int,10,11> 是两种不同的类型。不能将一个类型的对象分配给另一个类型的对象，而且一种类型的变量不能传递给另一种类型的变量的函数。
 
 \begin{myNotic}{NOTE}
 非类型模板参数是实例化对象类型的一部分。
@@ -599,7 +599,7 @@ class Grid
 };
 \end{cpp}
 
-不需要在成员函数定义的模板头中指定 T、WIDTH 和 HEIGHT 的默认值。例如， at() 方法的实现：
+不需要在成员函数定义的模板头中指定 T、WIDTH 和 HEIGHT 的默认值。例如，at() 的实现：
 
 \begin{cpp}
 template <typename T, std::size_t WIDTH, std::size_t HEIGHT>
@@ -620,7 +620,7 @@ Grid<int, 5> anotherGrid;
 Grid<int, 5, 5> aFourthGrid;
 \end{cpp}
 
-请注意，如果没有指定任何类模板参数，仍然需要指定一个空的角度括号集。例如，下面的代码将无法编译！
+如果没有指定任何类模板参数，仍然需要指定一个空的角度括号集。下面的代码将无法编译！
 
 \begin{cpp}
 Grid myIntGrid;
@@ -632,7 +632,7 @@ Grid myIntGrid;
 
 通过类模板参数推导，编译器可以自动从传递给类模板构造函数的参数中，推导出模板类型参数。
 
-例如，标准库中有一个名为 std::pair 的类模板，在 <utility> 头文件中定义。pair 存储两个可能不同类型的值，通常需要将这些类型指定为模板类型参数。下面是一个例子：
+标准库中有一个名为 std::pair 的类模板，在 <utility> 头文件中定义。pair 存储两个可能不同类型的值，通常需要将这些类型指定为模板类型参数：
 
 \begin{cpp}
 pair<int, double> pair1 { 1, 2.3 };
@@ -650,7 +650,7 @@ auto pair2 { make_pair(1, 2.3) };
 pair pair3 { 1, 2.3 }; // pair3 has type pair<int, double>
 \end{cpp}
 
-当然，这只有在类模板的所有模板类型参数都有默认值，或者在构造函数中作为参数使用，从而可以推导出来时才有效。
+这只有在类模板的所有模板类型参数都有默认值，或者在构造函数中作为参数使用，从而可以推导出来时才有效。
 
 注意，CTAD 需要初始化器才能工作。以下代码不合法：
 
@@ -661,7 +661,7 @@ pair pair4;
 许多标准库类支持 CTAD，例如 vector、array 等。
 
 \begin{myNotic}{NOTE}
-对于 std::unique\_ptr 和 shared\_ptr，这种类型推导会禁用。将 T* 传递给构造函数，则编译器需要在推导 <T> 或 <T[]> 之间做出选择，这很容易出错。因此，请记住对于 unique\_ptr 和 shared\_ptr，需要继续使用 make\_unique() 和 make\_shared()。
+对于 std::unique\_ptr 和 shared\_ptr，这种类型推导会禁用。将 T* 传递给构造函数，则编译器需要在推导 <T> 或 <T[]> 之间做出选择，这很容易出错。请记住对于 unique\_ptr 和 shared\_ptr，需要继续使用 make\_unique() 和 make\_shared()。
 \end{myNotic}
 
 \mySamllsection{用户定义的推导指南}
@@ -689,7 +689,7 @@ string myString { "Hello World!" };
 SpreadsheetCell cell { myString };
 \end{cpp}
 
-然而，如果将一个 const char* 传递给 SpreadsheetCell 构造函数，那么类型 T 推导为 const char*，这不是期望的！可以创建以下用户定义推导指南，以确保在将 const char* 作为参数传递给构造函数时，将T推导为 std::string：
+如果将一个 const char* 传递给 SpreadsheetCell 构造函数，则类型 T 推导为 const char*，这不是期望的！可以创建以下用户定义推导指南，以确保在将 const char* 作为参数传递给构造函数时，将T推导为 std::string：
 
 \begin{cpp}
 SpreadsheetCell(const char*) -> SpreadsheetCell<std::string>;
@@ -706,7 +706,7 @@ explicit TemplateName(Parameters) -> DeducedTemplate<...>;
 
 \mySubsubsection{12.2.5.}{成员函数模板}
 
-C++ 允许参数化类的单个成员函数，这样的成员函数称为成员函数模板，可以位于普通类或类模板中。当编写一个成员函数模板时，实际上在为许多不同类型编写该成员函数的许多不同版本。成员函数模板对于类模板中的赋值运算符和复制构造函数非常有用。
+C++ 允许参数化类的单个成员函数，这样的成员函数称为成员函数模板，可以位于普通类或类模板中。当编写一个成员函数模板时，实际上在为许多不同类型编写该成员函数的许多不同版本。成员函数模板对于类模板中的赋值操作符和复制构造函数非常有用。
 
 \begin{myWarning}{WARNING}
 虚成员函数和析构函数不能是函数模板。
@@ -719,21 +719,21 @@ Grid<int> myIntGrid;
 Grid<double> myDoubleGrid;
 \end{cpp}
 
-然而，Grid<int> 和 Grid<double> 是两种不同的类型。如果编写一个接受 Grid<double> 类型对象的函数，就不能传递一个 Grid<int>。即使知道 int Grid的元素可以复制到 double Grid的元素，因为 int 可以转换为 double，但不能将 Grid<int> 类型的对象分配给 Grid<double> 类型的对象，也不能使用 Grid<int> 构造 Grid<double>。以下两行均无法编译：
+Grid<int> 和 Grid<double> 是两种不同的类型。如果编写一个接受 Grid<double> 类型对象的函数，就不能传递一个 Grid<int>。即使知道 int Grid的元素可以复制到 double Grid的元素，int 可以转换为 double，但不能将 Grid<int> 类型的对象分配给 Grid<double> 类型的对象，也不能使用 Grid<int> 构造 Grid<double>。以下两行均无法编译：
 
 \begin{cpp}
 myDoubleGrid = myIntGrid; // DOES NOT COMPILE
 Grid<double> newDoubleGrid { myIntGrid }; // DOES NOT COMPILE
 \end{cpp}
 
-问题在于 Grid 模板的复制构造函数和赋值运算符：
+问题在于 Grid 模板的复制构造函数和赋值操作符：
 
 \begin{cpp}
 Grid(const Grid& src);
 Grid& operator=(const Grid& rhs);
 \end{cpp}
 
-其等价于：
+等价于：
 
 \begin{cpp}
 Grid(const Grid<T>& src);
@@ -749,7 +749,7 @@ Grid<double>& operator=(const Grid<double>& rhs);
 
 生成的 Grid<double> 类中没有接受 Grid<int> 的构造函数或 operator=。
 
-幸运的是，可以通过向 Grid 类模板添加参数化的复制构造函数和赋值运算符来纠正这个问题，以生成将一个Grid类型转换为另一个Grid类型的成员函数。以下是新的 Grid 类模板的定义：
+可以通过向 Grid 类模板添加参数化的复制构造函数和赋值操作符，来纠正这个问题，以生成将一个Grid类型转换为另一个Grid类型的成员函数。以下是新的 Grid 类模板的定义：
 
 \begin{cpp}
 export template <typename T>
@@ -768,7 +768,7 @@ class Grid
 };
 \end{cpp}
 
-原始的复制构造函数和复制赋值运算符不能删除。如果 E 等于 T，编译器不会调用这些新的参数化复制构造函数和参数化复制赋值运算符。
+原始的复制构造函数和复制赋值操作符不能删除。如果 E 等于 T，编译器不会调用这些新的参数化复制构造函数和参数化复制赋值操作符。
 
 首先检查新参数化的复制构造函数：
 
@@ -777,7 +777,7 @@ template <typename E>
 Grid(const Grid<E>& src);
 \end{cpp}
 
-可以看到有一个带有不同 typename 的新的模板头，E（代表“元素”）。类在一个类型 T 上参数化，新复制构造函数额外在另一个类型 E 上参数化。这种双重参数化可将一个类型的Grid复制到另一个类型。这是新复制构造函数的定义：
+可以看到有一个带有不同 typename 的新的模板头，E（代表“元素”）。类在一个类型 T 上参数化，新复制构造函数额外在另一个类型 E 上参数化。这种双重参数化可将一个类型的Grid复制到另一个类型，这是新复制构造函数的定义：
 
 \begin{cpp}
 template <typename T>
@@ -797,14 +797,14 @@ Grid<T>::Grid(const Grid<E>& src)
 }
 \end{cpp}
 
-必须在构造函数定义前声明类模板头（带有 T 参数），然后是成员模板头（带有 E 参数）。不能像这样将它们组合：
+必须在构造函数定义前声明类模板头（带有 T 参数），然后是成员模板头（带有 E 参数）。不能这样组合它们：
 
 \begin{cpp}
 template <typename T, typename E> // Wrong for nested template constructor!
 Grid<T>::Grid(const Grid<E>& src)
 \end{cpp}
 
-除了在构造函数定义前的额外模板头，注意必须使用公共访问器成员函数 getWidth()、getHeight() 和 at() 来访问 src 的元素。这是因为正在复制的对象是 Grid<T> 类型，而正在复制的对象是 Grid<E> 类型，它们不是同一类型，所以必须使用公共成员函数。
+除了在构造函数定义前的额外模板头，必须使用公共访问器成员函数 getWidth()、getHeight() 和 at() 来访问 src 的元素。这是因为正在复制的对象是 Grid<T> 类型，而正在复制的对象是 Grid<E> 类型，它们不是同一类型，所以必须使用公共成员函数。
 
 swap() 成员函数很简单：
 
@@ -818,7 +818,7 @@ void Grid<T>::swap(Grid& other) noexcept
 }
 \end{cpp}
 
-参数化赋值运算符接受一个 const Grid<E>\& 参数，但返回一个 Grid<T>\&：
+参数化赋值操作符接受一个 const Grid<E>\& 参数，但返回一个 Grid<T>\&：
 
 \begin{cpp}
 template <typename T>
@@ -832,11 +832,11 @@ Grid<T>& Grid<T>::operator=(const Grid<E>& rhs)
 }
 \end{cpp}
 
-这个赋值运算符的实现使用了第9章介绍的复制和交换模式。swap() 成员函数只能交换相同类型的 Grid，但这也可以，因为这个参数化赋值运算符首先使用参数化复制构造函数将给定的 Grid<E> 转换为 Grid<T>。之后，使用 swap() 成员函数将临时 Grid<T> 与 this 交换(this 也 Grid<T> 类型)。
+这个赋值操作符的实现使用了第9章介绍的复制和交换模式。swap() 成员函数只能交换相同类型的 Grid，这个参数化赋值操作符首先使用参数化复制构造函数将给定的 Grid<E> 转换为 Grid<T>，再使用 swap() 成员函数将临时 Grid<T> 与 this 交换(this 也 Grid<T> 类型)。
 
 \mySamllsection{带有非类型模板参数的成员函数模板}
 
-带有整数模板参数 HEIGHT 和 WIDTH 的 Grid 类模板的一个主要问题是，高度和宽度成为了类型的一部分。这就限制了将一个尺寸的Grid赋值给另一个不同尺寸的 Grid。然而，在某些情况下，将一个尺寸的 Grid赋值或复制到另一个不同尺寸的 Grid是可行的。不需要完美克隆源对象，而是只从源数组中复制那些适合目标数组的元素，如果源数组在某些维度上较小，则用默认值填充目标数组。通过为赋值运算符和复制构造函数提供成员函数模板，可以精确地做到这一点，从而允许不同尺寸 Grid的赋值和复制。下面是类定义：
+带有整数模板参数 HEIGHT 和 WIDTH 的 Grid 类模板的一个主要问题是，高度和宽度成为了类型的一部分。这就限制了将一个尺寸的Grid赋值给另一个不同尺寸的 Grid。某些情况下，将一个尺寸的 Grid赋值或复制到另一个不同尺寸的 Grid是可行的。不需要完美克隆源对象，而是只从源数组中复制那些适合目标数组的元素，源数组在某些维度上较小，则用默认值填充目标数组。通过为赋值操作符和复制构造函数提供成员函数模板，可以精确地做到这一点，从而允许不同尺寸 Grid的赋值和复制。下面是类定义：
 
 \begin{cpp}
 export template <typename T, std::size_t WIDTH = 10, std::size_t HEIGHT = 10>
@@ -874,7 +874,7 @@ class Grid
 };
 \end{cpp}
 
-这个新定义包括了复制构造函数和赋值运算符的成员函数模板，以及一个辅助成员函数 swap()。注意，非参数化的复制构造函数和赋值运算符显式默认（用户声明了析构函数）。只是简单地将 m\_cells 从源复制或赋值到目标，这对于相同尺寸的两个Grid正是预想的语义。
+这个新定义包括了复制构造函数和赋值操作符的成员函数模板，以及一个辅助成员函数 swap()。非参数化的复制构造函数和赋值操作符显式默认（用户声明了析构函数），只是简单地将 m\_cells 从源复制或赋值到目标，这对于相同尺寸的两个Grid，正是期望的语义。
 
 这是参数化的复制构造函数：
 
@@ -895,7 +895,7 @@ Grid<T, WIDTH, HEIGHT>::Grid(const Grid<E, WIDTH2, HEIGHT2>& src)
 }
 \end{cpp}
 
-注意，这个复制构造函数只复制了 src 中的 WIDTH 和 HEIGHT 个元素，分别在 x 和 y 维度上，即使 src 比这更大。如果 src 在任一维度上较小，则在额外的位置上的 std::optional 对象使用 reset() 成员函数进行重置。
+这个复制构造函数只复制了 src 中的 WIDTH 和 HEIGHT 个元素，分别在 x 和 y 维度上，即使 src 比这更大。如果 src 在任一维度上较小，则在其他位置上的 std::optional 对象使用 reset() 成员函数进行重置。
 
 以下是 swap() 和 operator= 的实现：
 
@@ -935,7 +935,7 @@ class Grid
 };
 \end{cpp}
 
-它们的实现使用了 Scott Meyers 的 const\_cast() 模式来避免代码重复：
+实现使用了 Scott Meyers 的 const\_cast() 模式来避免代码重复：
 
 \begin{cpp}
 template <typename T>
@@ -968,7 +968,7 @@ class Grid
 实现使用了转发引用，Self\&\&；，这样的转发引用可以绑定到 Grid<T>\&、const Grid<T>\& 和 Grid<T>\&\&。
 
 \begin{myNotic}{NOTE}
-当 Self\&\& 用作具有 Self 作为其模板类型参数的函数或成员函数模板的参数时，才是一个转发引用。如果类成员函数具有 Self\&\& 参数，但 Self 是类的模板类型参数，而不是成员函数本身的模板类型参数，那么那个 Self\&\& 不是一个转发引用，只是一个右值引用。因为当编译器开始处理带有 Self\&\& 参数的成员函数时，类模板参数 Self 已经解析为一个具体类型，例如 int，成员函数参数类型已经替换为 int\&\&。
+当 Self\&\& 用作具有 Self 作为其模板类型参数的函数或成员函数模板的参数时，才是一个转发引用。如果类成员函数具有 Self\&\& 参数，但 Self 是类的模板类型参数，而不是成员函数本身的模板类型参数，那么 Self\&\& 不是一个转发引用，只是一个右值引用。因为当编译器开始处理带有 Self\&\& 参数的成员函数时，类模板参数 Self 已经解析为一个具体类型，例如 int，成员函数参数类型已经替换为 int\&\&。
 \end{myNotic}
 
 下面是实现。第 8 章中提到，在显式对象参数的成员函数体中，需要使用显式对象参数 self 来访问对象；这里没有 this 指针。
@@ -1000,7 +1000,7 @@ auto&& Grid<T>::at(this Self&& self, std::size_t x, std::size_t y)
 
 \mySubsubsection{12.2.6.}{类模板的特化}
 
-可以为特定类型提供类模板的替代实现。例如，让Grid 对 const char*（C 风格字符串）不起作用。一个 Grid<const char*> 将存储其元素在 vector<optional<const char*>{}> 中。复制构造函数和赋值运算符将执行这个 const char* 指针类型的浅复制。对于 const char*，更合理的是对字符串进行深度复制。这个问题的最简单解决方案是为 const char* 编写一个特定的替代实现，将它们转换为 C++ 字符串并存储在 vector<optional<string>{}> 中。
+可以为特定类型提供类模板的替代实现，让Grid 对 const char*（C 风格字符串）不起作用。一个 Grid<const char*> 将存储其元素在 vector<optional<const char*>{}> 中。复制构造函数和赋值操作符将执行这个 const char* 指针类型的浅复制。对于 const char*，更合理的是对字符串进行深度复制。这个问题的最简单解决方案是为 const char* 编写一个特定的替代实现，转换为 C++ 字符串并存储在 vector<optional<string>{}> 中。
 
 模板的替代实现称为模板特化，可能会觉得这个语法一开始有点奇怪。当编写一个类模板特化时，必须基于一个模板，并且正在为特定类型编写模板的版本。这是 Grid 的 const char* 特化语法的示例。这个实现中，原始的 Grid 类模板会移动到名为 main 的模块接口分区，而特化则位于名为 string 的模块接口分区。
 
@@ -1044,14 +1044,14 @@ class Grid<const char*>
 };
 \end{cpp}
 
-注意，在特化中不需要引用任何类型变量(如 T)，可以直接处理 const char* 和字符串。此时一个明显的问题是，为什么这个类仍然有一个模板头。也就是说，以下语法的用处是什么？
+特化中不需要引用类型变量(如 T)，可以直接处理 const char* 和字符串。此时一个明显的问题是，为什么这个类仍然有一个模板头。也就是说，以下语法的用处是什么？
 
 \begin{cpp}
 template <>
 class Grid<const char*>
 \end{cpp}
 
-这个语法告诉编译器这个类是 Grid 类模板的 const char* 特化版本。假设没有使用这种语法，只是尝试这样写：
+这个语法告诉编译器这个类是 Grid 类模板的 const char* 特化版本。假设没有使用这种语法，只尝试这样写：
 
 \begin{cpp}
 class Grid
@@ -1068,7 +1068,7 @@ export import :main;
 export import :string;
 \end{cpp}
 
-特化可以像这样进行测试：
+特化可以像这样测试：
 
 \begin{cpp}
 Grid<int> myIntGrid; // Uses original Grid template.
@@ -1083,7 +1083,7 @@ stringGrid1.at(1, 1) = "there";
 Grid<const char*> stringGrid2 { stringGrid1 };
 \end{cpp}
 
-当特化一个类模板时，不“继承”代码；特化不是像派生那样，必须重写整个类的实现。没有要求必须提供具有相同名称或行为的成员函数。例如，Grid 的 const char* 特化通过返回 optional<string> ，而不是使用 optional<const char*> 来实现 at() 成员函数。实际上，可以编写一个完全不同的类，可以和原始类没有关系。当然，这会滥用模板特化的能力，而且没有充分的理由不应这样做。以下是 const char* 特化的成员函数实现。与类模板定义不同，不需要在每个成员函数定义前重复模板头，template<>。
+当特化一个类模板时，不“继承”代码；特化不是像派生那样，必须重写整个类的实现。没有要求必须提供具有相同名称或行为的成员函数。Grid 的 const char* 特化通过返回 optional<string> ，而不是使用 optional<const char*> 来实现 at() 成员函数。可以编写一个完全不同的类，可以和原始类没有关系。这会滥用模板特化的能力，而且没有充分的理由不应这样做。以下是 const char* 特化的成员函数实现，与类模板定义不同，不需要在每个成员函数定义前重复模板头，template<>。
 
 \begin{cpp}
 Grid<const char*>::Grid(std::size_t width, std::size_t height)
@@ -1118,11 +1118,11 @@ std::optional<std::string>& Grid<const char*>::at(std::size_t x, std::size_t y)
 }
 \end{cpp}
 
-本节讨论了如何使用类模板特化来为类模板编写特殊实现，其中所有模板类型参数替换为特定类型，这被为全特化模板。这样的全特化类模板本身不再是类模板，而是一个类定义。第 26 章会继续介绍类模板特化，并介绍了一个更高级的特性，称为部分特化或偏特化。
+本节讨论了如何使用类模板特化来为类模板编写特殊实现，其中所有模板类型参数替换为特定类型，这称为全特化模板。全特化类模板本身不再是类模板，而是一个类定义。第 26 章会继续介绍类模板特化，并介绍了一个更高级的特性，称为部分特化或偏特化。
 
 \mySubsubsection{12.2.7.}{派生于类模板}
 
-可以从类模板继承。如果派生类继承自模板本身，它也必须是一个模板。或者，可以从类模板的具体实例派生，这时派生类不需要是一个模板。作为前者的一个例子，假设决定通用 Grid 类提供的功能不足以用作GameBoard。具体来说，希望在GameBoard上添加一个 move() 成员函数，该函数将一个GameBoard上的元素从一个位置移动到另一个位置。以下是 GameBoard 模板的类定义：
+可以从类模板继承。如果派生类继承自模板本身，也必须是一个模板。或者，可以从类模板的具体实例派生，这时派生类不需要是一个模板。作为前者的一个例子，假设决定通用 Grid 类提供的功能不足以用作GameBoard。希望在GameBoard上添加一个 move() 成员函数，该函数将一个GameBoard上的元素从一个位置移动到另一个位置。以下是 GameBoard 模板的类定义：
 
 \begin{cpp}
 import grid;
@@ -1139,11 +1139,11 @@ class GameBoard : public Grid<T>
 };
 \end{cpp}
 
-这个 GameBoard 模板从 Grid 模板派生，从而继承了它的所有功能。不需要重新编写 at()、getHeight() 或其他任何成员函数。也不需要添加复制构造函数、operator= 或析构函数，因为 GameBoard 中没有动态分配的内存。此外，GameBoard 明确从基类 Grid<T> 继承构造函数，从基类继承构造函数在第10章中介绍过。
+GameBoard 模板从 Grid 模板派生，从而继承了它的所有功能。不需要重新编写 at()、getHeight() 或其他成员函数。因为 GameBoard 中没有动态分配的内存，也不需要添加复制构造函数、operator= 或析构函数。此外，GameBoard 明确从基类 Grid<T> 继承构造函数，从基类继承构造函数在第10章中介绍过。
 
 继承语法看起来很正常，只是基类是 Grid<T>，而不是 Grid。这种语法的原因是 GameBoard 模板并没有真正从通用 Grid 模板派生。
 
-相反，GameBoard 模板对特定类型的每个实例都从相应的 Grid 实例派生。例如，用 ChessPiece 类型实例化一个 GameBoard，那么编译器也会为该类型生成 Grid<ChessPiece> 的代码。: public Grid<T> 语法表示这个类从对 T 类型参数有意义的 Grid 实例中继承。
+GameBoard 模板对特定类型的每个实例都从相应的 Grid 实例派生，用 ChessPiece 类型实例化一个 GameBoard，编译器也会为该类型生成 Grid<ChessPiece> 的代码。: public Grid<T> 语法表示这个类从对 T 类型参数有意义的 Grid 实例中继承。
 
 这是 move() 成员函数的实现：
 
@@ -1194,19 +1194,19 @@ chessBoard.move(0, 0, 0, 1);
 \endhead
 %
 \textbf{复用代码?} &
-\begin{tabular}[c]{@{}l@{}}是的：派生类包含所有基类的\\数据成员和成员函数。
+\begin{tabular}[c]{@{}l@{}}是：派生类包含所有基类的数\\据成员和成员函数。
 \end{tabular} &
-\begin{tabular}[c]{@{}l@{}}不：必须重新编写特化中的\\所有代码。
+\begin{tabular}[c]{@{}l@{}}否：必须重新编写特化中的\\所有代码。
 \end{tabular} \\ \hline
 \textbf{复用名称?} &
-\begin{tabular}[c]{@{}l@{}}不：派生类的名称必须与基类\\名称不同。
+\begin{tabular}[c]{@{}l@{}}否：派生类的名称必须与基类\\名称不同。
 \end{tabular} &
-\begin{tabular}[c]{@{}l@{}}是的：特化必须与原始模板\\具有相同的名称。
+\begin{tabular}[c]{@{}l@{}}是：特化必须与原始模板具\\有相同的名称。
 \end{tabular} \\ \hline
 \textbf{\begin{tabular}[c]{@{}l@{}}支持多态?\end{tabular}} &
-\begin{tabular}[c]{@{}l@{}}是的：派生类的对象可以代表\\基类的对象。
+\begin{tabular}[c]{@{}l@{}}是：派生类的对象可以代表\\基类的对象。
 \end{tabular} &
-\begin{tabular}[c]{@{}l@{}}不：每个模板的实例化对于\\一个类型来说是一个不同的类型。
+\begin{tabular}[c]{@{}l@{}}不：每个模板的实例化对于\\一个类型来说是一个不同的\\类型。
 \end{tabular} \\ \hline
 \end{longtable}
 
@@ -1216,20 +1216,20 @@ chessBoard.move(0, 0, 0, 1);
 
 \mySubsubsection{12.2.9.}{别名模板}
 
-第 1 章介绍了类型别名和 typedef 的概念，允许给特定的类型起另一个名字。例如，可以编写以下类型别名，给类型 int 起一个第二个名字：
+第 1 章介绍了类型别名和 typedef ，允许给特定的类型起另一个名字。可以编写以下类型别名，给类型 int 起一个第二个名字：
 
 \begin{cpp}
 using MyInt = int;
 \end{cpp}
 
-同样，可以使用类型别名给类模板起另一个名字。假设有以下类模板：
+可以使用类型别名给类模板起另一个名字。假设有以下类模板：
 
 \begin{cpp}
 template <typename T1, typename T2>
 class MyClassTemplate { /* ... */ };
 \end{cpp}
 
-可以定义以下类型别名，其中指定了类模板的两个类型参数：
+可以定义以下类型别名，指定了类模板的两个类型参数：
 
 \begin{cpp}
 using OtherName = MyClassTemplate<int, double>;
@@ -1237,14 +1237,14 @@ using OtherName = MyClassTemplate<int, double>;
 
 也可以使用 typedef 代替这样的类型别名。
 
-此外，还可以指定一些类型而保留其他类型作为模板类型参数，称为别名模板。以下是一个例子：
+还可以指定一些类型而保留其他类型作为模板类型参数，称为别名模板。以下是一个例子：
 
 \begin{cpp}
 template <typename T1>
 using OtherName = MyClassTemplate<T1, double>;
 \end{cpp}
 
-typedef 无法做到这一点。
+而 typedef 无法这样做。
 
 
 
