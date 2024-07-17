@@ -2,10 +2,10 @@
 
 \begin{itemize}
 \item
-\textbf{练习11-1}：编写一个名为simulator的单文件模块，其中包含两个类，CarSimulator和BikeSimulator，位于Simulator命名空间中。这些类的内容对于练习不重要。只需提供一个默认构造函数，该构造函数向标准输出打印一条消息。在main()函数中测试代码。
+\textbf{练习11-1}：编写一个名为simulator的单文件模块，其中包含两个类，CarSimulator和BikeSimulator，位于Simulator命名空间中。类的内容对于练习不重要。只需提供一个默认构造函数，该构造函数向标准输出打印一条消息。在main()函数中测试代码。
 
 \item
-\textbf{练习11-2}：以练习11-1的解决方案为基础，将模块拆分为几个文件：一个主模块接口文件，没有任何实现，以及两个模块实现文件，一个用于CarSimulator类，另一个用于BikeSimulator类。
+\textbf{练习11-2}：以练习11-1的解决方案为基础，将模块拆分为几个文件：一个主模块接口文件，没有实现，以及两个模块实现文件，一个用于CarSimulator类，另一个用于BikeSimulator类。
 
 \item
 \textbf{练习11-3}：以练习11-2的解决方案为基础，将其转换为使用一个主模块接口文件和两个模块接口分区文件，一个用于包含CarSimulator类的simulator:car分区，另一个用于包含BikeSimulator类的simulator:bike分区。
@@ -14,7 +14,7 @@
 \textbf{练习11-4}：以练习11-3的解决方案为基础，添加一个名为internals的实现分区，其中包含一个名为convertMilesToKm(double miles)的辅助函数，位于Simulator命名空间中。一英里等于1.6公里。为CarSimulator和BikeSimulator类添加一个名为setOdometer(double miles)的成员函数，该函数使用辅助函数将给定的英里转换为公里，然后将其打印到标准输出。在main()函数中确认setOdometer()在两个类上都能正常工作，还要确认main()不能调用convertMilesToKm()。
 
 \item
-\textbf{练习11-5}：编写一个源文件，其中包含一个预处理标识符，其值为0或1。使用预处理指令检查这个标识符的值。如果值为1，让编译器输出一条警告。如果为0，则忽略它。如果为其他值，则让编译器报个错。
+\textbf{练习11-5}：编写一个源文件，其中包含一个预处理标识符，其值为0或1。使用预处理指令检查这个标识符的值。如果值为1，让编译器输出一条警告。如果为0，则忽略。如果为其他值，则让编译器报个错。
 \end{itemize}
 
 

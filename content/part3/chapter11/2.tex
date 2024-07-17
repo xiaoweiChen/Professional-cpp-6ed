@@ -62,7 +62,7 @@
 
 \mySubsubsection{11.2.1.}{预处理宏}
 
-可以使用C++预处理器来编写宏，就像小函数一样：
+可以使用C++预处理器来编写宏：
 
 \begin{cpp}
 #define SQUARE(x) ((x) * (x)) // No semicolon after the macro definition!
@@ -79,13 +79,13 @@ int main()
 println("{}", SQUARE(2 + 3));
 \end{cpp}
 
-期望SQUARE计算25，确实是这样做的。但是，如果从宏定义中遗漏了一些括号，使其看起来像这样呢？
+期望SQUARE计算25，确实是这样做的。如果从宏定义中遗漏了一些括号，使其看起来像这样呢？
 
 \begin{cpp}
 #define SQUARE(x) (x * x)
 \end{cpp}
 
-现在对SQUARE(2+3)的调用生成11，而不是25！记住，宏是直接展开的，不考虑函数调用语义。所以宏体中的任何x都会替换为2 + 3：
+现在对SQUARE(2+3)的调用生成11，而不是25！记住，宏是直接展开的，不考虑函数调用语义。所以宏体中的x都会替换为2 + 3：
 
 \begin{cpp}
 println("{}", (2 + 3 * 2 + 3));
@@ -111,7 +111,7 @@ println("{}", ((veryExpensiveFunctionCallToComputeNumber()) *
 宏还会给调试带来问题，因为编写的代码不是编译器看到的代码，也不会出现在调试器中（因为预处理器有搜索和替换的行为）。出于这些原因，不应该使用宏，而改用内联函数。这里介绍这些，是因为仍然有很多C++代码使用宏，需要理解它们才能阅读和维护这样的代码。
 
 \begin{myNotic}{NOTE}
-大多数编译器可以将预处理的源代码输出到文件或标准输出。可以使用这个功能来查看预处理器如何预处理你的文件。例如，在Microsoft Visual C++中，可以使用/P。在GCC中，可以使用-E。
+大多数编译器可以将预处理的源代码输出到文件或标准输出。可以使用这个功能来查看预处理器如何预处理文件。例如，在Microsoft Visual C++中，可以使用/P。在GCC中，可以使用-E。
 \end{myNotic}
 
 
