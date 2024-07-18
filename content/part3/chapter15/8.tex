@@ -6,21 +6,21 @@ SpreadsheetCell cell { 1.23 };
 double d1 { cell }; // DOES NOT COMPILE!
 \end{cpp}
 
-SpreadsheetCell 包含一个双精度浮点数表示，所以可以将它赋值给一个双精度变量，但不能这么做。编译器会说它不知道如何将 SpreadsheetCell 转换为双精度。尝试强制编译器做转换，比如这样：
+SpreadsheetCell 包含一个双精度浮点数表示，可以将它赋值给一个双精度变量，但不能这么做。编译器会说它不知道如何将 SpreadsheetCell 转换为双精度。尝试强制编译器做转换：
 
 \begin{cpp}
 double d1 { (double)cell }; // STILL DOES NOT COMPILE!
 \end{cpp}
 
-但上述代码仍然无法编译，因为编译器仍然不知道如何将 SpreadsheetCell 转换为双精度。它已经在第一行知道你想要它做什么。还有，在程序中随意添加强制类型转换通常不是一个好习惯。
+但上述代码仍然无法编译，编译器仍然不知道如何将 SpreadsheetCell 转换为双精度。它已经在第一行知道你想要它做什么，在程序中随意添加强制类型转换通常不是一个好习惯。
 
-如果想允许这种转换，必须告诉编译器如何执行。具体来说，可以写一个转换操作符将 SpreadsheetCell 转换为双精度，像这样：
+如果想允许这种转换，必须告诉编译器如何执行。具体来说，可以写一个转换操作符将 SpreadsheetCell 转换为双精度：
 
 \begin{cpp}
 operator double() const;
 \end{cpp}
 
-函数名是 operator double，没有返回类型，因为返回类型由操作符的名称指定：double。操作符为const，因为它不会改变被调用的对象。实现如下：
+函数名是 operator double，没有返回类型，因为返回类型由操作符的名称指定：double。操作符为const，不会改变调用对象。实现如下：
 
 \begin{cpp}
 SpreadsheetCell::operator double() const
@@ -36,7 +36,7 @@ SpreadsheetCell cell { 1.23 };
 double d1 { cell }; // Works as expected
 \end{cpp}
 
-可以为任何类型使用相同的语法编写转换操作符。例如，这里为 SpreadsheetCell 编写一个 std::string 转换操作符：
+可以为类型使用相同的语法编写转换操作符，这里为 SpreadsheetCell 编写一个 std::string 转换操作符：
 
 \begin{cpp}
 operator std::string() const;
@@ -51,13 +51,13 @@ SpreadsheetCell::operator std::string() const
 }
 \end{cpp}
 
-现在可以将 SpreadsheetCell 转换为字符串，但由于 string 的构造函数，以下代码不起作用：
+可以将 SpreadsheetCell 转换为字符串，但由于 string 的构造函数，以下代码将不起作用：
 
 \begin{cpp}
 string str { cell };
 \end{cpp}
 
-相反，可以使用正常的赋值语法，而非统一初始化，或者使用显式的 static\_cast()：
+可以使用正常的赋值语法，而非统一初始化，或者使用显式的 static\_cast()：
 
 \begin{cpp}
 string str1 = cell;
@@ -65,34 +65,34 @@ string str2 { static_cast<string>(cell) };
 \end{cpp}
 
 
-\mySubsubsection{15.8.1.}{Operator auto}
+\mySubsubsection{15.8.1.}{操作符auto}
 
-可以通过指定 auto ，而不是显式指定转换运算符的返回类型，让编译器推断类型。例如，SpreadsheetCell 的 double 转换运算符可以这样写：
+可以通过指定 auto ，而不是显式指定转换操作符的返回类型，让编译器推断类型。例如，SpreadsheetCell 的 double 转换操作符可以这样写：
 
 \begin{cpp}
 operator auto() const { return getValue(); }
 \end{cpp}
 
-这里有一个警告，带有 auto 返回类型推断的成员函数的实现必须对类用户可见。因此，这个例子直接在类定义中实现了这个方法。
+这里有一个警告，带有 auto 返回类型推断的成员函数的实现必须对类用户可见，这个例子直接在类定义中实现了这个方法。
 
-此外，在第1章中我们知道 auto 会去除引用和 const 限定符。所以，如果 operator auto 返回一个类型 T 的引用，那么推断出的类型将是 T 通过值返回，会创建一个副本。如果需要，可以显式添加引用和 const 限定符；这里是一个例子：
+此外，在第1章中我们知道 auto 会去除引用和 const 限定符。如果 operator auto 返回一个类型 T 的引用，推断出的类型将是 T 通过值返回，会创建一个副本。如果需要，可以显式添加引用和 const 限定符：
 
 \begin{cpp}
 operator const auto&() const { /* ... */ }
 \end{cpp}
 
-\mySubsubsection{15.8.2.}{使用显式转换运算符解决歧义问题}
+\mySubsubsection{15.8.2.}{使用显式转换操作符解决歧义问题}
 
-为 SpreadsheetCell 对象编写 double 转换运算符会引入歧义问题。看看这一行：
+为 SpreadsheetCell 对象编写 double 转换操作符会引入歧义问题：
 
 \begin{cpp}
 SpreadsheetCell cell { 6.6 };
 double d1 { cell + 3.4 }; // DOES NOT COMPILE IF YOU DEFINE operator double()
 \end{cpp}
 
-这行现在无法编译。实现 operator double() 之前，这行可以编译通过，所以现在有什么问题呢？问题在于，编译器不知道应该使用 operator double() 将 cell 转换为 double 并进行 double 加法，还是使用 double 构造函数将 3.4 转换为 SpreadsheetCell 并进行 SpreadsheetCell 加法。在实现 operator double() 之前，编译器只有一个选择：使用 double 构造函数将 3.4 转换为 SpreadsheetCell 并进行 SpreadsheetCell 加法。
+这行现在无法编译。实现 operator double() 之前，这行可以编译通过，所以现在有什么问题呢？编译器不知道应该使用 operator double() 将 cell 转换为 double 并进行 double 加法，还是使用 double 构造函数将 3.4 转换为 SpreadsheetCell 并进行 SpreadsheetCell 加法。实现 operator double() 之前，编译器只有一个选择：使用 double 构造函数将 3.4 转换为 SpreadsheetCell 并进行 SpreadsheetCell 加法。
 
-C++11 之前，解决这个问题的常见方法是将问题中的构造函数显式化，以防止使用该构造函数的自动转换（参见第8章）。然而，我们可能不希望显式化这个构造函数，因为通常希望自动将 double 转换为 SpreadsheetCell。从 C++11 开始，可以通过将 double 转换运算符显式化，而不是构造函数来解决这个问题：
+C++11 之前，解决这个问题的常见方法是将问题中的构造函数显式化，以防止使用该构造函数的自动转换（参见第8章）。然而，我们可能不希望显式化这个构造函数，因为通常希望自动将 double 转换为 SpreadsheetCell。从 C++11 开始，可以通过将 double 转换操作符显式化，而不是构造函数来解决这个问题：
 
 \begin{cpp}
 explicit operator double() const;
@@ -126,7 +126,7 @@ if (ptr) { /* Perform some dereferencing action. */ }
 if (!ptr) { /* Do something. */ }
 \end{cpp}
 
-目前，以上所有表达式都不能与前面定义的 Pointer 智能指针类模板一起编译。为了让它们工作，可以向类中添加一个转换运算符，将其转换为指针类型。然后，与 nullptr 的比较，以及在 if 语句中单独使用对象，都会触发转换为指针类型。转换运算符通常的指针类型是 void*，那是一个除了在布尔表达式中测试它之外，无法做太多操作的指针类型。以下是实现：
+目前，以上所有表达式都不能与前面定义的 Pointer 智能指针类模板一起编译。为了让它们工作，可以向类中添加一个转换操作符，将其转换为指针类型。然后，与 nullptr 的比较，以及在 if 语句中单独使用对象，都会触发转换为指针类型。转换操作符通常的指针类型是 void*，那是一个除了在布尔表达式中测试它之外，无法做太多操作的指针类型。以下是实现：
 
 \begin{cpp}
 operator void*() const { return m_ptr; }
@@ -164,7 +164,7 @@ not 0
 not nullptr
 \end{shell}
 
-另一种选择是使用 operator bool()，而不是 operator void*() 来重载。毕竟，在布尔表达式中使用对象，为什么不像直接转换为 bool 一样转换它呢？
+另一种选择是使用 operator bool()，而不是 operator void*() 来重载。在布尔表达式中使用对象，为什么不像直接转换为 bool 一样转换呢？
 
 \begin{cpp}
 operator bool() const { return m_ptr != nullptr; }
@@ -210,14 +210,14 @@ bool operator!=(const Pointer<T>& lhs, std::nullptr_t rhs)
 if (p != 0) { println("not 0"); }
 \end{cpp}
 
-通过这个例子，可能会得出结论，operator bool() 技术只适用于那些不表示指针的对象，以及那些转换为指针类型没有意义的对象。不幸的是，即使在这种情况下，将 bool 添加为转换运算符也会带来一些未预料的后果。C++ 在有机会时会默默地使用提升规则将 bool 转换为 int，所以使用 operator bool()，以下代码可以编译并通过：
+通过这个例子，可能会得出结论。operator bool() 技术只适用于那些不表示指针的对象，以及那些转换为指针类型没有意义的对象。即使在这种情况下，将 bool 添加为转换操作符也会带来一些未预料的后果。C++ 在有机会时会默默地使用提升规则将 bool 转换为 int，所以使用 operator bool()，以下代码可以编译并通过：
 
 \begin{cpp}
 Pointer<SpreadsheetCell> anotherSmartCell { new SpreadsheetCell { 5.0 } };
 int i { anotherSmartCell }; // Converts Pointer to bool to int.
 \end{cpp}
 
-这通常不是期望或希望的行为。为了防止这样的赋值，可以显式删除转换运算符到 int、long、long long 等，但这样做会变得很混乱。因此，许多开发者更喜欢 operator void*()，而不是 operator bool()。
+这通常不是期望或希望的行为。为了避免这样赋值，可以显式删除转换操作符到 int、long、long long 等，但这样做会变得很混乱。因此，许多开发者更喜欢 operator void*()，而不是 operator bool()。
 
-如上，重载运算符是需要设计的。关于要重载哪些运算符的决定，会直接影响客户使用类的方式。
+如上，重载操作符是需要设计的。关于要重载哪些操作符的决定，会直接影响客户使用类的方式。
 

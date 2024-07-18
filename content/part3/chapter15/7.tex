@@ -1,5 +1,5 @@
 
-可以重载三个解引用运算符：*、-> 和 ->*。先忽略 ->*（稍后再回来讨论），先考虑 * 和 -> 的内置含义。* 运算符解引用指针以直接访问其值，而 -> 是 * 解引用后紧跟一个 . 成员选择的缩写。以下代码展示了等价性：
+可以重载三个解引用操作符：*、-> 和 ->*。先忽略 ->*（稍后再回来讨论），先考虑 * 和 -> 的内置含义。* 操作符解引用指针以直接访问其值，而 -> 是 * 解引用后紧跟一个 . 成员选择的缩写。以下代码展示了等价性：
 
 \begin{cpp}
 SpreadsheetCell* cell { new SpreadsheetCell };
@@ -7,13 +7,13 @@ SpreadsheetCell* cell { new SpreadsheetCell };
 cell->set(5); // Shorthand arrow dereference and member selection together.
 \end{cpp}
 
-可以为类重载解引用运算符，使对象的行为像指针一样。这种能力的主要用途是实现智能指针，这在第7章中介绍过。它也用于迭代器，标准库广泛使用。迭代器在第17章中介绍。本章将介绍如何在简单智能指针类模板的上下文中，重载相关运算符的基本机制。
+可以为类重载解引用操作符，使对象的行为像指针一样。这种能力的主要用途是实现智能指针。也用于迭代器，标准库广泛使用。迭代器在第17章中介绍。本章将介绍如何在简单智能指针类模板的上下文中，重载相关操作符的基本机制。
 
 \begin{myWarning}{WARNING}
-C++ 有两个标准智能指针：std::unique\_ptr 和 std::shared\_ptr。应该使用这些标准智能指针，而不是自己创建。这里的例子只是为了展示如何编写解引用运算符。
+C++ 有两个标准智能指针：std::unique\_ptr 和 std::shared\_ptr。应该使用这些标准智能指针，而不是自己创建。这里的例子只是为了展示如何编写解引用操作符。
 \end{myWarning}
 
-这里是智能指针类模板定义的一个例子，尚未填写解引用运算符：
+这里是智能指针类模板定义的一个例子，尚未填写解引用操作符：
 
 \begin{cpp}
 export template <typename T> class Pointer
@@ -62,10 +62,10 @@ smartCell->set(5); // Dereference and member select the set() member function.
 println("{} ", smartCell->getValue());
 \end{cpp}
 
-从这个例子中，可以了解到需要为这个类提供 operator* 和 operator-> 的实现。这些将在接下来的两个部分中实现。
+这个例子中，可以了解到需要为这个类提供 operator* 和 operator-> 的实现。这些将在接下来的两个部分中实现。
 
 \begin{myWarning}{WARNING}
-很少（如果不是从不）只重载 operator* 或 operator-> 的实现，两个运算符应该一起重载。如果没有提供这两个运算符，会使用户对这个类感到困惑。
+很少（如果不是从不）只重载 operator* 或 operator-> 的实现，两个操作符应该一起重载。如果没有提供这两个操作符，会使用户对这个类感到困惑。
 \end{myWarning}
 
 \mySubsubsection{15.7.1.}{实现 operator*}
@@ -89,7 +89,7 @@ operator* 返回底层原始指针所指向的对象或变量的引用。就像�
 
 \mySubsubsection{15.7.2.}{实现 operator–>}
 
-箭头操作符稍微复杂一些，箭头操作符的结果应该是一个对象的成员或成员函数。然而，要像那样实现，需要实现 operator* 后的 operator; 的等效操作。C++ 不允许重载 operator. 是有原因的：不可能写出一个单一的原型，来捕获可能的成员或成员函数。因此，C++ 将 operator-> 视为特殊情况。
+箭头操作符稍微复杂一些，箭头操作符的结果应该是一个对象的成员或成员函数。这需要实现 operator* 后的 operator; 的等效操作。C++ 不允许重载 operator. 是有原因的：不可能写出一个单一的原型来捕获可能的成员或成员函数。因此，C++ 将 operator-> 视为特殊情况。
 
 看看这行代码：
 
@@ -103,7 +103,7 @@ C++ 将这行翻译为：
 (smartCell.operator->())->set(5);
 \end{cpp}
 
-C++ 对从重载的 operator-> 返回的东西应用另一个 operator->。因此，必须要返回一个指针，就像这样：
+C++ 对从重载的 operator-> 返回的东西应用另一个 operator->。必须要返回一个指针：
 
 \begin{cpp}
 export template <typename T> class Pointer
@@ -116,11 +116,11 @@ export template <typename T> class Pointer
 };
 \end{cpp}
 
-聪明的你应该发现了 operator* 和 operator-> 的不对称，但看多了就会习惯。
+聪明的读者应该发现了 operator* 和 operator-> 的不对称，但看多了就会习惯。
 
 \mySubsubsection{15.7.3.}{什么是 operator.* 和 operator->*？}
 
-C++ 中，获取类数据成员和成员函数的地址，以获取指针完全合法。然而，没有对象，就无法访问非静态数据成员或调用非静态成员函数。类数据成员和成员函数的目的是以每个对象为基础的存在，所以想通过指针调用成员函数或访问数据成员时，必须在该对象的上下文中解引用指针。使用 operator.* 和 ->* 的语法细节将在第19章中介绍(需要知道如何定义函数指针)。
+C++ 中获取类数据成员和成员函数的地址，以获取指针完全合法。没有对象就无法访问非静态数据成员或调用非静态成员函数，类数据成员和成员函数的目的是以每个对象为基础的存在，所以想通过指针调用成员函数或访问数据成员时，必须在该对象的上下文中解引用指针。使用 operator.* 和 ->* 的语法细节将在第19章中介绍(需要知道如何定义函数指针)。
 
 C++ 不允许重载 operator.*（就像不能重载 operator.），但可以重载 operator->*。然而，这很复杂，考虑到大多数 C++ 开发者可能都不知道，可以通过指针访问成员函数和数据成员，这样的重载可能得不偿失。例如，标准库中的 shared\_ptr 智能指针就没有重载 operator->*。
 

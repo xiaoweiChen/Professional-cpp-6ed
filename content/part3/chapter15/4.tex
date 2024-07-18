@@ -1,4 +1,4 @@
-在 C++ 中，不仅用操作符进行算术运算，还用于从和向流中读写。例如，向 cout 写入整数和字符串时，使用插入操作符 <{}<：
+C++中不仅用操作符进行算术运算，还用于从和向流中读写。例如，向 cout 写入整数和字符串时，使用插入操作符 <{}<：
 
 \begin{cpp}
 int number { 10 };
@@ -13,7 +13,7 @@ string str;
 cin >> number >> str;
 \end{cpp}
 
-也可以为类写插入和提取操作符，这样就可以对其进行读写：
+也可以为类写插入和提取操作符，可以对其进行读写：
 
 \begin{cpp}
 SpreadsheetCell myCell, anotherCell, aThirdCell;
@@ -21,20 +21,20 @@ cin >> myCell >> anotherCell >> aThirdCell;
 cout << myCell << " " << anotherCell << " " << aThirdCell << endl;
 \end{cpp}
 
-写插入和提取操作符之前，需要决定如何输出类，以及如何读取它。这个例子中，SpreadsheetCell 简单地读取和写入一个双精度浮点数值。
+写插入和提取操作符之前，需要决定如何输出类，以及如何读取。这个例子中，SpreadsheetCell 简单地读取和写入一个双精度浮点数值。
 
-提取或插入操作符左边的对象是一个 istream 或 ostream（如 cin 或 cout），而不是 SpreadsheetCell 对象。因为不能向 istream 或 ostream 类添加成员函数，所以必须将提取和插入操作符写为全局函数。这些函数的声明如下：
+提取或插入操作符左边的对象是一个 istream 或 ostream（如 cin 或 cout），而不是 SpreadsheetCell 对象。不能向 istream 或 ostream 类添加成员函数，所以必须将提取和插入操作符写为全局函数。这些函数的声明如下：
 
 \begin{cpp}
 export std::ostream& operator<<(std::ostream& ostr, const SpreadsheetCell& cell);
 export std::istream& operator>>(std::istream& istr, SpreadsheetCell& cell);
 \end{cpp}
 
-通过使插入操作符以 ostream 类型的引用作为其第一个参数，可以让它用于文件输出流、字符串输出流、cout、cerr、clog 等。关于流的详细信息，请参见第13章。同样，通过使提取操作符以 istream 类型的引用作为其第一个参数，可以使其适用于任何输入流，如文件输入流、字符串输入流和 cin。
+通过使插入操作符以 ostream 类型的引用作为其第一个参数，可以让它用于文件输出流、字符串输出流、cout、cerr、clog 等。关于流的详细信息，请参见第13章。通过使提取操作符以 istream 类型的引用作为其第一个参数，可以使其适用于任何输入流，如文件输入流、字符串输入流和 cin。
 
-当想要读取或写入它时，提取操作符的第二个参数是对 SpreadsheetCell 对象的引用。插入操作符不会改变它写入的 SpreadsheetCell，所以参数类型是引用到常量。提取操作符，但会修改 SpreadsheetCell 对象，需要参数是非常量的引用。
+当想要读取或写入时，提取操作符的第二个参数是对 SpreadsheetCell 对象的引用。插入操作符不会改变它写入的 SpreadsheetCell，所以参数类型是引用到常量。提取操作符，但会修改 SpreadsheetCell 对象，需要参数是非常量的引用。
 
-这两个操作符都返回作为第一个参数给出的流的引用，以便可以嵌套调用。记住，操作符语法是调用全局 operator>{}> 或 operator<{}< 函数的简写。来看看这行代码：
+这两个操作符都返回作为第一个参数给出的流的引用，以便可以嵌套调用。操作符语法是调用全局 operator>{}> 或 operator<{}< 函数的简写。来看看这行代码：
 
 \begin{cpp}
 cin >> myCell >> anotherCell >> aThirdCell;
@@ -46,7 +46,7 @@ cin >> myCell >> anotherCell >> aThirdCell;
 operator>>(operator>>(operator>>(cin, myCell), anotherCell), aThirdCell);
 \end{cpp}
 
-第一个调用 operator>{}> 的返回值可用作下一个调用的输入。因此，必须返回流引用，以便可以在下一次嵌套调用中使用。否则，嵌套编译不会通过。
+第一个调用 operator>{}> 的返回值可用作下一个调用的输入。必须返回流引用，以便可以在下一次嵌套调用中使用。否则，嵌套编译不会通过。
 
 以下是 SpreadsheetCell 类的 operator<{}< 和 operator>{}> 实现：
 

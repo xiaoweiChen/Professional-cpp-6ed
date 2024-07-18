@@ -1,40 +1,40 @@
 
-第1章中解释了C++中的运算符，如+、<、*和<{}<，可作用于内置类型，如int和double，允许执行算术、逻辑和其他操作。还有如->和*这样的运算符，对指针解引用。C++中的运算符概念很广泛，甚至包括[]（数组索引）、()（函数调用）、类型转换以及内存分配和回收运算符。运算符重载允许你改变语言运算符对你类的行为。然而，这种能力也有自己的规则、限制和选择。
+第1章中解释了C++中的操作符，如+、<、*和<{}<，可作用于内置类型，如int和double，允许执行算术、逻辑和其他操作。还有如->和*这样的操作符，对指针解引用。C++中的操作符概念很广泛，甚至包括[]（数组索引）、()（函数调用）、类型转换以及内存分配和回收操作符。操作符重载可以改变语言操作符的行为。然而，这种能力也有自己的规则、限制和选择。
 
-\mySubsubsection{15.1.1.}{为什么要重载运算符？}
+\mySubsubsection{15.1.1.}{为什么要重载操作符？}
 
-学习如何重载运算符之前，可能想知道为什么你想要这样做。因不同的运算符而异，但一般的指导原则是让类表现得像内置类型。类越接近内置类型，客户端使用起来就越容易。例如，写一个类来表示分数，能够定义+、-、*和/在应用于该类的对象时就会很有用。
+学习如何重载操作符之前，可能想知道为什么你想要这样做。因不同的操作符而异，但一般的指导原则是让类表现得像内置类型。类越接近内置类型，客户端使用起来就越容易。例如，写一个类来表示分数，能够定义+、-、*和/在应用于该类的对象时就会很有用。
 
-重载运算符的另一个原因是，获得对程序行为更大的控制权。例如，重载类内存分配和回收运算符，以精确指定每个新对象的内存分配和回收。
+重载操作符的另一个原因是，获得对程序行为更大的控制权。重载类内存分配和回收操作符，以精确指定每个新对象的内存分配和回收。
 
-需要强调的是，运算符重载并不一定会让开发工作更容易，其主要目的是让类的用户使用起来更容易。
+需要强调的是，操作符重载并不一定会让开发工作更容易，其主要目的是让类的用户使用起来更容易。
 
-\mySubsubsection{15.1.2.}{运算符重载的限制}
+\mySubsubsection{15.1.2.}{操作符重载的限制}
 
-以下是在重载运算符时不能做的事情：
+以下是在重载操作符时不能做的事情：
 
 \begin{itemize}
 \item
-不能添加新的运算符符号，只能重新定义语言中已有的运算符的含义。本章后面“可重载运算符总结”一节中的表格，列出了可以重载的运算符。
+不能添加新的操作符符号，只能重新定义语言中已有的操作符的含义。本章后面“可重载操作符总结”一节中的表格，列出了可以重载的操作符。
 
 \item
-有些运算符不能重载，比如.和.*（对象中的成员访问）、::（范围解析运算符）和?:（条件运算符）。
+有些操作符不能重载，比如.和.*（对象中的成员访问）、::（范围解析操作符）和?:（条件操作符）。
 
 \item
-元数描述了与运算符相关联的参数或操作数的数量。只能更改函数调用、new和delete运算符的元数，以及，自C++23起，还可以更改下标运算符（数组索引）[]的元数。对于所有其他运算符，不能更改元数。一元运算符，如++，只作用于一个操作数。二元运算符，如/，作用于两个操作数。
+元数描述了与操作符相关联的参数或操作数的数量。只能更改函数调用、new和delete操作符的元数。自C++23起，还可以更改下标操作符（数组索引）[]的元数。对于所有其他操作符，不能更改元数。一元操作符，如++，只作用于一个操作数。二元操作符，如/，作用于两个操作数。
 
 \item
-不能改变运算符的优先级和结合性。优先级用于决定哪些运算符需要在其他运算符之前执行，而结合性可以是左到右或右到左，并指定具有相同优先级的运算符的执行顺序。再次强调，这个约束在大多数程序中不应该是关注的焦点，很有有改变求值顺序的需求，但在某些领域中，这是需要考虑的。例如，正在编写一个表示数学向量的类，并希望重载\^{}运算符以便能够将向量提升到一定的幂，那么请记住\^{}与许多其他运算符（如+）相比具有较低的优先级。例如，x和y是数学向量，编写x\^{}3+y将计算为x\^{}(3+y)，而不是(x\^{}3)+y。
+不能改变操作符的优先级和结合性。优先级用于决定哪些操作符需要在其他操作符之前执行，而结合性可以是左到右或右到左，并指定具有相同优先级的操作符的执行顺序。这个约束在大多数程序中不应该是关注焦点，很有有改变求值顺序的需求，但在某些领域中，这是需要考虑的。例如，正在编写一个表示数学向量的类，并希望重载\^{}操作符以便能够将向量提升到一定的幂，那么请记住\^{}与许多其他操作符（如+）相比具有较低的优先级。例如，x和y是数学向量，编写x\^{}3+y将计算$x^{3+y}$，而不是$(x^3)+y$。
 
 \item
-不能为内置类型重新定义运算符。运算符必须是类中的成员函数，或者至少全局重载运算符函数的一个参数必须是用户定义类型（例如，类）。所以不能做些荒谬的事情，比如将+对int的定义改为减法（尽管可以在自己的类中这样做）。这个规则的例外是内存分配和回收运算符，可以替换程序中所有内存分配的全局运算符。
+不能为内置类型重新定义操作符。操作符必须是类中的成员函数，或者至少全局重载操作符函数的数必须是用户定义类型。所以不能做些荒谬的事情，比如将+对int的定义改为减法（尽管可以在自己的类中这样做）。这个规则的例外是内存分配和回收操作符，可以替换程序中所有内存分配的全局操作符。
 \end{itemize}
 
-有些运算符已经有两个不同的含义。例如，运算符-可以用作二元运算符（如在x=y-z;中）或一元运算符（如在x=-y;中）。*运算符可以用作乘法或对指针解引用。<{}<运算符是流插入运算符或左移运算符，具体取决于上下文。对于具有双重含义的运算符，可以两种含义都重载。
+有些操作符已经有两个不同的含义。operator-可以用作二元操作符（如在x=y-z;中）或一元操作符（如在x=-y;中）。operator*可以用作乘法或对指针解引用，<{}<操作符是流插入操作符或左移操作符，具体取决于上下文。对于具有双重含义的操作符，可以两种含义都重载。
 
 \mySubsubsection{15.1.3.}{选择操作符重载}
 
-重载操作符时，需要编写一个名为operatorX的全局函数或成员函数，其中X是某个操作符的符号，operator和X之间可以有可选的空格。例如，第9章为SpreadsheetCell对象声明operator+：
+重载操作符时，需要编写一个名为operatorX的全局函数或成员函数，其中X是某个操作符的符号，operator和X之间可以有可选的空格。第9章为SpreadsheetCell对象声明operator+：
 
 \begin{cpp}
 SpreadsheetCell operator+(const SpreadsheetCell& lhs, const SpreadsheetCell& rhs);
@@ -44,7 +44,7 @@ SpreadsheetCell operator+(const SpreadsheetCell& lhs, const SpreadsheetCell& rhs
 
 \mySamllsection{成员函数或全局函数}
 
-首先，需要决定操作符应该是类的成员函数，还是全局函数。后者可以是类的友元函数，但应作为最后的手段——应尽可能限制向类添加友元函数，因为它们可以直接访问private数据成员，从而绕过数据隐藏原则。
+需要决定操作符应该是类的成员函数，还是全局函数。后者可以是类的友元函数，但应作为最后的手段——应尽可能限制向类添加友元函数，它们可以直接访问private数据成员，从而绕过数据隐藏原则。
 
 如何选择成员函数和全局函数？首先，需要了解这两种选择的区别。当操作符是类的成员函数时，操作符表达式的左侧必须始终是该类的对象。如果编写一个全局函数，左侧可以是不同类型的对象。
 
@@ -52,48 +52,48 @@ SpreadsheetCell operator+(const SpreadsheetCell& lhs, const SpreadsheetCell& rhs
 
 \begin{itemize}
 \item
-必须作为成员函数的操作符。因为它们在类的外部没有意义，所以C++语言要求某些操作符必须是类的成员函数。例如，operator=与类紧密相关，不能存在于其他任何地方。本节“可重载操作符的总结”中的表格列出了必须作为成员函数的操作符，大多数操作符没有这个要求。
+必须作为成员函数的操作符。在类的外部没有意义，C++语言要求某些操作符必须是类的成员函数。operator=与类紧密相关，不能存在于其他地方。本节“可重载操作符的总结”中的表格列出了必须作为成员函数的操作符，大多数操作符没有这个要求。
 
 \item
-必须作为全局函数的操作符。当需要允许操作符左侧的变量与类不同的类型时，必须使操作符成为全局函数。这条规则特别适用于<{}<和>{>}插入和提取流操作符，其中左侧是iostream对象，而不是类的对象。这也适用于像二进制+和-这样的交换操作符，允许左侧的变量不是类的对象。如果希望为二元操作符的左操作数进行隐式转换，则需要全局函数。第9章已经介绍了这个问题。
+必须作为全局函数的操作符。需要允许操作符左侧的变量与类不同的类型时，必须使操作符成为全局函数。这条规则特别适用于<{}<和>{>}插入和提取流操作符，其中左侧是iostream对象，而不是类对象。这也适用于二元+和-这样的交换操作符，允许左侧的变量不是类的对象。如果希望为二元操作符的左操作数进行隐式转换，则需要全局函数。第9章已经介绍了这个问题。
 
 \item
-可以作为成员函数或全局函数的操作符。在C++社区中，关于是否最好将操作符重载为成员函数或全局函数存在一些分歧。然而，我建议，除非必须按照前面的描述将其作为全局函数，否则使每个操作符成为成员函数。
+可以作为成员函数或全局函数的操作符。C++社区中，关于是否最好将操作符重载为成员函数或全局函数存在一些分歧。我建议，除非必须按照前面的描述将其作为全局函数，否则使每个操作符成为成员函数。
 
-这个规则的一个主要优点是，成员函数可以是虚函数，而全局函数显然不能。因此，在继承树中编写重载操作符时，尽可能应使它们成为成员函数。
+这个规则的主要优点是，成员函数可以是虚函数，而全局函数显然不能。在继承树中编写重载操作符时，应使它们成为成员函数。
 \end{itemize}
 
 将重载操作符创建为成员函数时，如果不改变对象，应将其标记为const。
 
-将重载操作符创建为全局函数时，将其放在包含要编写操作符的类的同一命名空间中。
+将重载操作符创建为全局函数时，需要将其放在包含操作符类的同一命名空间中。
 
 \mySamllsection{选择参数类型}
 
-选择参数类型时，会受到一定限制，对于大多数运算符，不能更改参数的数量。例如，operator/ 是一个全局函数，必须始终有两个参数；如果它是一个成员函数，则必须有一个参数。如果与此标准不符，编译器将报错。运算符函数与普通函数不同，后者可以通过任意数量的参数进行重载。此外，可以为相应的类型编写运算符，但选择通常受到运算符类型的限制。例如，想为类 T 实现 addition，不能有一个接受两个字符串的 operator+！当尝试确定是按值还是按引用传递参数，以及是否使它们成为 const 时，真正需要做出选择的时刻就出现了。
+选择参数类型时，会受到一定限制。对于大多数操作符，不能更改参数的数量。operator/ 是一个全局函数，必须始终有两个参数；如果它是一个成员函数，则必须有一个参数。如果与此标准不符，编译器将报错。操作符函数与普通函数不同，后者可以通过任意数量的参数进行重载。此外，可以为相应的类型编写操作符，但选择会受到操作符类型的限制。例如，想为类 T 实现 addition，不能有一个接受两个字符串的 operator+！当尝试确定是按值，还是按引用传递参数，以及是否使它们成为 const 时，真正需要做出选择的时刻出现了。
 
 按值与引用的选择很简单：除非函数始终复制传递的对象，否则应该通过引用传递每个非原始参数类型，请参见第9章。
 
-const 的决定也很简单：除非需要修改它，否则请将每个参数标记为 const。在“可重载运算符摘要”部分中的表格显示了每个运算符的示例原型，其中参数都标记为 const 和引用。
+const 的决定也很简单：除非需要修改它，否则请将每个参数标记为 const。“可重载操作符摘要”部分中的表格显示了每个操作符的示例原型，其中参数都标记为 const 和引用。
 
 \mySamllsection{选择返回类型}
 
-C++ 不基于返回类型确定重载解析，在重载运算符时，可以指定想要的返回类型，但这并不意味着应该这样做。这种灵活性会实现一些令人困惑的代码，例如：比较运算符返回指针，算术运算符返回 bool。相反，应该使重载的运算符返回与内置类型的运算符相同的类型。如果重载了一个比较运算符，请返回一个 bool。如果重载了一个算术运算符，请返回一个表示结果的对象。有时，返回类型一开始并不明显。例如，第8章提到的operator= 应返回对其调用对象的引用，以支持链式赋值。其他运算符也有类似的复杂返回类型，这些都在后面的表格中进行了总结。
+C++ 不基于返回类型确定重载解析，重载操作符时，可以指定想要的返回类型，但并不意味着应该这样做。这种灵活性会实现一些令人困惑的代码，例如：比较操作符返回指针，算术操作符返回 bool。相反，应该使重载的操作符返回与内置类型的操作符相同的类型。如果重载了比较操作符，请返回一个 bool。如果重载了算术操作符，请返回一个表示结果的对象。有时，返回类型一开始并不明显。例如，第8章提到的operator= 应返回对其调用对象的引用，以支持链式赋值。其他操作符也有类似的复杂返回类型，这些都在后面的表格中进行了总结。
 
-引用和 const 的选择同样适用于返回类型，但对于返回值，选择更为困难。值或引用的一般规则是：如果能返回引用，则返回引用；否则，返回值。如何知道何时可以返回引用？这个选择仅适用于返回对象的运算符：对于返回 bool 的比较运算符、没有返回类型的转换运算符，以及可能返回想要的类型的函数调用运算符，那么这个选择就无关紧要了。如果运算符构造了一个新对象，那么必须按值返回新对象。如果没有构造新对象，可以直接返回对调用该运算符的对象或其参数的引用。
+引用和 const 的选择同样适用于返回类型，但对于返回值，选择更为困难。值或引用的一般规则是：如果能返回引用，则返回引用；否则，返回值。如何知道何时可以返回引用？这个选择仅适用于返回对象的操作符：对于返回 bool 的比较操作符、没有返回类型的转换操作符，以及可能返回类型的函数调用操作符，那么这个选择就无关紧要了。如果操作符构造了一个新对象，则必须按值返回新对象。如果没有构造新对象，可以直接返回对调用该操作符的对象或其参数的引用。
 
-可以作为左值（例如，在赋值表达式的左侧）修改的返回值必须是非 const；否则，应该是 const。有很多的运算符都要求返回左值，包括所有赋值运算符（operator=、operator+=、operator-= 等）。
+可以作为左值（例如，在赋值表达式的左侧）修改的返回值必须是非 const；否则，应该是 const。有很多的操作符都要求返回左值，包括所有赋值操作符（operator=、operator+=、operator-= 等）。
 
 \mySamllsection{选择行为}
 
-可以在重载运算符中提供想要的实现。例如，编写一个启动 Scrabble 游戏的 operator+。然而，通常应该将实现限制为客户端期望的行为。编写 operator+ 以执行加法，或者类似加法的行为，如字符串连接。本章将解释您应该如何实现重载运算符。特殊情况下，可以不按照建议来做；但一般来说，应该遵循标准模式。
+可以在重载操作符中提供想要的实现。例如，编写一个启动 Scrabble 游戏的 operator+，通常应将实现限制为客户端期望的行为。编写 operator+ 以执行加法，或者类似加法的行为，如字符串连接。本章将解释应该如何实现重载操作符。特殊情况下，可以不按照建议来做；但一般来说，应该遵循标准模式。
 
 \mySubsubsection{15.1.4.}{不应重载的操作符}
 
 尽管允许重载，但有些操作符不应重载。特别是地址操作符（operator\&），重载它并没有太大用处，反而可能导致混淆，可能会以潜在不可预期的方式改变基本语言行为（获取变量的地址）。整个标准库中，虽然广泛使用操作符重载，但从未重载过地址操作符。
 
-此外，应避免重载二元布尔操作符 operator\&\& 和 ||，因为这样会失去 C++ 的短路求值规则。在这种情况下，短路是不可能的，因为所有操作数都需要在传递给你的重载操作符函数之前进行计算。如果类需要逻辑操作符，请提供 operator\& 和 |。
+此外，应避免重载二元布尔操作符 operator\&\& 和 ||，因为这样会失去 C++ 的短路求值规则，因为所有操作数都需要在传递给重载操作符函数之前进行计算。如果类需要逻辑操作符，请提供 operator\& 和 |。
 
-最后，不应重载逗号操作符（operator,）。是的，没看错：C++ 中确实有一个逗号操作符，也称为序列点操作符，用于在单个语句中分隔两个表达式，同时保证它们从左到右进行计算。以下代码片段演示了逗号操作符的使用：
+最后，不应重载逗号操作符（operator,）。是的，没看错：C++ 中确实有一个逗号操作符，也称为序列点操作符，用于在单个语句中分隔两个表达式，同时保证它们从左到右进行计算。以下代码段演示了逗号操作符的用法：
 
 \begin{cpp}
 int x { 1 };
@@ -104,11 +104,11 @@ println("{}", (++x, 2 * x)); // Increments x to 2, doubles it, and prints 4.
 
 \mySubsubsection{15.1.5.}{可重载操作符的总结}
 
-下表列出了可以重载的操作符，指明了它们应该是类的成员函数，还是全局函数，总结了何时应该（或不应该）重载它们，并提供了示例，展示了正确的参数和返回值类型。不能重载的操作符，如 ., .*, ::, 和 ?: 不在此列表中。
+下表列出了可以重载的操作符，指明了它们应该是类的成员函数，还是全局函数，总结了何时应该（或不应该）重载，并提供了示例，展示了正确的参数和返回值类型。不能重载的操作符，如 ., .*, ::, 和 ?: 不在此列表中。
 
 想要重载操作符时，这个表格是一个有用的参考。可能会忘记应该使用哪种返回类型，以及该函数是否应该是成员函数。
 
-此表中，T 是编写重载操作符的类的名称，E 是不同的类型。给出的示例并不详尽；通常对于给定的操作符，T 和 E 之间可能有其他组合：
+表中T 是编写重载操作符的类的名称，E 是不同的类型。给出的示例并不详尽；通常对于给定的操作符，T 和 E 之间可能有其他组合：
 
 % Please add the following required packages to your document preamble:
 % \usepackage[normalem]{ulem}
@@ -117,8 +117,8 @@ println("{}", (++x, 2 * x)); // Increments x to 2, doubles it, and prints 4.
 % Note: It may be necessary to compile the document several times to get a multi-page table to line up properly
 \begin{longtable}{|l|l|l|l|l|}
 \hline
-\textbf{运算符} &
-\textbf{\begin{tabular}[c]{@{}l@{}}名称\\类别\end{tabular}} &
+\textbf{操作符} &
+\textbf{\begin{tabular}[c]{@{}l@{}}名称类别\end{tabular}} &
 \textbf{\begin{tabular}[c]{@{}l@{}}成员函数\\全局函数\end{tabular}} &
 \textbf{\begin{tabular}[c]{@{}l@{}}何时重载\end{tabular}} &
 \textbf{\begin{tabular}[c]{@{}l@{}}示例\end{tabular}} \\ \hline
@@ -131,7 +131,7 @@ println("{}", (++x, 2 * x)); // Increments x to 2, doubles it, and prints 4.
 \begin{tabular}[c]{@{}l@{}}推荐为\\全局函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}想为类提供\\这些操作，\\就可以重载\\二元算术\\操作符。
 \end{tabular} &
-\begin{tabular}[c]{@{}l@{}}T operator+(const\\ T\&, const T\&);\\ T operator+(const\\ T\&, const E\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}T operator+(const T\&, const T\&);\\ T operator+(const T\&, const E\&);\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator\\ operator+\\ operator˜\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}一元算术\\和位操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
@@ -149,67 +149,67 @@ T\& operator++(); \\ \hline
 \begin{tabular}[c]{@{}l@{}}重载有\\算术参数\\的+=和-=时\\(int, long，…)\end{tabular} &
 T operator++(int); \\ \hline
 operator= &
-\begin{tabular}[c]{@{}l@{}}赋值运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}赋值操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}必须为\\成员函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}当类具有动态\\分配的资源或\\引用成员时\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}T\& operator=(const\\ T\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}T\& operator=(const T\&);\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator+=\\ operator-=\\ operator*=\\ operator/=\\ operator\%=\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}简写/复合\\算术赋值\\运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}简写/复合\\算术赋值\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}重载二元算\\术运算符时，\\类不可变\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}T\& operator+=(const\\ T\&);\\ T\& operator+=(const\\ E\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}重载二元算\\术操作符时，\\类不可变\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}T\& operator+=(const T\&);\\ T\& operator+=(const E\&);\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator\textless{}\textless\\ operator\textgreater{}\textgreater\\ operator\&\\ operator|\\ operator\textasciicircum{}\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}二元位运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}二元位操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\全局函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}只要想，\\就可以重载\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}T operator\textless{}\textless{}(const\\ T\&, const T\&);\\ T operator\textless{}\textless{}(const\\ T\&, const E\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}T operator\textless{}\textless{}(const T\&, const T\&);\\ T operator\textless{}\textless{}(const T\&, const E\&);\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator\textless{}\textless{}=\\ operator\textgreater{}\textgreater{}=\\ operator\&=\\ operator|=\\ operator\textasciicircum{}=\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}简写/复合\\位赋值运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}简写/复合\\位赋值操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}重载二元算\\术运算符时，\\类不可变\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}T\& operator\textless{}\textless{}=(const\\ T\&);\\ T\& operator\textless{}\textless{}=(const\\ E\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}重载二元算\\术操作符时，\\类不可变\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}T\& operator\textless{}\textless{}=(const T\&);\\ T\& operator\textless{}\textless{}=(const E\&);\end{tabular} \\ \hline
 operator\textless{}=\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}三向比较\\运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}三向比较\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}当为类提\\供比较支持\\时;如果\\可能的话，\\应该使用\\=default\\作为默认值\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}auto\\ operator\textless{}=\textgreater{}(const\\ T\&) const = default;\\ partial\_ordering\\ operator\textless{}=\textgreater{}(const\\ E\&) const;\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}auto\\ operator\textless{}=\textgreater{}(const T\&) const = default;\\ partial\_ordering\\ operator\textless{}=\textgreater{}(const E\&) const;\end{tabular} \\ \hline
 operator== &
-\begin{tabular}[c]{@{}l@{}}二元相等\\运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}二元相等\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}C++20后:\\推荐为\\成员函数\\C++ 20前:\\推荐为\\全局函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}当为类提\\供比较支\\持，并且\\不能默认\\使用三向\\比较操作\\符时\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}bool operator==(const\\ T\&) const;\\ bool operator==(const\\ E\&) const;\\ bool operator==(const\\ T\&, const T\&);\\ bool operator==(const\\ T\&, const E\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}bool operator==(const T\&) const;\\ bool operator==(const E\&) const;\\ bool operator==(const T\&, const T\&);\\ bool operator==(const T\&, const E\&);\end{tabular} \\ \hline
 operator!= &
-\begin{tabular}[c]{@{}l@{}}二元不等\\运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}二元不等\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}C++20后:\\推荐为\\成员函数\\C++ 20前:\\推荐为\\全局函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}C++20后:\\不需要，\\因为编译\\器在支持\\==时自动\\提供!=;\\ C++ 20前:\\当为类提\\供比较支\\持时\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}bool operator!=(const\\ T\&) const;\\ bool operator!=(const\\ E\&) const;\\ bool operator!=(const\\ T\&, const T\&);\\ bool operator!=(const\\ T\&, const E\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}bool operator!=(const T\&) const;\\ bool operator!=(const E\&) const;\\ bool operator!=(const T\&, const T\&);\\ bool operator!=(const T\&, const E\&);\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator\textless\\ operator\textgreater\\ operator\textless{}=\\ operator\textgreater{}=\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}二元比较\\运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}二元比较\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\全局函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}想提供这\\些操作时;\\不需要<=>\\时\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}bool operator\textless{}(const\\ T\&, const T\&);\\ bool operator\textless{}(const\\ T\&, const E\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}bool operator\textless{}(const T\&, const T\&);\\ bool operator\textless{}(const T\&, const E\&);\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator\textless{}\textless\\ operator\textgreater{}\textgreater{}\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}I/O流\\操作符\\(插入和提取)\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}必须为\\全局函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}想要提供\\这些操作时\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}ostream\&\\ operator\textless{}\textless{}(ostream\&,\\ const T\&);\\ istream\&\\ operator\textgreater{}\textgreater{}(istream\&,\\ T\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}ostream\&\\ operator\textless{}\textless{}(ostream\&, const T\&);\\ istream\&\\ operator\textgreater{}\textgreater{}(istream\&, T\&);\end{tabular} \\ \hline
 operator! &
-\begin{tabular}[c]{@{}l@{}}布尔运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}布尔操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}很少重载;\\请使用bool\\或void*转换\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}bool operator!()\\ const;\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}bool operator!() const;\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator\&\&\\ operator||\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}二元布尔\\运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}二元布尔\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\全局函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}很少重载，\\会失去短\\路特性;\\最好重载\\\&和|，\\它们永远\\不会短路\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}bool operator\&\&(const\\ T\&, const T\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}bool operator\&\&(const T\&, const T\&);\end{tabular} \\ \hline
 operator{[}{]} &
 \begin{tabular}[c]{@{}l@{}}下标\\(数组索引)\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}必须为\\成员函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}想支持下\\标时\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}E\& operator{[}{]}\\ (size\_t);\\ const E\& operator{[}{]}\\ (size\_t) const;\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}E\& operator{[}{]} (size\_t);\\ const E\& operator{[}{]} (size\_t) const;\end{tabular} \\ \hline
 operator() &
-\begin{tabular}[c]{@{}l@{}}函数运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}函数操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}必须为\\成员函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}想让对象\\表现得像\\函数指针时\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}返回类型和参数可以不同\end{tabular} \\ \hline
@@ -217,29 +217,29 @@ operator type() &
 \begin{tabular}[c]{@{}l@{}}转换或强制\\转换操作符\\(类型独立\\的操作符)\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}必须为\\成员函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}想进行类\\型转换时\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}operator double()\\ const;\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}operator double() const;\end{tabular} \\ \hline
 operator ""\_x &
-\begin{tabular}[c]{@{}l@{}}自定义\\字面量\\运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}自定义\\字面量\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}必须为\\全局函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}希望支持\\自定义字\\面量时\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}T operator""\_i(long\\ double d);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}T operator""\_i(long double d);\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator new\\ operator new{[}{]}\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}内存分配\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}建议为\\成员函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}想要控制\\类的内存\\分配时\\(很少用)\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}void* operator\\ new(size\_t size);\\ void* operator new{[}{]}\\ (size\_t size);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}void* operator new(size\_t size);\\ void* operator new{[}{]} (size\_t size);\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator delete\\ operator delete{[}{]}\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}内存释放\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}建议为\\成员函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}想要控制\\类的内存\\分配时\\(很少用)\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}void operator\\ delete(void* ptr)\\ noexcept;\\ void operator\\ delete{[}{]}(void* ptr)\\ noexcept;\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}void operator delete(void* ptr) noexcept;\\ void operator delete{[}{]}(void* ptr) noexcept;\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator*\\ operator-\textgreater{}\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}解引用\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}operator*：\\建议为\\成员函数\\ operator-\textgreater{}：\\必须为\\成员函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}对智能指针\\有用\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}E\& operator*() const;\\ E* operator-\textgreater{}()\\ const;\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}E\& operator*() const;\\ E* operator-\textgreater{}() const;\end{tabular} \\ \hline
 operator\& &
-\begin{tabular}[c]{@{}l@{}}取地址\\运算符\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}取地址\\操作符\end{tabular} &
 N/A &
 从不 &
 N/A \\ \hline
@@ -257,25 +257,25 @@ N/A \\ \hline
 
 \mySubsubsection{15.1.6.}{右值引用}
 
-第9章讨论了移动语义和右值引用，通过定义移动赋值运算符来展示这些概念，编译器在源对象是一个临时对象且在赋值后会销毁，或者使用 std::move() 明确从某个对象移动时，会使用这些移动赋值运算符。前一个表中的普通赋值运算符有以下原型：
+第9章讨论了移动语义和右值引用，通过定义移动赋值操作符来展示这些概念，编译器在源对象是一个临时对象且在赋值后会销毁，或者使用 std::move() 明确从某个对象移动时，会使用这些移动赋值操作符。前一个表中的普通赋值操作符有以下原型：
 
 \begin{cpp}
 T& operator=(const T&);
 \end{cpp}
 
-移动赋值运算符有相同原型，但它使用右值引用，修改了参数，使其不能作为 const 传递。有关详细信息，请参阅第9章。
+移动赋值操作符有相同原型，但它使用右值引用，修改了参数，使其不能作为 const 传递。有关详细信息，请参阅第9章。
 
 \begin{cpp}
 T& operator=(T&&) noexcept;
 \end{cpp}
 
-前一个表没有包含使用右值引用的示例原型，对于大多数运算符来说，使用普通左值引用的版本和使用右值引用的版本都可以，但是否合理则取决于类的实现细节。operator= 是第9章的一个示例，另一个示例是 operator+，以避免不必要的内存分配。例如，标准库中的 std::string 类实现了使用右值引用的 operator+，如下所示（简化过）：
+前一个表没有包含使用右值引用的示例原型，对于大多数操作符来说，使用左值引用的版本和使用右值引用的版本都可以，但是否合理则取决于类的实现细节。operator= 是第9章的示例，另一个示例是 operator+，以避免不必要的内存分配。标准库中的 std::string 类实现了使用右值引用的 operator+，如下所示（简化过）：
 
 \begin{cpp}
 string operator+(string&& lhs, string&& rhs);
 \end{cpp}
 
-这个运算符的实现重用了其中一个参数的内存，它们作为右值引用传递，所以两者都是临时对象，当这个 operator+ 完成时销毁。根据两个操作数的大小和容量，这个 operator+ 的实现具有以下效果：
+这个操作符的实现重用了其中一个参数的内存，作为右值引用传递，所以两者都是临时对象，当 operator+ 完成时销毁。根据两个操作数的大小和容量， operator+ 的实现具有以下效果：
 
 \begin{cpp}
 return move(lhs.append(rhs));
@@ -296,7 +296,7 @@ string operator+(const string& lhs, string&& rhs); // Can reuse memory of rhs.
 string operator+(string&& lhs, string&& rhs); // Can reuse memory of lhs or rhs.
 \end{cpp}
 
-重用一个右值引用参数的内存的实现方式与第9章中的移动赋值运算符相同。
+重用一个右值引用参数的内存的实现方式与第9章中的移动赋值操作符相同。
 
 \mySubsubsection{15.1.7.}{优先级和结合性}
 
@@ -304,7 +304,7 @@ string operator+(string&& lhs, string&& rhs); // Can reuse memory of lhs or rhs.
 
 结合性可以是左到右或右到左，指定了具有相同优先级的操作符的执行顺序。
 
-下表列出了所有可用 C++ 操作符的优先级和结合性，包括那些不能重载的操作符，以及本书中尚未提及的操作符。具有较低优先级编号的操作符，将在具有较高优先级编号的操作符之前执行。在表中，T 表示类型，而 x、y 和 z 表示对象：
+下表列出了所有可用 C++ 操作符的优先级和结合性，包括那些不能重载的操作符，以及本书中尚未提及的操作符。具有较低优先级编号的操作符，将在具有较高优先级编号的操作符之前执行。表中，T 表示类型，而 x、y 和 z 表示对象：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -341,7 +341,7 @@ string operator+(string&& lhs, string&& rhs); // Can reuse memory of lhs or rhs.
 
 \mySubsubsection{15.1.8.}{关系操作符}
 
-<utility>头文件中的 std::rel\_ops 命名空间中定义了以下一组关系操作符的函数模板：
+<utility>头文件中的 std::rel\_ops 命名空间中定义了一组关系操作符的函数模板：
 
 \begin{cpp}
 template<class T> bool operator!=(const T& a, const T& b);// Needs operator==
@@ -354,19 +354,19 @@ template<class T> bool operator>=(const T& a, const T& b);// Needs operator<
 
 然而，这种技术存在很多问题。第一个问题是，这些操作符可能会在关系操作中的所有类创建。
 
-第二个问题是，像 std::greater<T> 这样的工具模板（在第19章中介绍）与自动生成的这些关系操作符不兼容。
+第二个问题是，像 std::greater<T> 这样的工具模板（第19章）与自动生成的这些关系操作符不兼容。
 
 另一个问题是，无法隐式转换。
 
 最后，由于 C++20 的三向比较操作符，以及 C++20 已经弃用了 std::rel\_ops 命名空间，因此没有理由再使用 rel\_ops 了。
 
 \begin{myWarning}{WARNING}
-永远不要使用 std::rel\_ops， C++20 开始已经将其弃用！相反，要为一个类添加对所有六个比较操作符的支持，只需显式默认或实现 operator<=>，并可能为该类实现 operator==。详情请参见第9章。
+永远不要使用 std::rel\_ops， C++20 开始已经将其弃用！要为一个类添加对所有六个比较操作符的支持，只需显式默认或实现 operator<=>，并可能为该类实现 operator==。详情请参见第9章。
 \end{myWarning}
 
 \mySubsubsection{15.1.9.}{替代表示法}
 
-C++ 支持以下替代表示法供选择的运算符使用。这些主要在旧代码中使用，当时使用的字符集不包括某些字符，如 ~、| 和 \^{}。
+C++ 支持以下替代表示法供选择的操作符使用。这些主要在旧代码中使用，当时使用的字符集不包括某些字符，如 $\sim$、| 和 \^{}。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}

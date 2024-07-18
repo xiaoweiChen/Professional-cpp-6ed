@@ -1,5 +1,5 @@
 
-C++ 允许重新定义程序中内存分配和释放的方式，可以在全局级别和类级别提供这种定制。当担心内存碎片化时，这种能力最有用，这通常发生在大量分配和释放小对象时。例如，每次需要内存时，不必总是使用默认的 C++ 内存分配，可以编写一个内存池分配器，重用固定大小的内存块。这一节解释了内存分配和释放例程的微妙之处，并展示了如何进行定制。有了这些工具，应该能够编写自己的分配器。
+C++ 允许重新定义程序中内存分配和释放的方式，可以在全局级别和类级别提供这种定制。当担心内存碎片化时，这种能力最有用，这通常发生在大量分配和释放小对象时。每次需要内存时，不必总是使用默认的 C++ 内存分配，可以编写一个内存池分配器，重用固定大小的内存块。这一节解释了内存分配和释放的微妙之处，并展示了如何进行定制。有了这些工具，应该能够编写自己的分配器。
 
 \begin{myWarning}{WARNING}
 除非对内存分配策略有深入的了解，否则尝试重载内存分配例程通常不值得。不要仅仅因为听起来不错，就去重载它们。只有在真正的需求和必要的知识时再这样做。
@@ -7,7 +7,7 @@ C++ 允许重新定义程序中内存分配和释放的方式，可以在全局�
 
 \mySubsubsection{15.9.1.}{new 和 delete 的工作原理}
 
-C++ 中最棘手的一个方面之一是 new 和 delete 的细节。看看以下代码行：
+C++ 中最棘手的是 new 和 delete ：
 
 \begin{cpp}
 SpreadsheetCell* cell { new SpreadsheetCell {} };
@@ -23,11 +23,11 @@ delete cell;
 
 这行代码称为 delete 表达式，首先调用 cell 的析构函数，然后调用 operator delete 来释放内存。
 
-可以重载 operator new 和 operator delete 来控制内存分配和释放，但不能重载 new 表达式或 delete 表达式。因此，可以自定义实际的内存分配和释放，但不能自定义调用构造函数和析构函数。
+可以重载 new 和 delete 操作符来控制内存分配和释放，但不能重载 new 或 delete 表达式。可以自定义实际的内存分配和释放，但不能自定义调用构造函数和析构函数。
 
-\mySamllsection{new表达式和 operator new}
+\mySamllsection{new表达式和 new操作符}
 
-new 表达式有六种不同的形式，每种形式都有一个对应形式的 operator new。本书前面的章节已经展示了四种 new 表达式：new、new[]、new(nothrow) 和 new(nothrow)[]。以下列表显示了在 <new> 中定义的四个 operator new 重载：
+new 表达式有六种不同的形式，每种形式都有一个对应形式的 new操作符。本书前面的章节已经展示了四种 new 表达式：new、new[]、new(nothrow) 和 new(nothrow)[]。以下列表显示了在 <new> 中定义的四个 new 操作符重载：
 
 \begin{cpp}
 void* operator new(std::size_t size);
@@ -36,14 +36,14 @@ void* operator new(std::size_t size, const std::nothrow_t&) noexcept;
 void* operator new[](std::size_t size, const std::nothrow_t&) noexcept;
 \end{cpp}
 
-有两种特殊的 new 表达式，它们不会进行分配，但会在已经分配的内存上调用构造函数，这称为放置 new 运算符（包括单数和数组形式），允许在预先分配的内存中构造对象：
+有两种特殊的 new 表达式，不会进行分配，但会在已经分配的内存上调用构造函数，这称为放置 new 操作符（包括单数和数组形式），允许在预先分配的内存中构造对象：
 
 \begin{cpp}
 void* ptr { allocateMemorySomehow() };
 SpreadsheetCell* cell { new (ptr) SpreadsheetCell {} };
 \end{cpp}
 
-对应于这些的 operator new 重载如下所示，C++ 会禁止重载它们：
+对应于这些的 new 操作符的重载如下所示，C++ 会禁止重载：
 
 \begin{cpp}
 void* operator new(std::size_t size, void* p) noexcept;
@@ -52,13 +52,13 @@ void* operator new[](std::size_t size, void* p) noexcept;
 
 这个特性有点晦涩，但重要的是要知道它的存在。它可以在你想要实现内存池时派上用场，重用内存而非频繁分配和释放。这允许构造和析构对象的实例，而无需为每个新实例重新分配内存。第29章给出了一个内存池实现的示例。
 
-\mySamllsection{delete 表达式和 operator delete}
+\mySamllsection{delete 表达式和 delete操作符}
 
-可以调用的 delete 表达式只有两种形式：delete 和 delete[]；没有 nothrow 或放置形式。然而，这里有六个 operator delete 重载。
+可以调用的 delete 表达式只有两种形式：delete 和 delete[]；没有 nothrow 或放置形式，而这里有六个 delete 操作符重载。
 
-为什么不对称呢？两个 nothrow 和两个放置重载只在构造函数抛出异常时使用。这种情况下，operator delete 调用与在构造函数调用之前用于分配内存的 operator new 匹配。然而，如果正常删除一个指针，delete 调用 operator delete，delete[] 调用 operator delete[]（永远不会调用 nothrow 或放置形式）。实际上这并不重要，因为 C++ 标准指出，从 delete 抛出异常（例如，从由 delete 调用的析构函数）会导致未定义行为，这意味着 delete 无论如何都不应该抛出异常，所以 operator delete 的 nothrow 重载多余。此外，放置 delete 应该是一个空操作，因为放置 new 并没有分配内存，所以无需释放。
+为什么不对称呢？两个 nothrow 和两个放置重载只在构造函数抛出异常时使用。delete 操作符调用与在构造函数调用之前用于分配内存的 new 操作符匹配，如果正常删除一个指针，delete 调用 delete操作符，delete[] 调用 delete[]操作符（永远不会调用 nothrow 或放置形式）。实际上这并不重要，因为 C++ 标准指出，从 delete 抛出异常（由 delete 调用的析构函数）会导致未定义行为，delete 无论如何都不应该抛出异常，所以 delete 操作符的 nothrow 重载多余。此外，放置 delete 应该是一个空操作，因为放置 new 并没有分配内存，所以无需释放。
 
-以下是六个 operator delete 重载的声明，对应于六个 operator new 重载：
+以下是六个 delete 操作符重载的声明，对应于六个 new 操作符重载：
 
 \begin{cpp}
 void operator delete(void* ptr) noexcept;
@@ -69,17 +69,17 @@ void operator delete(void* ptr, void*) noexcept;
 void operator delete[](void* ptr, void*) noexcept;
 \end{cpp}
 
-\mySubsubsection{15.9.2.}{重载 operator new 和 operator delete}
+\mySubsubsection{15.9.2.}{重载 new 和 delete操作符}
 
-可以替换全局的 operator new 和 operator delete ，这些函数在程序中的每个 new 表达式和 delete 表达式都会调用。然而，引用 Bjarne Stroustrup 的话：“... 替换全局的 operator new 和 operator delete 不要轻率为之”（《C++ 编程语言》第三版，Addison-Wesley，1997）。我也不推荐这么做！
+可以替换全局的 new 和 delete 操作符，这些函数在程序中的每个 new 表达式和 delete 表达式都会调用。然而，引用 Bjarne Stroustrup 的话：“... 不要轻率的替换全局  new 和 delete 操作符”（《C++ 编程语言》第三版，Addison-Wesley，1997）。我也不推荐这么做！
 
 \begin{myWarning}{WARNING}
-如果不接受我的建议，决定替换全局的 operator new，请记住你无法在 operator 中放置任何调用 new 的代码，这会导致无限递归。例如，不能写一条消息到控制台。
+如果不接受我的建议，决定替换全局的 new操作符，请记住你无法在 操作符 中放置调用 new 的代码，这会导致无限递归。例如，不能写一条消息到控制台。
 \end{myWarning}
 
-一个更有用的技术是为特定类重载 operator new 和 operator delete，这些重载的操作符只有在分配和释放该特定类的对象时才会调用。
+一个更有用的技术是为特定类重载 new 和 delete操作符，这些重载的操作符只有在分配和释放该特定类的对象时才会调用。
 
-以下是重载了四种非放置形式的 operator new 和 operator delete 的类的例子：
+以下是重载了四种非放置形式的 new 和 delete 操作符例子：
 
 \begin{cpp}
 export class MemoryDemo
@@ -97,7 +97,7 @@ export class MemoryDemo
 };
 \end{cpp}
 
-以下是这些操作符的实现，只是向标准输出写入一条消息，并通过调用全局版本的操作符来传递参数。请注意，nothrow 实际上是一个 nothrow\_t 类型的变量。
+以下是这些操作符的实现，只是向标准输出写入一条消息，并通过调用全局版本的操作符来传递参数。注意，nothrow 实际上是一个 nothrow\_t 类型的变量。
 
 \begin{cpp}
 void* MemoryDemo::operator new(size_t size)
@@ -142,7 +142,7 @@ void MemoryDemo::operator delete[](void* ptr, const nothrow_t&) noexcept
 }
 \end{cpp}
 
-以下是分配和释放该类对象的代码示例，以几种不同的方式进行：
+以下是分配和释放该类对象的代码示例：
 
 \begin{cpp}
 MemoryDemo* mem { new MemoryDemo{} };
@@ -168,21 +168,21 @@ operator new[] nothrow
 operator delete[]
 \end{shell}
 
-这些 operator new 和 operator delete 的实现很简单，并没有太大用处，只是为了展示语法示例。
+这些 new 和 delete 操作符的实现很简单，并没有太大用处，只是为了展示语法示例。
 
 \begin{myWarning}{WARNING}
-无论何时重载 operator new，都应重载对应的 operator delete 形式。否则，内存将按照指定的方式分配，但释放时将遵循内置语义，这可能不兼容。
+无论何时重载 new操作符，都应重载对应的 delete 操作符形式。否则，内存将按照指定的方式分配，但释放时将遵循内置语义，这可能不兼容。
 \end{myWarning}
 
-为所有各种形式的 operator new 和 operator delete 重载可能看起来过于复杂，但这样做是为了避免内存分配中的不一致性。如果不想为某些重载提供实现，可以使用 =delete 显式删除这些，以避免任何人使用。
+为所有各种形式的 new 和 delete 操作符重载可能看起来过于复杂，但这样做是为了避免内存分配中的不一致性。如果不想为某些重载提供实现，可以使用 =delete 显式删除这些，以避免其他人使用。
 
 \begin{myWarning}{WARNING}
-重载所有形式的 operator new 和 operator delete，或者显式删除你不希望使用的重载，避免内存分配中的不一致。
+重载所有形式的 new 和 delete操作符，或者显式删除不希望使用的重载，避免内存分配中的不一致。
 \end{myWarning}
 
-\mySubsubsection{15.9.3.}{显式删除或默认 operator new 和 operator delete}
+\mySubsubsection{15.9.3.}{显式删除或默认 new 和 delete操作符}
 
-第8章展示了如何显式删除或默认一个构造函数或赋值运算符，显式删除或默认不仅仅限于构造函数和赋值运算符。例如，以下类删除了 operator new 和 new[]，所以这个类的对象不能使用 new 或 new[] 动态分配：
+第8章展示了如何显式删除或默认一个构造函数或赋值操作符，显式删除或默认不仅仅限于构造函数和赋值操作符。以下类删除了 new 和 new[]操作符，所以这个类的对象不能使用 new 或 new[] 动态分配：
 
 \begin{cpp}
 class MyClass
@@ -203,11 +203,11 @@ MyClass* p2 { new MyClass[2] };
 MyClass* p3 { new (std::nothrow) MyClass };
 \end{cpp}
 
-\mySubsubsection{15.9.4.}{带有额外参数的重载 operator new 和 operator delete}
+\mySubsubsection{15.9.4.}{带有额外参数的重载 new 和 delete操作符}
 
-除了重载 operator new 的标准形式，还可以编写带有参数的版本。这些额外参数可以用于向内存分配例程传递各种标志或计数器。例如，一些运行时库在调试模式下使用此方法，在对象分配时提供文件名和行号，以便在发生内存泄漏时可以确定进行分配的行。
+除了重载 operator new 的标准形式，还可以编写带有参数的版本。这些参数可以用于，向内存分配例程传递各种标志或计数器。例如，一些运行时库在调试模式下使用此方法，在对象分配时提供文件名和行号，以便在发生内存泄漏时可以确定进行分配的行。
 
-作为示例，以下是对 MemoryDemo 类的额外 operator new 和 operator delete 的原型，带有一个整数参数：
+作为示例，以下是对 MemoryDemo 类 new 和 delete 操作符的声明，带有一个整数参数：
 
 \begin{cpp}
 void* operator new(std::size_t size, int extra);
@@ -229,7 +229,7 @@ void MemoryDemo::operator delete(void* ptr, int extra) noexcept
 }
 \end{cpp}
 
-当实现带有参数的 overloaded operator new 时，编译器会自动允许相应的 new 表达式。new 表达式中外参数，通过函数调用语法传递（与 nothrow 重载一样）。因此，可以这样实现：
+当实现带有参数的 new 操作符重载时，编译器会自动允许相应的 new 表达式。new 表达式中的参数，通过函数调用语法传递（与 nothrow 重载一样），可以这样实现：
 
 \begin{cpp}
 MemoryDemo* memp { new(5) MemoryDemo{} };
@@ -243,17 +243,17 @@ operator new with extra int: 5
 operator delete
 \end{shell}
 
-当定义带有参数的 operator new 时，也应该定义相应的带有相同参数的 operator delete。然而，不能自己调用这个带有参数的 operator delete；它只能在使用带有参数的 operator new，并且对象的构造函数抛出异常时才会调用。
+当定义带有参数的 new 操作符时，也应该定义相应的带有相同参数的 delete操作符。然而，不能自己调用这个带有参数的 delete操作符，只能在使用带有参数的 new操作符，并且对象的构造函数抛出异常时才会调用。
 
-\mySubsubsection{15.9.5.}{带有内存大小参数的 operator delete重载}
+\mySubsubsection{15.9.5.}{带有内存大小参数的 delete操作符重载}
 
-operator delete 的一个替代形式允许你获得应该释放的内存的大小以及指针，只需声明 operator delete 的原型，带有一个 size 参数。
+delete 操作符的一个替代形式允许你获得应该释放的内存的大小以及指针，只需声明 delete 操作符的原型，带有一个 size 参数。
 
 \begin{myWarning}{WARNING}
-如果一个类声明了两个 operator delete 重载，其中一个重载带有大小参数，而另一个不带，那么不带大小参数的重载将始终调用。如果想使用带有大小参数的重载，只需实现那个重载。
+如果一个类声明了两个 delete 操作符重载，其中一个重载带有大小参数，而另一个不带，那么不带大小参数的重载将始终调用。如果想使用带有大小参数的重载，只需实现那个重载。
 \end{myWarning}
 
-可以用一个带有 size 参数的重载替换 operator delete 的任何版本。这里是对 MemoryDemo 类定义的修改，其中第一个 operator delete 修改为接受要删除的内存大小：
+可以用一个带有 size 参数的重载替换 delete 操作符的任何版本。这里是对 MemoryDemo 类定义的修改，其中第一个 delete 操作符修改为接受要删除的内存大小：
 
 \begin{cpp}
 export class MemoryDemo
@@ -266,7 +266,7 @@ export class MemoryDemo
 };
 \end{cpp}
 
-这个 operator delete 的实现，简单地调用全局的 operator delete：
+这个 delete 操作符的实现，简单地调用全局的 delete 操作符：
 
 \begin{cpp}
 void MemoryDemo::operator delete(void* ptr, size_t size) noexcept

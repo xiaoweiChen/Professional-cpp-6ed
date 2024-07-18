@@ -1,9 +1,9 @@
 
-第9章展示了如何编写二元算术运算符和简写算术赋值运算符，但没有介绍如何重载其他算术运算符。
+第9章展示了如何编写二元算术操作符和简写算术赋值操作符，但没有介绍如何重载其他算术操作符。
 
 \mySubsubsection{15.2.1.}{重载一元加减}
 
-C++ 有几个一元算术操作符。其中两个是一元减（-）和一元加（+）。以下是一个使用整数的一元操作符的示例：
+C++ 有几个一元算术操作符。其中两个是一元减（-）和一元加（+）。以下是使用整数的一元操作符的示例：
 
 \begin{cpp}
 int i, j { 4 };
@@ -13,9 +13,9 @@ j = +(-i); // Apply unary plus to the result of applying unary minus to i.
 j = -(-i); // Apply unary minus to the result of applying unary minus to i.
 \end{cpp}
 
-一元减取操作数的相反数，而一元加直接返回操作数。注意，可以对一元加或一元减的结果应用一元加或一元减。这些操作符不改变调用的对象，因此应该使它们成为const成员函数。
+一元减取操作数的相反数，而一元加直接返回操作数，可以对一元加或一元减的结果应用一元加或一元减。这些操作符不改变调用的对象，因此应该使它们成为const成员函数。
 
-以下是一个一元减操作符作为 SpreadsheetCell 类的成员函数的示例。一元加通常是一个恒等操作，所以这个类没有重载。
+以下是一元减操作符作为 SpreadsheetCell 类的成员函数的示例。一元加通常是一个恒等操作，所以这个类没有重载。
 
 \begin{cpp}
 SpreadsheetCell SpreadsheetCell::operator-() const
@@ -24,7 +24,7 @@ SpreadsheetCell SpreadsheetCell::operator-() const
 }
 \end{cpp}
 
-operator- 不改变操作数，因此这个成员函数必须构造一个新的 SpreadsheetCell， 并返回它的相反值。因此，不能返回引用。可以像这样使用这个操作符：
+operator- 不改变操作数，这个成员函数必须构造一个新的 SpreadsheetCell，并返回它的相反值，所以不能返回引用。可以像这样使用这个操作符：
 
 \begin{cpp}
 SpreadsheetCell c1 { 4 };
@@ -33,7 +33,7 @@ SpreadsheetCell c3 { -c1 };
 
 \mySubsubsection{15.2.2.}{重载增减量操作符}
 
-有多种方法可以将1加到变量：
+有多种方法可以将1加到变量中：
 
 \begin{cpp}
 i = i + 1;
@@ -43,11 +43,11 @@ i += 1;
 i++;
 \end{cpp}
 
-最后两种形式称为增量操作符。第一个是前置增量，将1加到变量，然后返回新增加的值，以供表达式的其余部分使用。第二个是后置增量，也将1加到变量，但返回旧的（未增加的）值，以供表达式的其余部分使用。减量操作符的工作方式类似。
+最后两种形式称为增量操作符。第一个是前置增量，将1加到变量，返回新增加的值，以供表达式的其余部分使用。第二个是后置增量，也将1加到变量，但返回旧的（未增加的）值，以供表达式的其余部分使用。减量操作符的工作方式类似。
 
-想要重载 operator++ 和 operator-- 时，可能具有的前置和后置含义提出了一个问题。例如，当编写一个重载的 operator++ 时，如何指定是在重载前置版本还是后置版本？C++ 引入了一个技巧来允许你做出这种区分：前置版本的 operator++ 和 operator-- 不接受参数，而后置版本接受一个未使用的类型为 int 的参数。
+想要重载 operator++ 和 operator-{}- 时，可能具有的前置和后置含义提出了一个问题。当编写一个重载的 operator++ 时，如何指定是在重载前置版本，还是后置版本？C++ 引入了一个技巧来做出这种区分：前置版本的 operator++ 和 operator-{}- 不接受参数，而后置版本接受一个未使用的类型 int 为参数。
 
-SpreadsheetCell 类的这些重载操作符的原型如下：
+SpreadsheetCell 类的重载操作符：
 
 \begin{cpp}
 SpreadsheetCell& operator++(); // Prefix
@@ -56,7 +56,7 @@ SpreadsheetCell& operator--(); // Prefix
 SpreadsheetCell operator--(int); // Postfix
 \end{cpp}
 
-前置形式的返回值与操作数的最终值相同，因此前置增量和减量可以返回对调用对象的引用。然而，后置增量和减量的返回值与操作数的最终值不同，因此不能返回引用。
+前置形式的返回值与操作数的最终值相同，所以前置增量和减量可以返回对调用对象的引用。后置增量和减量的返回值与操作数的最终值不同，因此不能返回引用。
 
 以下是 operator++ 的实现：
 
@@ -79,7 +79,7 @@ SpreadsheetCell SpreadsheetCell::operator++(int)
 建议以后置操作符的形式实现前置操作符。
 \end{myNotic}
 
-operator-- 的实现几乎相同。现在可以随心所欲地增量和减量 SpreadsheetCell 对象了：
+operator-{}- 的实现几乎相同。现在可以随心所欲地增量和减量 SpreadsheetCell 对象了：
 
 \begin{cpp}
 SpreadsheetCell c1 { 4 };
@@ -88,7 +88,7 @@ c1++;
 ++c2;
 \end{cpp}
 
-增量和减量操作符也适用于指针。例如，使用智能指针类时，可以重载 operator++ 和 operator-- ，用以提供指针增减量功能。
+增量和减量操作符也适用于指针。例如，使用智能指针类时，可以重载 operator++ 和 operator-{}- ，用以提供指针增减量功能。
 
 
 

@@ -1,5 +1,5 @@
 
-假设你从未听说过标准库中的 vector 或数组类模板，因此决定自己编写一个动态分配数组的类。这个类将允许你在指定的索引处设置和检索元素，并会在后台处理所有的内存分配。动态分配数组的类定义看起来可能像这样：
+假设从未听说过标准库中的 vector 或数组类模板，因此决定自己编写一个动态分配数组的类。这个类将允许在指定的索引处设置和检索元素，并会在后台处理内存分配。动态分配数组的类定义看起来可能像这样：
 
 \begin{cpp}
 export template <typename T>
@@ -105,9 +105,9 @@ template <typename T> std::size_t Array<T>::getSize() const noexcept
 }
 \end{cpp}
 
-注意 resize() 成员函数的异常安全实现。首先，使用 make\_unique() 创建一个适当大小的数组，并将其存储在一个 unique\_ptr 中，再将所有元素从旧数组复制到新数组。如果在复制值时发生问题，unique\_ptr 会自动清理新分配的内存。最后，当新数组的分配和所有元素的复制成功完成，即没有抛出异常时，我们才删除旧的 m\_elements 数组，并将新数组赋给它。最后一行必须使用 release() 来释放 unique\_ptr 对新数组的所有权；否则，当 unique\_ptr 的析构函数调用时，数组将销毁。
+注意 resize() 成员函数的异常安全实现。首先，使用 make\_unique() 创建一个适当大小的数组，并将其存储在一个 unique\_ptr 中，再将所有元素从旧数组复制到新数组。如果在复制值时发生问题，unique\_ptr 会自动清理新分配的内存。最后，当新数组的分配和所有元素的复制成功完成，即没有抛出异常时，才删除旧的 m\_elements 数组，并将新数组赋给它。最后一行必须使用 release() 来释放 unique\_ptr 对新数组的所有权；否则，当 unique\_ptr 的析构函数调用时，数组将销毁。
 
-为了保证强异常安全性（参见第14章），resize() 复制了旧数组中的元素到新分配的数组中。第26章中实现了一个 move\_assign\_if\_noexcept() 辅助函数，这个辅助函数可以在 resize() 的实现中使用，以便在元素类型标记为 noexcept 的移动赋值运算符时，将元素从旧数组移动到新数组，如果不是这种情况，将复制元素。有了这个变化，无论元素是移动还是复制，强异常安全性都能得到保证。
+为了保证强异常安全性（参见第14章），resize() 复制了旧数组中的元素到新分配的数组中。第26章中实现了一个 move\_assign\_if\_noexcept() 辅助函数，这个辅助函数可以在 resize() 的实现中使用，以便在元素类型标记为 noexcept 的移动赋值操作符时，将元素从旧数组移动到新数组，否则复制元素。有了这个变化，无论元素是移动还是复制，强异常安全性都能得到保证。
 
 这是一个如何使用这个类的示例：
 
@@ -130,12 +130,12 @@ for (size_t i { 0 }; i < 20; ++i) {
 不必告诉数组需要多少空间，根据给出的元素分配所需的空间。
 
 \begin{myNotic}{NOTE}
-这个实现不是最节省内存的。如果创建一个数组，只给索引为 4000 的元素赋值，那么它会分配内存用于 4004 个元素，所有元素都零初始化，除了索引为 4000 的元素。
+这个实现不是最节省内存的。如果创建一个数组，只给索引为 4000 的元素赋值，那么会分配内存用于 4004 个元素，所有元素都零初始化，除了索引为 4000 的元素。
 \end{myNotic}
 
 然而，需要使用 setElementAt() 和 getElementAt() 成员函数不是很方便。
 
-这就是重载下标运算符的好时机。可以像这样向类中添加一个 operator[]：
+这就是重载下标操作符的好时机。可以像这样向类中添加一个 operator[]：
 
 \begin{cpp}
 export template <typename T>
@@ -160,7 +160,7 @@ template <typename T> T& Array<T>::operator[](std::size_t x)
 }
 \end{cpp}
 
-有了这个，就可以像这样使用传统的数组索引语法：
+有了这个，就可以这样使用传统的数组索引语法：
 
 \begin{cpp}
 Array<int> myArray;
@@ -172,7 +172,7 @@ for (size_t i { 0 }; i < 20; ++i) {
 }
 \end{cpp}
 
-operator[] 既可以用于设置，也可以用于获取元素，因为它返回了位置 x 处的元素的引用。这个引用可以用来赋值给那个元素。当 operator[] 用于赋值语句的左侧时，赋值实际上改变了 m\_elements 数组中位置 x 的值。
+operator[] 既可以用于设置，也可以用于获取元素，其返回了位置 x 处的元素的引用。这个引用可以用来赋值给那个元素。当 operator[] 用于赋值语句的左侧时，赋值实际上改变了 m\_elements 数组中 x 位置的值。
 
 \mySubsubsection{15.5.1.}{ operator[] 提供只读访问}
 
@@ -183,9 +183,9 @@ T& operator[](std::size_t x);
 const T& operator[](std::size_t x) const;
 \end{cpp}
 
-不能仅基于返回类型来重载成员函数或运算符，所以第二个重载返回引用为常量并标记为 const。
+不能仅基于返回类型来重载成员函数或操作符，所以第二个重载返回引用为常量并标记为 const。
 
-这里是 const operator[] 的实现。如果索引超出范围，它将抛出异常而不是尝试分配新空间。仅尝试读取元素值时，分配新空间没有意义。
+这里是 const operator[] 的实现。如果索引超出范围，将抛出异常而不是尝试分配新空间。仅尝试读取元素值时，分配新空间没有意义。
 
 \begin{cpp}
 template <typename T> const T& Array<T>::operator[](std::size_t x) const
@@ -218,9 +218,9 @@ int main()
 }
 \end{cpp}
 
-注意，在 printArray() 中调用 const operator[] 仅仅是因为参数 arr 是 const 的。如果 arr 不是 const 的，将调用非 const operator[]，尽管结果并未修改。
+在 printArray() 中调用 const operator[] 仅仅是因为参数 arr 为 const ，如果 arr 不为 const，将调用非 const operator[]，尽管结果并未修改。
 
-const operator[] 用于 const 对象，所以它不能增加数组的大小。当前实现当给定索引超出范围时会抛出异常。一个替代方案是在不抛出异常的情况下返回一个零初始化的元素，这可以这样做：
+const operator[] 用于 const 对象，所以不能增加数组的大小。当给定索引超出范围时会抛出异常，一个替代方案是在不抛出异常的情况下返回一个零初始化的元素：
 
 \begin{cpp}
 template <typename T> const T& Array<T>::operator[](std::size_t x) const
@@ -241,11 +241,11 @@ nullValue 静态变量使用零初始化语法 T\{\} 初始化。这取决于用
 
 \CXXTwentythreeLogo{-40}{-60}
 
-\mySubsubsection{15.5.2.}{多维下标运算符}
+\mySubsubsection{15.5.2.}{多维下标操作符}
 
-从 C++23 开始，下标运算符可以支持多维索引。
+从 C++23 开始，下标操作符可以支持多维索引。
 
-为了演示，让我们回顾一下第12章中的 Grid 类模板。其接口包含一个 const 和非 const 的 at(x,y) 成员函数重载。这些 at() 成员函数可以用以下二维 const 和非 const 下标运算符替换：
+让我们回顾一下第12章中的 Grid 类模板，其接口包含一个 const 和非 const 的 at(x,y) 成员函数重载。这些 at() 成员函数可以用以下二维 const 和非 const 下标操作符替换：
 
 \begin{cpp}
 template <typename T>
@@ -258,7 +258,7 @@ class Grid
 };
 \end{cpp}
 
-这个语法只是为这些二维下标运算符简单地指定了两个参数，x 和 y。实现与原始 at() 成员函数的实现相同：
+这个语法只是为这些二维下标操作符简单地指定了两个参数，x 和 y。实现与原始 at() 成员函数的实现相同：
 
 \begin{cpp}
 template <typename T>
@@ -274,7 +274,7 @@ std::optional<T>& Grid<T>::operator[](std::size_t x, std::size_t y)
 }
 \end{cpp}
 
-以下是在这些新运算符中使用的例子：
+以下是在这些新操作符中使用的例子：
 
 \begin{cpp}
 Grid<int> myIntGrid { 4, 4 };
@@ -304,9 +304,9 @@ for (size_t y { 0 }; y < myIntGrid.getHeight(); ++y) {
 
 \mySubsubsection{15.5.3.}{非整数数组索引}
 
-将“索引”模式扩展到集合中提供某种键的自然延伸；向量（或一般情况下的线性数组）是特殊情况，其中“键”就是数组中的位置。operator[] 的参数作为两个域之间的映射：键的域和值的域。因此，可以写一个接受任何类型作为其索引的operator[]，这个类型不需要是整数类型。这在标准库的关联容器中，如 std::map 中得到实现，这些将在第18章中介绍。
+将“索引”模式扩展到集合中提供某种键的自然延伸；vector（或一般情况下的线性数组）是特殊情况，其中“键”就是数组中的位置。operator[] 的参数作为两个域之间的映射：键的域和值的域。可以写一个接受任何类型作为其索引的operator[]，这个类型不需要是整数类型。这在标准库的关联容器中，如 std::map 中得到实现，这些将在第18章中介绍。
 
-例如，可以创建一个使用字符串键，而不是整数索引的关联数组。这样的类的 operator[] 将会接受一个字符串，或者是字符串视图作为参数。实现这样的类，会作为是本章末尾的习题供读者练习。
+例如，可以创建一个使用字符串键，而不是整数索引的关联数组。这样的类的 operator[] 将会接受一个字符串，或者是字符串视图作为参数。实现这样的类，作为是本章末尾的习题供读者练习。
 
 \hspace*{\fill}
 
@@ -314,7 +314,7 @@ for (size_t y { 0 }; y < myIntGrid.getHeight(); ++y) {
 
 \CXXTwentythreeLogo{-40}{15}
 
-从 C++23 开始，当操作符的实现不需要访问this时(不需要访问非静态数据成员和非静态成员函数)，可将下标计算操作符可以标记为static。这允许编译器更好地优化代码，无需操心 this 指针。以下是将 operator[] 标记为静态、常量表达式（参见第9章）和无异常（第14章）的示例：
+从 C++23 开始，当操作符的实现不需要访问this时(不需要访问非静态数据成员和非静态成员函数)，可将下标计算操作符可以标记为static。这允许编译器更好地优化代码，无需操心 this 指针。以下是将 operator[] 标记为静态、常量表达式（第9章）和无异常（第14章）的示例：
 
 \begin{cpp}
 enum class Figure { Diamond, Heart, Spade, Club };
