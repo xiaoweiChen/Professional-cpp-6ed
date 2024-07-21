@@ -22,15 +22,15 @@ reverse\_iterator: 反转另一个迭代器的迭代顺序。
 move\_iterator: move\_iterator的解引用操作符，自动将值转换为右值引用，因此可以将其移动到新的位置。
 \end{itemize}
 
-也可以编写自己的迭代器适配器，但这本书中没有介绍。相关信息，请参阅附录 B 中列出的标准库手册。
+也可以自定义迭代器适配器，本书中没有介绍。相关信息，请参阅附录 B 中列出的标准库手册。
 
 \mySubsubsection{17.3.1.}{插入迭代器}
 
-myCopy() 函数模板，如本章前面实现的那样，并不将元素插入到容器中，只是用新元素替换范围中的旧元素。为了使这类算法更有用，标准库提供了三种插入迭代器适配器，可以将元素插入到容器中：insert\_iterator、back\_insert\_iterator 和 front\_insert\_iterator。它们都针对容器类型参数化，并在构造函数中接收实际容器的引用。它们提供了必要的迭代器接口，这些适配器可以用作像 myCopy() 这样的算法的目标迭代器。然而，它们不会替换容器中的元素，而是通过对其容器调用适当的函数来实际插入新元素。
+myCopy() 函数模板，并不将元素插入到容器中，只是用新元素替换范围中的旧元素。为了使这类算法更有用，标准库提供了三种插入迭代器适配器，可以将元素插入到容器中：insert\_iterator、back\_insert\_iterator 和 front\_insert\_iterator。都针对容器类型参数化，并在构造函数中接收实际容器的引用。提供了必要的迭代器接口，这些适配器可以用作像 myCopy() 这样的算法的目标迭代器。但它们不会替换容器中的元素，而是通过对其容器调用适当的函数来实际插入新元素。
 
 insert\_iterator 调用容器的 insert(position, element) ，back\_insert\_iterator 调用容器的 push\_back(element)，front\_insert\_iterator 调容器的用 push\_front(element)。
 
-以下示例使用 back\_insert\_iterator 和 myCopy() 来用 vectorOne 中所有元素的副本填充 vectorTwo。注意，vectorTwo 没有先调整大小以拥有足够的元素，不过插入迭代器依旧会正确地插入新元素。
+以下示例使用 back\_insert\_iterator 和 myCopy() 来用 vectorOne 中所有元素的副本填充 vectorTwo。vectorTwo 没有先调整大小以拥有足够的元素，不过插入迭代器依旧会正确地插入新元素。
 
 \begin{cpp}
 vector vectorOne { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
@@ -50,15 +50,15 @@ println("{:n}", vectorTwo);
 myCopy(cbegin(vectorOne), cend(vectorOne), back_inserter(vectorTwo));
 \end{cpp}
 
-利用类模板参数推断（CTAD），这也可以写成以下形式：
+利用类模板参数推断（CTAD），这也可以写成：
 
 \begin{cpp}
 myCopy(cbegin(vectorOne), cend(vectorOne), back_insert_iterator { vectorTwo });
 \end{cpp}
 
-front\_insert\_iterator 和 insert\_iterator 的工作方式类似，只是 insert\_iterator 还接受一个初始迭代器位置作为其构造函数的参数，它将这个位置传递给第一个 insert(position, element)，后续的迭代器位置会根据每次 insert() 调用的返回值生成。
+front\_insert\_iterator 和 insert\_iterator 的工作方式类似，只是 insert\_iterator 还接受一个初始迭代器位置作为其构造函数的参数，将这个位置传递给第一个 insert(position, element)，后续的迭代器位置会根据每次 insert() 调用的返回值生成。
 
-使用 insert\_iterator 的好处是，可以将关联容器作为修改算法的目标。第 20 章会介绍，关联容器的问题在于不允许修改迭代过程中的键。通过使用 insert\_iterator，插入元素而不是修改现有的元素。关联容器有一个 insert() 成员函数，接受一个迭代器位置并可以使用该位置作为“提示”，也可以选择忽略。当在关联容器上使用 insert\_iterator 时，可以将容器的 begin() 或 end() 迭代器作为提示传递。insert\_iterator 在每次调用 insert() 后修改它传递给 insert() 的迭代器提示，使得迭代器指向刚插入元素之后的位置。
+使用 insert\_iterator 的好处是，可以将关联容器作为修改算法的目标。第 20 章会介绍，关联容器的问题在于不允许修改迭代过程中的键。通过使用 insert\_iterator，插入元素而不是修改现有的元素。关联容器有一个 insert() 成员函数，接受一个迭代器位置并可以使用该位置作为“提示”，也可以选择忽略。在关联容器上使用 insert\_iterator 时，可以将容器的 begin() 或 end() 迭代器作为提示传递。insert\_iterator 在每次调用 insert() 后修改，并传递给 insert()，使得迭代器指向刚插入元素之后的位置。
 
 以下是将目标容器更改为集合的示例：
 
@@ -87,13 +87,13 @@ myCopy(cbegin(vectorOne), cend(vectorOne),
 
 \mySubsubsection{17.3.2.}{反向迭代器}
 
-标准库提供了 std::reverse\_iterator 类模板，通过一个双向或随机访问迭代器在反向方向上遍历。标准库中的每个可逆容器（实际上是标准库中除 forward\_list 和无序关联容器之外的所有容器）都提供 reverse\_iterator 类型别名和名为 rbegin() 和 rend() 的成员函数。这些 reverse\_iterator 类型别名是类型 std::reverse\_iterator<T> 的别名，其中 T 等于容器的迭代器类型别名。成员函数 rbegin() 返回一个指向容器最后一个元素的 reverse\_iterator，而 rend() 返回一个指向容器第一个元素之前元素的 reverse\_iterator。对 reverse\_iterator 应用 operator++ 会调用底层容器迭代器的 operator-{}-，反之亦然。例如，遍历一个集合从开始到结束可以这样做：
+标准库提供了 std::reverse\_iterator 类模板，通过一个双向或随机访问迭代器在反向方向上遍历。标准库中的每个可逆容器（标准库中除 forward\_list 和无序关联容器之外的所有容器）都提供 reverse\_iterator 类型别名和名为 rbegin() 和 rend() 的成员函数。这些 reverse\_iterator 类型别名是类型 std::reverse\_iterator<T> 的别名，其中 T 等于容器的迭代器类型别名。成员函数 rbegin() 返回一个指向容器最后一个元素的 reverse\_iterator，而 rend() 返回一个指向容器第一个元素之前元素的 reverse\_iterator。对 reverse\_iterator 应用 operator++ 会调用底层容器迭代器的 operator-{}-，反之亦然。例如，遍历一个集合从开始到结束可以这样做：
 
 \begin{cpp}
 for (auto iter { begin(collection) }; iter != end(collection); ++iter) {}
 \end{cpp}
 
-从集合的末尾到开始遍历元素可以使用 reverse\_iterator 通过调用 rbegin() 和 rend()。注意，这里仍然使用 ++iter。
+从集合的末尾到开始遍历元素，可以使用 reverse\_iterator 通过调用 rbegin() 和 rend()。这里仍使用 ++iter。
 
 \begin{cpp}
 for (auto iter { rbegin(collection) }; iter != rend(collection); ++iter) {}
@@ -126,7 +126,7 @@ Found at position 3 going backward.
 
 \mySubsubsection{17.3.3.}{移动迭代器}
 
-第9章介绍了移动语义，知道了源对象在赋值操作或复制构造之后会销毁的情况下，或者在使用 std::move() 时，可以用来防止不必要的复制。标准库提供了一个迭代器适配器，称为 std::move\_iterator。move\_iterator 的解引用运算符自动将值转换为右值引用，所以值可以不经过复制而移动到新的目的地。在使用移动语义之前，需要确保你的对象支持移动语义，以下 MoveableClass 支持移动语义。详细信息，参见第9章。
+第9章介绍了移动语义，知道了源对象在赋值操作或复制构造之后会销毁的情况下，或者在使用 std::move() 时，可以用来避免不必要的复制。标准库提供了一个迭代器适配器，称为 std::move\_iterator。move\_iterator 的解引用操作符自动将值转换为右值引用，所以值可以不经过复制而移动到新的目的地。在使用移动语义之前，需要确保你的对象支持移动语义，以下 MoveableClass 支持移动语义。详细信息，参见第9章。
 
 \begin{cpp}
 class MoveableClass
@@ -152,7 +152,7 @@ class MoveableClass
 };
 \end{cpp}
 
-这里，构造函数和赋值运算符没有做任何事情，只是打印一条消息，以便了解调用了哪个函数。现在你有了这个类，可以定义一个 vector 并将其中的几个 MoveableClass 实例存储在 vector 中：
+这里，构造函数和赋值操作符没有做任何事情，只是打印一条消息，以便了解调用了哪个函数。现在有了这个类，可以定义一个 vector 并将其中的几个 MoveableClass 实例存储在 vector 中：
 
 \begin{cpp}
 vector<MoveableClass> vecSource;
@@ -170,17 +170,17 @@ Copy constructor // [3]
 Move constructor // [4]
 \end{cpp}
 
-代码的第二行通过使用默认构造函数创建 MoveableClass 实例，[1]。第一个 push\_back() 调用触发了复制构造函数来复制 mc 到 vector 中，[2]。在此之后，vector 有空间存放一个元素，即 mc 的第一个副本。注意，这个是基于 Microsoft Visual C++ 2022 对 vector 的增长策略和初始大小实现的。C++ 标准没有指定 vector 的初始容量或其增长策略，所以输出可能会因不同的编译器而异。
+代码的第二行通过使用默认构造函数创建 MoveableClass 实例，[1]。第一个 push\_back() 调用触发了复制构造函数来复制 mc 到 vector 中，[2]。之后，vector 有空间存放一个元素，即 mc 的第一个副本。这个是基于 Microsoft Visual C++ 2022 对 vector 的增长策略和初始大小实现的。C++ 标准没有指定 vector 的初始容量或其增长策略，所以输出可能会因不同的编译器而不同。
 
-第二个 push\_back() 调用触发了 vector 自身的大小调整，为第二个元素分配空间。这个调整导致移动构造函数被调用，将每个元素从旧 vector 移动到新的调整大小后的 vector 中，[4]。将调用复制构造函数，将 mc 第二次复制到 vector 中，[3]。移动和复制的顺序未定义，所以 [3] 和 [4] 可能会颠倒。
+第二个 push\_back() 调用触发了 vector 自身的大小调整，为第二个元素分配空间。这个调整会调用移动构造函数，将每个元素从旧 vector 移动到新的调整大小后的 vector 中，[4]。将调用复制构造函数，将 mc 第二次复制到 vector 中，[3]。移动和复制的顺序未定义，所以 [3] 和 [4] 的顺序可能会颠倒。
 
-可以创建一个新的 vector，名为 vecOne，它包含 vecSource 中的元素副本，如下所示：
+可以创建一个新的 vector，名为 vecOne，它包含 vecSource 中的元素副本：
 
 \begin{cpp}
 vector<MoveableClass> vecOne { cbegin(vecSource), cend(vecSource) };
 \end{cpp}
 
-不使用 move\_iterators，这段代码会触发复制构造函数两次，一次对 vecSource 中的每个元素：
+不使用 move\_iterators，这段代码会触发复制构造函数两次，其中一次对 vecSource 中的每个元素：
 
 \begin{shell}
 Copy constructor

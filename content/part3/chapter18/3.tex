@@ -25,7 +25,7 @@ void print(const int values[], size_t count)
 
 如果希望打印std::array，可以提供第三个重载，但函数参数类型应该是什么？对于std::array，必须将数组的类型和元素数量作为模板参数指定，这就变得复杂了。
 
-std::span，定义在< span >中，在这里提供了帮助，可以编写一个使用span的单一函数，该函数可以与任何std::vector、C风格数组和std::array一起工作。使用span的print()函数是实现为：
+std::span，定义在<span>中，可以编写一个使用span的单一函数，该函数可以与任何std::vector、C风格数组和std::array一起工作。使用span的print()函数是实现为：
 
 \begin{cpp}
 void print(span<int> values)
@@ -37,7 +37,7 @@ void print(span<int> values)
 
 注意，与第2章中的string\_view一样，span的复制成本很低；基本上只包含指向序列中第一个元素的指针和元素数量。span永远不会复制数据，所以通常按值传递。
 
-创建span有几个构造函数，可以创建一个span,包含给定std::vector、std::array或C风格数组所有元素。还可以通过传递第一个元素的地址和希望在span中包含的元素数量，来创建只包含容器部分内容的span。
+创建span有几个构造函数，可以创建一个span，包含给定std::vector、std::array或C风格数组所有元素。还可以通过传递第一个元素的地址和希望在span中包含的元素数量，来创建只包含容器部分内容的span。
 
 可以使用subspan()成员函数从现有span创建子视图，其第一个参数是span中的偏移量，第二个参数是要包含在子视图中的元素数量。还有两个成员函数first()和last()，分别返回包含span的前n个元素或最后n个元素的子视图。
 
@@ -82,7 +82,7 @@ print({ carr + 2, 3 }); // A subview of the C-style array.
 7 6 5
 \end{shell}
 
-与提供字符串只读视图的string\_view不同，span可以提供对底层元素的读写访问。请记住，span只包含指向序列中第一个元素的指针和元素数量，所以span永远不会复制数据！因此，修改span中的元素实际上会修改底层序列中的元素。如果不希望这样，可以创建具有const元素的span。例如，print()函数没有理由修改给定span中的任何元素，可以按以下方式防止此类修改：
+与提供字符串只读视图的string\_view不同，span可以提供对底层元素的读写访问。span只包含指向序列中第一个元素的指针和元素数量，所以span永远不会复制数据！修改span中的元素实际上会修改底层序列中的元素。如果不希望这样，可以创建具有const元素的span。例如，print()函数没有理由修改给定span中的元素，可以按以下方式避免此类修改：
 
 \begin{cpp}
 void print(span<const int> values)
@@ -100,7 +100,7 @@ void print(span<const int> values)
 
 \CXXTwentythreeLogo{-40}{15}
 
-std::mdspan，定义在 <mdspan> 中，与 std::span 类似，允许创建一个连续数据序列的多维视图。与 span 一样，mdspan 不拥有数据，因此复制成本低廉。mdspan 有四个模板类型参数：
+std::mdspan，定义在 <mdspan> 中，与 std::span 类似，允许创建一个连续数据序列的多维视图。与 span 一样，mdspan 不拥有数据，复制成本低廉。mdspan 有四个模板类型参数：
 
 \begin{itemize}
 \item
@@ -113,10 +113,10 @@ Extents: 维度的数量及其大小，是 std::extent 的一个特化。
 LayoutPolicy: 策略，指定如何将多维索引转换为一个一维索引，以便访问底层连续数据序列。可以实现需要的布局策略，如平铺布局、希尔伯特曲线等。以下是一些标准策略：
 \begin{itemize}
 \item
-layout\_right: 行主序多维数组布局，其中最右边的范围具有跨度 1。这是默认策略。
+layout\_right: 行主序多维数组布局，其中最右边的范围跨度为 1。这是默认策略。
 
 \item
-layout\_left: 列主序多维数组布局，其中最左边的范围具有跨度 1。
+layout\_left: 列主序多维数组布局，其中最左边的范围跨度为 1。
 
 \item
 layout\_stride: 具有用户定义跨度的布局映射。
@@ -169,7 +169,7 @@ mdspan<int, extents<int, 2, 4>, layout_left> data2D { data.data() };
 2 4 6 8
 \end{shell}
 
-此 mdspan 定义将所有维度的大小指定为编译时常量，即静态大小。也可以将静态大小和动态大小结合使用。以下示例将第一个维度指定为编译时常量，第二个维度为动态大小，但必须将所有动态大小的值作为参数传递给构造函数。
+此 mdspan 定义将所有维度的大小指定为编译时常量，即静态大小；也可以将静态大小和动态大小结合使用。以下示例将第一个维度指定为编译时常量，第二个维度为动态大小，但必须将所有动态大小的值作为参数传递给构造函数。
 
 \begin{cpp}
 mdspan<int, extents<int, 2, dynamic_extent>> data2D { data.data(), 4 };

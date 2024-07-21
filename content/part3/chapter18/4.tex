@@ -1,9 +1,9 @@
 
-除了标准顺序容器之外，标准库还提供了三个容器适配器：queue、priority\_queue和stack。这些适配器都是顺序容器的包装器，允许交换底层容器，而无需更改其余代码。适配器的目的是简化接口，并提供仅适用于stack、queue或priority\_queue抽象的适当功能。这些适配器不提供对底层容器的访问，因此是第4章中解释的数据隐藏原则的完美示例。例如，适配器不支持同时擦除多个元素的功能，也不提供迭代器。后者意味着不能使用它们进行基于范围的for循环，也不能使用第20章中讨论的标准迭代器算法。但从C++23开始，std::format()和print()函数支持格式化和打印这些容器适配器的内容。
+除了标准顺序容器之外，标准库还提供了三个容器适配器：queue、priority\_queue和stack。这些适配器都是顺序容器的包装器，允许交换底层容器，而无需更改其余代码。适配器的目的是简化接口，并提供仅适用于stack、queue或priority\_queue抽象的适当功能。这些适配器不提供对底层容器的访问，因此是第4章中解释的数据隐藏原则的示例。适配器不支持同时擦除多个元素的功能，也不提供迭代器，不能使用它们进行基于范围的for循环，也不能使用第20章中讨论的标准迭代器算法。但从C++23开始，std::format()和print()函数支持格式化和打印这些容器适配器的内容。
 
 \mySubsubsection{18.4.1.}{queue}
 
-queue容器适配器，定义在< queue >中，提供标准的先进先出语义。通常，它是一个类模板：
+queue容器适配器，定义在<queue>中，提供标准的先进先出语义。通常，它是一个类模板：
 
 \begin{cpp}
 template <typename T, typename Container = deque<T>> class queue;
@@ -13,7 +13,7 @@ T模板参数指定存储在队列中的类型，第二个模板参数指定队�
 
 \mySamllsection{queue的操作}
 
-queue接口非常简单：只有九个成员函数、一组构造函数和比较运算符。C++23中新增了一个接受迭代器对的构造函数[begin, end)，构造一个包含给定迭代器范围内元素的队列。push()和emplace()成员函数将新元素添加到队列的尾部，而pop()删除队列头部的元素。C++23添加了push\_range()以将一系列元素添加到队列中，可以使用front()和back()分别检索对队列头尾元素的引用（不移除）。通常，当在const对象上调用时，front()和back()返回对const的引用；当在非const对象上调用时，返回对非const的引用（读/写）。
+queue接口非常简单：只有九个成员函数、一组构造函数和比较操作符。C++23中新增了一个接受迭代器对的构造函数[begin, end)，构造一个包含给定迭代器范围内元素的队列。push()和emplace()成员函数将新元素添加到队列的尾部，而pop()删除队列头部的元素。C++23添加了push\_range()以将一系列元素添加到队列中，可以使用front()和back()分别检索对队列头尾元素的引用（不移除）。当在const对象上调用时，front()和back()返回对const的引用；当在非const对象上调用时，返回对非const的引用（读/写）。
 
 \begin{myWarning}{WARNING}
 pop()不返回弹出的元素。如果想保留一个副本，必须先用front()检索。
@@ -23,7 +23,7 @@ queue还支持size()、empty()和swap()。
 
 \mySamllsection{queue示例：网络数据包缓冲区}
 
-当两台计算机通过网络通信时，它们会将信息划分为数据包的离散块并发送给对方。计算机的操作系统网络层，必须接收这些数据包，并在包到达时存储起来。然而，计算机可能没有足够的带宽一次性处理所有数据包，所以网络层通常会缓冲或存储数据包，直到有机会处理它们。数据包应该按照它们到达的顺序进行处理，所以这个问题非常适合使用队列结构。以下是一个小的 PacketBuffer 类，代码中有注释解释，它将传入的数据包存储在队列中，直到它们被处理。它是一个类模板，因此网络堆栈的不同层次可以使用它来处理不同类型的数据包，例如： IP 数据包或 TCP 数据包，允许客户端指定最大大小，因为操作系统通常限制可以存储的数据包数量，以避免使用过多内存。当缓冲区已满时，将忽略随后到达的数据包。
+当两台计算机通过网络通信时，会将信息划分为数据包的离散块并发送给对方。计算机的操作系统网络层，必须接收这些数据包，并在包到达时存储起来。计算机可能没有足够的带宽一次性处理所有数据包，所以网络层通常会缓冲或存储数据包，直到有机会处理它们。数据包应该按照它们到达的顺序进行处理，所以这个问题非常适合使用队列结构。以下是一个小的 PacketBuffer 类，代码中有注释解释，将传入的数据包存储在队列中，直到处理。它是一个类模板，因此网络堆栈的不同层次可用来处理不同类型的数据包，例如： IP 数据包或 TCP 数据包，允许客户端指定最大大小，因为操作系统通常限制可以存储的数据包数量，以避免使用过多内存。当缓冲区已满时，将忽略随后到达的数据包。
 
 \begin{cpp}
 export template <typename T>
@@ -121,7 +121,7 @@ Queue is empty.
 
 \mySubsubsection{18.4.2.}{priority\_queue}
 
-优先队列是一种保持其元素排序的队列。与严格的先进先出（FIFO）排序不同，优先队列在任何给定时间队列头部的元素是优先级最高的元素。这个元素可能是队列中最老的，也可能是最近的。如果两个元素具有相同的优先级，它们在队列中的相对顺序未定义。
+优先队列是一种保持其元素排序的队列。与严格的先进先出（FIFO）排序不同，优先队列在给定时间队列头部的元素是优先级最高的元素。这个元素可能是队列中最老的，也可能是最近的。如果两个元素具有相同的优先级，它们在队列中的相对顺序未定义。
 
 priority\_queue 容器适配器也在 <queue> 中定义，其模板定义看起来像这样（略微简化）：
 
@@ -141,18 +141,18 @@ priority\_queue 的头部元素是具有“最高”优先级的元素；默认�
 priority\_queue提供的操作比queue还要少。push()、emplace()和push\_range()（C++23）成员函数可以插入元素，pop()移除元素，而top()返回对头部元素的const引用。
 
 \begin{myWarning}{WARNING}
-即使在对非const对象调用时，top()也返回const引用，因为修改元素可能会改变其顺序，这是不允许的。priority\_queue不提供获取尾部元素的方法。
+对非const对象调用时，top()也返回const引用，因为修改元素可能会改变其顺序，这是不允许的。priority\_queue不提供获取尾部元素的方法。
 \end{myWarning}
 
 \begin{myWarning}{WARNING}
 pop()不返回弹出的元素。如果想保留一个副本，必须先用top()检索。
 \end{myWarning}
 
-与queue一样，priority\_queue支持size()、empty()和swap()，但不提供比较运算符。
+与queue一样，priority\_queue支持size()、empty()和swap()，但不提供比较操作符。
 
 \mySamllsection{priority\_queue 示例: 错误相关器}
 
-系统上的单个故障通常会导致来自不同组件的多个错误，一个好的错误处理系统使用错误相关性来首先处理最重要的错误。可以使用优先级队列来编写一个简单的错误相关器。假设所有错误事件都编码了优先级，错误相关器可以简单地根据错误的优先级对错误事件进行排序，以便总是首先处理优先级最高的错误。以下是类定义：
+系统上的单个故障通常会导致来自不同组件的多个错误，好的错误处理系统使用错误相关性来首先处理最重要的错误。可以使用优先级队列来编写一个简单的错误相关器。假设所有错误事件都编码了优先级，错误相关器可以简单地根据错误的优先级对错误事件进行排序，以便首先处理优先级最高的错误。以下是类定义：
 
 \begin{cpp}
 // Sample Error class with just a priority and a string error description.
@@ -233,7 +233,7 @@ Finished processing errors
 
 \mySubsubsection{18.4.3.}{stack}
 
-stack与queue几乎相同，不同之处在于它提供的是先进后出（FILO）语义，也称为后进先出（LIFO），而不是FIFO。定义在<stack>中，模板定义如下所示：
+stack与queue几乎相同，不同之处在于提供的是先进后出（FILO）语义，也称为后进先出（LIFO），而不是FIFO。定义在<stack>中，模板定义如下所示：
 
 \begin{cpp}
 template <typename T, typename Container = deque<T>> class stack;
@@ -243,17 +243,17 @@ template <typename T, typename Container = deque<T>> class stack;
 
 \mySamllsection{stack的操作}
 
-与deque一样，C++23为stack添加了一个接受迭代器对的构造函数[begin, end)，使用给定迭代器范围内的元素构建一个stack。也与deque类似，stack提供了push()、emplace()、pop()和push\_range()（C++23）。不同之处在于，push()和push\_range()将新元素添加到栈顶，将之前插入的所有元素“推下”，而pop()移除栈顶的元素，即最近插入的元素。top()成员函数在调用const对象时返回对栈顶元素的常量引用，在调用非常量对象时返回非常量引用。
+与deque一样，C++23为stack添加了一个接受迭代器对的构造函数[begin, end)，使用给定迭代器范围内的元素构建一个stack。也与deque类似，stack提供了push()、emplace()、pop()和push\_range()（C++23）。不同之处在于，push()和push\_range()将新元素添加到栈顶，将之前插入的所有元素“推下”，而pop()移除栈顶的元素，即最近插入的元素。top()成员函数在调用const对象时返回对栈顶元素的常量引用，调用非常量对象时返回非常量引用。
 
 \begin{myWarning}{WARNING}
 pop()不会返回弹出的元素。如果想保留一个副本，必须首先使用top()检索。
 \end{myWarning}
 
-stack支持empty()、size()、swap()以及标准比较运算符。
+stack支持empty()、size()、swap()以及标准比较操作符。
 
 \mySamllsection{stack示例：修改后的错误相关器}
 
-可以将之前的ErrorCorrelator类重写，使其输出最近的错误，而不是优先级最高的错误。所需的唯一更改是将m\_errors从priority\_queue更改为stack。这样，错误以LIFO顺序，而不是以优先级顺序分发。因为push()、pop()、top()和empty()成员函数在priority\_queue和stack上都存在，所以成员函数的定义不需要更改。
+可以将之前的ErrorCorrelator类重写，使其输出最近的错误，而不是优先级最高的错误。所需的更改是将m\_errors从priority\_queue更改为stack。这样，错误以LIFO顺序，而不是以优先级顺序分发。因为push()、pop()、top()和empty()成员函数在priority\_queue和stack上都存在，所以成员函数的定义不需要更改。
 
 
 

@@ -1,14 +1,14 @@
-通过解决下面的练习，可以练习本章讨论的内容。所有练习的解决方案都可以在本书的网站\url{www.wiley.com/go/proc++6e}下载到源码。然而，若在练习中卡住了，在从网站上寻找解决方案之前，可以考虑先重读本章的部分内容，试着自己找到答案。
+通过解决下面的练习，可以练习本章讨论的内容。所有练习的解决方案都可以在本书的网站\url{www.wiley.com/go/proc++6e}下载到源码。若在练习中卡住了，可以考虑先重读本章的部分内容，试着自己找到答案，再在从网站上寻找解决方案。
 
 \begin{itemize}
 \item
-\textbf{练习 19-1}：使用 Lambda 表达式重写本章中的 IsLargerThan 函数对象示例。可以在下载源代码档案中找到代码，位置在 Ch19\verb|\|03\_FunctionObjects\verb|\|01\_IsLargerThan.cpp。
+\textbf{练习 19-1}：使用 Lambda 表达式重写本章中的 IsLargerThan 函数对象示例。可以在源代码库中找到代码，位置在 Ch19\verb|\|03\_FunctionObjects\verb|\|01\_IsLargerThan.cpp。
 
 \item
-\textbf{练习 19-2}：使用 Lambda 表达式重写 bind() 的示例。可以在下载源代码档案中找到代码，位置在 Ch19\verb|\|03\_FunctionObjects\verb|\|07\_bind.cpp。
+\textbf{练习 19-2}：使用 Lambda 表达式重写 bind() 的示例。可以在源代码库中找到代码，位置在 Ch19\verb|\|03\_FunctionObjects\verb|\|07\_bind.cpp。
 
 \item
-\textbf{练习 19-3}：\\使用 Lambda 表达式重写绑定类成员函数 Handler::handleMatch() 的示例。可以在下载源代码档案中找到代码，位置在 Ch19\verb|\|03\_FunctionObjects\verb|\|10\_FindMatchesWithMemberFunctionPointer.cpp。
+\textbf{练习 19-3}：\\使用 Lambda 表达式重写绑定类成员函数 Handler::handleMatch() 的示例。可以在源代码库中找到代码，位置在 Ch19\verb|\|03\_FunctionObjects\verb|\|10\_FindMatchesWithMemberFunctionPointer.cpp。
 
 \item
 \textbf{练习 19-4}：第 18 章介绍了 std::erase\_if() 函数，用于从容器中删除满足特定谓词返回 true 的元素。现在了解了回调的知识，请编写一个小型程序，创建一个整数vector，然后使用 erase\_if() 删除向量中的所有奇数值。需要传递给 erase\_if() 的谓词应该接受一个单一参数，并返回布尔值。
@@ -17,5 +17,5 @@
 \textbf{练习 19-5}：实现一个名为 Processor 的类，构造函数应该接受一个接受单个整数并返回整数的回调，将这个回调存储在类的数据成员中。接下来，为函数调用运算符添加一个重载，接受一个整数并返回整数。实现简单地将工作转发给存储的回调，用不同的回调测试这个类。
 
 \item
-\textbf{练习 19-6}：编写一个递归 Lambda 表达式来计算一个数的幂。例如，4 的 3 次幂，写作 $4^3$，等于 4×4×4。确保它适用于负指数。为了帮助您，$4^{-3}$ 等于 $1/4^3$。任何数的 0 次幂等于 1。通过生成 -10 到 10 之间的所有 2的幂来测试 Lambda 表达式。
+\textbf{练习 19-6}：编写一个递归 Lambda 表达式来计算一个数的幂。例如，4 的 3 次幂，写作 $4^3$，等于 4×4×4。确保它适用于负指数。提示：$4^{-3}$ 等于 $1/4^3$；任何数的 0 次幂等于 1。通过生成 -10 到 10 之间的所有 2的幂来测试 Lambda 表达式。
 \end{itemize}

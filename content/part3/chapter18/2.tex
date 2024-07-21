@@ -3,7 +3,7 @@
 
 \mySubsubsection{18.2.1.}{vector}
 
-标准库的vector容器类似于标准C语言风格的数组：元素存储在连续的内存中，每个元素都有自己的“槽”。可以对vector进行索引，也可以向末尾添加新元素或在其他任何位置插入。向vector中插入和删除元素通常具有线性时间复杂度，尽管这些操作实际上在vector末尾以摊销的常数时间运行，这在本章后面的一节中会进行介绍。随机访问单个元素的复杂度是常数；有关算法复杂性的讨论，请参见第4章。
+标准库的vector容器类似于标准C语言风格的数组：元素存储在连续的内存中，每个元素都有自己的“槽”。可以对vector进行索引，也可以向末尾添加新元素或在其他任何位置插入。向vector中插入和删除元素通常具有线性时间复杂度，这些操作实际上在vector末尾以摊销的常数时间运行，这在本章后面的一节中会进行介绍。随机访问单个元素的复杂度是常数；有关算法复杂性的讨论，请参见第4章。
 
 \mySamllsection{vector 概述}
 
@@ -16,20 +16,20 @@ template <typename T, typename Allocator = allocator<T>> class vector;
 Allocator参数指定了客户端可以设置内存分配器对象的类型，以便使用自定义内存分配。这个模板参数有一个默认值。
 
 \begin{myNotic}{NOTE}
-对于大多数应用程序，Allocator模板类型参数的默认值就足够了。本章始终使用默认分配器。如果感兴趣，第25章介绍了更多细节。
+对于大多数应用程序，Allocator模板类型参数的默认值就足够了。本章始终使用默认分配器。
 \end{myNotic}
 
 std::vector是constexpr（参见第9章），就像std::string一样。vector可以用来在编译时执行操作，并且可以用于constexpr函数和其他constexpr类的实现。
 
 \mySamllsection{固定长度的vector}
 
-使用vector的一种方式是，作为固定长度的数组。vector提供了一个构造函数，允许指定元素的数量，并提供了一个重载的operator[]来访问和修改这些元素。当用于访问vector边界之外的元素时，operator[]的结果未定义，所以编译器可以决定在这种情况下如何表现。例如，Microsoft Visual C++的默认行为是在调试模式下编译程序时显示运行时错误消息，并在发布模式下禁用任何边界检查以提高性能，可以修改这些默认行为。
+使用vector的一种方式是，作为固定长度的数组。vector提供了一个构造函数，允许指定元素的数量，并提供了一个重载的operator[]来访问和修改这些元素。当用于访问vector边界之外的元素时，operator[]的结果未定义，所以编译器可以决定在这种情况下如何表现。Microsoft Visual C++的默认行为是在调试模式下编译程序时，显示运行时错误消息，并在发布模式下禁用任何边界检查以提高性能，可以修改这些默认行为。
 
 \begin{myWarning}{WARNING}
 与“真实”数组索引一样，vector上的operator[]不提供边界检查。
 \end{myWarning}
 
-除了使用operator[]之外，还可以通过at()、front()和back()访问vector元素。at()成员函数与operator[]相同，除了它执行边界检查，如果索引超出边界，则抛出一个out\_of\_range异常。front()和back()分别返回对vector的第一个和最后一个元素的引用，在空容器上调用front()或back()将触发未定义行为。
+除了使用operator[]之外，还可以通过at()、front()和back()访问vector元素。at()成员函数与operator[]相同，除了执行边界检查，如果索引超出边界，则抛出一个out\_of\_range异常。front()和back()分别返回对vector的第一个和最后一个元素的引用，在空容器上调用front()或back()将触发未定义行为。
 
 \begin{myNotic}{NOTE}
 所有vector元素访问的复杂度都是常数。
@@ -58,15 +58,15 @@ for (auto& element : doubleVector) {
 }
 \end{cpp}
 
-从这个例子中可以看出，可以像使用标准C语言风格的数组一样使用vector。注意，第一个for循环使用size()成员函数来确定容器中的元素数量。这个例子还演示了使用范围基于for循环的vector，因为需要引用，范围基于for循环使用auto\&，而不是auto，这样每个迭代中都可以修改实际元素。
+从这个例子中可以看出，可以像使用标准C语言风格的数组一样使用vector。第一个for循环使用size()成员函数来确定容器中的元素数量。这个例子还演示了使用范围基于for循环的vector，因为需要引用，范围基于for循环使用auto\&，而不是auto，这样每个迭代中都可以修改实际元素。
 
 \begin{myNotic}{NOTE}
-vector上的operator[]通常返回对元素的引用，该引用可以用在赋值语句的左侧。如果在const vector对象上调用operator[]，将返回对const元素的引用，该引用不能用作赋值的目标。有关如何实现这个技巧的详细信息，请参见第15章。
+vector上的operator[]通常返回对元素的引用，该引用可以用在赋值语句的左侧。如果在const vector对象上调用operator[]，将返回对const元素的引用，该引用不能用作赋值的目标。
 \end{myNotic}
 
 \mySamllsection{动态 vector}
 
-vector的真正强大之处在于其动态增长的能力。例如，考虑上一节中的测试分数归一化程序，并增加了处理任意数量测试分数的要求。这是新版本：
+vector的真正强大之处在于其动态增长的能力。考虑上一节中的测试分数归一化程序，并增加了处理任意数量测试分数的要求。这是新版本：
 
 \begin{cpp}
 vector<double> doubleVector; // Create a vector with zero elements.
@@ -94,7 +94,7 @@ for (auto& element : doubleVector) {
 }
 \end{cpp}
 
-这个版本使用默认构造函数创建一个零元素的vector。当每个分数读取时，通过push\_back()成员函数添加到vector末尾，该函数负责为新元素分配空间。范围基于的for循环，不需要任何更改。
+这个版本使用默认构造函数创建一个零元素的vector。当每个分数读取时，通过push\_back()成员函数添加到vector末尾，该函数负责为新元素分配空间。范围基于的for循环，不需要更改。
 
 \CXXTwentythreeLogo{-40}{-50}
 
@@ -122,7 +122,7 @@ for (const auto& value : values) { std::cout << value << ", "; }
 
 \mySamllsection{vector其他细节}
 
-现在已经对vector有了初步了解，是时候深入探讨其细节了。
+现在已经对vector有了初步了解，是时候深入探讨了。
 
 \mySamllsection{构造函数和析构函数}
 
@@ -140,7 +140,7 @@ vector<int> intVector(10, 100); // Creates vector of 10 ints with value 100
 
 如果省略了默认值，新的对象会进行零初始化。零初始化使用默认构造函数构造对象，并将原始整数类型（如char、int等）初始化为零，原始浮点类型初始化为0.0，指针类型初始化为nullptr。
 
-可以像这样创建内置类的vector：
+可以这样创建内置类的vector：
 
 \begin{cpp}
 vector<string> stringVector(10, "hello");
@@ -160,7 +160,7 @@ vector也可以用包含初始元素的initializer\_list来构造：
 vector<int> intVector({ 1, 2, 3, 4, 5, 6 });
 \end{cpp}
 
-正如第1章中介绍，统一初始化适用于大多数标准库容器，包括vector。这里有一个例子：
+正如第1章中介绍，统一初始化适用于大多数标准库容器，包括vector：
 
 \begin{cpp}
 vector<int> intVector = { 1, 2, 3, 4, 5, 6 };
@@ -173,13 +173,13 @@ vector<int> intVector { 1, 2, 3, 4, 5, 6 };
 vector intVector { 1, 2, 3, 4, 5, 6 };
 \end{cpp}
 
-不过，使用统一初始化时要小心；通常，在调用对象的构造函数时，可以使用统一初始化语法：
+不过，使用统一初始化时要小心；在调用对象的构造函数时，可以使用统一初始化语法：
 
 \begin{cpp}
 string text { "Hello World." };
 \end{cpp}
 
-使用vector时需要小心。例如，下面的代码行调用vector构造函数，来创建一个包含10个值为100的整数vector：
+使用vector时需要小心。下面的代码行调用vector构造函数，来创建一个包含10个值为100的整数vector：
 
 \begin{cpp}
 vector<int> intVector(10, 100); // Creates vector of 10 ints with value 100
@@ -201,7 +201,7 @@ auto elementVector { make_unique<vector<Element>>(10) };
 
 vector存储对象副本，并且其析构函数会为每个对象调用析构函数。
 
-vector类的复制构造函数和赋值运算符对vector中的所有元素执行深拷贝，为了效率应该通过引用为非常量或引用为常量，而不是通过值将vector传递给函数。
+vector类的复制构造函数和赋值操作符对vector中的所有元素执行深拷贝，为了效率应该通过引用为非常量或引用为常量，而不是通过值将vector传递给函数。
 
 除了正常的复制和赋值外，vector还提供了一个assign()成员函数，该函数删除所有当前元素并添加任意数量的新元素。如果想要重用vector，这个成员函数很有用。这里有一个简单的例子。intVector用10个默认值为0的元素创建，然后使用assign()删除所有10个元素，并用5个值为100的元素替换：
 
@@ -236,10 +236,10 @@ println("vectorTwo: {:n}", vectorTwo); // 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
 \mySamllsection{比较vector}
 
-标准库为vector提供了通常的六个重载比较运算符：==, !=, <, >, <=, >=。如果两个vector具有相同数量的元素，并且两个vector中对应的元素彼此相等，则这两个vector相等。两个vector按字典顺序比较，如果一个vector在元素0到i-1之间与另一个向量在元素0到i-1之间相等，但第一个向量的元素i小于第二个vector的元素i，则一个vector“小于”另一个vector，其中i必须在范围0...n内，并且n必须小于两个vector中较小者的size()。
+标准库为vector提供了通常的六个重载比较操作符：==, !=, <, >, <=, >=。如果两个vector具有相同数量的元素，并且两个vector中对应的元素彼此相等，则这两个vector相等。两个vector按字典顺序比较，如果一个vector在元素0到i-1之间与另一个vector在元素0到i-1之间相等，但第一个vector的元素i小于第二个vector的元素i，则一个vector“小于”另一个vector，其中i必须在范围0...n内，并且n必须小于两个vector中较小者的size()。
 
 \begin{myNotic}{NOTE}
-使用operator==或!=比较两个vector，需要各个元素都可以使用operator==才能进行比较。使用operator<, >, <=, 或>=比较两个vector需要各个元素可以使用operator<进行比较。如果打算在vector中存储自定义类的对象，请确保支持这些运算符。
+使用operator==或!=比较两个vector，需要各个元素都可以使用operator==才能进行比较。使用operator<, >, <=, 或>=比较两个vector需要各个元素可以使用operator<进行比较。如果打算在vector中存储自定义类的对象，请确保支持这些操作符。
 \end{myNotic}
 
 这里有一个比较vector<int>的例子：
@@ -291,7 +291,7 @@ iter != end(doubleVector); ++iter) {
 vector<double>::iterator iter { begin(doubleVector) };
 \end{cpp}
 
-回忆一下，每个容器都定义了一个名为iterator的类型，用于表示该类型容器的迭代器。begin()返回一个指向容器中第一个元素的该类型迭代器，所以初始化语句在变量iter中获取了一个指向doubleVector第一个元素的迭代器。接下来，看一下for循环的比较：
+每个容器都定义了一个名为iterator的类型，用于表示该类型容器的迭代器。begin()返回一个指向容器中第一个元素的该类型迭代器，所以初始化语句在变量iter中获取了一个指向doubleVector第一个元素的迭代器。接下来，看一下for循环的比较：
 
 \begin{cpp}
 iter != end(doubleVector);
@@ -302,7 +302,7 @@ iter != end(doubleVector);
 增量语句，++iter，将迭代器增加以引用vector中的下一个元素。
 
 \begin{myNotic}{NOTE}
-尽可能使用前缀递增，而不是后缀递增。前缀递增至少和后缀递增一样高效，通常更高效。iter++必须返回一个新的迭代器对象，而++iter可以直接返回对iter的引用。有关实现operator++两个版本的详细信息，请参见第15章。
+尽可能使用前缀递增，而不是后缀递增。前缀递增至少和后缀递增一样高效，通常更高效。iter++必须返回一个新的迭代器对象，而++iter可以直接返回对iter的引用。
 \end{myNotic}
 
 for循环体包含以下两行：
@@ -312,7 +312,7 @@ for循环体包含以下两行：
 print("{} ", *iter);
 \end{cpp}
 
-如你所见，代码可以访问和修改它迭代的元素。第一行使用operator*来取消iter的引用，以获取它所引用的元素，并赋值给该元素。第二行再次取消iter的引用，但这次只是为了将元素打印到标准输出控制台。
+代码可以访问和修改它迭代的元素。第一行使用operator*来取消iter的引用，以获取它所引用的元素，并赋值给该元素。第二行再次取消iter的引用，但这次只是为了将元素打印到标准输出控制台。
 
 前面的使用迭代器的for循环，可以通过使用auto关键字简化：
 
@@ -330,22 +330,22 @@ vector支持以下成员函数来获取迭代器：
 
 \begin{itemize}
 \item
-begin()和end()返回指向第一个元素和最后一个元素之后的位置的迭代器
+begin()和end()返回指向第一个元素和最后一个元素之后位置的迭代器
 
 \item
-rbegin()和rend()返回指向最后一个元素和第一个元素之前的位置的反向迭代器
+rbegin()和rend()返回指向最后一个元素和第一个元素之前位置的反向迭代器
 
 \item
 cbegin(), cend(), crbegin()和crend()返回常量迭代器
 \end{itemize}
 
 \begin{myNotic}{NOTE}
-如果需要遍历容器中的所有元素，建议使用范围基于for循环，而不是迭代器。因为前者更易于阅读和编写，且出错率更低。仅在需要遍历子范围或在循环体中需要迭代器时，再使用迭代器。
+如果需要遍历容器中的所有元素，建议使用范围基于for循环，而不是迭代器。因为前者更易于阅读和编写，且出错率更低。仅在需要遍历子范围或在循环体中需要迭代器时使用。
 \end{myNotic}
 
 \mySamllsection{访问对象元素的字段}
 
-如果容器的元素是对象，可以在迭代器上使用->运算符来调用这些对象的成员函数或访问数据成员。例如，下面的程序创建了一个包含10个字符串的vector，然后遍历所有字符串，并将一个新字符串附加到每个字符串：
+如果容器的元素是对象，可以在迭代器上使用->操作符来调用这些对象的成员函数或访问数据成员。下面的程序创建了一个包含10个字符串的vector，然后遍历所有字符串，并将一个新字符串添加到每个字符串：
 
 \begin{cpp}
 vector<string> stringVector(10, "hello");
@@ -354,7 +354,7 @@ for (auto it { begin(stringVector) }; it != end(stringVector); ++it) {
 }
 \end{cpp}
 
-通常，使用基于范围的for循环可以使代码更简洁，如本例所示：
+使用基于范围的for循环可以使代码更简洁，如本例所示：
 
 \begin{cpp}
 for (auto& str : stringVector) {
@@ -364,7 +364,7 @@ for (auto& str : stringVector) {
 
 \mySamllsection{const\_iterator}
 
-普通迭代器可读写，如果在const对象上调用begin()或end()，或者调用cbegin()或cend()，会得到一个const\_iterator。const\_iterator是只读的；不能修改它所引用的元素。迭代器可以转换为const\_iterator，所以写这样的代码是安全的：
+普通迭代器可读写，如果在const对象上调用begin()或end()，或者调用cbegin()或cend()，会得到一个const\_iterator。const\_iterator是只读的；不能修改它所引用的元素。迭代器可以转换为const\_iterator，所以这样的代码是安全的：
 
 \begin{cpp}
 vector<type>::const_iterator it { begin(myVector) };
@@ -377,7 +377,7 @@ vector<type>::iterator it { begin(myVector) };
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-如果你不需要修改vector的元素，应该使用const\_iterator。这个规则可以更容易地保证你代码的正确性，并帮助编译器进行更好的优化。
+如果不需要修改vector的元素，应该使用const\_iterator。这个规则可以更容易地保证代码的正确性，并帮助编译器进行更好的优化。
 \end{myNotic}
 
 当使用auto关键字时，使用const\_iterators看起来会有点不同。假设写了以下代码：
@@ -389,7 +389,7 @@ for (auto iter { begin(stringVector) }; iter != end(stringVector); ++iter) {
 }
 \end{cpp}
 
-由于使用了auto关键字，编译器会自动推导iter变量的类型，并使其成为一个普通迭代器，因为stringVector不是const。如果想要一个只读的const\_iterator与auto结合使用，那么需要使用cbegin()和cend()，而不是begin()和end()：
+由于使用了auto关键字，编译器会自动推导iter变量的类型，并使其成为一个普通迭代器，因为stringVector不是const。如果想要一个只读的const\_iterator与auto结合使用，则需要使用cbegin()和cend()，而不是begin()和end()：
 
 \begin{cpp}
 for (auto iter { cbegin(stringVector) }; iter != cend(stringVector); ++iter) {
@@ -399,7 +399,7 @@ for (auto iter { cbegin(stringVector) }; iter != cend(stringVector); ++iter) {
 
 现在编译器使用const\_iterator作为iter变量的类型，这是cbegin()返回的类型。
 
-基于范围的for循环也可以强制使用const迭代器，如下所示：
+基于范围的for循环也可以强制使用const迭代器：
 
 \begin{cpp}
 for (const auto& element : stringVector) {
@@ -409,7 +409,7 @@ for (const auto& element : stringVector) {
 
 \mySamllsection{迭代器的安全性}
 
-通常，迭代器的安全性类似于指针——非常不安全。例如，可以这样写代码：
+迭代器的安全性类似于指针——非常不安全，例如：
 
 \begin{cpp}
 vector<int> intVector;
@@ -417,9 +417,9 @@ auto iter { end(intVector) };
 *iter = 10; // Bug! Iter doesn't refer to a valid element.
 \end{cpp}
 
-回想一下，end()返回的迭代器是指向vector末尾之后的迭代器，而不是指向最后一个元素的迭代器！因为迭代器不需要执行任何验证，所以尝试解引将导致未定义行为。
+end()返回的迭代器是指向vector末尾之后的迭代器，而不是指向最后一个元素的迭代器！迭代器不需要执行验证，所以尝试解引将导致未定义行为。
 
-另一个问题可能发生在使用不匹配的迭代器时。例如，下面的for循环用vectorTwo的迭代器初始化iter，并尝试将其与vectorOne的end迭代器进行比较。不用说，这个循环不会做预期的事情，可能永远不会终止。在循环中解引用迭代器，很可能会产生未定义的结果。
+另一个问题可能发生在使用不匹配的迭代器时。例如，下面的for循环用vectorTwo的迭代器初始化iter，并尝试将其与vectorOne的end迭代器进行比较。这个循环不会做预期的事情，可能永远不会终止。在循环中解引用迭代器，很可能会产生未定义的结果。
 
 \begin{cpp}
 vector<int> vectorOne(10);
@@ -429,12 +429,12 @@ for (auto iter { begin(vectorTwo) }; iter != end(vectorOne); ++iter) { /* ... */
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-Microsoft Visual C++默认在调试构建的程序中，为前两个问题提供运行时断言错误。默认情况下，Release构建不执行迭代器的验证。可以为Release构建启用它，但这会有性能损失。
+Microsoft Visual C++默认在调试构建的程序中，为前两个问题提供运行时断言错误。默认情况下，Release构建不执行迭代器的验证。可以为Release构建启用，但这会有性能损失。
 \end{myNotic}
 
 \mySamllsection{其他迭代器的操作}
 
-vector迭代器是随机访问的，所以可以向前或向后移动它，并且可以跳转。例如，以下代码最终将第5个元素（索引4）更改为值4：
+vector迭代器是随机访问的，可以向前或向后移动，并且可以跳转。以下代码最终将第5个元素（索引4）更改为值4：
 
 \begin{cpp}
 vector<int> intVector(10);
@@ -446,14 +446,14 @@ it += 5;
 
 \mySamllsection{迭代器与索引}
 
-既然可以写一个for循环，使用简单的索引变量和size()成员函数来遍历vector的元素，为什么还要使用迭代器呢？这是一个好问题，主要有三个答案：
+既然可以写for循环，使用简单的索引变量和size()成员函数来遍历vector的元素，为什么还要使用迭代器呢？这是一个好问题，我用三个答案来回答：
 
 \begin{itemize}
 \item
 迭代器允许在容器的任何位置插入和删除元素以及元素序列。
 
 \item
-迭代器允许你使用标准库算法，这些算法在第20章中介绍。
+迭代器允许使用标准库算法，这些算法在第20章中介绍。
 
 \item
 使用迭代器顺序访问每个元素，通常比索引容器以单独获取每个元素更有效。这对vector不适用，但适用于list、map和set。
@@ -461,7 +461,7 @@ it += 5;
 
 \mySamllsection{vector中存储引用}
 
-如本章前面提到的，可以将引用存储在容器中，如vector。要做到这一点，可以在容器中存储std::reference\_wrapper，使用std::ref()和cref()函数模板创建非const和const reference\_wrapper实例。使用get()成员函数来获取reference\_wrapper包装的对象，所有这些都在<functional>中定义。以下是一个示例：
+如本章前面提到的，可以将引用存储在容器中，如vector。可以在容器中存储std::reference\_wrapper，使用std::ref()和cref()函数模板创建非const和const reference\_wrapper实例。使用get()成员函数来获取reference\_wrapper包装的对象，这些都在<functional>中定义。以下是一个示例：
 
 \begin{cpp}
 string str1 { "Hello" };
@@ -480,7 +480,7 @@ println("{} {}", str1, str2);
 
 \mySamllsection{添加和删除元素}
 
-如你所知，可以使用push\_back()成员函数向vector追加一个元素。vector提供一个相应的名为pop\_back()的删除成员函数。
+可以使用push\_back()成员函数向vector追加元素，vector提供名为pop\_back()的删除成员函数。
 
 \begin{myWarning}{WARNING}
 pop\_back()不会返回删除的元素。如果想保留那个元素，必须使用back()先获取。
@@ -511,11 +511,11 @@ push\_back()和insert()有接受左值或右值作为参数的重载版本，两
 
 \CXXTwentythreeLogo{-40}{-50}
 
-C++23增加了以下成员函数：assign\_range() 用给定范围的元素替换vector中的所有元素，insert\_range() 在vector的给定位置插入给定范围的所有元素，以及append\_range() 将给定范围的所有元素追加到vector的末尾。第17章已经详细介绍了范围。
+C++23增加了以下成员函数：assign\_range() 用给定范围的元素替换vector中的所有元素，insert\_range() 在vector的给定位置插入给定范围的所有元素，以及append\_range() 将给定范围的所有元素追加到vector的末尾。
 
 可以使用erase()从vector的任何位置移除元素，并可以使用clear()移除所有元素。erase()有两个重载版本：一个接受单个迭代器以移除单个元素，另一个接受两个迭代器以指定要移除的元素范围。
 
-来看一个示例程序，演示了一些用于添加和移除元素的成员函数。以下代码片段演示了clear()，push\_back()，pop\_back()，C++23添加的append\_range()，erase()的双参数版本，以及insert()的重载：
+来看一个示例程序，演示了用于添加和移除元素的成员函数。以下代码片段演示了clear()，push\_back()，pop\_back()，C++23添加的append\_range()，erase()的双参数版本，以及insert()的重载：
 
 \begin{itemize}
 \item
@@ -528,7 +528,7 @@ insert(const\_iterator pos, size\_type n, const T\& x): 在位置pos插入值x n
 insert(const\_iterator pos, InputIterator first, InputIterator last): 在位置pos插入范围[first, last)内的元素。
 \end{itemize}
 
-下面是代码段：
+下面是代码：
 
 \begin{cpp}
 vector vectorOne { 1, 2, 3, 5 };
@@ -583,7 +583,7 @@ println("{:n}", vectorTwo);
 100, 100, 100, 100, 100, 100, 100, 100, 100
 \end{shell}
 
-迭代器对表示半开区间，而 insert() 函数在给定迭代器位置之前添加元素。因此，可以在 vectorOne 的末尾插入整个 vectorTwo 内容：
+迭代器对表示半开区间，而 insert() 函数在给定迭代器位置之前添加元素，可以在 vectorOne 的末尾插入整个 vectorTwo 内容：
 
 \begin{cpp}
 vectorOne.insert(cend(vectorOne), cbegin(vectorTwo), cend(vectorTwo));
@@ -593,9 +593,9 @@ vectorOne.insert(cend(vectorOne), cbegin(vectorTwo), cend(vectorTwo));
 接受公共迭代器范围作为参数的成员函数，如 insert() 和 erase()，假定起始和结束迭代器引用的是同一容器中的元素，并且结束迭代器引用的是开始迭代器所在位置或之后的元素。如果这些先决条件不满足，成员函数将无法正确工作！
 \end{myWarning}
 
-如果想删除所有满足特定条件的元素，一种解决方案是编写一个循环，遍历所有元素并删除每个匹配条件的元素。然而，这个解决方案具有二次复杂度，这对性能不利。通过使用 删除删除-擦除-习语，可以避免这种二次复杂度，其具有线性复杂度。删除-擦除-习语将在第 20 章中介绍。
+如果想删除所有满足特定条件的元素，一种解决方案是编写一个循环，遍历所有元素并删除每个匹配条件的元素。这个解决方案具有二次复杂度，对性能不利。通过使用 删除删除-擦除-习语，可以避免这种二次复杂度，其具有线性复杂度。删除-擦除-习语将在第 20 章中介绍。
 
-然而，从 C++20 开始，有一个更优雅的解决方案，即 std::erase() 和 std::erase\_if() 非成员函数，为所有标准库容器定义：
+从 C++20 开始，有一个更优雅的解决方案，即 std::erase() 和 std::erase\_if() 非成员函数，为所有标准库容器定义：
 
 \begin{cpp}
 vector values { 1, 2, 3, 2, 1, 2, 4, 5 };
@@ -618,7 +618,7 @@ erase\_if() 类似，但不是传递一个值作为第二个参数，而是传�
 
 \mySamllsection{移动语义}
 
-向vector中添加元素时，可以利用移动语义在某些情况下提高性能。例如，有一个vector<string>：
+向vector中添加元素时，可以利用移动语义在某些情况下提高性能。例如，一个vector<string>：
 
 \begin{cpp}
 vector<string> vec;
@@ -631,15 +631,15 @@ string myElement(5, 'a'); // Constructs the string "aaaaa"
 vec.push_back(myElement);
 \end{cpp}
 
-然而，由于 myElement 不是临时对象，push\_back() 会复制 myElement 并将其放入vector中。
+由于 myElement 不是临时对象，push\_back() 会复制 myElement 并将其放入vector中。
 
-vector 类还定义了一个 push\_back(T\&\&)，这是 push\_back(const T\&) 的移动版本。因此，可按按如下方式调用 push\_back()，可以避免复制：
+vector 类还定义了一个 push\_back(T\&\&)，这是 push\_back(const T\&) 的移动版本。可按如下方式调用 push\_back()，避免复制：
 
 \begin{cpp}
 vec.push_back(move(myElement));
 \end{cpp}
 
-这个语句明确表示 myElement 应该被移动到vector中。此调用之后，myElement 处于有效但不确定的状态。除非首先将其恢复为确定状态，例如：对其调用 clear()，否则不应再使用 myElement！也可以按如下方式使用push\_back()：
+这个语句明确表示 myElement 应该移动到vector中。此调用之后，myElement 处于有效但不确定的状态。除非首先将其恢复为确定状态，例如：对其调用 clear()，否则不应再使用 myElement！也可以按如下方式使用push\_back()：
 
 \begin{cpp}
 vec.push_back(string(5, 'a'));
@@ -649,13 +649,13 @@ vec.push_back(string(5, 'a'));
 
 \mySamllsection{原位操作}
 
-C++ 在大多数标准库容器上支持原位操作，包括 vector，原位意味着“就地置入”。一个例子是 vector 的 emplace\_back() 成员函数，既不复制也不移动，它在容器中腾出空间并在该位置构造对象：
+C++ 在大多数标准库容器上支持原位操作，包括 vector，原位即为“就地置入”。一个例子是 vector 的 emplace\_back() 成员函数，既不复制也不移动，它在容器中腾出空间并在该位置构造对象：
 
 \begin{cpp}
 vec.emplace_back(5, 'a');
 \end{cpp}
 
-emplace 成员函数接受可变数量的参数作为可变参数模板。可变参数模板将在第 26 章中介绍，但这些细节并非使用 emplace\_back() 所必需。基本上，传递给 emplace\_back() 的参数可转发到存储在vector中的类型的构造函数。大多数情况下，可以根据喜好选择 emplace\_back() 和带有移动语义的 push\_back()：
+emplace 成员函数接受可变数量的参数作为可变参数模板。可变参数模板将在第 26 章中介绍，但这些细节并非 emplace\_back() 所必需。基本上，传递给 emplace\_back() 的参数可转发到vector中类型的构造函数。大多数情况下，可以根据喜好选择 emplace\_back() 和带有移动语义的 push\_back()：
 
 \begin{cpp}
 vec.push_back(string(5, 'a'));
@@ -667,13 +667,13 @@ emplace\_back() 成员函数返回对插入元素的引用。这里还有一个 
 
 \mySamllsection{算法的复杂度和失效的迭代器}
 
-在vector中插入或删除元素会导致所有后续元素向上或向下移动，以为受影响的元素腾出空间，或填补留下的空隙，所以这些操作具有线性复杂度。此外，所有引用插入或删除点或后续位置的迭代器，在操作后都会失效。迭代器不会“神奇地”移动，以保持与vector中向上或向下移动的元素同步——这取决于开发者。
+在vector中插入或删除元素会导致所有后续元素向上或向下移动，为受影响的元素腾出空间，或填补留下的空隙，所以这些操作具有线性复杂度。此外，所有引用插入或删除点或后续位置的迭代器，在操作后都会失效。迭代器不会“神奇地”移动，以保持与vector中向上或向下移动的元素同步——这取决于开发者。
 
-还要记住，vector的内部重新分配，可能导致引用vector中元素的所有迭代器失效，不仅仅是引用插入或删除点之后元素的迭代器。下一节将详细介绍。
+vector的内部重新分配，可能导致引用vector中元素的所有迭代器失效，不仅仅是引用插入或删除点之后元素的迭代器。下一节将详细介绍。
 
 \mySamllsection{vector的示例：循环队列类}
 
-vector自动分配内存以存储插入的元素。回想一下，vector要求元素必须位于连续的内存中，就像标准C风格数组一样。因为无法请求在当前内存块的末尾添加内存，所以每次vector分配更多内存时，必须在单独的内存位置分配一个新的、更大的块，并将所有元素复制/移动到新块中。这个过程很耗时，所以vector实现试图在必须执行重新分配时，分配比所需更多的空间。这样，可以避免每次插入元素时重新分配内存。
+vector自动分配内存以存储插入的元素，vector要求元素必须位于连续的内存中，就像标准C风格数组一样。因为无法请求在当前内存块的末尾添加内存，每次vector分配更多内存时，必须在单独的内存位置分配一个新的、更大的块，并将所有元素复制/移动到新块中。这个过程很耗时，vector实现试图在必须执行重新分配时，分配比所需更多的空间，以避免每次插入元素时重新分配内存。
 
 这里就有一个问题了，作为vector的客户，为什么要关心它如何内部管理其内存？开发者可能会认为，根据抽象原则，应该允许使用者忽略vector内部的内存分配方案。不幸的是，有两个原因需要开发者了解这里的内存分配：
 
@@ -685,7 +685,7 @@ vector自动分配内存以存储插入的元素。回想一下，vector要求�
 迭代器失效：重新分配会使引用vector中元素的所有迭代器失效。
 \end{itemize}
 
-因此，vector接口允许查询和控制vector重新分配，这两个都在接下来的小节中介绍。
+vector接口允许查询和控制vector重新分配，这两个都在接下来的小节中介绍。
 
 \begin{myWarning}{WARNING}
 如果不显式控制重新分配，应该假设所有插入都会导致重新分配，从而导致所有迭代器无效。
@@ -693,7 +693,7 @@ vector自动分配内存以存储插入的元素。回想一下，vector要求�
 
 \mySamllsection{大小与容量}
 
-vector 提供了两个成员函数来获取关于其大小的信息：size() 和 capacity()。size() 成员函数返回vector中的元素数量，而 capacity() 返回在不重新分配的情况下可以容纳的元素数量。因此，可以在不导致重新分配的情况下插入的元素数量是 capacity() - size()。
+vector 提供了两个成员函数来获取关于其大小的信息：size() 和 capacity()。size() 成员函数返回vector中的元素数量，而 capacity() 返回在不重新分配的情况下可以容纳的元素数量，可以在不导致重新分配的情况下插入的元素数量是 capacity() - size()。
 
 \begin{myNotic}{NOTE}
 可以使用 empty() 成员函数来查询一个vector是否为空。一个vector可以是空的，但容量并非为零。
@@ -716,7 +716,7 @@ auto s2 { ssize(vec) }; // Type is long long (signed)
 
 \mySamllsection{预留容量}
 
-如果不关心效率或迭代器无效化，那就没有必要显式控制vector的内存分配。但想使程序尽可能高效，或者想保证迭代器不会无效化，可以强制一个vector预先分配足够的空间来容纳其所有元素。当然，需要知道它将容纳多少元素，这有时无法预测。
+如果不关心效率或迭代器无效化，就没有必要显式控制vector的内存分配。但想使程序尽可能高效，或者想保证迭代器不会无效化，可以强制vector预先分配足够的空间来容纳其所有元素。当然，需要知道它将容纳多少元素，这有时无法预测。
 
 预留空间的一种方法是调用 reserve()，分配足够的内存来容纳指定的元素数量。下面Round-Robin类示例中，就使用了 reserve() 成员函数。
 
@@ -728,11 +728,11 @@ auto s2 { ssize(vec) }; // Type is long long (signed)
 
 \mySamllsection{回收所有内存}
 
-vector在需要时会自动分配更多内存；然而，除非销毁vector，否则永远不会释放内存。从vector中移除元素会减少vector的大小，但永远不会减少其容量。那么，该如何回收其内存呢？
+vector在需要时会自动分配更多内存，除非销毁vector，否则永远不会释放内存。从vector中移除元素会减少vector的大小，但永远不会减少其容量。那么，该如何回收其内存呢？
 
-一个选项是使用shrink\_to\_fit()成员函数，它会让vector的容量减少到其大小。然而，这只是一个请求，标准库实现中允许忽略这个请求。
+一个选项是使用shrink\_to\_fit()成员函数，会让vector的容量减少到其大小。这只是一个请求，标准库实现中允许忽略这个请求。
 
-回收vector的所有内存可以使用以下技巧：将vector与一个空vector交换。以下代码片段展示了如何通过单条语句，回收名为values的vector的内存。代码的第三行构造了一个与values类型相同的临时空默认构造vector，并将其与values交换。为values分配的所有内存现在属于这个临时vector，该临时vector在该语句结束时自动销毁，释放其所有内存。最终结果是回收了为values分配的所有内存，而values的容量为零。
+回收vector的所有内存可以使用以下技巧：将vector与一个空vector交换。以下代码展示了如何通过单条语句，回收名为values的vector的内存。代码的第三行构造了一个与values类型相同的临时空默认构造vector，并将其与values交换。为values分配的所有内存现在属于这个临时vector，该临时vector在该语句结束时自动销毁，释放其所有内存。最终结果是回收了为values分配的所有内存，而values的容量为零。
 
 \begin{cpp}
 vector<int> values;
@@ -752,11 +752,11 @@ int* data1 { vec.data() };
 int* data2 { data(vec) };
 \end{cpp}
 
-另一种获取vector内存块访问权限的方法是获取第一个元素的地址，如：\&vec[0]。可能会在旧代码库中找到这种代码，但对于空vector来说，这非常不安全；因此，我建议不要使用它，而是使用data()。
+另一种获取vector内存块访问权限的方法是获取第一个元素的地址，如：\&vec[0]。可能会在旧代码库中找到这种代码，但对于空vector来说，这非常不安全；我建议不要使用它，而是使用data()。
 
 \mySamllsection{移动语义}
 
-所有标准库容器都通过包含，移动构造函数和移动赋值运算符来支持移动语义。有关移动语义的详细信息，请参见第9章。标准库容器可以从函数中以值的形式返回，而不会产生性能损失。来看看下面的函数：
+所有标准库容器都通过包含，移动构造函数和移动赋值操作符来支持移动语义。有关移动语义的详细信息，请参见第9章。标准库容器可以从函数中以值的形式返回，而不会产生性能损失。来看看下面的函数：
 
 \begin{cpp}
 vector<int> createVectorOfSize(size_t size)
@@ -770,19 +770,19 @@ vector<int> myVector;
 myVector = createVectorOfSize(123);
 \end{cpp}
 
-如果没有移动语义，将createVectorOfSize()的结果赋值给myVector可能会调用复制赋值运算符。有了标准库容器对移动语义的支持，就可以避免复制vector。相反，将结果赋值给myVector，会调用移动赋值运算符。
+如果没有移动语义，将createVectorOfSize()的结果赋值给myVector可能会调用复制赋值操作符。有了标准库容器对移动语义的支持，就可以避免复制vector，而将结果赋值给myVector，会调用移动赋值操作符。
 
-但要使标准库容器与移动语义正常工作，容器中存储的类型必须将移动构造函数和移动赋值运算符标记为noexcept！为什么这些移动成员函数不允许抛出任何异常呢？如果它们抛出异常，向vector中添加新元素时，可能会出现vector容量不足，需要分配更大的内存块的情况。随后，vector必须将所有数据从原始内存块复制或移动到新内存块。如果使用可能抛出异常的移动成员函数来完成，在部分数据已经移动到新内存块时，可能会抛出异常。那时我们能做什么呢？不多。为了避免这类问题，标准库容器只会在移动成员函数保证不抛出异常时使用。如果没有标记为noexcept，则会使用复制成员函数来保证强异常安全。
+但要使标准库容器与移动语义正常工作，容器中存储的类型必须将移动构造函数和移动赋值操作符标记为noexcept！为什么这些移动成员函数不允许抛出异常呢？如果抛出异常，向vector中添加新元素时，可能会出现vector容量不足，需要分配更大的内存块的情况，vector必须将所有数据从原始内存块复制或移动到新内存块。如果使用可能抛出异常的移动成员函数来完成，在部分数据已经移动到新内存块时，可能会抛出异常。那时我们能做什么呢？不多。为了避免这类问题，标准库容器只会在移动成员函数保证不抛出异常时使用。如果没有标记为noexcept，则会使用复制成员函数来保证强异常安全。
 
 实现自己的类似标准库的容器时，有一个有用的辅助函数可用，称为std::move\_if\_noexcept()，定义在<utility>中。这可以用来根据移动构造函数是否为noexcept，来调用移动构造函数或复制构造函数。move\_if\_noexcept()本身并不做太多事情，接受一个引用作为参数，并将其转换为右值引用（如果移动构造函数是noexcept）或const引用（否则），但这个简单的技巧可以用来调用正确的构造函数。
 
-标准库没有提供类似的辅助函数，根据移动赋值运算符是否为noexcept来调用移动赋值运算符或复制赋值运算符。自己实现一个并不太复杂，但需要一些模板元编程技术和类型特征来检查类型的属性。这两个主题将在第26章中进行介绍，其中还给出了move\_assign\_if\_noexcept()实现的示例。
+标准库没有提供类似的辅助函数，根据移动赋值操作符是否为noexcept来调用移动赋值操作符或复制赋值操作符。自己实现一个并不太复杂，但需要一些模板元编程技术和类型特征来检查类型的属性。这两个主题将在第26章中进行介绍，其中还给出了move\_assign\_if\_noexcept()实现的示例。
 
 \mySamllsection{vector 示例：循环调度(Round-Robin)类}
 
-计算机科学中的一个常见问题是,将在有限资源列表中分配请求。例如，一个简单的操作系统可以维护一个进程列表，并为每个进程分配一个时间片（如 100 毫秒），让进程执行其部分工作。时间片结束后，操作系统挂起该进程，列表中的下一个进程获得一个时间片以执行其部分工作。这个问题最简单的算法解决方案是循环调度。当最后一个进程的时间片结束时，调度程序从第一个进程重新开始。例如，在三个进程的情况下，第一个时间片将分配给第一个进程，第二个时间片给第二个进程，第三个时间片给第三个进程，第四个时间片又回到第一个进程。这个循环将以此方式无限期地继续。
+计算机科学中的一个常见问题是，将在有限资源列表中分配请求。例如，一个简单的操作系统可以维护一个进程列表，并为每个进程分配一个时间片（如 100 毫秒），让进程执行其部分工作。时间片结束后，操作系统挂起该进程，列表中的下一个进程获得一个时间片以执行其部分工作。这个问题最简单的算法解决方案是循环调度。当最后一个进程的时间片结束时，调度程序从第一个进程重新开始。例如，在三个进程的情况下，第一个时间片将分配给第一个进程，第二个时间片给第二个进程，第三个时间片给第三个进程，第四个时间片又回到第一个进程。这个循环将以此方式无限期地继续。
 
-假设决定编写一个通用的循环调度类，可以用于任何类型的资源。该类应支持添加和删除资源，并支持循环获取下一个资源。可以直接使用 vector，但编写一个包装类通常更有帮助，它可以直接提供特定应用程序所需的功能。以下示例展示了一个带有注释解释代码的 RoundRobin 类模板。
+假设决定编写一个通用的循环调度类，可以用于任何类型的资源。该类应支持添加和删除资源，并支持循环获取下一个资源。可以直接使用 vector，但编写一个包装类通常更有帮助，可以直接提供特定应用程序所需的功能。以下示例展示了一个带有注释解释代码的 RoundRobin 类模板。
 
 首先，从名为 round\_robin 的模块导出类定义：
 
@@ -822,9 +822,9 @@ class RoundRobin final
 };
 \end{cpp}
 
-公共接口非常简单：只有三个成员函数加上构造函数。资源存储在一个名为 m\_elements 的 vector 中。迭代器 m\_nextElement 始终指向下一个 getNext() 的返回元素。如果还没有调用 getNext()，m\_nextElement 等于 begin(m\_elements)。注意在声明 m\_nextElement 的行前使用了 typename 关键字。目前为止，只看到过使用该关键字指定模板类型参数的情况，但它还有另一种用途。每当访问基于一个或多个模板参数的类型时，必须显式指定 typename。这种情况下，模板参数 T 用于访问迭代器类型，所以必须指定 typename。
+公共接口非常简单：只有三个成员函数加上构造函数。资源存储在一个名为 m\_elements 的 vector 中。迭代器 m\_nextElement 始终指向下一个 getNext() 的返回元素。如果还没有调用 getNext()，m\_nextElement 等于 begin(m\_elements)。注意在声明 m\_nextElement 的行前使用了 typename 关键字。目前为止，只看到过使用该关键字指定模板类型参数的情况，但它还有另一种用途。每当访问基于一个或多个模板参数的类型时，必须显式指定 typename，模板参数 T 用于访问迭代器类型，所以必须指定 typename。
 
-该类还阻止了复制构造和复制赋值，因为 m\_nextElement 数据成员。要使复制构造和复制赋值工作，需要实现一个赋值运算符和一个复制构造函数，并确保目标对象中的 m\_nextElement 有效。
+该类还阻止了复制构造和复制赋值，因为 m\_nextElement 数据成员。要使复制构造和复制赋值工作，需要实现一个赋值操作符和一个复制构造函数，并确保目标对象中的 m\_nextElement 有效。
 
 RoundRobin 类的实现随后跟着注释解释代码，构造函数中使用了 reserve()，以及在 add()、remove() 和 getNext() 中使用了迭代器。最棘手的部分是在 add() 和 remove() 成员函数中，对 m\_nextElement进行处理。
 
@@ -995,13 +995,13 @@ Process 1 performing work during time slice.
 
 \mySubsubsection{18.2.2.}{vector<bool>}
 
-C++标准要求为bool类型提供一个vector的偏特化，目的是通过“打包”布尔值来优化空间分配。回想一下，bool要么是true，要么是false，因此可以用单个位来表示，这个位可以精确地取两个值。C++没有一种原生类型可以存储恰好一个位。一些编译器使用与char大小相同的类型来表示布尔值；其他编译器使用int。vector<bool>以单个位存储“布尔数组”，从而可以节省空间。
+C++标准要求为bool类型提供一个vector的偏特化，目的是通过“打包”布尔值来优化空间分配。bool要么是true，要么是false，因此可以用单个位来表示，这个位可以精确地取两个值。C++没有一种原生类型可以存储恰好一个位。一些编译器使用与char大小相同的类型来表示布尔值；其他编译器使用int。vector<bool>以单个位存储“布尔数组”，以节省空间。
 
 \begin{myNotic}{NOTE}
 可以将vector<bool>视为位字段，而不是vector。本章后面描述的bitset容器提供了比vector<bool>更完整的位字段实现，而vector<bool>的优点是可以动态改变大小。
 \end{myNotic}
 
-为了向vector<bool>提供一些位字段例程，有一个成员函数称为flip()，它会翻转位值；即，true变为false，false变为true，类似于逻辑非运算符。这个成员函数可以调用容器（这种情况下，会翻转容器中的所有元素），或者调用从operator[]或类似成员函数返回的单个引用，翻转该单个元素。
+为了向vector<bool>提供一些位字段例程，有一个成员函数称为flip()，它会翻转位值；即，true变为false，false变为true，类似于逻辑非操作符。这个成员函数可以调用容器（会翻转容器中的所有元素），或者调用从operator[]或类似成员函数返回的单个引用，翻转该单个元素。
 
 此时，可能会想知道如何对bool的引用调用成员函数，而答案是不能。vector<bool>特化实际上定义了一个名为reference的类，作为底层bool（或位）的代理。当调用operator[]、at()或类似的成员函数时，vector<bool>返回一个引用对象，这实际是bool的代理类。
 
@@ -1009,7 +1009,7 @@ C++标准要求为bool类型提供一个vector的偏特化，目的是通过“�
 从vector<bool>返回的引用实际上是代理，所以不能获取它们的地址，从而获得容器中实际元素的指针。
 \end{myWarning}
 
-实际上，通过打包bool节省的少量空间不值得付出什么，但访问和修改vector<bool>中的元素要比vector<int>慢得多。许多C++专家建议避免使用vector<bool>，而选择bitset。如果确实需要一个动态大小的位字段，只需使用vector<std::int\_fast8\_t>或vector<unsigned char>。std::int\_fast8\_t类型定义在<cstdint>中，是一种有符号整数类型，编译器必须使用至少8位的最快整数类型。
+通过打包bool节省的少量空间不值得付出什么，但访问和修改vector<bool>中的元素要比vector<int>慢得多。许多C++专家建议避免使用vector<bool>，而选择bitset。如果确实需要一个动态大小的位字段，只需使用vector<std::int\_fast8\_t>或vector<unsigned char>。std::int\_fast8\_t类型定义在<cstdint>中，是一种有符号整数类型，编译器必须使用至少8位的最快整数类型。
 
 \mySubsubsection{18.2.3.}{deque}
 
@@ -1049,7 +1049,7 @@ deque不通过reserve()或capacity()公开其内存管理方案。
 
 \mySubsubsection{18.2.4.}{list}
 
-标准库中的列表类模板，定义在 <list> 中，是一个标准的双向链表，支持在列表的任何位置进行常数时间的元素插入和删除，但提供对单个元素的缓慢（线性）访问。实际上，list不提供像 operator[] 这样的随机访问操作，只能通过迭代器访问单个元素。
+标准库中的list类模板，定义在 <list> 中，是一个标准的双向链表，支持在列表的任何位置进行常数时间的元素插入和删除，但提供对单个元素的缓慢（线性）访问。实际上，list不提供像 operator[] 这样的随机访问操作，只能通过迭代器访问单个元素。
 
 列表的大多数操作都与 vector 相同，包括构造函数、析构函数、复制操作、赋值操作和比较操作。本节重点介绍与 vector 不同的成员函数。
 
@@ -1065,7 +1065,7 @@ list不提供对元素的随机访问。
 
 \mySamllsection{迭代器}
 
-list迭代器是双向的，所以不能像操作指针那样对列表迭代器进行加减运算或其他指针算术。例如， p 是一个list迭代器，您以通过执行 ++p 或 --p 来遍历列表中的元素，但不能使用加法或减法运算符；p+n 和 p-n 不起作用。
+list迭代器是双向的，所以不能像操作指针那样，对列表迭代器进行加减运算或其他指针算术。例如， p 是一个list迭代器，以通过执行 ++p 或 -{}-p 来遍历列表中的元素，但不能使用加法或减法操作符：p+n 和 p-n 不起作用。
 
 \mySamllsection{添加和删除元素}
 
@@ -1073,7 +1073,7 @@ list支持与 vector 相同的添加和删除元素成员函数，包括 push\_b
 
 \mySamllsection{list大小}
 
-与 deque 一样，list不像 vector 那样暴露其底层内存模型。因此，它支持 size()、empty() 和 resize()，但不支持 reserve() 或 capacity()。请注意，list的 size() 成员函数具有常数复杂度。
+与 deque 一样，list不像 vector 那样暴露其底层内存模型，支持 size()、empty() 和 resize()，但不支持 reserve() 或 capacity()。请注意，list的 size() 成员函数具有常数复杂度。
 
 \mySamllsection{list的特殊操作}
 
@@ -1116,7 +1116,7 @@ aardvark, ambulance, bathos, balderdash, canticle, consumerism
 还有两个其他版本的splice()：一个将另一个列表中的单个元素插入，另一个将另一个列表中的一个范围插入。此外，所有版本的splice()都可以使用源列表的普通引用或右值引用。
 
 \begin{myWarning}{WARNING}
-拼接（splicing）对作为参数传递的列表具有破坏性，即它从列表中移除拼接元素，以将它们插入到另一个列表中。
+拼接（splicing）对作为参数传递的列表具有破坏性，即从列表中移除拼接元素，以将它们插入到另一个列表中。
 \end{myWarning}
 
 \mySamllsection{更高效的算法}
@@ -1159,7 +1159,7 @@ reverse() &
 
 \mySamllsection{list示例：确定注册情况}
 
-假设正在为大学编写一个计算机注册系统,能提供的功能之一是,从每个班级的学生名单中生成大学的完整注册学生列表。为了这个示例，必须编写一个函数，该函数接受一个学生姓名（字符串）的列表，以及一个由于未支付学费而从其课程中删除的学生名单。该函数应生成所有课程中所有学生的完整列表，没有重复，也没有删除的学生。请注意，学生可能同期参加多个课程。
+假设正在为大学编写一个计算机注册系统，功能之一是从每个班级的学生名单中生成大学的完整注册学生列表。为了这个示例，必须编写一个函数，该函数接受一个学生姓名（字符串）的列表，以及一个由于未支付学费而从其课程中删除的学生名单。该函数应生成所有课程中所有学生的完整列表，没有重复，也没有删除的学生。请注意，学生可能同期参加多个课程。
 
 以下是此函数的代码，有了标准库列表的强大功能，这个函数实际上很好实现！注意，标准库允许“嵌套”容器：这个例子中，可以使用vector<list<string>{}>。
 
@@ -1206,11 +1206,11 @@ list<string> getTotalEnrollment(const vector<list<string>>& courseStudents,
 
 \mySubsubsection{18.2.5.}{forward\_list}
 
-forward\_list，定义在<forward\_list>中，与list类似，但它是单向链表。forward\_list只支持前向迭代，与list相比，范围需要以不同的方式指定。如果想对列表进行，需要访问感兴趣元素的前一个元素。由于forward\_list没有支持反向的迭代器，无法轻松获取前一个元素，所以将修改的范围内（例如，提供给erase()和splice()的范围）必须从开始处打开。之前讨论的begin()函数返回指向第一个元素的迭代器，因此只能用于构造从开始处闭合的范围，所以forward\_list类提供了一个before\_begin()成员函数，其返回一个指向列表开始处之前虚拟元素的迭代器。不能解引用这个迭代器，因为它指向无效的数据。然而，将这个迭代器增加1使其与begin()返回的迭代器相同，所以可以用于构造一个从开始处打开的范围。
+forward\_list，定义在<forward\_list>中，与list类似，但它是单向链表。forward\_list只支持前向迭代，与list相比，范围需要以不同的方式指定。如果想对列表进行，需要访问感兴趣元素的前一个元素。由于forward\_list没有支持反向的迭代器，无法轻松获取前一个元素，所以将修改的范围内（例如，提供给erase()和splice()的范围）必须从开始处打开。之前讨论的begin()函数返回指向第一个元素的迭代器，只能用于构造从开始处闭合的范围，所以forward\_list类提供了一个before\_begin()成员函数，其返回一个指向列表开始处之前虚拟元素的迭代器。不能解引用这个迭代器，因为它指向无效的数据。将这个迭代器增加1使其与begin()返回的迭代器相同，所以可以用于构造一个从开始处打开的范围。
 
-构造函数和赋值运算符在list和forward\_list相似。C++标准要求forward\_list最小化其内存使用，这就是为什么没有size()成员函数，没有必要存储列表的大小。此外，list需要存储列表中前一个和后一个元素的指针，而forward\_list只需要存储后一个元素的指针，从而进一步减少内存使用。例如，在64位系统上，每个list<int>元素需要20字节（两个64位指针，16字节，以及自身的int，4字节）。每个forward\_list<int>元素只需要12字节（一个64位指针，8字节，以及自身的int，4字节）。
+构造函数和赋值操作符在list和forward\_list相似。C++标准要求forward\_list最小化其内存使用，这就是为什么没有size()成员函数，没有必要存储列表的大小。list需要存储列表中前一个和后一个元素的指针，而forward\_list只需要存储后一个元素的指针，从而进一步减少内存使用。64位系统上，每个list<int>元素需要20字节（两个64位指针，16字节，以及自身的int，4字节）。每个forward\_list<int>元素只需要12字节（一个64位指针，8字节，以及自身的int，4字节）。
 
-以下表格总结了list和forward\_list之间的差异。填充的方框（■）表示容器支持该操作，而一个空方框（□）表示该操作容器不受支持。
+以下表格总结了list和forward\_list之间的差异。填充的方框（■）表示容器支持该操作，而空方框（□）表示该操作容器不受支持。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -1296,7 +1296,7 @@ list1.insert_after(iter, cbegin(list3), cend(list3));
 println("{:n}", list1);
 \end{cpp}
 
-要在列表 list1 的末尾插入 list3，需要一个指向 list1 最后一个元素的迭代器。但由于这是一个 forward\_list，不能使用 --end(list1)，需要从开始遍历列表，直到最后一个元素。输出如下：
+要在列表 list1 的末尾插入 list3，需要一个指向 list1 最后一个元素的迭代器。但由于这是一个 forward\_list，不能使用 -{}-end(list1)，需要从开始遍历列表，直到最后一个元素。输出如下：
 
 \begin{shell}
 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
@@ -1304,11 +1304,11 @@ println("{:n}", list1);
 
 \mySubsubsection{18.2.6.}{array}
 
-array，定义在 <array> 中，与 vector 类似，只是它是固定大小的，不能改变大小。固定大小的目的是允许数组在栈上分配，而不是像 vector 那样总是要求访问堆区。
+定义在 <array> 中，与 vector 类似，只是它是固定大小的，不能改变大小。固定大小的目的是允许数组在栈上分配，而不是像 vector 那样总是要求访问堆区。
 
-对于包含原始类型（整数、浮点数、字符、布尔值等）的array，初始化元素的方式与在 vector、list 等容器中初始化元素的方式不同。如果创建array时没有提供初始化值，那么数组元素将未初始化，即包含垃圾值。对于其他容器，如 vector 和 list，元素始终初始化，要么使用给定的值，要么使用零初始化，所以array的行为几乎与 C 风格数组完全相同。
+对于包含原始类型（整数、浮点数、字符、布尔值等）的array，初始化元素的方式与在 vector、list 等容器中初始化元素的方式不同。如果创建array时没有提供初始化值，则数组元素将未初始化，即包含垃圾值。对于其他容器，如 vector 和 list，元素始终初始化，要么使用给定的值，要么使用零初始化，所以array的行为几乎与 C 风格数组完全相同。
 
-与 vector 一样，array支持随机访问迭代器，并且元素存储在连续的内存中。array支持 front()、back()、at() 和 operator[]，还支持 fill() 成员函数来用特定元素填充数组。因为它是固定大小的，所以不支持 push\_back()、pop\_back()、insert()、erase()、clear()、resize()、reserve()、capacity() 或于范围的成员函数。与 vector 相比的缺点是，array的 swap() 成员函数得时间复杂度为线性，而 vector 的 swap() 具有常数复杂度。array也不能在常数时间内移动，而 vector 可以。array有一个 size() 成员函数，这是它比 C 风格数组的一个明显优势。以下示例演示了如何使用array类。请注意，array声明需要两个模板参数：第一个指定元素的类型，第二个指定数组中固定元素的个数。
+与 vector 一样，array支持随机访问迭代器，并且元素存储在连续的内存中。array支持 front()、back()、at() 和 operator[]，还支持 fill() 成员函数来用特定元素填充数组。因为固定大小，所以不支持 push\_back()、pop\_back()、insert()、erase()、clear()、resize()、reserve()、capacity() 或于范围的成员函数。与 vector 相比的缺点是，array的 swap() 成员函数得时间复杂度为线性，而 vector 的 swap() 具有常数复杂度。array也不能在常数时间内移动，而 vector 可以。array有一个 size() 成员函数，这是比 C 风格数组的一个明显优势。以下示例演示了如何使用array类。注意，array声明需要两个模板参数：第一个指定元素的类型，第二个指定数组中固定元素的个数。
 
 \begin{cpp}
 // Create an array of 3 integers and initialize them
@@ -1341,7 +1341,7 @@ Performing arr.fill(3)...
 3 3 3
 \end{shell}
 
-可以使用 std::get<n>() 函数模板从 std::array 中检索给定索引 n 的元素。索引必须是一个常量表达式，因此不能是一个循环变量。使用 std::get<n>() 的好处是，编译器在编译时检查给定索引是否有效；否则，会导致编译错误：
+可以使用 std::get<n>() 函数模板从 std::array 中检索给定索引 n 的元素。索引必须是一个常量表达式，不能是一个循环变量。使用 std::get<n>() 的好处是，编译器在编译时检查给定索引是否有效；否则，会导致编译错误：
 
 \begin{cpp}
 array myArray { 11, 22, 33 }; // std::array supports CTAD.

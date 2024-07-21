@@ -1,5 +1,5 @@
 
-标准库提供了四种流迭代器。这些类似于迭代器的类模板，可以将输入和输出流视为输入和输出迭代器。使用这些流迭代器，可以适配输入和输出流，使它们分别能够作为各种标准库算法的源和目标。以下是可以使用的流迭代器：
+标准库提供了四种流迭代器。这些类似于迭代器的类模板，可以将输入和输出流视为输入和输出迭代器。使用这些流迭代器，可以适配输入和输出流，能够分别作为各种标准库算法的源和目标。以下是可以使用的流迭代器：
 
 \begin{itemize}
 \item
@@ -30,7 +30,7 @@ void myCopy(InputIter begin, InputIter end, OutputIter target)
 }
 \end{cpp}
 
-myCopy() 的前两个参数是要复制的范围的开始和结束迭代器，第三个参数是目标范围的迭代器。必须确保目标范围足够大，能够容纳来自源范围的所有元素。使用 myCopy() 函数模板会直接将一个vector的元素复制到另一个vector。
+myCopy() 的前两个参数是要复制的范围的开始和结束迭代器，第三个参数是目标范围的迭代器。必须确保目标范围足够大，能够容纳来自源范围的所有元素。使用 myCopy() 函数模板，会直接将一个vector的元素复制到另一个vector。
 
 \begin{cpp}
 vector myVector { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
@@ -39,7 +39,7 @@ vector<int> vectorCopy(myVector.size());
 myCopy(cbegin(myVector), cend(myVector), begin(vectorCopy));
 \end{cpp}
 
-现在，通过使用一个 ostream\_iterator，myCopy() 函数模板也可以用来仅用一行代码打印容器元素。以下代码片段打印 myVector 和 vectorCopy 的内容：
+通过使用一个 ostream\_iterator，myCopy() 函数模板也可以用来仅用一行代码打印容器元素。以下代码段打印 myVector 和 vectorCopy 的内容：
 
 \begin{cpp}
 // Use the same myCopy() to print the contents of both vectors.
@@ -58,7 +58,7 @@ println("");
 
 \mySubsubsection{17.2.2.}{输入流迭代器: istream\_iterator}
 
-可以使用输入流迭代器 istream\_iterator 从输入流中读取值，利用迭代器抽象。它是一个类模板，接受元素类型作为模板类型参数。其构造函数接受一个输入流作为参数。元素通过 operator>{}> 读取。可以将 istream\_iterator 用作算法和容器成员函数的源。
+可以使用输入流迭代器 istream\_iterator 从输入流中读取值，利用迭代器抽象。它是一个类模板，接受元素类型作为模板类型参数，其构造函数接受一个输入流作为参数。元素通过 operator>{}> 读取，可以将 istream\_iterator 用作算法和容器成员函数的源。
 
 假设有一个 sum() 函数模板，用于计算给定普通范围内所有元素的和：
 
@@ -72,7 +72,7 @@ auto sum(InputIter begin, InputIter end)
 }
 \end{cpp}
 
-现在，可以使用 istream\_iterator 从控制台读取整数，直到到达流的末尾。在 Windows 上，这发生在按下 Ctrl+Z 后跟 Enter 的情况下，而在 Linux 上则是按下 Enter 后跟 Ctrl+D。sum() 函数用于计算所有整数的和，默认构造的 istream\_iterator 表示结束迭代器。
+可以使用 istream\_iterator 从控制台读取整数，直到到达流的末尾。在 Windows 上，这发生在按下 Ctrl+Z 后跟 Enter 的情况下，而在 Linux 上则是按下 Enter 后跟 Ctrl+D。sum() 函数用于计算所有整数的和，默认构造的 istream\_iterator 表示结束迭代器。
 
 \begin{cpp}
 println("Enter numbers separated by whitespace.");
@@ -86,7 +86,7 @@ println("Sum: {}", result);
 
 \mySubsubsection{17.2.3.}{输入流迭代器: istreambuf\_iterator}
 
-istreambuf\_iterator 输入流迭代器是用单个语句，读取整个文件的内容。默认构造的 istreambuf\_iterator 表示结束迭代器，这里有一个例子：
+istreambuf\_iterator 输入流迭代器是用单个语句，读取整个文件的内容。默认构造的 istreambuf\_iterator 表示结束迭代器：
 
 \begin{cpp}
 ifstream inputFile { "some_data.txt" };

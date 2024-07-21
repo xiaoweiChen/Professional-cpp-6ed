@@ -46,11 +46,11 @@
 \end{tabular} \\ \hline
 \end{longtable}
 
-根据这个表格，有六种类型的迭代器：输入（Input）、输出（Output）、前向（Forward）、双向（Bidirectional）、随机访问（Random Access）和连续（Contiguous）。这些迭代器之间没有正式的类层次结构，可以根据它们需要提供的功能推断出一个层次结构。具体来说，每个连续迭代器也是随机访问迭代器，每个随机访问迭代器也是双向迭代器，每个双向迭代器也是前向迭代器，每个前向迭代器也是输入迭代器。此外满足输出迭代器要求的迭代器称为可变迭代器；否则，称为常量迭代器。图17.1显示了这样的层次结构。使用虚线是因为这不是一个真正的类层次结构。
+根据这个表格，有六种类型的迭代器：输入（Input）、输出（Output）、前向（Forward）、双向（Bidirectional）、随机访问（Random Access）和连续（Contiguous）。这些迭代器之间没有正式的类层次结构，不过可以根据需要的功能推断出一个层次结构。具体来说，每个连续迭代器也是随机访问迭代器，每个随机访问迭代器也是双向迭代器，每个双向迭代器也是前向迭代器，每个前向迭代器也是输入迭代器。此外满足输出迭代器要求的迭代器称为可变迭代器；否则，称为常量迭代器。图17.1显示了这样的层次结构。使用虚线是因为这不是一个真正的类层次结构。
 
 \myGraphic{0.2}{content/part3/chapter17/images/1.png}{图 17.1}
 
-算法指定需要什么类型迭代器的标准技术，会使用类似于以下名称的迭代器模板类型参数：InputIterator、OutputIterator、ForwardIterator、BidirectionalIterator、RandomAccessIterator 和 ContiguousIterator。这些名称只是名称：不提供绑定类型检查。因此，可以尝试通过传递一个双向迭代器来调用一个期望 RandomAccessIterator 的算法。模板不能进行类型检查，所以它会允许这种实例化，使用随机访问迭代器功能的函数中的代码在双向迭代器上会编译失败。因此，这个要求会强制执行，只是不在期望的地方，所以错误消息可能会有些令人困惑。例如，在一个只提供双向迭代器的列表上使用随机访问迭代器的 sort() 算法，可能会导致一个“神秘”的错误。以下是 Visual C++ 2022 生成的错误信息：
+算法指定需要什么类型迭代器的标准技术，使用类似于以下名称的迭代器模板类型参数：InputIterator、OutputIterator、ForwardIterator、BidirectionalIterator、RandomAccessIterator 和 ContiguousIterator。这些名称只是名称：不提供绑定类型检查。可以尝试通过传递一个双向迭代器来调用一个期望 RandomAccessIterator 的算法。模板不能进行类型检查，其允许这种实例化，使用随机访问迭代器功能函数中的代码，在双向迭代器上会编译失败。因此，这个要求会强制执行，只是不在期望的地方，所以错误消息可能会有些令人困惑。一个只提供双向迭代器的列表上使用随机访问迭代器的 sort() 算法，可能会触发一个“神秘”的错误。以下是 Visual C++ 2022 生成的错误信息：
 
 \begin{shell}
 ...\MSVC\14.37.32705\include\algorithm(8061,45): error C2676: binary '-': 'const
@@ -59,11 +59,11 @@ not define this operator or a conversion to a type acceptable to the
 predefined operator
     with
     [
-    _Ty=int
+      _Ty=int
     ]
 \end{shell}
 
-本章稍后部分，将介绍范围库，其提供了大多数标准库算法的基于范围和受限版本。这些受限算法对其模板类型参数进行类型约束（参见第12章），从而可在提供错误类型迭代器的容器上执行此类算法，编译器可以提供更清晰的错误消息。
+本章稍后部分，将介绍范围库，其提供了大多数标准库算法的基于范围和受限版本。这些受限算法对其模板类型参数进行类型约束（参见第12章），可在提供错误类型迭代器的容器上执行此类算法，编译器可以提供更清晰的错误消息。
 
 \begin{myNotic}{NOTE}
 迭代器在算法和容器之间进行协调。它们提供了一个标准接口，按顺序遍历容器的元素，这样算法都可以在容器上工作，只要容器提供了算法所需的迭代器类别即可。
@@ -85,7 +85,7 @@ predefined operator
 const\_iterators 和 const\_reverse\_iterators 提供对容器元素的只读访问。
 \end{myNotic}
 
-容器还提供了一个成员函数 begin()，返回一个指向容器中第一个元素的迭代器。end() 成员函数返回一个指向元素序列的“超出末尾”值的迭代器，end() 返回一个迭代器，等于将 operator++ 应用于指向序列中最后一个元素的迭代器的结果。begin() 和 end() 一起提供了一个半开区间，包括第一个元素但不包括最后一个元素。这种明显的复杂性是为了支持空范围（没有任何元素的容器），这时begin() 等于 end()。由迭代器 begin() 和 end() 界定的半开区间，在数学上通常这样表示：[begin, end)。
+容器还提供了一个成员函数 begin()，返回一个指向容器中第一个元素的迭代器。end() 成员函数返回一个指向元素序列的“超出末尾”值的迭代器，end() 返回一个迭代器，将 operator++ 应用于指向序列中最后一个元素的迭代器的结果。begin() 和 end() 一起提供了一个半开区间，包括第一个元素但不包括最后一个元素。这种复杂性是为了支持空范围（没有元素的容器），这时begin() 等于 end()。由迭代器 begin() 和 end() 界定的半开区间，在数学上通常这样表示：[begin, end)。
 
 此外，还提供了以下成员函数：
 
@@ -142,15 +142,15 @@ using std::begin;
 begin(...);
 \end{cpp}
 
-请注意，因为可以进行参数依赖查找（ADL），所以begin() 调用时没有使用命名空间限定，。
+因为可以进行参数依赖查找（ADL），所以begin()没有使用命名空间进行限定。
 
 \begin{myNotic}{NOTE}
 ADL 允许调用非限定函数。编译器首先尝试在传递给参数的命名空间中，找到这些函数。如果在那里找不到，则使用名称查找规则。
 \end{myNotic}
 
-当为自定义类型特化这些非成员函数时，可以在 std 命名空间中放置这些特化，或者将它们放在特化的类型的同一命名空间中。因为可以使用 ADL，所以推荐使用后者的方式。因为 ADL可用，所以可以在不使用命名空间限定的情况下调用相应的特化，编译器可以根据传递给特化函数模板的参数类型，在命名空间中找到正确的特化。
+当为自定义类型特化这些非成员函数时，可以在 std 命名空间中放置这些特化，或者将它们放在特化的类型的同一命名空间中。可以使用 ADL，所以推荐使用后者的方式。因为 ADL可用，所以可以在不使用命名空间限定的情况下调用相应的特化，编译器可以根据传递给特化函数模板的参数类型，可在命名空间中找到正确的特化。
 
-通过 ADL（不带任何命名空间限定地调用 begin(...)）和 using std::begin 声明，编译器首先使用 ADL 在其参数类型的命名空间中查找正确的重载。如果编译器无法通过 ADL 找到重载，尝试在 std 命名空间中找到适当的重载，这是由于 using 声明。只调用 begin() ，而不使用 using 声明，将仅通过 ADL 调用用户定义的重载，而只调用 std::begin() 是，将只在 std 命名空间中查找。
+通过 ADL（不带命名空间使用 begin(...)）和 using std::begin 声明，编译器首先使用 ADL 在其参数类型的命名空间中查找正确的重载。如果编译器无法通过 ADL 找到重载，由于 using 声明，会先在 std 命名空间中找到适当的重载。若只调用 begin() ，而不使用 using 声明，仅通过ADL 调用自户定义的重载；而直接使用 std::begin() 时，只会在 std 命名空间中进行查找。
 
 当然，ADL 不仅限于本节讨论的函数，可以与任何函数一起使用。
 
@@ -160,7 +160,7 @@ ADL 允许调用非限定函数。编译器首先尝试在传递给参数的命�
 
 \mySubsubsection{17.1.2.}{迭代器特性}
 
-某些算法实现需要关于迭代器的额外信息。例如，需要知道迭代器指向的元素类型以存储临时值，或者可能想要知道迭代器是否为双向的或随机访问迭代器。
+某些算法实现需要关于迭代器的额外信息。需要知道迭代器指向的元素类型以存储临时值，或者可能想要知道迭代器是否为双向的或随机访问迭代器。
 
 C++ 提供了一个名为 iterator\_traits 的类模板，定义在 <iterator> 头文件中，允许检索这些信息。可以使用感兴趣的迭代器类型实例化 iterator\_traits 类模板，并访问五个类型别名之一：
 
@@ -181,7 +181,7 @@ pointer: 指向元素的指针类型
 reference: 对元素的引用类型
 \end{itemize}
 
-例如，以下函数模板声明了一个临时变量，其类型为 IteratorType 类型的迭代器所指向的类型。在 iterator\_traits 前面使用了 typename 关键字，每当前提是基于一个或多个模板类型参数访问类型时，必须明确指定 typename。这种情况下，模板类型参数 IteratorType 用于访问 iterator\_traits 的 value\_type 类型。
+以下函数模板声明了一个临时变量，其类型为 IteratorType 类型的迭代器所指向的类型。iterator\_traits 前面使用了 typename 关键字，每当前提是基于一个或多个模板类型参数访问类型时，必须明确指定 typename，模板类型参数 IteratorType 用于访问 iterator\_traits 的 value\_type 类型。
 
 \begin{cpp}
 template <typename IteratorType>
@@ -200,7 +200,7 @@ vector v { 5 };
 iteratorTraitsTest(cbegin(v));
 \end{cpp}
 
-这段代码中，iteratorTraitsTest() 中的变量 temp 是 int 类型的。输出是 5。
+这段代码中，iteratorTraitsTest() 中的变量 temp 是 int 类型的，输出是 5。
 
 当然，auto 关键字可以用于这个例子中简化代码，但不会展示如何使用 iterator\_traits。
 
@@ -215,7 +215,7 @@ for (auto iter { cbegin(values) }; iter != cend(values); ++iter) {
 }
 \end{cpp}
 
-这里使用 operator< 来测试常见范围的结束很有诱惑力，如 iter<cend(values)。然而，这并不推荐。测试范围结束的标准方式是使用 !=，如 iter!=cend(values)。原因是 != 运算符适用于所有类型的迭代器，而 < 运算符不支持双向和前向迭代器。
+这里使用 operator< 来测试常见范围的结束很有诱惑力，如 iter<cend(values)，但并不推荐。测试范围结束的标准方式是使用 !=，如 iter!=cend(values)。原因是 != 操作符适用于所有类型的迭代器，而 < 操作符不支持双向和前向迭代器。
 
 可以实现一个辅助函数，该函数接受一个给定开始和结束迭代器的元素范围，并将该范围内的所有元素打印到标准输出。input\_iterator 概念用于将模板类型参数限制为输入迭代器。
 
@@ -247,7 +247,7 @@ auto myFind(Iter begin, Iter end,
 }
 \end{cpp}
 
-这个函数模板可以如下使用，std::distance() 函数用于计算容器中两个迭代器之间的距离。
+这个函数模板可以这样使用，std::distance() 函数用于计算容器中两个迭代器之间的距离。
 
 \begin{cpp}
 vector values { 11, 22, 33, 44 };
@@ -261,7 +261,7 @@ if (result != cend(values)) {
 
 \mySubsubsection{17.1.4.}{使用迭代器特征进行函数调度}
 
-标准库提供了 std::advance(iter, n) 函数，用于将给定的迭代器 iter 前进 n 个位置，这个函数适用于所有类型的迭代器。对于随机访问迭代器，简单地执行 iter += n。对于其他迭代器，它会根据 n 是正数还是负数，在循环中执行 ++iter 或 -{}-iter n 次。可能会想知道这样的行为是如何实现的，可以利用函数分派来实现。根据迭代器类别，请求可调度给特定的辅助函数。下面是 myAdvance(iter, n) 函数的简化实现，展示了这样的函数调度：
+标准库提供了 std::advance(iter, n) 函数，用于将给定的迭代器 iter 前进 n 个位置，适用于所有类型的迭代器。对于随机访问迭代器，简单地执行 iter += n。对于其他迭代器，会根据 n 是正数还是负数，在循环中执行 ++iter 或 -{}-iter n 次。可能会想知道这样的行为是如何实现的，可以利用函数调度来实现。根据迭代器类别，请求可调度给特定的辅助函数。下面是 myAdvance(iter, n) 函数的简化实现，展示了这样的函数调度：
 
 \begin{cpp}
 template <typename Iter, typename Distance>
@@ -291,7 +291,7 @@ void myAdvance(Iter& iter, Distance n)
 }
 \end{cpp}
 
-这个 myAdvance() 实现可以用于来自vector的随机访问迭代器，来自列表的双向迭代器等：
+myAdvance()可以用于来自vector的随机访问迭代器，来自列表的双向迭代器等：
 
 \begin{cpp}
 template <typename Iter>

@@ -23,7 +23,7 @@ C++标准库提供了几种不同类型的关联容器：
 
 \mySamllsection{pair 工具类}
 
-深入研究有序关联容器之前，简要回顾一下在第1章中介绍的pair类模板。其定义在<utility>中，并将两个可能不同类型的值组合在一起。这些值可以通过first和second公共数据成员访问，所有比较运算符都得到支持，并且可同时比较first和second值。以下是几个示例：
+深入研究有序关联容器之前，简要回顾一下在第1章中介绍的pair类模板。其定义在<utility>中，并将两个可能不同类型的值组合在一起。这些值可以通过first和second公共数据成员访问，所有比较操作符都得到支持，并且可同时比较first和second值。以下是几个示例：
 
 \begin{cpp}
 // Two-argument constructor and default constructor
@@ -59,7 +59,7 @@ myPair is less than myOtherPair
 myOtherPair is equal to myThirdPair
 \end{shell}
 
-使用类模板参数推导（CTAD），可以省略模板类型参数。这里有一个例子。注意对标准字符串字面量s的使用。
+使用类模板参数推导（CTAD），可以省略模板类型参数。这里有一个例子，注意对标准字符串字面量s的使用。
 
 \begin{cpp}
 pair myPair { "hello"s, 5 }; // Type is pair<string, int>.
@@ -75,15 +75,15 @@ pair pair3 { 5, 10.10 }; // CTAD
 
 \mySamllsection{map}
 
-map，定义在< map >中，存储键/值对而不是单个值。插入、查找和删除都基于键；值只是“顺便携带”
+map，定义在<map>中，存储键/值对而不是单个值。插入、查找和删除都基于键；值只是“顺便携带”
 
-map根据键保持元素排序，因此插入、删除和查找的时间复杂度都是对数。由于顺序，当枚举元素时，会按照类型operator<或按用户定义比较器的顺序出现。它通常实现为某种形式的平衡树，如红黑树，但树结构对客户端不可见。
+map根据键保持元素排序，因此插入、删除和查找的时间复杂度都是对数。由于顺序，当枚举元素时，会按照类型operator<或按用户定义比较器的顺序出现。通常实现为某种形式的平衡树，如红黑树，但树结构对客户端不可见。
 
 当需要基于“键”存储和检索元素，并且希望按特定顺序排列时，应该使用map。
 
 \mySamllsection{构造 map}
 
-map类模板接受四种类型：键类型、值类型、比较器类型和分配器类型，本章忽略分配器。比较器与前面描述的priority\_queue的比较器类似，允许更改默认比较器。在本章中，只使用默认的less比较器。使用默认比较器时，请确保所有键都支持operator<。如果对更多细节感兴趣，第19章将解释如何自定义比较器。
+map类模板接受四种类型：键类型、值类型、比较器类型和分配器类型，本章忽略分配器。比较器与前面描述的priority\_queue的比较器类似，允许更改默认比较器。本章中，只使用默认的less比较器。使用默认比较器时，请确保所有键都支持operator<。如果对更多细节感兴趣，第19章将解释如何自定义比较器。
 
 如果忽略比较器和分配器参数，构造map就像构造vector或list一样，除了在模板实例化中分别指定键和值类型。例如，以下代码构造了一个使用int作为键和Data类对象作为值的map：
 
@@ -101,7 +101,7 @@ class Data final
 map<int, Data> dataMap;
 \end{cpp}
 
-内部，dataMap为map中的每个元素存储一个pair<int, Data>。
+dataMap为map中的每个元素存储一个pair<int, Data>。
 
 map也支持统一初始化。以下map在内部存储pair<string, int>的实例：
 
@@ -145,11 +145,11 @@ map m {
 map和其他有序关联容器确实提供了一个带有迭代器位置的insert()版本。那个位置只是对容器的一个“提示”，即正确位置。容器不必将元素插入那个位置。
 \end{myNotic}
 
-在插入元素时，重要的是要注意map需要唯一的键：map中的每个元素都必须有不同的键。如果想支持具有相同键的多个元素，有两个选择：要么使用map，并将另一个容器（如vector）作为键的值存储，或者使用稍后介绍的multimap。
+插入元素时，重要的是要注意map需要唯一的键：map中的每个元素都必须有不同的键。如果想支持具有相同键的多个元素，有两个选择：使用map，并将另一个容器（如vector）作为键的值存储，或者使用稍后介绍的multimap。
 
 \mySamllsection{insert()成员函数}
 
-insert()成员函数可用于向map添加元素，其优点是可以检测键是否已经存在。必须将键/值对作为pair对象或作为初始化列表指定，insert()基本形式的返回类型是一个包含迭代器和布尔值的pair。返回类型复杂的原因是，insert()不会覆盖已经存在指定键的值。返回的pair中的布尔值元素指明insert()是否实际插入了新的键/值对，迭代器指向具有指定键的map中的元素（根据插入是否成功或失败，是新的还是旧的值）。map迭代器的详细介绍将在下一节中进行。继续上一节的map示例，可以这样使用insert()：
+insert()成员函数可用于向map添加元素，其优点是可以检测键是否已经存在。必须将键/值对作为pair对象或作为初始化列表指定，insert()基本形式的返回类型是一个包含迭代器和布尔值的pair。返回类型复杂的原因是，insert()不会覆盖已存在指定键的值。返回的pair中的布尔值元素指明insert()是否实际插入了新的键/值对，迭代器指向具有指定键的map中的元素（根据插入是否成功或失败，是新的还是旧的值）。map迭代器的详细介绍将在下一节中进行。继续上一节的map示例，可以这样使用insert()：
 
 \begin{cpp}
 map<int, Data> dataMap;
@@ -200,7 +200,7 @@ if (auto [iter, success] { dataMap.insert({ 1, Data { 4 } }) }; success) {
 
 \mySamllsection{The insert\_or\_assign()成员函数}
 
-insert\_or\_assign()的返回类型与insert()类似，但如果已经存在具有给定键的元素，insert\_or\_assign()将用新值覆盖旧值，而insert()在这种情况下不会覆盖旧值。insert\_or\_assign()与insert()的另一个区别在于，它有两个独立的参数：键和值。以下是使用insert\_or\_assign()的示例：
+insert\_or\_assign()的返回类型与insert()类似，如果已经存在具有给定键的元素，insert\_or\_assign()将用新值覆盖旧值，而insert()在这种情况下不会覆盖旧值。insert\_or\_assign()与insert()的另一个区别在于，它有两个独立的参数：键和值。以下是使用insert\_or\_assign()的示例：
 
 \begin{cpp}
 auto ret { dataMap.insert_or_assign(1, Data { 7 }) };
@@ -231,7 +231,7 @@ dataMap[1] = Data { 6 }; // Replaces the element with key 1
 
 然而，operator[]有一个主要缺点：总是构造一个新的值对象，即使不需要使用。因此，需要元素的默认构造函数，并且可能不如insert()高效。
 
-由于operator[]在请求的元素不存在时在map中创建新元素，所以这个运算符没有标记为const。例如，有以下函数：
+由于operator[]在请求的元素不存在时在map中创建新元素，所以这个操作符没有标记为const。例如，有以下函数：
 
 \begin{cpp}
 void func(const map<int, int>& m)
@@ -248,7 +248,7 @@ map支持emplace()和emplace\_hint()，用于在原地构造元素，类似于ve
 
 \mySamllsection{map迭代器}
 
-map迭代器的工作方式与顺序容器上的迭代器类似。主要区别在于，迭代器指向键/值对，而不仅仅是值。要访问值，必须检索pair对象的第二字段。map迭代器是双向的，所以可以双向遍历。以下是遍历map的方式：
+map迭代器的工作方式与顺序容器上的迭代器类似。主要区别在于，迭代器指向键/值对，而不仅仅是值。要访问值，必须检索pair对象的第二字段。map迭代器是双向的，可以双向遍历。以下是遍历map的方式：
 
 \begin{cpp}
 for (auto iter { cbegin(dataMap) }; iter != cend(dataMap); ++iter) {
@@ -262,9 +262,9 @@ for (auto iter { cbegin(dataMap) }; iter != cend(dataMap); ++iter) {
 iter->second.getValue()
 \end{cpp}
 
-iter指向一个键/值对，因此可以使用->运算符访问该对的第二字段，这是一个Data对象。然后，可以调用该Data对象的getValue()成员函数。
+iter指向一个键/值对，可以使用->操作符访问该对的第二字段，这是一个Data对象。可以调用该Data对象的getValue()成员函数。
 
-请注意，以下代码是功能等效的：
+以下代码功能等效：
 
 \begin{cpp}
 (*iter).second.getValue()
@@ -301,17 +301,17 @@ dataMap[1] = Data { 6 };
 dataMap[1].setValue(100);
 \end{cpp}
 
-作为替代，map提供了find()成员函数，其返回一个迭代器，指向具有请求键的键/值对，如果存在，或者如果键在map中找不到，则返回end()迭代器。这对于以下情况很有用：
+作为替代，map提供了find()成员函数，其返回一个迭代器，指向具有请求键的键/值对，如果存在或者键在map中找不到，则返回end()迭代器。这对于以下情况很有用：
 
 \begin{itemize}
 \item
-如果不知道元素是否存在，可能不想使用operator[]，因为如果它找不到已存在的键，会插入一个新的元素。
+如果不知道元素是否存在，可能不想使用operator[]，因为如果找不到已存在的键，会插入一个新的元素。
 
 \item
 如果有一个常量或对常量map的引用，这种情况下不能使用operator[]。
 \end{itemize}
 
-以下是一个使用find()执行对键1的Data对象修改的示例：
+以下是使用find()执行对键1中Data对象修改的示例：
 
 \begin{cpp}
 auto it { dataMap.find(1) };
@@ -322,7 +322,7 @@ if (it != end(dataMap)) {
 
 使用find()稍微有些笨拙，但在某些情况下是必要的。
 
-或者，可以使用at()成员函数，其与operator[]一样。如果存在，则返回对map中具有请求键的值的引用。如果请求的键在map中找不到，会抛出out\_of\_range异常。at()成员函数在常量或对常量map上正常工作。例如：
+或者，可以使用at()成员函数，其与operator[]一样。如果存在，则返回对map中具有请求键的值的引用。如果请求的键在map中找不到，会抛出out\_of\_range异常。at()成员函数在常量或对常量map上正常工作，例如：
 
 \begin{cpp}
 dataMap.at(1).setValue(200);
@@ -359,11 +359,11 @@ There are 0 elements with key 1.
 
 所有有序和无序关联容器都是基于节点的数据结构。标准库提供了对节点的直接访问，形式为节点句柄。确切类型未指定，但每个容器都有一个类型别名node\_type，指定了该容器的节点句柄类型。节点句柄只能移动，并且是存储在节点中的元素的拥有者，其提供了对键和值的读写访问。
 
-可以使用extract()成员函数基于给定的迭代器位置，或给定的键从关联容器中提取节点，作为节点句柄。从容器中提取节点会将其从容器中删除，因为返回的节点句柄是提取元素的唯一拥有者。
+可以使用extract()成员函数基于给定的迭代器位置，或给定的键从关联容器中提取节点，作为节点句柄。从容器中提取节点会将其从容器中删除，返回的节点句柄是提取元素的唯一拥有者。
 
 提供了新的insert()重载，允许节点句柄插入到容器中。
 
-通过使用extract()提取节点句柄和使用insert()插入节点句柄，可以有效地将数据从一个关联容器转移到另一个关联容器，而无需复制或移动。甚至可以将节点从map转移到multimap，并将节点从set转移到multiset。继续使用前面部分的示例，以下代码片段将dataMap中键为1的节点，转移到一个名为dataMap2的第二个map中：
+通过使用extract()提取节点句柄和使用insert()插入节点句柄，可以有效地将数据从一个关联容器转移到另一个关联容器，而无需复制或移动。甚至可以将节点从map转移到multimap，并将节点从set转移到multiset。继续使用前面部分的示例，以下代码将dataMap中键为1的节点，转移到一个名为dataMap2的第二个map中：
 
 \begin{cpp}
 map<int, Data> dataMap2;
@@ -517,7 +517,7 @@ Unable to find account: No account with number 1000.
 
 \mySamllsection{multimap}
 
-multimap中同一键可对应多个元素。与map一样，multimap支持统一初始化。其接口与map接口几乎相同，但有以下区别：
+multimap中同一键可对应多个元素。与map一样，multimap支持统一初始化，其接口与map接口几乎相同，但有以下区别：
 
 \begin{itemize}
 \item
@@ -536,12 +536,12 @@ multimap允许插入相同的键/值对。如果想要避免这种冗余，必�
 
 multimap最棘手的部分是查找元素，但不能使用 operator[]。find() 并不是很有用，因为只返回一个迭代器，指向具有给定键的任一元素（不一定是该键的第一个元素）。
 
-然而，multimap将所有具有相同键的元素存储在一起，并提供成员函数来获取容器中具有相同键的元素子范围的迭代器。lower\_bound() 和 upper\_bound() 成员函数各自返回一个迭代器，指向与给定键匹配的第一个元素和最后一个元素之后的位置。如果没有与该键匹配的元素，lower\_bound() 和 upper\_bound() 返回的迭代器将彼此相等。
+multimap将所有具有相同键的元素存储在一起，并提供成员函数来获取容器中具有相同键的元素子范围的迭代器。lower\_bound() 和 upper\_bound() 成员函数各自返回一个迭代器，指向与给定键匹配的第一个元素和最后一个元素之后的位置。如果没有与该键匹配的元素，lower\_bound() 和 upper\_bound() 返回的迭代器将彼此相等。
 
 如果需要获取界定具有给定键的元素的两个迭代器，使用 equal\_range() 比先调用 lower\_bound() 再调用 upper\_bound() 更高效。equal\_range() 成员函数返回 lower\_bound() 和 upper\_bound()，将返回的那两个迭代器组成的一对。
 
 \begin{myNotic}{NOTE}
-lower\_bound()、upper\_bound() 和 equal\_range() 成员函数在map中同样存在，但它们的实用性有限，因为map不能有多个元素对应同一键。
+lower\_bound()、upper\_bound() 和 equal\_range() 成员函数在map中同样存在，但其实用性有限，因为map不能有多个元素对应同一键。
 \end{myNotic}
 
 \mySamllsection{multimap 示例: 好友列表}
@@ -633,7 +633,7 @@ vector<string> BuddyList::getBuddies(const string& name) const
 }
 \end{cpp}
 
-请注意，removeBuddy() 不能简单地使用erase()删除所有具有给定键的元素，因为它应该只删除该键的一个元素，而不是所有元素。还要注意，getBuddies() 不能在vector上使用insert()来插入equal\_range()返回范围中的元素，因为由multimap迭代器引用的元素是键/值对，而不是字符串。getBuddies() 成员函数必须显式地遍历该范围，从每个键/值对中提取字符串并将其推送到要返回的新vector中。
+removeBuddy() 不能简单地使用erase()删除所有具有给定键的元素，应该只删除该键的一个元素，而不是所有元素。还要注意，getBuddies() 不能在vector上使用insert()来插入equal\_range()返回范围中的元素，因为multimap迭代器引用的元素是键/值对，而不是字符串。getBuddies() 成员函数必须显式地遍历该范围，从每个键/值对中提取字符串并将其推送到要返回的新vector中。
 
 或者，使用第17章讨论的C++23范围功能，getBuddies() 可以进行如下实现，而无需显式循环：
 
@@ -680,13 +680,13 @@ Harry's friends:
 
 set（集合），定义在<set>中，与map类似。不同之处在于，set不存储键/值对，而是值就是键。set适用于存储没有显式键但希望有序且不重复的信息，同时支持快速插入、查找和删除。
 
-set提供的接口与map几乎相同。主要区别在于set不提供operator[]、insert\_or\_assign()和try\_emplace()。
+set提供的接口与map几乎相同，主要区别在于set不提供operator[]、insert\_or\_assign()和try\_emplace()。
 
 不能更改set中元素的值，因为修改集合中的元素会破坏其顺序。
 
 \mySamllsection{set 示例: 访问控制列表}
 
-计算机系统上实现基本安全性的一种方法是，访问控制列表。系统上的每个实体（如文件或设备）都有一个用户列表，这些用户有权访问该实体。通常，只有具有特殊权限的用户才能将其他用户添加到或从权限列表中移除。在内部，集合提供了一种很好的方式来表示访问控制列表。可以为每个实体使用一个set，包含所有允许访问该实体的用户名。这是一个简单访问控制列表的类定义：
+计算机系统上实现基本安全性的一种方法是，访问控制列表。系统上的每个实体（如文件或设备）都有一个用户列表，这些用户有权访问该实体。只有具有特殊权限的用户才能将其他用户添加到或从权限列表中移除，集合提供了一种很好的方式来表示访问控制列表。可以为每个实体使用一个set，包含所有允许访问该实体的用户名。这是一个简单访问控制列表的类定义：
 
 \begin{cpp}
 export class AccessList final
@@ -729,7 +729,7 @@ export class AccessList final
 };
 \end{cpp}
 
-getAllUsersAsVector()中有一行实现很有趣，将m\_allowed的begin和end迭代器传递给vector构造函数,来构造一个vector<string>。如果愿意，可以将其拆分为两行：
+getAllUsersAsVector()中有一行实现很有趣，将m\_allowed的begin和end迭代器传递给vector构造函数，来构造一个vector<string>。如果愿意，可以将其拆分为两行：
 
 \begin{cpp}
 std::vector<std::string> users { begin(m_allowed), end(m_allowed) };
@@ -771,7 +771,7 @@ Users with access: mgregoire pvw
 Users with access: mgregoire pvw
 \end{shell}
 
-注意，m\_allowed数据成员需要是一个std::string的集合，而不是string\_view的集合。将其更改为string\_view的set，会引入悬空指针的问题。例如，有以下代码：
+注意，m\_allowed数据成员需要是一个std::string的集合，而不是string\_view的集合。将其更改为string\_view的set，会引入悬空指针的问题：
 
 \begin{cpp}
 AccessList fileX;
@@ -781,11 +781,11 @@ AccessList fileX;
 }
 \end{cpp}
 
-这段代码创建了一个名为user的string，然后将其添加到fileX访问控制列表中。然而，string和addUser()的调用位于一对花括号内；所以，string的生命周期比fileX短。关闭花括号时，string超出作用域并销毁。这将导致fileX访问控制列表中的string\_view指向一个销毁的string，即悬空指针！通过使用string的set可以避免这个问题。
+这段代码创建了一个名为user的string，然后将其添加到fileX访问控制列表中。string和addUser()的调用位于一对花括号内，string的生命周期比fileX短。关闭花括号时，string超出作用域并销毁。这将导致fileX访问控制列表中的string\_view指向一个销毁的string，即悬空指针！通过使用string的set可以避免这个问题。
 
 \mySamllsection{multiset}
 
-multiset对于set来说，就像multimap对于map一样。multiset支持set的所有操作，也可同时存储多个相等的元素。这里没有显示multiset的示例，因为它与set和multimap非常相似。
+multiset对于set来说，就像multimap对于map一样。multiset支持set的所有操作，也可同时存储多个相等的元素。这里没有显示multiset的示例，它与set和multimap非常相似。
 
 \mySubsubsection{18.5.2.}{无序关联容器或哈希表}
 
@@ -795,11 +795,11 @@ multiset对于set来说，就像multimap对于map一样。multiset支持set的�
 
 无序关联容器是哈希表，因为实现使用了哈希函数。实现通常由某种数组组成，数组中的每个元素都称为一个桶（bucket）。每个桶都有一个特定的数字索引，如0、1、2，直到最后一个桶。哈希函数将键转换为一个哈希值，然后该值转换为桶索引。与该键关联的值会存储在该桶中。
 
-哈希函数的结果并不唯一，当两个或多个键哈希到同一个桶索引时，这种情况称为碰撞。当不同的键产生相同的哈希值，或者不同的哈希值转换到相同的桶索引时，可能会发生碰撞。处理碰撞有许多方法，包括二次哈希和线性链表等。如果感兴趣，可以参考附录B中的参考文献。标准库没有指定需要哪种碰撞处理算法，但大多数当前实现选择通过线性链表解决碰撞。线性链表中，桶不直接包含与键关联的数据值，而是包含指向链表的指针，这个链表包含该特定桶的所有数据值。图18.1显示了这是如何工作的。
+哈希函数的结果并不唯一，当两个或多个键哈希到同一个桶索引时，这种情况称为碰撞。当不同的键产生相同的哈希值，或者不同的哈希值转换到相同的桶索引时，可能会发生碰撞。处理碰撞有许多方法，包括二次哈希和线性链表等。如果感兴趣，可以参考附录B中的参考文献。标准库没有指定需要哪种碰撞处理算法，但大多数当前实现选择通过线性链表解决碰撞。线性链表中，桶不直接包含与键关联的数据值，而是包含指向链表的指针，这个链表包含该特定桶的所有数据值。图18.1展示了这是如何工作的。
 
 \myGraphic{0.9}{content/part3/chapter18/images/1.png}{图 18.1}
 
-图18.1中，有两个碰撞。第一个碰撞是因为对键“Marc G.”和“John D.”应用哈希函数得到相同的哈希值，该值映射到桶索引128。然后这个桶指向一个链表，包含键“Marc G.”和“John D.”以及它们关联的数据值。第二个碰撞是由键“Scott K.”和“Johan G.”的哈希值映射到相同的桶索引129引起的。
+图18.1中，有两个碰撞。第一个碰撞是因为对键“Marc G.”和“John D.”应用哈希函数得到相同的哈希值，该值映射到桶索引128。然后这个桶指向一个链表，包含键“Marc G.”和“John D.”，以及它们关联的数据值。第二个碰撞是由键“Scott K.”和“Johan G.”的哈希值映射到相同的桶索引129引起的。
 
 从图18.1中也可以清楚地看出基于键的查找是如何工作的，以及其复杂度如何。
 
@@ -809,7 +809,7 @@ multiset对于set来说，就像multimap对于map一样。multiset支持set的�
 
 C++标准为指针和所有基本数据类型（如bool、char、int、float、double等）提供了哈希函数。还为几个标准库类提供了哈希函数，如optional、bitset、unique\_ptr、shared\_ptr、string、string\_view、vector<bool>等。如果想要使用的键类型没有标准的哈希函数，那么必须实现自己的哈希函数。即使键集固定且已知，创建完美哈希也不简单，需要深度的数学分析。即使创建一个不完美，但足够好且性能不错的哈希函数仍然具有挑战性。解释哈希函数背后的数学知识超出了本书的范围，这里只给出了一个简单哈希函数的示例。
 
-以下代码演示了如何编写自定义哈希函数。代码定义了一个只包装单个整数的类IntWrapper。提供了一个operator==，因为这是无序关联容器中使用键的要求。
+以下代码演示了如何编写自定义哈希函数。代码定义了一个只包装单个整数的类IntWrapper。提供了一个operator==，这是无序关联容器中使用键的要求。
 
 \begin{cpp}
 class IntWrapper
@@ -823,7 +823,7 @@ class IntWrapper
 };
 \end{cpp}
 
-要为IntWrapper编写实际的哈希函数，需要为IntWrapper编写std::hash类模板特化。std::hash类模板定义在<functional>中，这个特化需要一个实现函数调用运算符，该运算符计算，并返回给定IntWrapper实例的哈希值。对于这个例子，请求只是简单地转发给标准整数哈希函数：
+要为IntWrapper编写实际的哈希函数，需要为IntWrapper编写std::hash类模板特化。std::hash类模板定义在<functional>中，这个特化需要一个实现函数调用操作符，该操作符计算，并返回给定IntWrapper实例的哈希值。对于这个例子，请求只是简单地转发给标准整数哈希函数：
 
 \begin{cpp}
 namespace std
@@ -837,7 +837,7 @@ namespace std
 }
 \end{cpp}
 
-注意，通常不允许在std命名空间中放置内容；然而，std类模板特化是这一规则的例外。函数调用运算符的实现只有一行。创建了一个标准整数哈希函数的实例——std::hash<int>\{\}——然后在它上面调用函数调用运算符，参数是x.getValue()。注意，这种转发在这个例子中有效，因为IntWrapper只包含一个数据成员，一个整数。如果类包含多个数据成员，则需要计算一个考虑所有这些数据成员的哈希值，但这些细枝末节都超出了本书介绍的范围。
+通常不允许在std命名空间中放置内容，std类模板特化是这一规则的例外。函数调用操作符的实现只有一行，创建了一个标准整数哈希函数的实例——std::hash<int>\{\}——然后在它上面调用函数调用操作符，参数是x.getValue()。注意，这种转发在这个例子中有效，因为IntWrapper只包含一个数据成员，一个整数。如果类包含多个数据成员，则需要计算一个考虑所有这些数据成员的哈希值，但这些细枝末节都超出了本书介绍的范围。
 
 \mySamllsection{unordered\_map}
 
@@ -852,7 +852,7 @@ template <typename Key,
     class unordered_map;
 \end{cpp}
 
-这里有五个模板类型参数：键类型、值类型、哈希类型、相等比较器类型和分配器类型。最后三个参数有默认值。最重要的参数是前两个。与map一样，可以使用统一初始化来初始化一个unordered\_map。遍历元素也与映射类似，如下所示：
+这里有五个模板类型参数：键类型、值类型、哈希类型、相等比较器类型和分配器类型。最后三个参数有默认值，最重要的参数是前两个。与map一样，可以使用统一初始化来初始化一个unordered\_map。遍历元素也与映射类似，如下所示：
 
 \begin{cpp}
 unordered_map<int, string> m {
@@ -875,7 +875,7 @@ for (const auto& p : m) { print("{} = {}, ", p.first, p.second); }
 4 = Item 4, 3 = Item 3, 2 = Item 2, 1 = Item 1,
 \end{shell}
 
-下表总结了map和unordered\_map之间的区别。一个填充的方框（■）表示容器支持该操作，而一个空方框（□）表示容器不支持该操作。
+下表总结了map和unordered\_map之间的区别。填充的方框（■）表示容器支持该操作，而空方框（□）表示容器不支持该操作。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -934,7 +934,7 @@ try\_emplace()                               & ■            & ■             
 upper\_bound()                               & ■            & □                       \\ \hline
 \end{longtable}
 
-与map一样，unordered\_map中的所有键必须唯一。前一个表包括了一些特定于哈希的成员函数。例如，load\_factor()返回每个桶中的平均元素数量，以给定一个碰撞数量的指数。bucket\_count()成员函数返回容器中的桶数量；还提供了local\_iterator和const\_local\_iterator，允许遍历单个桶中的元素；然而，这些不能用于跨桶遍历。bucket(key)成员函数返回包含给定键的桶的索引；begin(n)返回一个指向索引为n的桶中第一个元素的local\_iterator，end(n)返回一个指向索引为n的桶中最后一个元素之后的local\_iterator。下一节的示例演示了如何使用其中一些成员函数。
+与map一样，unordered\_map中的所有键必须唯一。前一个表包括了一些特定于哈希的成员函数。例如，load\_factor()返回每个桶中的平均元素数量，以给定一个碰撞数量的指数。bucket\_count()成员函数返回容器中的桶数量；还提供了local\_iterator和const\_local\_iterator，允许遍历单个桶中的元素，这些不能用于跨桶遍历。bucket(key)成员函数返回包含给定键的桶的索引；begin(n)返回一个指向索引为n的桶中第一个元素的local\_iterator，end(n)返回一个指向索引为n的桶中最后一个元素之后的local\_iterator。下一节的示例演示了如何使用其中一些成员函数。
 
 \mySamllsection{unordered\_map示例：电话簿}
 
@@ -985,7 +985,7 @@ int main()
 }
 \end{cpp}
 
-一种可能的输出如下。注意，输出在不同的系统上可能会有所不同，它取决于所使用的哈希函数和unordered\_map的实现。
+一种可能的输出如下。输出在不同的系统上可能会有所不同，取决于所使用的哈希函数和unordered\_map的实现。
 
 \begin{shell}
 Scott K. (Phone: 654-987321)
@@ -1006,14 +1006,14 @@ Average number of elements in a bucket is 0.5
 
 \mySamllsection{unordered\_multimap}
 
-unordered\_multimap是一个允许具有相同键的多个元素的无序map。它们的接口几乎相同，但有以下区别：
+unordered\_multimap是一个允许具有相同键的多个元素的无序map。接口几乎相同，但有以下区别：
 
 \begin{itemize}
 \item
 unordered\_multimap不提供operator[]和at()。如果有多个具有单个键的元素，这些语义就没有意义。
 
 \item
-unordered\_multimap上的插入总会成功。因此，添加单个元素的unordered\_multimap::insert()成员函数只返回一个迭代器，而不是一个pair。
+unordered\_multimap上的插入总会成功，添加单个元素的unordered\_multimap::insert()成员函数只返回一个迭代器，而不是一个pair。
 
 \item
 unordered\_map支持的insert\_or\_assign()和try\_emplace()成员函数，但在unordered\_multimap中没有这几个成员函数。
@@ -1023,11 +1023,11 @@ unordered\_map支持的insert\_or\_assign()和try\_emplace()成员函数，但�
 unordered\_multimap可以插入相同的键/值对。如果想要避免这种重复，必须在插入新元素之前进行显式检查。
 \end{myNotic}
 
-正如之前与multimap的讨论，unordered\_multimap中的元素查找不能使用operator[]。可以使用find()，但它返回一个指向具有给定键的任意一个元素的迭代器（不一定是该键的第一个元素）。最好使用equal\_range()成员函数，返回一对迭代器：一个指向与给定键匹配的第一个元素，另一个指向与该键匹配的最后一个元素之后的位置。equal\_range()的使用与之前讨论的multimap相同，所以以查看为multimap提供的示例来了解它。
+正如之前与multimap的讨论，unordered\_multimap中的元素查找不能使用operator[]。可以使用find()，但返回一个指向具有给定键的元素迭代器（不一定是该键的第一个元素）。最好使用equal\_range()成员函数，返回一对迭代器：一个指向与给定键匹配的第一个元素，另一个指向与该键匹配的最后一个元素之后的位置。equal\_range()的使用与之前讨论的multimap相同，所以以查看为multimap提供的示例来了解。
 
 \mySamllsection{unordered\_set/unordered\_multiset}
 
-<unordered\_set>定义了unordered\_set和unordered\_multiset，它们类似于set和multiset，不同之处在于它们不排序其键，而是使用哈希函数。unordered\_set和unordered\_map之间的区别与本章前面讨论的set和map之间的区别类似，因此在这里不详细讨论。要了解unordered\_set和unordered\_multiset操作的完整总结，请参阅标准库手册。
+<unordered\_set>定义了unordered\_set和unordered\_multiset，类似于set和multiset，不同之处在于"unordered\_*"不排序其键，而是使用哈希函数。unordered\_set和unordered\_map之间的区别与本章前面讨论的set和map之间的区别类似。要了解unordered\_set和unordered\_multiset操作的完整总结，请参阅标准库手册。
 
 \mySubsubsection{18.5.3.}{扁平set和扁平map关联容器适配器}
 
@@ -1043,13 +1043,13 @@ std::flat\_set 和 flat\_multiset，定义在<flat\_set>中
 std::flat\_map 和 flat\_multimap，定义在<flat\_map>中
 \end{itemize}
 
-这些适配器在顺序容器之上提供了一个关联容器接口。flat\_set和flat\_map要求唯一键，就像set和map一样，而flat\_multiset和flat\_multimap支持重复键，就像multiset和multimap一样。它们都使用std::less作为默认比较器，按键排序存储其数据。flat\_set和flat\_multiset提供快速检索键的功能，而flat\_map和flat\_multimap提供基于键快速检索值的功能。flat\_set和flat\_multiset需要一个底层顺序容器来存储它们的键。flat\_map和flat\_multimap需要两个底层容器，一个用于存储键，另一个用于存储值。底层容器必须支持随机访问迭代器，如vector和deque。默认情况下，使用vector。
+这些适配器在顺序容器之上提供了一个关联容器接口。flat\_set和flat\_map要求唯一键，就像set和map一样，而flat\_multiset和flat\_multimap支持重复键，就像multiset和multimap一样。都使用std::less作为默认比较器，按键排序存储其数据。flat\_set和flat\_multiset提供快速检索键的功能，而flat\_map和flat\_multimap提供基于键快速检索值的功能。flat\_set和flat\_multiset需要一个底层顺序容器来存储它们的键。flat\_map和flat\_multimap需要两个底层容器，一个用于存储键，另一个用于存储值。底层容器必须支持随机访问迭代器，如vector和deque。默认情况下，使用vector。
 
-所有扁平关联容器适配器的接口与有序对应容器相似，只是扁平容器适配器不是基于节点的数据结构，因此没有节点处理的概念。另一个区别是，扁平版本提供了随机访问迭代器，而有序对应物只提供双向迭代器。
+所有扁平关联容器适配器的接口与有序对应容器相似，扁平容器适配器不是基于节点的数据结构，因此没有节点处理的概念。另一个区别是，扁平版本提供了随机访问迭代器，而有序对应物只提供双向迭代器。
 
-随着这些扁平容器适配器的加入，标准库现在为每种关联容器类型提供了三种版本；例如，现在有三种映射容器：map、unordered\_map和flat\_map。所有三种基本上都以类似的方式工作，但它们以截然不同的数据结构存储数据，因此具有不同的时间和空间效率。由于扁平关联容器适配器按顺序容器中的键排序存储数据，所有添加和删除元素的时间复杂度都为线性，这可能比添加和删除有序和无序容器中的元素要慢。查找具有对数复杂度，就像有序关联容器一样。但对于扁平版本，查找和特别是遍历元素比有序变体更有效，因为前者在顺序容器中存储数据，因此具有更高效和缓存友好的内存布局，每个元素所需的内存也少于有序或无序版本。对于每种类型的三种版本中选择哪一种，取决于特定用例的确切要求。如果性能很重要，我建议为特定用例对所有三种进行基准测试，以找出最适合的那一种。基准测试将在第29章中介绍。
+随着这些扁平容器适配器的加入，标准库现在为每种关联容器类型提供了三种版本；例如，现在有三种映射容器：map、unordered\_map和flat\_map。所有三种基本上都以类似的方式工作，它们以截然不同的数据结构存储数据，因此具有不同的时间和空间效率。由于扁平关联容器适配器按顺序容器中的键排序存储数据，所有添加和删除元素的时间复杂度都为线性，这可能比添加和删除有序和无序容器中的元素要慢。查找具有对数复杂度，就像有序关联容器一样。但对于扁平版本，查找和特别是遍历元素比有序变体更有效，前者在顺序容器中存储数据，具有更高效和缓存友好的内存布局，每个元素所需的内存也少于有序或无序版本。对于每种类型的三种版本中选择哪一种，取决于特定用例的确切要求。如果性能很重要，我建议为特定用例对所有三种进行基准测试，以找出最适合的那一种。基准测试将在第29章中介绍。
 
-扁平关联容器适配器通常只是相应有序容器的替换。例如，前面提到的访问控制列表示例有一个名为m\_allowed的set<string>类型的数据成员，这是一个有序关联容器，可以很轻松更改为使用flat\_set：
+扁平关联容器适配器通常只是相应有序容器的替换。前面提到的访问控制列表示例有一个名为m\_allowed的set<string>类型的数据成员，是一个有序关联容器，可以很轻松更改为使用flat\_set：
 
 \begin{cpp}
 std::flat_set<std::string> m_allowed;
@@ -1065,7 +1065,7 @@ const std::flat_set<std::string>& getAllUsers() const { return m_allowed; }
 
 \mySubsubsection{18.5.4.}{关联容器的性能}
 
-从这一节可以看出，C++标准库包含几种不同的关联容器。如何知道为特定任务使用哪一种？如果用例中遍历关联容器的内部内容很重要，那么扁平关联容器适配器具有最佳性能，因为它们以连续内存的方式存储数据。如果更关心其他操作，那么无序关联容器通常比有序容器更快。如果性能非常重要，那么决定正确的容器唯一的方法是通过为特定用例对所有容器进行基准测试。通常，可以选择更容易使用的那个。要使用有序版本，必须为自定义类类型实现比较操作，而对于无序版本，需要编写一个哈希函数。通常，后者更难实现。
+从这一节可以看出，C++标准库包含几种不同的关联容器。如何知道为特定任务使用哪一种？如果用例中遍历关联容器的内部内容很重要，那么扁平关联容器适配器具有最佳性能，它们以连续内存的方式存储数据。如果更关心其他操作，那么无序关联容器通常比有序容器更快。如果性能非常重要，那么决定正确的容器唯一的方法是通过为特定用例对所有容器进行基准测试，可以选择更容易使用的那个。要使用有序版本，必须为自定义类类型实现比较操作，而对于无序版本，需要编写一个哈希函数。通常，后者更难实现。
 
 
 
