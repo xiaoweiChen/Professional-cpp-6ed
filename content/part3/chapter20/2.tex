@@ -11,7 +11,7 @@
 
 之前，已经看到了两个搜索算法示例：find() 和 find\_if()。标准库提供了基于 find() 算法的一些版本，可以工作在元素序列上。第 16 章的部分描述了可用的不同搜索算法，包括它们的复杂性。
 
-所有这些算法都使用 operator== 或 < 作为默认比较运算符，但也提供可以指定不同比较的重载版本。
+所有这些算法都使用 operator== 或 < 作为默认比较操作符，也提供可以指定不同比较的重载版本。
 
 以下是几种搜索算法示例：
 
@@ -76,7 +76,7 @@ Found two consecutive 8s
 \end{shell}
 
 \begin{myNotic}{NOTE}
-请记住，一些容器具有与泛型算法等效的成员函数。如果是这种情况，因为成员函数更高效，建议使用那些成员函数，而不是泛型算法。一个例子是 std::set 和 std::map 的 find() 成员函数。
+容器具有与泛型算法等效的成员函数，因为成员函数更高效，建议使用那些成员函数，而不是泛型算法。一个例子是 std::set 和 std::map 的 find() 成员函数。
 \end{myNotic}
 
 \mySamllsection{专用搜索器}
@@ -91,7 +91,7 @@ search() 算法的可选参数允许指定要使用的搜索算法。有三个�
 如果找到模式，最坏情况下的复杂度是 O(N*M)。
 \end{itemize}
 
-这些都是理论上的最坏情况复杂度。实际上，这些专用搜索器是亚线性的，比 O(N) 更好，所以它们比默认搜索器快得多！它们能够跳过字符，而不是查看堆中的每个单个字符。它们还有一个有趣的特性，即模式越长，工作速度越快，因为能够在堆中跳过更多的字符。Boyer-Moore 和 Boyer-Moore-Horspool 算法之间的区别在于，后者在初始化和算法每次迭代中的常数开销更小；然而，最坏情况下的复杂度可能比 Boyer-Moore 算法高得多，而选择哪个取决于具体用例。
+这些都是理论上的最坏情况复杂度，这些专用搜索器是亚线性的，比 O(N) 更好，所以比默认搜索器快得多！能够跳过字符，而不是查看堆中的每个单个字符。它们还有一个有趣的特性，即模式越长，工作速度越快，因为能够在堆中跳过更多的字符。Boyer-Moore 和 Boyer-Moore-Horspool 算法之间的区别在于，后者在初始化和算法每次迭代中的常数开销更小；最坏情况下的复杂度可能比 Boyer-Moore 算法高得多，而选择哪个取决于具体用例。
 
 以下是一个使用 Boyer-Moore 搜索器的示例：
 
@@ -109,11 +109,11 @@ if (result != cend(text)) {
 
 \mySamllsection{比较算法}
 
-可以以几种不同的方式比较整个元素范围：equal(), mismatch(), lexicographical\_compare(), 和 lexicographical\_compare\_three\_way(). 这些算法的一个优点，可以比较来自不同容器的序列。例如，可以比较 vector 和 list 的内容。一般来说，这些算法最适合与顺序容器一起工作，通过比较两个集合中对应位置的值来工作。以下列表描述了每个算法的工作方式：
+可以以几种不同的方式比较整个元素范围：equal(), mismatch(), lexicographical\_compare()和 lexicographical\_compare\_three\_way(). 这些算法的一个优点，可以比较来自不同容器的序列。例如，可以比较 vector 和 list 的内容。一般来说，这些算法最适合与顺序容器一起工作，通过比较两个集合中对应位置的值来工作。以下列表描述了每个算法的工作方式：
 
 \begin{itemize}
 \item
-equal() 如果所有对应的元素都相等，则返回 true。最初，equal() 接受三个迭代器：第一个范围的开头和结束迭代器，以及第二个范围的开头迭代器，这个版本要求两个范围具有相同数量的元素。从 C++14 开始，有一个接受四个迭代器的重载：第一个范围的开头和结束迭代器，以及第二个范围的开头和结束迭代器，这个版本可以处理不同大小的范围。因为更安全，更推荐使用四个迭代器的版本！
+equal() 如果所有对应的元素都相等，则返回 true。最初，equal() 接受三个迭代器：第一个范围的开头和结束迭代器，以及第二个范围的开头迭代器，这个版本要求两个范围具有相同数量的元素。从 C++14 开始，有一个接受四个迭代器的重载：第一个范围的开头和结束迭代器，以及第二个范围的开头和结束迭代器，这个版本可以处理不同大小的范围。因为更安全，更推荐使用四迭代器的版本！
 
 \item
 mismatch() 返回每个范围的迭代器，以指示范围中对应元素不匹配的位置。有三个迭代器和四个迭代器的版本可供选择，就像 equal() 一样。
@@ -122,11 +122,11 @@ mismatch() 返回每个范围的迭代器，以指示范围中对应元素不匹
 lexicographical\_compare() 按顺序比较两个提供的范围内具有相同位置的元素（依次）。如果第一个范围中第一个不等的元素，小于第二个范围中对应的元素，或者第一个范围中的元素少于第二个范围，并且所有元素都与第二个范围中对应的初始子序列相等，则返回 true。lexicographical\_compare() 有这个命名的原因是，其类似于字典中比较字符串的规则，但将此规则扩展到处理的类型对象上。
 
 \item
-lexicographical\_compare\_three\_way() 与 lexicographical\_compare() 类似，只是它执行三向比较，并返回比较类别类型（strong\_ordering, weak\_ordering, 或 partial\_ordering，在第 1 章中介绍过）而不是布尔值。
+lexicographical\_compare\_three\_way() 与 lexicographical\_compare() 类似，只是它执行三向比较，并返回比较类别类型（strong\_ordering, weak\_ordering 或 partial\_ordering，在第 1 章中介绍过）而不是布尔值。
 \end{itemize}
 
 \begin{myNotic}{NOTE}
-如果想比较两个相同类型容器的所有元素，可以直接使用运算符operator== 或 operator< ，而不是这些算法。这些算法适用于比较子范围、C 风格数组、不同容器类型中的元素序列等。
+如果想比较两个相同类型容器的所有元素，可以直接使用操作符operator== 或 operator< ，而不是这些算法。这些算法适用于比较子范围、C 风格数组、不同容器类型中的元素序列等。
 \end{myNotic}
 
 以下是这些算法的一些示例：
@@ -259,18 +259,18 @@ Found 6 values > 3
 
 \mySubsubsection{20.2.2.}{修改序列算法}
 
-标准库提供了一系列修改序列算法，执行任务将元素从一个范围复制到另一个范围、删除元素或反转一个范围内元素的顺序。
+标准库提供了一系列修改序列算法，将元素从一个范围复制到另一个范围、删除元素或反转一个范围内元素的顺序。
 
 一些修改算法使用源范围和目标范围的概念，元素从源范围读取并在目标范围内修改。例如，copy() 就是这样的一个算法。
 
-其他算法在其工作位置上进行修改，它们只需要一个范围，例如 generate() 算法。
+其他算法在其工作位置上进行修改，只需要一个范围，例如 generate() 算法。
 
 \begin{myWarning}{WARNING}
-修改算法不能在目标中插入元素。只能覆盖/修改目标中已有的元素。第 17 章描述了如何使用迭代器适配器，在目标中插入元素。
+修改算法不能在目标中插入元素，只能覆盖/修改目标中已有的元素。第 17 章描述了如何使用迭代器适配器，在目标中插入元素。
 \end{myWarning}
 
 \begin{myNotic}{NOTE}
-不能使用map和multimap的范围作为修改算法的目标。这些算法会覆盖整个元素，而在map中，这包括键/值对。然而，map和multimap将键标记为 const，因此它不能进行赋值。同样适用于set和multiset。替代方案是使用在第 17 章中描述的插入迭代器。
+不能使用map和multimap的范围作为修改算法的目标。这些算法会覆盖整个元素，而在map中，这包括键/值对。map和multimap将键标记为 const，因此它不能进行赋值。同样适用于set和multiset。替代方案是使用在第 17 章中描述的插入迭代器。
 \end{myNotic}
 
 第 16 章中列出了所有可用的修改算法，并对每个算法进行了描述，本节为这些算法中的一个选择提供了代码示例。如果理解了这个部分中解释的算法，其他算法应该也能轻松使用。
@@ -359,7 +359,7 @@ transform() 和其他修改算法通常返回一个指向目标范围末尾值�
 
 \mySamllsection{copy}
 
-copy() 算法允许从一个范围复制元素到另一个范围，从范围中的第一个元素开始，一直复制到最后一个元素。源范围和目标范围必须不同，但在某些限制下，可以重叠。这些限制如下：对于 copy(b,e,d)，如果 d 在 b 之前，重叠是可以的；但如果 d 在 [b,e) 范围内，那么行为将不确定。与所有修改算法一样，copy() 不能在目标中插入元素，只能覆盖已存在的元素。第 17 章描述了如何使用迭代器适配器在 copy() 中，向容器或流中插入元素。
+copy() 算法允许从一个范围复制元素到另一个范围，从范围中的第一个元素开始，直到最后一个元素。源范围和目标范围必须不同，但在某些限制下，可以重叠。这些限制如下：对于 copy(b,e,d)，如果 d 在 b 之前，重叠是可以的；但如果 d 在 [b,e) 范围内，行为将不确定。与所有修改算法一样，copy() 不能在目标中插入元素，只能覆盖已存在的元素。第 17 章描述了如何使用迭代器适配器在 copy() 中，向容器或流中插入元素。
 
 以下是一个简单的 copy() 示例，使用 vector 的 resize() 成员函数确保目标容器有足够的空间，从 vec1 复制所有元素到 vec2。
 
@@ -371,13 +371,13 @@ copy(cbegin(vec1), cend(vec1), begin(vec2));
 println("{:n}", vec2);
 \end{cpp}
 
-还有一个 copy\_backward() 算法，将元素从源向后复制到目标。换句话说，从源范围的最后一个元素开始，将其放入目标范围的最后位置，然后每次复制后向后移动。对于 copy\_backward()，源范围和目标范围也必须不同，但它们可以重叠，条件与 copy() 相同。前面的示例可以修改为使用 copy\_backward()，而不是 copy()。注意，需要将 end(vec2) 作为第三个参数，而不是 begin(vec2)。输出与 copy() 相同。
+还有一个 copy\_backward() 算法，将元素从源向后复制到目标。换句话说，从源范围的最后一个元素开始，将其放入目标范围的最后位置，然后每次复制后向后移动。对于 copy\_backward()，源范围和目标范围也必须不同，但它们可以重叠，条件与 copy() 相同。前面的示例可以修改为使用 copy\_backward()，而不是 copy()。注意，需要将 end(vec2) 作为第三个参数，而不是 begin(vec2)，其输出与 copy() 相同。
 
 \begin{cpp}
 copy_backward(cbegin(vec1), cend(vec1), end(vec2));
 \end{cpp}
 
-copy\_if() 通过输入范围由两个迭代器指定，输出目标由一个迭代器指定，以及一个谓词（例如，一个函数或 Lambda 表达式）来工作，该算法将满足给定谓词的所有元素复制到目标中。记住，copy() 不创建或扩展容器；只是替换现有的元素，所以目标应该足够大以容纳所有要复制的元素。当然，在复制元素之后，可能希望从目标容器中移除“超出”最后复制元素位置的空间。为了实现这一点，copy\_if() 返回一个指向目标范围中最后一个复制元素之后的迭代器。这可以用来确定从目标容器中应该移除多少元素，以下示例通过复制 vec1 中的偶数到 vec2 来展示这一点：
+copy\_if() 通过输入范围由两个迭代器指定，输出目标由一个迭代器指定，以及一个谓词（一个函数或 Lambda 表达式）来工作，该算法将满足给定谓词的所有元素复制到目标中。copy() 不创建或扩展容器，只是替换现有的元素，所以目标应该足够大以容纳所有要复制的元素。复制元素之后，可能希望从目标容器中移除“超出”最后复制元素位置的空间。为了实现这一点，copy\_if() 返回一个指向目标范围中，最后一个复制元素之后的迭代器。可以用来确定从目标容器中应该移除多少元素，以下示例通过复制 vec1 中的偶数到 vec2 来展示这一点：
 
 \begin{cpp}
 vector<int> vec1, vec2;
@@ -389,7 +389,7 @@ vec2.erase(endIterator, end(vec2));
 println("{:n}", vec2);
 \end{cpp}
 
-copy\_n() 复制源中的 n 个元素到目标，copy\_n() 的第一个参数是开始迭代器。第二个参数是一个整数，指定要复制的元素数量，第三个参数是目标迭代器。copy\_n() 算法不执行边界检查，所以必须确保开始迭代器，加上要复制的元素数量，不超过源集合的 end()，否则程序将具有未定义的行为。以下是一个示例：
+copy\_n() 复制源中的 n 个元素到目标，copy\_n() 的第一个参数是开始迭代器。第二个参数是一个整数，指定要复制的元素数量，第三个参数是目标迭代器。copy\_n() 算法不执行边界检查，必须确保开始迭代器，加上要复制的元素数量，不超过源集合的 end()，否则程序将具有未定义的行为。以下是一个示例：
 
 \begin{cpp}
 vector<int> vec1, vec2;
@@ -405,7 +405,7 @@ println("{:n}", vec2);
 
 \mySamllsection{move}
 
-有两个与移动相关的算法：move() 和 move\_backward()，都使用移动语义，这在第 9 章中有详细讨介绍。如果想使用这些算法在具有自定义类型的容器上，元素的类型必须提供移动赋值运算符，如以下示例所示。main() 函数创建一个包含三个 MyClass 对象的vector，然后将这些元素从 vecSrc 移动到 vecDst。注意，代码包括了 move() 的两种不同用法。接受单个参数的 move() 函数将左值转换为右值，定义在 <utility> 中；而接受三个参数的 move() 是标准库的 move() 算法，用于在容器之间移动元素。关于实现移动赋值运算符和单参数版本 std::move() 的使用详情，请参阅第 9 章。
+有两个与移动相关的算法：move() 和 move\_backward()，都使用移动语义，这在第 9 章中有详细讨介绍。如果想使用这些算法在具有自定义类型的容器上，元素的类型必须提供移动赋值操作符，如以下示例所示。main() 函数创建一个包含三个 MyClass 对象的vector，将这些元素从 vecSrc 移动到 vecDst。代码包括了 move() 的两种不同用法。接受单个参数的 move() 函数将左值转换为右值，定义在 <utility> 中；而接受三个参数的 move() 是标准库的 move() 算法，用于在容器之间移动元素。关于实现移动赋值操作符和单参数版本 std::move() 的使用详情，请参阅第 9 章。
 
 \begin{cpp}
 class MyClass
@@ -449,7 +449,7 @@ a b c
 \end{shell}
 
 \begin{myNotic}{NOTE}
-第 9 章中，移动操作中的源对象处于一种有效，但不确定的状态。对于前面的示例，在移动操作之后，不应该再使用 vecSrc 中的元素，除非将其恢复到一种确定的状态，例如通过调用它们的一个成员函数，而不需要前提条件，例如 setString()。
+第 9 章中，移动操作中的源对象处于一种有效，但不确定的状态。对于前面的示例，在移动操作之后，不应再使用 vecSrc 中的元素，除非将其恢复到一种确定的状态。通过调用它们的一个成员函数，而不需要前提条件，例如 setString()。
 \end{myNotic}
 
 move\_backward() 与 move() 有相同的移动机制，但会从最后一个元素开始向前移动。对于 move() 和 move\_backward()，源范围和目标范围可以重叠，但受与 copy() 和 copy\_backward() 相同的限制。
@@ -458,7 +458,7 @@ move\_backward() 与 move() 有相同的移动机制，但会从最后一个元�
 
 replace() 和 replace\_if() 算法分别替换匹配一个值或谓词的范围内的元素。以 replace\_if() 为例，前两个参数指定了要处理的元素范围。第三个参数是一个回调，返回 true 或 false。如果返回 true，容器中的值将用第四个参数中给出的新值替换；如果返回 false，则保留原始值。
 
-例如，可能想要从一个容器中替换所有奇数值为零：
+例如，想要从一个容器中替换所有奇数值为零：
 
 \begin{cpp}
 vector<int> values;
@@ -467,13 +467,13 @@ replace_if(begin(values), end(values), [](int i){ return i % 2 != 0; }, 0);
 println("{:n}", values);
 \end{cpp}
 
-replace() 和 replace\_if() 也有称为 replace\_copy() 和 replace\_copy\_if() ，它们将结果复制到不同的目标范围。与 copy() 类似，目标范围必须足够大，以容纳复制的元素。
+replace() 和 replace\_if() 也有称为 replace\_copy() 和 replace\_copy\_if() ，将结果复制到不同的目标范围。与 copy() 类似，目标范围必须足够大，以容纳复制的元素。
 
 \mySamllsection{erase}
 
 如第 18 章介绍的，std::erase() 和 std::erase\_if() 支持几乎所有的标准库容器，这些操作称为统一容器删除操作。erase() 函数从容器中删除与给定值匹配的所有元素，而 erase\_if() 删除与给定谓词匹配的所有元素。这些算法需要一个容器的引用，而不是一个公共范围，并且是删除容器中元素的首选方法。
 
-例如，以下代码片段从一个字符串vector中删除所有空字符串，并使用 erase\_if() 完成所有工作：
+以下代码片段从一个字符串vector中删除所有空字符串，并使用 erase\_if() 完成所有工作：
 
 \begin{cpp}
 vector<string> values {"", "one", "", "two", "three", "four"};
@@ -495,7 +495,7 @@ std::erase() 不适用于有序和无序关联容器，这些容器有一个名�
 
 \mySamllsection{remove}
 
-在前一节中讨论的 erase() 和 erase\_if() 算法自 C++20 以来一直可用。然而，来看看 C++20 之前的方式，因为会在遗留代码中遇到。可能首先想到的解决方案是查看文档，看看容器是否有一个 erase() 成员函数，然后遍历所有元素并调用 erase() 对每个匹配条件的元素。vector就是一个具有此类 erase() 成员函数的容器的例子。然而，如果应用于vector容器，这个解决方案效率极低，因为它会需要大量的内存操作，来保持vector在内存中的连续性，从而导致复杂度上升为二次方。这个解决方案也容易出错，需要小心，在调用 erase() 后需要确保迭代器的有效性。例如，这是一个不使用算法的函数，从字符串向量中删除所有空字符串。注意，在for 循环内部如何操作迭代器 iter。
+前一节中讨论的 erase() 和 erase\_if() 算法，自 C++20 以来一直可用。先来看看 C++20 之前的方式，因为会在历史代码中遇到。首先想到的解决方案是查看文档，看看容器是否有一个 erase() 成员函数，然后遍历所有元素并调用 erase() 对每个匹配条件的元素。vector就是一个具有此类 erase() 成员函数的容器的例子。如果应用于vector容器，这个解决方案效率极低，会需要大量的内存操作，来保持vector在内存中的连续性，从而导致复杂度上升为二次方。这个解决方案也容易出错，需要小心，调用 erase() 后需要确保迭代器的有效性。例如，这是一个不使用算法的函数，从字符串向量中删除所有空字符串。注意，在for 循环内部如何操作迭代器 iter。
 
 \begin{cpp}
 void removeEmptyStringsWithoutAlgorithms(vector<string>& strings)
@@ -514,9 +514,9 @@ void removeEmptyStringsWithoutAlgorithms(vector<string>& strings)
 二次复杂度意味着运行时间是输入大小的平方，$O(n^2)$。
 \end{myNotic}
 
-这个解决方案效率低下，不推荐使用。对于这个问题，一个更好的解决方案是使用 remove-erase 模式，其运行时间为线性，接下来将解释。
+这个解决方案效率低下，不推荐使用。对于这个问题，更好的解决方案是使用 remove-erase 模式，其运行时间为线性，接下来将解释。
 
-remove 算法只能访问迭代器抽象，而不能访问容器，实际上无法从底层容器中删除元素。相反，算法通过使用移动赋值来替换匹配给定值或谓词的元素。这样做是通过移动赋值来完成的。结果是所有要保留的元素都移动到范围的前部。范围划分为两组：要保留的元素和要删除的元素。返回一个迭代器，指向要删除的元素的范围内的第一个元素。不要使用该范围内的元素，因为它们可能已经移动，必须做的唯一事情是实际从容器中删除这些元素。所以首先使用 remove() 或 remove\_if() 算法，然后必须对容器调用 erase() 来删除从返回的迭代器到范围末尾的所有元素，这个过程称为 remove-erase 模式。以下是使用这种模式的 removeEmptyStrings() 函数的实现：
+remove 算法只能访问迭代器抽象，而不能访问容器，实际上无法从底层容器中删除元素。相反，算法通过使用移动赋值来替换匹配给定值或谓词的元素，可通过移动赋值来完成。结果是所有要保留的元素都移动到范围的前部，范围划分为两组：要保留的元素和要删除的元素。返回一个迭代器，指向要删除的元素的范围内的第一个元素。不要使用该范围内的元素，它们可能已经移动，必须做的唯一事情是实际从容器中删除这些元素。首先使用 remove() 或 remove\_if() 算法，然后对容器调用 erase() 来删除从返回的迭代器到范围末尾的所有元素，这个过程称为 remove-erase 模式。以下是使用这种模式实现的 removeEmptyStrings() 函数：
 
 \begin{cpp}
 void removeEmptyStrings(vector<string>& strings)
@@ -532,7 +532,7 @@ void removeEmptyStrings(vector<string>& strings)
 使用 remove-erase 模式时，不要忘记 erase() 的第二个参数！如果忘记了这个第二个参数，erase() 只会从容器中删除一个元素，即作为第一个参数传递的迭代器所指向的元素。
 \end{myWarning}
 
-remove\_copy() 和 remove\_copy\_if() 是 remove() 和 remove\_if() 一样，不会改变源范围。相反，它们将所有保留的元素复制到不同的目标范围。与 copy() 类似，目标范围必须足够大，以容纳新元素。
+remove\_copy() 和 remove\_copy\_if() 是 remove() 和 remove\_if() 一样，不会改变源范围。相反，将所有保留的元素复制到不同的目标范围。与 copy() 类似，目标范围必须足够大，以容纳新元素。
 
 \begin{myNotic}{NOTE}
 remove() 函数族是稳定的。即使在移动保留元素到范围的前部时，也会保持容器中剩余元素的顺序。
@@ -544,11 +544,11 @@ remove() 函数族是稳定的。即使在移动保留元素到范围的前部�
 
 \mySamllsection{unique}
 
-unique() 算法是 remove() 算法的一个特殊情况，删除所有连续的重复元素。列表容器提供自己的 unique() 成员函数，实现相同的语义。通常，应该在对排序序列上使用 unique()，但也可以对对未排序序列使用。
+unique() 算法是 remove() 算法的一个特殊情况，删除所有连续的重复元素。列表容器提供自己的 unique() 成员函数，实现相同的语义。应该在对排序序列上使用 unique()，也可以对未排序的序列使用。
 
 unique() 的工作方式与 remove() 类似：将要保留的元素移动到范围的前部，并返回一个迭代器，该迭代器指向要删除元素范围内的第一个元素。与 remove-erase习惯一样，调用 unique() 必须紧跟一个 erase()。
 
-unique() 的基本形式就地运行，但也有一个算法的称为 unique\_copy()，将结果复制到新的目标范围。
+unique() 的基本形式就地运行，也有一个算法的称为 unique\_copy()，将结果复制到新的目标范围。
 
 第 18 章在部分展示了 list::unique() 算法的一个示例，因此这里省略了通用形式的示例。
 
@@ -630,7 +630,7 @@ reverse() 算法反转范围内元素的顺序。范围内的第一个元素与�
 
 reverse() 的基本形式就地运行，需要两个参数：一个开始迭代器和结束迭代器。还有一个算法变体称为 reverse\_copy()，将结果复制到新的目标范围，需要三个参数：源范围的开始和结束迭代器，以及目标范围的开头迭代器。目标范围必须足够大以容纳新元素。
 
-以下是一个使用 reverse() 的示例：
+以下是使用 reverse() 的示例：
 
 \begin{cpp}
 vector<int> values;
@@ -641,7 +641,7 @@ println("{:n}", values);
 
 \mySamllsection{移动元素}
 
-shift\_left() 和 shift\_right() 算法在给定范围内移动元素到它们的新位置。shift\_left() 返回一个指向新范围末尾的迭代器，而 shift\_right() 返回一个指向新范围开头的迭代器。调用任一算法之后，必须使用返回的迭代器在调用 erase() 中删除从范围两端的元素。以下是一个示例：
+shift\_left() 和 shift\_right() 算法在给定范围内移动元素到新位置。shift\_left() 返回一个指向新范围末尾的迭代器，而 shift\_right() 返回一个指向新范围开头的迭代器。调用任一算法之后，必须在erase() 中使用返回的迭代器，删除从范围两端的元素：
 
 \begin{cpp}
 vector values { 11, 22, 33, 44, 55 };
@@ -670,11 +670,11 @@ println("{:n}", values);
 
 \mySubsubsection{20.2.3.}{操作算法}
 
-这个类别中只有两个算法：for\_each() 和 for\_each\_n()。它们在范围内对每个元素执行一个回调，for\_each() 或者在范围内对前 n 个元素执行一个回调，for\_each\_n()。如果给定的迭代器类型是非常量，回调可以修改范围内的元素。虽然在这里提到这些算法，但通常使用简单的基于范围的 for 循环更容易且更易读。
+这个类中只有两个算法：for\_each() 和 for\_each\_n()。在范围内对每个元素执行一个回调，for\_each() 或者在范围内对前 n 个元素执行一个回调，for\_each\_n()。如果给定的迭代器类型是非常量，回调可以修改范围内的元素。虽然在这里提到这些算法，但通常使用简单的基于范围的 for 循环更容易且更易读。
 
 \mySamllsection{for\_each}
 
-以下是一个使用通用 Lambda 表达式的示例，打印一个map中的元素：
+以下是一个使用通用 Lambda 表达式的示例，打印map中的元素：
 
 \begin{cpp}
 map<int, int> myMap { { 4, 40 }, { 5, 50 }, { 6, 60 } };
@@ -690,7 +690,7 @@ p 的类型是 const pair<int, int>\&。输出如下：
 6 -> 60
 \end{shell}
 
-以下示例展示了如何使用 for\_each() 算法和 Lambda 表达式同时计算范围元素的和与积。Lambda 表达式显式捕获它需要的变量，通过引用捕获这些变量；否则，在 Lambda 表达式中修改 sum 和 product，并且在 Lambda 外部可见。
+以下示例展示了如何使用 for\_each() 算法，并且Lambda表达式同时计算范围元素的和与积。Lambda 表达式显式捕获它需要的变量，通过引用捕获这些变量；否则，在 Lambda 表达式中修改 sum 和 product，并且在 Lambda 外部可见。
 
 \begin{cpp}
 vector<int> myVector;
@@ -735,7 +735,7 @@ int main()
 }
 \end{cpp}
 
-可能想忽略 for\_each() 的返回值，但仍尝试在算法完成后从 calculator 中读取信息。但这样做是行不通的，for\_each() 复制了函数对象，并在调用结束时返回这个副本，必须捕获返回值以确保正确的行为。
+可能想忽略 for\_each() 的返回值，尝试在算法完成后从 calculator 中读取信息。但这样做是行不通的，for\_each() 复制了函数对象，并在调用结束时返回这个副本，必须捕获返回值以确保正确的行为。
 
 另一种方法是通过引用传递 calculator 使用 std::ref()，如本章前面所示：
 
@@ -764,7 +764,7 @@ for_each_n(cbegin(myMap), 2, [](const auto& p)
 
 \mySubsubsection{20.2.4.}{分区算法}
 
-partition\_copy() 从源复制元素到两个不同的目标，每个元素的复制目的地是根据谓词结果选择的，即 true 或 false。partition\_copy() 返回值是一个迭代器对的引用：指向第一个和第二个目标范围中最后一个复制的元素的迭代器。这些返回的迭代器可以与 erase() 一起使用，从两个目标范围中删除多余的元素，就像之前的 copy\_if() 示例一样。以下代码片段要求用户输入一系列整数，然后将它们分区到两个目标vector中：一个存储偶数，另一个存储奇数：
+partition\_copy() 从源复制元素到两个不同的目标，每个元素的复制目的地是根据谓词结果选择的，即 true 或 false。partition\_copy() 返回值是一个迭代器对的引用：指向第一个和第二个目标范围中最后一个元素的迭代器。这些返回的迭代器可以与 erase() 一起使用，从两个目标范围中删除多余的元素，就像之前的 copy\_if() 示例一样。以下代码要求用户输入一系列整数，将它们分区到两个目标vector中：一个存偶数，另一个存奇数：
 
 \begin{cpp}
 vector<int> values, vecOdd, vecEven;
@@ -820,9 +820,9 @@ Partitioned result: 22, 44, 33, 55, 11
 
 \mySubsubsection{20.2.5.}{排序算法}
 
-标准库提供了几种排序算法。排序算法重新排列容器的内容，以维护集合中连续元素之间的顺序，所以只适用于顺序集合。排序对有序关联容器不适用，它们已经保持元素以排序顺序排列。排序对无序关联容器也不适用，它们没有排序的概念。一些容器，如list和forward\_list，提供自己的排序成员函数，这些成员函数可以比通用的排序机制更有效地实现，所以通用的排序算法对于vector、deque、array和 C 风格数组更有用。
+标准库提供了几种排序算法。排序算法重新排列容器的内容，以维护集合中连续元素之间的顺序，只适用于顺序集合。排序对有序关联容器不适用，已经保持元素以排序顺序排列。排序对无序关联容器也不适用，其没有排序的概念。一些容器，如list和forward\_list，提供自己的排序成员函数，这些成员函数可以比通用的排序机制更有效地实现，所以通用的排序算法对于vector、deque、array和 C 风格数组更有用。
 
-sort() 算法通常以 O(N log N) 的时间复杂度对一个范围内的元素进行排序。在应用 sort() 到一个范围之后，范围内的元素按非递减顺序（从最低到最高）排列，根据 operator<。如果不喜欢这个顺序，可以指定一个不同的比较器，例如 greater。
+sort() 算法通常以 O(N log N) 的时间复杂度对一个范围内的元素进行排序。在范围应用sort()之后，范围内的元素会按非递减顺序（从最低到最高）排列。如果不喜欢这个顺序，可以指定一个比较器，例如 greater。
 
 sort() 的一个版本，称为 stable\_sort()，在范围内保持相等元素的相对顺序，但它不如 sort() 高效。
 
@@ -836,7 +836,7 @@ sort(begin(values), end(values), greater<>{});
 
 还有一个 is\_sorted() 函数，如果给定的范围是排序的，则返回 true；还有一个 is\_sorted\_until() 函数，返回一个迭代器，该迭代器之前的内容是排序的。
 
-nth\_element() 是一个强大的选择算法。给定一个范围内的元素和一个指向该范围内第 n 个元素的迭代器，该算法重新排列范围内的元素，指向第 n 个位置的元素。如果整个范围已排序，迭代器将指向那个位置的元素。此外，它重新排列所有元素，使得第 n 个元素之前的所有元素都小于新的第 n 个元素，而之后的元素都大于新的第 n 个元素。这个算法有趣的地方在于，它可以在线性时间内完成所有这些操作，即 O(n)。与其使用 nth\_element()，也可以直接对整个范围进行排序，然后获取感兴趣的数据，但这会导致复杂度为线性对数，即 O(n log n)。
+nth\_element() 是一个强大的选择算法。给定一个范围内的元素和一个指向该范围内第 n 个元素的迭代器，该算法重新排列范围内的元素，指向第 n 个位置的元素。如果整个范围已排序，迭代器将指向那个位置的元素。此外，它重新排列所有元素，使得第 n 个元素之前的所有元素都小于新的第 n 个元素，而之后的元素都大于新的第 n 个元素。这个算法有趣的地方在于，可以在线性时间内完成所有这些操作，即 O(n)。与其使用 nth\_element()，也可以直接对整个范围进行排序，然后获取感兴趣的数据，但这会导致复杂度为线性对数，即 O(n log n)。
 
 来看看这个算法是如何工作，一个示例是找到给定范围内的第三个最大元素。假设用户输入至少三个值。
 
@@ -863,7 +863,7 @@ for_each_n(begin(values), 5, [](const auto& element) { print("{} ", element); })
 
 \mySubsubsection{20.2.6.}{二分查找算法}
 
-有几种搜索算法只能用于排序的序列，或者至少对要搜索的元素进行了分区。这些算法包括 binary\_search()、lower\_bound()、upper\_bound() 和 equal\_range()。注意，关联容器（如 map 和 set）具有等效的成员函数，应该使用这些成员函数。关于如何在这些容器上使用这些成员函数的示例，请参阅第 18 章。
+有几种搜索算法只能用于排序的序列，或者至少对要搜索的元素进行了分区。这些算法包括 binary\_search()、lower\_bound()、upper\_bound() 和 equal\_range()。关联容器（如 map 和 set）具有等效的成员函数，应该使用这些成员函数。关于如何在这些容器上使用这些成员函数的示例，请参阅第 18 章。
 
 lower\_bound() 算法在排序范围内找到第一个大于或等于给定值的元素，通常用于在排序vector中找到新值应该插入的位置，以保持vector的顺序。以下是一个示例：
 
@@ -886,7 +886,7 @@ while (true) {
 }
 \end{cpp}
 
-binary\_search() 算法在对数时间内，而不是线性时间内找到匹配的元素。需要指定要搜索的范围的开头和结束迭代器、要搜索的值，以及可选的比较器回调。如果在指定的范围内找到值，则返回 true，否则返回 false。二分搜索要求范围已排序，并通过比较范围的中间元素来工作。根据中间元素是否大于或小于要搜索的值，会继续比较左半部分或右半部分范围的中间元素，依此类推。这样持续进行，直到找到元素。基本上，每次迭代都将范围减半，因此具有对数复杂度。以下示例演示了这个算法：
+binary\_search() 算法在对数时间内，而不是线性时间内找到匹配的元素。需要指定要搜索的范围的开头和结束迭代器、要搜索的值，以及可选的比较器回调。如果在范围内找到值，则返回 true，否则返回 false。二分搜索要求范围已排序，并通过比较范围的中间元素来工作。根据中间元素是否大于或小于要搜索的值，会继续比较左半部分或右半部分范围的中间元素，依此类推。这样持续进行，直到找到元素。基本上，每次迭代都将范围减半，因此具有对数复杂度。以下示例演示了这个算法：
 
 \begin{cpp}
 vector<int> values;
@@ -910,7 +910,7 @@ while (true) {
 
 \mySubsubsection{20.2.7.}{set算法}
 
-set算法适用于任何排序的范围。includes() 算法实现了标准的子集确定，检查一个排序的范围，是否完全包含在另一个排序的范围中。
+set算法适用于任何已排序的范围。includes() 算法实现了标准的子集确定，检查一个已排序的范围，是否完全包含在另一个已排序的范围中。
 
 set\_union()、set\_intersection()、set\_difference() 和 set\_symmetric\_difference() 算法实现了这些操作的标准语义。在set中，并集的结果是两个set中所有的元素，交集的结果是两个set中都有的元素，差集的结果是第一个set中有但第二个set中没有的所有元素。对称差集的结果是set的“异或”：在一个set中，但不在另一个set中的所有元素。
 
@@ -919,10 +919,10 @@ set\_union()、set\_intersection()、set\_difference() 和 set\_symmetric\_diffe
 \end{myWarning}
 
 \begin{myWarning}{WARNING}
-不能使用关联容器（包括set）的常见范围来存储结果，它们不允许更改键。
+不能使用关联容器（包括set）的常见范围来存储结果，不允许更改键。
 \end{myWarning}
 
-来看看这些set算法是如何工作。首先，定义了一个受约束的 DumpRange() 函数模板，用于将给定范围的内容写入标准输出流；实现如下所示。ranges::subrange() 将由迭代器给出的常见范围转换为范围，然后可以传递给 println()。
+了解一下这些set算法是如何工作。定义了一个受约束的 DumpRange() 函数模板，用于将给定范围的内容写入标准输出流；实现如下所示。ranges::subrange() 将由迭代器给出的常见范围转换为范围，可以传递给 println()。
 
 \begin{cpp}
 template <forward_iterator Iterator>
@@ -995,7 +995,7 @@ The difference between set 1 and set 2 is: 5, 6, 7
 The symmetric difference is: 5, 6, 7, 9, 10
 \end{shell}
 
-merge() 算法允许合并两个已排序的范围，同时保持排序顺序。结果是一个包含两个源范围所有元素的排序范围，它以线性时间工作。以下是必需参数：
+merge() 算法允许合并两个已排序的范围，同时保持排序顺序。结果是一个包含两个源范围所有元素的已排序范围，它以线性时间工作。以下是必需参数：
 
 \begin{itemize}
 \item
@@ -1011,7 +1011,7 @@ merge() 算法允许合并两个已排序的范围，同时保持排序顺序。
 可选，比较器的回调
 \end{itemize}
 
-如果没有 merge()，仍然可以通过将两个范围连接起来，并使用 sort() 来实现相同的效果，但这比 merge()的效率低，时间复杂度为O(N log N)。
+如果没有 merge()，也可以将两个范围连接起来，并使用 sort() 来实现相同的效果，但这比 merge()的效率低，时间复杂度为O(N log N)。
 
 \begin{myWarning}{WARNING}
 确保提供足够大的目的范围来存储 merge() 的结果！
@@ -1042,7 +1042,7 @@ println("Merged vector: {:n}", vectorMerged);
 
 \mySubsubsection{20.2.8.}{最小/最大算法}
 
-min() 和 max() 算法比较两个或多个类型的元素，使用 operator< 或用户提供的二元谓词，分别返回最小或最大元素的有常引用的引用。minmax() 算法返回一个包含两个或多个元素最小值和最大值的元组。这些算法不适用于常见范围。
+min() 和 max() 算法比较两个或多个类型的元素，使用 operator< 或用户提供的二元谓词，分别返回最小或最大元素的有常引用的引用。minmax() 算法返回一个包含两个或多个元素最小值和最大值的元组，这些算法不适用于常见范围。
 
 min\_element() 和 max\_element() 算法适用于常见范围，并分别返回范围内最小或最大元素的迭代器。minmax\_element() 算法也适用于常见范围，并返回一个包含范围内最小和最大元素迭代器的元组。
 
@@ -1123,11 +1123,11 @@ println("{}", clamp(22, 1, 10));
 10
 \end{shell}
 
-\mySubsubsection{20.2.9.}{Parallel Algorithms}
+\mySubsubsection{20.2.9.}{并行算法}
 
 C++ 支持并行执行超过 60 个标准库迭代器基础算法，以提高它们的性能。这些包括 std::for\_each()、all\_of()、copy()、count\_if()、find()、replace()、search()、sort()、transform() 等。
 
-支持并行执行的算法有一个可选的执行策略，作为它们的第一个参数。执行策略允许指定算法是否允许被向量化并/或并行执行。当编译器向量化代码时，用一个向量 CPU 指令替换几个 CPU 指令。向量指令对多个数据片段执行某些操作，只需一条硬件指令，这些也被称为单指令多数据（SIMD）指令。有四种标准的执行策略类型，以及这些类型的相应全局实例，都在 <execution> 中定义在 std::execution 命名空间中：
+支持并行执行的算法有一个可选的执行策略，作为它们的第一个参数。执行策略允许指定算法是否允许向量化并/或并行执行。当编译器向量化代码时，用一个向量 CPU 指令替换几个 CPU 指令。向量指令对多个数据片段执行某些操作，只需一条硬件指令，这些也称为单指令多数据（SIMD）指令。有四种标准的执行策略类型，以及这些类型的相应全局实例，都在 <execution> 中定义在 std::execution 命名空间中：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -1160,31 +1160,31 @@ unseq &
 
 标准库实现可以添加执行策略。
 
-来看看如何为算法指定一个执行策略。以下是使用并行策略对vector内容进行排序的示例：
+如何为算法指定一个执行策略。以下是使用并行策略对vector内容进行排序的示例：
 
 \begin{cpp}
 sort(execution::par, begin(values), end(values));
 \end{cpp}
 
 \begin{myWarning}{WARNING}
-传递给并行算法的回调，不允许抛出未捕获的异常。这样做将触发将调用 std::terminate()，从而终止运行中的应用程序。
+传递给并行算法的回调，不允许抛出未捕获的异常。这样将触发将调用 std::terminate()，从而终止运行中的应用程序。
 \end{myWarning}
 
-对于使用 parallel\_unsequenced\_policy 或 unsequenced\_policy 执行的算法，允许回调函数交错执行，也就是无序执行。这有助于编译器向量化代码。然而，这也意味着对回调函数可以做什么有大量的限制。例如，不能分配/释放内存，不能获取互斥锁，不能使用非锁定的 std::atomic（请参见第 27 章）等。对于其他标准策略，函数调用是有序的，但顺序不确定。这样的策略不会对回调函数可以做什么施加限制。
+使用 parallel\_unsequenced\_policy 或 unsequenced\_policy 执行的算法，允许回调函数交错执行，也就是无序执行。这有助于编译器向量化代码，但这也意味着对回调函数可以做什么有大量的限制。例如，不能分配/释放内存，不能获取互斥锁，不能使用非锁定的 std::atomic（请参见第 27 章）等。对于其他标准策略，函数调用是有序的，但顺序不确定。这样的策略不会对回调函数可以做什么施加限制。
 
-并行算法不防止数据竞争和死锁，因此当以并行方式执行算法时，防止数据竞争和死锁是开发者的责任。数据竞争和死锁的预防在第 27 章中详细介绍，背景是多线程编程。
+并行算法不防止数据竞争和死锁，当以并行方式执行算法时，避免数据竞争和死锁是开发者的责任。数据竞争和死锁的预防在第 27 章中详细介绍，背景是多线程编程。
 
-并行版本的算法的返回类型与非并行版本可能略有不同。例如，非并行版本的 for\_each() 返回提供的回调，而并行版本则不返回任何内容。请查阅标准库手册，以获取所有算法的完整概述，包括参数和返回类型，以及并行和非并行版本。
+并行版本的算法的返回类型与非并行版本可能略有不同。非并行版本的 for\_each() 返回提供的回调，而并行版本则不返回任何内容。请查阅标准库手册，以获取所有算法的完整概述，包括参数和返回类型，以及并行和非并行版本。
 
 \begin{myNotic}{NOTE}
 当处理大型数据集或必须对数据集中的每个单独元素执行大量工作时，使用并行版本的算法可提高性能。
 \end{myNotic}
 
-请记住，使用算法的并行版本并不保证其执行速度会比非并行版本快。例如，当处理少量元素时，并行版本可能实际上会更慢，因为并行化带来了开销。另一个例子是当你的容器不支持随机访问迭代器时。要决定是否为特定用例使用并行或顺序版本，必须对两者进行基准测试，并选择性能最佳的版本。第 29 章介绍了基准测试。
+算法的并行版本并不保证执行速度会比非并行版本快。当处理少量元素时，并行版本可能实际上会更慢，因为并行化带来了开销。另一个例子是当容器不支持随机访问迭代器时。要决定是否为特定用例使用并行或顺序版本，必须对两者进行基准测试，并选择性能最佳的版本。第 29 章介绍了基准测试。
 
 \mySubsubsection{20.2.10.}{数值处理算法}
 
-已了解了一个数值处理算法的示例：accumulate()。接下来的部分将提供一些更多数值算法的示例。
+之前有一个数值处理算法的示例：accumulate()，接下来的部分将提供一些更多数值算法的示例。
 
 \mySamllsection{iota}
 
@@ -1204,13 +1204,13 @@ println("{:n}", values);
 
 \mySamllsection{Reduce 算法}
 
-标准库有四个 reduce 算法：accumulate(), reduce(), inner\_product()和 transform\_reduce(), 都定义在 <numeric> 中。accumulate() 算法在本章前面已经讨论过了。所有的 reduce 算法都反复应用一个运算符来组合给定范围内的两个元素或两个给定的范围，直到只剩下一个值。这些也称为累积、聚合、压缩、注入或折叠算法。
+标准库有四个 reduce 算法：accumulate(), reduce(), inner\_product()和 transform\_reduce(), 都定义在 <numeric> 中。accumulate() 算法在本章前面已经讨论过了。reduce 算法都反复应用一个操作符来组合给定范围内的两个元素或两个给定的范围，直到只剩下一个值。这些也称为累积、聚合、压缩、注入或折叠算法。
 
 \mySamllsection{reduce}
 
 std::accumulate() 是少数几个不支持并行执行的算法之一。相反，需要使用 std::reduce() 来计算一个广义的和，并可以选择以并行方式执行。
 
-例如，以下代码两次计算相同的和，一次使用 accumulate()，一次使用 reduce()。后者运行一个并行和向量化的版本，因此在大输入范围内可以快得多。它们都需要一个范围的开头和结束迭代器，以及一个初始值，例如 0。
+以下代码两次计算相同的和，一次使用 accumulate()，一次使用 reduce()。后者运行一个并行和向量化的版本，因此在大输入范围内可以快得多。需要一个范围的开头和结束迭代器，以及一个初始值，例如 0。
 
 \begin{cpp}
 vector values { 1, 3, 6, 4, 6, 9 };
@@ -1218,15 +1218,15 @@ int result1 { accumulate(cbegin(values), cend(values), 0) };
 int result2 { reduce(execution::par_unseq, cbegin(values), cend(values), 0) };
 \end{cpp}
 
-一般来说，accumulate() 和 reduce() 都计算以下和，对于范围 [$x_0$, $x_{n}$)，给定的初始值 Init，和给定的二元运算符 Ѳ：
+accumulate() 和 reduce() 都计算以下和，对于范围 [$x_0$, $x_{n}$)，给定的初始值 Init，和给定的二元操作符 Ѳ：
 
 Init Ѳ $x_0$ Ѳ $x_1$ Ѳ . . . Ѳ $x_{n−1}$
 
-默认情况下，accumulate() 的二元运算符是 operator+，而 reduce() 的二元运算符是 std::plus。
+默认情况下，accumulate() 的二元操作符是 operator+，而 reduce() 的二元操作符是 std::plus。
 
 \mySamllsection{inner\_product}
 
-inner\_product() 计算两个序列的内积。例如，以下示例的内积计算为 (1*9)+(2*8)+(3*7)+(4*6)，结果是 70：
+inner\_product() 计算两个序列的内积。以下示例的内积计算为 (1x9)+(2x8)+(3x7)+(4x6)，结果是 70：
 
 \begin{cpp}
 vector v1 { 1, 2, 3, 4 };
@@ -1234,13 +1234,13 @@ vector v2 { 9, 8, 7, 6 };
 println("{}", inner_product(cbegin(v1), cend(v1), cbegin(v2), 0));
 \end{cpp}
 
-inner\_product() 可以接受两个参数，这两个参数是计算中使用的两个二元运算符，默认分别是 operator+ 和 operator*。
+inner\_product() 可以接受两个参数，这两个参数是计算中使用的两个二元操作符，默认分别是 operator+ 和 operator*。
 
 inner\_product() 是另一个不支持并行执行的算法。如果需要并行执行，请使用 transform\_reduce()，将在下一节介绍。
 
 \mySamllsection{transform\_reduce}
 
-transform\_reduce() 支持并行执行，可以对单个范围或两个范围进行执行。在其第一个版本中，它计算给定范围 [$x_0$, $x_n$)，给定的初始值 Init，给定的单函数 f，以及给定的二元运算符 Ѳ（默认是 std::plus）的以下和：
+transform\_reduce() 支持并行执行，可以对单个范围或两个范围进行执行。在其第一个版本中，它计算给定范围 [$x_0$, $x_n$)，给定的初始值 Init，给定的单函数 f，以及给定的二元操作符 Ѳ（默认是 std::plus）的以下和：
 
 Init Ѳ $f(x_0)$ Ѳ $f(x_1)$ Ѳ . . . Ѳ $f(x_{n−1})$
 
@@ -1252,7 +1252,7 @@ Init Ѳ $f(x_0)$ Ѳ $f(x_1)$ Ѳ . . . Ѳ $f(x_{n−1})$
 
 有五个扫描算法：exclusive\_scan(), inclusive\_scan()/partial\_sum(), transform\_exclusive\_scan(), 和 transform\_inclusive\_scan(), 都定义在 <numeric> 中。
 
-以下表格显示了 exclusive\_scan() 和 inclusive\_scan()/partial\_sum() 对于一个范围 [$x_0$, $x_n$) 的元素，使用给定的初始值 Init（对于 partial\_sum() 为 0），以及给定的二元运算符 Ѳ，计算哪些和 [$y_0$, $y_n$)：
+以下表格显示了 exclusive\_scan() 和 inclusive\_scan()/partial\_sum() 对于一个范围 [$x_0$, $x_n$) 的元素，使用给定的初始值 Init（对于 partial\_sum() 为 0），以及给定的二元操作符 Ѳ，计算哪些和 [$y_0$, $y_n$)：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -1271,13 +1271,13 @@ Init Ѳ $f(x_0)$ Ѳ $f(x_1)$ Ѳ . . . Ѳ $f(x_{n−1})$
 
 transform\_exclusive\_scan() 和 transform\_inclusive\_scan() 都首先应用一个单函数到元素上，然后再计算广义的和，这与 transform\_reduce() 在减少元素之前应用单函数的方式类似。
 
-注意，这些扫描算法（除了 partial\_sum()）可以接受一个可选的执行策略来并行化它们的执行。计算的顺序不确定，而对于 partial\_sum() 和 accumulate()，计算的顺序是从左到右。这也是为什么 partial\_sum() 和 accumulate() 不能并行化的原因。
+这些扫描算法（除了 partial\_sum()）可以接受一个可选的执行策略来并行化它们的执行。计算的顺序不确定，而对于 partial\_sum() 和 accumulate()，计算的顺序是从左到右。这也是为什么 partial\_sum() 和 accumulate() 不能并行化的原因。
 
 \mySubsubsection{20.2.11.}{约束算法}
 
-大多数算法在 std::ranges 命名空间中都有约束版本。查阅标准手册，以了解可用的确切约束算法。
+大多数算法在 std::ranges 命名空间中都有约束版本。查阅标准手册，了解可用的确切约束算法。
 
-这些算法也在 <algorithm> 和 <numeric> 中定义，但与 std 命名空间中相应的无约束算法不同，约束变体使用概念（请参阅第 12 章）来约束模板类型参数。如果传递无效的参数，编译器会提供更好的错误消息。例如，sort() 算法需要随机访问迭代器。将一对 std::list 迭代器作为参数传递给 std::sort()，可能导致你的编译器抛出一大堆难以理解的错误。使用约束的 ranges::sort() 算法，编译器会抱怨，传递的迭代器不能随机访问。
+这些算法也在 <algorithm> 和 <numeric> 中定义，但与 std 命名空间中相应的无约束算法不同，约束变体使用概念（请参阅第 12 章）来约束模板类型参数。如果传递无效的参数，编译器会提供更好的错误消息。例如，sort() 算法需要随机访问迭代器。将一对 std::list 迭代器作为参数传递给 std::sort()，可能导致编译器抛出一大堆难以理解的错误。使用约束的 ranges::sort() 算法，编译器会抱怨，传递的迭代器不能随机访问。
 
 这些约束算法的另一个好处是，可以处理作为一对开始和结束迭代器或范围给出的序列的元素。此外，它们支持投影。范围和投影在第 17 章中讨论。
 
@@ -1285,7 +1285,7 @@ transform\_exclusive\_scan() 和 transform\_inclusive\_scan() 都首先应用一
 约束算法目前还不支持并行执行，因此接受并行执行策略作为参数。
 \end{myNotic}
 
-让我们看看这些约束算法的一些示例。
+来看看这些约束算法的一些示例。
 
 \mySamllsection{约束版find}
 
@@ -1297,7 +1297,7 @@ auto result { ranges::find(cbegin(values), cend(values), 2) };
 if (result != cend(values)) { println("{}", *result); }
 \end{cpp}
 
-然而，如果想对容器中的所有元素应用一个算法，通常情况下，必须指定一个开始/结束迭代器对来定义序列，这相当繁琐。有了范围支持，只需指定一个范围作为单个参数，前面的 find() 可以写得更简单：
+如果想对容器中的所有元素应用一个算法，必须指定一个开始/结束迭代器对来定义序列，这相当繁琐。有了范围支持，只需指定一个范围作为单个参数，前面的 find() 可以写得更简单：
 
 \begin{cpp}
 auto result { ranges::find(values, 2) };
@@ -1305,7 +1305,7 @@ auto result { ranges::find(values, 2) };
 
 \mySamllsection{约束版 generate}
 
-这里是一个使用约束版 std::ranges::generate() 算法的示例。代码首先创建了一个简单的 Lambda 表达式，只是返回下一个数字。然后，创建了一个包含 10 个整数的vector，并使用 generate() 算法与 nextNumber Lambda 表达式一起填充vector，以包含递增的整数。vector的内容打印到控制台，接着是对 nextNumber Lambda 表达式的四次货更多的调用。
+这里是一个使用约束版 std::ranges::generate() 算法的示例。代码首先创建了一个简单的 Lambda 表达式，只是返回下一个数字。创建了一个包含 10 个整数的vector，并使用 generate() 算法与 nextNumber Lambda 表达式一起填充vector，以包含递增的整数。vector的内容打印到控制台，接着是对 nextNumber Lambda 表达式的四次或更多次调用。
 
 \begin{cpp}
 auto nextNumber { [counter = 0] () mutable { return ++counter; } };
@@ -1359,7 +1359,7 @@ After: 1, 20, 3, 40, 5, 60, 7, 80, 9, 100
 
 \mySamllsection{仅约束算法}
 
-C++23 引入了新的算法，这些算法仅作为约束算法可用。它们都在 std::ranges 命名空间中定义。这些包括非修改序列算法 contains(), contains\_subrange(), starts\_with(), ends\_with(), find\_last(), find\_last\_if(), 和 find\_last\_if\_not(), 以及折叠算法 fold\_left(), fold\_left\_first(), fold\_right(), fold\_right\_last(), fold\_left\_with\_iter()和 fold\_left\_first\_with\_iter()。
+C++23 引入了新的算法，这些算法仅作为约束算法可用，都在 std::ranges 命名空间中定义。这些包括非修改序列算法 contains(), contains\_subrange(), starts\_with(), ends\_with(), find\_last(), find\_last\_if()和 find\_last\_if\_not(), 以及折叠算法 fold\_left(), fold\_left\_first(), fold\_right(), fold\_right\_last(), fold\_left\_with\_iter()和 fold\_left\_first\_with\_iter()。
 
 以下是某些非修改序列算法的示例：
 
@@ -1379,7 +1379,7 @@ println("{} starts with {} = {}", values, v, ranges::starts_with(values, v));
 [11, 22, 33, 44, 55] starts with [11, 22] = true
 \end{shell}
 
-以下是一个折叠算法的示例。fold\_left() 和 fold\_right() 接受一个初始值作为它们的参数之一，而 fold\_left\_first() 使用给定范围中的第一个元素作为起始值，fold\_right\_last() 使用给定范围中的最后一个元素作为起始值。这个示例展示了左折叠和右折叠之间的区别，fold\_left\_first() 和 fold\_right\_last() 算法返回一个可选值，因此使用 value\_or() 来处理空结果。
+以下是一个折叠算法的示例。fold\_left() 和 fold\_right() 接受一个初始值作为它们的参数之一，而 fold\_left\_first() 使用给定范围中的第一个元素作为起始值，fold\_right\_last() 使用给定范围中的最后一个元素作为起始值。这个示例展示了左折叠和右折叠的区别，fold\_left\_first() 和 fold\_right\_last() 算法返回一个可选值，可以使用 value\_or() 来处理空结果。
 
 \begin{cpp}
 vector values { 500.0, 10.0, 2.0 };
