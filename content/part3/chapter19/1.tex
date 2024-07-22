@@ -1,7 +1,7 @@
 
-C++中虽然不会考虑函数在内存中的位置，但每个函数实际上都驻留在特定的地址。C++可以将函数当作数据使用，C++具有一等函数，可以获取函数的地址，并像使用变量一样使用。
+C++中不会考虑函数在内存中的位置，但每个函数实际上都驻留在特定的地址。C++可以将函数当作数据使用，可以获取函数的地址，并像使用变量一样使用。
 
-函数指针的类型取决于与之兼容的函数参数类型和返回类型。下面是一个变量定义的例子，该变量名为fun，能够指向返回布尔值并接受两个整数参数的函数：
+函数指针的类型取决于与函数参数类型和返回类型。下面是一个变量定义的例子，该变量名为fun，能够指向返回布尔值并接受两个整数参数的函数：
 
 \begin{cpp}
 bool (*fun)(int, int);
@@ -15,7 +15,7 @@ bool (*fun)(int, int) { nullptr };
 
 \mySubsubsection{19.1.1.}{findMatches()使用函数指针}
 
-处理函数指针的另一种方法是使用类型别名，类型别名允为具有给定特征的函数族分配一个类型名称。例如，下面的定义了一个名为Matcher的类型，代表指向具有两个整数参数，并返回布尔值的函数指针：
+处理函数指针的另一种方法是使用类型别名，类型别名允为具有给定特征的函数族分配一个类型名称。下面的定义了一个名为Matcher的类型，代表指向具有两个整数参数，并返回布尔值的函数指针：
 
 \begin{cpp}
 using Matcher = bool(*)(int, int);
@@ -27,7 +27,7 @@ using Matcher = bool(*)(int, int);
 using MatchHandler = void(*)(size_t, int, int);
 \end{cpp}
 
-现在这些类型已经定义，可以编写一个函数，该函数接受两个回调参数：Matcher和MatchHandler。接受其他函数作为参数的函数，或者返回函数的函数，称为高阶函数。例如，下面的函数接受两个整数范围的span，以及一个Matcher和一个MatchHandler。并行遍历两个span，并对两个span中对应位置的元素调用Matcher。如果Matcher返回true，则调用MatchHandler，第一个参数是匹配的位置，第二个和第三个参数是导致Matcher返回true的值。注意，尽管Matcher和MatchHandler作为变量传递，但它们可以像普通函数一样调用：
+现在这些类型已经定义，可以编写一个函数，该函数接受两个回调参数：Matcher和MatchHandler。接受其他函数作为参数的函数，或者返回函数的函数，称为高阶函数。下面的函数接受两个整数范围的span，以及一个Matcher和一个MatchHandler。并行遍历两个span，并对两个span中对应位置的元素调用Matcher。如果Matcher返回true，则调用MatchHandler，第一个参数是匹配的位置，第二个和第三个参数是导致Matcher返回true的值。尽管Matcher和MatchHandler作为变量传递，但可以像普通函数一样调使用：
 
 \begin{cpp}
 void findMatches(span<const int> values1, span<const int> values2,
@@ -42,7 +42,7 @@ Matcher matcher, MatchHandler handler)
 }
 \end{cpp}
 
-注意，这个实现要求两个span具有相同数量的元素。要调用findMatches()函数，需要的是符合定义的Matcher类型函数——即任何接受两个整数并返回布尔值的函数——以及符合MatchHandler类型的函数。下面是一个Matcher的例子，如果两个参数相等则返回true：
+这个实现要求两个span具有相同数量的元素。要调用findMatches()函数，需要的是符合定义的Matcher类型函数——接受两个整数并返回布尔值的函数——以及符合MatchHandler类型的函数。下面是一个Matcher的例子，如果两个参数相等则返回true：
 
 \begin{cpp}
 bool intEqual(int value1, int value2) { return value1 == value2; }
@@ -57,7 +57,7 @@ void printMatch(size_t position, int value1, int value2)
 }
 \end{cpp}
 
-intEqual()和printMatch()函数可以作为参数传递给findMatches()，如下所示：
+intEqual()和printMatch()函数可以作为参数传递给findMatches()：
 
 \begin{cpp}
 vector values1 { 2, 5, 6, 9, 10, 1, 1 };
@@ -66,7 +66,7 @@ println("Calling findMatches() using intEqual():");
 findMatches(values1, values2, &intEqual, &printMatch);
 \end{cpp}
 
-回调函数通过取其地址传递给findMatches()。从技术上讲，\&是可选的——如果省略，只放置函数名，编译器也会知道是要取其地址。输出如下：
+回调函数通过取其地址传递给findMatches()。从技术上，\&是可选的——如果省略，只放置函数名，编译器也会知道是要取其地址。输出如下：
 
 \begin{shell}
 Calling findMatches() using intEqual():
@@ -74,13 +74,13 @@ Match found at position 3 (9, 9)
 Match found at position 6 (1, 1)
 \end{shell}
 
-函数指针的好处在于，findMatches()是一个通用函数，可以比较两个vector中并行的值。之前的例子中，基于相等性比较值。因为接受一个函数指针，所以可以根据其他标准比较值。例如，下面的函数也符合Matcher的定义：
+函数指针的好处在于，findMatches()是一个通用函数，可以比较两个vector中并行的值。之前的例子中，基于相等性比较值。因为接受一个函数指针，所以可以根据其他标准比较值。下面的函数也符合Matcher的定义：
 
 \begin{cpp}
 bool bothOdd(int value1, int value2) { return value1 % 2 == 1 && value2 % 2 == 1; }
 \end{cpp}
 
-以下代码段说明，bothOdd()也可以在调用findMatches()时使用：
+以下代码说明，bothOdd()可以在调用findMatches()时使用：
 
 \begin{cpp}
 println("Calling findMatches() using bothOdd():");
@@ -100,7 +100,7 @@ Match found at position 6 (1, 1)
 
 \mySubsubsection{19.1.2.}{findMatches()作为函数模板}
 
-不需要使用显式的函数指针参数来让findMatches()接受回调参数，而可以将findMatches()转换为一个函数模板。所需的更改是删除Matcher和MatchHandler类型别名，并使findMatches()成为一个函数模板。更改如下所示：
+不需要使用显式的函数指针参数让findMatches()接受回调参数，而可以将findMatches()转换为一个函数模板。所需的更改是删除Matcher和MatchHandler类型别名，并使findMatches()成为一个函数模板。更改如下所示：
 
 \begin{cpp}
 template <typename Matcher, typename MatchHandler>
@@ -109,7 +109,7 @@ void findMatches(span<const int> values1, span<const int> values2,
 { /* ... */ }
 \end{cpp}
 
-更好的是下面的受限函数模板。Matcher模板类型参数受到predicate<int,int>的限制（参见第12章），以确保用户提供的回调可以接受两个int参数并返回布尔值。类似地，MatchHandler模板类型参数可以接受一个size\_t参数和两个int参数，并返回空的回调的限制。
+更好是下面的受限函数模板。Matcher模板类型参数受到predicate<int,int>的限制（参见第12章），以确保用户提供的回调可以接受两个int参数并返回布尔值。类似地，MatchHandler模板类型参数可以接受一个size\_t参数和两个int参数，并返回空的回调限制。
 
 \begin{cpp}
 template <predicate<int, int> Matcher, invocable<size_t, int, int> MatchHandler>
@@ -120,7 +120,7 @@ void findMatches(span<const int> values1, span<const int> values2,
 
 这两个findMatches()的实现都需要两个模板类型参数，即Matcher和MatchHandler回调的类型，但由于函数模板参数推导，调用版本与早期版本相同。
 
-使用简化的函数模板语法，findMatches()函数模板可以更优雅地进行编写。请注意，不再有显式的模板头，template<...>。
+使用简化的函数模板语法，findMatches()函数模板可以更优雅地进行编写。不再有显式的模板头，template<...>。
 
 \begin{cpp}
 void findMatches(span<const int> values1, span<const int> values2,
@@ -137,16 +137,16 @@ void findMatches(span<const int> values1, span<const int> values2,
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-findMatches()函数模板或简化函数模板实际上是实现函数的首选方式，而不是使用显式的函数指针参数。
+findMatches()函数模板或简化函数模板是实现函数的首选方式，而不是使用显式的函数指针参数。
 \end{myNotic}
 
-现在应该很清楚，回调允许编写非常通用和可配置的代码。正是这种回调的使用，使得许多标准库算法（在第20章中介绍）如此强大。
+回调允许编写非常通用和可配置的代码。正是这种回调，使得许多标准库算法（在第20章中介绍）如此强大。
 
 \mySubsubsection{19.1.3.}{Windows的DLL和函数指针}
 
-使用函数指针的一个常见用例是获取动态链接库中函数的指针，以下示例获取Microsoft Windows动态链接库（DLL）中函数的指针。DLL基本上是一个包含代码和数据的库，可以被任何程序使用。Windows DLL的一个具体例子是User32 DLL，提供了大量的功能，包括在屏幕上显示消息框的函数。Windows DLL的详细信息超出了本书关于平台无关C++的范围，但对Windows开发者来说非常重要，因此值得简要讨论，并且是函数指针的一般好例子。
+使用函数指针的一个常见用例是获取动态链接库中函数的指针，以下示例获取Microsoft Windows动态链接库（DLL）中函数的指针。DLL基本上是一个包含代码和数据的库，可以被任何程序使用。Windows DLL的一个具体例子是User32 DLL，提供了大量的功能，包括在屏幕上显示消息框的函数。Windows DLL的详细信息超出了本书关于平台无关C++的范围，但对Windows开发者来说非常重要，值得简要讨论，并且是函数指针的一般好例子。
 
-User32.dll中显示消息框的一个函数名为MessageBoxA()。假设只想在需要显示消息框时加载这个库。在运行时加载库可以使用Windows的LoadLibraryA()函数（需要包含<Windows.h>）：
+User32.dll中显示消息框的一个函数名为MessageBoxA()。假设只想在需要显示消息框时加载这个库。运行时加载库可以使用Windows的LoadLibraryA()函数（需要包含<Windows.h>）：
 
 \begin{cpp}
 HMODULE lib { ::LoadLibraryA("User32.dll") };

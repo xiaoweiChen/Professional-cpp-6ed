@@ -3,7 +3,7 @@ C++标准库提供了std::function和move\_only\_function。两者都是多态�
 
 \mySubsubsection{19.4.1.}{std::function}
 
-std::function 定义在 <functional> 头文件中。std::function 的实例可以用作函数指针，或者用作实现回调的函数参数，并且可以存储、复制、移动，当然也可以执行。函数模板的模板参数与其他模板参数看起来有点不同。语法如下：
+std::function 定义在 <functional> 头文件中。std::function 的实例可以用作函数指针，或者用作实现回调的函数参数，并且可以存储、复制、移动，当然也可以执行。函数模板的模板参数与其他模板参数看起来有点不同：
 
 \begin{cpp}
 std::function<R(ArgTypes...)>
@@ -23,7 +23,7 @@ int main()
 }
 \end{cpp}
 
-一个 function<R(ArgTypes...)> 可以存储一个参数列表与 ArgTypes 完全匹配且返回类型为 R 的函数。也可以存储任何其他具有参数列表的函数，该列表允许使用 ArgTypes 参数集调用，并返回可以转换为 R 类型的类型。例如，上一个示例中的 func() 函数可以接受其第一个参数为 const int\&，而 main() 中的代码不需要更改：
+function<R(ArgTypes...)> 可以存储一个参数列表与 ArgTypes 完全匹配且返回类型为 R 的函数。也可以存储其他具有参数列表的函数，该列表允许使用 ArgTypes 参数集调用，并返回可以转换为 R 类型的类型。上一个示例中的 func() 函数可以接受其第一个参数为 const int\&，而 main() 中的代码不需要更改：
 
 \begin{cpp}
 void func(const int& num, string_view str) { println("func({}, {})", num, str); }
@@ -35,13 +35,13 @@ void func(const int& num, string_view str) { println("func({}, {})", num, str); 
 function f1 { func };
 \end{cpp}
 
-当然，在前面的示例中，可以使用 auto 关键字，这样可以省去指定 f1 类型的需要。以下 f1 的定义工作方式相同，并且更短，但编译器推导出的 f1 类型是函数指针，即 void (*f1)(int, string\_view)，而不是 std::function：
+前面的示例中，可以使用 auto 关键字，这样可以省去指定 f1 类型的需要。以下 f1 的定义工作方式相同，并且更短，但编译器推导出的 f1 类型是函数指针，即 void (*f1)(int, string\_view)，而不是 std::function：
 
 \begin{cpp}
 auto f1 { func };
 \end{cpp}
 
-因为 std::function 类型表现为函数指针，所以可以将其传递给接受回调的函数。本章前面定义的原始 findMatches() 实现，定义了两个函数指针的类型别名。这些类型别名可以重写为使用 std::function，而示例中的其他内容保持不变：
+std::function 类型表现为函数指针，所以可以将其传递给接受回调的函数。本章前面定义的原始 findMatches() 实现，定义了两个函数指针的类型别名。这些类型别名可以重写为使用 std::function，而示例中的其他内容保持不变：
 
 \begin{cpp}
 // A type alias for a function accepting two integer values,
@@ -54,17 +54,17 @@ using Matcher = function<bool(int, int)>;
 using MatchHandler = function<void(size_t, int, int)>;
 \end{cpp}
 
-尽管如此，正如本章前面提到的，推荐 findMatches() 实现使用的是函数模板，而不是函数指针或 std::function。
+推荐 findMatches() 实现使用的是函数模板，而不是函数指针或 std::function。
 
-在这些示例中，std::function 并不是非常有用；但当需要将回调存储为类的数据成员时，std::function 真的非常有用。这是本章末尾的一个练习。
+这些示例中，std::function 并不是非常有用；但当需要将回调存储为类的数据成员时，std::function 真的非常有用。这是本章末尾的一个练习。
 
 \mySubsubsection{19.4.2.}{std::move\_only\_function}
 
 \CXXTwentythreeLogo{-40}{15}
 
-std::function 要求存储在其中的可调用对象是可复制的。为了缓解这个问题，C++23 引入了std::move\_only\_function 包装器，也在 <functional> 中定义，可用于包装只移动的可调用对象。此外，move\_only\_function 函数对象允许显式地将其函数调用运算符标记为 const 和/或 noexcept。这在 std::function 中是不可能实现的，因为函数调用运算符总是 const。
+std::function 要求存储在其中的可调用对象是可复制的。为了缓解这个问题，C++23 引入了std::move\_only\_function 包装器，也在 <functional> 中定义，可用于包装只移动的可调用对象。此外，move\_only\_function 函数对象允许显式地将其函数调用操作符标记为 const 和/或 noexcept。这在 std::function 中是不可能实现的，因为函数调用操作符总是 const。
 
-以下代码片段演示了 move\_only\_function。假设 BigData 类存储了大量数据，BigDataProcessor 函数对象处理 BigData 实例中的数据。为了避免复制，这个函数对象存储了一个 unique\_ptr 指向 BigData 实例，通过其构造函数获得。为了演示，函数调用的运算符标记为 const，并且简单地打印出一些文本。main() 函数首先创建一个 BigData 实例的 unique\_ptr，创建const processor，最后在 processor 上调用函数调用运算符。此示例中使用 function 的话是行不通的，因为 BigDataProcessor 是一个只移动类型。
+以下代码演示了 move\_only\_function。假设 BigData 类存储了大量数据，BigDataProcessor 函数对象处理 BigData 实例中的数据。为了避免复制，这个函数对象存储了一个 unique\_ptr 指向 BigData 实例，通过其构造函数获得。为了演示，函数调用的操作符标记为 const，并且简单地打印出一些文本。main() 函数首先创建一个 BigData 实例的 unique\_ptr，创建const processor，最后在 processor 上调用函数调用操作符。此示例中使用 function 的话是行不通的，而BigDataProcessor 是一个只移动类型。
 
 \begin{cpp}
 class BigData {};

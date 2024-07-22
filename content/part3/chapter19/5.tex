@@ -1,9 +1,9 @@
 
-编写一个函数或函数对象类，给它一个不与其他名称冲突的名字，然后使用这个名字对于一个本质上简单的概念来说是一个相当大的开销。这时，使用匿名（未命名的）函数，即由 Lambda 表达式表示的函数，可以带来很大的便利。Lambda 表达式允许你内联编写匿名函数。它们的语法更简单，可以使你的代码更紧凑、更易读。Lambda 表达式对于定义小型的回调非常有用，这些回调可以内联传递给其他函数，而不是在其他地方定义一个完整的函数对象，并在其重载的函数调用运算符中实现回调逻辑。这样，所有的逻辑都保留在一个地方，更容易理解和维护。Lambda 表达式可以接受参数、返回值、可以模板化、可以访问其作用域内的变量，无论是按值还是按引用，并且还有更多的灵活性。先让我们逐步了解 Lambda 表达式的语法。
+编写一个函数或函数对象类，给它一个不与其他名称冲突的名字，然后使用这个名字对于一个本质上简单的概念来说是一个相当大的开销。使用匿名（未命名的）函数，即由 Lambda 表达式表示的函数，可以带来很大的便利。Lambda 表达式允许内联编写匿名函数，语法更简单，使代码更紧凑、更易读。Lambda 表达式对于定义小型的回调非常有用，这些回调可以内联传递给其他函数，而不是在其他地方定义一个完整的函数对象，并在其重载的函数调用操作符中实现回调逻辑。所有的逻辑都保留在一个地方，更容易理解和维护。Lambda 表达式可以接受参数、返回值、可以模板化、可以访问其作用域内的变量，无论是按值还是按引用，并且还有更多的灵活性。先让我们逐步了解 Lambda 表达式的语法。
 
 \mySubsubsection{19.5.1.}{语法}
 
-让我们从一个简单的 Lambda 表达式开始。以下示例定义了一个 Lambda 表达式，只是将一个字符串写入控制台。Lambda 表达式以方括号 [] 开始，称为 Lambda 引入者，后面跟着花括号 \{\}，包含 Lambda 表达式的体。Lambda 表达式赋值给基本 Lambda auto类型变量。第二行使用正常的函数调用语法执行 Lambda 表达式。
+从一个简单的 Lambda 表达式开始。以下示例定义了一个 Lambda 表达式，只是将一个字符串写入控制台。Lambda 表达式以方括号 [] 开始，称为 Lambda 引入者，后面跟着花括号 \{\}，包含 Lambda 表达式的函数体。Lambda 表达式赋值给基本 Lambda auto类型变量。第二行使用正常的函数调用语法执行 Lambda 表达式。
 
 \begin{cpp}
 auto basicLambda { []{ println("Hello from Lambda"); } };
@@ -16,7 +16,7 @@ basicLambda();
 Hello from Lambda
 \end{shell}
 
-编译器会自动将任何 Lambda 表达式转换为一个函数对象，也称为 Lambda 闭包，具有唯一的、由编译器生成的名称。对于前面的示例，Lambda 表达式可转换为一个函数对象，其行为类似于以下函数对象。注意，函数调用运算符是一个常量成员函数，并有一个 auto 返回类型，让编译器根据成员函数体内容，自动推断返回类型。
+编译器会自动将任何 Lambda 表达式转换为一个函数对象，也称为 Lambda 闭包，具有唯一的、由编译器生成的名称。对于前面的示例，Lambda 表达式可转换为一个函数对象，其行为类似于以下函数对象。函数调用操作符是一个常量成员函数，并有一个 auto 返回类型，让编译器根据成员函数体内容，自动推断返回类型。
 
 \begin{cpp}
 class CompilerGeneratedName
@@ -26,7 +26,7 @@ class CompilerGeneratedName
 };
 \end{cpp}
 
-Lambda 闭包的编译器生成名称可能像 \_\_Lambda\_17Za 。无法确定这个名称，但也不需要知道它的名称。
+Lambda 闭包的编译器生成名称可能像 \_\_Lambda\_17Za 。无法确定这个名称，但也不需要知道其名称。
 
 Lambda 表达式可以接受参数。参数在括号中指定，多个参数用逗号分隔，就像普通函数一样。这里是一个使用一个名为 value 的参数的示例：
 
@@ -35,9 +35,9 @@ auto parametersLambda { [](int value){ println("The value is {}", value); } };
 parametersLambda(42);
 \end{cpp}
 
-如果Lambda表达式不接受任何参数，可以指定空括号或者直接省略它们。
+如果Lambda表达式不接受参数，可以指定空括号或者直接省略。
 
-在这个Lambda表达式的编译器生成的函数对象中，参数简单地转换为重载的函数调用运算符的参数：
+在这个Lambda表达式的编译器生成的函数对象中，参数简单地转换为重载的函数调用操作符的参数：
 
 \begin{cpp}
 class CompilerGeneratedName
@@ -47,7 +47,7 @@ class CompilerGeneratedName
 };
 \end{cpp}
 
-Lambda表达式可以返回一个值。返回类型在箭头后指定，称为尾部返回类型。以下示例定义了一个接受两个参数，并返回它们和的Lambda表达式：
+Lambda表达式可以返回一个值。返回类型在箭头后指定，称为尾部返回类型。以下示例定义了一个接受两个参数，并返回它们加和的Lambda表达式：
 
 \begin{cpp}
 auto sumLambda { [](int a, int b) -> int { return a + b; } };
@@ -91,23 +91,23 @@ Person p { "John Doe" };
 decltype(auto) name1 { [] (const Person& person) { return person.getName(); }(p) };
 \end{cpp}
 
-可以使用尾部返回类型与decltype(auto)结合，以使推导出的类型与getName()的返回类型匹配，即const string\&：
+可以使用尾部返回类型与decltype(auto)结合，推导出的类型与getName()的返回类型匹配，即const string\&：
 
 \begin{cpp}
 decltype(auto) name2 { [](const Person& person) -> decltype(auto) {
         return person.getName(); }(p) };
 \end{cpp}
 
-止本节中讨论的无状态的Lambda表达式，它们没有捕获来自外部作用域的内容。Lambda表达式可以通过捕获外部作用域中的变量转变成有状态的。例如，以下Lambda表达式捕获了变量data：
+本节中讨论的无状态的Lambda表达式，没有捕获来自外部作用域的内容。Lambda表达式可以通过捕获外部作用域中的变量，转变成有状态的函数。例如，以下Lambda表达式捕获了变量data：
 
 \begin{cpp}
 double data { 1.23 };
 auto capturingLambda { [data]{ println("Data = {}", data); } };
 \end{cpp}
 
-方括号部分充当捕获块，捕获变量意味着变量在Lambda表达式的体内可用。指定一个空捕获块[]意味着不捕获外部作用域中的变量。当在捕获块中只写一个变量的名称，就像前面的例子那样，那么是以值的方式捕获该变量。
+方括号部分充当捕获块，捕获变量则变量可以在Lambda表达式内可用。指定一个空捕获块[]则不捕获外部作用域中的变量。当在捕获块中只写一个变量的名称，就像前面的例子那样，以值的方式捕获该变量。
 
-捕获的变量成为Lambda闭包的数据成员，按值捕获的变量会复制到函数对象的数据成员中，这些数据成员具有与捕获变量相同的常量性。在前面的capturingLambda示例中，函数对象获得了一个非const数据成员data，因为捕获的是非const的data变量。编译器生成的函数对象行为如下所示：
+捕获的变量成为Lambda闭包的数据成员，按值捕获的变量会复制到函数对象的数据成员中，这些数据成员具有与捕获变量相同的常量性。前面的capturingLambda示例中，因为捕获的是非const的data变量，函数对象获得了一个非const数据成员data。编译器生成的函数对象行为如下所示：
 
 \begin{cpp}
 class CompilerGeneratedName
@@ -127,7 +127,7 @@ const double data { 1.23 };
 auto capturingLambda { [data]{ println("Data = {}", data); } };
 \end{cpp}
 
-如前所述，Lambda 闭包有一个重载的函数调用运算符，默认情况下标记为 const。所以，即使通过值捕获了一个非常量变量在 Lambda 表达式中，Lambda 表达式也不能修改这个副本。可以通过指定 Lambda 表达式为可变，将函数调用运算符标记为非 const：
+Lambda 闭包有一个重载的函数调用操作符，默认情况下标记为 const。即使通过值捕获了一个非常量变量在 Lambda 表达式中，Lambda 表达式也不能修改这个副本。可以通过指定 Lambda 表达式为可变，将函数调用操作符标记为非 const：
 
 \begin{cpp}
 double data { 1.23 };
@@ -135,7 +135,7 @@ auto capturingLambda {
     [data] () mutable { data *= 2; println("Data = {}", data); } };
 \end{cpp}
 
-在这个例子中，通过值捕获了一个非常量变量 data，因此函数对象得到了一个 data 的非常量数据成员的副本。由于使用了 mutable 关键字，函数调用运算符标记为非 const，因此 Lambda 表达式的体可以直接修改其对 data 的副本。
+通过值捕获了一个非常量变量 data，函数对象得到了一个 data 的非常量数据成员的副本。由于使用了 mutable 关键字，函数调用操作符标记为非 const，Lambda 表达式的函数题可以直接修改其对 data 的副本。
 
 可以通过在变量名前加上 \& 来按引用捕获变量。以下示例按引用捕获变量 data，以便 Lambda 表达式可以直接修改作用域内的 data：
 
@@ -144,7 +144,7 @@ double data { 1.23 };
 auto capturingLambda { [&data]{ data *= 2; } };
 \end{cpp}
 
-使用这个 Lambda 表达式，编译器生成的函数对象包含一个名为 data 的 double 类型的引用数据成员。当按引用捕获变量时，必须在 Lambda 表达式执行时确保引用仍然有效。
+使用Lambda 表达式，编译器生成的函数对象包含一个名为 data 的 double 类型的引用数据成员。当按引用捕获变量时，必须在 Lambda 表达式执行时确保引用仍然有效。
 
 有两种方式可以从外层作用域捕获所有变量，称为捕获默认值：
 
@@ -157,7 +157,7 @@ auto capturingLambda { [&data]{ data *= 2; } };
 \end{itemize}
 
 \begin{myNotic}{NOTE}
-当使用捕获默认值时，只有那些在 Lambda 表达式体中真正使用的变量才会捕获，无论是通过值（=）还是通过引用（\&）。未使用的变量不会捕获。
+当使用捕获默认值时，那些在 Lambda 表达式函数体中真正使用的变量才会捕获，无论是通过值（=）还是通过引用（\&）。未使用的变量不会捕获。
 \end{myNotic}
 
 也可以选择性地决定捕获哪些变量以及如何捕获，通过指定一个可选的捕获列表。变量前加上 \& 按引用捕获。没有前缀的变量按值捕获。如果存在，捕获默认值必须是捕获列表中的第一个元素，并且必须是 \& 或 =。以下是一些捕获块的示例：
@@ -179,11 +179,11 @@ auto capturingLambda { [&data]{ data *= 2; } };
 {}[\&x,\&x] 是非法的，标识符不能重复。
 \end{itemize}
 
-当在对象的范围内创建 Lambda 表达式时，例如在一个类的成员函数内部，可以通过几种方式捕获：
+当在对象的范围内创建 Lambda 表达式时，在一个类的成员函数内部，可以通过几种方式捕获：
 
 \begin{itemize}
 \item
-{}[this] 捕获当前对象。在 Lambda 表达式的体中，可以访问这个对象，甚至不使用 this->。需要确保指针所指向的对象，在最后一次执行 Lambda 表达式时仍然存在。
+{}[this] 捕获当前对象。在 Lambda 表达式的体中，可以访问这个对象，甚至不使用 this->。需要确保指针所指向的对象，最后一次执行 Lambda 表达式时仍然存在。
 
 \item
 {}[*this] 捕获当前对象的副本。这在原始对象在 Lambda 表达式执行时不再存活的情况下很有用。
@@ -199,18 +199,18 @@ auto capturingLambda { [&data]{ data *= 2; } };
 如果指定了按值（=）或按引用（\&）的捕获默认值，则不允许按值或按引用捕获特定的变量。例如，[=,x] 和 [\&,\&x] 都是无效的。
 
 \item
-对象的数据成员不能被捕获，除非使用本章后面介绍的 Lambda 捕获表达式。
+对象的数据成员不能捕获，除非使用本章后面介绍的 Lambda 捕获表达式。
 
 \item
 当捕获 this 时，无论是通过复制 this 指针，[this]，还是通过复制当前对象，[*this]，Lambda 表达式都可以访问捕获对象的public、protected和private数据成员和成员函数。
 \end{itemize}
 
 \begin{myWarning}{WARNING}
-不推荐使用捕获默认值，尽管捕获默认值只会捕获 Lambda 表达式体中真正使用的变量。通过使用 = 捕获默认值，可能会导致昂贵的复制。通过使用 \& 捕获默认值，可能会意外地修改外层作用域中的变量。所以，我建议您明确指定想捕获哪些变量，以及如何捕获。
+不推荐使用捕获默认值，尽管捕获默认值只会捕获 Lambda 表达式体中真正使用的变量。通过使用 = 捕获默认值，可能会导致昂贵的复制。通过使用 \& 捕获默认值，可能会意外地修改外层作用域中的变量。所以，我建议明确指定想捕获哪些变量，以及捕获方式。
 \end{myWarning}
 
 \begin{myWarning}{WARNING}
-全局变量总是按引用捕获，即使要求按值捕获也是如此！例如，在以下代码段中，使用捕获默认值来按值捕获所有内容。然而，全局变量global按引用捕获，并且在执行Lambda后改变其值。
+全局变量总是按引用捕获，即使要求按值捕获也是如此！以下代码段中，使用捕获默认值来按值捕获所有内容。然而，全局变量global按引用捕获，并且在执行Lambda后改变其值。
 
 \begin{cpp}
 int global { 42 };
@@ -249,7 +249,7 @@ Lambda 表达式的完整语法如下所示：
 
 \begin{itemize}
 \item
-捕获块：称为 Lambda 引入者，指定如何捕获外层作用域中的变量，并使其在 Lambda 表达式的体中可用。
+捕获块：称为 Lambda 引入者，指定如何捕获外层作用域中的变量，并使其在 Lambda 表达式的函数体中可用。
 
 \item
 模板参数：允许编写参数化的 Lambda 表达式，在本章后面介绍。
@@ -261,27 +261,27 @@ Lambda 表达式的参数列表。如果 Lambda 表达式不需要参数，可�
 修饰符：有以下修饰符可用
 \begin{itemize}
 \item
-mutable: 将 Lambda 闭包的函数调用运算符标记为可变；参见前面的示例。
+mutable: 将 Lambda 闭包的函数调用操作符标记为可变；参见前面的示例。
 
 \item
-constexpr: 将 Lambda 闭包的函数调用运算符标记为 constexpr，以便在编译时评估。即使省略，如果满足所有 constexpr 函数的限制，函数调用运算符也将隐式地标记为 constexpr。
+constexpr: 将 Lambda 闭包的函数调用操作符标记为 constexpr，以便在编译时评估。即使省略，如果满足所有 constexpr 函数的限制，函数调用操作符也将隐式地标记为 constexpr。
 
 \item
-consteval: 将 Lambda 闭包的函数调用运算符标记为 consteval，因此必须在编译时计算的立即函数；参见第 9 章。constexpr 和 consteval 不能组合使用。
+consteval: 将 Lambda 闭包的函数调用操作符标记为 consteval，因此必须在编译时计算的立即函数；参见第 9 章。constexpr 和 consteval 不能组合使用。
 
 \item
-将 Lambda 闭包的函数调用运算符标记为静态。这只能为无状态的 Lambda 表达式指定，即具有空捕获块的 Lambda 表达式！添加此指定允许编译器更好地优化生成的代码，特别是无状态的 Lambda 表达式可存储在 std::function 或 move\_only\_function 包装器内部。
+将 Lambda 闭包的函数调用操作符标记为静态。这只能为无状态的 Lambda 表达式指定，即具有空捕获块的 Lambda 表达式！添加此指定允许编译器更好地优化生成的代码，特别是无状态的 Lambda 表达式可存储在 std::function 或 move\_only\_function 包装器内部。
 
 \CXXTwentythreeLogo{-50}{25}
 \end{itemize}
 
 \item
-不抛异常指定：为 Lambda 闭包的函数调用运算符指定不抛异常，类似于为普通函数指定不抛异常的方式。
+不抛异常指定：为 Lambda 闭包的函数调用操作符指定不抛异常，类似于为普通函数指定不抛异常的方式。
 
-\CXXTwentythreeLogo{-40}{-50}
+\CXXTwentythreeLogo{-40}{-40}
 
 \item
-属性 1 (C++23): 指定Lambda闭包的函数调用运算符的属性，例如：[[nodiscard]]，在第1章中介绍过。
+属性 1 (C++23): 指定Lambda闭包的函数调用操作符的属性，例如：[[nodiscard]]，在第1章中介绍过。
 
 \item
 属性 2: 指定Lambda闭包本身的属性。
@@ -290,18 +290,18 @@ consteval: 将 Lambda 闭包的函数调用运算符标记为 consteval，因此
 返回类型: 返回值的类型。如果省略，编译器将根据与函数返回类型推导相同的规则推导返回类型；参见第1章。
 
 \item
-Requires子句 1 和 2: 指定Lambda闭包的函数调用运算符的模板类型约束，第12章介绍了如何指定此类约束。
+Requires子句 1 和 2: 指定Lambda闭包的函数调用操作符的模板类型约束，第12章介绍了如何指定此类约束。
 \end{itemize}
 
 \begin{myNotic}{NOTE}
-对于不捕获内容的 Lambda 表达式，编译器会自动提供一种转换运算符，将 Lambda 表达式转换为函数指针。这样的 Lambda 表达式可以用于传递给，接受函数指针作为其参数的函数。
+对于不捕获内容的 Lambda 表达式，编译器会自动提供一种转换操作符，将 Lambda 表达式转换为函数指针。这样的 Lambda 表达式，可以传递给接受函数指针作为其参数的函数。
 \end{myNotic}
 
 \mySubsubsection{19.5.2.}{Lambda表达式作为参数}
 
 Lambda 表达式可以通过两种方式作为函数参数传递。一种选项是将函数参数类型设置为 std::function，其签名与 Lambda 表达式匹配。另一种选项是使用模板类型参数。
 
-例如，可以像下面这样将 Lambda 表达式传递给本章前面定义的 findMatches() 函数：
+可以像下面这样将 Lambda 表达式传递给本章前面定义的 findMatches() 函数：
 
 \begin{cpp}
 vector values1 { 2, 5, 6, 9, 10, 1, 1 };
@@ -327,7 +327,7 @@ vector values2 { 4, 4, 2, 9, 0, 3, 1 };
 findMatches(values1, values2, areEqual, printMatch);
 \end{cpp}
 
-编译器生成的用于这个泛型 Lambda 表达式的函数对象行为如下所示：
+编译器生成的用于这个泛型 Lambda 表达式的函数对象行为：
 
 \begin{cpp}
 class CompilerGeneratedName
@@ -339,25 +339,25 @@ class CompilerGeneratedName
 };
 \end{cpp}
 
-如果 findMatches() 函数被修改以支持不仅整数切片，还支持其他类型的切片，那么 areEqual 泛型 Lambda 表达式仍然可以不进行修改地使用。
+如果 findMatches() 函数修改以支持整数切片，以及其他类型的切片，则 areEqual 泛型 Lambda 表达式仍然可以不进行修改地使用。
 
 \mySubsubsection{19.5.4.}{Lambda的捕获表达式}
 
-Lambda 捕获表达式允许用表达式初始化捕获变量，可以用来在 Lambda 表达式中引入不是从外层作用域捕获的变量。例如，以下代码创建了一个 Lambda 表达式，其捕获块中有两个变量：一个名为 myCapture 的变量，用 Lambda 捕获表达式初始化为字符串 "Pi: "，以及一个名为 pi 的变量，它从外层作用域按值捕获。注意，像 myCapture 这样的非引用捕获变量，如果用捕获初始化器初始化，则进行复制构造，则会去除 const 修饰符。
+Lambda 捕获表达式允许用表达式初始化捕获变量，可以用来在 Lambda 表达式中引入不是从外层作用域捕获的变量。以下代码创建了一个 Lambda 表达式，其捕获块中有两个变量：一个名为 myCapture 的变量，用 Lambda 捕获表达式初始化为字符串 "Pi: "，以及一个名为 pi 的变量，它从外层作用域按值捕获。像 myCapture 这样的非引用捕获变量，如果用捕获初始化器初始化，则进行复制构造，则会去除 const 修饰符。
 
 \begin{cpp}
 double pi { 3.1415 };
 auto myLambda { [myCapture = "Pi: ", pi]{ println("{}{}", myCapture, pi); } };
 \end{cpp}
 
-Lambda 捕获变量可以用表达式初始化，因此也可以用 std::move()。这对于只能移动，不能复制的对象（如 unique\_ptr）很重要。默认情况下，按值捕获使用复制语义，因此无法在 Lambda 表达式中按值捕获 unique\_ptr。使用 Lambda 捕获表达式，可以通过移动来捕获：
+Lambda 捕获变量可以用表达式初始化，也可以用 std::move()。这对于只能移动，不能复制的对象（如 unique\_ptr）很重要。默认情况下，按值捕获使用复制语义，无法在 Lambda 表达式中按值捕获 unique\_ptr。使用 Lambda 捕获表达式，可以通过移动来捕获：
 
 \begin{cpp}
 auto myPtr { make_unique<double>(3.1415) };
 auto myLambda { [p = move(myPtr)]{ println("{}", *p); } };
 \end{cpp}
 
-尽管不推荐，但允许捕获变量与外层作用域中的变量同名。前面的示例可以这样写：
+尽管不推荐，但允许捕获变量与外层作用域中的变量同名：
 
 \begin{cpp}
 auto myPtr { make_unique<double>(3.1415) };
@@ -367,7 +367,7 @@ auto myLambda { [myPtr = move(myPtr)]{ println("{}", *myPtr); } };
 
 \mySubsubsection{19.5.5.}{模板化Lambda表达式}
 
-模板化Lambda表达式允许访问泛型Lambda表达式参数的类型信息。例如，有一个Lambda表达式，需要一个vector作为参数。然而，vector中的元素类型可以是任何类型；因此，使用auto作为其参数的泛型Lambda表达式。Lambda表达式的函数体想要弄清楚vector中元素的类型是什么。如果没有模板化Lambda表达式，这可以通过decltype()和std::decay\_t类型特征来实现。类型特征会在第26章中介绍，但了解模板化Lambda表达式的优势并不需要这些细节。只需知道decay\_t会从类型中移除一些东西即可，例如任何const和引用限定符。以下是泛型Lambda表达式：
+模板化Lambda表达式允许访问泛型Lambda表达式参数的类型信息。例如，有一个Lambda表达式，需要一个vector作为参数。然而，vector中的元素类型可以是任何类型；因此，使用auto作为其参数的泛型Lambda表达式。Lambda表达式的函数体想要弄清楚vector中元素的类型是什么。如果没有模板化Lambda表达式，可以通过decltype()和std::decay\_t类型特征来实现。类型特征会在第26章中介绍，但了解模板化Lambda表达式的优势并不需要这些细节。只需知道decay\_t会从类型中移除一些东西即可，例如const和引用限定符。以下是泛型Lambda表达式：
 
 \begin{cpp}
 auto lambda { [](const auto& values) {
@@ -377,7 +377,7 @@ auto lambda { [](const auto& values) {
 } };
 \end{cpp}
 
-可以像这样调用这个Lambda表达式：
+可以像这样使用这个Lambda表达式：
 
 \begin{cpp}
 vector values { 1, 2, 100, 5, 6 };
@@ -412,7 +412,7 @@ auto lambda { [] <typename T> (const vector<T> & values) {
 
 \mySubsubsection{19.5.6.}{Lambda表达式作为返回类型}
 
-通过使用std::function，在本章前面讨论过，Lambda表达式可以从函数中返回。看看下面的定义：
+通过使用std::function，Lambda表达式可以从函数中返回：
 
 \begin{cpp}
 function<int(void)> multiplyBy2Lambda(int x)
@@ -446,7 +446,7 @@ auto multiplyBy2Lambda(int x)
 }
 \end{cpp}
 
-multiplyBy2Lambda()函数按值捕获变量x，[x]。假设函数重写为按引用捕获变量，[\&x]，这不会工作，因为Lambda表达式将在程序的稍后部分执行，不再在multiplyBy2Lambda()函数的作用域内，此时对x的引用不再有效。
+multiplyBy2Lambda()函数按值捕获变量x，[x]。假设函数重写为按引用捕获变量，[\&x]，因为Lambda表达式将在程序的稍后部分执行，不再在multiplyBy2Lambda()函数的作用域内，此时对x的引用不再有效。
 
 \begin{cpp}
 auto multiplyBy2Lambda(int x)
@@ -481,17 +481,19 @@ using LambdaType = decltype([](int a, int b) { return a + b; }); // Unevaluated.
 LambdaType getLambda() { return LambdaType{}; /* Default construction. */ }
 \end{cpp}
 
-可以像这样测试这个函数：
+可以这样测试这个函数：
 
 \begin{cpp}
 println("{}", getLambda()(1, 2));
 \end{cpp}
 
+\CXXTwentythreeLogo{-40}{-50}
+
 \mySubsubsection{19.5.9.}{递归Lambda表达式}
 
-\CXXTwentythreeLogo{-40}{15}
 
-对于一个普通的Lambda表达式，在其体内调用自己是相当复杂的，即使给Lambda表达式起了一个名字。例如，以下名为fibonacci的Lambda表达式试图在第二个返回语句中调用自己两次。这个Lambda表达式将无法编译。
+
+对于一个普通的Lambda表达式，在其函数体内调用自己是相当复杂的，即使给Lambda表达式起了一个名字。例如，以下名为fibonacci的Lambda表达式试图在第二个返回语句中调用自己两次。这个Lambda表达式将无法编译。
 
 \begin{cpp}
 auto fibonacci = [](int n) {
@@ -500,7 +502,7 @@ auto fibonacci = [](int n) {
 };
 \end{cpp}
 
-在C++23中，通过引入第8章中的显式对象参数特性，可以编写递归的Lambda表达式。以下演示了这样的递归Lambda表达式，使用名为self的显式对象参数，并在第二个返回语句中递归地调用自己两次。
+C++23中通过引入第8章中的显式对象参数特性，可以编写递归的Lambda表达式。以下演示了这样的递归Lambda表达式，使用名为self的显式对象参数，并在第二个返回语句中递归地调用自己两次。
 
 \begin{cpp}
 auto fibonacci = [](this auto& self, int n) {

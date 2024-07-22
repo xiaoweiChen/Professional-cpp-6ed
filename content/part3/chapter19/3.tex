@@ -1,9 +1,9 @@
 
-可以重载类的函数调用运算符，使得该类的对象可以代替函数指针，这样的对象称为函数对象，简称函子。使用函数对象的好处是，函数对象可以保持状态。
+可以重载类的函数调用操作符，使得该类的对象可以代替函数指针，这样的对象称为函数对象，简称函子。使用函数对象的好处是，函数对象可以保持状态。
 
 \mySubsubsection{19.3.1.}{第一个函数对象}
 
-如第15章所述，要使类成为一个函数对象，只需提供一个函数调用运算符的重载：
+如第15章所述，要使类成为一个函数对象，只需提供一个函数调用操作符的重载：
 
 \begin{cpp}
 class IsLargerThan
@@ -26,7 +26,7 @@ int main()
 }
 \end{cpp}
 
-注意，IsLargerThan类的函数调用运算符标记为const。这个例子中，这并不是必要的，但正如下一章所解释，对于大多数标准库算法，谓词函数调用运算符必须为const。
+IsLargerThan类的函数调用操作符标记为const，这并不是必要的，但对于大多数标准库算法，谓词函数调用操作符必须为const。
 
 从C++23开始，如果重载的operator()不需要访问非静态数据成员和成员函数，可以标记为static。这样做可以让编译器更好地优化代码。
 
@@ -36,11 +36,11 @@ int main()
 
 下一章中介绍的许多标准库算法，如find\_if()、accumulate()等，接受回调作为参数，以定制算法的行为。C++提供了一些预定义的函数对象类，定义在<functional>中，执行最常用的回调操作。本节概述了这些预定义的函数对象。
 
-<functional>可能还包含像bind1st()、bind2nd()、mem\_fun()、mem\_fun\_ref()和ptr\_fun()这样的函数。这些函数在C++17中已经被官方移除，因此本书中不再介绍，读者们也应该避免使用它们。
+<functional>可能还包含像bind1st()、bind2nd()、mem\_fun()、mem\_fun\_ref()和ptr\_fun()这样的函数。这些函数在C++17中已经被官方移除，因此本书中不再介绍，读者们也应该避免使用。
 
 \mySamllsection{算术函数对象}
 
-C++提供了五个二元算术运算符（加、减、乘、除、取模）的函数对象类模板，以及一个一元取反的函数对象。这些类根据操作数的类型参数化，是实际运算符的包装器。它们接受模板类型的一个或两个参数，执行操作，并返回结果。以下是一个使用plus类模板的例子：
+C++提供了五个二元算术操作符（加、减、乘、除、取模）的函数对象类模板，以及一个一元取反的函数对象。这些类根据操作数的类型参数化，是实际操作符的包装器。接受模板类型的一个或两个参数，执行操作，并返回结果。以下是一个使用plus类模板的例子：
 
 \begin{cpp}
 plus<int> myPlus;
@@ -48,7 +48,7 @@ int res { myPlus(4, 5) };
 println("{}", res);
 \end{cpp}
 
-这个例子有些蠢，可以直接使用operator+时，没有理由使用plus类模板。算术函数对象的好处在于，可以将它们作为回调传递给其他函数，这是无法直接使用算术运算符能够完成的。例如，以下代码段定义了一个受约束的accumulateData()函数模板，接受Operation作为最后一个参数。几何平均值的实现调用了accumulateData()，使用预定义的multiplies函数对象的一个实例：
+这个例子有些蠢，可以直接使用operator+时，没有理由使用plus类模板。算术函数对象的好处在于，可以将它们作为回调传递给其他函数，这是无法直接使用算术操作符能够完成的。以下代码段定义了一个受约束的accumulateData()函数模板，接受Operation作为最后一个参数。几何平均值的实现调用了accumulateData()，使用预定义的multiplies函数对象实例：
 
 \begin{cpp}
 template <input_iterator Iter, copy_constructible StartValue,
@@ -75,12 +75,12 @@ double geometricMean(span<const int> values)
 其他算术函数对象的行为类似。
 
 \begin{myWarning}{WARNING}
-算术函数对象只是算术运算符的包装器。要使用它们对特定类型的对象进行操作，必须确保这些类型实现了适当的运算符，如operator*或operator+。
+算术函数对象只是算术操作符的包装器。要使用它们对特定类型的对象进行操作，必须确保这些类型实现了适当的操作符，如operator*或operator+。
 \end{myWarning}
 
 \mySamllsection{透明操作符}
 
-C++支持透明操作符函数对象，允许省略模板类型参数。例如，可以简单地指定multiplies<>\{\}，即multiplies<void>\{\}的简写，而不是multiplies<int>\{\}：
+C++支持透明操作符函数对象，允许省略模板类型参数。可以简单地指定multiplies<>\{\}，即multiplies<void>\{\}的简写，而不是multiplies<int>\{\}：
 
 \begin{cpp}
 double geometricMeanTransparent(span<const int> values)
@@ -90,14 +90,14 @@ double geometricMeanTransparent(span<const int> values)
 }
 \end{cpp}
 
-些透明操作符的一个重要特性是异构，所以它们不仅比非透明函数对象更简洁，而且具有真正的功能优势。例如，以下代码使用透明运算符函数对象multiplies<>\{\}，并使用1.1，一个double，作为起始值，而vector包含整数。accumulateData()将结果计算为double，结果将是6.6。
+些透明操作符的一个重要特性是异构，不仅比非透明函数对象更简洁，而且具有真正的功能优势。以下代码使用透明操作符函数对象multiplies<>\{\}，并使用1.1，一个double，作为起始值，而vector包含整数。accumulateData()将结果计算为double，结果将是6.6。
 
 \begin{cpp}
 vector<int> values { 1, 2, 3 };
 double result {accumulateData(cbegin(values), cend(values), 1.1, multiplies<>{})};
 \end{cpp}
 
-如果这段代码使用非透明运算符函数对象multiplies<int>\{\}，那么accumulateData()将结果计算为整数，结果将是6。当编译这段代码时，编译器会给出有关可能数据丢失的警告。
+这段代码使用非透明操作符函数对象multiplies<int>\{\}，accumulateData()将结果计算为整数，结果将是6。当编译这段代码时，编译器会给出有关可能数据丢失的警告。
 
 \begin{cpp}
 vector<int> values { 1, 2, 3 };
@@ -105,7 +105,7 @@ double result {
     accumulateData(cbegin(values), cend(values), 1.1, multiplies<int>{}) };
 \end{cpp}
 
-最后，使用透明运算符可以提高性能，如下一节中的示例所示。
+最后，使用透明操作符可以提高性能。
 
 \begin{myNotic}{NOTE}
 建议使用透明操作符。
@@ -113,7 +113,7 @@ double result {
 
 \mySamllsection{比较函数对象}
 
-除了算术函数对象类，所有标准的比较操作也作为函数对象提供：equal\_to、not\_equal\_to、less、greater、less\_equal和greater\_equal。已经在第18章中看到less作为优先队列、有序关联容器和扁平关联容器适配器的默认比较器。现在可以了解如何改变这个比较器。以下是一个使用默认比较器std::less的优先队列的例子：
+除了算术函数对象类，所有标准的比较操作也作为函数对象提供：equal\_to、not\_equal\_to、less、greater、less\_equal和greater\_equal。已经在第18章中看到less作为优先队列、有序关联容器和扁平关联容器适配器的默认比较器。以下是一个使用默认比较器std::less的优先队列的例子：
 
 \begin{cpp}
 priority_queue<int> myQueue;
@@ -139,19 +139,19 @@ while (!myQueue.empty()) {
 template <typename T, typename Container = vector<T>, typename Compare = less<T>>;
 \end{cpp}
 
-不幸的是，Compare类型参数是最后一个，所以要指定它，还需要指定容器类型。如果想使用一个按升序排序元素的优先队列，那么需要将优先队列的定义更改为以下形式：
+Compare类型参数是最后一个，所以要指定，还需要指定容器类型。如果想使用一个按升序排序元素的优先队列，需要将优先队列的定义更改为以下形式：
 
 \begin{cpp}
 priority_queue<int, vector<int>, greater<>> myQueue;
 \end{cpp}
 
-输出现在为：
+输出为：
 
 \begin{shell}
 1 2 3 4
 \end{shell}
 
-注意，myQueue定义了一个透明运算符greater<>。实际上，对于接受比较器类型的标准库容器，推荐使用透明运算符。与非透明操作符相比，使用透明操作符可以提高性能。例如，如果一个set<string>使用非透明操作符（这是默认的），那么对一个字符串字面量给出的键进行查询会有不必要的复制，因为必须使用字符串字面量，构造一个string实例：
+myQueue定义了一个透明操作符greater<>，对于接受比较器类型的标准库容器，推荐使用透明操作符。与非透明操作符相比，使用透明操作符可以提高性能。如果一个set<string>使用非透明操作符（这是默认的），对一个字符串字面量给出的键进行查询会有不必要的复制，因为必须使用字符串字面量，构造一个string实例：
 
 \begin{cpp}
 set<string> mySet;
@@ -169,7 +169,7 @@ auto i2 { mySet.find("Key"sv) }; // No string constructed, no memory allocated.
 
 C++ 23为异构删除和提取添加了支持，使用erase()和extract()。
 
-无序关联容器，如unordered\_map和unordered\_set，也支持透明操作符。与有序关联容器相比，使用透明操作符与无序关联容器稍微复杂一些。基本上，需要实现一个自定义的哈希函数对象，其中包含一个定义为void的is\_transparent类型别名：
+无序关联容器，如unordered\_map和unordered\_set，也支持透明操作符。与有序关联容器相比，使用透明操作符与无序关联容器稍微复杂一些。需要实现一个自定义的哈希函数对象，其中包含一个定义为void的is\_transparent类型别名：
 
 \begin{cpp}
 class Hasher
@@ -180,7 +180,7 @@ class Hasher
 };
 \end{cpp}
 
-使用这个自定义的哈希函数对象时，还需要指定透明equal\_to<>函数对象作为键等价性模板类型参数的类型。以下是一个示例：
+使用这个自定义的哈希函数对象时，还需要指定透明equal\_to<>函数对象作为键等价性模板类型参数的类型：
 
 \begin{cpp}
 unordered_set<string, Hasher, equal_to<>> mySet;
@@ -190,9 +190,9 @@ auto i2 { mySet.find("Key"sv) }; // No string constructed, no memory allocated.
 
 \mySamllsection{逻辑函数对象}
 
-对于三个逻辑运算符!、\&\&和||，C++提供了以下函数对象类：logical\_not、logical\_and和logical\_or。这些逻辑运算只处理真假值，位运算函数对象将在下一节介绍。
+对于三个逻辑操作符!、\&\&和||，C++提供了以下函数对象类：logical\_not、logical\_and和logical\_or。这些逻辑运算只处理真假值，位运算函数对象将在下一节介绍。
 
-逻辑函数对象可以用于实现一个allTrue()函数，该函数检查容器中所有布尔标志是否为真：
+逻辑函数对象可以用于实现一个allTrue()函数，该函数检查容器中所有布尔标志是否为true：
 
 \begin{cpp}
 bool allTrue(const vector<bool>& flags)
@@ -201,7 +201,7 @@ bool allTrue(const vector<bool>& flags)
 }
 \end{cpp}
 
-类似地，logical\_or函数对象可以用于实现一个anyTrue()函数，该函数如果容器中至少有一个布尔标志为真，则返回真：
+logical\_or函数对象可以用于实现一个anyTrue()函数，该函数如果容器中至少有一个布尔标志为true，则返回true：
 
 \begin{cpp}
 bool anyTrue(const vector<bool>& flags)
@@ -211,16 +211,16 @@ bool anyTrue(const vector<bool>& flags)
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-allTrue()和anyTrue()函数只是作为示例给出的。实际上，标准库提供了std::all\_of()和any\_of()算法（见第20章），其执行相同的操作，但具有短路（见第1章）特性，因此性能更好。
+allTrue()和anyTrue()函数只是作为示例给出的。标准库提供了std::all\_of()和any\_of()算法（见第20章），其执行相同的操作，但具有短路（见第1章）特性，因此性能更好。
 \end{myNotic}
 
 \mySamllsection{位运算函数对象}
 
-C++有bit\_and、bit\_or、bit\_xor和bit\_not函数对象，对应于位运算符\&、|、\^{}和~。这些位运算函数对象可以与第20章介绍的transform()算法一起使用，对容器中的所有元素执行位运算。
+C++有bit\_and、bit\_or、bit\_xor和bit\_not函数对象，对应于位操作符\&、|、\^{}和$\sim$。这些位运算函数对象可以与第20章介绍的transform()算法一起使用，对容器中的所有元素执行位运算。
 
 \mySamllsection{适配器函数对象}
 
-当尝试使用标准库提供的基本函数对象时，经常会感觉像是在尝试将方钉放入圆孔中。如果想要使用标准函数对象，但其签名与需求不完全匹配，则可以使用适配器函数对象来尝试解决签名不匹配的问题。它们允许适配函数对象、函数指针，基本上是任何可调用对象。适配器提供了一些对功能组合的支持，即组合函数以创建所需要的行为。
+使用标准库提供的基本函数对象时，经常会感觉像是在尝试将方钉放入圆孔中。如果想要使用标准函数对象，但其签名与需求不完全匹配，则可以使用适配器函数对象来尝试解决签名不匹配的问题。允许适配函数对象、函数指针，基本上是任何可调用对象。适配器提供了一些对功能组合的支持，即组合函数以创建所需要的行为。
 
 \mySamllsection{绑定器}
 
@@ -235,7 +235,7 @@ void func(int num, string_view str)
 }
 \end{cpp}
 
-以下代码展示了如何使用bind()将func()的第二个参数绑定到固定值myString，结果存储在f1()中。使用auto关键字是因为bind()的返回类型在C++标准中未指定，由实现指定。未绑定到特定值的参数应指定为\_1、\_2、\_3等，这些在std::placeholders命名空间中定义。在f1()的定义中，\_1指定了f1()调用func()时第一个参数的位置。结果：f1()可以只用一个整数参数调用：
+以下代码展示了如何使用bind()，将func()的第二个参数绑定到固定值myString，结果存储在f1()中。使用auto关键字是因为bind()的返回类型在C++标准中未指定，由实现指定。未绑定到特定值的参数应指定为\_1、\_2、\_3等，这些在std::placeholders命名空间中定义。在f1()的定义中，\_1指定了f1()调用func()时第一个参数的位置。结果：f1()可以只用一个整数参数调用：
 
 \begin{cpp}
 string myString { "abc" };
@@ -249,7 +249,7 @@ f1(16);
 func(16, abc)
 \end{shell}
 
-bind()也可以用来重新排列参数，如下面的代码所示。\_2指定了f2()调用func()时第二个参数的位置，f2()的绑定意味着f2()的第一个参数将成为func()的第二个参数，f2()的第二个参数将成为func()的第一个参数：
+bind()也可以用来重新排列参数，如下所示。\_2指定了f2()调用func()时第二个参数的位置，f2()的绑定意味着f2()的第一个参数将成为func()的第二个参数，f2()的第二个参数将成为func()的第一个参数：
 
 \begin{cpp}
 auto f2 { bind(func, placeholders::_2, placeholders::_1) };
@@ -262,27 +262,27 @@ f2("Test", 32);
 func(32, Test)
 \end{shell}
 
-如第18章所述，<functional>定义了std::ref()和cref()辅助函数模板，这些可以用来绑定非常量引用和常量引用。例如，假设有以下函数：
+<functional>定义了std::ref()和cref()辅助函数模板，这些可以用来绑定非常量引用和常量引用：
 
 \begin{cpp}
 void increment(int& value) { ++value; }
 \end{cpp}
 
-如果这样调用这个函数，那么index的值将变为1：
+如果这样调用这个函数，index的值将变为1：
 
 \begin{cpp}
 int index { 0 };
 increment(index);
 \end{cpp}
 
-如果使用bind()，那么index的值不会增加，因为会创建index的副本，并且对这一副本的引用会绑定到increment()函数的第一个参数上：
+如果使用bind()，因为会创建index的副本，index的值不会增加，并且对这一副本的引用会绑定到increment()函数的第一个参数上：
 
 \begin{cpp}
 auto incr { bind(increment, index) };
 incr();
 \end{cpp}
 
-使用std::ref()正确传递引用，可以正确的增加index：
+使用std::ref()正确传递引用，可以正确增加index：
 
 \begin{cpp}
 auto incr { bind(increment, ref(index)) };
@@ -322,7 +322,7 @@ class Handler
 };
 \end{cpp}
 
-如何将 handleMatch() 成员函数作为最后一个参数传递给 findMatches()？这里的问题是，成员函数必须始终在对象上下文中调用。从技术上讲，类的每个成员函数都有一个隐式的第一个参数，包含一个指向对象实例的指针，在成员函数体中可以通过名称 this 访问。因此，存在签名不匹配的问题，因为 MatchHandler 类型只接受三个参数：一个 size\_t 和两个 int。解决方案是将这个隐式的第一个参数绑定如下：
+如何将 handleMatch() 成员函数作为最后一个参数传递给 findMatches()？这里的问题是，成员函数必须始终在对象上下文中调用。类的每个成员函数都有一个隐式的第一个参数，包含一个指向对象实例的指针，在成员函数体中可以通过名称 this 访问。因此，存在签名不匹配的问题，MatchHandler 类型只接受三个参数：一个 size\_t 和两个 int。解决方案是将这个隐式的第一个参数绑定如下：
 
 \begin{cpp}
 Handler handler;
@@ -330,7 +330,7 @@ findMatches(values1, values2, intEqual, bind(&Handler::handleMatch, &handler,
             placeholders::_1, placeholders::_2, placeholders::_3));
 \end{cpp}
 
-还可以使用 bind() 来绑定标准函数对象的参数。例如，可以绑定 greater\_equal 的第二个参数，以便始终与固定值进行比较：
+还可以使用 bind() 来绑定标准函数对象的参数。可以绑定 greater\_equal 的第二个参数，以便始终与固定值进行比较：
 
 \begin{cpp}
 auto greaterEqualTo100 { bind(greater_equal<>{}, placeholders::_1, 100) };;
@@ -354,12 +354,12 @@ func(42, Hello)
 \end{shell}
 
 \begin{myNotic}{NOTE}
-在 C++11 之前，有 bind2nd() 和 bind1st()。自从 C++17 标准以来，两者都已移除。请使用本章后面讨论的 Lambda 表达式，或者使用 bind()、bind\_front() 或 bind\_back() 代替删除的函数。
+C++11 之前，有 bind2nd() 和 bind1st()。自从 C++17 标准以来，两者都已移除。请使用本章后面讨论的 Lambda 表达式，或者使用 bind()、bind\_front() 或 bind\_back() 代替删除的函数。
 \end{myNotic}
 
 \mySamllsection{否定器}
 
-not\_fn()是一个否定器，类似于一个绑定器，但它补充了可调用对象的返回结果。例如，使用findMatches()来查找非相等的值对，可以像这样将not\_fn()否定器适配器应用于intEqual()的结果：
+not\_fn()是一个否定器，类似于一个绑定器，补充了可调用对象的返回结果。例如，使用findMatches()来查找非相等的值对，可以像这样将not\_fn()否定器适配器应用于intEqual()的结果：
 
 \begin{cpp}
 findMatches(values1, values2, not_fn(intEqual), printMatch);
@@ -373,7 +373,7 @@ std::not\_fn()适配器自C++17起可用。在C++17之前，可以使用std::not
 
 \mySamllsection{调用成员函数}
 
-可能希望将类成员函数的指针，作为回调传递给算法。例如，有以下算法，该算法打印出符合特定条件的容器中的字符串。Matcher 模板类型参数受到 predicate<const string\&> 的约束，以确保用户提供的回调可以接受字符串参数并返回布尔值。
+可能希望将类成员函数的指针，作为回调传递给算法。有以下算法，该算法打印出符合特定条件的容器中的字符串。Matcher 模板类型参数受到 predicate<const string\&> 的约束，以确保用户提供的回调可以接受字符串参数并返回布尔值。
 
 \begin{cpp}
 template <predicate<const string&> Matcher>
@@ -385,9 +385,9 @@ void printMatchingStrings(const vector<string>& strings, Matcher matcher)
 }
 \end{cpp}
 
-可以使用这个算法来打印所有非空字符串，通过使用 string 的 empty() 成员函数。但是，如果只是将 string::empty() 的指针作为第二个参数传递给 printMatchingStrings()，算法无法知道接收的是成员函数指针，而非普通函数指针或函数对象。调用成员函数指针的代码与调用普通函数指针的代码不同，因为前者必须在对象上下文中调用。
+可以使用这个算法来打印所有非空字符串，通过使用 string 的 empty() 成员函数。如果只是将 string::empty() 的指针作为第二个参数传递给 printMatchingStrings()，算法无法知道接收的是成员函数指针，而非普通函数指针或函数对象。调用成员函数指针的代码与调用普通函数指针的代码不同，因为前者必须在对象上下文中调用。
 
-C++ 提供了一个名为 mem\_fn() 的转换函数，可以在将成员函数指针传递给算法之前调用它。以下示例演示了这一点，并将其与 not\_fn() 结合使用来反转 mem\_fn() 的结果。注意，必须将成员函数指针指定为 \&string::empty。\&string:: 部分是必填的。
+C++ 提供了一个名为 mem\_fn() 的转换函数，可以将成员函数指针传递给算法之前调用它。下面的代码，将其与 not\_fn() 结合使用来反转 mem\_fn() 的结果。注意，必须将成员函数指针指定为 \&string::empty。\&string:: 部分是必填的。
 
 \begin{cpp}
 vector<string> values { "Hello", "", "", "World", "!" };

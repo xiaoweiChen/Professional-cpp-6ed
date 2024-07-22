@@ -1,5 +1,5 @@
 
-std::invoke()，定义在 <functional> 头文件中，可以用来调用可调用对象，并传递一系列参数。以下示例使用了 invoke() 三次：一次调用普通函数，一次调用 lambda 表达式，以及一次调用字符串实例上的成员函数：
+std::invoke()，定义在 <functional> 头文件中，可以用来调用可调用对象，并传递一系列参数。以下示例使用了 invoke() 三次：一次调用普通函数，一次调用 Lambda 表达式，以及一次调用字符串实例上的成员函数：
 
 \begin{cpp}
 int main()
@@ -11,7 +11,7 @@ int main()
 }
 \end{cpp}
 
-这段代码的输出如下：
+输出如下所示：
 
 \begin{shell}
 Hello invoke.
@@ -34,7 +34,7 @@ int main()
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-单独来看，invoke() 和 invoke\_r() 并不是那么有用，因为可以直接调用函数或 Lambda 表达式。但当编写泛型模板代码，需要调用一些可调用对象时，它们就非常有用了。
+单独来看，invoke() 和 invoke\_r() 并不是那么有用，因为可以直接调用函数或 Lambda 表达式。当编写泛型模板代码，需要调用一些可调用对象时，它们就非常有用了。
 \end{myNotic}
 
 
