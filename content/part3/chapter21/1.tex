@@ -1,5 +1,5 @@
 
-当学习如何用C或C++编程时，将字符视为等同于字节，并将所有字符视为美国信息交换标准代码（ASCII）字符集的成员，ASCII是一个7位集，通常存储在8位char类型中。实际上，有经验的C++开发者明白，成功的程序会在全世界使用。即使最初没有考虑到会有国际受众，但也不应该阻止相应的日期进行本地化或使软件具有区域意识。
+当学习如何用C或C++编程时，会将字符等同于字节，并将所有字符视为美国信息交换标准代码（ASCII）字符集的成员，ASCII是一个7位集，通常存储在8位char类型中。实际上，有经验的C++开发者知道，成功的程序会在全世界使用。即使最初没有考虑到会有国际受众，但也不应该阻止相应的日期进行本地化或使软件具有区域意识。
 
 \begin{myNotic}{NOTE}
 本章介绍了本地化、不同的字符编码和字符串代码的可移植性。由于这些主题本身就需要一本书来介绍，所以本书不包括所有这些主题的详细讨论。
@@ -7,9 +7,9 @@
 
 \mySubsubsection{21.1.1.}{宽字符}
 
-将字符视为字节的问题是，并非所有语言或字符集都能在8位或1字节中完全表示。C++有一个内置类型wchar\_t，用于保存宽字符。使用非ASCII（美国）字符的语言，如日语和阿拉伯语，可以在C++中使用wchar\_t表示。然而，C++标准没有为wchar\_t定义大小。一些编译器使用16位，而其他编译器使用32位。大多数情况下，其匹配底层操作系统本机Unicode字符类型的大小。为了编写跨平台代码，假设wchar\_t的大小是不安全的行为。
+将字符视为字节的问题是，并非所有语言或字符集都能在8位或1字节中完全表示。C++有一个内置类型wchar\_t，用于保存宽字符。使用非ASCII（美国）字符的语言，如日语和阿拉伯语，可以在C++中使用wchar\_t表示，但C++标准没有为wchar\_t定义大小。一些编译器使用16位，而其他编译器使用32位。大多数情况下，其匹配底层操作系统本机Unicode字符类型的大小。为了编写跨平台代码，假设wchar\_t的大小是不安全的行为。
 
-如果程序有可能在非西方字符集环境中使用（提示：有可能！），应该从一开始就使用宽字符。处理wchar\_t时，字符串和字符文字前缀有字母L，表示应使用宽字符编码。例如，要将wchar\_t字符初始化为字母m，可以这样写：
+如果程序有可能在非西方字符集环境中使用（有可能！），从一开始就使用宽字符。处理wchar\_t时，字符串和字符文字前缀有字母L，表示应使用宽字符编码。例如，要将wchar\_t字符初始化为字母m，可以这样写：
 
 \begin{cpp}
 wchar_t myWideCharacter { L'm' };
@@ -17,13 +17,13 @@ wchar_t myWideCharacter { L'm' };
 
 类型和类的大多数都有宽字符版本，宽字符串类是wstring。前缀字母“w”的模式也适用于流。宽字符文件输出流由wofstream处理，输入由wifstream处理。这些类名（woof-stream？whiff-stream？）足以使程序具有区域意识！流在第13章中详细介绍过。
 
-cout、cin、cerr和clog的宽版本也可用，分别称为wcout、wcin、wcerr和wclog，与使用非宽版本没有区别：
+cout、cin、cerr和clog的宽字符版本也可用，分别称为wcout、wcin、wcerr和wclog，与使用原始版本没有区别：
 
 \begin{cpp}
 wcout << L"I am a wide-character string literal." << endl;
 \end{cpp}
 
-print()和println()不支持wchar\_t字符串文字，但它们支持UTF-8字符串文字，这将在本章后面讨论。另一方面，format()支持宽字符字符串：
+print()和println()不支持wchar\_t字符串文字，但支持UTF-8字符串文字，这将在本章后面讨论。另一方面，format()支持宽字符字符串：
 
 \begin{cpp}
 wcout << format(L"myWideCharacter is {}", myWideCharacter) << endl;
@@ -31,11 +31,11 @@ wcout << format(L"myWideCharacter is {}", myWideCharacter) << endl;
 
 \mySubsubsection{21.1.2.}{非西方字符集}
 
-宽字符是向前迈出的一大步，增加了可用于定义单个字符的空间。下一步是弄要清楚如何使用。宽字符集中，就像在ASCII中一样，字符由数字表示，现在称为编码点。不同的是，每个数字不再适合8位。字符到编码点的映射要大得多，处理了许多不同的字符集，以及英语开发者所熟悉的字符。
+宽字符是向前迈出的一大步，增加了可用于定义单个字符的空间。下一步是弄要清楚如何使用。宽字符集中，就像在ASCII中一样，字符由数字表示，现在称为编码点，每个数字不再适合8位。字符到编码点的映射要大得多，处理了许多不同的字符集，以及英语开发者所熟悉的字符。
 
-国际标准ISO 10646定义的通用字符集（UCS）和Unicode都是标准化的字符集，通过一个明确的名称和一个码点来标识字符。两个标准中相同字符的数字相同。在撰写本文时，最新的Unicode版本是版本15，定义了149,186个字符。UCS和Unicode都有特定的编码，可以使用它们来表示特定的编码点：编码点只是一个数字；编码指定如何将这个数字表示为一个或多个字节。例如，UTF-8是一种Unicode编码，其中Unicode字符使用一到四个8位字节编码。UTF-16将Unicode字符编码为一到两个16位值，UTF-32将Unicode字符编码为精确的32位。
+国际标准ISO 10646定义的通用字符集（UCS）和Unicode都是标准化的字符集，通过一个明确的名称和一个码点来标识字符。两个标准中相同字符的数字相同。撰写本文时，最新的Unicode版本是版本15，定义了149,186个字符。UCS和Unicode都有特定的编码，可以使用它们来表示特定的编码点：编码点只是一个数字；编码指定如何将这个数字表示为一个或多个字节。例如，UTF-8是一种Unicode编码，其中Unicode字符使用一到四个8位字节编码。UTF-16将Unicode字符编码为一到两个16位值，UTF-32将Unicode字符编码为精确的32位。
 
-不同的应用可以使用不同的编码。但如本章前面提到的，C++标准没有为宽字符（wchar\_t）指定大小。在Windows上是16位，而在其他平台上可能是32位。在跨平台代码中使用宽字符进行字符编码时，需要注意这一点。为了帮助解决这个问题，还有其他字符类型：char8\_t、char16\_t和char32\_t。以下列表提供了可用字符类型的概览：
+不同的应用可以使用不同的编码。但如本章前面提到的，C++标准没有为宽字符（wchar\_t）指定大小。在Windows上是16位，而在其他平台上可能是32位。在跨平台代码中使用宽字符进行字符编码时，需要注意这一点。为了解决这个问题，还有其他字符类型：char8\_t、char16\_t和char32\_t。以下列表提供了可用字符类型的概览：
 
 \begin{itemize}
 \item
@@ -50,7 +50,7 @@ wchar\_t: 存储特定于编译器的大小和编码的宽字符。
 
 使用charx\_t类型的好处是，标准为charx\_t类型保证了最小的大小，与编译器无关。而wchar\_t不保证字符大小。
 
-字符串字面量可以有字符串前缀，以将它们转换为特定类型。支持的字符串前缀的完整集合如下所示：
+字符串字面量可以有字符串前缀，将其转换为特定类型。支持的字符串前缀的完整集合如下所示：
 
 \begin{itemize}
 \item
@@ -66,7 +66,7 @@ U: 带有 UTF-32 编码的 char32\_t 字符串字面量
 L: 带有编译器依赖编码的 wchar\_t 字符串字面量
 \end{itemize}
 
-所有这些字符串字面量，都可以与第2章中讨论的原始字符串字面量前缀 R 组合使用。这里有一些例子：
+这些字符串字面量，都可以与第2章中讨论的原始字符串字面量前缀 R 组合使用：
 
 \begin{cpp}
 const char8_t* s1 { u8R"(Raw UTF-8 string literal)" };
@@ -75,7 +75,7 @@ const char16_t* s3 { uR"(Raw UTF-16 string literal)" };
 const char32_t* s4 { UR"(Raw UTF-32 string literal)" };
 \end{cpp}
 
-可以使用几种不同的转义序列，在非原始字符串字面量中插入特定的 Unicode 编码点。下表概述了一些选项，最后一列显示了上标2（$^2$）字符的编码。
+可以使用几种不同的转义序列，非原始字符串字面量中插入特定的 Unicode 编码点。下表概述了一些选项，最后一列显示了上标2（$^2$）字符的编码。
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -87,7 +87,7 @@ const char32_t* s4 { UR"(Raw UTF-32 string literal)" };
 %
 \endhead
 %
-\textbackslash{}nnn               & 1 ~ 3位八进制数字                    & \textbackslash{}262                                  \\ \hline
+\textbackslash{}nnn               & 1 $\sim$ 3位八进制数字                    & \textbackslash{}262                                  \\ \hline
 \textbackslash{}o\{n...\} (C++23) & 任意数量的八进制数字       & \textbackslash{}o\{262\}                             \\ \hline
 \textbackslash{}xn...             & 任意数目的十六进制数字 & \textbackslash{}xB2 or \textbackslash{}x00B2         \\ \hline
 \textbackslash{}x\{n...\} (C++23) & 任意数目的十六进制数字 & \textbackslash{}x\{B2\} or \textbackslash{}x\{00B2\} \\ \hline
@@ -109,7 +109,7 @@ const char8_t* formula3 { u8"\N{GREEK SMALL LETTER PI} r\N{SUPERSCRIPT TWO}" };
 
 除了字符串字面量，字符字面量也可以有前缀，以将它们转换为特定类型。支持的前缀有 u8、u、U 和 L，例如：u'a'、U'a'、L'a' 和 u8'a'。
 
-除了 std::string 类，还有对 wstring、u8string、u16string 和 u32string 的支持，定义如下：
+除了 std::string 类，还有对 wstring、u8string、u16string 和 u32string 的支持：
 
 \begin{cpp}
 using string = basic_string<char>;
@@ -131,15 +131,15 @@ using u16string = basic_string<char16_t>;
 using u32string = basic_string<char32_t>;
 \end{cpp}
 
-类似地，标准库提供了 std::string\_view、wstring\_view、u8string\_view、u16string\_view 和 u32string\_view，都基于 basic\_string\_view。
+标准库提供了 std::string\_view、wstring\_view、u8string\_view、u16string\_view 和 u32string\_view，都基于 basic\_string\_view。
 
 多字节字符串是使用依赖于区域的编码组成的字符的字符串，可能使用 Unicode 编码，或其他类型的编码，如 Shift-JIS、EUC-JP 等。提供了用于在 char8\_t/char16\_t/char32\_t 与多字节字符串之间进行转换的函数：mbrtoc8() 和 c8rtomb()，以及 mbrtoc16()、c16rtomb()、mbrtoc32() 和 c32rtomb()。
 
-不幸的是，对 char8\_t、char16\_t 和 char32\_t 的支持并没有更进一步。有一些转换类可用（见本章后面），但没有支持这些字符类型的 cout、cin、println()、format() 等的版本；这使得将这样的字符串打印到控制台或从用户输入中读取它们变得困难。如果想对这些字符串进行更多操作，需要求助于第三方库。国际组件 for Unicode (ICU) 是一个提供 Unicode 和全球化支持的知名库(参见 \url{icu-project.org})。
+不过，对 char8\_t、char16\_t 和 char32\_t 的支持并没有更进一步。有一些转换类可用（见本章后面），但没有支持这些字符类型的 cout、cin、println()、format() 等的版本；这使得将这样的字符串打印到控制台或从用户输入中读取它们变得困难。如果想对这些字符串进行更多操作，需要求助于第三方库。ICU是一个提供 Unicode 和全球化支持的知名库(参见 \url{icu-project.org})。
 
 \CXXTwentythreeLogo{-40}{-60}
 
-C++23 稍微改进了这一点，允许 u8 (UTF-8) 字符串字面量初始化 const char 或 const unsigned char 类型的数组，并且 std::format() 和 print() 函数确实支持 const char[]。例如，以下代码使用 UTF-8 字符串字面量初始化 const char[] 数组，然后使用 println() 打印它。如果环境设置为处理日语字符，则输出是“Hello world”的日语版本。
+C++23 改进了这一点，允许 u8 (UTF-8) 字符串字面量初始化 const char 或 const unsigned char 类型的数组，并且 std::format() 和 print() 函数确实支持 const char[]。以下代码使用 UTF-8 字符串字面量初始化 const char[] 数组，然后使用 println() 打印。如果环境设置为处理日语字符，则输出是“Hello world”的日语版本。
 
 \begin{cpp}
 const char hello[] { u8"こんにちは世界" };
@@ -155,9 +155,9 @@ println("{}", hello); // Error: doesn't compile!
 
 \mySubsubsection{21.1.3.}{本地化字符串字面量}
 
-本地化的关键是，永远不应该在源代码中放入任何本地语言字符串字面量，除非是针对开发者的调试字符串。在 Microsoft Windows 应用程序中，这是通过将应用程序的所有字符串放在 STRINGTABLE 资源中来完成的。大多数其他平台提供了类似的功能。如果需要将应用程序翻译成另一种语言，翻译这些资源应该是开发者的工作，而不需要源代码更改。有一些可用的工具，可以帮助开发者完成进行这个翻译过程。
+本地化的关键是，永远不应该在源代码中放入本地语言字符串字面量，除非是针对开发者的调试字符串。在 Microsoft Windows 应用程序中，这是通过将应用程序的所有字符串放在 STRINGTABLE 资源中来完成的。大多数其他平台提供了类似的功能。如果需要将应用程序翻译成另一种语言，翻译这些资源应该是开发者的工作，而不需要更改源码。有一些可用的工具，可以帮助开发者完成进行这个翻译过程。
 
-为了使您的源代码可本地化，不应该用字符串字面量组成句子，即使单个字面量可以本地化：
+为了使源码可本地化，不应该用字符串字面量组成句子，即使单个字面量可以本地化：
 
 \begin{cpp}
 unsigned n { 5 };
@@ -171,13 +171,13 @@ wcout << n << L" bytes read from " << filename << endl;
 wcout << n << L" Bytes aus " << filename << L" gelezen" << endl;
 \end{cpp}
 
-为了能够正确本地化这样的字符串，可以这样实现：
+为了能够正确本地化这样的字符串：
 
 \begin{cpp}
 vprint_unicode(loadResource(IDS_TRANSFERRED), make_format_args(n, filename));
 \end{cpp}
 
-IDS\_TRANSFERRED是字符串资源表中的一个条目的名称。对于英文版本，IDS\_TRANSFERRED 可以定义为“\{0\} bytes read from \{1\}”，而德文版本可以定义为“\{0\} Bytes aus \{1\} gelesen”。loadResource() 函数加载具有给定名称的字符串资源，而 vprint\_unicode()（见第2章）用 \{0\} 替换 n 的值，用 \{1\} 替换 filename 的值。
+IDS\_TRANSFERRED是字符串资源表中一个条目的名称。对于英文版本，IDS\_TRANSFERRED 可以定义为“\{0\} bytes read from \{1\}”，而德文版本可以定义为“\{0\} Bytes aus \{1\} gelesen”。loadResource() 函数加载具有给定名称的字符串资源，而 vprint\_unicode()（见第2章）用 \{0\} 替换 n 的值，用 \{1\} 替换 filename 的值。
 
 \mySubsubsection{21.1.4.}{区域设置和特性}
 
@@ -189,9 +189,9 @@ C++ 中用于将特定文化参数组集在一起的标准机制称为区域设�
 
 \mySamllsection{区域设置}
 
-使用 I/O 流时，数据会按照特定的区域设置进行格式化。区域设置是定义在 <locale> 中的对象，可以添加到流上，区域设置的名称是特定于实现的。POSIX 标准是将语言和区域分为两个字母的段落，可选的编码。例如，美国英语的英语语言区域设置是 en\_US，而英国英语的英语语言区域设置是 en\_GB。使用日本工业标准编码的日本日语区域设置是 ja\_JP.jis。
+使用 I/O 流时，数据会按照特定的区域设置进行格式化。区域设置是定义在 <locale> 中的对象，可以添加到流上，区域设置的名称是特定于实现的。POSIX 标准是将语言和区域分为两个字母的段落，可选的编码。美国英语的英语语言区域设置是 en\_US，而英国英语的英语语言区域设置是 en\_GB。使用日本工业标准编码的日语区域，设置为 ja\_JP.jis。
 
-Windows 上的区域设置名称有两种格式。首选格式类似于 POSIX 格式，但使用破折号，而不是下划线。第二种，旧格式如下所示，其中方括号内的内容是可选的：
+Windows 上的区域设置名称有两种格式。首选格式类似于 POSIX 格式，但使用减号，而不是下划线。第二种，旧格式如下所示，其中方括号内的内容是可选的：
 
 \begin{cpp}
 lang[_country_region[.code_page]]
@@ -213,11 +213,11 @@ US English            & en\_US         & en-US            & English\_United Stat
 Great Britain English & en\_GB         & en-GB            & English\_Great Britain \\ \hline
 \end{longtable}
 
-大多数操作系统都有一种机制来确定用户定义的区域设置。C++ 中，可以将空字符串传递给 std::locale 构造函数，从用户的环境中创建一个区域设置对象。当创建了这个对象，就可以使用它来查询区域设置，可以基于它做出程序化的决策。
+大多数操作系统都有一种机制来确定用户定义的区域设置。C++可以将空字符串传递给 std::locale 构造函数，从用户的环境中创建一个区域设置对象。当创建了这个对象，可以用来查询区域设置，也可以基于它做出程序化的决策。
 
 \mySamllsection{全局设置}
 
-std::locale::global() 函数可以用来用给定的区域设置，替换应用程序中的全局 C++ 区域设置。std::locale 的默认构造函数，返回这个全局区域设置的副本。不过，需要注意的是，使用区域设置的 C++ 标准库对象，例如流（如 cout），在构造时会存储全局区域设置的副本。更改全局区域设置后，不会影响在更改之前已经创建的对象。如果需要，可以使用流（见下一节）的 imbue() 成员函数在构造后更改其区域设置。
+std::locale::global() 函数可以用来用给定的区域设置，替换应用程序中的全局 C++ 区域设置。std::locale 的默认构造函数，返回这个全局区域设置的副本。需要注意的是，使用区域设置的 C++ 标准库对象，例如流（如 cout），在构造时会存储全局区域设置的副本。更改全局区域设置后，不会影响在更改之前已经创建的对象。如果需要，可以使用流（见下一节）的 imbue() 成员函数在构造后更改其区域设置。
 
 以下是一个示例，使用默认区域设置输出一个数字，然后将全局区域设置更改为美式英语，并再次输出同一个数字：
 
@@ -246,7 +246,7 @@ int main()
 
 \mySamllsection{使用区域设置}
 
-以下代码示例演示了如何通过调用流（如 cout）的 imbue() 成员函数来使用用户的区域设置。发送到 cout 的所有内容都将按照用户环境中的格式规则，进行格式化输出：
+以下代码示例演示了如何通过调用流（如 cout）的 imbue() 成员函数，来使用用户的区域设置。发送到 cout 的所有内容都将按照用户环境中的格式规则，进行格式化输出：
 
 \begin{cpp}
 cout.imbue(locale { "" });
@@ -281,7 +281,7 @@ cout << "en-US locale: " << 32767 << endl;
 en-US locale: 32,767
 \end{shell}
 
-默认情况下，std::print() 和 println() 使用 C 区域设置。例如，以下代码会打印数字 32767：
+默认情况下，std::print() 和 println() 使用 C 区域设置。以下代码会打印数字 32767：
 
 \begin{cpp}
 println("println(): {}", 32767);
@@ -293,13 +293,13 @@ println("println(): {}", 32767);
 println("println() using global locale: {:L}", 32767);
 \end{cpp}
 
-std::format() 也支持区域设置，通过使用 L 格式说明符，并且可选地接受一个区域设置作为第一个参数。当使用 L 格式说明符并传递区域设置到 format() 时，将使用该区域设置进行格式化。如果使用 L 格式说明符，而没有将区域设置传递给 format()，则将使用全局区域设置。例如，以下代码根据英语格式规则打印数字 32767：
+std::format() 也支持区域设置，通过使用 L 格式说明符，并且可选地接受一个区域设置作为第一个参数。当使用 L 格式说明符并传递区域设置到 format() 时，将使用该区域设置进行格式化。如果使用 L 格式说明符，而没有将区域设置传递给 format()，则将使用全局区域设置。以下代码根据英语格式规则打印数字 32767：
 
 \begin{cpp}
 cout << format(locale { "en-US" }, "format() with en-US locale: {:L}", 32767);
 \end{cpp}
 
-区域设置对象允许查询有关区域设置的信息。例如，以下程序创建了一个与用户环境匹配的区域设置，使用 name() 成员函数获取描述区域设置的 C++ 字符串。然后，在字符串对象上使用 find() 成员函数来查找给定的子字符串，如果找不到给定的子字符串，则返回 string::npos。代码检查 Windows 名称和 POSIX 名称。根据区域设置是否看起来像是美式英语，打印两个消息中的一个。
+区域设置对象允许查询有关区域设置的信息。以下程序创建了一个与用户环境匹配的区域设置，使用 name() 成员函数获取描述区域设置的 C++ 字符串。在字符串对象上使用 find() 成员函数来查找给定的子字符串，如果找不到给定的子字符串，则返回 string::npos。代码检查 Windows 名称和 POSIX 名称。根据区域设置是否看起来像是美式英语，打印两个消息中的一个。
 
 \begin{cpp}
 locale loc { "" };
@@ -372,7 +372,7 @@ money\_put     & 解析货币格式                       \\ \hline
 moneypunct     & 定义货币价值的格式规则 \\ \hline
 \end{longtable}
 
-以下代码片段通过打印美国和英国英语中的货币符号，将区域设置和特性结合起来。根据环境，英国的货币符号可能显示为问号、方框，或者根本不显示。如果环境设置得当，应该会看到英镑符号。
+以下代码片段通过打印美国和英国英语中的货币符号，将区域设置和特性结合起来。根据环境，英国的货币符号可能显示为问号、方框，或者根本不显示。如果环境设置得当，应该会看到英镑的符号。
 
 \begin{cpp}
 locale locUSEng { "en-US" }; // "en_US" for POSIX
@@ -414,7 +414,7 @@ codecvt\textless{}wchar\_t,char,mbstate\_t\textgreater{} &
 \end{tabular} \\ \hline
 \end{longtable}
 
-不幸的是，这些特性使用起来相当复杂。例如，以下代码片段将窄字符串转换为宽字符串：
+这些特性使用起来相当复杂，以下代码片段将窄字符串转换为宽字符串：
 
 \begin{cpp}
 auto& facet { use_facet<codecvt<wchar_t, char, mbstate_t>>(locale { }) };
@@ -430,7 +430,7 @@ wideString.resize(toNext - wideString.data());
 wcout << wideString << endl;
 \end{cpp}
 
-C++17 之前，<codecvt> 中定义了以下三个代码转换特性：codecvt\_utf8、codecvt\_utf16 和 codecvt\_utf8\_utf16。这些特性可以与两个转换接口：wstring\_convert 和 wbuffer\_convert 一起使用。然而，C++17 已弃用这三个转换特性（<codecvt> 的全部内容）和这两个转换接口，因此在本书中不再进一步讨论。C++ 标准委员会决定弃用此功能，因为它的错误处理方式不够好。不正确的 Unicode 字符串是一个安全风险，实际上可以用来攻击系统，并已经导致系统安全受到威胁。此外，该 API 过于晦涩，难以理解。我建议使用第三方库，如 ICU(\url{icu-project.org})。
+C++17 之前，<codecvt> 中定义了以下三个代码转换特性：codecvt\_utf8、codecvt\_utf16 和 codecvt\_utf8\_utf16。这些特性可以与两个转换接口：wstring\_convert 和 wbuffer\_convert 一起使用。然而，C++17 已弃用这三个转换特性（<codecvt> 的全部内容）和这两个转换接口，因此在本书中不再进一步讨论。C++ 标准委员会决定弃用此功能，是因为它的错误处理方式不够好。不正确的 Unicode 字符串是一个安全风险，实际上可以用来攻击系统，并已经导致系统安全受到威胁。此外，该 API 过于晦涩，难以理解。我建议使用第三方库，如 ICU(\url{icu-project.org})。
 
 
 
