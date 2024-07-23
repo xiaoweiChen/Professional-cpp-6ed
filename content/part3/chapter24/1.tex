@@ -1,10 +1,10 @@
-std::variant定义在 <variant> 头文件中，可以存储一组给定类型中的一种值。当定义一个 variant 时，必须指定它可能包含的类型。例如，下面的代码定义了一个 variant，可以包含整数、字符串或浮点值，但一次只能存储一个：
+std::variant定义在 <variant> 头文件中，可以存储一组给定类型中的一种值。当定义一个 variant 时，必须指定它可能包含的类型。下面的代码定义了一个 variant，可以包含整数、字符串或浮点值，但一次只能存储一个：
 
 \begin{cpp}
 variant<int, string, float> v;
 \end{cpp}
 
-variant 的模板类型参数必须是唯一的；例如，variant<int,int> 是无效的。一个默认构造的 variant 包含其第一个类型（这个例子中是 int）的默认构造值。如果想能够默认构造一个 variant，必须确保 variant 的第一个类型是可以默认构造的。例如，下面的代码因为 Foo 不是默认构造的，所以无法编译：
+variant 的模板类型参数必须是唯一的；例如，variant<int,int> 是无效的。一个默认构造的 variant 包含其第一个类型（这个例子中是 int）的默认构造值。如果想能够默认构造一个 variant，必须确保 variant 的第一个类型是可以默认构造的。下面的代码因为 Foo 不是默认构造的，所以无法编译：
 
 \begin{cpp}
 class Foo { public: Foo() = delete; Foo(int) {} };
@@ -13,7 +13,7 @@ class Bar { public: Bar() = delete; Bar(int) {} };
 variant<Foo, Bar> v;
 \end{cpp}
 
-实际上，Foo 和 Bar 都不是默认构造的。如果仍然希望能够默认构造这样的 variant，那么可以将 std::monostate(一个行为良好的空值替代品)，作为 variant 的第一个类型：
+实际上，Foo 和 Bar 都不是默认构造的。如果仍然希望能够默认构造这样的 variant，可以将 std::monostate(一个行为良好的空值替代品)，作为 variant 的第一个类型：
 
 \begin{cpp}
 variant<monostate, Foo, Bar> v;
@@ -28,9 +28,9 @@ v = 12.5f;
 v = "An std::string"s;
 \end{cpp}
 
-variant 在任何给定时间只能包含一个值。所以，通过这三个赋值语句，首先将整数 12 存储在 variant 中，然后 variant 修改为一个浮点值，最后 variant 再次被修改为包含一个字符串值。
+variant 在给定时间只能包含一个值，通过这三个赋值语句，首先将整数 12 存储在 variant 中，然后 variant 修改为一个浮点值，最后 variant 再次修改为包含一个字符串值。
 
-可以使用 index() 成员函数来获取，当前存储在 variant 中的值的零基索引，可以使用 std::holds\_alternative() 函数模板，来确定 variant 是否当前包含特定类型的值：
+可以使用 index() 成员函数来获取，当前存储在 variant 中的值的零基索引，可以使用 std::holds\_alternative() 函数模板，来确定 variant 是否包含特定类型的值：
 
 \begin{cpp}
 println("Type index: {}", v.index());
@@ -78,7 +78,7 @@ Retrieved string: An std::string
 Retrieved int: n/a
 \end{shell}
 
-std::visit() 是一个辅助函数，可以使用它在variant上使用用访问者模式 。访问者必须是一个可调用的对象，例如一个函数、一个 Lambda 表达式或一个函数对象，它可以接受 variant 中可能存储的类型。一个简单的例子只是使用一个通用的 Lambda 作为第一个参数传递给 visit() 的可调用的对象：
+std::visit() 是一个辅助函数，可在variant上使用用访问者模式 。访问者必须是一个可调用的对象，例如一个函数、一个 Lambda 表达式或一个函数对象，可以接受 variant 中可能存储的类型。一个简单的例子只是使用一个通用的 Lambda 作为第一个参数传递给 visit() 的可调用的对象：
 
 \begin{cpp}
 visit([](auto&& value) { println("Value = {}", value); }, v);
@@ -90,7 +90,7 @@ visit([](auto&& value) { println("Value = {}", value); }, v);
 Value = An std::string
 \end{shell}
 
-如果想以不同的方式处理 variant 中存储的每个类型，可以编写自己的访问者类。假设有以下访问者类，定义了多个重载的函数调用运算符，一个用于 variant 中可能存储的每个可能类型。这个实现将所有它的函数调用运算符标记为静态的（自 C++23 开始），因为不需要访问非静态成员函数或数据成员：
+如果想以不同的方式处理 variant 中存储的每个类型，可以编写自己的访问者类。假设有以下访问者类，定义了多个重载的函数调用运算符，一个用于 variant 中可能存储的每个可能类型。这个实现将所有它的函数调用运算符标记为静态的（自 C++23 开始），不需要访问非静态成员函数或数据成员：
 
 \begin{cpp}
 class MyVisitor

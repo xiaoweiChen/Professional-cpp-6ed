@@ -2,9 +2,9 @@
 
 第14章中解释了，C++中的一个函数只能返回一个类型，如果函数可能会失败，应该通知调用者关于失败的信息。过去，有几个选择来做到这一点，可以抛出一个带有错误详细信息的异常，或者可以尝试提出一个特殊的返回类型值来表示错误。
 
-例如，一个函数返回一个指针，该函数可以在发生错误时返回nullptr。如果一个函数只为其正常操作返回正整数，可以使用负值来表示不同的错误等。但提出这样一个特殊值并不总是可行。如果一个函数的返回类型是int，有效的返回值范围是整数的整个范围，那么就没有剩余的整数可以用作特殊错误值了。这种情况下，可以使用std::optional类型，这是一个可以包含某种类型的值或为空的类型。函数可以返回一个空的optional来表示错误。
+例如，一个函数返回一个指针，该函数可以在发生错误时返回nullptr。如果一个函数只为其正常操作返回正整数，可以使用负值来表示不同的错误等。但提出这样一个特殊值并不总是可行。如果一个函数的返回类型是int，有效的返回值范围是整数的整个范围，就没有剩余的整数可以用作特殊错误值了。这时，可以使用std::optional类型，这是一个可以包含某种类型的值或为空的类型，函数可以返回一个空的optional来表示错误。
 
-这都是好的，但是当函数的调用者收到一个空的optional时，它无法知道到底出了什么问题；即，函数不能返回错误的真正原因。这些问题可以通过std::expected得到了解决，它在<introduced>中定义，并随着C++23引入，是一个接受两个模板类型参数的类模板：
+但是当函数的调用者收到一个空的optional时，就无法知道到底出了什么问题；即，函数不能返回错误的真正原因。这些问题可以通过std::expected得到了解决，它在<introduced>中定义，并随着C++23引入，是一个接受两个模板类型参数的类模板：
 
 \begin{itemize}
 \item
@@ -14,11 +14,11 @@ T: 期望值的类型
 E: 错误值的类型，也称为意外值
 \end{itemize}
 
-expected永远不会为空，总是包含类型T的值或类型E的值。这是与optional最大的不同，它可以为空，让使用者不知道为什么它为空。因此，返回expected的函数应该返回期望类型的值，或者返回错误类型的值来表示失败的准确原因。错误类型可以是想要的任何类型，可以是简单的整数或复杂的类。通常，最好将错误编码放在能够表示尽可能多错误信息的类中，例如：解析某些数据文件失败的文件名、行号和列号。
+expected永远不会为空，总是包含类型T的值或类型E的值。这是与optional最大的不同，它可以为空，让使用者不知道为什么它为空。因此，返回expected的函数应该返回期望类型的值，或者返回错误类型的值来表示失败的准确原因。错误类型可以是想要的类型，可以是简单的整数或复杂的类。通常，最好将错误编码放在能够表示尽可能多错误信息的类中，例如：解析某些数据文件失败的文件名、行号和列号。
 
 expected<T,E>的一个实例可以从类型T的值隐式创建，就像optional<T>一样。要创建一个包含错误类型E值的expected<T,E>实例，必须使用std::unexpected<E>，默认构造的expected<T,E>包含默认构造的期望类型T的值。这与optional不同，默认构造的optional是空的！换句话说，默认构造的expected表示成功，而默认构造的optional表示错误。
 
-来看一个例子。下面是一个接收字符串，并尝试将字符串解析为整数的函数。stoi()函数在字符串不能表示整数时抛出invalid\_argument，解析的整数大于可以表示为int的范围时抛出out\_of\_range。假设不希望parseInteger()抛出这样的异常，而是返回一个expected。函数捕获这两个异常，并将它们转换为字符串，这是返回expected的错误类型。
+下面是一个接收字符串，并尝试将字符串解析为整数的函数。stoi()函数在字符串不能表示整数时抛出invalid\_argument，解析的整数大于可以表示为int的范围时抛出out\_of\_range。假设不希望parseInteger()抛出这样的异常，而是返回一个expected。函数捕获这两个异常，并将它们转换为字符串，这是返回expected的错误类型。
 
 \begin{cpp}
 expected<int, string> parseInteger(const string& str)
@@ -74,7 +74,7 @@ result2 contains an error: stoi argument out of range
 result3 contains an error: invalid stoi argument
 \end{shell}
 
-除此之外，expected还支持一些函数式编程中的操作，比如and\_then()、transform()、or\_else()和transform\_error()。前三个操作与optional支持的类似。
+expected还支持一些函数式编程中的操作，比如and\_then()、transform()、or\_else()和transform\_error()。前三个操作与optional支持的类似。
 
 \begin{itemize}
 \item
@@ -105,7 +105,7 @@ expected<int, variant<OutOfRange, InvalidArgument>>
     parseInteger(const string& str) { ... }
 \end{cpp}
 
-总之，optional和expected是有些相关的。特定情况下，请根据以下规则决定使用哪一个：
+总之，optional和expected有些相似。特定情况下，请根据以下规则决定使用哪一个：
 
 \begin{myNotic}{NOTE}
 当错误是未预期的时候，使用expected。此时expected应该准确表示错误的原因，以便调用者可以适当地处理错误。
@@ -141,6 +141,6 @@ expected<int, variant<OutOfRange, InvalidArgument>>
 \textbf{代码噪音} &
 \begin{tabular}[c]{@{}l@{}}允许编写干净的代码\\，并将错误处理分开。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}错误处理与正常流\\程交织，使代码更\\难读和维护。\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}允许编写干净的代码。\\由于有一元操作，错\\误处理不会与正常流\\程交织。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}允许编写干净的代码。\\由于有一元操作，错误\\处理不会与正常流程交\\织。\end{tabular} \\ \hline
 \end{longtable}
 

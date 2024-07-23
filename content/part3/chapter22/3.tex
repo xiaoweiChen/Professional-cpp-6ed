@@ -20,7 +20,7 @@ system\_clock &
 \end{tabular} &
 1970-01-01 00:00:00 \\ \hline
 steady\_clock &
-\begin{tabular}[c]{@{}l@{}}确保其time\_point永远不会减\\少，因为系统时钟可以随时调\\整，所以system\_clock不保证。\\实际上，该时钟不要求与壁挂\\时钟时间相关；例如，可以\\是自操作系统启动以来的时间。
+\begin{tabular}[c]{@{}l@{}}确保其time\_point永远不会减\\少，因为系统时钟可以随时调\\整，所以system\_clock不保证。\\实际上，该时钟不要求与壁挂\\时钟时间相关；例如，可以是\\自操作系统启动以来的时间。
 \end{tabular} &
 未指定 \\ \hline
 high\_resolution\_clock &
@@ -45,21 +45,21 @@ file\_clock &
 \end{tabular} \\ \hline
 \end{longtable}
 
-utc\_clock是唯一一个跟踪闰秒的时钟，闰秒是在 UTC 时间与真太阳时间之间不匹配时偶尔添加到或从 UTC 时间中减去的秒。其他时钟不跟踪闰秒，而file\_clock对此没有指定。
+utc\_clock是唯一一个跟踪闰秒的时钟，闰秒是在 UTC 时间与真太阳时间之间不匹配时，偶尔添加到或从 UTC 时间中减去的秒。其他时钟不跟踪闰秒，而file\_clock对此没有指定。
 
 \begin{myNotic}{NOTE}
-不建议使用high\_resolution\_clock，它的实现在不同编译器之间不一致。对于某些编译器，它可能是 steady\_clock 的别名，而对于其他编译器，可能是 system\_clock 的别名。因此，对于某些编译器，high\_resolution\_clock可能会倒退，而对于其他编译器则不会。
+不建议使用high\_resolution\_clock，其实现在不同编译器之间不一致。对于某些编译器，可能是 steady\_clock 的别名，而对于其他编译器，可能是 system\_clock 的别名。对于某些编译器，high\_resolution\_clock可能会倒退。
 
 建议使用 system\_clock 来处理挂壁时钟时间，并使用 steady\_clock 来测量时间段。
 \end{myNotic}
 
 每个时钟都有一个静态的 now() 成员函数，用来获取当前时间作为时间点，以及一个 is\_steady() 成员函数，如果时钟是稳定的（即永远不会倒退），则返回 true，否则返回 false。
 
-system\_clock 还定义了两个静态帮助成员函数，用于将时间点转换为和从 time\_t C 风格时间表示转换。第一个称为 to\_time\_t()，它将给定的时间点转换为 time\_t；第二个，from\_time\_t()，执行相反的转换。time\_t 类型在 <ctime> 中定义。
+system\_clock 还定义了两个静态帮助成员函数，用于将时间点转换为和从 time\_t C 风格时间表示转换。第一个称为 to\_time\_t()，将给定的时间点转换为 time\_t；第二个，from\_time\_t()，执行相反的转换。time\_t 类型在 <ctime> 中定义。
 
 \mySubsubsection{22.3.1.}{打印当前时间}
 
-以下示例演示了如何获取当前的 UTC 时间,并以人类可读的格式打印到控制台：
+以下示例演示了如何获取当前的 UTC 时间，并以人类可读的格式打印到控制台：
 
 \begin{cpp}
 // Set the global locale to the user's local (see Chapter 21).
@@ -69,7 +69,7 @@ println("UTC: {:L}", system_clock::now());
 println("UTC: {:L%c}", system_clock::now());
 \end{cpp}
 
-这个代码片段首先将全局区域设置为用户区域(参见第 21 章)，这确保了所有内容都按照用户的偏好进行打印。println() 语句使用 L 格式说明符根据配置的全局区域设置格式化日期和时间。\%c 格式说明符的效果也得到了展示。支持更多的格式说明符。有关更多信息，请参阅标准库手册。以下是前面代码段的输出：
+这个代码片段首先将全局区域设置为用户区域(参见第 21 章)，这确保了所有内容都按照用户的偏好进行打印。println() 语句使用 L 格式说明符根据配置的全局区域设置格式化日期和时间。\%c 格式说明符的效果也得到了展示。支持更多的格式说明符。有关更多信息，请参阅标准库手册。以下是前面代码的输出：
 
 \begin{shell}
 UTC: 2023-07-19 11:38:44,5521944
@@ -78,9 +78,7 @@ UTC: 2023-07-19 11:38:44
 
 \mySubsubsection{22.3.2.}{进行计时}
 
-To time how long it takes for a piece of code to execute, you want to use a clock that is guaranteed not to go backwards. Hence, you should use a steady\_clock. The following code snippet gives an example. The actual type of the variables start and end is steady\_clock::time\_point, and the actual type of diff is a duration.
-
-要计时代码执行所需的时间，应该使用一个保证不会倒退的时钟。因此，应该使用 steady\_clock。以下代码段中，start 和 end 变量的实际类型是 steady\_clock::time\_point，而 diff 的实际类型是时间段。
+要计时代码执行的时间，应该使用不会倒退的时钟，应该使用 steady\_clock。以下代码段中，start 和 end 变量的实际类型是 steady\_clock::time\_point，而 diff 的实际类型是时间段。
 
 \begin{cpp}
 // Get the start time.
@@ -112,7 +110,7 @@ Total: 78ms
 7ns per iteration
 \end{shell}
 
-这个例子中的循环执行了一些算术运算，包括 sqrt()、abs()、sin() 和 cos()，以确保循环不会结束得太快。如果在系统上得到的差异毫秒值非常小，这些值将不准确，应该增加循环迭代的次数，使其持续更长时间。小的时间值将不准确，因为尽管计时器通常具有毫秒级的分辨率，但在大多数操作系统上，这个计时器更新不频繁，例如，每 10 毫秒或 15 毫秒。这会导致一种称为“门控误差”的现象，其中任何小于一个计时器节拍的事件就似乎花费了零个时间单位，而发生在两个计时器节拍之间的事件似乎花费了一个计时器单位。例如，在一个具有 15 毫秒计时器更新的系统上，一个需要 44 毫秒的循环将只显示为 30 毫秒。当使用此类计时器计时计算时，重要的是要确保整个计算跨越相当多的基本计时器节拍单位，以便误差最小化。
+这个例子中的循环执行了一些算术运算，包括 sqrt()、abs()、sin() 和 cos()，以确保循环不会结束得太快。如果在系统上得到的差异毫秒值非常小，这些值将不准确，应该增加循环迭代的次数，使其持续更长时间。小时间值将不准确，因为计时器通常具有毫秒级的分辨率，但在大多数操作系统上，这个计时器更新不频繁，每 10 毫秒或 15 毫秒。这会导致一种称为“门控误差”的现象，其中小于一个计时器节拍的事件就似乎花费了零个时间单位，而发生在两个计时器节拍之间的事件似乎花费了一个计时器单位。在一个具有 15 毫秒计时器更新的系统上，一个需要 44 毫秒的循环将只显示为 30 毫秒。当使用此类计时器计时计算时，重要的是要确保整个计算跨越相当多的基本计时器节拍单位，以便误差最小化。
 
 
 

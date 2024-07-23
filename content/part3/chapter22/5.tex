@@ -1,5 +1,5 @@
 
-标准库支持使用日历日期。目前，只支持公历（格里高利历），但如果有需要，可以实现<chrono>的其余功能（如科普特历和儒略历），并操作自己的日历。
+标准库支持使用日历日期。目前，只支持公历（格里高利历），也可以实现<chrono>的其余功能（如科普特历和儒略历），并操作自己的日历。
 
 标准库提供了相当多的类和函数来处理日期（和时区，稍后讨论）。本文讨论了最重要的类和函数。查阅标准库手册（见附录B）以获得完整内容。
 
@@ -35,7 +35,7 @@ month\_day &
 month\_day\_last &
 表示一个特定月份的最后一天。 \\ \hline
 month\_weekday &
-表示一个特定月份的第 $n^{th}$ 个工作日。 \\ \hline
+表示一个特定月份的第 n 个工作日。 \\ \hline
 month\_weekday\_last &
 表示一个特定月份的最后一个工作日。 \\ \hline
 year\_month &
@@ -45,12 +45,12 @@ year\_month\_day &
 year\_month\_day\_last &
 表示一个特定年份和月份的最后一天。 \\ \hline
 year\_month\_weekday &
-表示一个特定年份和月份的第 $n^{th}$ 个工作日。 \\ \hline
+表示一个特定年份和月份的第 n 个工作日。 \\ \hline
 year\_month\_weekday\_last &
 表示一个特定年份和月份的最后一个工作日。 \\ \hline
 \end{longtable}
 
-所有这些类都有一个名为 ok() 的成员函数，如果给定对象在有效范围内，则返回 true，否则返回 false。在 std::literals::chrono\_literals 中提供了两个额外的标准字面量：y 用于创建年份，d 用于创建日期。可以使用 operator/ 按三种顺序（Y/M/D、M/D/Y、D/M/Y）指定年、月、日来构造完整的日期。以下是一些创建日期的示例：
+这些类都有一个名为 ok() 的成员函数，如果给定对象在有效范围内，则返回 true，否则返回 false。在 std::literals::chrono\_literals 中提供了两个额外的标准字面量：y 用于创建年份，d 用于创建日期。可以使用 operator/ 按三种顺序（Y/M/D、M/D/Y、D/M/Y）指定年、月、日来构造完整的日期。以下是一些创建日期的示例：
 
 \begin{cpp}
 year y1 { 2020 };
@@ -86,7 +86,7 @@ auto lastDayOfJune2020 { 2020y / lastDayOfAJune };
 auto lastMondayOfJune2020 { 2020y / June / Monday[last] };
 \end{cpp}
 
-sys\_time 是一个类型别名，用于表示具有特定持续时间的 system\_clock 的 time\_point，定义为：
+sys\_time 是一个类型别名，用于表示具有特定持续时间的 system\_clock 的 time\_point：
 
 \begin{cpp}
 template <typename Duration>
@@ -100,7 +100,7 @@ using sys_seconds = sys_time<std::chrono::seconds>;
 using sys_days = sys_time<std::chrono::days>;
 \end{cpp}
 
-例如，sys\_days 表示自 system\_clock 纪元以来的天数，因此它是一个基于序列的类型，只包含一个数字（自纪元以来的天数）。另一方面，year\_month\_day，例如，是一个基于字段的类型，在单独的字段中存储年、月和日。当对日期进行大量算术运算时，基于序列的类型将比基于字段的类型性能更好。
+sys\_days 表示自 system\_clock 纪元以来的天数，它是一个基于序列的类型，只包含一个数字（自纪元以来的天数）。另一方面，year\_month\_day是一个基于字段的类型，在单独的字段中存储年、月和日。当对日期进行大量算术运算时，基于序列的类型将比基于字段的类型性能更好。
 
 类似的类型别名也存在，用于处理本地时间：local\_time、local\_seconds 和 local\_days，这些将在后面关于时区的部分进行演示。
 
@@ -110,20 +110,20 @@ using sys_days = sys_time<std::chrono::days>;
 auto today { floor<days>(system_clock::now()) };
 \end{cpp}
 
-sys\_days 可以用于将 year\_month\_day 转换为 time\_point，例如：
+sys\_days 可以用于将 year\_month\_day 转换为 time\_point：
 
 \begin{cpp}
 system_clock::time_point t1 { sys_days { 2020y / June / 22d } };
 \end{cpp}
 
-相反的转换，将 time\_point 转换为 year\_month\_day，可以使用 year\_month\_day 构造函数来完成。以下代码片段给出了两个示例：
+将 time\_point 转换为 year\_month\_day，可以使用 year\_month\_day 构造函数来完成：
 
 \begin{cpp}
 year_month_day yearmonthday { floor<days>(t1) };
 year_month_day today2 { floor<days>(system_clock::now()) };
 \end{cpp}
 
-也可以构建包括时间的完整日期。这里有一个例子：
+也可以构建包括时间的完整日期：
 
 \begin{cpp}
 // Full date with time: 2020-06-22 09:35:10 UTC.
@@ -132,7 +132,7 @@ auto t2 { sys_days { 2020y / June / 22d } + 9h + 35min + 10s };
 
 \mySubsubsection{22.5.2.}{打印日期}
 
-日期可以使用熟悉的运算符写入流：
+日期可以使用熟悉的操作符写入流：
 
 \begin{cpp}
 cout << yearmonthday << endl;
@@ -144,7 +144,7 @@ cout << yearmonthday << endl;
 println("{:L}", yearmonthday);
 \end{cpp}
 
-记住，输出有时可能出人意料。例如，lastMondayOfJune2020 之前定义为：
+输出有时可能出人意料。lastMondayOfJune2020 之前定义为：
 
 \begin{cpp}
 // Create a year_month_weekday_last for the last Monday of June 2020.
@@ -164,9 +164,9 @@ year_month_day lastMondayOfJune2020YMD { sys_days { lastMondayOfJune2020 } };
 println("{:L}", lastMondayOfJune2020YMD); // 2020-06-29
 \end{cpp}
 
-如果日期无效，打印将插入错误。例如，对于无效的 year\_month\_day，将附加字符串 “is not a valid date”。
+如果日期无效，打印将插入错误。对于无效的 year\_month\_day，将输出字符串 “is not a valid date”。
 
-使用 L 格式指定符，根据当前全局区域设置，正确地本地化星期和月份的名称。例如，以下代码片段首先将全局区域设置为荷兰语，nl-NL，然后使用 L 格式指定符以荷兰语打印星期一。\%A 格式指定符导致打印全名而不是缩写名。查阅标准库手册，以获取支持的所有日期格式指定符的完整列表。
+使用 L 格式指定符，根据当前全局区域设置，正确地本地化星期和月份的名称。以下代码首先将全局区域设置为荷兰语，nl-NL，然后使用 L 格式指定符以荷兰语打印星期一。\%A 格式指定符导致打印全名而不是缩写名。查阅标准库手册，以获取支持的所有日期格式指定符的完整列表。
 
 \begin{cpp}
 locale::global(locale { "nl-NL" });
@@ -181,7 +181,7 @@ Monday in Dutch is maandag
 
 \mySubsubsection{22.5.3.}{日期的算术运算}
 
-可以对日期进行算术运算。这里有一个例子：
+可以对日期进行算术运算：
 
 \begin{cpp}
 // Full date with time: 2020-06-22 09:35:10 UTC.
@@ -190,7 +190,7 @@ auto t3 { t2 + days { 5 } }; // Add 5 days to t2.
 auto t4 { t3 + years { 1 } }; // Add 1 year to t3.
 \end{cpp}
 
-要小心，因为结果可能并不总是如预期的那样。例如:
+结果可能并不总是如预期的那样:
 
 \begin{cpp}
 auto t5 { sys_days { 2020y / June / 22d } + 9h + 35min + 10s };
@@ -206,9 +206,9 @@ t5 = 2020-06-22 09:35:10
 t6 = 2021-06-22 15:24:22
 \end{shell}
 
-当您查看结果时，可以看到年份更新了，但时间也发生了变化。这是因为正在使用一个序列类型：sys\_days 是一个 time\_point，它是一个序列类型。向这样的序列类型添加 1 年并不会添加 86,400 * 365 = 31,536,000 秒。标准规定，添加 1 年必须添加 1 个平均年，以考虑闰年，因此必须添加 86,400 * ((365 * 400) + 97) / 400 = 31,556,952 秒。
+查看结果时，可以看到年份更新了，但时间也发生了变化。因为正在使用一个序列类型：sys\_days 是一个 time\_point，它是一个序列类型。向这样的序列类型添加 1 年并不会添加 86,400 * 365 = 31,536,000 秒。标准规定，添加 1 年必须添加 1 个平均年，以考虑闰年，因此必须添加 86,400 * ((365 * 400) + 97) / 400 = 31,556,952 秒。
 
-如果需要精确地添加 1 年，最好使用一个基于字段的类型，例如：
+如果需要精确地添加 1 年，最好使用一个基于字段的类型：
 
 \begin{cpp}
 // Split t5 into days and remaining seconds.

@@ -1,6 +1,6 @@
-为了便于使用时区，C++标准库包含了一份互联网编号分配机构（IANA）时区数据库（\url{www.iana.org/time-zones}）的副本。可以通过调用 std::chrono::get\_tzdb() 来获取对这个数据库的访问权限，它返回一个对 std::chrono::tzdb 类型单一现有实例的常量引用。这个数据库通过一个名为 zones 的公共vector提供了对所有已知时区的访问。vector中的每个条目都是一个 time\_zone，它有一个可以通过 name() 访问的名称，以及成员函数 to\_sys() 和 to\_local() 用于将 local\_time 转换为 sys\_time。由于夏令时的存在，从 local\_time 到 sys\_time 的转换可能是模糊或不存在的。这种情况下，转换将分别抛出 ambiguous\_local\_time 或 nonexistent\_local\_time 类型的异常。
+为了便于使用时区，C++标准库包含了一份互联网编号分配机构（IANA）时区数据库（\url{www.iana.org/time-zones}）的副本。可以通过调用 std::chrono::get\_tzdb() 来获取对这个数据库的访问权限，返回一个对 std::chrono::tzdb 类型单一现有实例的常量引用。这个数据库通过一个名为 zones 的公共vector提供了对所有已知时区的访问。vector中的每个条目都是一个 time\_zone，有一个可以通过 name() 访问的名称，以及成员函数 to\_sys() 和 to\_local() 用于将 local\_time 转换为 sys\_time。由于夏令时的存在，从 local\_time 到 sys\_time 的转换可能是模糊或不存在的。这种情况下，转换将分别抛出 ambiguous\_local\_time 或 nonexistent\_local\_time 类型的异常。
 
-以下是一个列出所有可用时区的代码段：
+以下是一个列出所有可用时区的代码：
 
 \begin{cpp}
 const auto& database { get_tzdb() };
@@ -9,7 +9,7 @@ for (const auto& timezone : database.zones) {
 }
 \end{cpp}
 
-std::chrono::locate\_zone() 函数可用于根据其名称检索 time\_zone，如果数据库中找不到请求的时区，则抛出 runtime\_error 异常。current\_zone() 函数可用于获取当前时区。例如：
+std::chrono::locate\_zone() 函数可用于根据其名称检索 time\_zone，如果数据库中找不到请求的时区，则抛出 runtime\_error 异常。current\_zone() 函数可用于获取当前时区：
 
 \begin{cpp}
 auto* brussels { locate_zone("Europe/Brussels") };

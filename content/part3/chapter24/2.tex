@@ -1,4 +1,4 @@
-在 <any> 中定义的 std::any 是一个可以包含任意类型单一值的类,可以使用 any 构造函数或 std::make\_any() 辅助函数创建实例。构造完毕，就可以询问 any 实例是否包含值，以及包含值的类型是什么。要访问包含的值需要使用 any\_cast()，如果失败，会抛出 bad\_any\_cast 类型的异常。以下是一个示例：
+在 <any> 中定义的 std::any 是一个可以包含任意类型单一值的类，可以使用 any 构造函数或 std::make\_any() 辅助函数创建实例。构造完毕，就可以询问 any 实例是否包含值，以及包含值的类型是什么。要访问包含的值需要使用 any\_cast()，如果失败，会抛出 bad\_any\_cast 类型的异常：
 
 \begin{cpp}
 any empty;
@@ -42,7 +42,7 @@ any something { 3 }; // Now it contains an integer.
 something = "An std::string"s; // Now the same instance contains a string.
 \end{cpp}
 
-any 的实例可以存储在标准库容器中，这允许您在单个容器中拥有异构数据。唯一的缺点是必须执行显式的 any\_cast 来检索特定值，如下例所示：
+any 的实例可以存储在标准库容器中，可以在单个容器中拥有异构数据。缺点是必须执行显式的 any\_cast 来检索特定值：
 
 \begin{cpp}
 vector<any> v;

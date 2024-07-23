@@ -1,5 +1,5 @@
 
-时间点由 time\_point 类表示，并作为与某个时钟相关的持续时间的起点存储。时间点总是与某个时钟的纪元相关联，这个纪元表示这个时钟的起点。例如，Unix/Linux 时间点的纪元是 1970 年 1 月 1 日，持续时间以秒为单位。Windows 时间点的纪元是 1601 年 1 月 1 日，持续时间以 100 纳秒为单位。其他操作系统有不同的纪元日期和持续时间单位。
+时间点由 time\_point 类表示，并作为与某个时钟相关的持续时间的起点存储。时间点总是与某个时钟的纪元相关联，这个纪元表示这个时钟的起点。Unix/Linux 时间点的纪元是 1970 年 1 月 1 日，持续时间以秒为单位。Windows 时间点的纪元是 1601 年 1 月 1 日，持续时间以 100 纳秒为单位。其他操作系统有不同的纪元日期和持续时间单位。
 
 time\_point 类有一个名为 time\_since\_epoch() 的函数返回一个时间段，表示存储的时间点与关联时钟的纪元之间的时间差。
 
@@ -48,7 +48,7 @@ time_point<steady_clock> tp1;
 steady_clock::time_point tp1;
 \end{cpp}
 
-下代码段演示了使用time\_point的一些操作：
+下代码演示了使用time\_point的一些操作：
 
 \begin{cpp}
 // Create a time_point representing the epoch of the associated steady clock.
@@ -77,7 +77,7 @@ time_point<steady_clock, milliseconds> tpMilliseconds { tpSeconds };
 println("{}", tpMilliseconds.time_since_epoch());
 \end{cpp}
 
-如果隐式转换可能导致数据丢失，那么需要使用time\_point\_cast()进行显式转换，类似于本章前面讨论的duration\_cast()用于显式时间段转换。以下示例即使从42,424ms开始，输出的也是42000ms：
+如果隐式转换可能导致数据丢失，则需要使用time\_point\_cast()进行显式转换，类似于本章前面讨论的duration\_cast()用于显式时间段转换。以下示例即使从42,424ms开始，输出的也是42000ms：
 
 \begin{cpp}
 time_point<steady_clock, milliseconds> tpMilliseconds { 42'424ms };

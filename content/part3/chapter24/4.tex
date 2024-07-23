@@ -16,7 +16,7 @@ and\_then(F): 如果 *this 有值，则返回调用 F 并传递 *this 的值作�
 or\_else(F): 如果 *this 有值，则返回 *this；否则，返回调用 F 的结果（结果必须是 optional）
 \end{itemize}
 
-来看一个例子。以下函数解析给定的字符串以获取一个整数，并返回结果作为 optional。如果字符串不能被解析为整数，则返回一个空的 optional。
+以下函数解析给定的字符串以获取一个整数，并返回结果作为 optional。如果字符串不能解析为整数，则返回一个空的 optional。
 
 \begin{cpp}
 optional<int> Parse(const string& str)

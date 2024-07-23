@@ -6,11 +6,11 @@ template<class Engine, size_t w, class UIntT> class independent_bits_engine {...
 template<class Engine, size_t k> class shuffle_order_engine {...}
 \end{cpp}
 
-discard\_block\_engine适配器通过丢弃基础引擎生成的某些值来生成随机数。它需要三个参数：要适配的引擎、块大小p，以及使用的块大小r。基础引擎用于生成p个随机数。然后适配器丢弃p-r个这些数字，并返回剩余的r个数字。
+discard\_block\_engine适配器通过丢弃基础引擎生成的某些值来生成随机数，需要三个参数：要适配的引擎、块大小p，以及使用的块大小r。基础引擎用于生成p个随机数，然后适配器丢弃p-r个这些数字，并返回剩余的r个数字。
 
 independent\_bits\_engine适配器通过组合基础引擎生成的几个随机数，来生成具有给定位数w的随机数。
 
-shuffle\_order\_engine适配器生成与基础引擎相同的随机数，但以不同的顺序提供它们，模板参数k是适配器使用的内部表的大小。根据请求，从该表中随机选择一个随机数，然后用基础引擎生成的新随机数进行替换。
+shuffle\_order\_engine适配器生成与基础引擎相同的随机数，但以不同的顺序提供，模板参数k是适配器使用的内部表的大小。根据请求，从该表中随机选择一个随机数，然后用基础引擎生成的新随机数进行替换。
 
 与随机数引擎一样，也有一些预定义的引擎适配器可供使用。下一节将概述预定义的引擎和引擎适配器。
 
