@@ -1,5 +1,5 @@
 
-普通模板只能接受固定数量的模板参数，变长模板可以接受可变数量的模板参数。例如，以下代码定义了一个模板，使用一个名为 Types 的参数包，可以接受任意数量的模板参数：
+普通模板只能接受固定数量的模板参数，变长模板可以接受可变数量的模板参数。以下代码定义了一个模板，使用一个名为 Types 的参数包，可以接受任意数量的模板参数：
 
 \begin{cpp}
 template <typename... Types>
@@ -10,7 +10,7 @@ class MyVariadicTemplate { };
 typename 后面的三个点不是错误。这是定义变长模板参数包的语法。参数包是可以接受可变数量参数的东西。
 \end{myNotic}
 
-可以用任意数量的模板实参实例化 MyVariadicTemplate，如下例所示：
+可以用任意数量的模板实参实例化 MyVariadicTemplate：
 
 \begin{cpp}
 MyVariadicTemplate<int> instance1;
@@ -23,16 +23,16 @@ MyVariadicTemplate<string, double, vector<int>> instance2;
 MyVariadicTemplate<> instance3;
 \end{cpp}
 
-要禁止用零个模板实参实例化变长模板，可以按以下方式编写模板：
+要禁止用零个模板实参实例化变长模板：
 
 \begin{cpp}
 template <typename T1, typename... Types>
 class MyVariadicTemplate { };
 \end{cpp}
 
-有了这个定义，尝试用零个模板实参实例化 MyVariadicTemplate 将导致编译错误。
+有了这个定义，尝试用零个模板实参实例化 MyVariadicTemplate 时，将出现编译错误。
 
-直接迭代变长模板给定的参数是不可能的，能做的唯一方式是借助模板递归或折叠表达式。以下部分展示了这两种方法的例子。
+不可能直接迭代变长模板给定的参数，唯一的方式是借助模板递归或折叠表达式。以下部分展示了这两种方法。
 
 \mySubsubsection{26.5.1.}{类型安全的可变长度参数列表}
 
@@ -54,7 +54,7 @@ void processValues(const T1& arg1, const Tn&... args)
 }
 \end{cpp}
 
-这个例子展示了 triple dots (...) 运算符的双重使用。这个运算符在三个地方出现，有两个不同的含义。首先，在模板参数列表中的 typename 后面和函数参数列表中的类型 Tn 后面使用。这两种情况下，它都表示参数包。
+这个例子展示了 triple dots (...) 操作符的双重使用。这个操作符在三个地方出现，有两个不同的含义。首先，模板参数列表中 typename 后面，和函数参数列表中的类型 Tn 后面，都表示参数包。
 
 参数包可以接受可变数量的参数。
 
@@ -90,7 +90,7 @@ processValues(1, 2, 3.56, "test", 1.1f);
                     processValues();
 \end{cpp}
 
-这种可变长度参数列表的实现，是完全类型安全的。processValues() 函数会根据实际类型自动调用正确的 handleValue() 重载。当以某种类型调用 processValues() 且未定义对应的 handleValue() 重载时，编译器会发出错误。
+这种可变长度参数列表的实现完全类型安全。processValues() 函数会根据实际类型会自动调用正确的 handleValue() 重载。当以某种类型调用 processValues() 且未定义对应的 handleValue() 重载时，编译器会报错。
 
 也可以在 processValues() 的实现中使用在第 12 章介绍的转发引用，以下实现使用了转发引用 T\&\& 和 std::forward() 进行完美转发所有参数。完美转发意味着如果传递给 processValues() 的参数是 右值，会转发 右值 引用。如果传递的是 左值，会转发 左值 引用。
 
@@ -106,13 +106,13 @@ void processValues(T1&& arg1, Tn&&... args)
 }
 \end{cpp}
 
-需要进一步解释的语句是：
+需要进一步解释的是：
 
 \begin{cpp}
 processValues(forward<Tn>(args)...);
 \end{cpp}
 
-操作符 ... 用于展开参数包，对参数包中的每个单独参数使用 std::forward() 并将其与逗号分隔开。例如，args 是一个包含三个参数 a1、a2 和 a3 的参数包，这些参数分别属于三种类型 A1、A2 和 A3。展开如下所示：
+操作符 ... 用于展开参数包，对参数包中的每个单独参数使用 std::forward() 并将其与逗号分隔开。args 是一个包含三个参数 a1、a2 和 a3 的参数包，这些参数分别属于三种类型 A1、A2 和 A3。展开如下所示：
 
 \begin{cpp}
 processValues(forward<A1>(a1),
@@ -120,17 +120,17 @@ processValues(forward<A1>(a1),
               forward<A3>(a3));
 \end{cpp}
 
-使用了参数包的函数体内，可以使用 sizeof...(pack) 来检索参数包中的参数数量。注意，这并不是使用 ... 进行的包展开，而是使用了特殊的关键字样式的 sizeof... 语法。
+使用了参数包的函数体内，可以使用 sizeof...(pack) 来检索参数包中的参数数量。这并不是使用 ... 进行的包展开，而是使用了特殊的关键字样式的 sizeof... 语法。
 
 \begin{cpp}
 int numberOfArguments { sizeof...(args) };
 \end{cpp}
 
-使用变长模板的一个实际例子是，编写一个安全且类型安全的 printf() 样式的函数模板。这是一个很好的实践练习，读者们自行可以尝试一下。
+使用变长模板的实际例子是，编写一个安全且类型安全的 printf() 样式的函数模板。这是一个很好的实践练习，读者们可以自行尝试一下。
 
 \mySamllsection{constexpr if}
 
-constexpr if 语句是在编译时执行的 if 语句，而不是在运行时。如果 constexpr if 语句的某个分支从未采用，那么将永远不会编译，这种编译时的决策在变长模板中非常有用。例如，processValues() 的早期实现需要一个基础情况来停止递归（void processValues() \{\}）。使用 constexpr if，可以避免这种基础情况。注意，这个特性正式称为 constexpr if，但在实际代码中，写的是 if constexpr。
+constexpr if 语句是在编译时执行的 if 语句，而不是在运行时。如果 constexpr if 语句的某个分支从未采用，将永远不会编译，这种编译时的决策在变长模板中非常有用。例如，processValues() 的早期实现需要一个基础情况来停止递归（void processValues() \{\}）。使用 constexpr if，可以避免这种基础情况。这个特性正式称为 constexpr if，但在实际代码中写为 if constexpr。
 
 \begin{cpp}
 template <typename T1, typename... Tn>
@@ -147,7 +147,7 @@ void processValues(T1&& arg1, Tn&&... args)
 
 \mySubsubsection{26.5.2.}{可变数量的混合类}
 
-参数包几乎可以用于任何地方。例如，以下代码使用参数包来为 MyClass 定义可变数量的混合类。第 5 章介绍了混合类的概念。
+参数包几乎可以用于任何地方，以下代码使用参数包来为 MyClass 定义可变数量的混合类。第 5 章介绍了混合类的概念。
 
 \begin{cpp}
 class Mixin1
@@ -177,7 +177,7 @@ class MyClass : public Mixins...
 };
 \end{cpp}
 
-这段代码首先定义了两个混合类：Mixin1 和 Mixin2，这个例子中的定义相当简单。它们的构造函数接受一个整数，将其存储，并且有一个函数来打印有关特定类实例的信息。MyClass 变长模板使用参数包 typename... Mixins 来接受可变数量的混合类，在该类从所有这些混合类中继承，并且构造函数接受相同数量的参数来初始化每个继承的混合类。... 展开运算符基本上将运算符左侧的内容重复为参数包中的每个模板参数，并用逗号分隔。该类可以这样使用：
+这段代码首先定义了两个混合类：Mixin1 和 Mixin2，这个例子中的定义相当简单。构造函数接受一个整数，将其存储，并且有一个函数来打印有关特定类实例的信息。MyClass 变长模板使用参数包 typename... Mixins 来接受可变数量的混合类，在该类从所有这些混合类中继承，并且构造函数接受相同数量的参数来初始化每个继承的混合类。... 展开操作符是将操作符左侧的内容，重复为参数包中的每个模板参数进行，并用逗号分隔。该类可以这样使用：
 
 \begin{cpp}
 MyClass<Mixin1, Mixin2> a { Mixin1 { 11 }, Mixin2 { 22 } };
@@ -205,7 +205,7 @@ Mixin1: 33
 
 C++支持折叠表达式，这使得在变长模板中处理参数包变得更加容易。折叠表达式可以用于对参数包中的每个值应用特定操作，将参数包中的所有值减少为单一值，以及更多操作。
 
-以下表格列出了支持的四种折叠类型。在这个表格中，Ѳ可以是以下任一运算符：+, -, *, /, \%, \^{}, \&, |, <{}<, >{}>, +=, -=, *=, /=, \%=, \^{}=, \&=, |=, <{}<=, >{}>=, =, ==, !=, <, >, <=, >=, \&\&, ||, .*,d ->*.
+以下表格列出了支持的四种折叠类型。在这个表格中，Ѳ可以是以下任一操作符：+, -, *, /, \%, \^{}, \&, |, <{}<, >{}>, +=, -=, *=, /=, \%=, \^{}=, \&=, |=, <{}<=, >{}>=, =, ==, !=, <, >, <=, >=, \&\&, ||, .*,d ->*.
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -236,14 +236,14 @@ void processValues(T1&& arg1, Tn&&... args)
 }
 \end{cpp}
 
-因为递归定义，所以需要一个基情况来停止递归。使用折叠表达式，这可以实现为一个函数模板，使用逗号运算符的一元右折叠：
+因为递归定义，所以需要一个基情况来停止递归。使用折叠表达式，这可以实现为一个函数模板，使用逗号操作符的一元右折叠：
 
 \begin{cpp}
 template <typename... Tn>
 void processValues(Tn&&... args) { (handleValue(forward<Tn>(args)) , ...); }
 \end{cpp}
 
-基本上，函数体中的三个点触发了用Ѳ对逗号运算符的折叠。那一行展开为对参数包中的每个参数调用handleValue()，每个调用handleValue()之间由逗号分隔。例如，args是一个包含三个参数的参数包，分别为a1, a2, 和 a3，类型分别为A1, A2, 和 A3。一元右折叠的展开如下所示：
+函数体中的三个点触发了用Ѳ对逗号操作符的折叠。那一行展开为对参数包中的每个参数调用handleValue()，每个调用handleValue()之间由逗号分隔。args是一个包含三个参数的参数包，分别为a1, a2, 和 a3，类型分别为A1, A2, 和 A3。一元右折叠的展开如下所示：
 
 \begin{cpp}
 (handleValue(forward<A1>(a1)) ,
@@ -257,7 +257,7 @@ template <typename... Values>
 void printValues(const Values&... values) { (println("{}", values) , ...); }
 \end{cpp}
 
-假设values是一个包含三个参数的参数包，分别为v1, v2和 v3。一元右折叠的展开如下：
+假设values是一个包含三个参数的参数包，分别为v1, v2和 v3。一元右折叠的展开：
 
 \begin{cpp}
 (println("{}", v1) , (println("{}", v2) , println("{}", v3)));
@@ -269,7 +269,7 @@ void printValues(const Values&... values) { (println("{}", values) , ...); }
 printValues(1, "test", 2.34);
 \end{cpp}
 
-之前的示例中，折叠是通过逗号运算符完成，但它几乎可以与任何类型的运算符一起使用。例如，以下代码定义了一个使用二元左折叠的变长函数模板，用于计算传递给它的所有值的和，二元左折叠总是需要一个Init值（请参阅之前的概述表）。因此，sumValues()有两个模板类型参数：一个普通的参数来指定Init的类型，以及一个可以接受0个或多个参数的参数包。
+之前的示例中，折叠是通过逗号操作符完成，但它可以与任何类型的操作符一起使用。以下代码定义了一个使用二元左折叠的变长函数模板，用于计算传递给它的所有值的和，二元左折叠总是需要一个Init值（请参阅之前的概述表）。因此，sumValues()有两个模板类型参数：一个普通的参数来指定Init的类型，以及一个可以接受0个或多个参数的参数包。
 
 \begin{cpp}
 template <typename T, typename... Values>
@@ -277,7 +277,7 @@ auto sumValues(const T& init, const Values&... values)
 { return (init + ... + values);}
 \end{cpp}
 
-假设values是一个包含三个参数的参数包，分别为v1, v2, 和 v3。这种情况下，二元左折叠的展开如下所示：
+假设values是一个包含三个参数的参数包，分别为v1, v2, 和 v3。这种情况下，二元左折叠的展开为：
 
 \begin{cpp}
 return (((init + v1) + v2) + v3);
@@ -297,7 +297,7 @@ template <typename... Values>
 auto sumValues(const Values&... values) { return (... + values); }
 \end{cpp}
 
-第12章中讨论的概念也可以是变长的。例如，可以限制sumValues()函数模板，以便只能用相同类型的参数集调用它。
+第12章中讨论的概念也可以是变长的。可以限制sumValues()函数模板，以便只能用相同类型的参数集调用。
 
 \begin{cpp}
 template <typename T, typename... Us>
@@ -317,13 +317,13 @@ println("{}", sumValues(1)); // OK: 1 integer, output is 1
 println("{}", sumValues("a"s, "b"s)); // OK: 2 strings, output is ab
 \end{cpp}
 
-然而，以下调用失败，因为参数列表包含一个整数和两个双精度浮点数：
+以下调用失败，因为参数列表包含一个整数和两个双精度浮点数：
 
 \begin{cpp}
 println("{}", sumValues(1, 2.2, 3.3)); // Error
 \end{cpp}
 
-参数包长度为零时允许进行一元折叠，但仅在与逻辑与(\&\&)、逻辑或(||)和逗号(,)运算符的组合中。对于空参数包，\&\&得到true，||得到false，,得到void()，即一个空操作。例如：
+参数包长度为零时允许进行一元折叠，但仅在与逻辑与(\&\&)、逻辑或(||)和逗号(,)操作符的组合中。对于空参数包，\&\&得到true，||得到false，,得到void()，即一个空操作。例如：
 
 \begin{cpp}
 template <typename... Values>

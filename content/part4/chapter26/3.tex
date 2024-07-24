@@ -23,7 +23,7 @@ optional<size_t> Find(const char* value, const char** arr, size_t size)
 }
 \end{cpp}
 
-假设想自定义 Find()，使其直接对指向的对象使用 operator== 进行比较。实现这种行为的正确方式是，用另一个更特化的函数模板重载 Find() 函数模板：
+自定义 Find()时，使其直接对指向的对象使用 operator== 进行比较。实现这种行为的正确方式是，可以用另一个更特化的函数模板重载 Find() 函数模板：
 
 \begin{cpp}
 template <typename T>
@@ -39,7 +39,7 @@ optional<size_t> Find(T* value, T* const* arr, size_t size)
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-所有重载中，编译器总是选择“最具体”的一个来调用。如果非模板重载与函数模板实例化一样具体，那么编译器倾向于使用非模板重载的版本。
+所有重载中，编译器总是选择“最具体”的一个来调用。如果非模板重载与函数模板实例化一样具体，则编译器倾向于使用非模板重载的版本。
 \end{myNotic}
 
 以下代码多次调用 Find()，注释指出调用的是哪个 Find()。

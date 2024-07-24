@@ -32,7 +32,7 @@ int main()
 
 此外，标准库还有一个多态内存分配器的概念。容器分配器指定为模板类型参数的问题在于，两个相似但具有不同分配器类型的容器，是完全不同的类型。例如，vector<int, A1>和vector<int, A2>是不同的类型，不能相互赋值。
 
-多态内存分配器，定义在std::pmr命名空间中的<memory\_resource>，有助于解决这个问题。类std::pmr::polymorphic\_allocator是一个真正的Allocator类，满足所有分配器要求，如具有allocate()和deallocate()成员函数。polymorphic\_allocator的分配行为取决于其在构造时给出的memory\_resource，而不是模板类型参数。不同的polymorphic\_allocators在分配和释放内存时，尽管都有相同的类型，也可以有不同的方式行为，即polymorphic\_allocator。标准库提供了一些内置的memory\_resource，可以用来初始化polymorphic\_allocator：synchronized\_pool\_resource、unsynchronized\_pool\_resource和monotonic\_buffer\_resource。标准库还提供了模板类型别名，如std::pmr::vector<T>，用于std::vector<T, std::pmr::polymorphic\_allocator<T>>。一个std::pmr::vector<T>与一个memory\_resource关联仍然是不同的类型，并且不能从std::vector<T>赋值。但与不同memory\_resource关联的std::pmr::vector<T>是相同的类型，并且可以从另一个std::pmr::vector<T>对象赋值。
+多态内存分配器，定义在std::pmr命名空间中的<memory\_resource>，有助于解决这个问题。类std::pmr::polymorphic\_allocator是一个真正的Allocator类，满足所有分配器要求，如具有allocate()和deallocate()成员函数。polymorphic\_allocator的分配行为取决于其在构造时给出的memory\_resource，而不是模板类型参数。不同的polymorphic\_allocators在分配和释放内存时，尽管都有相同的类型，也可以有不同的方式行为，即polymorphic\_allocator。标准库提供了一些内置的memory\_resource，可以用来初始化polymorphic\_allocator：synchronized\_pool\_resource、unsynchronized\_pool\_resource和monotonic\_buffer\_resource。标准库还提供了模板类型别名，如std::pmr::vector<T>，用于std::vector<T, std::pmr::polymorphic\_allocator<T>{}>。一个std::pmr::vector<T>与一个memory\_resource关联仍然是不同的类型，并且不能从std::vector<T>赋值。但与不同memory\_resource关联的std::pmr::vector<T>是相同的类型，并且可以从另一个std::pmr::vector<T>对象赋值。
 
 根据我的经验，自定义分配器和多态内存分配器在日常工作编码中是非常高级，且很少使用的特性。我自己从未使用过，所以详细的介绍会超出了本书的范围。更多信息，请参考附录B中列出有关C++标准库的相关书籍。
 

@@ -1,9 +1,9 @@
 
-有三种模板参数：模板类型参数、非类型模板参数和双重模板参数。目前为止，已经了解了类型和非类型参数的例子（在第12章中），但没有看到双重模板参数。类型和非类型参数都有一些棘手的问题，这些在第12章中并没有涵盖。本节将深入探讨所有三种类型的模板参数。
+有三种模板参数：模板类型参数、非类型模板参数和双重模板参数。目前为止，已经了解了类型和非类型参数的例子（第12章），但没有看到双重模板参数。类型和非类型参数都有一些棘手的问题，这些在第12章中并没有涵盖。本节将深入探讨所有三种类型的模板参数。
 
 \mySubsubsection{26.1.1.}{模板类型参数}
 
-模板类型参数是模板的主要目的，可以声明任意数量的类型参数。例如，可以从第12章的grid模板中添加第二个类型参数，以指定构建网格的容器。标准库定义了几个参数化的容器类，包括vector和deque。原始的Grid类使用vector来存储网格的元素，Grid类的用户可能希望使用deque。使用另一个模板类型参数，可以允许用户指定底层容器是vector还是deque。Grid实现要求底层容器支持随机访问，还使用容器的resize()成员函数和容器的value\_type类型别名。使用概念（参见第12章）来强制提供的类型支持这些操作。以下是带有概念和模板类型参数的类模板定义：
+模板类型参数是模板的主要目的，可以声明任意数量的类型参数。可以从第12章的Grid模板中添加第二个类型参数，以指定构建网格的容器。标准库定义了几个参数化的容器类，包括vector和deque。原始的Grid类使用vector来存储网格的元素，Grid类的用户可能希望使用deque。使用另一个模板类型参数，用户可以指定底层容器是vector还是deque。Grid实现要求底层容器支持随机访问，还使用容器的resize()成员函数和容器的value\_type类型别名。使用概念（参见第12章）来强制提供的类型支持这些操作。以下是带有概念和模板类型参数类的模板定义：
 
 \begin{cpp}
 template <typename Container>
@@ -48,13 +48,13 @@ class Grid
 };
 \end{cpp}
 
-这个模板现在有两个参数：T 和 Container。无论之前在哪里引用了 Grid<T>，现在必须引用 Grid<T, Container>。
+这个模板现在有两个参数：T 和 Container。
 
 \begin{myNotic}{NOTE}
-这个 Grid 类模板的实现中，可以移除 T 模板类型参数；它只使用 Container 参数。但请耐心点，因为下一节将在这个例子基础上进一步构建，使其对用户更友好。
+这个 Grid 类模板的实现中，可以移除 T 模板类型参数,只使用 Container 参数。但请耐心点，因为下一节将在这个例子基础上进一步构建，使其对用户更友好。
 \end{myNotic}
 
-m\_cells 数据成员现在是 Container 类型，而不是 vector<optional<T>{}>。每个 Container 类型都有一个叫做 value\_type 的类型别名。这一点可以通过 GridContainerType 概念得到了验证。在 Grid 类模板定义，及其成员函数定义内部，可以使用作用域解析运算符访问 value\_type 类型名：Container::value\_type。由于 Container 是一个模板类型参数，Container::value\_type 是一个依赖类型名。通常，编译器不会将依赖类型名视为类型名，这可能会导致一些神秘的编译器错误信息。为了确保编译器将其解释为类型名，需要使用 typename 关键字作为前缀，如 typename Container::value\_type。这就是 at() 成员函数的返回类型所做的，返回类型是存储在给定容器类型内部的元素类型，即 typename Container::value\_type。
+m\_cells 数据成员现在是 Container 类型，而不是 vector<optional<T>{}>。每个 Container 类型都有一个叫做 value\_type 的类型别名，可以通过 GridContainerType 概念得到了验证。在 Grid 类模板定义，及其成员函数定义内部，可以使用作用域解析运算符访问 value\_type 类型名：Container::value\_type。由于 Container 是一个模板类型参数，Container::value\_type 是一个依赖类型名。编译器不会将依赖类型名视为类型名，这可能会导致一些神秘的编译器错误信息。为了确保编译器将其解释为类型名，需要使用 typename 关键字作为前缀，如 typename Container::value\_type。这就是 at() 成员函数的返回类型所做的，返回类型是存储在给定容器类型内部的元素类型，即 typename Container::value\_type。
 
 下面是构造函数的定义：
 
@@ -124,7 +124,7 @@ Grid<int, double> test; // WILL NOT COMPILE.
 
 这一行代码无法编译，编译器会抱怨double类型不满足与Container模板类型参数关联概念的限制。
 
-就像函数参数一样，可以为模板参数提供默认值。例如，Grid的默认容器是vector。然后类模板定义是这样：
+就像函数参数一样，可以为模板参数提供默认值。例如，Grid的默认容器是vector，再这样定义类模板：
 
 \begin{cpp}
 export template <typename T,
@@ -135,7 +135,7 @@ class Grid
 };
 \end{cpp}
 
-可以使用第一个模板类型参数中的类型T，作为第二个模板类型参数默认值中optional模板的参数。C++语法要求，不能在成员函数定义的模板参数处重复默认值。有了这个默认参数，客户端现在可以实例化一个Grid，并选择性地指定一个底层容器：
+可以使用第一个模板类型参数中的类型T，作为第二个模板类型参数默认值中optional模板的参数。C++语法要求，不能在成员函数定义的模板参数处重复默认值。有了这个默认参数，客户端现可以实例化一个Grid，并选择性地指定一个底层容器：
 
 \begin{cpp}
 Grid<int, deque<optional<int>>> myDequeGrid;
@@ -159,17 +159,17 @@ Grid<int, vector<optional<int>>> myIntGrid;
 Grid<int, vector<optional<SpreadsheetCell>>> myIntGrid;
 \end{cpp}
 
-那就不会很好地工作。能够写出以下内容会很不错，这样就不会犯错误了：
+代码就不会很好地工作。能够写出以下内容会很不错，这样就不会犯错误了：
 
 \begin{cpp}
 Grid<int, vector> myIntGrid;
 \end{cpp}
 
-Grid类模板应该能够确定它想要一个vector，包含int的optional。
+Grid类模板能够确定它想要一个vector，包含int的optional。
 
-然而，编译器不允许将那个参数传递给普通类型参数，因为vector本身不是一个类型而是一个模板。
+然而，编译器不允许将那个参数传递给普通类型参数，因为vector本身不是一个类型，而是一个模板。
 
-如果想将一个模板作为模板类型参数，必须使用一种特殊类型的参数，称为双重模板参数。指定双重模板参数有点像在普通函数中指定函数指针参数，函数指针类型包括函数的返回类型和参数类型。类似地，当你指定双重模板参数时，双重模板参数的完整规范包括该模板的参数。
+如果想将一个模板作为模板类型参数，必须使用一种特殊类型的参数，称为双重模板参数。指定双重模板参数有点像在普通函数中指定函数指针参数，函数指针类型包括函数的返回类型和参数类型。类似地，当指定双重模板参数时，双重模板参数的完整规范包括该模板的参数。
 
 例如，vector和deque这样的容器有一个看起来像这样的模板参数列表。E参数是元素类型，Allocator参数在第25章中介绍过。
 
@@ -178,7 +178,7 @@ template <typename E, typename Allocator = std::allocator<E>>
 class vector { /* Vector definition */ };
 \end{cpp}
 
-要将这样的容器作为双重模板参数传递，所要做的就是复制粘贴类模板的声明（本例中，template <typename E, typename Allocator = std::allocator<E>{}> class vector）并用参数名（Container）替换类名（vector）。鉴于前面的模板规范，这里是将容器模板作为第二个模板参数的Grid类模板定义：
+要将这样的容器作为双重模板参数传递，所要做的就是复制粘贴类模板的声明（本例中，template <typename E, typename Allocator = std::allocator<E>{}> class vector）并用参数名（Container）替换类名（vector）。鉴于前面的模板规范，将容器模板作为第二个模板参数的Grid类模板定义：
 
 \begin{cpp}
 export template <typename T,
@@ -198,29 +198,29 @@ class Grid
 };
 \end{cpp}
 
-这里发生了什么？第一个模板参数与之前相同：元素类型 T。第二个模板参数现在是一个模板本身，用于诸如 vector 或 deque 这样的容器。这个“模板类型”必须接受两个参数：一个元素类型 E 和一个分配器类型。在 Grid 模板中的这个参数的名字是 Container（与之前一样）。现在的默认值是 vector，而不是 vector<T>，因为 Container 参数现在是一个模板，而不是一个实际类型。
+这里发生了什么？第一个模板参数与之前相同：元素类型 T。第二个模板参数现在是一个模板本身，用于诸如 vector 或 deque 这样的容器。“模板类型”必须接受两个参数：一个元素类型 E 和一个分配器类型。Grid模板中的这个参数的名字是 Container（与之前一样）。现在的默认值是 vector，而不是 vector<T>，因为 Container 参数现在是一个模板，而不是一个实际类型。
 
-双重模板参数的语法规则是这样的：
+双重模板参数的语法规则为：
 
 \begin{cpp}
 template <..., template <TemplateTypeParams> class ParameterName, ...>
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-也可以使用 typename 关键字代替 class，如下面的例子：
+也可以使用 typename 关键字代替 class：
 
 \begin{cpp}
 template <..., template <Params> typename ParameterName, ...>
 \end{cpp}
 \end{myNotic}
 
-代码中，不能只使用 Container，必须指定 Container<std::optional<T>{}> 作为容器类型。例如，m\_cells 的声明如下所示：
+不能只使用 Container，必须指定 Container<std::optional<T>{}> 作为容器类型。例如，m\_cells 的声明为：
 
 \begin{cpp}
 Container<std::optional<T>> m_cells;
 \end{cpp}
 
-成员函数定义不需要改变，除了必须改变模板声明，例如：
+成员函数定义不需要改变，除了必须改变模板声明：
 
 \begin{cpp}
 template <typename T,
@@ -231,7 +231,7 @@ void Grid<T, Container>::verifyCoordinate(std::size_t x, std::size_t y) const
 }
 \end{cpp}
 
-这个 Grid 类模板可以按以下方式使用：
+这个 Grid 类模板可以这样使用：
 
 \begin{cpp}
 Grid<int, vector> myGrid;
@@ -241,18 +241,18 @@ Grid<int, vector> myGrid2 { myGrid };
 Grid<int, deque> myDequeGrid;
 \end{cpp}
 
-这一节展示了可以将模板作为类型参数传递给其他模板，但这个语法看起来有点复杂，确实如此。我建议避免使用双重模板参数。实际上，标准库本身从不使用双重模板参数。
+这一节展示了可以将模板作为类型参数传递给其他模板，但这个语法看起来有点复杂，确实如此。我建议避免使用双重模板参数，并且标准库也从不使用双重模板参数。
 
 \mySubsubsection{26.1.3.}{非类型模板参数}
 
-可能希望允许用户指定一个，用于初始化Grid中每个单元格的默认元素。下面是一个实现这一目标的完美合理的方法，使用 T\{\} 的零初始化语法作为第二个模板参数的默认值。
+用户可以指定一个用于初始化Grid中每个单元格的默认元素。下面是实现这一目标的完美方法，使用 T\{\} 的零初始化语法作为第二个模板参数的默认值。
 
 \begin{cpp}
 export template <typename T, T DEFAULT = T{}>
 class Grid { /* Identical as before. */ };
 \end{cpp}
 
-这个定义是合法的。可以使用第一个参数中的类型 T 作为第二个参数的类型，可以使用这个 T 的初始值来初始化Grid中的每个单元格：
+这个定义是合法的。可以用第一个参数中的类型 T ，作为第二个参数的类型。可以用这个 T 的初始值，来初始化Grid中的每个单元格：
 
 \begin{cpp}
 template <typename T, T DEFAULT>
@@ -270,17 +270,17 @@ Grid<int> myIntGrid; // Initial value is int{}, i.e., 0
 Grid<int, 10> myIntGrid2; // Initial value is 10
 \end{cpp}
 
-初始值可以是任何整数，假设按以下方式为 SpreadsheetCell 创建一个 Grid：
+初始值可以是整数，假设按以下方式为 SpreadsheetCell 创建一个 Grid：
 
 \begin{cpp}
 SpreadsheetCell defaultCell;
 Grid<SpreadsheetCell, defaultCell> mySpreadsheet; // WILL NOT COMPILE
 \end{cpp}
 
-第二行将导致编译错误，因为模板参数 DEFAULT 的值必须在编译时已知；但defaultCell 的值直到运行时才能知道，所以它不是 DEFAULT 可接受的值。
+第二行将导致编译错误，模板参数 DEFAULT 的值必须在编译时已知；但defaultCell的值直到运行时才能知道，所以它不是 DEFAULT 可接受的值。
 
 \begin{myNotic}{NOTE}
-C++20 之前，非类型模板参数不能是对象，甚至不能是双精度浮点数或浮点数。它们仅限于整型、枚举、指针和引用。从 C++20 开始，这些限制有所放宽，现在允许非类型模板参数为浮点类型，甚至某些类类型。但这样的类类型有很多限制，本书中不再讨论。简单地说，SpreadsheetCell 类不符合这些限制。
+C++20 之前，非类型模板参数不能是对象，甚至不能是双精度浮点数或浮点数。它们仅限于整型、枚举、指针和引用。从 C++20 开始，这些限制有所放宽，现在允许非类型模板参数为浮点类型，甚至某些类类型。但这样的类类型有很多限制，本书不再讨论。
 \end{myNotic}
 
 

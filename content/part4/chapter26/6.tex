@@ -430,7 +430,7 @@ remove\_all\_extents
 \end{itemize}
 
 \item
-逻辑运算符特性
+逻辑操作符特性
 
 \begin{itemize}
 \item
@@ -684,11 +684,11 @@ void same(const T& t1, const T& t2)
 
 \mySamllsection{使用条件类型特征}
 
-第 18 章解释了标准库辅助函数模板 std::move\_if\_noexcept()，可以根据前者是否标记为 noexcept ，有条件地调用移动构造函数或复制构造函数。标准库没有提供类似的辅助函数模板，根据前者是否 noexcept 来调用移动赋值运算符或复制赋值运算符。现在了解了模板元编程和类型特征，来看看如何自己实现 move\_assign\_if\_noexcept()。
+第 18 章解释了标准库辅助函数模板 std::move\_if\_noexcept()，可以根据前者是否标记为 noexcept ，有条件地调用移动构造函数或复制构造函数。标准库没有提供类似的辅助函数模板，根据前者是否 noexcept 来调用移动赋值操作符或复制赋值操作符。现在了解了模板元编程和类型特征，来看看如何自己实现 move\_assign\_if\_noexcept()。
 
 move\_if\_noexcept() 中，如果移动构造函数标记为 noexcept，只是将给定的引用转换为 右值 引用，否则转换为引用为常量。
 
-move\_assign\_if\_noexcept() 需要做类似的事情，如果移动赋值运算符标记为 noexcept，则将给定的引用转换为 右值 引用，否则转换为引用为常量。
+move\_assign\_if\_noexcept() 需要做类似的事情，如果移动赋值操作符标记为 noexcept，则将给定的引用转换为 右值 引用，否则转换为引用为常量。
 
 std::conditional 类型特征可以用来实现条件。这个类型特征有三个模板参数：一个布尔值、布尔值为true的类型，以及布尔值为false的类型。conditional 类型特征的实现如下：
 
@@ -700,7 +700,7 @@ template <class T, class F>
 struct conditional<false, T, F> { using type = F; };
 \end{cpp}
 
-is\_nothrow\_move\_assignable 类型特征可以用来判断某个类型，是否可以不抛出异常地进行移动赋值。对于类类型，检查类型是否有一个标记为 noexcept 的移动赋值运算符。以下是 move\_assign\_if\_noexcept() 函数模板的完整实现：
+is\_nothrow\_move\_assignable 类型特征可以用来判断某个类型，是否可以不抛出异常地进行移动赋值。对于类类型，检查类型是否有一个标记为 noexcept 的移动赋值操作符。以下是 move\_assign\_if\_noexcept() 函数模板的完整实现：
 
 \begin{cpp}
 template <typename T>
@@ -972,9 +972,9 @@ void callDoit(const T& t)
 }
 \end{cpp}
 
-\mySamllsection{逻辑运算符特征}
+\mySamllsection{逻辑操作符特征}
 
-有三个逻辑运算符特征：conjunction、disjunction 和 negation。此外，还提供了以 \_v 结尾的变量模板。这些特征接受可变数量的模板类型参数，并可用于在类型特征上执行逻辑操作，例如：
+有三个逻辑操作符特征：conjunction、disjunction 和 negation。此外，还提供了以 \_v 结尾的变量模板。这些特征接受可变数量的模板类型参数，并可用于在类型特征上执行逻辑操作，例如：
 
 \begin{cpp}
 print("{} ", conjunction_v<is_integral<int>, is_integral<short>>);

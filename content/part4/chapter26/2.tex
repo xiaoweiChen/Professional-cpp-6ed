@@ -1,4 +1,4 @@
-第12章中展示的 const char* 类型的 Grid 类模板特化称为全特化模板，因为它特化了 Grid 模板的所有模板参数，特化中不再有模板参数。这并不是唯一可以特化类的方式；还可以编写部分类模板特化，在其中特化一些模板参数而不特化其他参数。例如，回想一下带有宽度（width）和高度（height）非类型参数的 Grid 模板的基本版本：
+第12章中展示的 const char* 类型的 Grid 类模板特化称为全特化模板，它特化了 Grid 模板的所有模板参数，特化中不再有模板参数。这并不是唯一可以特化类的方式；还可以编写部分类模板特化，在其中特化一些模板参数而不特化其他参数。例如，带有宽度（width）和高度（height）非类型参数的 Grid 模板：
 
 \begin{cpp}
 export template <typename T, std::size_t WIDTH, std::size_t HEIGHT>
@@ -27,7 +27,7 @@ class Grid
 };.
 \end{cpp}
 
-可以将这个类模板特化为const char*，如下所示:
+可以将这个类模板特化为const char*:
 
 \begin{cpp}
 export template <std::size_t WIDTH, std::size_t HEIGHT>
@@ -64,7 +64,7 @@ export template <std::size_t WIDTH, std::size_t HEIGHT>
 class Grid<const char*, WIDTH, HEIGHT>
 \end{cpp}
 
-这个类模板只有两个参数：WIDTH 和 HEIGHT，但正在为一个有三个参数的 Grid 类进行实现：T、WIDTH 和 HEIGHT。因此，模板参数列表包含两个参数，而显式的 Grid<const char*, WIDTH, HEIGHT> 包含三个参数。实例化模板时，必须指定三个参数。不能仅用高度和宽度来实例化模板。
+这个类模板只有两个参数：WIDTH 和 HEIGHT，但正在为一个有三个参数的 Grid 类进行实现：T、WIDTH 和 HEIGHT。模板参数列表包含两个参数，而显式的 Grid<const char*, WIDTH, HEIGHT> 包含三个参数。实例化模板时，必须指定三个参数，不能仅用高度和宽度来实例化模板。
 
 \begin{cpp}
 Grid<int, 2, 2> myIntGrid; // Uses the original Grid
@@ -72,7 +72,7 @@ Grid<const char*, 2, 2> myStringGrid; // Uses the partial specialization
 Grid<2, 3> test; // DOES NOT COMPILE! No type specified.
 \end{cpp}
 
-嗯...这个语法可能令人困惑。此外，在偏特化与全特化不同，必须在每个成员函数定义前包含模板声明的，如下例所示：
+嗯...这个语法可能令人困惑。此外，偏特化与全特化不同，必须在每个成员函数定义前，包含模板声明：
 
 \begin{cpp}
 template <std::size_t WIDTH, std::size_t HEIGHT>
@@ -84,11 +84,11 @@ const std::optional<std::string>&
 }
 \end{cpp}
 
-需要这个带有两个参数的模板声明，来标识这个成员函数是针对这两个参数进行的参数化。请注意，无论在哪里引用完整的类名，都必须使用 Grid<const char*, WIDTH, HEIGHT>。
+需要带有两个参数的模板声明，来标识这个成员函数是针对这两个参数进行的参数化。无论在哪里引用完整的类名，都必须使用 Grid<const char*, WIDTH, HEIGHT>。
 
 前面的例子并没有显示出偏特化化的强大之处，可以编写特化为可能类型的子集的实现，而不必特化单个类型。例如，一个特化为所有指针类型的 Grid 类模板。这个特化的复制构造函数和赋值运算符，对指针指向的对象执行深拷贝，而不是浅拷贝。
 
-以下是类定义，假设正在特化仅有一个模板参数的 Grid 的初始版本。这个实现中，Grid 成为提供数据的所有者，因此它会在需要时自动释放内存，复制/移动构造函数和复制/移动赋值运算符是必需的。复制赋值运算符使用复制并交换习语，移动赋值运算符使用移动并交换习语，如第9章中介绍的那样，这需要一个 noexcept swap() 成员函数。
+以下是类定义，假设正在特化仅有一个模板参数的Grid。这个实现中，Grid 成为提供数据的所有者，它会在需要时自动释放内存，复制/移动构造函数和复制/移动赋值运算符是必需的。复制赋值运算符使用复制并交换习语，移动赋值运算符使用移动并交换习语，如第9章中介绍的那样，这需要一个 noexcept swap() 成员函数。
 
 \begin{cpp}
 export template <typename U>
@@ -132,7 +132,7 @@ export template <typename U>
 class Grid<U*>
 \end{cpp}
 
-这个语法表明这个类模板是 Grid 类模板对所有指针类型的特化。重要的是要知道，当有一个如 Grid<int*> 的实例化时，U 是 int，而不是 int*。这可能有点违反直觉，但这就是它的工作方式。
+这个语法表明这个类模板是 Grid 类模板，是对所有指针类型的特化。当有一个如 Grid<int*> 的实例化时，U 是 int，而不是 int*。这可能有点违反直觉，但这就是它的工作方式。
 
 以下是使用这个偏特化的例子：
 
@@ -165,7 +165,7 @@ println("{}", *psGrid2.at(1, 0)); // psGrid2 is modified.
 6
 \end{shell}
 
-成员函数的实现相当简单，除了复制构造函数，使用单个元素的复制构造函数可对它们进行深拷贝：
+成员函数的实现相当简单，除了复制构造函数，使用单个元素的复制构造函数可进行深拷贝：
 
 \begin{cpp}
 template <typename U>
