@@ -1,25 +1,25 @@
 
-标准库包含许多有用的容器、算法和迭代器，可以在应用程序中使用它们。然而，任何库都不可能包含所有工具，满足所有客户的需求。因此，最好的库是可扩展的：允许客户适应和添加基本功能，以获得所需的功能。由于标准库将数据与操作它们的算法分离的基本结构，因此具有可扩展性。可以通过提供符合标准库指南的迭代器来编写自己的容器，使其与标准库算法一起工作。同样，可以编写自己的算法，与标准容器的迭代器一起工作。但请记住，不允许将自己的容器和算法放在std命名空间中。
+标准库包含许多有用的容器、算法和迭代器，可以在应用程序中使用。但任何库都不可能包含所有工具，满足所有客户的需求，所以最好的库是可扩展的：允许客户适应和添加基本功能，以获得所需的功能。由于标准库将数据与操作算法分离的基本结构，因此具有可扩展性。可以通过提供符合标准库指南的迭代器来编写自己的容器，使其与标准库算法一起工作。也可以编写自己的算法，与标准容器的迭代器一起工作。但请记住，不允许将自己的容器和算法放在std命名空间中。
 
 \begin{myNotic}{NOTE}
-本书通常使用这样的约定来命名函数和成员函数：不带下划线，名称中的每个单词都大写，除了第一个单词，例如：getIndex()。然而，这一章讨论的是扩展标准库，因此使用了标准库的命名约定。函数和成员函数名称都是小写的，用下划线分隔单词，例如get\_index()。类名也使用标准库的命名约定。
+本书通常使用这样的约定来命名函数和成员函数：不带下划线，名称中的每个单词都大写，除了第一个单词，例如：getIndex()。这一章讨论的是扩展标准库，因此使用了标准库的命名约定。函数和成员函数名称都是小写的，用下划线分隔单词，例如get\_index()。类名也使用标准库的命名约定。
 \end{myNotic}
 
 \mySubsubsection{25.2.1.}{为什么要扩展标准库？}
 
-如果坐下来编写C++中的算法或容器，可以选择让它遵循标准库约定，也可以不遵循。对于简单的容器和算法，遵循标准库的要求可能不值得付出努力。然而，对于计划重用的实质性代码，这种努力是值得的。首先，因为遵循了成熟的接口指南，其他C++开发者能更容易理解您的代码。其次，能够使用容器或算法与标准库的其他部分（算法或容器）一起使用，而无需提供特殊的中介或适配器。最后，这将使开发者采取严谨的态度，来开发可靠的代码。
+如果自定义C++中的算法或容器，可以选择让其遵循标准库约定，也可以不遵循。对于简单的容器和算法，遵循标准库的要求可能不值得付出努力。然而，对于计划重用的代码，这种努力是值得的。因为遵循了成熟的接口指南，其他C++开发者能更容易理解这段代码。其次，能够使用容器或算法与标准库的其他部分（算法或容器）一起使用，而无需提供特殊的中介或适配器。最后，这将使开发者采取严谨的态度，来开发可靠的代码。
 
 \mySubsubsection{25.2.2.}{实现一个标准库算法}
 
-第16章和第20章描述了标准库中一组有用的算法，但在程序中，不可避免地会遇到需要新算法的情况。这种情况发生时，实现自己的算法并不困难，该算法与标准库迭代器一起工作，就像标准算法一样。
+第16章和第20章描述了标准库中一组有用的算法，但不可避免地会遇到需要新算法的情况。这种情况发生时，实现自己的算法并不困难，该算法与标准库迭代器一起工作，就像标准算法一样。
 
 \mySamllsection{find\_all}
 
-假设要找到给定范围内的所有元素，包括它们的位置，匹配一个谓词。find()和find\_if()算法是最有可能的候选者，但每个都只返回一个元素的迭代器。可以使用copy\_if()找到所有匹配给定谓词的元素，但它会用找到的元素的副本填充输出，因此会丢失它们的位置。如果想避免复制，可以使用copy\_if()与back\_insert\_iterator（参见第17章）到一个vector<reference\_wrapper<T>{}>中，但这也不会找到的元素的位置。实际上，没有一个标准算法可以通过迭代器，获取匹配谓词的所有元素。然而，可以自己实现的这个功能，暂时称为find\_all()。
+假设要找到给定范围内的所有元素，包括它们的位置，匹配一个谓词。find()和find\_if()算法是最有可能的候选者，每个都只返回一个元素的迭代器。可以使用copy\_if()找到所有匹配给定谓词的元素，但会用找到的元素的副本填充输出，丢失其位置。如果想避免复制，可以使用copy\_if()与back\_insert\_iterator（参见第17章）到一个vector<reference\_wrapper<T>{}>中，但这也不会找到的元素的位置。实际上，没有一个标准算法可以通过迭代器，获取匹配谓词的所有元素，所以可以自己实现的这个功能，暂时称为find\_all()。
 
-第一部分中，我们将了解find\_all()的遵循传统无约束算法模型的实现。当这个实现开始工作，将看到如何扩展和调整，以遵循现代约束算法模型，并添加对投影和更多特性的支持。
+第一部分中，我们将了解find\_all()的遵循传统无约束算法模型的实现。开始实现工作，会了解到如何扩展和调整，以遵循现代约束算法模型，并添加对投影和更多特性的支持。
 
-第一项任务是定义函数原型。可以遵循copy\_if()的模型，即一个带有三个模板类型参数的函数模板：输入迭代器类型、输出迭代器类型和谓词类型。函数的参数是输入序列的开始和结束迭代器，输出序列的开始迭代器，以及一个谓词对象。与copy\_if()一样，算法返回一个迭代器，指向输出序列中最后一个元素之后的元素。当然，在现代C++代码中，建议为模板类型参数添加适当的约束，所以我们遵循这个建议。这是原型：
+第一项任务是定义函数原型。可以遵循copy\_if()的模型，即一个带有三个模板类型参数的函数模板：输入迭代器类型、输出迭代器类型和谓词类型。函数的参数是输入序列的开始和结束迭代器，输出序列的开始迭代器，以及一个谓词对象。与copy\_if()一样，算法返回一个迭代器，指向输出序列中最后一个元素之后的元素。现代C++代码中，建议为模板类型参数添加适当的约束，我们遵循这个建议：
 
 \begin{cpp}
 template <forward_iterator ForwardIterator,
@@ -29,7 +29,7 @@ OutputIterator find_all(ForwardIterator first, ForwardIterator last,
                         OutputIterator dest, Predicate pred);
 \end{cpp}
 
-forward\_iterator概念指定一个迭代器必须是可以解引用和递增的等，output\_iterator<ForwardIterator>概念要求迭代器是一个接受ForwardIterator类型的值的输出迭代器。indirect\_unary\_predicate是一个预定义的需求集，算法可以用它来指定一元谓词参数的要求。这里需要间接使用，因为需求应用于其模板类型参数所引用的类型，这个案例中是ForwardIterator，不是ForwardIterator本身。
+forward\_iterator概念指定一个迭代器必须可以解引用和递增等，output\_iterator<ForwardIterator>概念要求迭代器是一个接受ForwardIterator类型的值的输出迭代器。indirect\_unary\_predicate是一个预定义的需求集，算法可以用它来指定一元谓词参数的要求。这里需要间接使用，因为需求应用于其模板类型参数所引用的类型，这个案例中是ForwardIterator，不是ForwardIterator本身。
 
 另一种设计选择是省略输出迭代器，并返回一个迭代器，该迭代器在输入序列中迭代所有匹配的元素。要求实现自己的迭代器类，这将在本章后面讨论。
 
@@ -53,7 +53,7 @@ OutputIterator find_all(ForwardIterator first, ForwardIterator last,
 }
 \end{cpp}
 
-类似于copy\_if()，该算法只覆盖输出序列中已存在的元素，因此请确保输出序列足够大以容纳结果，或者使用迭代器适配器，如back\_insert\_iterator，如下面的代码所示。在找到所有匹配的元素后，代码计算找到的元素数量，即matches中的迭代器数量。然后，遍历结果，打印每个元素。
+类似于copy\_if()，该算法只覆盖输出序列中已存在的元素，请确保输出序列足够大以容纳结果，或者使用迭代器适配器，如back\_insert\_iterator，如下面的代码所示。在找到所有匹配的元素后，代码计算找到的元素数量，即matches中的迭代器数量。遍历结果，打印每个元素。
 
 \begin{cpp}
 vector<int> vec { 5, 4, 5, 4, 10, 6, 5, 8, 10 };
@@ -121,19 +121,19 @@ Found 3 matching elements:
 
 \mySubsubsection{25.2.3.}{实现标准库容器}
 
-C++标准库包含了一组任何容器必须满足的要求，才能资格成为标准库容器。此外，如果希望自定义容器是顺序的（如vector）、有序关联的（如map）或无序关联的（如unordered\_map），必须符合要求。
+C++标准库包含了一组任何容器必须满足的要求，才能资格成为标准库容器。如果希望自定义容器是顺序的（如vector）、有序关联的（如map）或无序关联的（如unordered\_map），必须符合要求。
 
-编写自定义容器时，我的建议是首先编写基本容器，遵循标准库的一般规则，比如使其成为一个类模板，但暂时不必过于担心标准库符合性的具体细节。在开发了基本实现之后，添加迭代器支持，使其能够与标准库框架一起工作。接下来，添加成员函数和类型别名以满足所有基本容器要求，最后，满足容器的要求。本章采用这种方法来开发有向图数据结构，也称为digraph。
+编写自定义容器时，我的建议是首先编写基本容器，遵循标准库的一般规则，比如使其成为一个类模板，但不必过于担心标准库符合性的细节。开发了基本实现之后，添加迭代器支持，使其能够与标准库框架一起工作。接下来，添加成员函数和类型别名以满足所有基本容器要求。最后，满足容器的要求。本章采用这种方法来开发有向图数据结构，也称为digraph。
 
 \mySamllsection{简介——有向图}
 
-某些C++标准库容器可能在它们的实现中使用图，但标准库并没有向用户提供类似图的数据结构。因此，实现自己的图，似乎是一个编写符合标准库的自定义容器的完美示例。
+某些C++标准库容器可能在它们的实现中使用图，但标准库并没有向用户提供类似图的数据结构。实现自己的图，似乎是编写符合标准库的自定义容器的完美示例。
 
-开始编写代码之前，首先看看有向图是什么样的数据结构，以及如何在内存中表示其数据。图25.1显示了有向图示例的视觉表示。基本上，有向图由一组节点（也称为顶点）组成，这些节点通过边连接，每条边都有方向。
+开始编写代码之前，首先了解一下有向图是什么样的数据结构，以及如何在内存中表示其数据。图25.1显示了有向图示例的视觉表示。基本上，有向图由一组节点（也称为顶点）组成，这些节点通过边连接，每条边都有方向。
 
 \myGraphic{0.4}{content/part4/chapter25/images/1.png}{图 25.1}
 
-内存中存储此类数据结构有多种方法，例如边列表、邻接矩阵和邻接列表。此实现使用邻接列表。节点存储在vector中，每个节点都有一个邻接列表，列出其相邻节点。让我们看一个例子。假设图25.2中的有向图，使用邻接列表表示此图会产生以下数据结构：
+内存中存储此类数据结构有多种方法，例如边列表、邻接矩阵和邻接列表。此实现使用邻接列表。节点存储在vector中，每个节点都有一个邻接列表，列出其相邻节点。假设图25.2中的有向图，使用邻接列表表示此图会产生以下数据结构：
 
 \myGraphic{0.25}{content/part4/chapter25/images/2.png}{图 25.2}
 
@@ -152,7 +152,7 @@ B             & C                       \\ \hline
 C             &                         \\ \hline
 \end{longtable}
 
-这可以存储为一个vector，其中vector的每个元素代表表的行，每个vector元素代表一个节点及其对应的邻接列表。让我们从基本实现开始，暂时不必过于担心标准库的要求。这个第一部分实现了一个简单，但功能齐全的directed\_graph<T>，其中T是存储在单个节点中的值的类型，存储在directed\_graph中的所有值必须是唯一的。这可能不是最好或最高效的有向图实现，但这不是本章的重点。本章的目的是演示按照标准库思想制作数据结构的过程。
+这可以存储为一个vector，其中vector的每个元素代表表的行，每个vector元素代表一个节点及其对应的邻接列表。第一部分实现了一个简单，但功能齐全的directed\_graph<T>，其中T是存储在单个节点中的值的类型，存储在directed\_graph中的所有值必须唯一。这可能不是最好或最高效的有向图实现，但这不是本章的重点。本章的目的是演示按照标准库的思想，制作数据结构的过程。
 
 \mySamllsection{让directed\_graph成为标准库的容器}
 
@@ -194,7 +194,7 @@ namespace details
 
 这个定义中，没有对模板类型参数T施加任何约束。就像vector一样，元素的要求取决于实际对容器执行的操作。
 
-在构造函数初始化中，m\_data的初始化使用了m\_data(std::move(t))。使用统一的初始化语法m\_data\{std::move(t)\}可能不会编译，因为T是用户定义的类型。
+构造函数初始化中，m\_data的初始化使用了m\_data(std::move(t))。使用统一的初始化语法m\_data\{std::move(t)\}可能不会编译，因为T是用户定义的类型。
 
 现在已经有了自己的graph\_node实现，让来看看directed\_graph类本身。
 
@@ -254,11 +254,11 @@ class directed_graph
 
 定义中，没有对模板类型参数T施加任何约束，就像标准库中的vector容器一样，元素的要求取决于实际对容器执行的操作。
 
-这个接口看起来很简单，这个接口没有定义任何用户定义的复制构造函数、复制赋值运算符、移动构造函数或移动赋值运算符，即该类遵循第9章中讨论的零规则。现在让我们看看public成员函数的具体实现。
+这个接口看起来很简单，这个接口没有定义任何用户定义的复制构造函数、复制赋值操作符、移动构造函数或移动赋值操作符，即该类遵循第9章中讨论的零规则。现在来看看public成员函数的具体实现。
 
 \mySamllsection{实现}
 
-确定有向图接口后，需要选择实现模型。正如前面讨论的，这个实现将有向图存储为节点列表，其中每个节点包含其值和相邻节点的索引set。由于相邻节点列表包含到其他节点的索引，因此节点应基于其索引可访问，vector是最适合存储节点的容器。每个节点都用graph\_node实例表示，最终结构是一个graph\_node vector。以下是directed\_graph类的第一个private成员：
+确定有向图接口后，需要选择实现模型。正如前面讨论的，这个实现将有向图存储为节点列表，其中每个节点包含其值和相邻节点的索引set。由于相邻节点列表包含到其他节点的索引，节点应基于其索引可访问，vector是最适合存储节点的容器。每个节点都用graph\_node实例表示，最终结构是一个graph\_node vector。以下是directed\_graph类的第一个private成员：
 
 \begin{cpp}
 private:
@@ -268,7 +268,7 @@ private:
 
 \mySamllsection{搜索节点}
 
-图的插入和删除操作需要找到具有给定节点值的元素，有一个private辅助成员函数执行此任务。提供了常量和非常量重载：
+图的插入和删除操作需要找到具有给定节点值的元素，有一个private辅助成员函数执行此任务。提供了常量和非常量的重载：
 
 \begin{cpp}
 // Helper member function to return an iterator to the given node, or the
@@ -291,11 +291,11 @@ typename directed_graph<T>::node_container_type::iterator
 
 该成员函数的主体并不复杂。使用标准库中的find\_if()算法，如第20章所述，在图中的所有节点中搜索具有等于node\_value参数的值的节点。如果在图中找到了这样的节点，返回该节点的迭代器；否则，返回结束迭代器。
 
-这个成员函数头中的语法有些令人困惑，特别是对typename关键字的用法。当使用依赖于模板参数的类型时，必须始终使用typename关键字。具体来说，类型node\_container\_type::iterator，即vector<details::graph\_node<T>{}>::iterator，依赖于T模板类型参数。
+这个成员函数头中的语法有些令人困惑，特别是对typename关键字的用法。当使用依赖于模板参数的类型时，必须始终使用typename关键字。类型node\_container\_type::iterator，即vector<details::graph\_node<T>{}>::iterator，依赖于T模板类型参数。
 
 \mySamllsection{插入节点}
 
-insert()必须检查具有给定值的节点是否已经存在于图中。如果不存在，可以为给定值创建一个新的节点。public接口提供了一个接受T值的insert()成员函数。这种情况下，这是最优的，并遵循第9章部分中的建议。调用emplace\_back()构建一个新的graph\_node，通过传递指向directed\_graph的指针和节点的值到graph\_node构造函数：
+insert()必须检查具有给定值的节点是否已经存在于图中。如果不存在，可以为给定值创建一个新的节点。public接口提供了一个接受T值的insert()成员函数。这是最优的方式，并遵循第9章部分中的建议。调用emplace\_back()构建一个新的graph\_node，通过传递指向directed\_graph的指针和节点的值到graph\_node构造函数：
 
 \begin{cpp}
 template <typename T>
@@ -314,7 +314,7 @@ bool directed_graph<T>::insert(T node_value)
 
 \mySamllsection{插入边}
 
-将节点添加到图中时，这些节点之间的边就可以构建出来，以构建出一个有向图。为此，提供了insert\_edge()成员函数，该函数需要两个参数：边的起点节点的值，以及边指向的终点节点的值。成员函数首先搜索图中的起点和终点节点。如果其中任何一个节点在图中找不到，则返回false。如果两个都找到了，通过调用private辅助函数get\_index\_of\_node()计算包含to\_node\_value的节点的索引，并最终将这个索引添加到包含from\_node\_value的节点的邻接列表中。insert\_edge()成员函数只有在图改变时才返回true。第18章中，set的insert()返回一个pair<iterator,bool>，其中布尔值表示插入是否成功，这就是为什么在返回语句中使用.second的原因。
+将节点添加到图中时，这些节点之间的边就可以构建出来，以构建出一个有向图。为此，提供了insert\_edge()成员函数，该函数需要两个参数：边的起点节点的值，以及边指向的终点节点的值。成员函数首先搜索图中的起点和终点节点。如果其中一个节点在图中找不到，则返回false。如果两个都找到了，通过调用private辅助函数get\_index\_of\_node()计算包含to\_node\_value的节点的索引，并最终将这个索引添加到包含from\_node\_value的节点的邻接列表中。insert\_edge()成员函数只有在图改变时才返回true。第18章中，set的insert()返回一个pair<iterator,bool>，其中布尔值表示插入是否成功，这就是为什么要在返回语句中使用.second。
 
 \begin{cpp}
 template <typename T>
@@ -348,13 +348,13 @@ erase()遵循与insert()相同的模式：首先尝试通过调用find\_node()�
 
 \begin{enumerate}
 \item
-从所有其他节点的邻接列表中删除要删除节点的索引。
+从所有其他节点的邻接列表中删除节点的索引。
 
 \item
 从节点列表中删除实际的节点。
 \end{enumerate}
 
-为了第一步，向graph\_node添加了一个辅助成员函数remove\_node\_index()，该函数从节点的邻接列表中删除给定的节点索引，并更新剩余的索引以考虑索引的移动，实现如下。其中一个棘手的部分是，邻接列表是一个set，而set不允许对其值进行修改。因此，实现中的第二步将set转换为vector，使用for\_each()算法更新所有需要更新的索引，最后清空set并插入更新的索引。这可能不是最有效的实现，但正如前面提到的，这不是讨论的重点。
+为了第一步，向graph\_node添加了一个辅助成员函数remove\_node\_index()，该函数从节点的邻接列表中删除给定的节点索引，并更新剩余的索引以考虑索引的移动，实现如下。棘手的部分是，邻接列表是一个set，而set不允许对其值进行修改。因此，实现中的第二步将set转换为vector，使用for\_each()算法更新所有需要更新的索引，最后清空set并插入更新的索引。这可能不是最有效的实现，但正如前面提到的，这不是当前讨论的重点。
 
 \begin{cpp}
 template <typename T>
@@ -389,7 +389,7 @@ void directed_graph<T>::remove_all_links_to(
 }
 \end{cpp}
 
-有了这个辅助成员函数，实际的erase()成员函数的实现就变得简单了：
+有了这个辅助成员函数，实际的erase()成员函数的实现就变简单了：
 
 \begin{cpp}
 template <typename T>
@@ -437,7 +437,7 @@ void directed_graph<T>::clear() noexcept
 
 \mySamllsection{交换图}
 
-由于directed\_graph只有一个数据成员，即一个vector容器，交换两个directed\_graphs就是交换它们的数据成员：
+directed\_graph只有一个数据成员，即一个vector容器，交换两个directed\_graph就是交换其数据成员：
 
 \begin{cpp}
 template <typename T>
@@ -459,7 +459,7 @@ void swap(directed_graph<T>& first, directed_graph<T>& second) noexcept
 
 \mySamllsection{访问节点}
 
-directed\_graph的公共接口支持基于其索引访问节点，使用operator[]。它的实现很简单，与vector一样，操作符不对请求的索引进行边界检查：
+directed\_graph的公共接口支持基于其索引访问节点，使用operator[]。实现很简单，与vector一样，操作符不对请求的索引进行边界检查：
 
 \begin{cpp}
 template <typename T>
@@ -471,7 +471,7 @@ const T& directed_graph<T>::operator[](std::size_t index) const
 
 \mySamllsection{比较图}
 
-两个directed\_graphs相等，当它们包含相同的一组节点，以及这些节点之间相同的一组边。由于两个directed\_graph可能以不同的顺序添加节点，因此实现不能仅比较m\_node数据成员，而是需要做更多的工作。
+两个directed\_graphs相等，当包含相同的一组节点，以及这些节点之间相同的一组边。由于两个directed\_graph可能以不同的顺序添加节点，实现不能仅比较m\_node数据成员，还需要做更多的工作。
 
 代码首先检查两个directed\_graph的大小。如果大小不同，两个图不相同。如果它们的大小相同，代码遍历其中一个图的所有节点。对于每个节点，尝试在另一个图中找到相同的节点。如果找不到这样的节点，则两个图不相同。如果找到这样的节点，使用一个名为get\_adjacent\_nodes\_values()的辅助成员函数将相邻节点的索引转换为相邻节点的值，然后比较这些值是否相等。
 
@@ -506,7 +506,7 @@ std::set<T> directed_graph<T>::get_adjacent_nodes_values(
 
 \mySamllsection{获取相邻节点}
 
-public接口提供了一个名为get\_adjacent\_nodes\_values()的成员函数，接受一个const T类型的引用作为参数，该函数返回一个包含给定节点相邻节点的值的集合。如果给定的节点不存在，则返回一个空集合。实现使用了前面章节中接受索引列表的get\_adjacent\_nodes\_values()重载：
+public接口提供了一个名为get\_adjacent\_nodes\_values()的成员函数，接受一个const T类型的引用作为参数，该函数返回一个包含给定节点相邻节点的值的集合。如果给定的节点不存在，则返回一个空集合。实现使用了前面章节中接受索引列表get\_adjacent\_nodes\_values()的重载：
 
 \begin{cpp}
 template <typename T>
@@ -559,7 +559,7 @@ std::string to_dot(const directed_graph<T>& graph, std::string_view graph_name)
 
 \mySamllsection{有向图的使用}
 
-现在已经完成了基本有向图类的完整实现，是时候对这个类进行一次测试了。下面是一个展示基本有向图类模板的小程序：
+已经完成了基本有向图类的完整实现，是时候对这个类进行一次测试了。下面是一个展示基本有向图类模板的小程序：
 
 \begin{cpp}
 directed_graph<int> graph;
@@ -610,7 +610,7 @@ Size: 4
 
 \mySamllsection{标准库的其他功能}
 
-前面几节中实现的基本有向图遵循了标准库的思想，但并未完全遵循其具体规定。对于大多数用途，前面的实现已经足够好。然而，如果想使用标准库算法处理有向图，必须做更多的努力。C++标准规定了类模板必须提供的成员函数和类型别名，以符合标准库容器的资格。
+前面几节中实现的基本有向图遵循了标准库的思想，但并未完全遵循其具体规定。对于大多数用途，前面的实现已经足够好。如果想使用标准库算法处理有向图，必须做更多的努力。C++标准规定了类模板必须提供的成员函数和类型别名，以符合标准库容器的资格。
 
 \mySamllsection{必需的类型别名}
 
@@ -632,12 +632,12 @@ const\_reference   & 对容器中存储的元素类型的常量引用           
 iterator           & 遍历容器中元素类型的类型                                             \\ \hline
 const\_iterator    & 用于遍历容器中常量元素的迭代器类型的版本                               \\ \hline
 size\_type &
-\begin{tabular}[c]{@{}l@{}}一个可以表示容器中元素数量的类型；这通常是size\_t(<cstddef>)\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}可以表示容器中元素数量的类型；这通常是size\_t(<cstddef>)\end{tabular} \\ \hline
 difference\_type &
-\begin{tabular}[c]{@{}l@{}}一个可以表示容器中两个迭代器差异的类型；这通常是ptrdiff\_t (<cstddef>)\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}可以表示容器中两个迭代器差异的类型；这通常是ptrdiff\_t (<cstddef>)\end{tabular} \\ \hline
 \end{longtable}
 
-以下是为directed\_graph类模板定义的所有这些类型别名，除了迭代器和const\_iterator。关于迭代器的编写将在本章的后面详细讨论。
+以下是为directed\_graph类模板定义的所有这些类型别名，除了迭代器和const\_iterator。关于迭代器的编写将在本章的后面详细介绍。
 
 \begin{cpp}
 export template <typename T>
@@ -653,13 +653,13 @@ class directed_graph
 };
 \end{cpp}
 
-有了这些类型别名，一些成员函数可以稍微修改。例如，这里是对operator[]的早期定义：
+有了这些类型别名，一些成员函数可以稍微修改。这是对operator[]的早期定义：
 
 \begin{cpp}
 const T& operator[](std::size_t index) const;
 \end{cpp}
 
-使用新的类型别名，可以写成以下形式：
+使用新的类型别名：
 
 \begin{cpp}
 const_reference operator[](size_type index) const;
@@ -667,7 +667,7 @@ const_reference operator[](size_type index) const;
 
 \mySamllsection{必需的成员函数}
 
-除了必需的类型别名之外，每个容器还必须提供以下成员函数：
+除了必需的类型别名之外，容器还必须提供以下成员函数：
 
 % Please add the following required packages to your document preamble:
 % \usepackage{longtable}
@@ -690,10 +690,10 @@ const_reference operator[](size_type index) const;
 移动构造函数 &
 执行移动构造操作 &
 常数 \\ \hline
-复制赋值运算符 &
+复制赋值操作符 &
 执行容器的深度复制 &
 线性 \\ \hline
-移动赋值运算符 &
+移动赋值操作符 &
 执行移动赋值操作 &
 常数 \\ \hline
 析构函数 &
@@ -712,7 +712,7 @@ const_reference operator[](size_type index) const;
 与end() const相同 &
 常数 \\ \hline
 operator== &
-\begin{tabular}[c]{@{}l@{}}比较运算符，用于比较两个容器\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}比较操作符，用于比较两个容器\end{tabular} &
 线性 \\ \hline
 \begin{tabular}[c]{@{}l@{}}void swap(Container\&)\\ noexcept;\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}交换传递给成员函数的容器与调用成员函数对象的内容\end{tabular} &
@@ -728,9 +728,9 @@ bool empty() const; &
 常数 \\ \hline
 \end{longtable}
 
-正如前面讨论的，directed\_graph实现遵循零规则（参见第9章），不需要显式的复制/移动构造函数、复制/移动赋值运算符或析构函数。
+directed\_graph实现遵循零规则（参见第9章），不需要显式的复制/移动构造函数、复制/移动赋值操作符或析构函数。
 
-以下代码片段展示了size()、max\_size()和empty()成员函数的声明。与迭代器相关的成员函数，begin()、end()、cbegin()和cend()，将在下一节关于编写迭代器中介绍。
+以下代码展示了size()、max\_size()和empty()成员函数的声明。与迭代器相关的成员函数，begin()、end()、cbegin()和cend()，将在下一节关于编写迭代器中介绍。
 
 \begin{cpp}
 export template <typename T>
@@ -744,7 +744,7 @@ class directed_graph
 };
 \end{cpp}
 
-这些三个成员函数的实现很简单，可以直接转发到m\_node容器具有相同名称的成员函数。注意，size\_type是类模板中定义的类型别名。因为它是一个类模板的成员，这样的返回类型在实现中必须使用typename directed\_graph<T>进行限定。
+这些三个成员函数的实现很简单，可以直接转发到m\_node容器具有相同名称的成员函数，size\_type是类模板中定义的类型别名。它是一个类模板的成员，返回类型在实现中必须使用typename directed\_graph<T>进行限定。
 
 \begin{cpp}
 template <typename T>
@@ -766,13 +766,13 @@ bool directed_graph<T>::empty() const noexcept
 }
 \end{cpp}
 
-当前的directed\_graph实现有operator[]，用于根据其索引获取对节点的访问。这个运算符，就像vector中的operator[]一样，不执行边界检查，传递一个越界索引可能会使应用程序崩溃。与vector一样，directed\_graph可以通过添加一个at()成员函数来进行增强，该函数执行边界检查，并在传递的索引越界时抛出std::out\_of\_range异常。这是定义：
+当前的directed\_graph实现有operator[]，用于根据其索引获取对节点的访问。这个操作符，就像vector中的operator[]一样，不执行边界检查，传递一个越界索引可能会使应用程序崩溃。与vector一样，directed\_graph可以通过添加一个at()成员函数来进行增强，该函数执行边界检查，并在传递的索引越界时抛出std::out\_of\_range异常。这是定义：
 
 \begin{cpp}
 const_reference at(size_type index) const;
 \end{cpp}
 
-实现只是转发到m\_node vector：
+实现只是转发到m\_node：
 
 \begin{cpp}
 template <typename T>
@@ -787,26 +787,26 @@ typename directed_graph<T>::const_reference
 
 最重要的容器要求是迭代器支持。为了与泛型算法一起工作，每个容器都必须提供一种访问容器中元素的迭代器类型。迭代器通常应提供重载的operator++、*、->、==以及一些其他操作，具体取决于其特定行为，只要迭代器提供基本的迭代操作就好。
 
-关于自定义迭代器，首先需要做出的决定是，它将是什么类型的：前向、双向、随机访问或连续。双向迭代器支持似乎是针对有向图迭代器的良好选择，所以必须提供operator-{}-。另一种选择是为有向图实现随机访问迭代器，这涉及添加+、-、+=、-=、<、>、<=、>=和[]运算符。这可以是一个很好的练习，以练习编写迭代器。有关随机访问迭代器要求的更多详细信息，请参阅第17章。
+关于自定义迭代器，首先需要做出的决定是，将是什么类型的：前向、双向、随机访问或连续。双向迭代器支持似乎是针对有向图迭代器的良好选择，所以必须提供operator-{}-。另一种选择是为有向图实现随机访问迭代器，这涉及添加+、-、+=、-=、<、>、<=、>=和[]操作符。这可以是一个很好的练习，以练习编写迭代器。有关随机访问迭代器要求的更多详细信息，请参阅第17章。
 
 第二个决定是如何对容器中的元素进行排序。有向图是无序的，因此按排序顺序遍历将不是有效率的做法。对于符合标准库规范的容器来说，最重要的是从begin()到end()遍历其元素时，每个元素都会访问一次；仅仅因为它是序列，并不意味着它是特定的序列。有向图迭代器可以简单地按添加到图中的顺序遍历节点，这与std::unordered\_set的迭代方式相同。
 
-第三个决定是如何在内部表示迭代器，表示通常非常依赖于容器的内部实现。迭代器的主要目的是引用容器中的单个元素。有向图的情况下，所有节点都存储在m\_nodes vector中，因此有向图迭代器可能是对指向元素vector迭代器的包装。
+第三个决定是如何在内部表示迭代器，表示通常非常依赖于容器的内部实现。迭代器的主要目的是引用容器中的单个元素。有向图的情况下，所有节点都存储在m\_nodes中，因此有向图迭代器可能是对指向元素vector迭代器的包装。
 
-当选择了实现方式，必须决定一致地表示结束迭代器。回想一下，结束迭代器应该真的是“超出范围”的标记：通过将++应用于指向容器中最后一个元素的迭代器所达到的迭代器。有向图迭代器可以使用m\_nodes vector的结束迭代器作为其结束迭代器。
+当选择了实现方式，必须决定一致地表示结束迭代器。回想一下，结束迭代器应该真的是“超出范围”的标记：通过将++应用于指向容器中最后一个元素的迭代器所达到的迭代器。有向图迭代器可以使用m\_nodes的结束迭代器作为其结束迭代器。
 
 最后，容器需要提供迭代器和const\_iterator类型别名。此实现定义了这两个类型别名，都是基于const\_directed\_graph\_iterator\_impl类模板。原因在于在图中不能更改值，这与std::set遵循的原则相同。
 
-如果确实需要为自定义数据结构，提供不同的迭代器和const\_迭代器类型，请记住迭代器必须可转换为const\_iterator。
+如果需要为自定义数据结构，提供不同的迭代器和const\_iterator类型，迭代器必须可转换为const\_iterator。
 
 \mySamllsection{const\_directed\_graph\_iterator\_impl类模板}
 
-鉴于上一节做出的决定，现在是定义const\_directed\_graph\_iterator\_impl类模板的时候了。首先，每个const\_directed\_graph\_iterator\_impl对象都是特定于directed\_graph实例的迭代器。为了提供一对一的映射，const\_directed\_graph\_iterator\_impl也必须是一个类模板，其中directed graph类型作为模板类型参数，称为DirectedGraph。
+鉴于上一节做出的决定，现在是定义const\_directed\_graph\_iterator\_impl类模板的时候了。首先，每个const\_directed\_graph\_iterator\_impl对象都是特定于directed\_graph实例的迭代器。为了提供一对一的映射，const\_directed\_graph\_iterator\_impl也必须是一个类模板，其中directed\_graph类型作为模板类型参数，称为DirectedGraph。
 
 主要问题是如何符合双向迭代器的要求，任何行为像迭代器的东西都是迭代器(鸭子定律)。迭代器不需要从另一个类派生就可以作为双向迭代器，但如果希望自定义迭代器可以在泛型算法中使用，必须指定其特性。第17章解释说，iterator\_traits是一个类模板，为每个迭代器类型定义了五个类型别名：value\_type、difference\_type、iterator\_category、pointer和reference。iterator\_traits类模板的默认实现，只是从迭代器本身获取这五个类型别名，可以直接为自定义迭代器定义这些类型别名。const\_directed\_graph\_iterator\_impl是一个双向迭代器，所以指定bidirectional\_iterator\_tag作为迭代器类别。其他合法的迭代器类别包括input\_iterator\_tag、output\_iterator\_tag、forward\_iterator\_tag、random\_access\_iterator\_tag和contiguous\_iterator\_tag。对于const\_directed\_graph\_iterator\_impl，元素类型（value\_type）是typename DirectedGraph::value\_type。
 
 \begin{myNotic}{NOTE}
-过去，建议从<iterator>中定义的std::iterator类模板派生自定义迭代器。这个类模板已经弃用，不应该再使用。
+过去，建议从<iterator>中定义的std::iterator类模板派生自定义迭代器。目前这个类模板已经弃用，不应该再使用。
 \end{myNotic}
 
 以下是const\_directed\_graph\_iterator\_impl类模板的定义：
@@ -851,7 +851,7 @@ class const_directed_graph_iterator_impl
 };
 \end{cpp}
 
-如果对重载运算符的定义和实现（在下一节中展示）感到困惑，请参考第15章以获取详细信息。const\_directed\_graph\_iterator\_impl的实现不需要复制/移动构造函数和复制/移动赋值运算符，默认行为就是我们想要的。该类也不需要显式的析构函数，因为没有需要清理的东西，所以这个类也遵循零规则。
+如果对重载操作符的定义和实现（在下一节中展示）感到困惑，请参考第15章以获取详细信息。const\_directed\_graph\_iterator\_impl的实现不需要复制/移动构造函数和复制/移动赋值操作符，默认行为就是我们想要的。该类也不需要显式的析构函数，因为没有需要清理的东西，所以这个类也遵循零规则。
 
 \mySamllsection{const\_directed\_graph\_iterator\_impl成员函数的实现}
 
@@ -864,16 +864,16 @@ const_directed_graph_iterator_impl<DirectedGraph>::
         : m_nodeIterator { it } { }
 \end{cpp}
 
-默认构造函数被默认，以便客户可以在不初始化的情况下声明const\_directed\_graph\_iterator\_impl变量。使用默认构造函数构建的迭代器不需要引用值，并且尝试对其进行任何操作都是允许的，其结果可能未定义。
+默认构造函数被默认，以便客户可以在不初始化的情况下声明const\_directed\_graph\_iterator\_impl变量。使用默认构造函数构建的迭代器不需要引用值，并且可以对其进行任何操作，其结果可能未定义。
 
-解引用运算符的实现简洁但可能看起来有些棘手。第15章解释说operator*和->是不对称的：
+解引用操作符的实现简洁，但看起来会有些棘手。第15章解释说operator*和->是不对称的：
 
 \begin{itemize}
 \item
 operator* 返回对实际底层值的引用，是对迭代器所引用的元素的引用。
 
 \item
-operator-> 必须返回可以再次应用箭头运算符的东西，因此返回指向元素的指针。编译器然后将->应用于指针，从而访问元素的特定字段或成员函数。
+operator-> 必须返回可以再次应用箭头操作符的东西，因此返回指向元素的指针。编译器然后将->应用于指针，从而访问元素的特定字段或成员函数。
 \end{itemize}
 
 \begin{cpp}
@@ -895,7 +895,7 @@ typename const_directed_graph_iterator_impl<DirectedGraph>::pointer
 }
 \end{cpp}
 
-增加运算符的实现如下。递减运算符没有显示，可以以类似的方式实现。
+增加操作符的实现如下。递减操作符没有显示，可以以类似的方式实现。
 
 \begin{cpp}
 template <typename DirectedGraph>
@@ -954,7 +954,7 @@ class directed_graph
 };
 \end{cpp}
 
-iterator和const\_iterator都是const\_directed\_graph\_iterator\_impl的类型别名，所以用户无法修改directed\_graph迭代器所引用的值。directed\_graph中的节点值必须唯一。允许用户通过迭代器修改节点的值，将允许引入重复值的可能性。这与std::set的原则相同，在std::set中，也不能修改元素。
+iterator和const\_iterator都是const\_directed\_graph\_iterator\_impl的类型别名，所以用户无法修改directed\_graph迭代器所引用的值。directed\_graph中的节点值必须唯一，允许用户通过迭代器修改节点的值，将允许引入重复值的可能性。这与std::set的原则相同，在std::set中，也不能修改元素。
 
 由于iterator和const\_iterator都是const\_directed\_graph\_iterator\_impl的类型别名，返回迭代器的非const begin()和end()成员函数并不严格必要；const重载就足够了。然而，标准库要求容器必须提供非const begin()和end()的重载。
 
@@ -994,7 +994,7 @@ typename directed_graph<T>::const_iterator
 
 \mySamllsection{修改其他成员函数以使用迭代器}
 
-现在directed\_graph支持了迭代器，其他成员函数可以稍微修改以使用迭代器，从而遵循标准库的指南。首先看看insert()成员函数。在早期的基本实现中，它是这样定义的：
+现在directed\_graph支持了迭代器，其他成员函数可以稍微修改以使用迭代器，从而遵循标准库的指南。首先看看insert()成员函数。早期的实现中，是这样定义的：
 
 \begin{cpp}
 // For an insert to be successful, the value shall not be in the graph yet.
@@ -1026,7 +1026,7 @@ std::pair<typename directed_graph<T>::iterator, bool>
 }
 \end{cpp}
 
-此外，提供了一个接受迭代器提示的insert()的重载。这个成员对于有向图来说没什么用，但它提供了对称性。
+此外，提供了一个接受迭代器提示的insert()的重载。这个成员对于有向图来说没什么用，但提供了对称性。
 
 \begin{cpp}
 template <typename T>
@@ -1038,7 +1038,7 @@ typename directed_graph<T>::iterator
 }
 \end{cpp}
 
-最后，提供了一个接受迭代器范围的insert()的重载。这个重载是一个成员函数模板，以便接受任何容器，而不仅仅是其他有向图的迭代器范围。实际实现使用了第17章中的insert\_iterator。
+最后，提供了一个接受迭代器范围的insert()的重载。这个重载是一个成员函数模板，以便接受容器，而不仅仅是其他有向图的迭代器范围。实际实现使用了第17章中的insert\_iterator。
 
 \begin{cpp}
 template <typename T>
@@ -1140,7 +1140,7 @@ println("{} nodes > 22", count);
 graph.erase(find(begin(graph), end(graph), 44));
 \end{cpp}
 
-这个代码片段还显示，由于支持迭代器，标准库算法可以与directed\_graph一起使用。由于directed\_graph只支持const迭代器，因此只支持非修改的标准库算法，就像std::set一样。例如，以下使用remove-erase模式的代码段无法编译：
+这个代码还显示，由于支持迭代器，标准库算法可以与directed\_graph一起使用。由于directed\_graph只支持const迭代器，因此只支持非修改的标准库算法，就像std::set一样。以下使用remove-erase模式的代码无法编译：
 
 \begin{cpp}
 graph.erase(remove_if(begin(graph), end(graph),
@@ -1165,9 +1165,9 @@ reverse\_iterator        & \begin{tabular}[c]{@{}l@{}}用于按反序遍历容�
 const\_reverse\_iterator & \begin{tabular}[c]{@{}l@{}}用于按反序遍历容器中常量元素的reverse\_iterator\end{tabular} \\ \hline
 \end{longtable}
 
-此外，容器应该提供rbegin()和rend()，与begin()和end()对称；以及crbegin()和crend()，它们与cbegin()和cend()对称。
+此外，容器应该提供rbegin()和rend()，与begin()和end()对称；以及crbegin()和crend()，与cbegin()和cend()对称。
 
-directed\_graph迭代器是双向的，所以应该支持逆向遍历。以下代码段突出显示了必要的更改，这两个新的类型别名使用标准库提供的std::reverse\_iterator适配器（第17章中描述），将directed\_graph迭代器转换为逆向迭代器。
+directed\_graph迭代器是双向的，应该支持逆向遍历。以下代码段突出显示了必要的更改，这两个新的类型别名使用标准库提供的std::reverse\_iterator适配器（第17章中描述），将directed\_graph迭代器转换为逆向迭代器。
 
 \begin{cpp}
 export template <typename T>
@@ -1189,7 +1189,7 @@ class directed_graph
 };
 \end{cpp}
 
-反向迭代器成员函数的实现如下所示:
+反向迭代器成员函数的实现:
 
 \begin{cpp}
 template <typename T>
@@ -1229,9 +1229,9 @@ for (auto iter { graph.rbegin() }; iter != graph.rend(); ++iter) {
 
 \mySamllsection{遍历相邻节点}
 
-有向图使用一个vector来存储节点，其中每个节点包含节点的值和一组相邻节点。让我们改进有向图接口，以支持在不将相邻节点复制到另一个容器的情况下，遍历给定节点的相邻节点。首先需要添加的是一个名为const\_adjacent\_nodes\_iterator\_impl的类模板，遵循与const\_directed\_graph\_iterator\_impl相同的原则，请参阅下载源代库以查看完整代码。
+有向图使用一个vector来存储节点，其中每个节点包含节点的值和一组相邻节点。我们改进有向图接口，以支持在不将相邻节点复制到另一个容器的情况下，遍历给定节点的相邻节点。首先需要添加的是一个名为const\_adjacent\_nodes\_iterator\_impl的类模板，遵循与const\_directed\_graph\_iterator\_impl相同的原则。请从本书的代码库下载源码，以查看完整代码。
 
-下一步是在有向图接口中增加一个新的类型别名、一个辅助结构来表示相邻节点的范围，以及一个成员函数来获取给定节点值的相邻节点。nodes\_adjacent\_to()成员函数在给定的节点值无法找到时，返回一个空的可选值。
+下一步是在有向图接口中增加一个新的类型别名、一个辅助结构来表示相邻节点的范围，以及一个成员函数来获取给定节点值的相邻节点。nodes\_adjacent\_to()成员函数在给定的节点值无法找到时，返回一个空的optional。
 
 \begin{cpp}
 export template <typename T>
@@ -1276,7 +1276,7 @@ std::optional<typename directed_graph<T>::nodes_adjacent_to_result>
 }
 \end{cpp}
 
-有了nodes\_adjacent\_to()，访问给定节点的所有相邻节点变得轻而易举。以下是一个示例，用于打印具有值22的节点的所有相邻节点。
+有了nodes\_adjacent\_to()，访问给定节点的所有相邻节点变得轻而易举。以下是一个示例，用于打印值为22节点的所有相邻节点。
 
 \begin{cpp}
 print("Adjacency list for node 22: ");
@@ -1290,7 +1290,7 @@ if (!nodesAdjacentTo22.has_value()) {
 
 \mySamllsection{打印图}
 
-现在directed\_graph支持nodes\_adjacent\_to()，用于打印图的to\_dot()辅助函数模板可以简化：
+现在directed\_graph支持nodes\_adjacent\_to()，用于打印图的to\_dot()辅助函数模板可以简化为：
 
 \begin{cpp}
 export template <typename T>
@@ -1315,7 +1315,7 @@ std::string to_dot(const directed_graph<T>& graph, std::string_view graph_name)
 
 \mySamllsection{其他类似标准库的功能}
 
-directed\_graph类模板可以添加一些其他标准库功能。首先，让添加类似于vector的assign()成员函数。接受迭代器范围的assign()成员函数再次是一个成员函数模板，就像本章早些时候讨论的基于迭代器的insert()一样：
+directed\_graph类模板可以添加一些其他标准库功能。先添加类似于vector的assign()成员函数，接受迭代器范围的assign()成员函数，再是一个成员函数模板：
 
 \begin{cpp}
 template <std::input_iterator Iter>
@@ -1324,7 +1324,7 @@ void assign(Iter first, Iter last);
 void assign(std::initializer_list<T> il);
 \end{cpp}
 
-这些允许将给定迭代器范围或初始化列表中的所有元素，分配给一个有向图。赋值意味着清除当前图，并插入新节点。尽管语法不同，但实现很简单：
+可以将给定迭代器范围或初始化列表中的所有元素，分配给一个有向图。赋值意味着清除当前图，并插入新节点。尽管语法不同，但实现很简单：
 
 \begin{cpp}
 template <typename T>
@@ -1358,7 +1358,7 @@ void directed_graph<T>::insert(std::initializer_list<T> il)
 graph.insert({ 66, 77, 88 });
 \end{cpp}
 
-接下来，可以添加初始化列表构造函数和赋值运算符。由于这是第一个显式的directed\_graph构造函数和赋值运算符，默认、复制和移动构造函数，以及复制和移动赋值运算符也需要显式默认。
+接下来，可以添加初始化列表构造函数和赋值操作符。由于这是第一个显式的directed\_graph构造函数和赋值操作符，默认、复制和移动构造函数，以及复制和移动赋值操作符也需要显式默认。
 
 \begin{cpp}
 // Default, copy, and move constructors.
@@ -1398,7 +1398,7 @@ directed_graph<T>& directed_graph<T>::operator=(
 }
 \end{cpp}
 
-有了这些，directed\_graph就可以使用统一的初始化构造，如下所示:
+有了这些，directed\_graph就可以使用统一的初始化构造:
 
 \begin{cpp}
 directed_graph<int> graph { 11, 22, 33 };
@@ -1413,13 +1413,13 @@ graph.insert(22);
 graph.insert(33);
 \end{cpp}
 
-可以给一个图分配如下内容:
+可以给图分配如下内容:
 
 \begin{cpp}
 graph = { 66, 77, 88 };
 \end{cpp}
 
-由于initializer\_list构造器和类模板参数推导(CTAD)，甚至可以在构造directed\_graph时删除元素类型，就像vector一样:
+由于initializer\_list构造器和类模板参数推导(CTAD)，可以在构造directed\_graph时删除元素类型，就像vector一样:
 
 \begin{cpp}
 directed_graph graph { 11, 22, 33 };
@@ -1447,7 +1447,7 @@ void directed_graph<T>::insert_range(Range&& range)
 }
 \end{cpp}
 
-使用insert\_range()，可以轻松地向范围插入元素：
+使用insert\_range()，可以向范围插入元素：
 
 \begin{cpp}
 vector moreNodes { 66, 77 };
@@ -1491,8 +1491,8 @@ typename directed_graph<T>::size_type directed_graph<T>::erase(
 
 \mySamllsection{其他容器类型}
 
-directed\_graph类模板基本上是一个顺序容器，但由于图的性质，它确实实现了某些关联容器的功能，例如：insert()成员函数的返回类型。
+directed\_graph类模板基本上是一个顺序容器，但由于图的性质，确实实现了某些关联容器的功能，例如：insert()成员函数的返回类型。
 
-还可以编写一个纯顺序容器、无序关联容器或有序关联容器。这时，需要遵循标准库规定的特定要求。列出它们在这里比较麻烦，但更容易指出的是，deque容器几乎完全遵循规定的顺序容器要求，唯一的区别是它提供resize()成员函数（标准库不需要）。一个有序关联容器的示例是map，可以基于它来建模自己的有序关联容器，基于unordered\_map的话，就是一个无序关联容器了。
+还可以编写一个纯顺序容器、无序关联容器或有序关联容器，也需要遵循标准库规定的特定要求。列出这些要求在这里比较麻烦，但需要指出的是，deque容器几乎完全遵循规定的顺序容器要求，唯一的区别是它提供resize()成员函数（标准库不需要）。一个有序关联容器的示例是map，可以基于它来建模自己的有序关联容器，基于unordered\_map的话，就是一个无序关联容器了。
 
 
