@@ -1,11 +1,11 @@
 
-这一节涉及到模板元编程。这是一个复杂的主题，有关它的书籍已经详细解释了所有细节。本书没有足够的空间来涵盖所有这些细节，这一节介绍了其中最重要的概念，并通过几个示例进行说明。
+模板元编程是一个复杂的主题，有关它的书籍已经详细解释了所有细节。本书没有足够的空间来涵盖所有这些细节，这一节介绍了其中最重要的概念，并通过几个示例进行说明。
 
-模板元编程的目的是在编译时，而不是在运行时进行一些计算。基本上是在另一种编程语言之上的编程语言。接下来的部分将以一个简单的示例开始，该示例在编译时计算一个数的阶乘，并将结果作为简单的常量在运行时提供。
+模板元编程的目的是在编译时，而不是在运行时进行一些计算。基本上是在一种编程语言之中的编程语言。接下来的部分将以一个简单的示例开始，该示例在编译时计算一个数的阶乘，并将结果作为简单的常量在运行时提供。
 
 \mySubsubsection{26.6.1.}{编译时的阶乘}
 
-模板元编程允许在编译时，而不是运行时进行计算。以下代码是一个示例，计算一个数的阶乘。代码使用了之前在本章中解释的模板递归，这需要一个递归模板和一个基础模板来停止递归。根据数学定义，0 的阶乘是 1，因此将其用作基础情况。
+模板元编程允许在编译时，而不是运行时进行计算。以下代码是一个示例，计算一个数的阶乘。代码使用了之前在本章中解释的模板递归，这需要递归模板和基础模板来停止递归。根据数学定义，0 的阶乘是 1，因此将其用作基础情况。
 
 \begin{cpp}
 template <int f>
@@ -34,7 +34,7 @@ int main()
 阶乘计算是在编译时进行的。运行时，只需通过 value 数据成员访问编译时计算的值，这只是一个静态常量值。
 \end{myNotic}
 
-对于这个特定的示例，计算一个数的阶乘在编译时，不需要使用模板元编程。可以将其实现为一个 consteval 立即函数，如下所示。不需要任何模板，尽管模板实现仍然作为一个很好的例子，展示了如何实现递归模板。
+对于这个特定的示例，计算一个数的阶乘在编译时，不需要使用模板元编程。可以将其实现为一个 consteval 立即函数。不需要任何模板，尽管模板实现是一个很好的例子，展示了如何实现递归模板。
 
 \begin{cpp}
 consteval unsigned long long factorial(int f)
@@ -44,7 +44,7 @@ consteval unsigned long long factorial(int f)
 }
 \end{cpp}
 
-可以像调用其他函数一样调用 factorial()，唯一的区别是 consteval 函数保证在编译时执行。例如：
+可以像调用其他函数一样调用 factorial()，区别是 consteval 函数保证在编译时执行：
 
 \begin{cpp}
 println("{}", factorial(6));
@@ -52,7 +52,7 @@ println("{}", factorial(6));
 
 \mySubsubsection{26.6.2.}{循环展开}
 
-模板元编程的第二个示例，在编译时展开循环，而不是在运行时执行循环。注意，循环展开应该只在真正需要情况下进行，例如：性能关键的代码中。通常，编译器足够智能，可以展开相应的循环。
+模板元编程的第二个示例，在编译时展开循环，而不是在运行时执行循环。循环展开应该只在真正需要情况下进行，例如：性能关键的代码中。通常，编译器足够智能，可以展开相应的循环。
 
 这个示例再次使用模板递归，需要在编译时循环中执行某些操作。每次递归中，Loop类模板都会实例化自己为i-1。当达到0时，递归停止。
 
@@ -98,7 +98,7 @@ doWork(3)
 
 \mySubsubsection{26.6.3.}{打印元组}
 
-这个示例使用模板元编程来打印std::tuple中的各个元素，存储任意数量的值，每个值都有其自己的特定类型。元组有固定的大小和固定的值类型，在编译时确定。然而，元组没有内置的机制来遍历它们的元素。以下示例展示了如何使用模板元编程在编译时遍历元组的元素。
+这个示例使用模板元编程来打印std::tuple中的各个元素，存储任意数量的值，每个值都有其自己的特定类型。元组有固定的大小和固定的值类型，在编译时确定，但元组没有内置的机制来遍历它们的元素。以下示例展示了如何使用模板元编程，在编译时遍历元组的元素。
 
 与模板元编程中的许多示例一样，这个示例再次使用模板递归。TuplePrint类模板有两个模板参数：元组类型和整数，初始化为元组的大小。在构造函数中递归实例化自己，并在每次调用时递减整数，TuplePrint的偏特化在整数达到0时停止递归。main()函数展示了如何使用这个TuplePrint类模板。
 
@@ -128,7 +128,7 @@ int main()
 }
 \end{cpp}
 
-TuplePrint语句在main()中看起来有点复杂，需要作为模板参数提供确切的tuple类型和大小。这可以通过引入辅助函数模板来简化，该模板可以自动推断模板参数。简化后的实现如下：
+TuplePrint语句在main()中看起来有点复杂，需要作为模板参数提供确切的tuple类型和大小。这可以通过引入辅助函数模板来简化，该模板可以自动推断模板参数。简化后的实现为：
 
 \begin{cpp}
 template <typename TupleType, int N>
@@ -161,11 +161,11 @@ int main()
 }
 \end{cpp}
 
-这里所做的第一个改变是，将原始的TuplePrint类模板重命名为TuplePrintHelper。然后，代码实现了一个小的函数模板tuplePrint()，接受元组的类型作为模板类型参数，并接受一个指向元组的引用作为函数参数。该函数体的内容实例化了TuplePrintHelper类模板，main()函数展示了如何使用这个简化版本。不需要指定函数模板参数，因为编译器可以从提供的参数自动推断出这些参数。
+这里所做的第一个改变是，将原始的TuplePrint类模板重命名为TuplePrintHelper。然后，代码实现了一个小的函数模板tuplePrint()，接受元组的类型作为模板类型参数，并接受一个指向元组的引用作为函数参数。该函数体的内容实例化了TuplePrintHelper类模板，main()函数展示了如何使用这个简化版本。不需要指定函数模板参数，编译器可以根据提供的参数，自动推断出这些参数的类型。
 
 \mySamllsection{constexpr if}
 
-constexpr if，在本章早些时候引入，可以用来简化许多模板元编程技术。例如，可以使用constexpr if简化打印元组元素的先前代码，如下所示。因为递归在constexpr if语句处停止，所以不再需要模板递归。
+constexpr if，在本章早些时候引入，可以用来简化许多模板元编程技术，可以使用constexpr if简化打印元组元素的先前代码。因为递归在constexpr if语句处停止，所以不再需要模板递归。
 
 \begin{cpp}
 template <typename TupleType, int N>
@@ -187,7 +187,7 @@ void tuplePrint(const T& t)
 }
 \end{cpp}
 
-现在甚至可以去掉类模板本身，并用一个简单的函数模板tuplePrintHelper()替换：
+甚至可以去掉类模板本身，直接用一个简单的函数模板tuplePrintHelper()：
 
 \begin{cpp}
 template <typename TupleType, int N>
@@ -206,7 +206,7 @@ void tuplePrint(const T& t)
 }
 \end{cpp}
 
-这还可以进一步简化，两个函数模板可以合并成一个：
+还可以进一步简化，两个函数模板可以合并成一个：
 
 \begin{cpp}
 template <typename TupleType, int N = tuple_size<TupleType>::value>
@@ -253,7 +253,7 @@ tuple t1 { 16, "Test"s, true };
 tuplePrint(t1);
 \end{cpp}
 
-调用中，tuplePrintHelper() 函数模板中的单右折叠表达式展开为以下内容：
+tuplePrintHelper() 函数模板中的单右折叠表达式展开为以下内容：
 
 \begin{cpp}
 ((println("{}", get<0>(t)) ,
@@ -264,7 +264,7 @@ tuplePrint(t1);
 
 \mySubsubsection{26.6.4.}{类型特性}
 
-类型特性允许你在编译时根据类型做出决策，可以验证一个类型是否派生自另一个类型，是否可以转换为另一个类型，是否为整数类型等。C++ 标准库提供了一系列的类型特性，所有与类型特性相关的功能都定义在 <type\_traits> 中。类型特性分为几个不同的类别，以下列表给出了每个类别中可用的一些类型特性示例。请查阅附录 B 的以获取完整的列表。
+类型特性允许在编译时根据类型做出决策，可以验证一个类型是否派生自另一个类型，是否可以转换为另一个类型，是否为整数类型等。C++ 标准库提供了一系列的类型特性，与类型特性相关的功能都定义在 <type\_traits> 中。类型特性分为几个不同的类别，以下列表给出了每个类别中可用的一些类型特性示例。请查阅附录 B 的以获取完整的列表。
 
 \begin{itemize}
 \item
@@ -408,7 +408,7 @@ add\_const
 \end{itemize}
 
 \item
-修改
+修改值
 
 \begin{itemize}
 \item
@@ -512,7 +512,7 @@ decay
 
 \mySamllsection{使用类型分类}
 
-给出使用类型特性的模板示例之前，首先需要了解更多诸如is\_integral这样的类是如何工作的。C++标准定义了一个integral\_constant类，如下所示：
+给出使用类型特性的模板示例之前，首先需要了解更多诸如is\_integral这样的类，是如何工作的。C++标准定义了一个integral\_constant类：
 
 \begin{cpp}
 template <class T, T v>
@@ -535,7 +535,7 @@ using true_type = bool_constant<true>;
 using false_type = bool_constant<false>;
 \end{cpp}
 
-当访问true\_type::value时，会得到true，而访问false\_type::value时，会得到false。还可以访问true\_type::type，会得到true\_type类型的值，同样适用于false\_type。像is\_integral这样的类，会检查一个类型是否为整数类型，和is\_class，检查一个类型是否为类，都继承自true\_type或false\_type。例如，标准库对bool类型特化了is\_integral：
+当访问true\_type::value时，会得到true，而访问false\_type::value时，会得到false。还可以访问true\_type::type，会得到true\_type类型的值，同样适用于false\_type。像is\_integral这样的类，会检查一个类型是否为整数类型，和is\_class，检查一个类型是否为类，都继承自true\_type或false\_type。标准库对bool类型特化了is\_integral：
 
 \begin{cpp}
 template <> struct is_integral<bool> : public true_type { };
@@ -567,7 +567,7 @@ template <class T>
 inline constexpr bool is_integral_v = is_integral<T>::value;
 \end{cpp}
 
-使用这些变量模板，前面的示例可以这样：
+使用这些变量模板，前面的示例可以这样写：
 
 \begin{cpp}
 if (is_integral_v<int>) { println("int is integral"); }
@@ -577,7 +577,7 @@ if (is_class_v<string>) { println("string is a class"); }
 else { println("string is not a class"); }
 \end{cpp}
 
-实际上，因为is\_integral\_v<T>的值是一个编译时常量，可以用constexpr if代替普通的if。
+因为is\_integral\_v<T>的值是一个编译时常量，可以用constexpr if代替普通的if。
 
 当然，很可能永远不会以这种方式使用类型特性。它们在与模板结合使用时更有用，以根据类型的某些属性生成代码，以下的函数模板演示了这一点。代码定义了两个重载的processHelper()函数模板，接受类型作为模板参数。这些函数的第一个参数是值，第二个参数是true\_type或false\_type的一个实例。process()函数模板接受一个参数并调用processHelper()。
 
@@ -601,7 +601,7 @@ void process(const T& t)
 }
 \end{cpp}
 
-在调用processHelper()时，第二个参数是is\_integral<T>\{\}。这个参数使用is\_integral<T>来确定T是否为整数类型，is\_integral<T>要么从true\_type继承，要么从false\_type继承。processHelper()函数需要一个true\_type或false\_type的实例作为第二个参数，这就是为什么有空的括号\{\}。这两个重载的processHelper()函数，没有费心为true\_type和false\_type类型的参数命名，它们是无名的，因为函数体内部不使用这些参数。这些参数仅用于函数重载解析。
+调用processHelper()时，第二个参数是is\_integral<T>\{\}。这个参数使用is\_integral<T>来确定T是否为整数类型，is\_integral<T>要么从true\_type继承，则从false\_type继承。processHelper()函数需要一个true\_type或false\_type的实例作为第二个参数，这就是为什么有空的括号\{\}。这两个重载的processHelper()函数，没有为true\_type和false\_type类型的参数命名，因为函数体内部不使用这些参数。这些参数仅用于函数重载解析。
 
 代码可以按照以下方式进行测试：
 
@@ -611,7 +611,7 @@ process(2.2);
 process("Test"s);
 \end{cpp}
 
-输出如下：
+输出为：
 
 \begin{shell}
 123 is an integral type.
@@ -619,7 +619,7 @@ process("Test"s);
 Test is a non-integral type.
 \end{shell}
 
-前面的示例可以写成一个单一的函数模板，如下所示。然而，这并不是如何使用类型特性，根据类型选择不同的重载。
+前面的示例可以写成一个单一的函数模板，但这并不是如何使用类型特性，根据类型选择不同的重载。
 
 \begin{cpp}
 template <typename T>
@@ -665,7 +665,7 @@ int main()
 '3.01' and 'Test' are different types
 \end{shell}
 
-或者，可以不使用任何类型特性，而是使用两个函数模板的重载集来实现这个示例：
+或者，可以不使用类型特性，而是使用两个函数模板的重载集来实现：
 
 \begin{cpp}
 template <typename T1, typename T2>
@@ -684,13 +684,13 @@ void same(const T& t1, const T& t2)
 
 \mySamllsection{使用条件类型特征}
 
-第 18 章解释了标准库辅助函数模板 std::move\_if\_noexcept()，可以根据前者是否标记为 noexcept ，有条件地调用移动构造函数或复制构造函数。标准库没有提供类似的辅助函数模板，根据前者是否 noexcept 来调用移动赋值操作符或复制赋值操作符。现在了解了模板元编程和类型特征，来看看如何自己实现 move\_assign\_if\_noexcept()。
+第 18 章解释了标准库辅助函数模板 std::move\_if\_noexcept()，可以根据前者是否标记为 noexcept ，有条件地调用移动构造函数或复制构造函数。标准库没有提供类似的辅助函数模板，根据前者是否 noexcept 来调用移动赋值操作符或复制赋值操作符。现在了解了模板元编程和类型特征，看看如何自己实现 move\_assign\_if\_noexcept()。
 
 move\_if\_noexcept() 中，如果移动构造函数标记为 noexcept，只是将给定的引用转换为 右值 引用，否则转换为引用为常量。
 
 move\_assign\_if\_noexcept() 需要做类似的事情，如果移动赋值操作符标记为 noexcept，则将给定的引用转换为 右值 引用，否则转换为引用为常量。
 
-std::conditional 类型特征可以用来实现条件。这个类型特征有三个模板参数：一个布尔值、布尔值为true的类型，以及布尔值为false的类型。conditional 类型特征的实现如下：
+std::conditional 类型特征可以用来实现条件。这个类型特征有三个模板参数：一个布尔值、布尔值为true的类型，以及布尔值为false的类型。conditional 类型特征的实现为：
 
 \begin{cpp}
 template <bool B, class T, class F>
@@ -711,20 +711,20 @@ constexpr conditional<is_nothrow_move_assignable_v<T>, T&&, const T&>::type
 }
 \end{cpp}
 
-标准库为具有类型成员的特性定义了别名模板，例如 conditional。这些具有与特性相同的名字，以 \_t 结尾。例如，conditional\_t<B,T,F> 别名模板用于 conditional<B,T,F>::type，由标准库定义如下：
+标准库为具有类型成员的特性定义了别名模板，例如 conditional。这些具有与特性相同的名字，以 \_t 结尾。例如，conditional\_t<B,T,F> 别名模板用于 conditional<B,T,F>::type，由标准库定义：
 
 \begin{cpp}
 template <bool B, class T, class F>
 using conditional_t = typename conditional<B,T,F>::type;
 \end{cpp}
 
-所以，无需这样写：
+所以，无需这样：
 
 \begin{cpp}
 conditional<is_nothrow_move_assignable_v<T>, T&&, const T&>::type
 \end{cpp}
 
-只要这样写即可：
+只要这样即可：
 
 \begin{cpp}
 conditional_t<is_nothrow_move_assignable_v<T>, T&&, const T&>
@@ -760,7 +760,7 @@ int main()
 }
 \end{cpp}
 
-输出如下所示：
+输出为：
 
 \begin{shell}
 copy assign
@@ -777,7 +777,7 @@ println("{}", is_same_v<string, remove_pointer_t<string*>>);
 
 输出是 true。
 
-自己实现这样的类型修改特质并不困难，这里是一个简化的 my\_remove\_pointer 类型特征实现：
+自己实现这样的类型修改特征并不困难，这里是一个简化的 my\_remove\_pointer 类型特征实现：
 
 \begin{cpp}
 // my_remove_pointer class template.
@@ -810,7 +810,7 @@ template <class T>
 struct enable_if<true, T> { typedef T type; };
 \end{cpp}
 
-same() 函数模板可以通过使用 enable\_if 重新编写成重载的 checkType() 函数模板，如下所示。这个实现中，checkType() 函数根据给定值的类型是否相同返回 true 或 false。如果不想从 checkType() 返回任何内容，可以删除返回语句并从 enable\_if 删除第二个模板参数。
+same() 函数模板可以通过使用 enable\_if 重新编写成重载的 checkType() 函数模板。这个实现中，checkType() 函数根据给定值的类型是否相同返回 true 或 false。如果不想从 checkType() 返回东西，可以删除返回语句并从 enable\_if 删除第二个模板参数。
 
 \begin{cpp}
 template <typename T1, typename T2>
@@ -845,13 +845,13 @@ int main()
 '3.01' and 'Test' are different types.
 \end{shell}
 
-代码定义了两个 checkType() 重载，使用 is\_same\_v 来检查两个类型是否相同。结果传递给 enable\_if\_t，当 enable\_if\_t 的第一个参数为true时，enable\_if\_t 有一个类型别名，可以通过 ::type 访问。这个类型别名的类型是作为第二个模板参数给出的类型。如果布尔值为false，则没有这样的类型别名，这就是 SFINAE 发挥作用的地方。
+代码定义了两个 checkType() 重载，is\_same\_v 来检查两个类型是否相同。结果将传递给 enable\_if\_t，当 enable\_if\_t 的第一个参数为true时，enable\_if\_t 有一个类型别名，可以通过 ::type 访问。这个类型别名的类型是作为第二个模板参数给出的类型。如果布尔值为false，则没有这样的类型别名，这就是 SFINAE 发挥作用的地方。
 
-当编译器开始编译 main() 函数中的第一条语句时，尝试找到一个接受两个整数值的 checkType() 函数。找到了第一个 checkType() 函数模板重载，并推断出它可以使用这个函数模板的一个实例，通过将 T1 和 T2 都设置为整数，尝试确定返回类型。因为两个参数都是整数，所以其类型相同，所以 is\_same\_v<T1, T2> 为true，从而 enable\_if\_t<true, bool> 为类型 bool。有了这个实例化，编译器将这个重载添加到候选重载集中。当它看到 checkType() 的第二个重载时，再次推断出它可以使用这个函数模板的一个实例，通过将 T1 和 T2 都设置为整数。然而，当尝试确定返回类型时，发现 !is\_same\_v<T1, T2> 为false。由于这个原因，enable\_if\_t<false, bool> 不表示一个类型，使得这个重载的 checkType() 函数没有返回类型。编译器注意到这个错误，因为 SFINAE，还没有生成真正的编译错误，只是没有将这个重载添加到候选重载集中。因此，对于 main() 函数中的第一条语句，重载集包含一个候选 checkType() 函数，所以编译器将使用哪个函数就很明显了。
+当编译器开始编译 main() 函数中的第一条语句时，尝试找到一个接受两个整数值的 checkType() 函数。找到了第一个 checkType() 函数模板重载，并推断出它可以使用这个函数模板的一个实例，通过将 T1 和 T2 都设置为整数，尝试确定返回类型。因为两个参数都是整数，所以其类型相同，所以 is\_same\_v<T1, T2> 为true，从而 enable\_if\_t<true, bool> 为类型 bool。有了这个实例化，编译器将这个重载添加到候选重载集中。当它看到 checkType() 的第二个重载时，再次推断出它可以使用这个函数模板的一个实例，通过将 T1 和 T2 都设置为整数。当尝试确定返回类型时，发现 !is\_same\_v<T1, T2> 为false。由于这个原因，enable\_if\_t<false, bool> 不表示一个类型，使得这个重载的 checkType() 函数没有返回类型。编译器注意到这个错误，因为 SFINAE，还没有生成真正的编译错误，只是没有将这个重载添加到候选重载集中。对于 main() 函数中的第一条语句，重载集包含一个候选 checkType() 函数，所以编译器将使用哪个函数就很明显了。
 
 当编译器尝试编译 main() 函数中的第二条语句时，再次尝试找到一个合适的 checkType() 函数。从第一个 checkType() 开始，决定使用这个重载，通过将 T1 设置为 int 类型，T2 设置为 double 类型，再尝试确定返回类型。这次，T1 和 T2 是不同类型，所以 is\_same\_v<T1, T2> 为false。因此，enable\_if\_t<false, bool> 不表示一个类型，使得这个重载的 checkType() 函数没有返回类型。编译器注意到这个错误，因为 SFINAE还没有生成真正的编译错误，编译器只是没有将这个重载添加到候选重载集中。当编译器看到第二个 checkType() 函数时，推断出可以使用这个函数模板的一个实例，因为 T1 和 T2 是不同类型，所以 !is\_same\_v<T1, T2> 为true，因此 enable\_if\_t<true, bool> 为类型 bool。最后，对于 main() 函数中的第二条语句，重载集再次只包含一个重载。
 
-如果不想让 enable\_if 污染返回类型，那么另一种选择是使用 enable\_if 和非类型模板参数，这会让代码更容易阅读。例如：
+如果不想让 enable\_if 污染返回类型，另一种选择是使用 enable\_if 和非类型模板参数，这会让代码更容易阅读：
 
 \begin{cpp}
 template <typename T1, typename T2, enable_if_t<is_same_v<T1, T2>>* = nullptr>
@@ -869,7 +869,7 @@ bool checkType(const T1& t1, const T2& t2)
 }
 \end{cpp}
 
-如果想在构造函数集中使用 enable\_if，不能使用它与返回类型，因为构造函数没有返回类型。这种情况下，必须使用它与非类型模板参数。
+如果想在构造函数集中使用 enable\_if，不能使用它与返回类型，因为构造函数没有返回类型。这时，必须使用非类型模板参数。
 
 本节中解释的 enable\_if 语法在 C++20 之前是业界标准。自 C++20 以来，应该更倾向于使用概念，这在第 12 章中有讨论。注意较早的 enable\_if 代码与使用概念的以下示例之间的语法相似性，但使用概念显然更易于阅读。
 
@@ -942,7 +942,7 @@ IsDoable::doit()
 Cannot call doit()!
 \end{shell}
 
-可以通过使用 constexpr if 极大地简化 enable\_if 实现：
+可以通过使用 constexpr if 简化 enable\_if 实现：
 
 \begin{cpp}
 template <typename T>
@@ -956,9 +956,9 @@ void callDoit(const T& t)
 }
 \end{cpp}
 
-不能使用普通的 if 语句来完成这个任务。使用普通的 if 语句，两个分支都需要编译，如果提供了一个不是从 IsDoable 派生的类型 T，这将会失败。这种情况下，语句 t.doit() 将无法编译，而使用 constexpr if 语句，如果提供的类型不是从 IsDoable 派生，那么语句 t.doit() 甚至不会编译。
+不能使用普通的 if 语句来完成这个任务。使用普通的 if 语句，两个分支都需要编译，如果提供了一个不是从 IsDoable 派生的类型 T，这将会失败。语句 t.doit() 将无法编译，而使用 constexpr if 语句，如果提供的类型不是从 IsDoable 派生，则语句 t.doit() 甚至不会编译。
 
-除了使用 is\_base\_of 类型特征，也可以使用 requires 表达式；请参见第 12 章。以下是使用 requires 表达式检查是否可以在对象 t 上调用 doit() 成员函数的 callDoit() 实现的示例。
+除了使用 is\_base\_of 类型特征，也可以使用 requires 表达式；请参见第 12 章。以下是使用 requires 表达式检查是否可以在对象 t 上调用 doit() 成员函数的 callDoit() 实现。
 
 \begin{cpp}
 template <typename T>
@@ -974,7 +974,7 @@ void callDoit(const T& t)
 
 \mySamllsection{逻辑操作符特征}
 
-有三个逻辑操作符特征：conjunction、disjunction 和 negation。此外，还提供了以 \_v 结尾的变量模板。这些特征接受可变数量的模板类型参数，并可用于在类型特征上执行逻辑操作，例如：
+有三个逻辑操作符特征：conjunction、disjunction 和 negation。此外，还提供了以 \_v 结尾的变量模板。这些特征接受可变数量的模板类型参数，并可用于在类型特征上执行逻辑操作：
 
 \begin{cpp}
 print("{} ", conjunction_v<is_integral<int>, is_integral<short>>);
@@ -994,7 +994,7 @@ true false true false
 
 \mySamllsection{静态断言}
 
-static\_assert() 允许在编译时断言某些条件。断言是必须为true，如果断言为假，编译器将发出错误。调用 static\_assert() 接受两个参数：一个在编译时评估的表达式和（可选）一个字符串。当表达式计算为false时，编译器将发出包含给定字符串的错误。例如，检查是否使用 64 位编译器：
+static\_assert() 允许在编译时断言某些条件。断言是必须为true，如果断言为false，编译器将发出错误。调用 static\_assert() 接受两个参数：一个在编译时评估的表达式和（可选）一个字符串。当表达式计算为false时，编译器将发出包含给定字符串的错误。例如，检查是否使用 64 位编译器：
 
 \begin{cpp}
 static_assert(sizeof(void*) == 8, "Requires 64-bit compilation.");
@@ -1012,13 +1012,13 @@ test.cpp(3): error C2338: Requires 64-bit compilation.
 static_assert(sizeof(void*) == 8);
 \end{cpp}
 
-这种情况下，如果表达式计算为false，将得到一个与编译器相关的错误消息。例如，Microsoft Visual C++ 给出以下错误：
+如果表达式计算为false，将得到一个与编译器相关的错误消息。例如，Microsoft Visual C++ 给出以下错误：
 
 \begin{shell}
 test.cpp(3): error C2607: static assertion failed
 \end{shell}
 
-static\_assert() 可以与类型特征结合使用。例如：
+static\_assert() 可以与类型特征结合使用：
 
 \begin{cpp}
 template <typename T>
@@ -1030,7 +1030,7 @@ void foo(const T& t)
 
 \mySubsubsection{26.6.5.}{对元编程的总结}
 
-正如在本节中看到的，模板元编程可以是一个强大的工具，但它也可能变得相当复杂。模板元编程的一个问题，之前没有提到，是所有事情都在编译时发生，所以不能使用调试器来定位问题。如果决定在代码中使用模板元编程，确保编写了良好的注释来解释确切发生了什么，以及为什么以某种方式完成。如果没有正确地记录模板元编程代码，其他人可能难以理解这段代码，甚至在未来的自己也很难理解这段代码。
+正如在本节中看到的，模板元编程可以是一个强大的工具，但也可能变得相当复杂。模板元编程的一个问题，之前没有提到，是所有事情都在编译时发生，所以不能使用调试器来定位问题。如果决定在代码中使用模板元编程，确保编写了良好的注释来解释会发生什么，以及为什么以这种方式完成。如果没有正确地记录模板元编程代码，其他人可能难以理解这段代码，甚至未来的自己也很难理解这段代码。
 
 
 
