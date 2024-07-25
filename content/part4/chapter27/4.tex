@@ -1,7 +1,7 @@
 
-如果正在编写多线程应用程序，必须对操作的顺序敏感。如果线程读取和写入共享数据，这可能会成为一个问题。避免这个问题的方法有很多，例如:永远不要实际在多个线程之间共享数据。如果无法避免共享数据，就必须提供同步，以便每次只有一个线程可以更改数据。
+如果正在编写多线程应用程序，必须对操作的顺序敏感。线程读取和写入共享数据，这可能会成为一个问题。避免这个问题的方法有很多，例如:永远不要实际在多个线程之间共享数据。如果无法避免共享数据，就必须提供同步，以便每次只有一个线程可以更改数据。
 
-像布尔和整数这样的标量，通常可以通过原子操作正确地进行同步，如前面所述；但当数据更复杂，并且需要从多个线程使用该数据时，需要显式的提供同步。
+像布尔和整数这样的标量，可以通过原子操作正确地进行同步；但当数据更复杂，多个线程要使用该数据时，就需要显式的提供同步。
 
 标准库在互斥锁和锁类中提供了对互斥的支持。这些可以用于实现线程之间的同步，并在以下各节中进行讨论。
 
@@ -11,10 +11,10 @@
 
 \begin{itemize}
 \item
-一个线程尝试锁定一个与另一个线程共享的内存，以便读取或写入。如果另一个线程当前持有这个锁，那么新的线程将阻塞，直到锁释放或超时。
+一个线程尝试锁定一个与另一个线程共享的内存，以便读取或写入。如果另一个线程当前持有锁，则新的线程将阻塞，直到锁释放或超时。
 
 \item
-当线程获得了锁，就可以自由地使用共享内存。当然，这假设所有使用共享数据的线程都参与到互斥机制中。
+当线程获得了锁，就可以自由地使用共享内存。这里，假设所有使用共享数据的线程都参与到互斥机制中。
 
 \item
 线程完成对共享内存的读取/写入后，会释放锁，以便其他线程有机会获得互斥锁。如果有两个或更多的线程正在等待锁，不保证哪个线程将先获得锁。
@@ -24,7 +24,7 @@ C++标准库提供了非定时和定时互斥锁类，以及递归和非递归�
 
 \mySamllsection{自旋锁}
 
-自旋锁是一种同步机制，其中线程使用忙循环（自旋）来尝试获取锁，执行其工作，然后释放锁。自旋过程中，线程保持活跃但不做任何工作。另一方面，如果互斥锁无法立即获取，互斥锁可能会阻塞线程。阻塞线程是一个昂贵的操作，自旋锁避免了这种操作。自旋锁在知道锁将只持有很短时间的情况下可能很有用。自旋锁完全可以自己实现，如以下代码片段所示，自旋锁可以使用单个原子类型：atomic\_flag。
+自旋锁是一种同步机制，其中线程使用忙循环（自旋）来尝试获取锁，执行其工作，然后释放锁。自旋过程中，线程保持活跃但不做任何工作。另一方面，如果互斥锁无法立即获取，互斥锁可能会阻塞线程。阻塞线程是一个昂贵的操作，自旋锁避免了这种操作。自旋锁在知道锁将只持有很短时间的情况下有用。自旋锁完全可以自己实现，如以下代码所示，自旋锁可以使用单个原子类型：atomic\_flag。
 
 \begin{cpp}
 static constexpr unsigned NumberOfThreads { 50 };
@@ -53,7 +53,7 @@ int main()
 }
 \end{cpp}
 
-这个代码中，每个线程通过重复调用test\_and\_set()在一个atomic\_flag上，直到成功获取锁，这就是忙循环。
+每个线程通过重复调用test\_and\_set()在一个atomic\_flag上，直到成功获取锁，这就是忙循环。
 
 \begin{myWarning}{WARNING}
 由于自旋锁使用忙等待循环，应该只在确定线程只会短暂地锁定自旋锁时才作为候选。
@@ -76,25 +76,25 @@ try\_lock(): 调用线程尝试获取锁。如果锁当前由另一个线程持�
 unlock(): 调用线程释放当前持有的锁，使其对另一个线程可用。
 \end{itemize}
 
-std::mutex是一个具有独占所有权的标准互斥锁类。只能有一个线程拥有这个互斥锁。如果另一个线程想要获取这个互斥锁的所有权，要么在使用lock()时阻塞，要么在使用try\_lock()时失败。已经拥有互斥锁的线程，不允许再次对该互斥锁调用lock()或try\_lock()；否则，会导致死锁！
+std::mutex是一个具有独占所有权的标准互斥锁类，只能有一个线程拥有这个互斥锁。如果另一个线程想要获取这个互斥锁的所有权，要么在使用lock()时阻塞，要么在使用try\_lock()时失败。已经拥有互斥锁的线程，不允许再次对该互斥锁调用lock()或try\_lock()；否则，会死锁！
 
-std::recursive\_mutex的行为几乎与mutex相同，只是已经拥有recursive\_mutex所有权的线程允许再次对同一个recursive\_mutex调用lock()或try\_lock()。调用线程应该调用unlock()成员函数，其次数与获取recursive\_mutex锁的次数相同。
+std::recursive\_mutex的行为与mutex相同，只是已经拥有recursive\_mutex所有权的线程允许再次对同一个recursive\_mutex调用lock()或try\_lock()。调用线程应该调用unlock()成员函数，其次数与获取recursive\_mutex锁的次数相同。
 
-shared\_mutex类支持共享锁所有权的概念，也称为读写锁。线程可以获取锁的独占所有权或共享所有权。独占所有权，也称为写锁，只能在没有其他线程具有独占或共享所有权时获取。共享所有权，也称为读锁，可以在没有其他线程具有独占所有权时获取，即使其他线程已经获取了自己的共享所有权。shared\_mutex类支持lock()、try\_lock()和unlock()，这些成员函数获取和释放独占锁。此外，它们还有以下与共享所有权相关的成员函数：lock\_shared()、try\_lock\_shared()和unlock\_shared()。这些函数的工作方式与前面的函数类似，但尝试获取或释放共享所有权。
+shared\_mutex类支持共享锁所有权，也称为读写锁。线程可以获取锁的独占所有权或共享所有权。独占所有权，也称为写锁，只能在没有其他线程具有独占或共享所有权时获取。共享所有权，也称为读锁，可以在没有其他线程具有独占所有权时获取，即使其他线程已经获取了自己的共享所有权。shared\_mutex类支持lock()、try\_lock()和unlock()，这些成员函数获取和释放独占锁。此外，还有以下与共享所有权相关的成员函数：lock\_shared()、try\_lock\_shared()和unlock\_shared()。这些函数的工作方式与前面的函数类似，但尝试获取或释放共享所有权。
 
-已经对shared\_mutex拥有锁的线程，不允许再次尝试获取该互斥锁的第二个锁。这可能导致死锁！
+已经对shared\_mutex拥有锁的线程，不能再次尝试获取该互斥锁的第二个锁。这可能导致死锁！
 
 讨论如何使用这些互斥锁类的示例之前，还有一些其他主题需要首先讨论。示例将在本章后面的“使用互斥锁的示例”部分介绍。
 
 \begin{myWarning}{WARNING}
-不要手动调用互斥锁类的lock和unlock成员函数。互斥锁是一种资源，就像所有资源一样，它们应该使用 Resource Acquisition Is Initialization (RAII) 范式。C++标准库提供了一系列RAII锁类，将在本章后面的“锁”部分介绍，这对于避免死锁至关重要。它们会在锁对象超出作用域时自动解锁互斥锁，因此无需在正确的时间手动调用unlock()。
+不要手动调用互斥锁类的lock和unlock成员函数。互斥锁是一种资源，就像所有资源一样，它们应该使用 Resource Acquisition Is Initialization (RAII) 范式。C++标准库提供了一系列RAII锁类，将在本章后面的“锁”部分介绍，这对于避免死锁至关重要。会在锁对象超出作用域时自动解锁互斥锁，无需在正确的时间手动调用unlock()。
 \end{myWarning}
 
 \mySamllsection{定时互斥锁类}
 
 调用互斥锁类的lock()时会阻塞，直到锁可以获取。另一方面，调用那些互斥锁类的try\_lock()尝试获取锁，但如果不成功，则立即返回。还有定时互斥锁类，可以在一定时间内尝试获取锁，但在时间耗尽后放弃。
 
-标准库提供了三个定时互斥锁类：std::timed\_mutex、recursive\_timed\_mutex和shared\_timed\_mutex。前两个类在<mutex>中定义，最后一个在<shared\_mutex>中定义。它们都支持lock()、try\_lock()和unlock()成员函数；shared\_timed\_mutex还支持lock\_shared()、try\_lock\_shared()和unlock\_shared()，行为与前一节中描述的相同。此外，它们还支持以下成员函数：
+标准库提供了三个定时互斥锁类：std::timed\_mutex、recursive\_timed\_mutex和shared\_timed\_mutex。前两个类在<mutex>中定义，最后一个在<shared\_mutex>中定义。都支持lock()、try\_lock()和unlock()成员函数；shared\_timed\_mutex还支持lock\_shared()、try\_lock\_shared()和unlock\_shared()，行为与前一节中描述的相同。此外，还支持以下成员函数：
 
 \begin{itemize}
 \item
@@ -106,7 +106,7 @@ try\_lock\_until(abs\_time): 调用线程尝试在系统时间等于或超过指
 
 shared\_timed\_mutex还支持try\_lock\_shared\_for()和try\_lock\_shared\_until()。
 
-已经拥有定时互斥锁或共享定时互斥锁所有权的线程，不允许再次在同一互斥锁上获取锁。
+已经拥有定时互斥锁或共享定时互斥锁所有权的线程，不能再次在同一互斥锁上获取锁。
 
 recursive\_timed\_mutex允许线程多次获取锁，就像recursive\_mutex一样。
 
@@ -122,17 +122,17 @@ lock\_guard，定义在<mutex>中，是一个简单的锁，具有两个构造�
 explicit lock_guard(mutex_type& m);
 \end{cpp}
 
-接受一个互斥锁类型的引用作为参数的构造函数。尝试获取互斥锁上的锁，并阻塞，直到获取锁。
+接受一个互斥锁类型的引用作为参数的构造函数。尝试获取互斥锁上的锁并阻塞，直到获取锁。
 
 \begin{cpp}
 lock_guard(mutex_type& m, adopt_lock_t);
 \end{cpp}
 
-接受一个互斥锁类型的引用和一个第二个参数，该参数等于std::adopt\_lock。这是std::adopt\_lock\_t类型的全局常量，由标准库提供，专门用于此目的。锁假定调用线程已经对引用的互斥锁调用了lock()。lock\_guard“收纳”互斥锁，并在lock\_guard销毁时自动释放互斥锁。
+接受一个互斥锁类型的引用和一个第二个参数，该参数等于std::adopt\_lock。这是std::adopt\_lock\_t类型的全局常量，由标准库提供，专用于此目的。锁假定调用线程已经对引用的互斥锁调用了lock()。lock\_guard“收纳”互斥锁，并在lock\_guard销毁时自动释放互斥锁。
 
 \mySamllsection{unique\_lock}
 
-std::unique\_lock，定义在<mutex>中，是一个更复杂的锁，允许推迟获取锁，直到执行的后期，即声明之后很长时间。可以使用owns\_lock()成员函数或unique\_lock的布尔转换运算符来查看锁是否已经获取。本书后面章节中会演示使用此转换运算符的一个示例，unique\_lock有多个构造函数：
+std::unique\_lock，定义在<mutex>中，是一个更复杂的锁，允许推迟获取锁，直到执行的后期，即声明之后很长时间。可以使用owns\_lock()成员函数或unique\_lock的布尔转换操作符来查看锁是否已经获取。本书后面章节中会演示使用此转换操作符的一个示例，unique\_lock有多个构造函数：
 
 \begin{cpp}
 explicit unique_lock(mutex_type& m);
@@ -150,7 +150,7 @@ unique_lock(mutex_type& m, defer_lock_t) noexcept;
 unique_lock(mutex_type& m, try_to_lock_t);
 \end{cpp}
 
-接受一个互斥锁类型的引用和一个std::try\_to\_lock\_t的实例，例如std::try\_to\_lock。尝试获取引用互斥锁上的锁，但如果失败，不会阻塞。这种情况下，可以在稍后获取锁。
+接受一个互斥锁类型的引用和一个std::try\_to\_lock\_t的实例，例如std::try\_to\_lock。尝试获取引用互斥锁上的锁，但如果失败，不会阻塞，可以在稍后获取锁。
 
 \begin{cpp}
 unique_lock(mutex_type& m, adopt_lock_t);
@@ -174,7 +174,7 @@ unique\_lock类还具有lock()、try\_lock()、try\_lock\_for()、try\_lock\_unt
 
 \mySamllsection{shared\_lock}
 
-std::shared\_lock类，定义在<shared\_mutex>中，具有与unique\_lock相同的构造函数和成员函数。区别在于shared\_lock调用在底层共享互斥锁上的共享所有权相关成员函数。shared\_lock的成员函数是lock()、try\_lock()等，但在底层共享互斥锁上，会调用lock\_shared()、try\_lock\_shared()等。这样做是为了使shared\_lock具有与unique\_lock相同的接口，可以作为unique\_lock的替换使用，但获取的是共享锁，而不是独占锁。
+std::shared\_lock类，定义在<shared\_mutex>中，具有与unique\_lock相同的构造函数和成员函数。区别在于shared\_lock调用在底层共享互斥锁上的共享所有权相关成员函数。shared\_lock的成员函数是lock()、try\_lock()等，但在底层共享互斥锁上，会调用lock\_shared()、try\_lock\_shared()等。这样做是为了使shared\_lock具有与unique\_lock相同的接口，可以作为unique\_lock的替换使用。但获取的是共享锁，而不是独占锁。
 
 \mySamllsection{同时获取多个锁}
 
@@ -205,7 +205,7 @@ void process()
 
 \mySamllsection{scoped\_lock}
 
-std::scoped\_lock，定义在<mutex>中，类似于lock\_guard，但接受可变数量的互斥锁，这极大地简化了获取多个锁的过程。例如，前面章节中的process()函数示例可以使用scoped\_lock重写：
+std::scoped\_lock，定义在<mutex>中，类似于lock\_guard，但接受可变数量的互斥锁，这简化了获取多个锁的过程。例如，前面章节中的process()函数示例可以使用scoped\_lock重写：
 
 \begin{cpp}
 mutex m1;
@@ -248,11 +248,11 @@ int main()
 
 \mySubsubsection{27.4.3.}{std::call\_once}
 
-可以使用std::call\_once()与std::once\_flag结合，确保某个函数或成员函数仅调用一次，无论多少线程尝试使用相同的once\_flag调用call\_once()。实际上只有一次call\_once()会调用给定的函数。如果给定的函数没有抛出异常，那么这次调用就是有效的call\_once()调用。如果给定的函数抛出异常，异常会传播回调用者，然后选择另一个调用者来执行函数。特定once\_flag实例的有效调用，在所有其他同一once\_flag上的call\_once()调用完成之前完成。其他尝试对同一once\_flag调用call\_once()的线程会阻塞，直到有效调用完成。图27.4说明了这一点，涉及三个线程。线程1执行有效的call\_once()调用，因为线程1的已有已经完成调用，线程2阻塞直到调用完成，而线程3不会阻塞。
+可以使用std::call\_once()与std::once\_flag结合，确保某个函数或成员函数仅调用一次，无论多少线程尝试使用相同的once\_flag调用call\_once()。实际上只有一次call\_once()会调用给定的函数。如果给定的函数没有抛出异常，这次调用就是有效的call\_once()调用。如果给定的函数抛出异常，异常会传播回调用者，然后选择另一个调用者来执行函数。特定once\_flag实例的有效调用，所有其他同一once\_flag上的call\_once()调用完成之前完成。其他尝试对同一once\_flag调用call\_once()的线程会阻塞，直到有效调用完成。图27.4说明了这一点，涉及三个线程。线程1执行有效的call\_once()调用，因为线程1的已有已经完成调用，线程2阻塞直到调用完成，而线程3不会阻塞。
 
 \myGraphic{0.9}{content/part4/chapter27/images/4.png}{图 27.4}
 
-以下示例演示了call\_once()的使用。示例启动三个线程，运行processingFunction()，并使用一些共享资源。这些共享资源通过调用initializeSharedResources()一次进行初始化。为了实现这一点，每个线程都使用一个全局once\_flag调用call\_once()。结果是只有一个线程实际执行initializeSharedResources()，且只执行一次。当这个call\_once()调用正在进行时，其他线程会阻塞，直到initializeSharedResources()完成。
+以下示例演示了call\_once()的使用。示例启动三个线程，运行processingFunction()，并使用一些共享资源。这些共享资源通过调用initializeSharedResources()一次进行初始化。为了实现，每个线程都使用一个全局once\_flag调用call\_once()。结果是只有一个线程实际执行initializeSharedResources()，且只执行一次。当这个call\_once()调用正在进行时，其他线程会阻塞，直到initializeSharedResources()完成。
 
 \begin{cpp}
 once_flag g_onceFlag;
@@ -290,7 +290,7 @@ Processing
 Processing
 \end{shell}
 
-这个例子中，可以在启动线程之前在main()函数的开始处调用一次initializeSharedResources()；然而，那样就不会对call\_once()进行使用了。
+可以在启动线程之前在main()函数的开始处调用一次initializeSharedResources()；然而，这样就不会对call\_once()进行使用了。
 
 \mySubsubsection{27.4.4.}{使用互斥锁的示例}
 
@@ -298,7 +298,7 @@ Processing
 
 \mySamllsection{线程安全的写入流}
 
-在本章“线程”部分，有一个名为Counter的类示例。该示例提到C++流，如cout，默认情况下是线程安全的，但来自多个线程的输出可能会交错。这里有两种解决方案来解决这个问题：
+本章“线程”部分，有一个名为Counter的类示例。该示例提到C++流，如cout，默认情况下线程安全，但来自多个线程的输出可能会交错。这里有两种解决方案来解决这个问题：
 
 \begin{itemize}
 \item
@@ -312,7 +312,7 @@ Processing
 
 <syncstream>定义了std::basic\_osyncstream，它为char和wchar\_t流提供了预定义的类型别名osyncstream和wosyncstream，这些类名中的o代表输出。这些类保证通过它们进行的所有输出在同步流销毁的那一刻，出现在最终输出流中。保证输出不会因其他线程的输出交错，只要那些线程也使用自己的osyncstream对象。就线程安全而言，osyncstream与ostream之间的关系，与atomic\_ref<int>与int之间的关系完全相同。
 
-先前Counter类的函数调用运算符可以按照以下方式实现，使用osyncstream来防止输出交错：
+先前Counter类的函数调用操作符可以按照以下方式实现，使用osyncstream来防止输出交错：
 
 \begin{cpp}
 class Counter
@@ -339,7 +339,7 @@ class Counter
 
 \mySamllsection{使用互斥锁}
 
-如果不能使用同步流，可以按照以下代码片段使用互斥锁来同步Counter类中对cout的所有访问，需要添加了一个静态的互斥锁数据成员。它应该是静态的，因为类的所有实例都应该使用相同的互斥锁实例。向cout写入之前，使用lock\_guard获取互斥锁的锁。
+如果不能使用同步流，可以按照以下代码使用互斥锁来同步Counter类中对cout的所有访问，需要添加了一个静态的互斥锁数据成员。它应该是静态的，类的所有实例都应该使用相同的互斥锁实例。向cout写入之前，使用lock\_guard获取互斥锁的锁。
 
 \begin{cpp}
 class Counter
@@ -362,17 +362,17 @@ class Counter
 };
 \end{cpp}
 
-这段代码在for循环的每次迭代中创建一个lock\_guard实例。建议尽可能限制持有锁的时间；否则，会阻塞其他线程太长时间。
+代码在for循环的每次迭代中创建一个lock\_guard实例。建议尽可能限制持有锁的时间；否则，会阻塞其他线程太长时间。
 
-例如，如果lock\_guard实例在for循环开始前一次性创建，基本上会失去这个代码的多线程效果，因为一个线程会持有锁直到for循环结束，而所有其他线程都会等待这个锁释放。
+如果lock\_guard实例在for循环开始前一次性创建，基本上会失去这个代码的多线程效果，因为一个线程会持有锁直到for循环结束，而所有其他线程都会等待这个锁释放。
 
 \begin{myNotic}{NOTE}
-尽量减少持有锁的时间，应该避免在持有锁时执行缓慢的操作，例如打印消息到控制台、从文件中读取数据、访问数据库、进行长时间计算、执行显式休眠等。
+尽量减少持有锁的时间，避免在持有锁时执行缓慢的操作，例如打印消息到控制台、从文件中读取数据、访问数据库、进行长时间计算、执行显式休眠等。
 \end{myNotic}
 
 \mySamllsection{使用定时互斥锁}
 
-以下示例演示了如何使用定时互斥锁。这是之前相同的Counter类，但这次它使用定时互斥锁与unique\_lock的组合。unique\_lock构造函数给出了200毫秒的相对时间，导致在200毫秒内尝试获取锁。如果在超时区间内无法获取锁，构造函数将返回。之后，可以检查锁是否已获取。可以使用if语句在锁变量上进行此操作，因为unique\_lock定义了一个bool转换运算符。
+以下示例演示了如何使用定时互斥锁。这是之前相同的Counter类，但这次它使用定时互斥锁与unique\_lock的组合。unique\_lock构造函数给出了200毫秒的相对时间，在200毫秒内尝试获取锁。如果在超时区间内无法获取锁，构造函数将返回，可以检查锁是否已获取。可以使用if语句在锁变量上进行此操作，因为unique\_lock定义了一个bool转换操作符。
 
 \begin{cpp}
 class Counter
@@ -402,17 +402,17 @@ class Counter
 
 \mySamllsection{双重检查锁定}
 
-双重检查锁定模式实际上是一个反模式，一定要避免使用！这里展示了这个模式，因为可能在现有的代码库中遇到它。双重检查锁定模式是尝试避免使用互斥锁。这是一种半生不熟的尝试，试图编写比使用互斥锁更高效的代码。当试图使它比即将展示的示例更快时（例如，使用松散的原子类型（不进一步讨论）、使用普通的布尔类型而不是atomic<bool>类型等），它可能会出错。这种模式容易受到数据竞争的影响，而且很难正确实现。讽刺的是，通常使用call\_once()会更快，使用魔法静态（如果适用）会更快。
+双重检查锁定模式实际上是一个反模式，一定要避免使用！可能会在现有的代码库中遇到它，所以这里进行了展示。双重检查锁定模式是尝试避免使用互斥锁。这是一种夹生的尝试，试图编写比使用互斥锁更高效的代码。当试图使它比即将展示的示例更快时（例如，使用自由松散的原子类型（不进一步讨论）、使用普通的布尔类型而不是atomic<bool>类型等），可能会出错。这种模式容易受到数据竞争的影响，而且很难正确实现。讽刺的是，通常使用call\_once()会更快，使用魔法静态变量（如果适用）会更快。
 
 \begin{myNotic}{NOTE}
-函数局部静态变量称为魔法静态或线程安全的静态。C++保证这些局部静态变量以线程安全的方式初始化，因此不需要任何手动线程同步。有关使用魔法静态的示例，请参见第33章。
+函数局部静态变量称为魔法静态变量或线程安全的静态变量。C++保证这些局部静态变量以线程安全的方式初始化，因此不需要任何手动线程同步。有关使用魔法静态变量的示例，请参见第33章。
 \end{myNotic}
 
 \begin{myWarning}{WARNING}
-避免使用双重检查锁定模式！使用其他机制，如简单锁、原子变量、call\_once()、魔法静态等。
+避免使用双重检查锁定模式！使用其他机制，如简单锁、原子变量、call\_once()、魔法静态变量等。
 \end{myWarning}
 
-双重检查锁定可以用于确保资源只被初始化一次。以下示例展示了如何实现这一点，称为双重检查锁定模式，因为它两次检查g\_initialized变量的值，一次是在获取锁之前，一次是在获取锁之后。第一次g\_initialized检查用于防止在不需要时获取锁，第二次检查是为了确保在第一次g\_initialized检查和获取锁之间没有其他线程执行初始化。
+双重检查锁定可以用于确保资源只初始化一次。以下示例展示了如何实现，称为双重检查锁定模式，因为会两次检查g\_initialized变量的值，一次是在获取锁之前，一次是在获取锁之后。第一次g\_initialized检查用于防止在不需要时获取锁，第二次检查是为了确保在第一次g\_initialized检查和获取锁之间没有其他线程执行初始化。
 
 \begin{cpp}
 void initializeSharedResources()

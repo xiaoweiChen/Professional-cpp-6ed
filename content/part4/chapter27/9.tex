@@ -3,7 +3,7 @@
 
 future可以用来更容易地从线程中获取结果，并将异常从一个线程传输到另一个线程，然后线程可以处理异常。
 
-promise是线程存储其结果的地方，future用于获取存储在promise中的结果。也就是说，promise是结果的输入端，future是结果的输出端。当函数（在同一线程或另一个线程中）计算出它想要返回的值，就会将这个值放入一个promise中。然后，这个值可以通过future检索，promise/future对是用于结果的线程间一次性通信通道。
+promise是线程存储其结果的地方，future用于获取存储在promise中的结果。promise是结果的输入端，future是结果的输出端。当函数（在同一线程或另一个线程中）计算出想要返回的值，就会将这个值放入一个promise中。这个值可以通过future检索，promise/future对是用于结果的线程间一次性通信通道。
 
 C++提供了一个标准future，称为std::future。可以像以下方式从std::future中检索结果，T是计算结果的类型。
 
@@ -26,11 +26,11 @@ if (myFuture.wait_for(0)) { // Value is available.
 
 \mySubsubsection{27.9.1.}{std::promise 和 std::future}
 
-C++提供了std::promise类作为实现承诺概念的一种方式，可以调用set\_value()在promise中存储一个结果，或者调用set\_exception()在promise中存储一个异常。只能在特定的promise上调用set\_value()或set\_exception()一次。如果多次调用，会抛出一个std::future\_error异常。
+C++提供了std::promise类作为实现promise的一种方式，可以调用set\_value()在promise中存储一个结果，或者调用set\_exception()在promise中存储一个异常。只能在特定的promise上调用set\_value()或set\_exception()一次。如果多次调用，会抛出一个std::future\_error异常。
 
-另外，可以使用set\_value\_at\_thread\_exit()或set\_exception\_at\_thread\_exit()在promise中设置一个值或一个异常。使用这些方法，值或异常在线程退出和所有线程局部存储变量销毁之后，存储在promise中。
+可以使用set\_value\_at\_thread\_exit()或set\_exception\_at\_thread\_exit()在promise中设置一个值或一个异常。使用这些方法，值或异常在线程退出和所有线程局部存储变量销毁之后，存储在promise中。
 
-一个线程A启动另一个线程B来计算某些内容时，可以创建一个promise并将其传递给启动的线程。不能复制promise，但可以移动到线程中！线程B使用该promise来存储结果。将promise移动到线程B之前，线程A调用get\_future()在创建的promise上，当B完成就可以访问结果。这是一个简单的示例：
+一个线程A启动另一个线程B来计算某些内容时，可以创建一个promise并将其传递给启动的线程。不能复制promise，但可以移动到线程中！线程B使用该promise来存储结果。将promise移动到线程B之前，线程A调用get\_future()在创建的promise上，当B完成就可以访问结果。一个简单的示例：
 
 \begin{cpp}
 void doWork(promise<int> thePromise)
@@ -58,12 +58,12 @@ int main()
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-这段代码只是为了演示目的。在新的线程中启动计算，然后阻塞调用future的get()，直到结果计算出来。这听起来像是一个昂贵的函数调用。实际应用中，可以定期检查是否有可用结果（使用前面讨论的wait\_for()），或者使用同步机制，如条件变量。当结果尚未可用时，可以在等待的同时做其他事情，而不是阻塞。
+这段代码只是为了演示目的。在新的线程中启动计算，然后阻塞调用future的get()，直到结果计算出来。这听起来像是一个昂贵的函数调用。实际中，可以定期检查是否有可用结果（使用前面讨论的wait\_for()），或者使用同步机制，如条件变量。当结果尚未可用时，可以在等待的同时做其他事情，而不是阻塞。
 \end{myNotic}
 
 \mySubsubsection{27.9.2.}{std::packaged\_task}
 
-std::packaged\_task比显式使用std::promise（如前一节所示）更容易与承诺一起工作。以下代码展示了这一点。它创建了一个packaged\_task来执行calculateSum()，通过调用get\_future()从packaged\_task中获取future。创建了一个线程，并将packaged\_task移动到线程中。packaged\_task，就像std::promise一样，是可移动的。线程启动后，从检索到的future上阻塞调用get()以获取结果，直到结果可用。
+std::packaged\_task比显式使用std::promise（如前一节所示）更容易与承诺一起工作。以下代码创建了一个packaged\_task来执行calculateSum()，通过调用get\_future()从packaged\_task中获取future。创建了一个线程，并将packaged\_task移动到线程中。packaged\_task，就像std::promise一样，是可移动的。线程启动后，从检索到的future上阻塞调用get()以获取结果，直到结果可用。
 
 calculateSum()没有显式地将内容存储在promise中。packaged\_task会自动创建一个promise，并自动将可调用对象的返回结果——calculateSum()的结果——存储在promise中，无论该结果是一个值，还是一个抛出的异常。
 
@@ -94,10 +94,10 @@ int main()
 
 \begin{itemize}
 \item
-在不同的线程上异步运行
+不同的线程上异步运行
 
 \item
-调用线程上同步运行，当在返回的future上调用get()时
+调用线程上同步运行，当返回的future上调用get()时
 \end{itemize}
 
 如果在没有参数的情况下调用async()，运行时会根据系统中的CPU核心数量和已经发生的并发量等因素自动选择两种机制之一。可以通过指定一个策略参数，来影响运行时的行为：
@@ -132,7 +132,7 @@ int main()
 }
 \end{cpp}
 
-从这个代码段中可以看到，std::async()是最简单的方法，可以执行一些计算，无论是异步的（在不同的线程上）还是同步的（在同一个线程上），然后获取结果。
+从这个代码段中可以看到，std::async()是最简单的方法，可以执行一些计算，无论是异步的（不同的线程上）还是同步的（同一个线程上），然后获取结果。
 
 \begin{myWarning}{WARNING}
 由async()调用返回的future在其析构函数中阻塞，直到结果可用。（这对于普通future不适用；只适用于从async()返回的那种。）如果调用async()而不捕获返回的future，async()调用实际上变成了一个阻塞调用！例如，以下行同步调用calculateSum()：
@@ -175,9 +175,9 @@ int main()
 
 std::future<T>只需要T能够进行移动构造。当在future<T>上调用get()时，结果会从future中移动出来并返回，所以只能在一个future<T>上调用get()一次。
 
-如果想在多次调用get()时，甚至在多个线程中，那么需要使用std::shared\_future<T>。可以通过调用std::future::share()或通过将future传递给shared\_future构造函数来创建shared\_future。future是不可复制的，所以必须将其移动到shared\_future构造函数中。
+如果想多次调用get()时，甚至在多个线程中，需要使用std::shared\_future<T>。可以通过调用std::future::share()或通过将future传递给shared\_future构造函数来创建shared\_future。future是不可复制的，所以必须将其移动到shared\_future构造函数中。
 
-shared\_future可以用来同时唤醒多个线程。例如，以下代码定义了两个Lambda表达式，分别以不同的线程异步执行。每个Lambda表达式所做的第一件事就是将值设置为其各自的promise，以表明线程启动。然后阻塞调用get()在signalFuture上，直到通过future提供参数，之后它们继续执行。每个Lambda表达式都通过引用捕获了它们各自的promise，并通过值捕获了signalFuture，所以两个Lambda表达式都拥有signalFuture的副本。主线程使用async()以不同的线程异步执行这两个Lambda表达式，等待两个线程都开始，然后将参数设置在signalPromise中，这会唤醒两个线程。
+shared\_future可以用来同时唤醒多个线程。以下代码定义了两个Lambda表达式，分别以不同的线程异步执行。每个Lambda表达式所做的第一件事就是将值设置为其各自的promise，以表明线程启动。然后阻塞调用get()在signalFuture上，直到通过future提供参数，之后继续执行。每个Lambda表达式都通过引用捕获了各自的promise，并通过值捕获了signalFuture，所以两个Lambda表达式都拥有signalFuture的副本。主线程使用async()以不同的线程异步执行这两个Lambda表达式，等待两个线程都开始，然后将参数设置在signalPromise中，这会唤醒两个线程。
 
 \begin{cpp}
 promise<void> thread1Started, thread2Started;

@@ -5,7 +5,7 @@
 
 \begin{itemize}
 \item
-std::condition\_variable: 只能等待unique\_lock<mutex>的条件变量，根据C++标准，这在某些平台上可以达到最高效率。
+std::condition\_variable: 只能等待unique\_lock<mutex>的条件变量，根据C++标准，在某些平台上可以达到最高效率。
 
 \item
 std::condition\_variable\_any: 可以等待任何类型的对象的条件下变量，包括自定义锁类型。
@@ -41,7 +41,7 @@ wait_for(unique_lock<mutex>& lk, const chrono::duration<Rep, Period>& rel_time);
 wait_until(unique_lock<mutex>& lk, const chrono::time_point<Clock, Duration>& abs_time);
 \end{cpp}
 
-类似于wait()，只是线程会在调用notify\_one()、notify\_all()或系统时间超过给定的绝对时间时被唤醒。
+类似于wait()，只是线程会在调用notify\_one()、notify\_all()或系统时间超过给定的绝对时间时唤醒。
 
 wait()、wait\_for()和wait\_until()也有接受谓词参数的重载。例如，接受谓词的wait()重载等效于：
 
@@ -54,11 +54,11 @@ condition\_variable\_any类支持与condition\_variable相同的成员函数，�
 
 \mySubsubsection{27.5.1.}{伪唤醒}
 
-条件变量上等待的线程可以在另一个线程调用notify\_one()或notify\_all()时唤醒，或在达到相对超时时，或在系统时间达到某个时间时。也可能伪唤醒，线程可能会在没有其他线程调用notify成员函数，并且没有达到超时的情况下唤醒。因此，当线程在条件变量上等待并唤醒时，需要检查唤醒的原因。检查方法之一是使用接受谓词的wait()版本，如下所示。
+条件变量上等待的线程可以在另一个线程调用notify\_one()或notify\_all()时唤醒，或在达到相对超时时，或在系统时间达到某个时间时。也可能伪唤醒，线程可能会在没有其他线程调用notify成员函数，并且没有达到超时的情况下唤醒。当线程在条件变量上等待并唤醒时，需要检查唤醒的原因。检查方法之一是使用接受谓词的wait()版本，如下所示。
 
 \mySubsubsection{27.5.2.}{使用条件变量}
 
-例如，条件变量可以用于后台线程处理队列中的项目。可以定义一个队列，在其中插入要处理的项目。后台线程等待队列中是否有项目。当项目插入队列时，会唤醒线程，处理项目，然后回到睡眠状态，等待下一个项目。假设有以下队列：
+条件变量可以用于后台线程处理队列中的项目。可以定义一个队列，在其中插入要处理的项目。后台线程等待队列中是否有项目。当项目插入队列时，会唤醒线程，处理项目，然后回到睡眠状态，等待下一个项目。假设有以下队列：
 
 \begin{cpp}
 queue<string> m_queue;
@@ -76,7 +76,7 @@ mutex m_mutex;
 condition_variable m_condVar;
 \end{cpp}
 
-想要将项目添加到队列的线程首先获取互斥锁上的锁，然后将项目添加到队列，并通知后台线程。调用notify\_one()或notify\_all()可以在当前是否有锁的情况下进行；两者都有效。
+将项目添加到队列的线程首先获取互斥锁上的锁，然后将项目添加到队列，并通知后台线程。调用notify\_one()或notify\_all()可以在当前是否有锁的情况下进行；两者都有效。
 
 \begin{cpp}
 // Lock mutex and add entry to the queue.
@@ -86,7 +86,7 @@ m_queue.push(entry);
 m_condVar.notify_all();
 \end{cpp}
 
-后台线程在一个无限循环中等待通知，如下所示。注意使用wait()接受一个谓词来正确处理伪唤醒，谓词检查队列中是否真的有东西。当调用wait()返回时，可以确定队列中确实有东西。
+后台线程在一个无限循环中等待通知，如下所示。注意使用wait()接受一个谓词来正确处理伪唤醒，谓词检查队列中是否真的有东西。当调用wait()返回时，确定队列中确实有东西。
 
 \begin{cpp}
 unique_lock lock { m_mutex };

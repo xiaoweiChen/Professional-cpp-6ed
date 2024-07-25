@@ -16,7 +16,7 @@ void counter(int id, int numIterations)
 }
 \end{cpp}
 
-可以使用std::thread启动多个执行此函数的线程。可以创建一个线程t1，执行带有参数1和6的counter()：
+可以使用std::thread启动多个执行此函数的线程。创建一个线程t1，执行带有参数1和6的counter()：
 
 \begin{cpp}
 thread t1 { counter, 1, 6 };
@@ -24,7 +24,7 @@ thread t1 { counter, 1, 6 };
 
 线程类的构造函数是一个可变参数模板，接受任意数量的参数。第一个参数是要在新线程中执行的可调用对象（例如:函数指针——这个例子中，是指向函数counter()的指针），后续参数在启动线程执行时，传递给这些参数给可调用对象。
 
-如果一个线程对象表示或曾表示系统中的一个活动线程，则称该线程对象可汇入。即使线程已经执行完毕，线程对象仍保持可汇入状态。默认构造的线程对象不可汇入。可汇入的线程对象销毁之前，需要使用join()或detach()。join()为阻塞调用：等待线程完成其工作。对detach()的调用将线程对象与其底层的OS线程分离，使OS线程独立运行。这两个成员函数都会导致线程变为不可汇入。如果一个仍然可汇入的线程对象销毁，析构函数会调用std::terminate()，这将终止所有线程和应用程序本身。这种行为的原因是，销毁一个没有汇入的线程几乎肯定是一个错误，终止程序是库指示问题的最佳方式。
+如果线程对象表示或曾表示系统中的活动线程，则称该线程对象可汇入。即使线程已经执行完毕，线程对象仍保持可汇入状态。默认构造的线程对象不可汇入。可汇入的线程对象销毁之前，需要使用join()或detach()。join()为阻塞调用：等待线程完成其工作。对detach()的调用将线程对象与其底层的OS线程分离，使OS线程独立运行。这两个成员函数都会导致线程变为不可汇入。如果销毁一个可汇入的线程对象，析构函数会调用std::terminate()，这将终止所有线程和应用程序本身。这种行为的原因是，销毁一个没有汇入的线程肯定是一个错误，终止程序是库指示问题的最佳方式。
 
 以下代码启动两个线程执行counter()函数。启动线程后，对两个线程调用join()。
 
@@ -50,9 +50,9 @@ Counter 2 has value 2
 Counter 2 has value 3
 \end{shell}
 
-系统上的输出将不同，并且每次运行时都可能不同。这是因为两个线程同时执行counter()函数，所以输出取决于机器的处理器数量和操作系统的线程调度。
+系统上的输出将不同，并且每次运行时都可能不同。因为两个线程同时执行counter()函数，所以输出取决于机器的处理器数量和操作系统的线程调度。
 
-不同线程中使用print()或println()是线程安全的，不会导致数据竞争。但如果将counter()中的单个println()语句更改为以下内容：
+不同线程中使用print()或println()是线程安全的，不会导致数据竞争。如果将counter()中的单个println()语句更改为以下内容：
 
 \begin{cpp}
 print("Counter {} has value {}", id, i);
@@ -72,7 +72,7 @@ cout << format("Counter {} has value {}", id, i);
 cout << endl;
 \end{cpp}
 
-那么，即使仍然没有数据竞争，不同线程的输出可能会交错！所以输出可能会混合在一起，如下所示：
+即使仍然没有数据竞争，不同线程的输出可能会交错！所以输出可能会混合在一起：
 
 \begin{shell}
 Counter 1 has value 0Counter 2 has value 0
@@ -127,7 +127,7 @@ t2.join();
 \end{cpp}
 
 \begin{myNotic}{NOTE}
-函数对象总会复制到线程的某个内部存储中。如果想对特定实例的operator()上执行，而不是在副本上执行，应该使用<functional>中的std::ref()或std::cref()按引用传递实例，例如：
+函数对象总会复制到线程的某个内部存储中。如果想对特定实例的operator()上执行，而不是在副本上执行，应该使用<functional>中的std::ref()或std::cref()按引用传递实例：
 
 \begin{cpp}
 Counter c { 2, 12 };
@@ -139,7 +139,7 @@ thread t2 { ref(c) };
 
 \mySubsubsection{27.2.3.}{使用Lambda的线程}
 
-Lambda表达式与标准C++线程库非常契合。以下示例启动一个线程来执行给定的Lambda表达式：
+Lambda表达式与标准C++线程库非常契合。以下示例启动一个线程执行给定的Lambda表达式：
 
 \begin{cpp}
 int id { 1 };
@@ -178,7 +178,7 @@ int main()
 
 \mySubsubsection{27.2.5.}{线程局部存储}
 
-C++标准支持线程局部存储。使用一个名为thread\_local的关键字，可以标记变量为线程局部，这样每个线程将有自己的唯一副本。对于每个线程，变量初始化一次。例如，以下代码定义了两个全局变量，k和n。每个线程共享k的一个副本，而每个线程都有自己的n的唯一副本。
+C++标准支持线程局部存储。使用一个名为thread\_local的关键字，可以标记变量为线程局部，每个线程将有自己的唯一副本。对于每个线程，变量初始化一次。以下代码定义了两个全局变量，k和n。每个线程中都会共享有一个k的副本，而每个线程都有自己唯一的n。
 
 \begin{cpp}
 int k;
@@ -230,11 +230,11 @@ void f()
 
 \mySubsubsection{27.2.6.}{取消线程}
 
-C++标准不包括从另一个线程取消运行线程的机制，一个（部分）解决方案是使用下一节讨论的jthread类。如果这不是一个选项，那么实现这一点的最佳方法就是提供一个线程之间约定的通信机制。最简单的机制是拥有一个共享变量，目标线程定期检查以确定是否应该终止。其他线程可以设置这个共享变量以间接指示线程关闭，这里需要谨慎，因为多个线程正在访问这个共享变量，至少有一个线程正在写入共享变量。为了保证线程安全，建议使用原子变量或条件变量，这两者都在本章后面讨论。
+C++标准不包括从另一个线程取消运行线程的机制，一个（部分）解决方案是使用下一节讨论的jthread类。如果这不是一个选项，实现的最佳方法就是提供一个线程之间约定的通信机制。最简单的机制是拥有一个共享变量，目标线程定期检查以确定是否应该终止。其他线程可以设置这个共享变量以间接指示线程关闭，这里需要谨慎，因为多个线程正在访问这个共享变量，至少有一个线程正在写入共享变量。为了保证线程安全，建议使用原子变量或条件变量，这两者都在本章后面讨论。
 
 \mySubsubsection{27.2.7.}{自动汇入线程}
 
-如前所述，如果一个可连接的线程实例销毁，C++运行时会调用std::terminate()来终止应用程序。<thread>还定义了std::jthread，与thread几乎完全相同，除了：
+如果一个可汇入的线程实例销毁，C++运行时会调用std::terminate()来终止应用程序。<thread>还定义了std::jthread，与thread几乎完全相同，除了：
 
 \begin{itemize}
 \item
@@ -256,9 +256,9 @@ std::stop\_token: 支持主动检查取消请求。一个可取消的线程需�
 std::stop\_source: 用于请求线程取消其执行。通过在stop\_source上调用request\_stop()成员函数来完成的。如果stop\_source用于请求取消，则该取消请求对所有关联的stop\_source和stop\_token可见。可以使用stop\_requested()成员函数来检查，是否已经请求了停止。
 \end{itemize}
 
-如果有一个jthread实例，可以通过使用get\_stop\_token()和get\_stop\_source()成员函数来访问其stop\_token和stop\_source。此外，传递给jthread构造函数的可调用对象可以将其第一个参数作为stop\_token。
+如果有一个jthread实例，可以通过使用get\_stop\_token()和get\_stop\_source()成员函数来访问其stop\_token和stop\_source。此外，传递给jthread构造函数的可调用对象，可以将其第一个参数作为stop\_token。
 
-来看一个示例。以下代码定义了一个threadFunction()可调用对象，接受一个stop\_token作为其第一个参数。因为协作取消，所以这个线程函数的主体使用这个stop\_token来检查否需要取消自身。这段代码使用std::this\_thread::sleep\_for()在每个循环中引入一个小延迟，sleep\_for()的参数是一个std::chrono::duration。
+以下代码定义了一个threadFunction()可调用对象，接受一个stop\_token作为其第一个参数。因为协作取消，所以这个线程函数的主体使用这个stop\_token来检查否需要取消。这段代码使用std::this\_thread::sleep\_for()在每个循环中引入一个小延迟，sleep\_for()的参数是一个std::chrono::duration。
 
 \begin{cpp}
 void threadFunction(stop_token token, int id)
@@ -347,7 +347,7 @@ jthread job { calculator };
 
 \mySubsubsection{27.2.9.}{复制和重抛异常}
 
-在C++中，整个异常机制在单一线程中运行得相当好。每个线程都可以抛出自己的异常，但需要在各自的线程中进行捕获。如果一个线程抛出一个异常，且该异常在原线程中没有捕获，C++运行时将调用std::terminate()，这将终止整个应用程序。一个线程抛出的异常不能在另一个线程捕获。这在结合异常处理和多线程编程时，引入了许多问题。
+C++中整个异常机制在单一线程中运行得相当好。每个线程都可以抛出自己的异常，但需要在各自的线程中进行捕获。如果一个线程抛出一个异常，且该异常在原线程中没有捕获，C++运行时将调用std::terminate()，这将终止整个应用程序。一个线程抛出的异常不能在另一个线程捕获，这在结合异常处理和多线程编程时，引入了许多问题。
 
 如果没有标准线程库，跨线程优雅地处理异常是相当困难的(可能的话)。标准线程库通过以下与异常相关的函数解决了这个问题。这些函数不仅适用于std::exception，还适用于其他类型的异常、整数、字符串、自定义异常等：
 
@@ -371,7 +371,7 @@ exception_ptr current_exception() noexcept;
 template<class E> exception_ptr make_exception_ptr(E e) noexcept;
 \end{cpp}
 
-创建指向给定异常对象复制的exception\_ptr对象，这是以下代码的简写：
+创建指向给定异常对象复制的exception\_ptr对象：
 
 \begin{cpp}
 try { throw e; }
@@ -390,7 +390,7 @@ void doSomeWork()
 }
 \end{cpp}
 
-以下threadFunc()函数将调用前面的函数包裹在一个try/catch块中，捕获doSomeWork()抛出的所有异常。向threadFunc()函数提供单一的参数，该参数的类型是exception\_ptr\&。一旦捕获到异常，使用current\_exception()函数获取正在处理的异常的引用，然后将其赋值给exception\_ptr参数。之后，线程正常退出。
+以下threadFunc()函数将调用前面的函数包裹在一个try/catch块中，捕获doSomeWork()抛出的所有异常。向threadFunc()函数提供单一的参数，该参数的类型是exception\_ptr\&。捕获到异常时，使用current\_exception()函数获取正在处理的异常的引用，然后将其赋值给exception\_ptr参数。之后，线程正常退出。
 
 \begin{cpp}
 void threadFunc(exception_ptr& err)
@@ -404,7 +404,7 @@ void threadFunc(exception_ptr& err)
 }
 \end{cpp}
 
-以下doWorkInThread()函数在主线程内部调用，用来创建一个新线程并开始在其中执行threadFunc()，向threadFunc()提供一个exception\_ptr类型的对象引用作为参数。当线程已创建，doWorkInThread()函数可通过使用join()成员函数等待线程完成，之后检查错误对象。由于exception\_ptr是NullablePointer类型，就可以轻松地使用if语句来检查。如果是非null值，异常将在当前线程中重新抛出，在这个例子中是主线程。因为在主线程中重新抛出异常，所以异常已经从一个线程转移到另一个线程。
+以下doWorkInThread()函数在主线程内部调用，用来创建一个新线程并开始在其中执行threadFunc()，向threadFunc()提供一个exception\_ptr类型的对象引用作为参数。当线程已创建，doWorkInThread()函数可通过使用join()成员函数等待线程完成，之后检查错误对象。由于exception\_ptr是NullablePointer类型，就可以使用if语句来检查。如果是非null值，异常将在当前线程中重新抛出，这个例子中是主线程。因为在主线程中重新抛出异常，所以异常已经从一个线程转移到另一个线程。
 
 \begin{cpp}
 void doWorkInThread()
@@ -451,7 +451,7 @@ Main thread received exception, rethrowing it...
 Main function caught: 'Exception from thread'
 \end{shell}
 
-这里main()函数使用join()，无论是显式还是隐式地与jthread一起使用，以阻塞主线程并等待线程完成。在实际应用中，可能不想阻塞主线程。例如，在GUI应用程序中，阻塞主线程意味着UI变得无响应。这种情况下，可以使用消息传递范式在线程之间进行通信。例如，之前的threadFunc()函数可以向UI线程发送一个消息，current\_exception()结果的副本可作为参数。
+这里main()函数使用join()，无论是显式还是隐式地与jthread一起使用，以阻塞主线程并等待线程完成。在实际应用中，可能不想阻塞主线程。在GUI应用程序中，阻塞主线程意味着UI变得无响应。这种情况下，可以使用消息传递范式在线程之间进行通信。例如，之前的threadFunc()函数可以向UI线程发送一个消息，current\_exception()结果的副本可作为参数。
 
 
 

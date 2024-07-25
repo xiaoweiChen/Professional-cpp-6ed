@@ -1,5 +1,5 @@
 
-原子类型允许原子访问，可以并发地读写，而不需要额外的同步。如果没有原子操作，增加一个变量会破坏线程安全性。编译器首先从内存加载值到寄存器，然后增加它，最后将结果存储回内存。另一个线程可能在增加操作期间访问相同的内存，这会导致数据竞争。例如，以下代码不是线程安全的，并且包含数据竞争。
+原子类型允许原子访问，可以并发地读写，而不需要同步。如果没有原子操作，修改变量会破坏线程安全性。编译器首先从内存加载值到寄存器，然后增加它，最后将结果存储回内存。另一个线程可能在增加操作期间访问相同的内存，这会导致数据竞争。以下代码不是线程安全的，并且包含数据竞争。
 
 \begin{cpp}
 int counter { 0 }; // Global variable
@@ -7,7 +7,7 @@ int counter { 0 }; // Global variable
 ++counter; // Executed in multiple threads
 \end{cpp}
 
-可以使用定义在<atomic>中的std::atomic类模板，以不显式使用同步机制的方式来使这段代码线程安全。这里是使用的代码与原子整数相同：
+可以使用定义在<atomic>中的std::atomic类模板，要以非显式使用同步机制的方式来使这段代码线程安全。这里是使用的代码与原子整数相同：
 
 \begin{cpp}
 atomic<int> counter { 0 } ; // Global variable
@@ -40,9 +40,9 @@ atomic\_wchar\_t           & atomic\textless{}wchar\_t\textgreater{}           \
 atomic\_flag               & (none)                                            \\ \hline
 \end{longtable}
 
-可以使用原子类型，而不显式使用任何同步机制。在底层，对特定类型的原子操作可能使用同步机制，例如互斥锁。当针对的硬件缺乏执行操作的原子指令，可以使用原子类型的is\_lock\_free()成员函数来查询它是否支持无锁操作，即所有操作是否在没有显式同步机制的底层运行。还有一个静态常量称为atomic<T>::is\_always\_lock\_free，如果atomic<T>总是无锁的，则为true，否则为false。
+可以使用原子类型，在底层对特定类型的原子操作可能使用同步机制，例如互斥锁。当硬件缺乏执行操作的原子指令，可以使用原子类型的is\_lock\_free()成员函数来查询它是否支持无锁操作，即所有操作是否在没有显式同步机制的底层运行。还有一个静态常量称为atomic<T>::is\_always\_lock\_free，如果atomic<T>总是无锁的，则为true，否则为false。
 
-std::atomic类模板可以与所有类型的数据一起使用，不仅限于整数类型。例如，可以创建一个atomic<double>，或者一个atomic<MyType>，但只有当MyType是简单的复制类型时才可行。根据指定类型的尺寸，这些操作在底层可能需要显式的同步机制。在下面的例子中，Foo和Bar都是简单的复制类型，即std::is\_trivially\_copyable\_v对于两者都为true。然而，由于Foo的大小，atomic<Foo>不是无锁的，而atomic<Bar>是有锁。
+std::atomic类模板可以与所有类型的数据一起使用，不仅限于整数类型。例如，可以创建一个atomic<double>，或者一个atomic<MyType>，但只有当MyType是简单的复制类型时才可行。根据指定类型的尺寸，这些操作在底层可能需要显式的同步机制。下面的例子中，Foo和Bar都是简单的复制类型，即std::is\_trivially\_copyable\_v对于两者都为true。由于Foo的大小，atomic<Foo>无锁，而atomic<Bar>有锁。
 
 \begin{cpp}
 struct Foo { int m_array[123]; };
@@ -58,10 +58,10 @@ int main()
 }
 \end{cpp}
 
-当从多个线程访问数据时，原子类型还能解决与内存序、编译器优化等方面的问题。基本上，如果没有使用原子类型或显式同步机制，不可能安全地从多个线程读写同一块数据！
+多个线程访问数据时，原子类型还能解决与内存序、编译器优化等方面的问题。如果没有使用原子类型或显式同步机制，不可能安全地从多个线程读写同一块数据！
 
 \begin{myNotic}{NOTE}
-内存序是指访问内存的顺序。在没有原子类型和其他同步机制的情况下，编译器和硬件允许对内存访问重新排序，只要这不会影响结果。这称为as-if规则，但在多线程环境中可能会导致问题。
+内存序是指访问内存的顺序。没有原子类型和其他同步机制的情况下，编译器和硬件允许对内存访问重新排序，只要这不会影响结果。这称为as-if规则，但在多线程环境中可能会导致问题。
 \end{myNotic}
 
 atomic\_flag是一个原子布尔类型，总是无锁的，这是C++标准保证的。与atomic<bool>的区别在于，不提供赋值运算符，而提供了一些成员函数，如clear()、test()和test\_and\_set()。使用atomic\_flag的示例将在本章后面的互斥部分中给出，用于实现一个自旋锁。
@@ -70,13 +70,13 @@ atomic\_flag是一个原子布尔类型，总是无锁的，这是C++标准保�
 
 C++标准定义了一系列对atomic<T>的特殊操作，本节描述了其中的一些操作。要查看完整的列表，请参考标准库参考（见附录B）。
 
-我们的第一个原子操作示例是：
+第一个原子操作示例是：
 
 \begin{cpp}
 bool atomic<T>::compare_exchange_strong(T& expected, T desired);
 \end{cpp}
 
-这个操作原子地执行的逻辑如下，以伪代码表示：
+操作原子地执行的逻辑如下，以伪代码表示：
 
 \begin{cpp}
 if (*this == expected) {
@@ -88,7 +88,7 @@ if (*this == expected) {
 }
 \end{cpp}
 
-虽然这个逻辑在初次看到时可能相当奇怪，但这个操作是进行原子操作的关键构建块。下面是一个原子地乘以给定数字atomic<int>的示例：
+这个逻辑在初次看到时相当奇怪，但这个操作是进行原子操作的关键构建块。下面是一个原子地乘以给定数字atomic<int>的示例：
 
 \begin{cpp}
 void atomicallyMultiply(atomic<int>& a, int n)
@@ -119,7 +119,7 @@ println("Fetched = {}", fetched);
 println("Value = {}", value.load());
 \end{cpp}
 
-如果没有其他线程正在访问fetched和value变量的内容，输出如下：
+如果没有其他线程访问fetched和value变量的内容，输出如下：
 
 \begin{shell}
 Value = 10
@@ -127,23 +127,23 @@ Fetched = 10
 Value = 14
 \end{shell}
 
-原子整数类型支持以下原子操作： fetch\_add(), fetch\_sub(), fetch\_and(), fetch\_or(), fetch\_xor(), ++, -{}-, +=, -=, \&=, \^{}= 和 |=。 原子指针类型支持fetch\_add(), fetch\_sub(), ++, --, +=, and -=。 原子浮点数类型支持fetch\_add() and fetch\_sub()。
+原子整数类型支持以下原子操作： fetch\_add(), fetch\_sub(), fetch\_and(), fetch\_or(), fetch\_xor(), ++, -{}-, +=, -=, \&=, \^{}= 和 |=。 原子指针类型支持fetch\_add(), fetch\_sub(), ++, -{}-, +=, and -=。 原子浮点数类型支持fetch\_add() and fetch\_sub()。
 
-大多数原子操作可以接受一个参数，用于指定内存序。例如：
+大多数原子操作有一个参数，用于指定内存序：
 
 \begin{cpp}
 T atomic<T>::fetch_add(T value, memory_order = memory_order_seq_cst);
 \end{cpp}
 
-可以更改默认的memory\_order。C++标准提供了memory\_order\_relaxed、memory\_order\_consume、memory\_order\_acquire、memory\_order\_release、memory\_order\_acq\_rel和memory\_order\_seq\_cst，这些都在std命名空间中定义。然而，除非是这个领域的专家，否则很少会想使用非默认值。尽管根据某些指标，另一个内存序可能比默认值表现得更好，但如果以不正确的方式使用，仍然会引入数据竞争或其他难以调试的问题。如果确实想了解更多关于内存序的信息，请参阅附录B中的多线程参考资料。
+可以更改默认的memory\_order。C++标准提供了memory\_order\_relaxed、memory\_order\_consume、memory\_order\_acquire、memory\_order\_release、memory\_order\_acq\_rel和memory\_order\_seq\_cst，这些都在std命名空间中定义。除非是这个领域的专家，否则很少会想使用非默认值。尽管根据某些指标，另一个内存序可能比默认值表现得更好，如果以不正确的方式使用，仍然会引入数据竞争或其他难以调试的问题。如果想了解更多关于内存序的信息，请参阅附录B中的多线程参考资料。
 
 \mySubsubsection{27.3.2.}{智能原子指针}
 
-支持atomic<std::shared\_ptr<T>{}>。共享指针的控制块，用于存储引用计数等，是线程安全的，这保证了指向的对象删除的次数恰好是一次。然而，共享指针的其他内容不都是线程安全的。如果从多个线程同时使用同一个共享指针实例，就会在调用非常量成员函数时发生数据竞争，比如:调用reset()、assign()、swap()等。另一方面，当从多个线程使用同一个atomic<shared\_ptr<T>{}>实例时，即使是调用非常量共享指针成员函数也是线程安全的。需要注意的是，调用共享指针所指向对象的成员函数仍然不是线程安全的，并且需要手动同步。
+支持atomic<std::shared\_ptr<T>{}>。共享指针的控制块，用于存储引用计数等，是线程安全的，这保证了指向的对象删除的次数恰好是一次，而共享指针的其他内容不都是线程安全的。如果从多个线程同时使用同一个共享指针实例，就会在调用非常量成员函数时发生数据竞争，比如:调用reset()、assign()、swap()等。另一方面，当从多个线程使用同一个atomic<shared\_ptr<T>{}>实例时，即使是调用非常量共享指针成员函数也是线程安全的。需要注意的是，调用共享指针所指向对象的成员函数不是线程安全的，并且需要手动同步。
 
 \mySubsubsection{27.3.3.}{原子引用}
 
-std::atomic\_ref基本上与std::atomic相同，甚至具有相同的接口，但它与引用一起工作，而atomic总是提供一个提供的值的副本。atomic\_ref实例本身的生命周期应该比它引用的对象短。atomic\_ref是可复制的，可以创建尽可能多的atomic\_ref实例，指向同一个对象。通过atomic\_ref实例进行的加载和存储都是原子性的，并且不会相互竞争。而没有通过atomic\_ref实例进行的并发加载和存储仍然可能会与这些原子访问竞争。atomic\_ref<T>类模板可以与简单的复制类型T一起使用，就像std::atomic一样。此外，标准库还提供了以下内容：
+std::atomic\_ref基本上与std::atomic相同，甚至具有相同的接口，可与引用一起工作，而atomic总是提供一个提供的值的副本。atomic\_ref实例本身的生命周期应该比它引用对象短。atomic\_ref是可复制的，可以创建尽可能多的atomic\_ref实例，指向同一个对象。通过atomic\_ref实例进行的加载和存储都是原子性的，并且不会相互竞争。而没有通过atomic\_ref实例进行的并发加载和存储，可能会与这些原子访问竞争。atomic\_ref<T>类模板可以与简单的复制类型T一起使用，就像std::atomic一样。此外，标准库还提供了以下内容：
 
 \begin{itemize}
 \item
@@ -172,7 +172,7 @@ void increment(int& counter)
 }
 \end{cpp}
 
-现在，希望并行运行多个线程，每个线程都执行这个increment()函数，共享一个计数器变量。如果不使用原子类型或不使用线程同步，将会引入数据竞争。以下代码启动了10个increment()线程，然后通过调用每个线程的join()等待所有线程完成，并打印结果：
+并行运行多个线程，每个线程都执行这个increment()函数，共享一个计数器变量。如果不使用原子类型或不使用线程同步，将会引入数据竞争。以下代码启动了10个increment()线程，通过调用每个线程的join()等待所有线程完成，并打印结果：
 
 \begin{cpp}
 int main()
@@ -195,7 +195,7 @@ Result = 977
 Result = 984
 \end{shell}
 
-这段代码展示了数据竞争：多个线程并发地写入计数器，没有同步。这个例子中，可以使用原子类型来修复代码：
+这段代码展示了数据竞争：多个线程并发地写入计数器，没有同步。可以使用原子类型来修复代码：
 
 \begin{cpp}
 void increment(atomic<int>& counter)
@@ -228,7 +228,7 @@ Result = 1000
 
 没有显式添加任何同步机制的情况下，现在代码是线程安全的，没有数据竞争，因为原子类型上的++counter操作是一个原子操作，加载、递增和存储值，这无法中断。
 
-使用atomic\_ref，可以如下解决数据竞争：
+使用atomic\_ref，可以解决数据竞争：
 
 \begin{cpp}
 void increment(int& counter)
@@ -252,7 +252,7 @@ int main()
 }
 \end{cpp}
 
-然而，这两种修改后的实现都引入了一个新的问题：性能问题。应尽量减少同步量，无论是原子同步还是显式同步，因为这会降低性能。对于这个简单的例子，最佳和推荐的方法是让increment()在局部变量中计算其结果，并在循环结束后才将其添加到计数器引用中。即使这样，因为从多个线程写入计数器，仍然需要使用原子或atomic\_ref类型。
+这两种修改后的实现都引入了一个新的问题：性能问题。应尽量减少同步量，无论是原子同步还是显式同步，因为这会降低性能。对于这个简单的例子，最佳和推荐的方法是让increment()在局部变量中计算其结果，并在循环结束后才将其添加到计数器引用中。因为从多个线程写入计数器，仍然需要使用原子或atomic\_ref类型。
 
 \begin{cpp}
 void increment(atomic<int>& counter)
@@ -286,7 +286,7 @@ notify\_one()            & 唤醒因调用wait()而阻塞的一个线程。 \\ \
 notify\_all()            & 唤醒因调用wait()而阻塞的所有线程。        \\ \hline
 \end{longtable}
 
-以下是示例
+以下是示例：
 
 \begin{cpp}
 atomic<int> value { 0 };
