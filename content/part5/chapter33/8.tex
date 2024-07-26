@@ -7,7 +7,7 @@
 
 \mySubsubsection{33.8.2.}{可观察对象的实现}
 
-首先，定义了一个可变参数的类模板 Event，这个类存储了一个具有可变数量参数的函数map。提供一个 addObserver() 成员函数来注册一个新的观察者，形式为一个在事件触发时应该通知的函数。addObserver() 返回一个 EventHandle，随后可以传递给 removeObserver() 以取消注册观察者。这个 EventHandle 只是一个数字，每次注册一个观察者时都会增加。最后，raise() 成员函数通知所有注册的观察者事件已触发。
+定义了一个可变参数的类模板 Event，这个类存储了一个具有可变数量参数的函数map。提供一个 addObserver() 成员函数来注册一个新的观察者，形式为一个在事件触发时应该通知的函数。addObserver() 返回一个 EventHandle，随后可以传递给 removeObserver() 以取消注册观察者。这个 EventHandle 只是一个数字，每次注册一个观察者时都会增加。最后，raise() 成员函数通知所有注册的观察者事件已触发。
 
 \begin{cpp}
 using EventHandle = unsigned int;
@@ -42,7 +42,7 @@ class Event final
 };
 \end{cpp}
 
-想要暴露的观察者可以注册自己的事件类，只需提供注册和取消注册成员函数即可。由于使用了可变参数的类模板，可以创建任意数量参数的 Event 实例。这使得可观察对象可以向观察者传递相关信息。这是一个示例：
+想要暴露的观察者可以注册自己的事件类，只需提供注册和取消注册成员函数即可。由于使用了可变参数的类模板，可以创建任意数量参数的 Event 实例。这使得可观察对象可以向观察者传递相关信息：
 
 \begin{cpp}
 class ObservableSubject
@@ -83,7 +83,7 @@ class ObservableSubject
 void modified(int a, double b) { println("modified({}, {})", a, b); }
 \end{cpp}
 
-假设还有一个可以处理修改事件的类 Observer：
+还有一个可以处理修改事件的类 Observer：
 
 \begin{cpp}
 class Observer final
@@ -140,7 +140,7 @@ deleted
 \end{shell}
 
 \begin{myNotic}{NOTE}
-使用观察者模式时，需要注意的问题是观察者与主题之间的生命周期耦合。之前的例子中，如果主题仍然存在，Observer 的析构函数才能正常工作。
+使用观察者模式时，需要注意的问题是，观察者与主题之间的生命周期耦合。之前的例子中，如果主题仍然存在，Observer 的析构函数才能正常工作。
 \end{myNotic}
 
 

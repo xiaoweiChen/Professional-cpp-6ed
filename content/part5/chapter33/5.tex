@@ -1,18 +1,18 @@
-有时，一个类提供的抽象不适合当前设计，且无法更改。这种情况下，可以构建一个适配器类。适配器提供了代码使用的抽象，并作为所需抽象与实际底层代码之间的链接。主要有两种使用情况：
+有时，一个类提供的抽象不适合当前设计，且无法更改，可以构建一个适配器类。适配器提供了代码使用的抽象，并作为所需抽象与实际底层代码之间的链接。主要有两种使用情况：
 
 \begin{itemize}
 \item
 通过重用一些现有实现来实现特定的接口，适配器通常在幕后创建实现的一个实例。
 
 \item
-允许通过新接口使用现有功能，适配器的构造函数通常在其构造函数中接收底层对象的一个实例。
+通过新接口使用现有功能，适配器的构造函数通常在其构造函数中接收底层对象的一个实例。
 \end{itemize}
 
 第18章讨论了标准库如何使用适配器模式，来实现像 stack 和 queue 这样的容器，这些容器是基于其他容器，如 deque 和 list 实现的。
 
 \mySubsubsection{33.5.1.}{示例：适配一个 Logger 类}
 
-对于这个适配器模式示例，假设有一个非常基本的 Logger 类。这是接口和类定义：
+对于这个适配器模式示例，假设一个 Logger 类：
 
 \begin{cpp}
 // Definition of a logger interface.
@@ -37,7 +37,7 @@ export class Logger : public ILogger
 };
 \end{cpp}
 
-Logger 类有一个构造函数，输出一行文本到标准控制台，还有一个名为 log() 的成员函数，将给定的消息写入控制台，前面带有当前系统时间和日志级别。下面是这些的实现：
+Logger 类有一个构造函数，输出一行文本到标准控制台，还有一个名为 log() 的成员函数，将给定的消息写入控制台，前面带有当前系统时间和日志级别。下面是实现：
 
 \begin{cpp}
 Logger::Logger() { println("Logger constructor"); }
@@ -52,11 +52,11 @@ string_view Logger::getLogLevelString(LogLevel level) const
 { /* See the strategy-based logger earlier in this chapter. */ }
 \end{cpp}
 
-可能想围绕这个基本 Logger 类编写适配器类的一个原因是更改其接口，也许对日志级别不感兴趣，希望只使用一个参数，即实际消息，来调用 log() 成员函数。可能还希望将接口更改为接受 std::string\_view ，而不是字符串作为 log() 成员函数的参数。
+可能想围绕这个基本 Logger 类编写适配器类的一个原因是更改其接口，也许对日志级别不感兴趣，希望只使用一个参数(即实际消息)，来调用 log() 成员函数。可能还希望将接口更改为接受 std::string\_view ，而不是字符串作为 log() 成员函数的参数。
 
 \mySubsubsection{33.5.2.}{适配器的实现}
 
-实现适配器模式的第一步是为底层功能定义新的接口。这个新的接口称为 IAdaptedLogger：
+实现适配器模式的第一步，是为底层功能定义新的接口。这个新接口称为 IAdaptedLogger：
 
 \begin{cpp}
 export class IAdaptedLogger
@@ -96,7 +96,7 @@ void AdaptedLogger::log(string_view message)
 
 \mySubsubsection{33.5.3.}{使用适配器}
 
-因为适配器存在是为了为底层功能提供更合适的接口，所以用法应该是简单和特定的。鉴于前面的实现，以下代码段使用新的简化接口进行日志记录：
+适配器存在是为了为底层功能提供更合适的接口，所以用法应该是简单和特定的。鉴于前面的实现，以下代码使用新的简化接口进行日志记录：
 
 \begin{cpp}
 AdaptedLogger logger;
