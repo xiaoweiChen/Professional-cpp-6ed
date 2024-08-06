@@ -14,15 +14,15 @@
 \endhead
 %
 acquire() &
-\begin{tabular}[c]{@{}l@{}}递减计数器。计数器为零时阻塞，直到能够递减计数器，然后执行递减操作。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}递减计数器。计数器为零时阻塞，直到能够递减计数器，\\然后执行递减操作。\end{tabular} \\ \hline
 try\_acquire() &
-\begin{tabular}[c]{@{}l@{}}尝试递减计数器，但当计数器已经是零时，不会阻塞。如果计数器可以递减，\\则返回true；否则返回false。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}尝试递减计数器，但当计数器已经是零时，不会阻塞。\\如果计数器可以递减，则返回true；否则返回false。\end{tabular} \\ \hline
 try\_acquire\_for() &
 与try\_acquire()相同，但尝试会间隔一定的时间。\\ \hline
 try\_acquire\_until() &
-\begin{tabular}[c]{@{}l@{}}与try\_acquire()相同，但尝试直到系统时间达到给定的时间。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}与try\_acquire()相同，但尝试直到系统时间达到\\给定的时间。\end{tabular} \\ \hline
 release() &
-\begin{tabular}[c]{@{}l@{}}通过给定的数量递增计数器，并释放在acquire()调用中阻塞的线程。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}通过给定的数量递增计数器，并释放在acquire()\\调用中阻塞的线程。\end{tabular} \\ \hline
 \end{longtable}
 
 计数信号量允许精确控制同时运行的线程数，以下代码允许最多四个线程以并行方式运行。从输出中，可以清楚地看到，只有四个线程能够同时获取信号量。

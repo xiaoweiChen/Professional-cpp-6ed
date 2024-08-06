@@ -39,7 +39,7 @@ HTML 中的段落用 <p> 和 </p> 标签包裹。例如：
 class IParagraph
 {
     public:
-        virtual ˜IParagraph() = default; // Always a virtual destructor!
+        virtual ~IParagraph() = default; // Always a virtual destructor!
         virtual std::string getHTML() const = 0;
 };
 \end{cpp}

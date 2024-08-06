@@ -125,12 +125,12 @@ template <typename Key, typename T, typename Compare = std::less<Key>,
 复制构造函数 &
 \begin{tabular}[c]{@{}l@{}}创建一个新元素，该元素与旧元素\\“相等”，可以安全地析构，而不会\\影响旧元素。
 \end{tabular} &
-\begin{tabular}[c]{@{}l@{}}每次插入元素时使用，\\除了使用emplace成员\\函数的情况。
+\begin{tabular}[c]{@{}l@{}}每次插入元素时使用，\\除了使用emplace\\成员函数的情况。
 \end{tabular} \\ \hline
 移动构造函数 &
 \begin{tabular}[c]{@{}l@{}}通过将源元素的所有内容移动到新\\元素来创建一个新元素。
 \end{tabular} &
-\begin{tabular}[c]{@{}l@{}}当源元素是一个右值，\\并且在构造新元素后\\销毁时使用；也用于\\vector增长时。移动\\构造函数应该是\\noexcept的；否则，\\不会使用！
+\begin{tabular}[c]{@{}l@{}}当源元素是一个右值，\\并且在构造新元素后\\销毁时使用；也用于\\vector增长时。\\移动构造函数应该是\\noexcept的；否则，\\不会使用！
 \end{tabular} \\ \hline
 赋值操作符 &
 \begin{tabular}[c]{@{}l@{}}用源元素的副本替换元素的内容。
@@ -144,22 +144,22 @@ template <typename Key, typename T, typename Compare = std::less<Key>,
 \end{tabular} \\ \hline
 析构函数 &
 清理元素。 &
-\begin{tabular}[c]{@{}l@{}}每次移除元素时使用，\\或者当vector增长时\\使用。
+\begin{tabular}[c]{@{}l@{}}每次移除元素时使用，\\或者当vector增长\\时使用。
 \end{tabular} \\ \hline
 默认构造函数 &
 \begin{tabular}[c]{@{}l@{}}构造一个没有任何参数的元素。
 \end{tabular} &
-\begin{tabular}[c]{@{}l@{}}仅对某些操作是必需\\的，例如带有单个参\\数的vector::resize()\\成员函数，以及对\\map::operator{[}{]}的访问。
+\begin{tabular}[c]{@{}l@{}}仅对某些操作是必需\\的，例如带有单个参\\数的vector::resize()\\成员函数，以及对\\map::operator{[}{]}\\的访问。
 \end{tabular} \\ \hline
 operator== &
 \begin{tabular}[c]{@{}l@{}}比较两个元素是否相等。
 \end{tabular} &
-\begin{tabular}[c]{@{}l@{}}对于无序关联容器中的\\键，以及两个容器的\\operator==等操作是必\\需存在的。
+\begin{tabular}[c]{@{}l@{}}对于无序关联容器中的\\键，以及两个容器的\\operator==等操作\\是必需存在的。
 \end{tabular} \\ \hline
 operator< &
 \begin{tabular}[c]{@{}l@{}}确定一个元素是否小于另一个元素。
 \end{tabular} &
-\begin{tabular}[c]{@{}l@{}}对于有序关联容器和\\扁平关联容器适配器\\中的键，以及两个容\\器上的operator<等某\\些操作是必需存在的。
+\begin{tabular}[c]{@{}l@{}}对于有序关联容器和\\扁平关联容器适配器\\中的键，以及两个容\\器上的operator<\\等某些操作是必需存\\在的。
 \end{tabular} \\ \hline
 operator>, <=, >=, != &
 比较两个元素。

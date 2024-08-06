@@ -35,11 +35,11 @@
 \begin{tabular}[c]{@{}l@{}}经常用来为特定平台\\提供的特定代码。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}\#ifdef {[}id{]}\\ \#endif\\ \\ \#ifndef {[}id{]}\\ \#endif\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}根据指定的标识符是否使用\\ \#define 定义，有条件地包含\\代码。\\\#ifdef {[}id{]} 等同于 \#if defined(id)，\\而 \#ifndef {[}id{]} 等同于\\ \#if !defined(id)。
+\begin{tabular}[c]{@{}l@{}}根据指定的标识符是否使用\\ \#define 定义，有条件地包含\\代码。\\\#ifdef {[}id{]} 等同于\\ \#if defined(id)，\\而 \#ifndef {[}id{]} 等同于\\ \#if !defined(id)。
 \end{tabular} &
 \begin{tabular}[c]{@{}l@{}}常用来防止循环包含。\\每个头文件都以 \#ifndef \\开始，检查标识符的缺\\失，然后是一个 \#define \\指令来定义该标识符。\\头文件以一个 \#endif 结\\尾，防止文件多次包含。\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}\#elifdef {[}id{]}\\ \#elifndef {[}id{]}\\ (C++23)\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}\#elifdef {[}id{]} 等同于\\\#elif defined(id)，而 \#elifndef {[}id{]} \\等同于 \#elif !defined(id)。
+\begin{tabular}[c]{@{}l@{}}\#elifdef {[}id{]} 等同于\\\#elif defined(id)，\\而 \#elifndef {[}id{]} \\等同于 \#elif !defined(id)。
 \end{tabular} &
 \begin{tabular}[c]{@{}l@{}}其他功能的简写。
 \end{tabular} \\ \hline

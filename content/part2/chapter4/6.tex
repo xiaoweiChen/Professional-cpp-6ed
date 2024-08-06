@@ -65,27 +65,27 @@ ChessBoard &
 \begin{tabular}[c]{@{}l@{}}Game Over (on GamePlay)\end{tabular} \\ \hline
 ChessBoardView &
 1 &
-\begin{tabular}[c]{@{}l@{}}绘制相关的ChessBoard\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}绘制相关的\\ChessBoard\end{tabular} &
 Draw &
 \begin{tabular}[c]{@{}l@{}}Draw (on ChessPieceView)\end{tabular} \\ \hline
 ChessPiece &
 32 &
-\begin{tabular}[c]{@{}l@{}}移动\\ 检查移动是否符合规则\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}移动\\ \\检查移动是否\\符合规则\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}Move\\ Check Move\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}Get Piece At (on ChessBoard)\\ Set Piece At (on ChessBoard)\end{tabular} \\ \hline
 ChessPieceView &
 32 &
-\begin{tabular}[c]{@{}l@{}}绘制相关的ChessPiece\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}绘制相关的\\ChessPiece\end{tabular} &
 Draw &
 无 \\ \hline
 Player &
 2 &
-\begin{tabular}[c]{@{}l@{}}通过提示用户移动，并\\获取用户的移动信息进\\行交互\\ 移动棋子\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}通过提示用户\\移动，并获取\\用户的移动信\\息进行交互\\\\ 移动棋子\end{tabular} &
 Take Turn &
 \begin{tabular}[c]{@{}l@{}}Get Piece At (on ChessBoard)\\ Move (on ChessPiece)\\ Check Move (on ChessPiece)\end{tabular} \\ \hline
 ErrorLogger &
 1 &
-\begin{tabular}[c]{@{}l@{}}将错误消息写入日志文件\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}将错误消息写\\入日志文件\end{tabular} &
 Log Error &
 无 \\ \hline
 \end{longtable}
@@ -174,7 +174,7 @@ ErrorLogger &
 ErrorLogger类 &
 \begin{tabular}[c]{@{}l@{}}要记录的\\消息队列\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}缓冲消息并将\\其写入日志文件。\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}依赖注入策略\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}依赖注入\\策略\end{tabular} \\ \hline
 \end{longtable}
 
 表中已经提供了一些关于软件设计中的不同类的信息，但并没有清晰地描述它们之间的交互。UML 序列图可以用来模型化这样的交互。图 4.8 展示了这样一个图，可视化了前一个表格中一些类之间的关系。

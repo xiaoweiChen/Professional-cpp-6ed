@@ -131,7 +131,7 @@ println("{}", (++x, 2 * x)); // Increments x to 2, doubles it, and prints 4.
 \begin{tabular}[c]{@{}l@{}}推荐为\\全局函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}想为类提供\\这些操作，\\就可以重载\\二元算术\\操作符。
 \end{tabular} &
-\begin{tabular}[c]{@{}l@{}}T operator+(const T\&, const T\&);\\ T operator+(const T\&, const E\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}T operator+(\\const T\&, const T\&);\\ T operator+(\\const T\&, const E\&);\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator\\ operator+\\ operator˜\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}一元算术\\和位操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
@@ -141,12 +141,12 @@ T operator-() const; \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator++\\ operator--\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}前置增量\\和前置减量\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}重载有\\算术参数\\的+=和-=\\(int, long，…)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}重载有\\算术参数\\的+=和-=\\(int, \\long，\\…)\end{tabular} &
 T\& operator++(); \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator++\\ operator--\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}后置增量\\和后置减量\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}重载有\\算术参数\\的+=和-=时\\(int, long，…)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}重载有\\算术参数\\的+=和-=时\\(int, \\long，\\…)\end{tabular} &
 T operator++(int); \\ \hline
 operator= &
 \begin{tabular}[c]{@{}l@{}}赋值操作符\end{tabular} &
@@ -162,7 +162,7 @@ operator= &
 \begin{tabular}[c]{@{}l@{}}二元位操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\全局函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}只要想，\\就可以重载\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}T operator\textless{}\textless{}(const T\&, const T\&);\\ T operator\textless{}\textless{}(const T\&, const E\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}T operator\textless{}\textless{}(\\const T\&, const T\&);\\ T operator\textless{}\textless{}(\\const T\&, const E\&);\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator\textless{}\textless{}=\\ operator\textgreater{}\textgreater{}=\\ operator\&=\\ operator|=\\ operator\textasciicircum{}=\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}简写/复合\\位赋值操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
@@ -172,27 +172,27 @@ operator\textless{}=\textgreater{} &
 \begin{tabular}[c]{@{}l@{}}三向比较\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}当为类提\\供比较支持\\时;如果\\可能的话，\\应该使用\\=default\\作为默认值\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}auto\\ operator\textless{}=\textgreater{}(const T\&) const = default;\\ partial\_ordering\\ operator\textless{}=\textgreater{}(const E\&) const;\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}auto\\ operator\textless{}=\textgreater{}(\\const T\&) const = default;\\ partial\_ordering\\ operator\textless{}=\textgreater{}(\\const E\&) const;\end{tabular} \\ \hline
 operator== &
 \begin{tabular}[c]{@{}l@{}}二元相等\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}C++20后:\\推荐为\\成员函数\\C++ 20前:\\推荐为\\全局函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}当为类提\\供比较支\\持，并且\\不能默认\\使用三向\\比较操作\\符时\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}bool operator==(const T\&) const;\\ bool operator==(const E\&) const;\\ bool operator==(const T\&, const T\&);\\ bool operator==(const T\&, const E\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}bool operator==(\\const T\&) const;\\ bool operator==(\\const E\&) const;\\ bool operator==(\\const T\&, const T\&);\\ bool operator==(\\const T\&, const E\&);\end{tabular} \\ \hline
 operator!= &
 \begin{tabular}[c]{@{}l@{}}二元不等\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}C++20后:\\推荐为\\成员函数\\C++ 20前:\\推荐为\\全局函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}C++20后:\\不需要，\\因为编译\\器在支持\\==时自动\\提供!=;\\ C++ 20前:\\当为类提\\供比较支\\持时\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}bool operator!=(const T\&) const;\\ bool operator!=(const E\&) const;\\ bool operator!=(const T\&, const T\&);\\ bool operator!=(const T\&, const E\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}bool operator!=(\\const T\&) const;\\ bool operator!=(\\const E\&) const;\\ bool operator!=(\\const T\&, const T\&);\\ bool operator!=(\\const T\&, const E\&);\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator\textless\\ operator\textgreater\\ operator\textless{}=\\ operator\textgreater{}=\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}二元比较\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\全局函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}想提供这\\些操作时;\\不需要<=>\\时\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}bool operator\textless{}(const T\&, const T\&);\\ bool operator\textless{}(const T\&, const E\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}bool operator\textless{}(\\const T\&, const T\&);\\ bool operator\textless{}(\\const T\&, const E\&);\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator\textless{}\textless\\ operator\textgreater{}\textgreater{}\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}I/O流\\操作符\\(插入和提取)\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}必须为\\全局函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}想要提供\\这些操作时\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}ostream\&\\ operator\textless{}\textless{}(ostream\&, const T\&);\\ istream\&\\ operator\textgreater{}\textgreater{}(istream\&, T\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}ostream\&\\ operator\textless{}\textless{}(\\ostream\&, const T\&);\\ istream\&\\ operator\textgreater{}\textgreater{}(\\istream\&, T\&);\end{tabular} \\ \hline
 operator! &
 \begin{tabular}[c]{@{}l@{}}布尔操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
@@ -202,41 +202,41 @@ operator! &
 \begin{tabular}[c]{@{}l@{}}二元布尔\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\全局函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}很少重载，\\会失去短\\路特性;\\最好重载\\\&和|，\\它们永远\\不会短路\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}bool operator\&\&(const T\&, const T\&);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}bool operator\&\&(\\const T\&, const T\&);\end{tabular} \\ \hline
 operator{[}{]} &
 \begin{tabular}[c]{@{}l@{}}下标\\(数组索引)\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}必须为\\成员函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}想支持下\\标时\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}E\& operator{[}{]} (size\_t);\\ const E\& operator{[}{]} (size\_t) const;\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}E\& operator{[}{]} (size\_t);\\ const E\& operator{[}{]} (\\size\_t) const;\end{tabular} \\ \hline
 operator() &
 \begin{tabular}[c]{@{}l@{}}函数操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}必须为\\成员函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}想让对象\\表现得像\\函数指针时\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}返回类型和参数可以不同\end{tabular} \\ \hline
-operator type() &
+\begin{tabular}[c]{@{}l@{}}operator \\type() \end{tabular}&
 \begin{tabular}[c]{@{}l@{}}转换或强制\\转换操作符\\(类型独立\\的操作符)\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}必须为\\成员函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}想进行类\\型转换时\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}operator double() const;\end{tabular} \\ \hline
-operator ""\_x &
+\begin{tabular}[c]{@{}l@{}}operator \\""\_x \end{tabular}&
 \begin{tabular}[c]{@{}l@{}}自定义\\字面量\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}必须为\\全局函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}希望支持\\自定义字\\面量时\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}T operator""\_i(long double d);\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}operator new\\ operator new{[}{]}\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}T operator""\_i(\\long double d);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}operator \\new\\ operator \\new{[}{]}\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}内存分配\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}建议为\\成员函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}想要控制\\类的内存\\分配时\\(很少用)\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}void* operator new(size\_t size);\\ void* operator new{[}{]} (size\_t size);\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}operator delete\\ operator delete{[}{]}\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}void* operator new(\\size\_t size);\\ void* operator new{[}{]} (\\size\_t size);\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}operator \\delete\\ operator \\delete{[}{]}\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}内存释放\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}建议为\\成员函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}想要控制\\类的内存\\分配时\\(很少用)\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}void operator delete(void* ptr) noexcept;\\ void operator delete{[}{]}(void* ptr) noexcept;\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}void operator delete(\\void* ptr) noexcept;\\ void operator delete{[}{]}(\\void* ptr) noexcept;\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}operator*\\ operator-\textgreater{}\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}解引用\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}operator*：\\建议为\\成员函数\\ operator-\textgreater{}：\\必须为\\成员函数\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}对智能指针\\有用\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}对智能指\\针有用\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}E\& operator*() const;\\ E* operator-\textgreater{}() const;\end{tabular} \\ \hline
 operator\& &
 \begin{tabular}[c]{@{}l@{}}取地址\\操作符\end{tabular} &

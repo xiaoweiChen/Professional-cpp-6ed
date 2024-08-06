@@ -557,7 +557,7 @@ O(1) \\ \cline{2-5}
 \multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}何时使用：当需要一个固定大小的数组来替换标准 C 风格的数组时。
 \end{tabular}} \\ \hline
 \multirow{2}{*}{queue} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}容器适配器
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}容器\\适配\\器
 \end{tabular}} &
 \multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}取决于底层容器\\对于list和deque\\为 O(1)
 \end{tabular}} &
@@ -567,16 +567,16 @@ N/A \\ \cline{2-5}
 \multicolumn{4}{l|}{何时使用：需要一个先进先出（FIFO）结构时。
 } \\ \hline
 \multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}priority\_queue\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}容器适配器\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}取决于底层容器\\对于vector为 O(log(N))\\对于deque为 O(log(N))
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}容器\\适配\\器\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}取决于底层容器\\vector为 O(log(N))\\deque为 O(log(N))
 \end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}取决于底层容器\\对于deque和vector\\为 O(log(N))\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}取决于底层容器\\deque和vector\\为 O(log(N))\end{tabular}} &
 N/A \\ \cline{2-5}
 &
 \multicolumn{4}{l|}{何时使用：需要一个带有优先级的队列时
 } \\ \hline
 \multirow{2}{*}{stack} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}容器适配器\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}容器\\适配\\器\end{tabular}} &
 \multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}取决于底层容器\\对于list、deque\\和vector为 O(1)
 \end{tabular}} &
 \multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}取决于底层容器\\对于list、deque\\和vector为 O(1)\end{tabular}} &
@@ -585,7 +585,7 @@ N/A \\ \cline{2-5}
 \multicolumn{4}{l|}{何时使用：需要一个后进先出（FILO）/先进先出（LIFO）结构时
 } \\ \hline
 \multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}set\\ multiset\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}排序关联容器\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}排序\\关联\\容器\end{tabular}} &
 \multicolumn{1}{l|}{O(log(N))} &
 \multicolumn{1}{l|}{O(log(N))} &
 O(log(N)) \\ \cline{2-5}
@@ -593,22 +593,22 @@ O(log(N)) \\ \cline{2-5}
 \multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}何时使用：需要一个元素排序的集合，并且查找、插入和删除的时间相等。\\当需要一个没有重复元素的集合时，可以使用set。
 \end{tabular}} \\ \hline
 \multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}map\\ multimap\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}排序关联容器\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}排序\\关联\\容器\end{tabular}} &
 \multicolumn{1}{l|}{O(log(N))} &
 \multicolumn{1}{l|}{O(log(N))} &
 O(log(N)) \\ \cline{2-5}
 &
 \multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}何时使用：需要一个排序的集合来将键与值关联起来，\\即一个关联数组，并且查找、插入和删除的时间相等。
 \end{tabular}} \\ \hline
-\multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}unordered\_map\\ unordered\_multimap\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}非排序关联容器 /\\ 哈希表\end{tabular}} &
+\multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}unordered\_\\map\\ unordered\_\\multimap\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}非排\\序关\\联容\\器/\\哈希\\表\end{tabular}} &
 \multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}平均为O(1)\\ 最坏为O(N)\end{tabular}} &
 \multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}平均为O(1)\\ 最坏为O(N)\end{tabular}} &
 \begin{tabular}[c]{@{}l@{}}平均为O(1)\\最坏为O(N)\end{tabular} \\ \cline{2-5}
 &
 \multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}何时使用：想要将键与值关联起来，并且查找、插入和删除的时间相等，\\同时不要求排序元素。性能可能比普通map更好(这取决于元素)。\end{tabular}} \\ \hline
-\multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}unordered\_set\\ unordered\_multiset\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}非排序关联容器 /\\ 哈希表\end{tabular}} &
+\multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}unordered\_\\set\\ unordered\_\\multiset\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}非排\\序关\\联容\\器/\\哈希\\表\end{tabular}} &
 \multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}平均为O(1)\\ 最坏为O(N)\end{tabular}} &
 \multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}平均为O(1)\\最坏为O(N)\end{tabular}} &
 \begin{tabular}[c]{@{}l@{}}平均为O(1)\\最坏为O(N)\end{tabular} \\ \cline{2-5}
@@ -616,7 +616,7 @@ O(log(N)) \\ \cline{2-5}
 \multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}何时使用：需要一个元素的集合，并且查找、插入和删除的时间相等，\\同时不要求排序元素。性能可能比普通集合更好(取决于元素)。
 \end{tabular}} \\ \hline
 \multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}flat\_set\\ flat\_multiset\\ (C++23)\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Flat set\\关联容器适配器
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Flat\\set\\关联\\容器\\适配\\器
 \end{tabular}} &
 \multicolumn{1}{l|}{O(N)} &
 \multicolumn{1}{l|}{O(N)} &
@@ -625,7 +625,7 @@ O(log(N)) \\ \cline{2-5}
 \multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}何时使用：需要一个排序的元素集合时。因为适配器使用底层顺序容器，\\这些容器具有友好的缓存布局，所以性能通常比相应的有序容器更好。
 \end{tabular}} \\ \hline
 \multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}flat\_map\\ flat\_multimap\\ (C++23)\end{tabular}} &
-\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Flat map\\ 关联容器适配器\end{tabular}} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}Flat\\map\\关联\\容器\\适配\\器\end{tabular}} &
 \multicolumn{1}{l|}{O(N)} &
 \multicolumn{1}{l|}{O(N)} &
 O(log(N)) \\ \cline{2-5}
@@ -633,7 +633,7 @@ O(log(N)) \\ \cline{2-5}
 \multicolumn{4}{l|}{\begin{tabular}[c]{@{}l@{}}何时使用：需要一个排序的集合来将键与值关联起来时。因为适配器使用底层\\顺序容器，这些容器具有友好的缓存布局，所以性能通常比相应的有序容器更好。
 \end{tabular}} \\ \hline
 \multirow{2}{*}{bitset} &
-\multicolumn{1}{l|}{特殊容器} &
+\multicolumn{1}{l|}{\begin{tabular}[c]{@{}l@{}}特殊\\容器\end{tabular}} &
 \multicolumn{1}{l|}{N/A} &
 \multicolumn{1}{l|}{N/A} &
 O(1) \\ \cline{2-5}
@@ -733,18 +733,18 @@ mismatch() &
 \begin{tabular}[c]{@{}l@{}}返回每个序列中第一个与另一个序列中相同位置元素不\\匹配的元素。
 \end{tabular} \\ \hline
 lexicographical\_compare() &
-\begin{tabular}[c]{@{}l@{}}比较两个序列以确定“字典序”排序。这个算法将第一\\个序列的每个元素与其在第二个序列中的等价元素进行\\比较。如果一个元素小于另一个元素，则该序列在字典\\序上排在前面。如果元素相等，则按顺序比较下一个元素。
+\begin{tabular}[c]{@{}l@{}}比较两个序列以确定“字典序”排序。这个算法将第一\\个序列的每个元素与其在第二个序列中的等价元素进行\\比较。如果一个元素小于另一个元素，则该序列在字典\\序上排在前面。如果元素相等，则按顺序比较下一个元\\素。
 \end{tabular} \\ \hline
 lexicographical\_compare\_three\_way() &
-\begin{tabular}[c]{@{}l@{}}使用三向比较比较两个序列以确定“字典序”排序，并\\返回比较类别类型（strong\_ordering、weak\_ordering 或 \\partial\_ordering）。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}使用三向比较比较两个序列以确定“字典序”排序，并\\返回比较类别类型（strong\_ordering、\\weak\_ordering 或 partial\_ordering）。\end{tabular} \\ \hline
 all\_of() &
-\begin{tabular}[c]{@{}l@{}}如果给定谓词对序列中的所有元素返回true，或者如果\\序列为空，则返回true；否则返回false。
+\begin{tabular}[c]{@{}l@{}}如果给定谓词对序列中的所有元素返回true，或者\\如果序列为空，则返回true；否则返回false。
 \end{tabular} \\ \hline
 any\_of() &
-\begin{tabular}[c]{@{}l@{}}如果给定谓词对序列中至少一个元素返回true，则返回\\true；否则返回false。
+\begin{tabular}[c]{@{}l@{}}如果给定谓词对序列中至少一个元素返回true，则\\返回true；否则返回false。
 \end{tabular} \\ \hline
 none\_of() &
-\begin{tabular}[c]{@{}l@{}}如果给定谓词对序列中的所有元素返回false，或者如果\\序列为空，则返回true；否则返回false。
+\begin{tabular}[c]{@{}l@{}}如果给定谓词对序列中的所有元素返回false，或者\\如果序列为空，则返回true；否则返回false。
 \end{tabular} \\ \hline
 \end{longtable}
 
@@ -890,7 +890,7 @@ C++ 标准库提供了以下交换算法：
 \endhead
 %
 is\_partitioned() &
-\begin{tabular}[c]{@{}l@{}}如果所有使谓词返回 true 的元素，都位于所有使谓词返回 false 的元素之\\前，则返回 true。
+\begin{tabular}[c]{@{}l@{}}如果所有使谓词返回 true 的元素，都位于所有使谓词返回 false 的元素\\之前，则返回 true。
 \end{tabular} &
 线性 \\ \hline
 partition() &
@@ -1180,16 +1180,16 @@ is\_permutation() &
 \endhead
 %
 \begin{tabular}[c]{@{}l@{}}contains()\\ contains\_subrange()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}如果给定范围包含给定值或给定子范围，则返回true，否则返回false。
+\begin{tabular}[c]{@{}l@{}}如果给定范围包含给定值或给定子范围，\\则返回true，否则返回false。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}starts\_with()\\ ends\_with()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}如果给定范围以另一个给定范围开始或结束，则返回true，否则返回false。
+\begin{tabular}[c]{@{}l@{}}如果给定范围以另一个给定范围开始或\\结束，则返回true，否则返回false。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}find\_last()\\ find\_last\_if()\\ find\_last\_if\_not()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}在给定范围内找到最后一个匹配给定值，或给定谓词返回true，或给定谓词\\返回false的元素。结果是一个子范围，从找到的元素开始直到范围的末尾。
+\begin{tabular}[c]{@{}l@{}}在给定范围内找到最后一个匹配给定值，\\或给定谓词返回true，或给定谓词返\\回false的元素。结果是一个子范围，\\从找到的元素开始直到范围的末尾。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}fold\_left()\\ fold\_left\_first()\\ fold\_right()\\ fold\_right\_last()\\ fold\_left\_with\_iter()\\ fold\_left\_first\_with\_iter()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}对给定范围的元素进行左折叠或右折叠。fold\_left() 和 fold\_right() 接受一个\\初始值作为它们的参数之一，并返回折叠操作的结果。fold\_left\_first() 使用\\给定范围中的第一个元素作为起始值，而 fold\_right\_last() 使用给定范围中\\的最后一个元素作为起始值。这两个函数都返回一个包含结果的optional，\\如果应用于空范围，则返回一个空的optional。最后两个变体分别返回一个 \\fold\_left\_with\_iter\_result 或 fold\_left\_first\_with\_iter\_result 实例，可以使用它\\们来检查折叠操作的结果。
+\begin{tabular}[c]{@{}l@{}}对给定范围的元素进行左折叠或右折叠。\\fold\_left() 和 fold\_right() \\接受一个初始值作为它们的参数之一，\\并返回折叠操作的结果。\\fold\_left\_first() 使用给定范围\\中的第一个元素作为起始值，而 \\fold\_right\_last() 使用给定范围\\中的最后一个元素作为起始值。这两个\\函数都返回一个包含结果的optional，\\如果应用于空范围，则返回一个空的\\optional。最后两个变体分别返回一个\\fold\_left\_with\_iter\_result 或 \\fold\_left\_first\_with\_iter\_result \\实例，可以使用它们来检查折叠操作的结果。
 \end{tabular} \\ \hline
 \end{longtable}
 

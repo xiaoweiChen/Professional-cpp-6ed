@@ -105,13 +105,13 @@ dynamic\_cast()在继承层次结构中提供了运行时检查，可以使用�
 class Base
 {
     public:
-        virtual ˜Base() = default;
+        virtual ~Base() = default;
 };
 
 class Derived : public Base
 {
     public:
-        virtual ˜Derived() = default;
+        virtual ~Derived() = default;
 };
 \end{cpp}
 

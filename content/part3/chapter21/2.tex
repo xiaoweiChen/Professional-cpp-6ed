@@ -178,7 +178,7 @@ ab[cde] 匹配 abc、abd 和 abe。
 ab[\^{}cde] 匹配 abf、abp 等，但不匹配 abc、abd 和 abe。
 \end{itemize}
 
-如果需要匹配 \^{}、[ 或 ] 字符本身，需要转义；例如，[ \verb|\|[ \verb|\|\^{}\verb|\|]] 匹配字符 [、\^{} 或 ]。
+如果需要匹配 \^{}、[ 或 ] 字符本身，需要转义；例如，[\verb|\|[\verb|\|\^{}\verb|\|]] 匹配字符 [、\^{} 或 ]。
 
 如果想匹配所有字母，可以使用一个字符集，如 [abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ]。但这很笨拙，如果多次这样做，特别是遗漏了一个字母，会显得很别扭。解决这个问题有两个方法。
 
@@ -217,7 +217,7 @@ upper &
 blank &
 \begin{tabular}[c]{@{}l@{}}空白字符，用于分隔文本行中的单词的空白字符。对于C语\\言环境，是空格和\textbackslash{}t (tab)。\end{tabular} \\ \hline
 space &
-\begin{tabular}[c]{@{}l@{}}空白字符。对于C语言环境，它们是空格、\textbackslash{} t、\textbackslash{} n、\textbackslash{} r、\textbackslash{} v\\和\textbackslash{} f。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}空白字符。对于C语言环境，它们是空格、\textbackslash{}t、\textbackslash{}n、\textbackslash{}r、\textbackslash{}v\\和\textbackslash{}f。\end{tabular} \\ \hline
 s &
 与space一样。\\ \hline
 print &
@@ -808,7 +808,7 @@ regex\_replace() 算法需要一个正则表达式和一个格式化字符串，
 \endhead
 %
 \$n &
-\begin{tabular}[c]{@{}l@{}}匹配第 n 个捕获组的字符串；例如，\$1 用于第一个捕获组，\$2 用于第二个，\\依此类推。n 必须大于 0。
+\begin{tabular}[c]{@{}l@{}}匹配第n个捕获组的字符串；例如，\$1用于第一个捕\\获组，\$2用于第二个，依此类推。n 必须大于 0。
 \end{tabular} \\ \hline
 \$\& &
 匹配整个正则表达式的字符串。 \\ \hline
@@ -906,7 +906,7 @@ regex\_replace() 算法接受一些标志来改变其行为。最重要的标志
 \endhead
 %
 format\_default &
-\begin{tabular}[c]{@{}l@{}}默认情况下，regex\_replace() 会替换模式匹配的所有地方，并且也会\\将不匹配模式的全部内容复制到输出中。
+\begin{tabular}[c]{@{}l@{}}默认情况下，regex\_replace() 会替换模式匹配的所有地方，\\并且也会将不匹配模式的全部内容复制到输出中。
 \end{tabular} \\ \hline
 format\_no\_copy &
 \begin{tabular}[c]{@{}l@{}}替换模式匹配的所有地方，但不将不匹配模式的内容复制到输出中。

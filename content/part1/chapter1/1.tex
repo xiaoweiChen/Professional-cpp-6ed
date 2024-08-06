@@ -461,19 +461,19 @@ C++中的变量是强类型的，所以总是具有特定的类型。C++提供�
 \endhead
 %
 \begin{tabular}[c]{@{}l@{}}(signed) int signed\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}正、负整数;范围取决于编译器\\ (通常为4字节)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}正、负整数;范围取决\\于编译器 \\(通常为4字节)\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}int i \{-7\};\\ signed int i \{-6\};\\ signed i \{-5\};\end{tabular} \\ \hline
 (signed) short (int) &
-短整数(通常为2字节) &
+\begin{tabular}[c]{@{}l@{}}短整数\\(通常为2字节) \end{tabular}&
 \begin{tabular}[c]{@{}l@{}}short s \{13\};\\ short int s \{14\};\\ signed short s \{15\};\\ signed short int s \{16\};\end{tabular} \\ \hline
 (signed) long (int) &
-长整数(通常为4字节) &
+\begin{tabular}[c]{@{}l@{}}长整数\\(通常为4字节)\end{tabular} &
 long l \{-7L\}; \\ \hline
 (signed) long long (int) &
-\begin{tabular}[c]{@{}l@{}}超长整型;该范围取决于编译器，\\ 但至少与长整数相同\\ (通常为8字节)\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}超长整型;该范围取决于\\编译器， 但至少与长整数\\相同\\(通常为8字节)\end{tabular} &
 long long ll \{14LL\}; \\ \hline
 \begin{tabular}[c]{@{}l@{}}unsigned (int)\\ unsigned short (int)\\ unsigned long (int)\\ unsigned long long (int)\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}将上述类型限制为\textgreater{}= 0的值\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}将上述类型限制为\\≥ 0的值\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}unsigned int i \{2U\};\\ unsigned j \{5U\};\\ unsigned short s \{23U\};\\ unsigned long l \{54UL\};\\ unsigned long long ll \{140ULL\};\end{tabular} \\ \hline
 float &
 \begin{tabular}[c]{@{}l@{}}单精度浮点数\end{tabular} &
@@ -488,13 +488,13 @@ long double d \{16.98L\}; \\ \hline
 单个字符 &
 char ch \{'m'\}; \\ \hline
 \begin{tabular}[c]{@{}l@{}}char8\_t\\ char16\_t\\ char32\_t\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}单个n位UTF-n编码的Unicode字符，\\ 其中n可以是8、16或32\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}n位UTF-n编码的\\Unicode字符， n可以\\是8、16或32\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}char8\_t c8 \{u8'm'\};\\ char16\_t c16 \{u'm'\};\\ char32\_t c32 \{U'm'\};\end{tabular} \\ \hline
 wchar\_t &
-\begin{tabular}[c]{@{}l@{}}单个宽字符;大小取决于编译器\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}单个宽字符;\\大小取决于编译器\end{tabular} &
 wchar\_t w \{L'm'\}; \\ \hline
 bool &
-\begin{tabular}[c]{@{}l@{}}布尔类型，有两个可能值:true或false\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}布尔类型，有两个可能值:\\true或false\end{tabular} &
 bool b \{true\}; \\ \hline
 \end{longtable}
 
@@ -716,7 +716,7 @@ $3.40$x$10^{38}$ \\ \hline
 \begin{tabular}[c]{@{}l@{}}除法运算余数的二进制操作符，也称为取模或取模算子。\\ 例如: 5\%2=1\end{tabular} &
 int rem \{5 \% 2\}; \\ \hline
 ++ &
-\begin{tabular}[c]{@{}l@{}}一元操作符，将表达式加1。\\ 若操作符出现在表达式之后或自增后，则表达式的结果是未自增的值\\ 若操作符出现在表达式之前，或者在递增前，表达式的结果就是新值\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}一元操作符，将表达式加1。\\ 若操作符出现在表达式之后或自增后，则表达式的结果\\是未自增的值若操作符出现在表达式之前，或者在\\递增前，表达式的结果就是新值\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}i++;\\ ++i;\end{tabular} \\ \hline
 -- &
 一元操作符，将表达式减1。 &
@@ -1157,25 +1157,25 @@ println("{}", i > 2 ? "yes" : "no");
 \endhead
 %
 \begin{tabular}[c]{@{}l@{}}\textless\\ \textless{}=\\ \textgreater\\ \textgreater{}=\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}确定左边是否小于、小于或等于、大于或大于或等于右边。\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}确定左边是否小于、小于或\\等于、大于或大于或等于右边。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}if (i \textless 0) \{\\   print("i is negative");\\ \}\end{tabular} \\ \hline
 == &
-\begin{tabular}[c]{@{}l@{}}确定左边是否等于右边。不要将它与=(赋值)操作符混淆!\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}确定左边是否等于右边。\\不要将它与=(赋值)操作符混淆!\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}if (i == 3) \{\\   print("i is 3");\\ \}\end{tabular} \\ \hline
 != &
-\begin{tabular}[c]{@{}l@{}}不是等号。若左边不等于右边，这个语句的结果为true。\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}不是等号。若左边不等于右\\边，这个语句的结果为true。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}if (i != 3) \{\\   print("i is not 3");\\ \}\end{tabular} \\ \hline
 \textless{}=\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}三向比较操作符，也称为太空飞船操作符。\\ 下一节将更详细地解释。\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}三向比较操作符，也称为太\\空飞船操作符。\\ 下一节将更详细地解释。\end{tabular} &
 result = i \textless{}=\textgreater 0; \\ \hline
 ! &
-\begin{tabular}[c]{@{}l@{}}逻辑否。这是布尔表达式true/false状态的补充，\\ 是一元算子。\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}逻辑否。这是布尔表达式\\true/false状态的补充，\\ 是一元算子。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}if (!bool1) \{\\   print("bool1 is false");\\ \}\end{tabular} \\ \hline
 \&\& &
-\begin{tabular}[c]{@{}l@{}}逻辑与。若表达式的两个部分都为true，则结果为true。\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}逻辑与。若表达式的两个\\部分都为true，则结果为true。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}if (bool1 \&\& bool2) \{\\   print("both are true");\\ \}\end{tabular} \\ \hline
 || &
-\begin{tabular}[c]{@{}l@{}}逻辑或。若表达式的任何一部分为true，则结果为true。\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}逻辑或。若表达式的任何\\一部分为true，则结果为true。\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}if (bool1 || bool2) \{\\   print("at least one is true");\\ \}\end{tabular} \\ \hline
 \end{longtable}
 

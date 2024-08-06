@@ -281,7 +281,7 @@ void increment(atomic<int>& counter)
 \endhead
 %
 wait(oldValue) &
-\begin{tabular}[c]{@{}l@{}}阻塞线程，直到另一个线程调用notify\_one()或notify\_all()，且原子变量的值已\\更改，即不再等于oldValue。如果当前值已经不等于oldValue，则该函数根本不\\会阻塞。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}阻塞线程，直到另一个线程调用notify\_one()或notify\_all()，\\且原子变量的值已更改，即不再等于oldValue。如果当前值已经不等\\于oldValue，则该函数根本不会阻塞。\end{tabular} \\ \hline
 notify\_one()            & 唤醒因调用wait()而阻塞的一个线程。 \\ \hline
 notify\_all()            & 唤醒因调用wait()而阻塞的所有线程。        \\ \hline
 \end{longtable}

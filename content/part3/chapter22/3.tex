@@ -20,11 +20,11 @@ system\_clock &
 \end{tabular} &
 1970-01-01 00:00:00 \\ \hline
 steady\_clock &
-\begin{tabular}[c]{@{}l@{}}确保其time\_point永远不会减\\少，因为系统时钟可以随时调\\整，所以system\_clock不保证。\\实际上，该时钟不要求与壁挂\\时钟时间相关；例如，可以是\\自操作系统启动以来的时间。
+\begin{tabular}[c]{@{}l@{}}确保其time\_point永远不\\会减少，因为系统时钟可以随\\时调整，所以system\_clock\\不保证。实际上，该时钟不要\\求与壁挂时钟时间相关；例如，\\可以是自操作系统启动以来的\\时间。
 \end{tabular} &
 未指定 \\ \hline
 high\_resolution\_clock &
-\begin{tabular}[c]{@{}l@{}}具有最短的可能的刻度周期。\\根据编译器，这个时钟可能是\\steady\_clock或system\_clock\\的同义词。\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}具有最短的可能的刻度周期。\\根据编译器，这个时钟可能是\\steady\_clock或\\system\_clock的同义词。\end{tabular} &
 未指定 \\ \hline
 utc\_clock &
 \begin{tabular}[c]{@{}l@{}}表示协调世界时（UTC）的壁\\挂时钟时间。
@@ -39,7 +39,7 @@ gps\_clock &
 \end{tabular} &
 1980-01-06 00:00:00 \\ \hline
 file\_clock &
-\begin{tabular}[c]{@{}l@{}}代表文件时间，是\\std::filesystem::file\_time\_type\\的别名。
+\begin{tabular}[c]{@{}l@{}}代表文件时间，是\\std::filesystem::\\file\_time\_type\\的别名。
 \end{tabular} &
 \begin{tabular}[c]{@{}l@{}}未指定，\\Unix通常是1970-01-01，\\Windows中是1601-01-01。
 \end{tabular} \\ \hline

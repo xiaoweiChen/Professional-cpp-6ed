@@ -20,7 +20,7 @@ class Grid
     public:
         explicit Grid(std::size_t width = DefaultWidth,
             std::size_t height = DefaultHeight);
-        virtual ˜Grid() = default;
+        virtual ~Grid() = default;
 
         // Explicitly default a copy constructor and assignment operator.
         Grid(const Grid& src) = default;

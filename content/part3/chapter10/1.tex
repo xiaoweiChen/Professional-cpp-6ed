@@ -156,7 +156,7 @@ private访问说明符可以控制派生类如何与基类交互。
 public &
 \begin{tabular}[c]{@{}l@{}}可以调用一个对象的public成员函数或访\\问其public数据成员。
 \end{tabular} &
-\begin{tabular}[c]{@{}l@{}}希望客户端进行的操作（成员函数）。\\可访问对private和protected数据成\\员进行操作的成员函数（getter和\\setter）。
+\begin{tabular}[c]{@{}l@{}}希望客户端进行的操作（成员函数）。\\可访问对private和protected\\数据成员进行操作的成员函数\\（getter和setter）。
 \end{tabular} \\ \hline
 protected &
 \begin{tabular}[c]{@{}l@{}}类中的任何成员函数都可以调用protected\\的成员函数和protected的数据成员。派生\\类的成员函数可以访问基类的protected成\\员。
@@ -166,7 +166,7 @@ protected &
 private &
 \begin{tabular}[c]{@{}l@{}}只有类中的成员函数可以调用private成员\\函数和private数据成员。派生类中的成员\\函数不能访问基类的private成员。
 \end{tabular} &
-\begin{tabular}[c]{@{}l@{}}默认情况下，一切都应该是private，\\尤其是数据成员。如果只允许派生类\\访问，可以提供protected的getter和\\setter；如果希望客户端访问，可以提\\供public的getter和setter。
+\begin{tabular}[c]{@{}l@{}}默认情况下，一切都应该是private，\\尤其是数据成员。如果只允许派生类\\访问，可以提供protected的\\getter和setter；如果希望客户\\端访问，可以提供public的\\getter和setter。
 \end{tabular} \\ \hline
 \end{longtable}
 

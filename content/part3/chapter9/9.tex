@@ -22,7 +22,7 @@ export class Spreadsheet
             std::size_t width = MaxWidth, std::size_t height = MaxHeight);
         Spreadsheet(const Spreadsheet& src);
         Spreadsheet(Spreadsheet&&) noexcept;
-        ˜Spreadsheet();
+        ~Spreadsheet();
 
         Spreadsheet& operator=(const Spreadsheet& rhs);
         Spreadsheet& operator=(Spreadsheet&&) noexcept;

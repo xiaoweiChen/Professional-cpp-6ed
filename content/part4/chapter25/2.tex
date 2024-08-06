@@ -632,9 +632,9 @@ const\_reference   & 对容器中存储的元素类型的常量引用           
 iterator           & 遍历容器中元素类型的类型                                             \\ \hline
 const\_iterator    & 用于遍历容器中常量元素的迭代器类型的版本                               \\ \hline
 size\_type &
-\begin{tabular}[c]{@{}l@{}}可以表示容器中元素数量的类型；这通常是size\_t(<cstddef>)\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}可以表示容器中元素数量的类型；\\这通常是size\_t(<cstddef>)\end{tabular} \\ \hline
 difference\_type &
-\begin{tabular}[c]{@{}l@{}}可以表示容器中两个迭代器差异的类型；这通常是ptrdiff\_t (<cstddef>)\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}可以表示容器中两个迭代器差异的类型；\\这通常是ptrdiff\_t (<cstddef>)\end{tabular} \\ \hline
 \end{longtable}
 
 以下是为directed\_graph类模板定义的所有这些类型别名，除了迭代器和const\_iterator。关于迭代器的编写将在本章的后面详细介绍。
@@ -697,13 +697,13 @@ const_reference operator[](size_type index) const;
 执行移动赋值操作 &
 常数 \\ \hline
 析构函数 &
-\begin{tabular}[c]{@{}l@{}}销毁容器中剩余的元素，并释放它们的内存\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}销毁容器中剩余的元素，\\并释放它们的内存\end{tabular} &
 线性 \\ \hline
 \begin{tabular}[c]{@{}l@{}}iterator begin();\\ const\_iterator\\ begin() const;\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}返回一个迭代器或常量迭代器，指向容器中的第一个元素\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}返回一个迭代器或常量迭代器，\\指向容器中的第一个元素\end{tabular} &
 常数 \\ \hline
 \begin{tabular}[c]{@{}l@{}}iterator end();\\ const\_iterator\\ end() const;\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}返回一个迭代器或常量迭代器，指向容器中最后一个元素\\的下一个位置\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}返回一个迭代器或常量迭代器，\\指向容器中最后一个元素的下\\一个位置\end{tabular} &
 常数 \\ \hline
 \begin{tabular}[c]{@{}l@{}}const\_iterator\\ cbegin() const;\end{tabular} &
 与begin() const相同 &
@@ -715,7 +715,7 @@ operator== &
 \begin{tabular}[c]{@{}l@{}}比较操作符，用于比较两个容器\end{tabular} &
 线性 \\ \hline
 \begin{tabular}[c]{@{}l@{}}void swap(Container\&)\\ noexcept;\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}交换传递给成员函数的容器与调用成员函数对象的内容\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}交换传递给成员函数的容器与调用\\成员函数对象的内容\end{tabular} &
 常数 \\ \hline
 size\_type size() const; &
 \begin{tabular}[c]{@{}l@{}}返回容器中的元素数量\end{tabular} &

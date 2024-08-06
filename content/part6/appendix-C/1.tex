@@ -41,11 +41,11 @@ assert() 宏。 \\ \hline
 \textless{}cfloat\textgreater{} &
 与浮点运算相关的C风格的定义，如FLT\_MAX。 \\ \hline
 \textless{}cinttypes\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}定义了一些宏，用于与printf()，scanf()，和类似的函数一起使用。此头文件还包含\\一些与intmax\_t相关联的函数。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}定义了一些宏，用于与printf()，scanf()，和类似的函数一起使用。\\此头文件还包含一些与intmax\_t相关联的函数。\end{tabular} \\ \hline
 \textless{}climits\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}C风格的限制定义，如INT\_MAX。建议使用<limits>中C++的等价物。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}C风格的限制定义，如INT\_MAX。建议使用<limits>中C++的等\\价物。\end{tabular} \\ \hline
 \textless{}clocale\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}一些本地化宏和函数，如LC\_ALL和setlocale()。参见<locale>中C++的等价物。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}一些本地化宏和函数，如LC\_ALL和setlocale()。参见<locale>\\中C++的等价物。\end{tabular} \\ \hline
 \textless{}cmath\textgreater{} &
 数学实用工具，包括三角函数sqrt()，fabs()。 \\ \hline
 \textless{}csetjmp\textgreater{} &
@@ -57,13 +57,13 @@ signal()和raise()。在C++中避免使用。 \\ \hline
 \textless{}cstddef\textgreater{} &
 \begin{tabular}[c]{@{}l@{}}重要的常量，如NULL，和重要的类型，如size\_t和byte。\end{tabular} \\ \hline
 \textless{}cstdint\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}定义了一系列标准整数类型，如int8\_t，int64\_t等。还包括了指定这些类型的最小\\值和最大值的宏。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}定义了一系列标准整数类型，如int8\_t，int64\_t等。还包括了指定\\这些类型的最小值和最大值的宏。\end{tabular} \\ \hline
 \textless{}cstdio\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}文件操作，包括fopen()和fclose()。格式化I/O：printf()，scanf()及其族函数。字\\符I/O：getc()，putc()及其家族。文件定位：fseek()和ftell()，建议使用C++流代\\替。（参见附录后面的“I/O流”部分。）\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}文件操作，包括fopen()和fclose()。格式化I/O：printf()，\\scanf()及其族函数。字符I/O：getc()，putc()及其家族。文\\件定位：fseek()和ftell()，建议使用C++流代替。（参见附录\\后面的“I/O流”部分。）\end{tabular} \\ \hline
 \textless{}cstdlib\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}rand()和srand()生成随机数（自C++14以来已废弃；使用C++的<random>）。此头\\文件包括abort()和exit()函数，应该避免使用；C风格的内存分配函数calloc()，\\malloc()，realloc()和free()；C风格的搜索和排序与qsort()和bsearch()；字符串到数\\字转换：atof()，atoi()；以及一组与多字节/宽字符串操作相关联的函数。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}rand()和srand()生成随机数（自C++14以来已废弃；使用C++\\的<random>）。此头文件包括abort()和exit()函数，应该避免\\使用；C风格的内存分配函数calloc()，malloc()，realloc()和\\free()；C风格的搜索和排序与qsort()和bsearch()；字符串到\\数字转换：atof()，atoi()；以及一组与多字节/宽字符串操作相关联的\\函数。\end{tabular} \\ \hline
 \textless{}cstring\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}低层内存管理函数，包括memcpy()和memset()。此头文件包括C风格的字符串函数，\\如strcpy()和strcmp()。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}低层内存管理函数，包括memcpy()和memset()。此头文件包括C\\风格的字符串函数，如strcpy()和strcmp()。\end{tabular} \\ \hline
 \textless{}ctime\textgreater{} &
 与时间相关的函数，包括time()和localtime()。\\ \hline
 \textless{}cuchar\textgreater{} &
@@ -88,7 +88,7 @@ signal()和raise()。在C++中避免使用。 \\ \hline
 %
 \textless{}ccomplex\textgreater{}  &仅包含 \textless{}complex\textgreater{}.                                  \\ \hline
 \textless{}ciso646\textgreater{} &
-\begin{tabular}[c]{@{}l@{}}在C中，<iso646.h>文件定义了and，or等宏。在C++中，这些是关键字，所以这个\\头文件是空的。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}在C中，<iso646.h>文件定义了and，or等宏。在C++中，这些\\是关键字，所以这个头文件是空的。\end{tabular} \\ \hline
 \textless{}cstdalign\textgreater{} & 与对齐相关的宏 \_\_alignas\_is\_defined.                                \\ \hline
 \textless{}cstdbool\textgreater{}  & 布尔类型相关的宏 \_\_bool\_true\_false\_are\_defined.                  \\ \hline
 \textless{}ctgmath\textgreater{}   & 仅包含 \textless{}complex\textgreater 和 \textless{}cmath\textgreater{}. \\ \hline

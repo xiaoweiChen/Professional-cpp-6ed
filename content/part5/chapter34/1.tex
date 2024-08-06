@@ -34,13 +34,13 @@ C++标准没有定义整数类型的确切大小，标准只在[basic.fundamenta
 \endhead
 %
 \begin{tabular}[c]{@{}l@{}}int8\_t\\ int16\_t\\ int32\_t\\ int64\_t\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}大小恰好为8、16、32或64位的有符号整数。在特殊平台上，这些类型中的一些\\可能不存在。例如，特殊平台不支持8位类型，int8\_t将根本不存在。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}大小恰好为8、16、32或64位的有符号整数。在特殊平台上，\\这些类型中的一些可能不存在。例如，特殊平台不支持8位类型，\\int8\_t根本不存在。\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}int\_fast8\_t\\ int\_fast16\_t\\ int\_fast32\_t\\ int\_fast64\_t\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}大小至少为8、16、32或64位的有符号整数。对于这些，编译器应使用满足要求\\的最快的整数类型。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}大小至少为8、16、32或64位的有符号整数。对于这些，编译\\器应使用满足要求的最快的整数类型。\end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}int\_least8\_t\\ int\_least16\_t\\ int\_least32\_t\\ int\_least64\_t\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}大小至少为8、16、32或64位的有符号整数——存在最小的此类类型。即使是在\\特殊平台上，这些类型也保证存在。例如，一个24位字节的平台将把int\_least8\_t\\和int\_least16\_t都别名为它的24位char类型。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}大小至少为8、16、32或64位的有符号整数——存在最小的此类\\类型。即使是在特殊平台上，这些类型也保证存在。例如，一个24\\位字节的平台将把int\_least8\_t和int\_least16\_t都别名为\\它的24位char类型。\end{tabular} \\ \hline
 intmax\_t     & 编译器支持的最大尺寸的整数类。                                                                                    \\ \hline
-intptr\_t     & \begin{tabular}[c]{@{}l@{}}足够大以存储指针的整数类型。这个类型也是可选的，大多数编译器都支持。\end{tabular} \\ \hline
+intptr\_t     & \begin{tabular}[c]{@{}l@{}}足够大以存储指针的整数类型。这个类型也是可选的，大多数编译器\\都支持。\end{tabular} \\ \hline
 \end{longtable}
 
 还有可用的无符号变体，如uint8\_t、uint\_fast8\_t等。

@@ -155,9 +155,9 @@ println("x has value {} and y has value {}.", x, y);
 println(cerr, "x has value {} and y has value {}.", x, y);
 \end{cpp}
 
-\CXXTwentythreeLogo{-40}{-50}
-
 \mySubsubsection{2.2.4.}{编译时验证字符串的格式}
+
+\CXXTwentythreeLogo{-40}{15}
 
 从C++23起，format()、print()、 和println()的格式字符串必须是编译时常量，这样编译器就可以在编译时检查格式字符串中是否有语法错误，所以以下代码无法编译：
 
@@ -500,7 +500,7 @@ println("|{:?}|", '"');                 // |'"'|
 \endhead
 %
 m &
-\begin{tabular}[c]{@{}l@{}}仅对包含两个元素的pair和tuple可用。默认情况下，用圆括号括起来，并用逗号分\\ 隔。若指定了m，则不用括号包围，并且两个元素用":"分隔。\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}仅对包含两个元素的pair和tuple可用。默认情况下，用圆括号括起来，\\并用逗号分 隔。若指定了m，则不用括号包围，并且两个元素用":"分隔。\end{tabular} \\ \hline
 s                   & \begin{tabular}[c]{@{}l@{}}将范围格式化为字符串(不能与n或范围基本规格组合)。\end{tabular}          \\ \hline
 ?s                  & \begin{tabular}[c]{@{}l@{}}将范围格式化为转义字符串(不能与n或范围基础规范结合使用)\end{tabular} \\ \hline
 \end{longtable}

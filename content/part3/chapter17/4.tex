@@ -170,7 +170,7 @@ views::all &
 \begin{tabular}[c]{@{}l@{}}通过丢弃底层序列的所有初始元素，直到达到一个元素，对于该元素，给定\\的谓词返回 false，来创建一个视图。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}join\_view\\ views::join\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}将一个范围视图展开成一个视图。例如，将一个 vector<vector<int>{}> 展开成\\一个 vector<int>。
+\begin{tabular}[c]{@{}l@{}}将一个范围视图展开成一个视图。例如，将一个 vector<vector<int>{}>\\展开成一个 vector<int>。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}lazy\_split\_view\\ views::lazy\_split\\ split\_view\\ views::split\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}给定分隔符，将给定视图按分隔符分割成子范围。分隔符可以是单个元素或\\元素视图。
@@ -188,7 +188,7 @@ views::all &
 \begin{tabular}[c]{@{}l@{}}需要一个类似对的元素视图，创建每个对的第二个元素的视图。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}common\_view\\ views::common\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}根据范围的类型，begin() 和 end() 可能返回不同类型的对象，例如一个 begin \\迭代器和 end 哨兵，所以不能将这样的迭代器对传递给期望具有相同类型的\\函数。common\_view 可以用来将这样的范围转换为一个 common 范围，这是\\一个 begin() 和 end() 返回相同类型的范围。我们将在练习中使用这个范围适\\配器。
+\begin{tabular}[c]{@{}l@{}}根据范围的类型，begin() 和 end() 可能返回不同类型的对象，例如一个\\begin 迭代器和 end 哨兵，所以不能将这样的迭代器对传递给期望具有相\\同类型的函数。common\_view 可以用来将这样的范围转换为一个 common \\范围，这是一个 begin() 和 end() 返回相同类型的范围。我们将在练习\\中使用这个范围适配器。
 \end{tabular} \\ \hline
 \end{longtable}
 
@@ -218,34 +218,34 @@ C++23添加了下面的范围适配器:
 \begin{tabular}[c]{@{}l@{}}创建一个视图，由所有给定视图对应元素的引用组成的元组。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}zip\_transform\_view\\ views::zip\_transform\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}创建一个视图，其第 i 个元素是应用给定可调用对象到所有给定视图的\\第 i 个元素的结果。
+\begin{tabular}[c]{@{}l@{}}创建一个视图，其第 i 个元素是应用给定可调用对象到所有给\\定视图的第 i 个元素的结果。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}adjacent\_view\\ views::adjacent\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}对于给定的 n，创建一个视图，其第 i 个元素是一个元组，包含对给定\\视图的第 i 个到第 (i + n - 1) 个元素的引用。
+\begin{tabular}[c]{@{}l@{}}对于给定的 n，创建一个视图，其第 i 个元素是一个元组，包\\含对给定视图的第 i 个到第 (i + n - 1) 个元素的引用。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}adjacent\_transform\_view\\ views::adjacent\_transform\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}对于给定的 n，创建一个视图，其第 i 个元素是应用给定可调用对象到\\给定视图的第 i 个到第 (i + n - 1) 个元素的结果。
+\begin{tabular}[c]{@{}l@{}}对于给定的 n，创建一个视图，其第 i 个元素是应用给定可调\\用对象到给定视图的第 i 个到第 (i + n - 1) 个元素的结果。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}views::pairwise\\ views::pairwise\_transform\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}辅助类型分别表示 views::adjacent<2> 和 views::adjacent\_transform<2>。
+\begin{tabular}[c]{@{}l@{}}辅助类型分别表示 views::adjacent<2> 和 \\views::adjacent\_transform<2>。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}join\_with\_view\\ views::join\_with\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}给定分隔符，展开给定视图的元素，在视图的元素之间插入分隔符的\\每个元素。分隔符可以是单个元素或元素视图。
+\begin{tabular}[c]{@{}l@{}}给定分隔符，展开给定视图的元素，在视图的元素之间插入分隔\\符的每个元素。分隔符可以是单个元素或元素视图。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}stride\_view\\ views::stride\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}对于给定的 n，创建一个视图，该视图在每次前进时覆盖 n 个底层序\\列的元素，而不是一个接一个。
+\begin{tabular}[c]{@{}l@{}}对于给定的 n，创建一个视图，该视图在每次前进时覆盖 n 个\\底层序列的元素，而不是一个接一个。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}slide\_view\\ views::slide\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}对于给定的 n，创建一个视图，其第 i 个元素是原始视图的第 i 个到第 \\(i + n - 1) 个元素上的视图。类似于 views::adjacent，但窗口大小 n 是 \\slide 的运行时参数，而对于 adjacent 是一个模板参数。
+\begin{tabular}[c]{@{}l@{}}对于给定的 n，创建一个视图，其第 i 个元素是原始视图的第\\ i 个到第 (i + n - 1) 个元素上的视图。类似于 \\views::adjacent，但窗口大小 n 是 \\slide 的运行时参数，而对于 adjacent 是一个模板参数。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}chunk\_view\\ views::chunk\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}对于给定的 n，创建一个视图范围，这些视图是不重叠的连续原始视\\图元素块，每个块的大小为 n，按顺序排列。
+\begin{tabular}[c]{@{}l@{}}对于给定的 n，创建一个视图范围，这些视图是不重叠的连续\\原始视图元素块，每个块的大小为 n，按顺序排列。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}chunk\_by\_view\\ views::chunk\_by\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}将给定视图按给定谓词返回 false 的每对相邻元素之间分割成子范围。
+\begin{tabular}[c]{@{}l@{}}将给定视图按给定谓词返回 false 的每对相邻元素之间分割成\\子范围。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}cartesian\_product\_view\\ views::cartesian\_product\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}给定 n 个范围，创建一个视图，该视图由提供的范围 n 元笛卡尔积计\\算得到的元组组成。
+\begin{tabular}[c]{@{}l@{}}给定 n 个范围，创建一个视图，该视图由提供的范围 n 元笛卡\\尔积计算得到的元组组成。
 \end{tabular} \\ \hline
 \end{longtable}
 
@@ -461,7 +461,7 @@ repeat\_view(C++23) &
 \begin{tabular}[c]{@{}l@{}}创建一个重复给定值的视图。结果视图可以是无穷大（无限）或有限，\\具体情况由给定数量的值决定。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}basic\_istream\_view\\ istream\_view\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}创建一个视图，包含通过调用底层输入流提取操作符 operator>{}> 获取\\的元素。
+\begin{tabular}[c]{@{}l@{}}创建一个视图，包含通过调用底层输入流提取操作符 operator>{}> \\获取的元素。
 \end{tabular} \\ \hline
 \end{longtable}
 

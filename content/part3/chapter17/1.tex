@@ -23,7 +23,7 @@
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}输出 (也称为Write)\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}operator++, *, =\\ 复制构造函数\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}提供只写访问，仅向前移动。\\迭代器可赋值，但不能比较\\是否相等。输出迭代器的一\\个特点是可以执行 \\*iter = value，这里没有 operator->。\\提供前缀和后缀 operator++。
+\begin{tabular}[c]{@{}l@{}}提供只写访问，仅向前移动。\\迭代器可赋值，但不能比较\\是否相等。输出迭代器的一\\个特点是可以执行 \\*iter = value，这里没有\\operator->。提供前缀和后缀\\operator++。
 \end{tabular} \\ \hline
 前向 &
 \begin{tabular}[c]{@{}l@{}}具有输入迭代器的功能，\\另外还有默认构造函数。
@@ -118,16 +118,16 @@ crbegin() 和 crend() 返回常量逆序迭代器
 \endhead
 %
 \begin{tabular}[c]{@{}l@{}}begin()\\ end()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}返回指向序列中第一个元素的非const迭代器，以及指向最后一个元素之后位置的迭代器。
+\begin{tabular}[c]{@{}l@{}}返回指向序列中第一个元素的非const迭代器，\\以及指向最后一个元素之后位置的迭代器。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}cbegin()\\ cend()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}返回指向序列中第一个元素的const迭代器，以及指向最后一个元素之后位置的迭代器。
+\begin{tabular}[c]{@{}l@{}}返回指向序列中第一个元素的const迭代器，\\以及指向最后一个元素之后位置的迭代器。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}rbegin()\\ rend()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}返回指向序列中最后一个元素的非const反向迭代器，以及指向第一个元素之前位置的迭代器。
+\begin{tabular}[c]{@{}l@{}}返回指向序列中最后一个元素的非const反向迭代器，\\以及指向第一个元素之前位置的迭代器。
 \end{tabular} \\ \hline
 \begin{tabular}[c]{@{}l@{}}crbegin()\\ crend()\end{tabular} &
-\begin{tabular}[c]{@{}l@{}}返回指向序列中最后一个元素的const反向迭代器，以及指向第一个元素之前位置的迭代器。
+\begin{tabular}[c]{@{}l@{}}返回指向序列中最后一个元素的const反向迭代器，\\以及指向第一个元素之前位置的迭代器。
 \end{tabular} \\ \hline
 \end{longtable}
 
