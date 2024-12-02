@@ -47,7 +47,7 @@ double m_value;
 
 \mySamllsection{访问控制}
 
-类中的每个成员都受以下三种访问说明符之一：public、private或protected。访问说明符适用于其之后的所有成员声明，直到下一个访问说明符。SpreadsheetCell类中，setValue()和getValue()成员函数为public，而m\_value数据成员问为private。
+类中的每个成员都受以下三种访问说明符之一：public、private或protected。访问说明符适用于其之后的所有成员声明，直到下一个访问说明符。SpreadsheetCell类中，setValue()和getValue()成员函数为public，而m\_value数据成员则为private。
 
 类的默认访问说明符是private：第一个访问说明符之前的所有成员声明都为private。将public访问说明符移动到setValue()成员函数声明之后，则setValue()成员函数问private，而非public：
 
@@ -69,7 +69,7 @@ SpreadsheetCell类可以改写为struct：
 \begin{cpp}
 export struct SpreadsheetCell
 {
-    void setValue(double value);
+        void setValue(double value);
         double getValue() const;
     private:
         double m_value;
