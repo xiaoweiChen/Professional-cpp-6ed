@@ -126,24 +126,24 @@ println("{}", (++x, 2 * x)); // Increments x to 2, doubles it, and prints 4.
 %
 \endhead
 %
-\begin{tabular}[c]{@{}l@{}}operator+\\ operator\\ operator*\\ operator/\\ operator\%\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}operator+\\ operator-\\ operator*\\ operator/\\ operator\%\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}二元算术\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\全局函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}想为类提供\\这些操作，\\就可以重载\\二元算术\\操作符。
 \end{tabular} &
 \begin{tabular}[c]{@{}l@{}}T operator+(\\const T\&, const T\&);\\ T operator+(\\const T\&, const E\&);\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}operator\\ operator+\\ operator˜\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}operator-\\ operator+\\ operator˜\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}一元算术\\和位操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}想为类提供\\这些操作，\\就可以重载\\一元算术和位\\操作符。
 \end{tabular} &
 T operator-() const; \\ \hline
-\begin{tabular}[c]{@{}l@{}}operator++\\ operator--\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}operator++\\ operator-{}-\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}前置增量\\和前置减量\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}重载有\\算术参数\\的+=和-=\\(int, \\long，\\…)\end{tabular} &
 T\& operator++(); \\ \hline
-\begin{tabular}[c]{@{}l@{}}operator++\\ operator--\end{tabular} &
+\begin{tabular}[c]{@{}l@{}}operator++\\ operator-{}-\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}后置增量\\和后置减量\\操作符\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}推荐为\\成员函数\end{tabular} &
 \begin{tabular}[c]{@{}l@{}}重载有\\算术参数\\的+=和-=时\\(int, \\long，\\…)\end{tabular} &
